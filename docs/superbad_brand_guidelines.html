@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBad Marketing — Brand Guidelines</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Righteous&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+
+/* ── RESET & ROOT ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:    #B22848;
+  --cream:  #FDF5E6;
+  --pink:   #F4A0B0;
+  --orange: #F28C52;
+  --dark:   #1A1A18;
+  --mid:    #2C2C2A;
+  --muted:  #6B6B68;
+  --light:  #F0E8D8;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--dark);
+  color: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0 60px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(26,26,24,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.nav-logo {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 18px;
+  color: var(--red);
+  letter-spacing: 0.02em;
+}
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--cream); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 60px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 10% 80%, rgba(178,40,72,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 20%, rgba(242,140,82,0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(178,40,72,0.04) 0%, transparent 70%);
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(178,40,72,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(178,40,72,0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+.hero-year {
+  position: absolute;
+  top: 80px; right: 60px;
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 200px;
+  color: rgba(178,40,72,0.06);
+  line-height: 1;
+  user-select: none;
+}
+.hero-eyebrow {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 20px;
+  position: relative;
+}
+.hero-title {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: clamp(64px, 10vw, 130px);
+  line-height: 0.88;
+  position: relative;
+  margin-bottom: 8px;
+}
+.hero-title .line1 { color: var(--cream); display: block; }
+.hero-title .line2 { color: var(--red); display: block; }
+.hero-title .line3 { color: var(--cream); display: block; }
+.hero-sub {
+  position: relative;
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.hero-sub-text {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.hero-sub-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--red), transparent);
+  max-width: 300px;
+}
+
+/* ── SECTION WRAPPER ── */
+section {
+  padding: 100px 60px;
+  position: relative;
+}
+section + section {
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.section-eyebrow {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.section-eyebrow::after {
+  content: '';
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: var(--red);
+}
+.section-title {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 0.92;
+  margin-bottom: 48px;
+  color: var(--cream);
+}
+.section-title span { color: var(--red); }
+
+/* ── COLOUR SECTION ── */
+.colours-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+.colour-card {
+  position: relative;
+  overflow: hidden;
+}
+.colour-swatch {
+  height: 200px;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+.colour-card:hover .colour-swatch { transform: scaleY(1.04); }
+.colour-swatch-inner {
+  position: absolute; inset: 0;
+}
+.colour-info {
+  padding: 20px 16px;
+  background: var(--mid);
+}
+.colour-name {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 15px;
+  color: var(--cream);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+.colour-hex {
+  font-family: 'Righteous', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.colour-role {
+  font-size: 11px;
+  color: rgba(253,245,230,0.4);
+  line-height: 1.5;
+  font-weight: 300;
+}
+.colour-copy {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--cream);
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  text-transform: uppercase;
+}
+.colour-swatch:hover .colour-copy { opacity: 1; }
+
+/* Colour usage ratio bar */
+.colour-ratio {
+  margin-top: 48px;
+  background: var(--mid);
+  padding: 32px 36px;
+}
+.ratio-label {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.ratio-bar {
+  display: flex;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 2px;
+  gap: 2px;
+}
+.ratio-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: flex 0.4s ease;
+}
+.ratio-legend {
+  display: flex;
+  gap: 24px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.ratio-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.ratio-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── TYPOGRAPHY ── */
+.type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+.type-card {
+  background: var(--mid);
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.type-card-label {
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 20px;
+}
+.type-specimen {
+  margin-bottom: 24px;
+  line-height: 1.1;
+}
+.type-meta {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 20px;
+}
+.type-meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.type-meta-key { color: var(--muted); }
+.type-meta-val { color: var(--cream); font-weight: 400; }
+.type-usage {
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(253,245,230,0.4);
+  line-height: 1.6;
+  font-weight: 300;
+}
+.type-hierarchy {
+  background: var(--mid);
+  padding: 40px;
+  margin-top: 3px;
+  grid-column: 1 / -1;
+}
+.type-hier-label {
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 32px;
+}
+.type-hier-row {
+  display: flex;
+  align-items: baseline;
+  gap: 32px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.type-hier-row:last-child { border-bottom: none; }
+.type-hier-meta {
+  width: 160px;
+  flex-shrink: 0;
+}
+.type-hier-name {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.type-hier-spec {
+  font-size: 11px;
+  color: rgba(253,245,230,0.25);
+}
+.type-hier-example { flex: 1; }
+
+/* ── LOGO ── */
+.logo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3px;
+  margin-bottom: 3px;
+}
+.logo-tile {
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 240px;
+  position: relative;
+}
+.logo-tile-label {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.logo-wordmark {
+  font-family: 'Black Han Sans', sans-serif;
+  letter-spacing: 0.02em;
+  line-height: 0.9;
+  text-align: center;
+}
+.logo-sub {
+  font-family: 'Righteous', sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ── STYLE DESCRIPTORS ── */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+.style-card {
+  background: var(--mid);
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.style-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--red);
+}
+.style-num {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 64px;
+  color: rgba(178,40,72,0.08);
+  position: absolute;
+  bottom: -10px; right: 16px;
+  line-height: 1;
+  user-select: none;
+}
+.style-title {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 22px;
+  color: var(--cream);
+  margin-bottom: 12px;
+  line-height: 1.1;
+  position: relative;
+}
+.style-body {
+  font-size: 13px;
+  color: rgba(253,245,230,0.6);
+  line-height: 1.7;
+  font-weight: 300;
+  position: relative;
+}
+
+/* ── VISUAL REFERENCES ── */
+.refs-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+.ref-card {
+  background: var(--mid);
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.ref-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+}
+.ref-card.r1::after { background: var(--red); }
+.ref-card.r2::after { background: var(--orange); }
+.ref-card.r3::after { background: var(--pink); }
+.ref-card.r4::after { background: var(--muted); }
+.ref-icon { font-size: 40px; margin-bottom: 16px; display: block; }
+.ref-name {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 18px;
+  color: var(--cream);
+  margin-bottom: 6px;
+}
+.ref-role {
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 12px;
+}
+.ref-desc {
+  font-size: 12px;
+  color: rgba(253,245,230,0.5);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* ── DON'T DO THIS ── */
+.dont-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+.dont-card {
+  padding: 28px 32px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.dont-card.bad { background: rgba(178,40,72,0.07); border: 1px solid rgba(178,40,72,0.12); }
+.dont-card.good { background: rgba(93,191,138,0.05); border: 1px solid rgba(93,191,138,0.1); }
+.dont-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.dont-text { font-size: 13px; line-height: 1.6; font-weight: 300; }
+.dont-card.bad .dont-text { color: rgba(253,245,230,0.55); }
+.dont-card.good .dont-text { color: rgba(253,245,230,0.55); }
+.dont-header {
+  padding: 14px 32px;
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+.dont-header.bad { background: rgba(178,40,72,0.12); color: var(--red); }
+.dont-header.good { background: rgba(93,191,138,0.08); color: #5DBF8A; }
+
+/* ── MOTION & FEEL ── */
+.feel-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+.feel-card {
+  background: var(--mid);
+  padding: 40px;
+}
+.feel-title {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 28px;
+  color: var(--cream);
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.feel-body {
+  font-size: 13px;
+  color: rgba(253,245,230,0.6);
+  line-height: 1.7;
+  font-weight: 300;
+}
+.feel-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 20px;
+}
+.feel-tag {
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 2px;
+}
+.feel-tag.r { background: rgba(178,40,72,0.15); color: var(--pink); border: 1px solid rgba(178,40,72,0.25); }
+.feel-tag.o { background: rgba(242,140,82,0.12); color: var(--orange); border: 1px solid rgba(242,140,82,0.2); }
+.feel-tag.m { background: rgba(253,245,230,0.05); color: rgba(253,245,230,0.4); border: 1px solid rgba(253,245,230,0.08); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--mid);
+  padding: 40px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.footer-logo {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 24px;
+  color: var(--red);
+}
+.footer-note {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logo">SUPERBAD</div>
+  <ul class="nav-links">
+    <li><a href="#colours">Colours</a></li>
+    <li><a href="#typography">Typography</a></li>
+    <li><a href="#logo">Logo</a></li>
+    <li><a href="#style">Style</a></li>
+    <li><a href="#references">References</a></li>
+    <li><a href="#usage">Usage</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-year">26</div>
+  <div class="hero-eyebrow">SuperBad Marketing · Visual Brand Guidelines · 2026</div>
+  <h1 class="hero-title">
+    <span class="line1">BRAND</span>
+    <span class="line2">GUIDE</span>
+    <span class="line3">LINES</span>
+  </h1>
+  <div class="hero-sub">
+    <div class="hero-sub-line"></div>
+    <div class="hero-sub-text">Visual Identity · Typography · Colour · Style Direction · Melbourne, Australia</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     COLOURS
+══════════════════════════════════════ -->
+<section id="colours">
+  <div class="section-eyebrow">01</div>
+  <h2 class="section-title">Brand<br><span>Colours</span></h2>
+
+  <div class="colours-grid reveal">
+
+    <!-- SuperBad Red -->
+    <div class="colour-card">
+      <div class="colour-swatch" style="background:#B22848;">
+        <button class="colour-copy" onclick="navigator.clipboard.writeText('#B22848');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1200)">Copy</button>
+      </div>
+      <div class="colour-info">
+        <div class="colour-name">SuperBad Red</div>
+        <div class="colour-hex">#B22848</div>
+        <div class="colour-hex">RGB 178 · 40 · 72</div>
+        <div class="colour-hex">CMYK 0 · 78 · 60 · 30</div>
+        <div class="colour-role" style="margin-top:8px;">Primary brand colour. Used for headlines, logo, key UI elements, and all primary accent moments. The dominant personality colour.</div>
+      </div>
+    </div>
+
+    <!-- Warm Cream -->
+    <div class="colour-card">
+      <div class="colour-swatch" style="background:#FDF5E6;">
+        <button class="colour-copy" onclick="navigator.clipboard.writeText('#FDF5E6');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1200)" style="color:#1A1A18;">Copy</button>
+      </div>
+      <div class="colour-info">
+        <div class="colour-name">Warm Cream</div>
+        <div class="colour-hex">#FDF5E6</div>
+        <div class="colour-hex">RGB 253 · 245 · 230</div>
+        <div class="colour-hex">CMYK 0 · 3 · 9 · 1</div>
+        <div class="colour-role" style="margin-top:8px;">Primary text colour on dark backgrounds. Not pure white — the warmth references the 1970s brand heritage. Also used for light backgrounds in print.</div>
+      </div>
+    </div>
+
+    <!-- Retro Pink -->
+    <div class="colour-card">
+      <div class="colour-swatch" style="background:#F4A0B0;">
+        <button class="colour-copy" onclick="navigator.clipboard.writeText('#F4A0B0');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1200)" style="color:#1A1A18;">Copy</button>
+      </div>
+      <div class="colour-info">
+        <div class="colour-name">Retro Pink</div>
+        <div class="colour-hex">#F4A0B0</div>
+        <div class="colour-hex">RGB 244 · 160 · 176</div>
+        <div class="colour-hex">CMYK 0 · 34 · 28 · 4</div>
+        <div class="colour-role" style="margin-top:8px;">Secondary accent. Used for mutters, subtext, and softer UI moments. Adds warmth without competing with SuperBad Red. Tertiary hierarchy colour.</div>
+      </div>
+    </div>
+
+    <!-- Retro Orange -->
+    <div class="colour-card">
+      <div class="colour-swatch" style="background:#F28C52;">
+        <button class="colour-copy" onclick="navigator.clipboard.writeText('#F28C52');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1200)" style="color:#1A1A18;">Copy</button>
+      </div>
+      <div class="colour-info">
+        <div class="colour-name">Retro Orange</div>
+        <div class="colour-hex">#F28C52</div>
+        <div class="colour-hex">RGB 242 · 140 · 82</div>
+        <div class="colour-hex">CMYK 0 · 42 · 66 · 5</div>
+        <div class="colour-role" style="margin-top:8px;">Gradient partner to SuperBad Red. Used in bar charts, progress indicators, and as the warm end of red-to-orange gradients. Accent use only — never dominant.</div>
+      </div>
+    </div>
+
+    <!-- Dark Charcoal -->
+    <div class="colour-card">
+      <div class="colour-swatch" style="background:#1A1A18; border: 1px solid rgba(255,255,255,0.06);">
+        <button class="colour-copy" onclick="navigator.clipboard.writeText('#1A1A18');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1200)">Copy</button>
+      </div>
+      <div class="colour-info">
+        <div class="colour-name">Dark Charcoal</div>
+        <div class="colour-hex">#1A1A18</div>
+        <div class="colour-hex">RGB 26 · 26 · 24</div>
+        <div class="colour-hex">CMYK 0 · 0 · 8 · 90</div>
+        <div class="colour-role" style="margin-top:8px;">Primary background colour. Not pure black — the slight warmth keeps it from feeling cold or corporate. The armchair set backdrop.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Colour Ratio Bar -->
+  <div class="colour-ratio reveal" style="margin-top:3px;">
+    <div class="ratio-label">Recommended colour usage ratio</div>
+    <div class="ratio-bar">
+      <div class="ratio-seg" style="flex:60;background:#1A1A18;color:rgba(253,245,230,0.3);">60%</div>
+      <div class="ratio-seg" style="flex:20;background:#B22848;color:#FDF5E6;">20%</div>
+      <div class="ratio-seg" style="flex:10;background:#FDF5E6;color:#1A1A18;">10%</div>
+      <div class="ratio-seg" style="flex:6;background:#F4A0B0;color:#1A1A18;">6%</div>
+      <div class="ratio-seg" style="flex:4;background:#F28C52;color:#1A1A18;">4%</div>
+    </div>
+    <div class="ratio-legend">
+      <div class="ratio-legend-item"><div class="ratio-dot" style="background:#1A1A18;border:1px solid rgba(255,255,255,0.1)"></div>Dark Charcoal — 60%</div>
+      <div class="ratio-legend-item"><div class="ratio-dot" style="background:#B22848"></div>SuperBad Red — 20%</div>
+      <div class="ratio-legend-item"><div class="ratio-dot" style="background:#FDF5E6"></div>Warm Cream — 10%</div>
+      <div class="ratio-legend-item"><div class="ratio-dot" style="background:#F4A0B0"></div>Retro Pink — 6%</div>
+      <div class="ratio-legend-item"><div class="ratio-dot" style="background:#F28C52"></div>Retro Orange — 4%</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════
+     TYPOGRAPHY
+══════════════════════════════════════ -->
+<section id="typography">
+  <div class="section-eyebrow">02</div>
+  <h2 class="section-title">Typo<br><span>graphy</span></h2>
+
+  <div class="type-grid reveal">
+
+    <!-- Black Han Sans -->
+    <div class="type-card">
+      <div class="type-card-label">Display / Hero Font</div>
+      <div class="type-specimen" style="font-family:'Black Han Sans',sans-serif;font-size:64px;color:var(--cream);line-height:0.9;">SUPER<br><span style="color:var(--red);">BAD</span></div>
+      <div class="type-meta">
+        <div class="type-meta-row"><span class="type-meta-key">Font</span><span class="type-meta-val">Black Han Sans</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Source</span><span class="type-meta-val">Google Fonts — Free</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Weight</span><span class="type-meta-val">900 (only weight available)</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Character</span><span class="type-meta-val">Bold, Korean-influenced, high impact</span></div>
+      </div>
+      <div class="type-usage">Used for: Hero titles, the SUPERBAD wordmark, large display text, section numbers, and any moment requiring maximum visual impact. Never use at body text sizes.</div>
+    </div>
+
+    <!-- Righteous -->
+    <div class="type-card">
+      <div class="type-card-label">Subheading / Label Font</div>
+      <div class="type-specimen" style="font-family:'Righteous',sans-serif;font-size:42px;color:var(--cream);">MARKETING</div>
+      <div class="type-meta">
+        <div class="type-meta-row"><span class="type-meta-key">Font</span><span class="type-meta-val">Righteous</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Source</span><span class="type-meta-val">Google Fonts — Free</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Weight</span><span class="type-meta-val">400 (only weight available)</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Character</span><span class="type-meta-val">Retro-geometric, confident, warm</span></div>
+      </div>
+      <div class="type-usage">Used for: Subheadings, eyebrow labels, navigation, metadata, section markers, and UI labels. Always uppercase with generous letter-spacing (0.1em–0.25em). Never in body copy.</div>
+    </div>
+
+    <!-- Pacifico -->
+    <div class="type-card">
+      <div class="type-card-label">Logo / Signature Font</div>
+      <div class="type-specimen" style="font-family:'Pacifico',cursive;font-size:52px;color:var(--red);">SuperBad</div>
+      <div class="type-meta">
+        <div class="type-meta-row"><span class="type-meta-key">Font</span><span class="type-meta-val">Pacifico</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Source</span><span class="type-meta-val">Google Fonts — Free</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Weight</span><span class="type-meta-val">400 (only weight available)</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Character</span><span class="type-meta-val">1970s script, friendly, distinctive</span></div>
+      </div>
+      <div class="type-usage">Used for: Logo wordmark only. Not for headlines or body text under any circumstance. The retro script reference that anchors the brand's 1970s inspiration.</div>
+    </div>
+
+    <!-- Playfair Display -->
+    <div class="type-card">
+      <div class="type-card-label">Editorial / Pull Quote Font</div>
+      <div class="type-specimen" style="font-family:'Playfair Display',serif;font-size:36px;color:var(--cream);font-style:italic;line-height:1.2;">"Business doesn't have to be boring."</div>
+      <div class="type-meta">
+        <div class="type-meta-row"><span class="type-meta-key">Font</span><span class="type-meta-val">Playfair Display</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Source</span><span class="type-meta-val">Google Fonts — Free</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Weight</span><span class="type-meta-val">400, 700</span></div>
+        <div class="type-meta-row"><span class="type-meta-key">Character</span><span class="type-meta-val">High-contrast serif, editorial, premium</span></div>
+      </div>
+      <div class="type-usage">Used for: Pull quotes, testimonials, the manifesto, and editorial long-form content. Italic weight preferred for quotes. Creates intentional contrast against the sans-serif system.</div>
+    </div>
+
+  </div>
+
+  <!-- DM Sans — full width -->
+  <div class="type-hierarchy reveal" style="margin-top:3px;">
+    <div class="type-hier-label">Body Font — DM Sans · Google Fonts · Free</div>
+
+    <div class="type-hier-row">
+      <div class="type-hier-meta">
+        <div class="type-hier-name">Body Regular</div>
+        <div class="type-hier-spec">DM Sans · 400 · 14–16px</div>
+      </div>
+      <div class="type-hier-example" style="font-family:'DM Sans',sans-serif;font-size:15px;font-weight:400;color:rgba(253,245,230,0.75);">The whole idea is that business should be fun. And profitable. And that you don't have to be boring to be successful.</div>
+    </div>
+
+    <div class="type-hier-row">
+      <div class="type-hier-meta">
+        <div class="type-hier-name">Body Light</div>
+        <div class="type-hier-spec">DM Sans · 300 · 13–14px</div>
+      </div>
+      <div class="type-hier-example" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;color:rgba(253,245,230,0.5);">Secondary body text. Descriptions, captions, supporting information. Never for primary reading copy — this weight is for hierarchy and supporting context only.</div>
+    </div>
+
+    <div class="type-hier-row">
+      <div class="type-hier-meta">
+        <div class="type-hier-name">Body Medium</div>
+        <div class="type-hier-spec">DM Sans · 500 · 14–16px</div>
+      </div>
+      <div class="type-hier-example" style="font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--cream);">Emphasis within body copy. Key statements, callouts, and UI labels where Righteous would feel too formal.</div>
+    </div>
+
+    <div class="type-hier-row">
+      <div class="type-hier-meta">
+        <div class="type-hier-name">Body Italic</div>
+        <div class="type-hier-spec">DM Sans · 300i · 13–14px</div>
+      </div>
+      <div class="type-hier-example" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;font-style:italic;color:var(--pink);">Used for mutters, asides, and the self-deprecating lines that slip out. Always in Retro Pink on dark backgrounds. The italic signals a quieter, less certain voice.</div>
+    </div>
+
+    <div style="margin-top:24px;padding:20px;background:rgba(178,40,72,0.06);border:1px solid rgba(178,40,72,0.12);border-radius:2px;">
+      <div style="font-family:'Righteous',sans-serif;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--red);margin-bottom:8px;">Note on font loading</div>
+      <div style="font-size:12px;color:rgba(253,245,230,0.5);line-height:1.6;">All five typefaces are available free via Google Fonts. Import string: <span style="font-family:monospace;color:var(--pink);font-size:11px;">Black Han Sans, Righteous, Pacifico, Playfair Display, DM Sans</span>. For offline use or print production, download and install all five before beginning work.</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════
+     LOGO
+══════════════════════════════════════ -->
+<section id="logo">
+  <div class="section-eyebrow">03</div>
+  <h2 class="section-title">Logo &<br><span>Wordmark</span></h2>
+
+  <div class="logo-grid reveal">
+
+    <!-- Primary — dark bg -->
+    <div class="logo-tile" style="background:var(--dark); border:1px solid rgba(255,255,255,0.05);">
+      <div class="logo-wordmark" style="font-family:'Black Han Sans',sans-serif;font-size:52px;color:var(--cream);">SUPER<span style="color:var(--red);">BAD</span></div>
+      <div class="logo-sub" style="font-family:'Righteous',sans-serif;font-size:12px;color:var(--muted);letter-spacing:0.3em;">MARKETING</div>
+      <div class="logo-tile-label" style="color:var(--muted);">Primary — Dark Background</div>
+    </div>
+
+    <!-- Reversed — red bg -->
+    <div class="logo-tile" style="background:var(--red);">
+      <div class="logo-wordmark" style="font-family:'Black Han Sans',sans-serif;font-size:52px;color:var(--cream);">SUPER<span style="color:var(--dark);">BAD</span></div>
+      <div class="logo-sub" style="font-family:'Righteous',sans-serif;font-size:12px;color:rgba(253,245,230,0.6);letter-spacing:0.3em;">MARKETING</div>
+      <div class="logo-tile-label" style="color:rgba(253,245,230,0.5);">Reversed — Red Background</div>
+    </div>
+
+    <!-- Light version -->
+    <div class="logo-tile" style="background:var(--cream);">
+      <div class="logo-wordmark" style="font-family:'Black Han Sans',sans-serif;font-size:52px;color:var(--dark);">SUPER<span style="color:var(--red);">BAD</span></div>
+      <div class="logo-sub" style="font-family:'Righteous',sans-serif;font-size:12px;color:var(--muted);letter-spacing:0.3em;">MARKETING</div>
+      <div class="logo-tile-label" style="color:var(--muted);">Light — Cream Background</div>
+    </div>
+
+  </div>
+
+  <!-- Script logo variant -->
+  <div class="logo-grid reveal" style="margin-top:3px;">
+    <div class="logo-tile" style="background:var(--dark);border:1px solid rgba(255,255,255,0.05);">
+      <div style="font-family:'Pacifico',cursive;font-size:56px;color:var(--red);line-height:1;">SuperBad</div>
+      <div class="logo-tile-label" style="color:var(--muted);">Script Logo — Dark Background</div>
+    </div>
+    <div class="logo-tile" style="background:var(--red);">
+      <div style="font-family:'Pacifico',cursive;font-size:56px;color:var(--cream);line-height:1;">SuperBad</div>
+      <div class="logo-tile-label" style="color:rgba(253,245,230,0.5);">Script Logo — Red Background</div>
+    </div>
+    <div class="logo-tile" style="background:var(--cream);">
+      <div style="font-family:'Pacifico',cursive;font-size:56px;color:var(--red);line-height:1;">SuperBad</div>
+      <div class="logo-tile-label" style="color:var(--muted);">Script Logo — Cream Background</div>
+    </div>
+  </div>
+
+  <!-- Logo rules -->
+  <div class="reveal" style="margin-top:3px;display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+    <div style="background:var(--mid);padding:32px;">
+      <div style="font-family:'Righteous',sans-serif;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--red);margin-bottom:16px;">Minimum Size</div>
+      <div style="font-family:'Black Han Sans',sans-serif;font-size:24px;color:var(--cream);margin-bottom:8px;">SUPERBAD</div>
+      <div style="font-size:12px;color:rgba(253,245,230,0.4);line-height:1.6;">Never reproduce the wordmark smaller than 24px digital / 12mm print. Below this size the letterforms lose integrity.</div>
+    </div>
+    <div style="background:var(--mid);padding:32px;">
+      <div style="font-family:'Righteous',sans-serif;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--red);margin-bottom:16px;">Clear Space</div>
+      <div style="border:1px dashed rgba(178,40,72,0.3);padding:20px;display:inline-block;margin-bottom:8px;">
+        <div style="font-family:'Black Han Sans',sans-serif;font-size:28px;color:var(--cream);">SUPERBAD</div>
+      </div>
+      <div style="font-size:12px;color:rgba(253,245,230,0.4);line-height:1.6;">Always maintain clear space equal to the height of the letter "S" on all sides of the wordmark. No other elements within this zone.</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════
+     STYLE DIRECTION
+══════════════════════════════════════ -->
+<section id="style">
+  <div class="section-eyebrow">04</div>
+  <h2 class="section-title">Visual<br><span>Style</span></h2>
+
+  <div class="style-grid reveal">
+
+    <div class="style-card">
+      <div class="style-num">1</div>
+      <div class="style-title">1970s Warmth</div>
+      <div class="style-body">The brand draws on 1970s design — warm palettes, retro geometry, tactile imperfection. Not nostalgic for its own sake. The 70s reference is about warmth and personality over clinical modernism. Think: Brenton Wood album covers, vintage Penguin paperbacks, analogue warmth in a digital world.</div>
+    </div>
+
+    <div class="style-card">
+      <div class="style-num">2</div>
+      <div class="style-title">Intentional Composition</div>
+      <div class="style-body">Every frame is composed with intention — like a Wes Anderson shot. Symmetry where it creates authority. Asymmetry where it creates personality. Nothing is accidental. Generous negative space balanced against moments of controlled density. The composition should feel considered, even when the content is self-deprecating.</div>
+    </div>
+
+    <div class="style-card">
+      <div class="style-num">3</div>
+      <div class="style-title">High Production / Low Ego</div>
+      <div class="style-body">The visual identity is polished and cinematic. The content inside it is self-deprecating and human. The contrast between the two is intentional and is the brand's defining characteristic. Think: beautifully shot footage of someone looking mildly embarrassed. That tension is the whole thing.</div>
+    </div>
+
+    <div class="style-card">
+      <div class="style-num">4</div>
+      <div class="style-title">Dark Over Light</div>
+      <div class="style-body">Default is dark — Dark Charcoal (#1A1A18) as the primary environment. Light-on-dark creates drama and presence without trying. When light backgrounds are required (print, formal documents), use Warm Cream (#FDF5E6) never pure white. Pure white feels cold and corporate. That's not this.</div>
+    </div>
+
+    <div class="style-card">
+      <div class="style-num">5</div>
+      <div class="style-title">Cinematic Framing</div>
+      <div class="style-body">All photography and video should feel like it belongs in a film, not a stock library. Candid over posed. Real emotion over manufactured expression. The armchair set — red backdrop, warm lighting, retro chair — is the visual anchor. All content should feel like it could exist in that same universe.</div>
+    </div>
+
+    <div class="style-card">
+      <div class="style-num">6</div>
+      <div class="style-title">Typography as Visual Element</div>
+      <div class="style-body">Headlines are visual elements as much as text. Large Black Han Sans type at display sizes — bleeding off edges, overlapping imagery, used as graphic shapes. The SUPERBAD logo fills frames. Text is never just text. It's part of the composition. Reference: the teaser video where SUPERBAD fills the screen over the face.</div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════
+     VISUAL REFERENCES
+══════════════════════════════════════ -->
+<section id="references">
+  <div class="section-eyebrow">05</div>
+  <h2 class="section-title">Visual<br><span>References</span></h2>
+
+  <div class="refs-row reveal">
+    <div class="ref-card r1">
+      <span class="ref-icon">🎬</span>
+      <div class="ref-name">Wes Anderson</div>
+      <div class="ref-role">Primary Visual Reference</div>
+      <div class="ref-desc">Intentional symmetry. Warm palettes. Absurd premises treated with complete visual sincerity. Fourth wall acknowledged casually. Every frame composed as if it matters — even when the subject doesn't take itself seriously. This is the visual target.</div>
+    </div>
+    <div class="ref-card r2">
+      <span class="ref-icon">📼</span>
+      <div class="ref-name">1970s Design</div>
+      <div class="ref-role">Era Reference</div>
+      <div class="ref-desc">Warm earth tones, retro typography, analogue texture. Not retro for its own sake — for the warmth and personality it carries. Vinyl album artwork. Penguin book covers. Harvest gold and burnt sienna. The aesthetic that says: made by a human, not a committee.</div>
+    </div>
+    <div class="ref-card r3">
+      <span class="ref-icon">🎞</span>
+      <div class="ref-name">Editorial Photography</div>
+      <div class="ref-role">Photography Direction</div>
+      <div class="ref-desc">Candid, warm, cinematic. Never stock. Never posed. The best frames capture emotion without staging it — a laugh caught mid-sentence, a genuine reaction, a moment of focus. All photography should feel like it belongs in a documentary about people who are good at what they do.</div>
+    </div>
+    <div class="ref-card r4">
+      <span class="ref-icon">🎭</span>
+      <div class="ref-name">The Armchair Set</div>
+      <div class="ref-role">Brand Environment</div>
+      <div class="ref-desc">SuperBad Red backdrop. Burnt yellow retro armchair. Warm practical lighting. This is the brand's home environment — the visual anchor of the Armchair Sessions and the spatial identity of the brand. All content should feel like it could exist in this world.</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════
+     USAGE — DO & DON'T
+══════════════════════════════════════ -->
+<section id="usage">
+  <div class="section-eyebrow">06</div>
+  <h2 class="section-title">Visual<br><span>Do / Don't</span></h2>
+
+  <div class="dont-grid reveal">
+    <div>
+      <div class="dont-header bad">✕  DON'T</div>
+      <div class="dont-card bad"><span class="dont-icon">✕</span><span class="dont-text">Use pure black (#000000) or pure white (#FFFFFF) — they feel cold and corporate. Always use Dark Charcoal or Warm Cream instead.</span></div>
+      <div class="dont-card bad"><span class="dont-icon">✕</span><span class="dont-text">Use stock photography. SuperBad content is always real, always shot by SuperBad, always specific to the client or moment.</span></div>
+      <div class="dont-card bad"><span class="dont-icon">✕</span><span class="dont-text">Use more than two typefaces in any single piece of content. The hierarchy is defined — respect it.</span></div>
+      <div class="dont-card bad"><span class="dont-icon">✕</span><span class="dont-text">Use gradients that don't reference the brand palette. No purple, no blue, no "modern tech" colour schemes.</span></div>
+      <div class="dont-card bad"><span class="dont-icon">✕</span><span class="dont-text">Use the Pacifico script font for anything other than the logo. It exists for one purpose.</span></div>
+      <div class="dont-card bad"><span class="dont-icon">✕</span><span class="dont-text">Create content that looks like every other marketing agency. If it could have been made by anyone, it shouldn't be made by SuperBad.</span></div>
+    </div>
+    <div>
+      <div class="dont-header good">✓  DO</div>
+      <div class="dont-card good"><span class="dont-icon" style="color:#5DBF8A;">✓</span><span class="dont-text">Default to dark backgrounds with Warm Cream text and SuperBad Red accents. This is the home environment.</span></div>
+      <div class="dont-card good"><span class="dont-icon" style="color:#5DBF8A;">✓</span><span class="dont-text">Use Black Han Sans at display sizes — big, bold, composited over imagery. Let the type be a visual element.</span></div>
+      <div class="dont-card good"><span class="dont-icon" style="color:#5DBF8A;">✓</span><span class="dont-text">Shoot everything as if it belongs in a film. Candid, warm, real. The camera catches people being themselves — not performing for it.</span></div>
+      <div class="dont-card good"><span class="dont-icon" style="color:#5DBF8A;">✓</span><span class="dont-text">Compose with intention. Every element placed deliberately. Generous white space balanced with moments of density.</span></div>
+      <div class="dont-card good"><span class="dont-icon" style="color:#5DBF8A;">✓</span><span class="dont-text">Use Playfair Display italic for quotes and the manifesto. The serif creates intentional contrast against the sans-serif system.</span></div>
+      <div class="dont-card good"><span class="dont-icon" style="color:#5DBF8A;">✓</span><span class="dont-text">Make it recognisably SuperBad. Someone should see it without a logo and know exactly who made it.</span></div>
+    </div>
+  </div>
+
+  <!-- Motion & Feel -->
+  <div class="feel-row reveal" style="margin-top:3px;">
+    <div class="feel-card">
+      <div class="feel-title">Motion Direction</div>
+      <div class="feel-body">Cuts are clean and confident — no cheap transitions, no wipes, no fades unless they serve the narrative. Hard cuts between armchair chunks. B-roll transitions with purpose. The dramatic music swell followed by a dead stop is the brand's signature motion moment — used sparingly because it only works when it's unexpected.</div>
+      <div class="feel-tags">
+        <span class="feel-tag r">Hard cuts</span>
+        <span class="feel-tag r">Dead stops</span>
+        <span class="feel-tag o">Purposeful B-roll</span>
+        <span class="feel-tag m">No cheap transitions</span>
+        <span class="feel-tag m">No wipes or fades</span>
+      </div>
+    </div>
+    <div class="feel-card">
+      <div class="feel-title">Overall Feeling</div>
+      <div class="feel-body">Someone stumbling across SuperBad content should feel like they've found something — not been targeted by something. The visual identity is confident without being loud. Premium without being cold. Funny without announcing it. The brand looks like it has something to say and doesn't particularly care whether you listen — which, paradoxically, makes you want to listen.</div>
+      <div class="feel-tags">
+        <span class="feel-tag r">Quietly confident</span>
+        <span class="feel-tag r">Warm not cold</span>
+        <span class="feel-tag o">Premium not corporate</span>
+        <span class="feel-tag o">Found not targeted</span>
+        <span class="feel-tag m">Against the grain</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">SUPERBAD</div>
+  <div class="footer-note">Brand Guidelines · Visual Identity · April 2026 · Version 1.0</div>
+</footer>
+
+<script>
+// Hex copy feedback
+document.querySelectorAll('.colour-copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const hex = btn.closest('.colour-card').querySelector('.colour-hex').textContent;
+  });
+});
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

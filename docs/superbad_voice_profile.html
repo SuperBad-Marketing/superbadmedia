@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBad — Voice & Personality Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Righteous&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #B22848;
+  --cream: #FDF5E6;
+  --pink: #F4A0B0;
+  --orange: #F28C52;
+  --dark: #1A1A18;
+  --mid: #2C2C2A;
+  --muted: #6B6B68;
+  --green: #5DBF8A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--dark);
+  color: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* ── HEADER ── */
+.header {
+  position: relative;
+  padding: 80px 60px 70px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: end;
+}
+.header-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 60%, rgba(178,40,72,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(242,140,82,0.07) 0%, transparent 45%);
+}
+.header-eyebrow {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--red);
+  margin-bottom: 14px; position: relative;
+}
+.header-title {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: clamp(52px, 7vw, 88px);
+  line-height: 0.88; color: var(--cream);
+  position: relative; margin-bottom: 6px;
+}
+.header-title span { color: var(--red); }
+.header-sub {
+  font-size: 12px; font-weight: 300;
+  color: var(--muted); letter-spacing: 0.06em;
+  position: relative; margin-top: 18px;
+}
+
+/* header dna visual */
+.header-dna {
+  position: relative;
+  display: flex; flex-direction: column;
+  gap: 6px; align-items: flex-end;
+  padding-bottom: 4px;
+}
+.dna-tag {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.dna-tag.r { background: var(--red); color: var(--cream); }
+.dna-tag.o { background: rgba(242,140,82,0.15); color: var(--orange); border: 1px solid rgba(242,140,82,0.3); }
+.dna-tag.p { background: rgba(244,160,176,0.1); color: var(--pink); border: 1px solid rgba(244,160,176,0.2); }
+.dna-tag.d { background: rgba(253,245,230,0.05); color: rgba(253,245,230,0.4); border: 1px solid rgba(253,245,230,0.08); }
+
+/* ── SECTION WRAPPER ── */
+.wrap { padding: 0 60px; max-width: 1280px; }
+.section { padding: 64px 0 0; }
+.section-label {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px; letter-spacing: 0.25em;
+  text-transform: uppercase; color: var(--red);
+  margin-bottom: 28px;
+  display: flex; align-items: center; gap: 14px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(255,255,255,0.05);
+}
+
+/* ── PERSONALITY RADAR ── */
+.radar-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+.radar-wrap {
+  background: var(--mid);
+  padding: 40px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 380px;
+}
+.radar-title {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 24px;
+}
+.traits-panel {
+  background: var(--mid);
+  padding: 36px 40px;
+  display: flex; flex-direction: column;
+  justify-content: center; gap: 20px;
+}
+.trait-bar { }
+.trait-header {
+  display: flex; justify-content: space-between;
+  margin-bottom: 7px;
+}
+.trait-name {
+  font-family: 'Righteous', sans-serif;
+  font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--cream);
+}
+.trait-val {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 13px; color: var(--red);
+}
+.bar-bg {
+  height: 6px; background: rgba(255,255,255,0.06);
+  border-radius: 3px; overflow: hidden;
+}
+.bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(to right, var(--red), var(--orange));
+}
+
+/* ── HUMOUR SPECTRUM ── */
+.spectrum-wrap {
+  background: var(--mid);
+  padding: 44px 48px;
+}
+.spectrum-title {
+  font-family: 'Righteous', sans-serif;
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 36px;
+}
+.spectrum-track {
+  position: relative;
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  margin: 0 0 52px;
+}
+.spectrum-fill {
+  position: absolute;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--red), var(--orange));
+}
+.spectrum-dot {
+  position: absolute;
+  top: 50%; transform: translate(-50%, -50%);
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2px solid var(--dark);
+  box-shadow: 0 0 0 2px var(--red);
+}
+.spectrum-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.spec-label {
+  font-size: 10px; color: var(--muted);
+  font-family: 'Righteous', sans-serif;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.spec-label.active { color: var(--cream); }
+.spectrum-marker {
+  position: absolute;
+  top: 18px;
+  transform: translateX(-50%);
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  white-space: nowrap;
+}
+
+/* ── MANIFESTO FULL WIDTH ── */
+.manifesto {
+  background: var(--red);
+  padding: 56px 60px;
+  position: relative; overflow: hidden;
+}
+.manifesto::before {
+  content: '"';
+  position: absolute; top: -40px; left: 40px;
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 260px; color: rgba(0,0,0,0.12);
+  line-height: 1;
+}
+.manifesto-text {
+  font-family: 'Righteous', sans-serif;
+  font-size: clamp(20px, 2.8vw, 30px);
+  line-height: 1.45; color: var(--cream);
+  position: relative; max-width: 760px;
+}
+.manifesto-attr {
+  font-size: 11px; color: rgba(253,245,230,0.45);
+  margin-top: 22px; letter-spacing: 0.12em;
+  text-transform: uppercase; position: relative;
+}
+
+/* ── WRITING RULES VISUAL ── */
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+.rule-card {
+  background: var(--mid);
+  padding: 30px 24px;
+  position: relative; overflow: hidden;
+}
+.rule-num-bg {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 80px; line-height: 1;
+  color: rgba(178,40,72,0.08);
+  position: absolute; bottom: -10px; right: 10px;
+}
+.rule-icon {
+  font-size: 28px; margin-bottom: 14px; display: block;
+}
+.rule-card-title {
+  font-family: 'Righteous', sans-serif;
+  font-size: 12px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--cream);
+  margin-bottom: 8px; line-height: 1.4;
+}
+.rule-card-text {
+  font-size: 12px; color: rgba(253,245,230,0.5);
+  line-height: 1.6; font-weight: 300;
+  position: relative;
+}
+
+/* ── DO / DON'T VISUAL ── */
+.dodon-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.dodon-col { }
+.dodon-header {
+  padding: 18px 28px;
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 22px; letter-spacing: 0.05em;
+}
+.dodon-header.dont { background: rgba(178,40,72,0.15); color: var(--red); }
+.dodon-header.do { background: rgba(93,191,138,0.1); color: var(--green); }
+.dodon-item {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 16px 28px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px; line-height: 1.5; font-weight: 300;
+}
+.dodon-item.dont-row { background: rgba(178,40,72,0.04); color: rgba(253,245,230,0.55); }
+.dodon-item.do-row { background: rgba(93,191,138,0.03); color: rgba(253,245,230,0.55); }
+.dodon-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+
+/* ── REFERENCE WHEEL ── */
+.refs-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 2px;
+}
+.ref-tile {
+  background: var(--mid);
+  padding: 36px 24px 28px;
+  position: relative; overflow: hidden;
+  text-align: center;
+}
+.ref-tile::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.ref-tile.t1::before { background: var(--red); }
+.ref-tile.t2::before { background: var(--orange); }
+.ref-tile.t3::before { background: var(--pink); }
+.ref-tile.t4::before { background: var(--muted); }
+.ref-emoji { font-size: 36px; margin-bottom: 14px; display: block; }
+.ref-name {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 16px; color: var(--cream);
+  margin-bottom: 8px; letter-spacing: 0.03em;
+}
+.ref-role {
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--red);
+  margin-bottom: 12px;
+}
+.ref-desc {
+  font-size: 12px; color: rgba(253,245,230,0.5);
+  line-height: 1.6; font-weight: 300;
+}
+
+/* ── VOICE EXAMPLES ── */
+.voice-examples {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+.voice-card {
+  background: var(--mid);
+  padding: 32px;
+  position: relative;
+}
+.voice-ep-label {
+  font-family: 'Righteous', sans-serif;
+  font-size: 9px; letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--red); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.voice-ep-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(178,40,72,0.2);
+}
+.voice-spoken-line {
+  font-size: 15px; color: var(--cream);
+  font-weight: 400; line-height: 1.7;
+  margin-bottom: 10px;
+  border-left: 2px solid var(--red);
+  padding-left: 16px;
+}
+.voice-mutter-line {
+  font-size: 13px; color: var(--pink);
+  font-style: italic; margin-bottom: 10px;
+  padding-left: 16px;
+}
+.voice-text-line {
+  display: inline-block;
+  background: rgba(178,40,72,0.1);
+  border: 1px solid rgba(178,40,72,0.25);
+  color: var(--pink); font-size: 11px;
+  padding: 3px 12px; border-radius: 2px;
+  font-style: normal; margin-left: 16px;
+  font-family: 'Righteous', sans-serif;
+  letter-spacing: 0.06em;
+}
+
+/* ── BRAND DNA WHEEL (SVG-based) ── */
+.dna-section {
+  background: var(--mid);
+  padding: 48px;
+  display: flex; gap: 48px;
+  align-items: center;
+}
+.dna-tags-cloud {
+  flex: 1;
+  display: flex; flex-wrap: wrap; gap: 8px;
+  align-content: center;
+}
+.cloud-tag {
+  font-family: 'Righteous', sans-serif;
+  font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 16px; border-radius: 2px;
+}
+.cloud-tag.lg { font-size: 14px; padding: 10px 20px; }
+.cloud-tag.sm { font-size: 9px; padding: 5px 12px; opacity: 0.7; }
+.cloud-tag.c1 { background: var(--red); color: var(--cream); }
+.cloud-tag.c2 { background: rgba(242,140,82,0.15); color: var(--orange); border: 1px solid rgba(242,140,82,0.3); }
+.cloud-tag.c3 { background: rgba(244,160,176,0.1); color: var(--pink); border: 1px solid rgba(244,160,176,0.2); }
+.cloud-tag.c4 { background: rgba(253,245,230,0.05); color: rgba(253,245,230,0.4); border: 1px solid rgba(253,245,230,0.08); }
+.dna-dial { flex-shrink: 0; }
+
+/* ── FOOTER ── */
+.footer {
+  padding: 40px 60px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex; justify-content: space-between;
+  align-items: center; margin-top: 64px;
+}
+.footer-logo {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 22px; color: var(--red);
+}
+.footer-note {
+  font-size: 11px; color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  body {
+    background: #1A1A18 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .header, .wrap, .footer, .manifesto { padding-left: 24px; padding-right: 24px; }
+  .radar-section, .rules-grid, .refs-wrap, .voice-examples,
+  .dodon-grid, .dna-section { grid-template-columns: 1fr; flex-direction: column; }
+  .header { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-bg"></div>
+  <div>
+    <div class="header-eyebrow">SuperBad Marketing · Internal Reference · April 2026</div>
+    <div class="header-title">VOICE &<br><span>PERSONALITY</span><br>PROFILE</div>
+    <div class="header-sub">Andy Robinson · Confidential</div>
+  </div>
+  <div class="header-dna">
+    <div class="dna-tag r">Quietly Chaotic</div>
+    <div class="dna-tag o">Observational</div>
+    <div class="dna-tag p">Self-Deprecating</div>
+    <div class="dna-tag p">Against The Grain</div>
+    <div class="dna-tag d">It's A Process</div>
+  </div>
+</div>
+
+<!-- ══ PERSONALITY TRAITS ══ -->
+<div class="wrap">
+  <div class="section">
+    <div class="section-label">Personality Traits</div>
+    <div class="radar-section">
+
+      <!-- SVG Radar -->
+      <div class="radar-wrap">
+        <div class="radar-title">Andy Robinson — Character Map</div>
+        <svg viewBox="0 0 320 320" width="280" height="280">
+          <defs>
+            <radialGradient id="rg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#B22848" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#B22848" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Grid rings -->
+          <polygon points="160,60 248,110 248,210 160,260 72,210 72,110" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <polygon points="160,90 229,127.5 229,202.5 160,240 91,202.5 91,127.5" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <polygon points="160,120 211,145 211,195 160,220 109,195 109,145" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <polygon points="160,150 192,162.5 192,187.5 160,200 128,187.5 128,162.5" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <!-- Axis lines -->
+          <line x1="160" y1="60" x2="160" y2="260" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="72" y1="110" x2="248" y2="210" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="248" y1="110" x2="72" y2="210" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <!-- Data polygon: Introversion 95, Self-deprecation 90, Observational 95, Dark humour 75, Confidence 70, Candour 85 -->
+          <polygon points="160,63 240,115 241,195 160,247 84,206 90,117"
+            fill="rgba(178,40,72,0.15)" stroke="#B22848" stroke-width="1.5"/>
+          <!-- Dots -->
+          <circle cx="160" cy="63" r="4" fill="#B22848"/>
+          <circle cx="240" cy="115" r="4" fill="#F28C52"/>
+          <circle cx="241" cy="195" r="4" fill="#F4A0B0"/>
+          <circle cx="160" cy="247" r="4" fill="#B22848"/>
+          <circle cx="84" cy="206" r="4" fill="#F28C52"/>
+          <circle cx="90" cy="117" r="4" fill="#F4A0B0"/>
+          <!-- Labels -->
+          <text x="160" y="48" text-anchor="middle" font-family="Righteous,sans-serif" font-size="9" fill="#FDF5E6" letter-spacing="1">INTROVERSION</text>
+          <text x="258" y="112" text-anchor="start" font-family="Righteous,sans-serif" font-size="9" fill="#FDF5E6" letter-spacing="1">OBSERVATION</text>
+          <text x="258" y="200" text-anchor="start" font-family="Righteous,sans-serif" font-size="9" fill="#FDF5E6" letter-spacing="1">CANDOUR</text>
+          <text x="160" y="276" text-anchor="middle" font-family="Righteous,sans-serif" font-size="9" fill="#FDF5E6" letter-spacing="1">SELF-DEPRECATION</text>
+          <text x="62" y="200" text-anchor="end" font-family="Righteous,sans-serif" font-size="9" fill="#FDF5E6" letter-spacing="1">DARK HUMOUR</text>
+          <text x="62" y="112" text-anchor="end" font-family="Righteous,sans-serif" font-size="9" fill="#FDF5E6" letter-spacing="1">CONFIDENCE</text>
+        </svg>
+      </div>
+
+      <!-- Trait Bars -->
+      <div class="traits-panel">
+        <div class="trait-bar">
+          <div class="trait-header">
+            <span class="trait-name">Introversion</span>
+            <span class="trait-val">95%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:95%"></div></div>
+        </div>
+        <div class="trait-bar">
+          <div class="trait-header">
+            <span class="trait-name">Observational</span>
+            <span class="trait-val">95%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:95%"></div></div>
+        </div>
+        <div class="trait-bar">
+          <div class="trait-header">
+            <span class="trait-name">Self-deprecation</span>
+            <span class="trait-val">90%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:90%"></div></div>
+        </div>
+        <div class="trait-bar">
+          <div class="trait-header">
+            <span class="trait-name">Candour</span>
+            <span class="trait-val">85%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:85%"></div></div>
+        </div>
+        <div class="trait-bar">
+          <div class="trait-header">
+            <span class="trait-name">Dark Humour</span>
+            <span class="trait-val">75%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:75%"></div></div>
+        </div>
+        <div class="trait-bar">
+          <div class="trait-header">
+            <span class="trait-name">Surface Confidence</span>
+            <span class="trait-val">70%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:70%"></div></div>
+        </div>
+        <div class="trait-bar">
+          <div class="trait-header">
+            <span class="trait-name">Actual Confidence</span>
+            <span class="trait-val">35%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:35%"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ HUMOUR SPECTRUMS ══ -->
+  <div class="section">
+    <div class="section-label">Humour Spectrums</div>
+    <div class="spectrum-wrap">
+      <div class="spectrum-title">Where Andy sits on key comedy axes</div>
+
+      <!-- Spectrum 1 -->
+      <div style="margin-bottom: 48px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+          <span style="font-family:'Righteous',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Delivery Style</span>
+        </div>
+        <div class="spectrum-track">
+          <div class="spectrum-fill" style="left:0;width:20%"></div>
+          <div class="spectrum-dot" style="left:15%"></div>
+          <div class="spectrum-marker" style="left:15%">ANDY</div>
+        </div>
+        <div class="spectrum-labels">
+          <span class="spec-label active">Deadpan / Dry</span>
+          <span class="spec-label">Understated</span>
+          <span class="spec-label">Warm</span>
+          <span class="spec-label">Expressive</span>
+          <span class="spec-label">Theatrical</span>
+        </div>
+      </div>
+
+      <!-- Spectrum 2 -->
+      <div style="margin-bottom: 48px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+          <span style="font-family:'Righteous',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Joke Structure</span>
+        </div>
+        <div class="spectrum-track">
+          <div class="spectrum-fill" style="left:20%;width:40%"></div>
+          <div class="spectrum-dot" style="left:45%"></div>
+          <div class="spectrum-marker" style="left:45%">ANDY</div>
+        </div>
+        <div class="spectrum-labels">
+          <span class="spec-label">One-liner</span>
+          <span class="spec-label">Setup/Punch</span>
+          <span class="spec-label active">Slow Burn</span>
+          <span class="spec-label">Elaborate</span>
+          <span class="spec-label">Extended Bit</span>
+        </div>
+      </div>
+
+      <!-- Spectrum 3 -->
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+          <span style="font-family:'Righteous',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Target of Joke</span>
+        </div>
+        <div class="spectrum-track">
+          <div class="spectrum-fill" style="left:0;width:12%"></div>
+          <div class="spectrum-dot" style="left:8%"></div>
+          <div class="spectrum-marker" style="left:8%">ANDY</div>
+        </div>
+        <div class="spectrum-labels">
+          <span class="spec-label active">Self</span>
+          <span class="spec-label">Situation</span>
+          <span class="spec-label">Industry</span>
+          <span class="spec-label">Abstraction</span>
+          <span class="spec-label">Other People</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MANIFESTO ══ -->
+<div class="section" style="padding-top:64px;">
+  <div class="manifesto">
+    <div class="manifesto-text">"Business should be fun. And profitable. You started something so you could be yourself — not so you could spend your life toeing a line someone else drew."</div>
+    <div class="manifesto-attr">Andy Robinson · 2am · Probably</div>
+  </div>
+</div>
+
+<!-- ══ CULTURAL REFERENCES ══ -->
+<div class="wrap">
+  <div class="section">
+    <div class="section-label">Cultural Reference Points</div>
+    <div class="refs-wrap">
+      <div class="ref-tile t1">
+        <span class="ref-emoji">🎬</span>
+        <div class="ref-name">Wes Anderson</div>
+        <div class="ref-role">Visual Direction</div>
+        <div class="ref-desc">Intentional framing. Absurd premise executed with complete sincerity. Breaks the fourth wall casually, not dramatically.</div>
+      </div>
+      <div class="ref-tile t2">
+        <span class="ref-emoji">📺</span>
+        <div class="ref-name">The Office + Fawlty Towers</div>
+        <div class="ref-role">Character Reference</div>
+        <div class="ref-desc">Characters who know exactly what's happening and say nothing — or say everything at the worst possible moment.</div>
+      </div>
+      <div class="ref-tile t3">
+        <span class="ref-emoji">🎤</span>
+        <div class="ref-name">Jimmy Carr</div>
+        <div class="ref-role">Joke Structure</div>
+        <div class="ref-desc">Setup. Punchline. Nothing wasted. Move on. The joke earns its place or it doesn't exist. No dwelling.</div>
+      </div>
+      <div class="ref-tile t4">
+        <span class="ref-emoji">🎵</span>
+        <div class="ref-name">Brenton Wood</div>
+        <div class="ref-role">Taste Marker</div>
+        <div class="ref-desc">Unexpected. Warm. Slightly left of field. The choice that tells you more about someone than anything obvious would.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ THE 8 RULES ══ -->
+  <div class="section">
+    <div class="section-label">The 8 Writing Rules</div>
+    <div class="rules-grid">
+      <div class="rule-card">
+        <span class="rule-icon">🔇</span>
+        <div class="rule-card-title">Never announce the joke</div>
+        <div class="rule-card-text">It lands and the script moves on. No pause. No smile. No confirmation it was a joke.</div>
+        <div class="rule-num-bg">1</div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-icon">⬇️</span>
+        <div class="rule-card-title">Every confidence gets undermined</div>
+        <div class="rule-card-text">A mutter, a text overlay, or the next line. Never by Andy smiling at himself.</div>
+        <div class="rule-num-bg">2</div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-icon">💬</span>
+        <div class="rule-card-title">Self-deprecation slips out</div>
+        <div class="rule-card-text">Sounds like he almost didn't mean to say it. If it looks deliberate, rewrite it.</div>
+        <div class="rule-num-bg">3</div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-icon">🎯</span>
+        <div class="rule-card-title">The target is always Andy</div>
+        <div class="rule-card-text">Never another person. Never another business. Points inward or at absurdity — never at individuals.</div>
+        <div class="rule-num-bg">4</div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-icon">💡</span>
+        <div class="rule-card-title">Real first. Funny because real.</div>
+        <div class="rule-card-text">The best lines are genuine honesty dressed as jokes. Start with the true thing.</div>
+        <div class="rule-num-bg">5</div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-icon">🪟</span>
+        <div class="rule-card-title">Break the fourth wall casually</div>
+        <div class="rule-card-text">Like Ferris Bueller — not a TED talk. Acknowledge reality, don't apologise for it.</div>
+        <div class="rule-num-bg">6</div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-icon">🔄</span>
+        <div class="rule-card-title">Nothing is ever finished</div>
+        <div class="rule-card-text">"It's a process" is a recurring sign-off. Building in public. Not pretending otherwise.</div>
+        <div class="rule-num-bg">7</div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-icon">🌀</span>
+        <div class="rule-card-title">Quietly chaotic. Always.</div>
+        <div class="rule-card-text">Confident on the surface. Winging it underneath. The moment it becomes polished and certain — it stops being SuperBad.</div>
+        <div class="rule-num-bg">8</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VOICE IN PRACTICE ══ -->
+  <div class="section">
+    <div class="section-label">Voice In Practice</div>
+    <div class="voice-examples">
+      <div class="voice-card">
+        <div class="voice-ep-label">Episode 1 — The Welcome</div>
+        <div class="voice-spoken-line">"Well. That was dramatic."</div>
+        <div class="voice-mutter-line">*quietly* "Sorry about that."</div>
+        <span class="voice-text-line">TEXT: There are a lot of those.</span>
+      </div>
+      <div class="voice-card">
+        <div class="voice-ep-label">Episode 2 — The Name Story</div>
+        <div class="voice-spoken-line">"I named the agency SuperBad at 2am. Because I thought it was funny."</div>
+        <div class="voice-mutter-line">*quietly* "My wife thought it was stupid."</div>
+        <span class="voice-text-line">TEXT: She might be right.</span>
+      </div>
+      <div class="voice-card">
+        <div class="voice-ep-label">Episode 3 — The Observation</div>
+        <div class="voice-spoken-line">"Content that exists purely to stay visible is the business equivalent of replying 'haha' to a text. You're present. You're not saying anything."</div>
+      </div>
+      <div class="voice-card">
+        <div class="voice-ep-label">Episode 2 — The Manifesto Moment</div>
+        <div class="voice-spoken-line">"Business doesn't have to be boring. You started something so you could be yourself. Not so you could spend your life toeing a line someone else drew."</div>
+        <div class="voice-mutter-line">*quietly* "Either way, we're committed now."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DO / DON'T ══ -->
+  <div class="section">
+    <div class="section-label">Do / Don't</div>
+    <div class="dodon-grid">
+      <div class="dodon-col">
+        <div class="dodon-header dont">✕ DON'T</div>
+        <div class="dodon-item dont-row"><span class="dodon-icon">✕</span>Take itself too seriously. The moment it sounds like a proper agency, something has gone wrong.</div>
+        <div class="dodon-item dont-row"><span class="dodon-icon">✕</span>Try too hard to be relatable. Performing the awkwardness rather than being it.</div>
+        <div class="dodon-item dont-row"><span class="dodon-icon">✕</span>Explain the joke. If it needs explaining, rewrite it.</div>
+        <div class="dodon-item dont-row"><span class="dodon-icon">✕</span>Punch at other businesses or people. Bitter is never witty.</div>
+        <div class="dodon-item dont-row"><span class="dodon-icon">✕</span>Engagement farm. "Save this if you agree." Never.</div>
+        <div class="dodon-item dont-row"><span class="dodon-icon">✕</span>Be polished, certain, finished. That's every other agency.</div>
+      </div>
+      <div class="dodon-col">
+        <div class="dodon-header do">✓ DO</div>
+        <div class="dodon-item do-row"><span class="dodon-icon" style="color:var(--green)">✓</span>Take the work seriously while not taking itself seriously. High quality, low ego.</div>
+        <div class="dodon-item do-row"><span class="dodon-icon" style="color:var(--green)">✓</span>Be exactly as uncomfortable as Andy actually is. The discomfort is the authenticity.</div>
+        <div class="dodon-item do-row"><span class="dodon-icon" style="color:var(--green)">✓</span>Trust the audience. The slow burn only works if you let it breathe.</div>
+        <div class="dodon-item do-row"><span class="dodon-icon" style="color:var(--green)">✓</span>Point the joke inward. The funniest target is always Andy.</div>
+        <div class="dodon-item do-row"><span class="dodon-icon" style="color:var(--green)">✓</span>Make something genuinely worth watching. Engagement follows quality.</div>
+        <div class="dodon-item do-row"><span class="dodon-icon" style="color:var(--green)">✓</span>Be recognisably SuperBad. Like a Happy Meal box. You see it and you know.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BRAND DNA TAGS ══ -->
+  <div class="section">
+    <div class="section-label">Brand DNA</div>
+    <div class="dna-section">
+      <div>
+        <!-- SVG dial -->
+        <svg viewBox="0 0 200 200" width="180" height="180">
+          <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="12"/>
+          <!-- Segments -->
+          <circle cx="100" cy="100" r="85" fill="none" stroke="#B22848" stroke-width="12"
+            stroke-dasharray="160 374" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="85" fill="none" stroke="#F28C52" stroke-width="12"
+            stroke-dasharray="80 374" stroke-dashoffset="-165" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="85" fill="none" stroke="#F4A0B0" stroke-width="12"
+            stroke-dasharray="60 374" stroke-dashoffset="-250" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(253,245,230,0.15)" stroke-width="12"
+            stroke-dasharray="70 374" stroke-dashoffset="-315" transform="rotate(-90 100 100)"/>
+          <!-- Centre text -->
+          <text x="100" y="94" text-anchor="middle" font-family="Black Han Sans,sans-serif" font-size="13" fill="#FDF5E6">SUPER</text>
+          <text x="100" y="112" text-anchor="middle" font-family="Black Han Sans,sans-serif" font-size="13" fill="#B22848">BAD</text>
+          <!-- Legend dots -->
+          <circle cx="20" cy="155" r="5" fill="#B22848"/>
+          <text x="30" y="159" font-family="Righteous,sans-serif" font-size="8" fill="rgba(253,245,230,0.5)" letter-spacing="1">HUMOUR</text>
+          <circle cx="20" cy="170" r="5" fill="#F28C52"/>
+          <text x="30" y="174" font-family="Righteous,sans-serif" font-size="8" fill="rgba(253,245,230,0.5)" letter-spacing="1">CANDOUR</text>
+          <circle cx="20" cy="185" r="5" fill="#F4A0B0"/>
+          <text x="30" y="189" font-family="Righteous,sans-serif" font-size="8" fill="rgba(253,245,230,0.5)" letter-spacing="1">STYLE</text>
+        </svg>
+      </div>
+      <div class="dna-tags-cloud">
+        <span class="cloud-tag c1 lg">Quietly Chaotic</span>
+        <span class="cloud-tag c2 lg">Observational</span>
+        <span class="cloud-tag c1">Self-Deprecating</span>
+        <span class="cloud-tag c3">Against The Grain</span>
+        <span class="cloud-tag c2">Slow Burn</span>
+        <span class="cloud-tag c4 sm">Genuinely Honest</span>
+        <span class="cloud-tag c3">High Quality / Low Ego</span>
+        <span class="cloud-tag c1">Winging It With Intention</span>
+        <span class="cloud-tag c4 sm">Confident On The Surface</span>
+        <span class="cloud-tag c2">Never Finished</span>
+        <span class="cloud-tag c3 sm">Distinctively SuperBad</span>
+        <span class="cloud-tag c1 lg">It's A Process</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ FOOTER ══ -->
+<div class="footer">
+  <div class="footer-logo">SUPERBAD</div>
+  <div class="footer-note">Voice & Personality Profile · April 2026 · Confidential</div>
+</div>
+
+</body>
+</html>
