@@ -73,7 +73,7 @@ A7 — Email adapter + canSendTo + quiet window + drift check + Stripe helper +
 - `lib/pdf/render.ts` — `renderToPdf(htmlOrReactTree, opts)` stub (real Puppeteer arrives at QB-3) (`new`).
 - `lib/db/schema/legal-doc-versions.ts` — `legal_doc_versions` reference table (`new`).
 - `lib/db/schema/email-suppressions.ts` — `email_suppressions` for canSendTo suppression list (`new`; B3 + SP-8 extend).
-- `lib/db/migrations/0002_*.sql` — A7 tables + columns (`new`).
+- `lib/db/migrations/0003_*.sql` — A7 tables + columns (`new`). (A6 consumed `0002_*`.)
 - `data/au-holidays.json` — Australian public holidays for 2026 + 2027 (`new`).
 - `lib/internal-only.ts` — JSDoc marker + ESLint-adjacent helper (`new`).
 - `eslint.config.mjs` — register `internal-only`-aware allowlist (`edit`).
@@ -101,9 +101,9 @@ Anything outside this list = stop and patch the brief.
 - [ ] `settings.get('email.quiet_window_start_hour')` returns 8 in tests — verify: `Grep "quiet_window_start_hour" lib/db/migrations/`.
 - [ ] `settings.get('email.drift_check_threshold')` returns 0.7 — verify: same.
 - [ ] `lib/kill-switches.ts` exports `outreach_send_enabled`, `drift_check_enabled`, `llm_calls_enabled` — verify: `Grep "outreach_send_enabled\|drift_check_enabled\|llm_calls_enabled" lib/kill-switches.ts`.
-- [ ] `lib/ai/models.ts` exports a slug for the drift grader — verify: `Grep "drift" lib/ai/models.ts` (slug name confirmed in A6 handoff).
+- [ ] `lib/ai/models.ts` exports `modelFor(slug)` + 53 slugs from `lib/ai/prompts/INDEX.md` — verify: `Grep "export function modelFor" lib/ai/models.ts`. A7 likely adds a `drift-check-grader` slug (tier `haiku`) to both `MODELS` and `INDEX.md` in the same commit, since no dedicated drift slug ships in A6.
 - [ ] `external_call_log` table exists — verify: `Grep "external_call_log" lib/db/schema/`.
-- [ ] `activity_log.kind` enum includes the email-classification + drift-related kinds A7 needs — verify against A6's handoff.
+- [ ] `activity_log.kind` enum is 217 values and includes `email_sent` / `email_received` / `email_bounced` / `email_complained` — verify: `Grep "email_sent\|email_bounced" lib/db/schema/activity-log.ts`. A7 likely needs to extend with drift/magic-link kinds (`drift_check_failed`, `portal_magic_link_sent`, `portal_magic_link_redeemed`); if so, append to `ACTIVITY_LOG_KINDS` and regenerate the migration as part of `0003_*.sql`.
 - [ ] `lib/types/glossary.ts` exports `Contact` (used by `ensureStripeCustomer(contactId)`) — verify: `Grep "Contact" lib/types/glossary.ts`.
 - [ ] `lib/db/schema/user.ts` has `timezone` column — verify: `Grep "timezone" lib/db/schema/user.ts`.
 
