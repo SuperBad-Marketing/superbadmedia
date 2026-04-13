@@ -1,47 +1,55 @@
 "use client"
 
 import * as React from "react"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
+import { tier2, type Tier2Key } from "@/lib/motion/choreographies"
+
+import { useDisplayPreferences } from "./theme-provider"
 
 /**
- * Tier2Reveal — choreographed entrance wrapper.
+ * Tier2Reveal — renders one of the 7 locked choreographed entrances.
  *
- * The seven locked Tier 2 moments (morning brief arrival, quote accept,
- * first client bell, milestone crossed, brand DNA complete, retainer
- * kickoff, lights out) ride this wrapper. A3 ships a CSS-based fade +
- * lift; A4 replaces with the Framer Motion choreography registry.
+ * The `choreography` prop is required and must match a key in
+ * `lib/motion/choreographies.ts`. Adding a new Tier 2 moment means adding
+ * it to the registry *and* getting Andy's sign-off — the TypeScript union
+ * is the guardrail.
  *
- * Honours `prefers-reduced-motion: reduce` at the CSS layer: animation is
- * suppressed, content appears at final opacity/position immediately.
- * Honours explicit `data-motion="off"` on any ancestor (via MotionProvider).
- *
- * Consumed tokens: `motion.tier2SlowMs`, `motion.tier2Ease` (via CSS custom
- * properties `--motion-tier2-slow-ms`, `--motion-tier2-ease`).
+ * Reduced-motion handling is local: when `motion_preference` is `reduced`
+ * or `off`, consumers still get a bounded fade (100ms) so the entrance
+ * doesn't pop jarringly. The MotionConfig layered by MotionProvider also
+ * enforces reduced-motion at the Framer level.
  */
 export function Tier2Reveal({
+  choreography,
   className,
   children,
-  delayMs = 0,
+  as: Element = motion.div,
 }: {
+  choreography: Tier2Key
   className?: string
   children: React.ReactNode
-  delayMs?: number
+  /** Override the rendered element — defaults to `motion.div`. */
+  as?: React.ElementType
 }) {
+  const entry = tier2[choreography]
+  const { motion: motionPreference } = useDisplayPreferences()
+  const isReduced = motionPreference !== "full"
+  const variants = isReduced ? entry.reduced.variants : entry.variants
+  const transition = isReduced ? entry.reduced.transition : entry.transition
+
   return (
-    <div
+    <Element
       data-slot="tier-2-reveal"
-      style={{
-        animationDelay: delayMs ? `${delayMs}ms` : undefined,
-      }}
-      className={cn(
-        "motion-safe:opacity-0 motion-safe:translate-y-3",
-        "motion-safe:animate-[tier2-reveal_800ms_cubic-bezier(0.16,1,0.3,1)_forwards]",
-        "[[data-motion='off']_&]:animate-none [[data-motion='off']_&]:opacity-100 [[data-motion='off']_&]:translate-y-0",
-        className
-      )}
+      data-choreography={choreography}
+      className={cn(className)}
+      initial="initial"
+      animate="animate"
+      variants={variants}
+      transition={transition}
     >
       {children}
-    </div>
+    </Element>
   )
 }

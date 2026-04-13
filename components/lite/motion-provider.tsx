@@ -1,31 +1,56 @@
 "use client"
 
 import * as React from "react"
+import { MotionConfig, type Transition } from "framer-motion"
+
+import { houseSpring, motion as motionTokens } from "@/lib/design-tokens"
 
 import { useDisplayPreferences } from "./theme-provider"
 
 /**
- * MotionProvider — applies a `data-motion` attribute to its subtree.
+ * MotionProvider — applies a `data-motion` attribute and a Framer
+ * `MotionConfig` to its subtree.
  *
- * The CSS in `app/globals.css` respects `prefers-reduced-motion: reduce`
- * at the OS level. This provider layers the user's explicit preference on
- * top by writing `data-motion="full|reduced|off"` onto a wrapper element
- * — CSS / component branches can target it with a simple attribute
- * selector (e.g. `[data-motion="off"] .tier-2-reveal { opacity: 1 }`).
+ * Three preference states, per `docs/specs/design-system-baseline.md`
+ * §Reduced motion behaviour:
  *
- * A4 extends this with Framer Motion's `MotionConfig` and the locked 7-item
- * choreography registry. Until then, CSS + data-attribute is enough for
- * every primitive shipped in A3.
+ * - **full** (default): house spring everywhere; Tier 2 choreographies run as
+ *   specified.
+ * - **reduced**: Tier 2 cinematic moments are replaced with their Tier 1
+ *   equivalent (consumers read `tier2[key].reduced`). The default transition
+ *   becomes a 180ms linear ease-out.
+ * - **off**: all transitions become instant — except modal opens (CSS for
+ *   `[role="dialog"]` keeps a 100ms fade, because instant modal swaps are
+ *   disorienting per spec).
  *
- * Consumed tokens: `motion.tier1DurationMs`, `motion.reducedDurationMs`
- * via CSS custom properties; `motion_preference` user axis from
- * `lib/design-tokens.ts`.
+ * OS `prefers-reduced-motion: reduce` maps to `reduced` via
+ * `theme-provider` (A5 reads the real preference from the user table;
+ * until then it falls back to the OS hint at hydration time).
  */
 export function MotionProvider({ children }: { children: React.ReactNode }) {
   const { motion } = useDisplayPreferences()
+
+  const transition: Transition = React.useMemo(() => {
+    if (motion === "off") {
+      return { duration: 0 }
+    }
+    if (motion === "reduced") {
+      return { duration: motionTokens.reducedDurationMs / 1000, ease: "linear" }
+    }
+    return { ...houseSpring }
+  }, [motion])
+
+  const reducedMotion: "user" | "always" | "never" = React.useMemo(() => {
+    if (motion === "off") return "always"
+    if (motion === "reduced") return "always"
+    return "user"
+  }, [motion])
+
   return (
     <div data-motion={motion} className="contents">
-      {children}
+      <MotionConfig transition={transition} reducedMotion={reducedMotion}>
+        {children}
+      </MotionConfig>
     </div>
   )
 }

@@ -63,6 +63,9 @@ import { BrandHero } from "@/components/lite/brand-hero"
 import { EmptyState } from "@/components/lite/empty-state"
 import { SkeletonTile } from "@/components/lite/skeleton-tile"
 import { Tier2Reveal } from "@/components/lite/tier-2-reveal"
+import { useSound } from "@/components/lite/sound-provider"
+import { TIER_2_KEYS, tier2 } from "@/lib/motion/choreographies"
+import { SOUND_KEYS, soundRegistry } from "@/lib/sounds"
 
 function Row({
   label,
@@ -86,6 +89,11 @@ function Row({
 
 export function PrimitivesGallery() {
   const [date, setDate] = React.useState<Date | undefined>()
+  const [choreography, setChoreography] = React.useState<(typeof TIER_2_KEYS)[number]>(
+    "morning-brief-open"
+  )
+  const [revealKey, setRevealKey] = React.useState(0)
+  const sound = useSound()
 
   return (
     <TooltipProvider>
@@ -263,17 +271,88 @@ export function PrimitivesGallery() {
           </BrandHero>
         </Row>
 
-        <Row label="Tier2Reveal (CSS stub — A4 wires Framer choreographies)">
-          <Tier2Reveal className="w-full max-w-md">
-            <Card>
-              <CardHeader>
-                <CardTitle>I just arrived</CardTitle>
-              </CardHeader>
-              <CardContent>
-                Fades + lifts in on mount. Vanishes under reduced-motion.
-              </CardContent>
-            </Card>
-          </Tier2Reveal>
+        <Row label="Tier2Reveal — 7 locked choreographies (Framer Motion)">
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={choreography}
+                onValueChange={(v) =>
+                  setChoreography(v as (typeof TIER_2_KEYS)[number])
+                }
+              >
+                <SelectTrigger className="w-[260px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIER_2_KEYS.map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {key}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                onClick={() => setRevealKey((k) => k + 1)}
+              >
+                Replay
+              </Button>
+              <span
+                className="text-xs"
+                style={{ color: "var(--neutral-500)" }}
+              >
+                {tier2[choreography].durationMs}ms · {tier2[choreography].description}
+              </span>
+            </div>
+            <Tier2Reveal
+              key={`${choreography}-${revealKey}`}
+              choreography={choreography}
+              className="w-full max-w-md"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>{choreography}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  Swap the choreography in the picker above; hit Replay to see it
+                  again. Degrades to a 180ms fade under reduced motion.
+                </CardContent>
+              </Card>
+            </Tier2Reveal>
+          </div>
+        </Row>
+
+        <Row label="Sound registry — 7 locked keys (Howler)">
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              {SOUND_KEYS.map((key) => (
+                <Button
+                  key={key}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => sound.play(key)}
+                >
+                  {key}
+                </Button>
+              ))}
+            </div>
+            <span className="text-xs" style={{ color: "var(--neutral-500)" }}>
+              {sound.enabled
+                ? "Sounds enabled — files land in a later 'sound review' session; missing files silently no-op."
+                : "Muted — toggle Sounds in the a11y panel (also mutes when motion is reduced/off per spec)."}
+            </span>
+            <details className="text-xs" style={{ color: "var(--neutral-500)" }}>
+              <summary className="cursor-pointer">Registry character sheet</summary>
+              <ul className="mt-2 flex flex-col gap-1 pl-4">
+                {SOUND_KEYS.map((key) => (
+                  <li key={key}>
+                    <strong>{key}</strong> — {soundRegistry[key].character} (~
+                    {soundRegistry[key].expectedDurationMs}ms)
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </div>
         </Row>
 
         <Row label="EmptyState">

@@ -294,9 +294,9 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Keyframes used by SkeletonTile + Tier2Reveal                       */
-/* Both degrade cleanly under prefers-reduced-motion via `motion-safe:`*/
-/* Tailwind variants applied at the component layer.                  */
+/* Keyframes used by SkeletonTile. Tier2Reveal moved to Framer Motion  */
+/* in A4 — the `tier2-reveal` keyframe is gone; the component now      */
+/* reads from lib/motion/choreographies.ts.                            */
 /* ------------------------------------------------------------------ */
 
 @keyframes shimmer {
@@ -305,17 +305,6 @@
   }
   100% {
     transform: translateX(100%);
-  }
-}
-
-@keyframes tier2-reveal {
-  0% {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

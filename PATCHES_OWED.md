@@ -241,6 +241,13 @@ Four legal/product questions surfaced by Batch C step 13 and answered by Andy in
 - `package.json` · **Audit `next-themes` removal.** Pulled transitively by `npx shadcn add sonner`; unused in Lite (dark-only app sets the `dark` class via `getActivePresets()`). Candidate for deletion during `LAUNCH_READY` dep-weight sweep. · A3 handoff · 2026-04-14 · **gate: Phase 6 LAUNCH_READY dep audit**
 - `lib/copy/empty-states.ts` (new file) · **Stand up the empty-state copy bank** once any feature spec starts calling `<EmptyState>`. Spec rule 12 ("voice is part of the design system") requires bank-sourced copy, never inlined strings; A3 accepts inline strings only because no feature surface consumes `EmptyState` yet. First consumer session creates the bank and migrates the A3 demo strings into it. · A3 handoff · 2026-04-14 · **gate: first feature session that calls `<EmptyState>`**
 
+### Phase 5 Wave 1 A4 — motion + sound registry follow-ups (2026-04-14)
+
+- `components/lite/sound-provider.tsx` · **Swap `onloaderror` no-op for a real warning** once the first sound file lands in `/public/sounds/approved/`. Today a 404 is the expected state (files sourced in a later admin session); after the first file lands, a missing file would be a regression and should log. · A4 handoff · 2026-04-14 · **gate: first sound file committed to `/public/sounds/approved/`**
+- `docs/sound-attributions.md` (new file) · **Create sound licensing log** when the first sound file lands. Per design-system-baseline §Sound implementation: every sourced file gets an attribution row (source, licence, date, Andy-approved variant ID). · A4 handoff · 2026-04-14 · **gate: first sound file committed**
+- `BUILD_PLAN.md` Wave 1 A4 block · **Update wording** from "`use-sound` (Howler.js) integration" to "`howler` direct integration". A4 installed `howler` directly because the provider/`play(key)` pattern doesn't map to `use-sound`'s hook-per-sound API. Descriptive-not-prescriptive update; non-blocking. · A4 handoff · 2026-04-14 · **gate: next BUILD_PLAN housekeeping pass**
+- `components/lite/motion-provider.tsx` + Dialog primitive · **Verify the 100ms-modal-fade-at-motion=off carve-out.** Spec §Reduced motion behaviour requires Dialog to keep a 100ms fade even when `motion === 'off'`. MotionProvider currently sets `{ duration: 0 }` globally; base-nova's Dialog has its own transition, which should survive — but unverified until a feature session exercises a Dialog at `motion === 'off'`. Add a targeted test or wire a local Dialog override at that point. · A4 handoff · 2026-04-14 · **gate: first feature session that ships a Dialog surface**
+
 ## Applied
 
 All rows below applied by `phase-3.5-backward-reconciliation` on 2026-04-13 unless noted.
