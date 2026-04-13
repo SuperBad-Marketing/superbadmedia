@@ -1,0 +1,1665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SuperBad Lite — Where We're At · v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #B22848;
+    --red-deep: #8a1b37;
+    --cream: #FDF5E6;
+    --cream-dim: rgba(253, 245, 230, 0.72);
+    --cream-faint: rgba(253, 245, 230, 0.42);
+    --pink: #F4A0B0;
+    --orange: #F28C52;
+    --charcoal: #1A1A18;
+    --charcoal-1: #201f1c;
+    --charcoal-2: #262520;
+    --charcoal-3: #2e2d27;
+    --line: rgba(253, 245, 230, 0.08);
+    --line-strong: rgba(253, 245, 230, 0.18);
+
+    --display: 'Black Han Sans', sans-serif;
+    --label: 'Righteous', sans-serif;
+    --editorial: 'Playfair Display', serif;
+    --body: 'DM Sans', sans-serif;
+    --logo: 'Pacifico', cursive;
+
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--charcoal);
+    color: var(--cream);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse at top left, rgba(178, 40, 72, 0.1), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(242, 140, 82, 0.05), transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    padding: 72px 28px 120px;
+    overflow-x: hidden;
+  }
+
+  .page { max-width: 1160px; margin: 0 auto; }
+
+  /* ── Header ──────────────────────────── */
+  header.top { margin-bottom: 72px; }
+
+  .wordmark {
+    font-family: var(--logo);
+    color: var(--red);
+    font-size: 34px;
+    letter-spacing: -0.5px;
+    display: inline-block;
+    margin-bottom: 48px;
+    text-shadow: 0 0 40px rgba(178, 40, 72, 0.25);
+  }
+
+  .eyebrow {
+    font-family: var(--label);
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--pink);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .version-chip {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 3px 10px;
+    border: 1px solid var(--red);
+    border-radius: 100px;
+    background: rgba(178, 40, 72, 0.15);
+    color: var(--cream);
+    font-size: 10px;
+    letter-spacing: 2px;
+    vertical-align: middle;
+  }
+
+  h1.title {
+    font-family: var(--display);
+    font-size: clamp(56px, 10vw, 144px);
+    line-height: 0.86;
+    letter-spacing: -2.5px;
+    color: var(--cream);
+    margin-bottom: 28px;
+  }
+  h1.title .accent { color: var(--red); }
+
+  .mutter {
+    font-family: var(--body);
+    font-style: italic;
+    color: var(--pink);
+    font-size: 19px;
+    max-width: 680px;
+  }
+
+  /* Hero status card */
+  .hero-card {
+    margin-top: 56px;
+    background: linear-gradient(135deg, var(--charcoal-1) 0%, var(--charcoal-2) 100%);
+    border: 1px solid var(--line-strong);
+    border-radius: 24px;
+    padding: 44px 52px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 48px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--red), var(--orange));
+  }
+  .hero-card .status-label {
+    font-family: var(--label);
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--cream-faint);
+    margin-bottom: 10px;
+  }
+  .hero-card .status-value {
+    font-family: var(--display);
+    font-size: clamp(32px, 4vw, 44px);
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .hero-card .status-value .em { color: var(--red); }
+  .hero-card .status-sub {
+    font-family: var(--editorial);
+    font-style: italic;
+    color: var(--pink);
+    font-size: 16px;
+    max-width: 520px;
+    line-height: 1.5;
+  }
+
+  .progress-ring { position: relative; width: 150px; height: 150px; }
+  .progress-ring svg { transform: rotate(-90deg); display: block; }
+  .progress-ring circle { fill: none; stroke-width: 8; }
+  .progress-ring .track { stroke: var(--line); }
+  .progress-ring .fill {
+    stroke: url(#ringGrad);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.9s var(--ease);
+  }
+  .progress-ring .label {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .progress-ring .num {
+    font-family: var(--display);
+    font-size: 44px;
+    color: var(--cream);
+    line-height: 1;
+  }
+  .progress-ring .sub {
+    font-family: var(--label);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cream-faint);
+    margin-top: 8px;
+  }
+
+  /* ── Sections ────────────────────────── */
+  section { margin-top: 104px; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 24px;
+  }
+  .section-num {
+    font-family: var(--display);
+    color: var(--red);
+    font-size: 72px;
+    line-height: 0.9;
+  }
+  .section-title-block h2 {
+    font-family: var(--display);
+    font-size: clamp(32px, 4vw, 44px);
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 10px;
+    letter-spacing: -1px;
+  }
+  .section-title-block .sub {
+    font-family: var(--editorial);
+    font-style: italic;
+    color: var(--pink);
+    font-size: 16px;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+
+  /* ── TL;DR / Summary panel ──────────── */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+  .stat {
+    background: var(--charcoal-1);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 24px 22px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--red);
+    opacity: 0.7;
+  }
+  .stat .k {
+    font-family: var(--display);
+    font-size: 44px;
+    color: var(--cream);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .stat .k .unit { color: var(--pink); font-size: 20px; margin-left: 4px; }
+  .stat .lbl {
+    font-family: var(--label);
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--cream-faint);
+    margin-top: 10px;
+  }
+  .stat .note {
+    font-family: var(--editorial);
+    font-style: italic;
+    color: var(--pink);
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 10px;
+  }
+
+  .summary-prose {
+    background: var(--charcoal-1);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 32px 36px;
+    font-family: var(--body);
+    color: var(--cream-dim);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .summary-prose p + p { margin-top: 14px; }
+  .summary-prose strong { color: var(--cream); }
+
+  /* ── Overview grid ───────────────────── */
+  .overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .o-card {
+    background: var(--charcoal-1);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 30px 32px;
+  }
+  .o-card .o-eyebrow {
+    font-family: var(--label);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--pink);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .o-card h3 {
+    font-family: var(--display);
+    font-size: 26px;
+    color: var(--cream);
+    letter-spacing: -0.4px;
+    margin-bottom: 12px;
+  }
+  .o-card p {
+    font-size: 14px;
+    color: var(--cream-dim);
+    line-height: 1.65;
+  }
+  .o-card p + p { margin-top: 10px; }
+
+  /* ── Phases (detailed) ──────────────── */
+  .phase-rail {
+    display: grid;
+    gap: 16px;
+  }
+  .phase-row {
+    background: var(--charcoal-1);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: 28px;
+    align-items: start;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+  }
+  .phase-row.done {
+    border-color: rgba(178, 40, 72, 0.32);
+    background: linear-gradient(90deg, rgba(178, 40, 72, 0.08), transparent 55%);
+  }
+  .phase-row.active {
+    border-color: var(--red);
+    background: linear-gradient(90deg, rgba(178, 40, 72, 0.18), rgba(242, 140, 82, 0.04) 70%);
+    box-shadow: 0 14px 48px rgba(178, 40, 72, 0.22);
+  }
+  .phase-row.future {
+    background: var(--charcoal-1);
+  }
+  .phase-row .pn {
+    font-family: var(--display);
+    font-size: 56px;
+    color: var(--cream);
+    line-height: 0.9;
+    letter-spacing: -1.5px;
+  }
+  .phase-row.done .pn { color: var(--pink); }
+  .phase-row.active .pn { color: var(--red); }
+  .phase-row.future .pn { color: var(--cream-faint); }
+
+  .phase-body h4 {
+    font-family: var(--display);
+    font-size: 24px;
+    color: var(--cream);
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+  }
+  .phase-body .p-blurb {
+    font-family: var(--editorial);
+    font-style: italic;
+    color: var(--pink);
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .phase-body .p-detail {
+    font-family: var(--body);
+    font-size: 13.5px;
+    color: var(--cream-dim);
+    line-height: 1.65;
+  }
+  .phase-body .p-detail + .p-detail { margin-top: 10px; }
+  .phase-body .p-meta {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .p-meta .mtag {
+    font-family: var(--label);
+    font-size: 9px;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+    padding: 5px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 100px;
+  }
+  .p-meta .mtag.done { color: var(--pink); border-color: rgba(244, 160, 176, 0.4); }
+  .p-meta .mtag.active { color: var(--red); border-color: var(--red); background: rgba(178, 40, 72, 0.08); }
+
+  .p-state {
+    font-family: var(--label);
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--cream-faint);
+    padding: 6px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .phase-row.done .p-state { color: var(--pink); border-color: rgba(244, 160, 176, 0.45); }
+  .phase-row.active .p-state { color: var(--cream); border-color: var(--red); background: rgba(178, 40, 72, 0.2); }
+
+  /* Collapsible sub-arc of phases */
+  .phase-sub {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .sub-item {
+    background: rgba(253, 245, 230, 0.03);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .sub-item .st {
+    font-family: var(--label);
+    font-size: 9px;
+    letter-spacing: 1.4px;
+    color: var(--pink);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .sub-item .sd {
+    font-family: var(--body);
+    font-size: 12.5px;
+    color: var(--cream-dim);
+    line-height: 1.5;
+  }
+
+  /* ── Spec groups ─────────────────────── */
+  .spec-group { margin-top: 28px; }
+  .spec-group-head {
+    font-family: var(--label);
+    font-size: 10px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .specs { display: grid; gap: 10px; }
+
+  .spec {
+    background: var(--charcoal-1);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 26px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 22px;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.35s var(--spring), border-color 0.25s var(--ease), background 0.25s var(--ease);
+    user-select: none;
+  }
+  .spec:hover {
+    transform: translateX(6px);
+    border-color: var(--line-strong);
+    background: var(--charcoal-2);
+  }
+  .spec.checked {
+    border-color: rgba(178, 40, 72, 0.35);
+    background: linear-gradient(90deg, rgba(178, 40, 72, 0.1), transparent 60%);
+  }
+  .spec.checked .spec-title {
+    color: var(--cream-faint);
+    text-decoration: line-through;
+    text-decoration-color: var(--red);
+    text-decoration-thickness: 2px;
+  }
+
+  .checkbox {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    border: 2px solid var(--line-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.35s var(--spring);
+  }
+  .spec.checked .checkbox,
+  .sug.checked .checkbox {
+    background: var(--red);
+    border-color: var(--red);
+    transform: scale(1.08);
+  }
+  .checkbox svg { opacity: 0; transform: scale(0.6); transition: all 0.3s var(--spring); }
+  .spec.checked .checkbox svg,
+  .sug.checked .checkbox svg { opacity: 1; transform: scale(1); }
+
+  .spec-body .spec-title {
+    font-family: var(--display);
+    font-size: 20px;
+    color: var(--cream);
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+  }
+  .spec-body .spec-desc {
+    font-family: var(--body);
+    font-size: 12.5px;
+    color: var(--cream-dim);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .spec-tag {
+    font-family: var(--label);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--pink);
+    padding: 5px 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* ── Future / planned section ───────── */
+  .future-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .future-card {
+    background: var(--charcoal-1);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 28px 30px;
+    position: relative;
+    transition: transform 0.45s var(--spring), border-color 0.3s var(--ease);
+  }
+  .future-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--line-strong);
+  }
+  .future-card .fc-stage {
+    font-family: var(--label);
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    color: var(--pink);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .future-card h4 {
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--cream);
+    letter-spacing: -0.3px;
+    margin-bottom: 10px;
+  }
+  .future-card p {
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--cream-dim);
+    line-height: 1.6;
+  }
+  .future-card .fc-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .fc-meta .tag {
+    font-family: var(--label);
+    font-size: 9px;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--orange);
+    padding: 4px 10px;
+    border: 1px solid rgba(242, 140, 82, 0.35);
+    border-radius: 100px;
+  }
+
+  /* ── Suggestions / upgrades ─────────── */
+  .suggestions { display: grid; gap: 14px; }
+  .sug {
+    background: var(--charcoal-1);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 26px 30px;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    transition: transform 0.35s var(--spring), border-color 0.3s var(--ease), background 0.3s var(--ease);
+    user-select: none;
+  }
+  .sug:hover {
+    transform: translateX(6px);
+    border-color: var(--line-strong);
+    background: var(--charcoal-2);
+  }
+  .sug.checked {
+    border-color: rgba(178, 40, 72, 0.35);
+    background: linear-gradient(90deg, rgba(178, 40, 72, 0.1), transparent 75%);
+  }
+  .sug .checkbox { margin-top: 2px; }
+  .sug-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .sug-title {
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--cream);
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+  }
+  .sug.checked .sug-title {
+    color: var(--cream-faint);
+    text-decoration: line-through;
+    text-decoration-color: var(--red);
+    text-decoration-thickness: 2px;
+  }
+  .sug-cat {
+    font-family: var(--label);
+    font-size: 9px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid;
+  }
+  .cat-client  { color: var(--pink);   border-color: rgba(244, 160, 176, 0.45); }
+  .cat-leads   { color: var(--orange); border-color: rgba(242, 140, 82, 0.45); }
+  .cat-ops     { color: var(--cream);  border-color: var(--line-strong);       }
+  .cat-intel   { color: var(--red);    border-color: rgba(178, 40, 72, 0.6);   }
+
+  .sug-why {
+    font-family: var(--body);
+    font-size: 13.5px;
+    color: var(--cream-dim);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .sug-how {
+    font-family: var(--editorial);
+    font-style: italic;
+    font-size: 12.5px;
+    color: var(--pink);
+    line-height: 1.55;
+  }
+  .sug-how::before {
+    content: 'Slots in — ';
+    font-family: var(--label);
+    font-style: normal;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cream-faint);
+    margin-right: 6px;
+  }
+
+  /* Section intro blurb */
+  .intro-blurb {
+    font-family: var(--editorial);
+    font-style: italic;
+    color: var(--cream-dim);
+    font-size: 16px;
+    max-width: 780px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* ── Reality check ───────────────────── */
+  .reality {
+    background: linear-gradient(135deg, rgba(178, 40, 72, 0.12), rgba(242, 140, 82, 0.04));
+    border: 1px solid rgba(178, 40, 72, 0.32);
+    border-radius: 22px;
+    padding: 48px 56px;
+  }
+  .reality-eyebrow {
+    font-family: var(--label);
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 14px;
+  }
+  .reality h3 {
+    font-family: var(--display);
+    font-size: 36px;
+    color: var(--cream);
+    margin-bottom: 10px;
+    letter-spacing: -0.8px;
+  }
+  .reality .q {
+    font-family: var(--editorial);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--pink);
+    margin-bottom: 32px;
+  }
+  .reality ul {
+    list-style: none;
+    display: grid;
+    gap: 18px;
+  }
+  .reality li {
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--cream-dim);
+    line-height: 1.6;
+    padding-left: 28px;
+    position: relative;
+  }
+  .reality li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 11px;
+    width: 14px; height: 2px;
+    background: var(--red);
+  }
+  .reality li strong {
+    font-family: var(--body);
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: 0.2px;
+  }
+
+  /* ── Footer ──────────────────────────── */
+  footer {
+    margin-top: 128px;
+    padding-top: 48px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+  footer .fq {
+    font-family: var(--editorial);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--pink);
+    max-width: 560px;
+    margin: 0 auto 28px;
+    line-height: 1.5;
+  }
+  footer .fmeta {
+    font-family: var(--label);
+    font-size: 10px;
+    letter-spacing: 2.2px;
+    text-transform: uppercase;
+    color: var(--cream-faint);
+  }
+  .reset {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream-faint);
+    font-family: var(--label);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 11px 20px;
+    border-radius: 100px;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: all 0.3s var(--ease);
+  }
+  .reset:hover { color: var(--red); border-color: var(--red); }
+
+  @media (max-width: 900px) {
+    body { padding: 48px 20px 80px; }
+    .hero-card { grid-template-columns: 1fr; padding: 32px 32px; gap: 32px; }
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .overview { grid-template-columns: 1fr; }
+    .phase-row { grid-template-columns: 56px 1fr; }
+    .phase-row .p-state { grid-column: 1 / -1; justify-self: start; margin-top: 6px; }
+    .phase-sub { grid-template-columns: 1fr; }
+    .section-num { font-size: 52px; }
+    .spec { grid-template-columns: auto 1fr; padding: 18px 22px; }
+    .spec-tag { grid-column: 2 / -1; justify-self: start; margin-top: 8px; }
+    .sug { padding: 22px 24px; }
+    .reality { padding: 32px 28px; }
+    .reality h3 { font-size: 28px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══════ HEADER ═══════ -->
+<header class="top">
+  <div class="wordmark">SuperBad</div>
+  <div class="eyebrow">Lite · Build Tracker <span class="version-chip">v2</span></div>
+  <h1 class="title">Where<br>We're <span class="accent">At.</span></h1>
+  <p class="mutter">A living document of a platform being quietly built. The granular edition — summary, overview, every phase with its inner arc, planned features, and a shortlist of upgrades that would push us toward best-in-class for clients, leads, and our own sanity.</p>
+
+  <div class="hero-card">
+    <div>
+      <div class="status-label">Current Position</div>
+      <div class="status-value">Phase 3.5 <span class="em">·</span> Spec Review (Batch C)</div>
+      <div class="status-sub">All 21 specs locked. Cross-spec reconciliation in progress — Step 11 (end-to-end walkthrough) just closed Stage 4; next is Batch C (steps 8, 9, 12, 13, 15).</div>
+    </div>
+    <div class="progress-ring">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#B22848"/>
+            <stop offset="100%" stop-color="#F28C52"/>
+          </linearGradient>
+        </defs>
+        <circle class="track" cx="75" cy="75" r="66"/>
+        <circle class="fill" id="ringFill" cx="75" cy="75" r="66"
+                stroke-dasharray="414.7" stroke-dashoffset="414.7"/>
+      </svg>
+      <div class="label">
+        <div class="num" id="ringNum">100<span style="font-size:20px;opacity:.6">%</span></div>
+        <div class="sub" id="ringSub">21 of 21 specs</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════ 01 · SUMMARY ═══════ -->
+<section>
+  <div class="section-head">
+    <div class="section-num">01</div>
+    <div class="section-title-block">
+      <h2>Summary</h2>
+      <div class="sub">The state of the build, distilled. If you only read one section, read this.</div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="stat">
+      <div class="k">3.5<span class="unit">/6</span></div>
+      <div class="lbl">Phase in flight</div>
+      <div class="note">Spec review, the exit gate before the build plan.</div>
+    </div>
+    <div class="stat">
+      <div class="k">21<span class="unit">specs</span></div>
+      <div class="lbl">All locked</div>
+      <div class="note">Every feature spec has a written, reviewed document.</div>
+    </div>
+    <div class="stat">
+      <div class="k">34<span class="unit">notes</span></div>
+      <div class="lbl">Session handoffs</div>
+      <div class="note">Every session documented, no re-discovery loops.</div>
+    </div>
+    <div class="stat">
+      <div class="k">0<span class="unit">loc</span></div>
+      <div class="lbl">App code written</div>
+      <div class="note">By design. Measure twice, cut once.</div>
+    </div>
+  </div>
+
+  <div class="summary-prose">
+    <p><strong>We are one phase away from writing code.</strong> Every feature that Lite v1 will ship has a locked specification. The next step (Phase 3.5) is a disciplined cross-spec reconciliation — making sure what Spec A promises, Spec B can actually deliver, and that the data model, voice, and settings-registry all line up. When 3.5 closes, Phase 4 produces the build plan and the autonomy protocol, and then Phase 5 starts shipping.</p>
+    <p><strong>The build is structured around two arms.</strong> Arm 1 is SuperBad's core agency operation — outreach, sales, delivery, invoicing — now pre-primed with AI-native features like Brand DNA and Client Context. Arm 2 is the SaaS subscription infrastructure that turns the same platform into a productised offering. Both arms share the CRM spine, the LLM registry, the setup wizards, the audit trail.</p>
+    <p><strong>Voice, feel, and motion are first-class.</strong> Every state change is a motion moment, every customer-facing surface feels individual, every take-away artefact is brand-forward. Boring tech underneath, beautiful on top.</p>
+  </div>
+</section>
+
+<!-- ═══════ 02 · OVERVIEW ═══════ -->
+<section>
+  <div class="section-head">
+    <div class="section-num">02</div>
+    <div class="section-title-block">
+      <h2>Overview</h2>
+      <div class="sub">Four framings that make the rest of this page make sense. What we're building, why, for whom, and to what standard.</div>
+    </div>
+  </div>
+
+  <div class="overview">
+    <div class="o-card">
+      <div class="o-eyebrow">What Lite is</div>
+      <h3>A pragmatic v1 ops platform.</h3>
+      <p>Lead generation, sales, delivery, daily planning, and SaaS billing — sequenced to replace the GHL stack currently running SuperBad's business. Not a v2 of anything ambitious, not a rewrite, not a greenfield dream. It's allowed to be boring under the hood as long as it's beautiful and satisfying on top.</p>
+      <p>Lives at <em>superbadmedia.com.au/lite</em>. Client-facing surfaces never say "Lite".</p>
+    </div>
+
+    <div class="o-card">
+      <div class="o-eyebrow">Why it exists</div>
+      <h3>To take load off a solo operator.</h3>
+      <p>Andy runs SuperBad alone. The platform's job is to absorb the operational friction — who's in the pipeline, who replied, what's owed, what's next — so the creative and strategic work gets breathing room. Everything that can be automated is. Everything that can't is reduced to one clear next action.</p>
+    </div>
+
+    <div class="o-card">
+      <div class="o-eyebrow">Who it's for</div>
+      <h3>Two distinct audiences.</h3>
+      <p><strong>Retainer clients</strong> — small-to-multi-stakeholder local businesses who buy ongoing agency delivery. They experience Lite as a bespoke, brand-forward portal that feels individual, not communal.</p>
+      <p><strong>SaaS subscribers</strong> — scaled, productised offerings (bookings, outreach, content) with generic infrastructure and self-serve dashboards. Both audiences trace back to the same pipeline.</p>
+    </div>
+
+    <div class="o-card">
+      <div class="o-eyebrow">The standard</div>
+      <h3>AI-native where it matters.</h3>
+      <p>Brand DNA + Client Context are read by every downstream LLM call. Outreach is end-to-end generated per prospect, never templated. Blog drafts pass a brand-voice drift check. Setup is always a wizard, never a form. Every customer experience is pre-populated from what we already know — day one is never an empty shell.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ 03 · PHASE DETAIL ═══════ -->
+<section>
+  <div class="section-head">
+    <div class="section-num">03</div>
+    <div class="section-title-block">
+      <h2>The Long Arc, In Detail</h2>
+      <div class="sub">Seven phases from scaffold to launch. Each one with its actual inner work — not the poster version.</div>
+    </div>
+  </div>
+
+  <div class="phase-rail">
+
+    <!-- Phase 0 -->
+    <div class="phase-row done">
+      <div class="pn">0</div>
+      <div class="phase-body">
+        <h4>Pre-flight Scaffolding</h4>
+        <div class="p-blurb">The room gets built before the furniture moves in.</div>
+        <p class="p-detail">Working directory, CLAUDE.md, skills library, START_HERE protocol, SESSION_TRACKER format, memory system, git discipline, phase contracts. Carried out from the HQ session so the Lite project starts already knowing how it talks to itself.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Artefact</div><div class="sd">CLAUDE.md, START_HERE.md, SESSION_TRACKER.md, memory index.</div></div>
+          <div class="sub-item"><div class="st">Discipline</div><div class="sd">Auto-memory, handoff notes, one-concern-per-commit.</div></div>
+        </div>
+      </div>
+      <div class="p-state">Done</div>
+    </div>
+
+    <!-- Phase 1 -->
+    <div class="phase-row done">
+      <div class="pn">1</div>
+      <div class="phase-body">
+        <h4>Scope Brainstorm</h4>
+        <div class="p-blurb">What's in. What's out. What's a decoy.</div>
+        <p class="p-detail">Guided multiple-choice session with Andy to fix the v1 scope. Core arms (agency + SaaS), feature shortlist, the "no scope creep mid-session" rule, the authorised mop-up process for when new ideas surface. Produced <em>SCOPE.md</em> as the tracked source of truth.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Output</div><div class="sd">SCOPE.md — feature list, non-goals, Arm 1 vs Arm 2 split.</div></div>
+          <div class="sub-item"><div class="st">Rule set</div><div class="sd">Brainstorm rules — one MC question at a time, plain English, recommendations with rationale.</div></div>
+        </div>
+      </div>
+      <div class="p-state">Done</div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase-row done">
+      <div class="pn">2</div>
+      <div class="phase-body">
+        <h4>Foundations Brainstorm</h4>
+        <div class="p-blurb">The tech stack, chosen with intent.</div>
+        <p class="p-detail">Next.js App Router, SQLite + Drizzle, NextAuth v5, Stripe, Resend, Tailwind v4, Framer Motion. Hosting, domain strategy, auth model, env-var discipline, LLM model registry. Produced <em>FOUNDATIONS.md</em> — every stack decision with its reason, including the canonical subscription state machine.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Output</div><div class="sd">FOUNDATIONS.md (12 sections including the LLM model registry and subscription state machine).</div></div>
+          <div class="sub-item"><div class="st">Principle</div><div class="sd">Boring tech wins. Every dependency is a liability.</div></div>
+        </div>
+      </div>
+      <div class="p-state">Done</div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase-row done">
+      <div class="pn">3</div>
+      <div class="phase-body">
+        <h4>Feature Specs</h4>
+        <div class="p-blurb">Twenty-one specifications. One session per spec. No exceptions.</div>
+        <p class="p-detail">Each spec is a self-contained document: surface, data model, behaviours, motion, LLM jobs, success metrics, out-of-scope. Written so a future Claude Code session can build the feature from the spec alone without re-deriving anything from conversation.</p>
+        <p class="p-detail">Some specs spawned mini-brainstorms (Content Engine, Brand DNA, Client Context, Six-Week Plan Generator, Surprise &amp; Delight, Task Manager, Cost/Usage Observatory, Finance Dashboard). All are now locked.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Count</div><div class="sd">21 specs in <em>docs/specs/</em>. See §04 for the full list.</div></div>
+          <div class="sub-item"><div class="st">Discipline</div><div class="sd">Context-safety conventions — specs self-contained, PATCHES_OWED.md, prompts as files.</div></div>
+        </div>
+      </div>
+      <div class="p-state">Done</div>
+    </div>
+
+    <!-- Phase 3.5 -->
+    <div class="phase-row active">
+      <div class="pn">3.5</div>
+      <div class="phase-body">
+        <h4>Spec Review — The Exit Gate</h4>
+        <div class="p-blurb">The heaviest-read phase in the project. Where we catch what 21 separate sessions couldn't see.</div>
+        <p class="p-detail">Cross-spec reconciliation. Contract audits between spec pairs. Data model sanity. Settings registry compiled (56 keys at v1.0 seed). Literal-grep sweep for drifted terms. End-to-end flow walkthrough covering the full prospect-to-retainer arc, with frictions resolved inline as spec patches.</p>
+        <p class="p-detail"><strong>Step 11 (end-to-end walkthrough)</strong> just closed Stage 4 — retainer conversion + portal-guard primitive. 24+ frictions resolved across four stages. <strong>Next session: Batch C</strong> — autonomous spec-pair contract audits, LLM job inventory against model registry, GHL cutover acknowledgement, legal/compliance sweep, success metrics per spec, final literal-grep.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Method</div><div class="sd">Checklist-driven, context-compressed between sub-passes.</div></div>
+          <div class="sub-item"><div class="st">Discovered</div><div class="sd">Settings registry, subscription state machine, portal-guard primitive, retainer kickoff transition.</div></div>
+          <div class="sub-item"><div class="st">Owed</div><div class="sd">PATCHES_OWED.md tracks every cross-spec edit still to be applied.</div></div>
+          <div class="sub-item"><div class="st">Exit gate</div><div class="sd">sessions/phase-3.5-review-handoff.md + all patches closed.</div></div>
+        </div>
+      </div>
+      <div class="p-state">In Progress</div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase-row future">
+      <div class="pn">4</div>
+      <div class="phase-body">
+        <h4>Build Plan + Autonomy Protocol</h4>
+        <div class="p-blurb">The session-by-session schedule. Plus the rules for hands-off execution.</div>
+        <p class="p-detail">Produces <em>BUILD_PLAN.md</em> — every session scoped small enough to finish in one conversation with headroom for debugging. Dependency order respected. Verification gates named per session (typecheck, tests, manual browser check).</p>
+        <p class="p-detail">Also produces <em>AUTONOMY_PROTOCOL.md</em> — the rules under which Phase 5 can run hands-off: what to commit, what to flag, when to stop, how to preserve motion-first feel without human sign-off on every state change.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Outputs</div><div class="sd">BUILD_PLAN.md, AUTONOMY_PROTOCOL.md, updated SESSION_TRACKER.md.</div></div>
+          <div class="sub-item"><div class="st">Gate</div><div class="sd">No build session starts until both docs are locked.</div></div>
+        </div>
+      </div>
+      <div class="p-state">Queued</div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase-row future">
+      <div class="pn">5</div>
+      <div class="phase-body">
+        <h4>Build Execution</h4>
+        <div class="p-blurb">Session by session, handoff by handoff, commit by commit.</div>
+        <p class="p-detail">The app gets written. Each build session: read the last two handoff notes, build the scoped work, pass the verification gates, write the handoff, auto-commit. No half-finished work crosses session boundaries. No HQ code reuse — Lite is a fresh build.</p>
+        <p class="p-detail">Parallel workstreams allowed where dependencies permit (e.g. Hiring Pipeline runs alongside core once Sales Pipeline primitives land). Motion, voice, and customer-individuality are verification criteria, not polish-later items.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Cadence</div><div class="sd">One feature slice per session. Compact between sessions.</div></div>
+          <div class="sub-item"><div class="st">Gates</div><div class="sd">tsc clean + tests green + manual browser check + handoff note.</div></div>
+        </div>
+      </div>
+      <div class="p-state">Queued</div>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="phase-row future">
+      <div class="pn">6</div>
+      <div class="phase-body">
+        <h4>Launch + Iterate</h4>
+        <div class="p-blurb">Real users, real data, real decisions.</div>
+        <p class="p-detail">Domain cutover (DNS unblocks <em>/lite</em>, cold-email subdomain, blog routing). Monitoring dashboards live. Andy starts using Lite for real outreach and real client delivery. GHL sunsets in sequence, not big-bang. Post-launch: v1.1 backlog opens, driven by real operational data rather than speculation.</p>
+        <div class="phase-sub">
+          <div class="sub-item"><div class="st">Launch blocker</div><div class="sd">DNS access for superbadmedia.com.au.</div></div>
+          <div class="sub-item"><div class="st">First v1.1 candidate</div><div class="sd">Strategic planning (goal-setting + live tracking against live ops data).</div></div>
+        </div>
+      </div>
+      <div class="p-state">Queued</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ 04 · SPEC BACKLOG ═══════ -->
+<section>
+  <div class="section-head">
+    <div class="section-num">04</div>
+    <div class="section-title-block">
+      <h2>The Spec Backlog</h2>
+      <div class="sub">All 21 specs are locked. Grouped below by role in the system so you can read them as an architecture, not a to-do list.</div>
+    </div>
+  </div>
+
+  <p class="intro-blurb">Ticking these marks "spec done" — not "feature built". The ring tracks spec completion; build completion will live in Phase 5's own tracker.</p>
+
+  <div class="spec-group">
+    <div class="spec-group-head">Core · Pipeline Spine</div>
+    <div class="specs">
+      <div class="spec checked" data-id="spec-design-system">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Design System Baseline</div>
+          <div class="spec-desc">Surface strategy, motion tiers, density presets, token system, display panel. The visual rails every feature rides on.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-sales-pipeline">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Sales Pipeline</div>
+          <div class="spec-desc">Eight-stage Kanban, three-entity CRM, append-only activity log, stale-halo + snooze. The spine everything else hangs off.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-lead-gen">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Lead Generation</div>
+          <div class="spec-desc">Prospect discovery, pre-send ICP scoring, Claude end-to-end outreach drafting, Resend delivery, retargeting pixel, reply-intel routing, sender reputation.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-unified-inbox">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Unified Inbox</div>
+          <div class="spec-desc">Email-only v1 with pluggable channel adapters. Threading, search, filters, latest-comms feeds on contact profiles.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec-group">
+    <div class="spec-group-head">Core · Conversion + Delivery</div>
+    <div class="specs">
+      <div class="spec checked" data-id="spec-intro-funnel">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Intro Funnel</div>
+          <div class="spec-desc">Public landing, $297 trial-shoot purchase, reflection, six-week plan delivery, portal-guard primitive, magic-link-in-every-email.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-six-week-plan">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Six-Week Plan Generator</div>
+          <div class="spec-desc">The real deliverable from a trial shoot — a credible take-the-plan-and-run for non-converters, and the seed strategy for retainers.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-quote-builder">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Quote Builder</div>
+          <div class="spec-desc">Dual-quote strategy (optimal + budget-conscious), on-brand web quote page, 1-page PDF, embedded Stripe Payment Element.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-onboarding">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Onboarding + Revenue Segmentation</div>
+          <div class="spec-desc">Multiple entry paths (trial, direct, referral, legacy) converging on the same output. Composes Brand DNA. Upsell segmentation primitive.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-client-management">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Client Management</div>
+          <div class="spec-desc">Packages, deliverables, content calendar, approvals queue, external links, retainer kickoff transition, client-managed shoot bookings.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-branded-invoicing">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Branded Invoicing</div>
+          <div class="spec-desc">Manual-billed-company invoices, ATO-compliant tax invoices, auto-send around renewal. For the clients Stripe Billing doesn't reach.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec-group">
+    <div class="spec-group-head">Intelligence Layer · Perpetual LLM Context</div>
+    <div class="specs">
+      <div class="spec checked" data-id="spec-brand-dna">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Brand DNA Assessment</div>
+          <div class="spec-desc">NASA-style psychological + taste profile. Indirect-signal questions, shape-aware, multi-stakeholder blending. The <em>who they are</em> half of the perpetual context pair. Flagship experience.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-context-engine">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Client Context Engine</div>
+          <div class="spec-desc">Per-contact Claude engine. Invisible context store, living summary, one-click channel-aware drafts, auto-extracted action items. The <em>where you are in the conversation</em> half.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec-group">
+    <div class="spec-group-head">Content + SaaS Infrastructure</div>
+    <div class="specs">
+      <div class="spec checked" data-id="spec-content-engine">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Content Engine</div>
+          <div class="spec-desc">SerpAPI keyword research, rankability scoring, Claude blog generation, one-gate review, newsletter, stub social adapters. SuperBad's own organic flywheel.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-saas-billing">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">SaaS Subscription Billing</div>
+          <div class="spec-desc">Products admin, Stripe Billing, magic-link customer accounts, self-serve dashboards, popcorn tier pricing, canonical subscription state machine.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec-group">
+    <div class="spec-group-head">Cockpit + Cross-Cutting Primitives</div>
+    <div class="specs">
+      <div class="spec checked" data-id="spec-daily-cockpit">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Daily Cockpit</div>
+          <div class="spec-desc">Narrative morning brief in SuperBad voice. Today-kanban + flat-list alternates. Actionable items only. Health banners route from every spec.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-task-manager">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Task Manager</div>
+          <div class="spec-desc">The shared task primitive the cockpit, approvals, and deliverables all hang tasks off. Assignment, due dates, cross-entity linking.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-setup-wizards">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Setup Wizards</div>
+          <div class="spec-desc">Cross-cutting primitive — guided step-by-step flows with OAuth, third-party docs links, Claude "Stuck?" chat. Zero manual screenshots, ever.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-finance-dashboard">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Finance Dashboard</div>
+          <div class="spec-desc">MRR, ARR, AR aging, retainer health, invoice state, margin signals. The financial truth of the business, rendered briefly.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-cost-observatory">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Cost &amp; Usage Observatory</div>
+          <div class="spec-desc">Per-job LLM spend, per-subscriber margin, per-tier cost. Tier-limits are the primary margin mechanism; this is the feedback loop.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-surprise-delight">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Surprise &amp; Delight</div>
+          <div class="spec-desc">80% ambient dry voice + 20% hidden "Lite has been watching" eggs. Admin-roommate, public-bartender, max once/month per egg.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+      <div class="spec checked" data-id="spec-hiring-pipeline">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="spec-body">
+          <div class="spec-title">Hiring Pipeline</div>
+          <div class="spec-desc">Parallel CRM for headhunting. Reuses Sales Pipeline primitives. Runs as its own workstream once the spine lands.</div>
+        </div>
+        <div class="spec-tag">Locked</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ 05 · PLANNED FUTURE FEATURES ═══════ -->
+<section>
+  <div class="section-head">
+    <div class="section-num">05</div>
+    <div class="section-title-block">
+      <h2>Planned · After v1</h2>
+      <div class="sub">Items we've already decided to build — just not in the first ship. The difference between this section and the next is commitment: these are v1.1 roadmap, not proposals.</div>
+    </div>
+  </div>
+
+  <div class="future-grid">
+
+    <div class="future-card">
+      <div class="fc-stage">v1.1 · First out the gate</div>
+      <h4>Strategic Planning</h4>
+      <p>Goal-setting at the top of the house — revenue targets, subscriber targets, content cadence — with live progress tracked against the real ops data Lite is already collecting. Needs operational data to be valuable, which is why it waits.</p>
+      <div class="fc-meta"><span class="tag">Locked in memory</span></div>
+    </div>
+
+    <div class="future-card">
+      <div class="fc-stage">v1.1</div>
+      <h4>Settings Editor UI</h4>
+      <p>The 56-key settings registry runs from v1.0 as data. The in-app editor surface ships in v1.1 once patterns settle. Until then, Andy edits values through direct DB writes documented in the registry.</p>
+      <div class="fc-meta"><span class="tag">Architecture locked</span></div>
+    </div>
+
+    <div class="future-card">
+      <div class="fc-stage">v1.1</div>
+      <h4>Ad Campaign Builder</h4>
+      <p>In-platform Meta + Google campaign creation via APIs. Auto-generated creative from Brand DNA + Client Context. Living rationale docs per campaign. ROAS on <em>actual lead LTV</em>, not lead count — because that's the only honest number.</p>
+      <div class="fc-meta"><span class="tag">Brainstorm queued</span></div>
+    </div>
+
+    <div class="future-card">
+      <div class="fc-stage">v1.1+</div>
+      <h4>Web Buildouts As A Retainer Add-On</h4>
+      <p>Not a standalone product. A retainer upgrade where the client's site is powered by their Brand DNA + Client Context, updating with their narrative. Deferred until core delivery is stable.</p>
+      <div class="fc-meta"><span class="tag">Deferred with intent</span></div>
+    </div>
+
+    <div class="future-card">
+      <div class="fc-stage">Month 3–4 enhancement</div>
+      <h4>Cross-Channel Warming Loop</h4>
+      <p>Outreach-link retargeting pixels fire into Meta + Google audiences, so cold prospects start seeing SuperBad ads shortly after the first email. Plumbed day one, activated when the ad builder ships.</p>
+      <div class="fc-meta"><span class="tag">Plumbed day 1</span></div>
+    </div>
+
+    <div class="future-card">
+      <div class="fc-stage">Month 4–6</div>
+      <h4>Compounding Social-Proof Loop</h4>
+      <p>Auto-drafted case studies on delivery milestones. Named-reference opt-in on renewal. Both feed back into outreach materials automatically. The data plumbing for this is designed in from launch.</p>
+      <div class="fc-meta"><span class="tag">Data plumbing from day 1</span></div>
+    </div>
+
+    <div class="future-card">
+      <div class="fc-stage">v1.x · Arm 2 expansion</div>
+      <h4>Productised SaaS Offerings</h4>
+      <p>Specific SaaS products sit on the generic SaaS Billing infrastructure. Each new product = a spec session + onboarding variant, not a platform rebuild. Candidates: booking concierge, outreach-as-a-service, content-as-a-service.</p>
+      <div class="fc-meta"><span class="tag">Infra-ready</span></div>
+    </div>
+
+    <div class="future-card">
+      <div class="fc-stage">v1.x</div>
+      <h4>Channel Adapters Beyond Email</h4>
+      <p>The Unified Inbox and Lead Gen ship email-first with pluggable adapters. SMS, WhatsApp, Instagram DM get added per-channel as real demand shows up. Passive channels echo to email; active channels deliver natively.</p>
+      <div class="fc-meta"><span class="tag">Adapters scaffolded</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════ 06 · RECOMMENDED UPGRADES ═══════ -->
+<section>
+  <div class="section-head">
+    <div class="section-num">06</div>
+    <div class="section-title-block">
+      <h2>Recommended Upgrades</h2>
+      <div class="sub">A curated shortlist that would push Lite toward best-in-class. Grouped by what they improve: client delivery, lead generation, and platform efficiency. Tick the ones you want in.</div>
+    </div>
+  </div>
+
+  <p class="intro-blurb">Each upgrade is scoped to slot into existing specs without breaking anything. No new architectural surface unless it already exists in stack. The categories below mirror the three places Lite can compound: how well we <em>deliver for clients</em>, how well we <em>generate leads</em>, and how well we <em>run the platform itself</em>.</p>
+
+  <!-- Client delivery upgrades -->
+  <div class="spec-group">
+    <div class="spec-group-head">Better delivery for clients</div>
+    <div class="suggestions">
+
+      <div class="sug" data-id="sug-client-trailer">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Client Portal Trailer On First Visit</div><div class="sug-cat cat-client">Client Delivery</div></div>
+          <div class="sug-why">First portal login: a ten-second branded intro — their name, their brand colours, a dry welcome in SuperBad voice, then the portal fades in. One-time only. Directly serves the "customer-facing surfaces feel individual" principle.</div>
+          <div class="sug-how">A <em>first_portal_visit_at</em> timestamp + a Framer Motion intro component. Already-in-stack tools. Runs once, then never again.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-brand-drift">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Brand-Voice Drift Check On Every Draft</div><div class="sug-cat cat-client">Client Delivery</div></div>
+          <div class="sug-why">Every LLM-generated client artifact — outreach, blog, newsletter, reply — passes a final "does this match the Brand DNA profile?" gate before Andy ever sees it. Claude grades against signal tags and flags drift. Difference between a platform that generates content and one that generates <em>your client's</em> content.</div>
+          <div class="sug-how">One extra Claude call per generation, reading the client's Brand DNA profile. Natural extension of the locked "Brand DNA as perpetual context" pattern.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-quarterly-review">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Auto-Drafted Quarterly Review PDF</div><div class="sug-cat cat-client">Client Delivery</div></div>
+          <div class="sug-why">Every 90 days, each retainer client gets a branded one-page PDF: what SuperBad delivered, what happened, what moved the needle, what's queued next quarter. Lands in inbox + portal. Reviews that write themselves become reviews that actually happen — and that's what retains retainers.</div>
+          <div class="sug-how">Composes Client Context + deliverables + content engine output through Puppeteer PDF (already in stack). One cron job per quarter. No new data.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-client-export">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">One-Click Client Data Export</div><div class="sug-cat cat-client">Client Delivery</div></div>
+          <div class="sug-why">One button on any client record: "Export everything Lite knows about them." Branded ZIP — CSV of their data, PDFs of invoices and quotes, linked external folders. Trust signal, migration safety net, and quietly premium as a receipt of how well you handle their business.</div>
+          <div class="sug-how">Composes existing PDF generation and data queries into a single handler. Shape-change, not new data.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-client-sentiment">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Client Relationship Health Score</div><div class="sug-cat cat-client">Client Delivery</div></div>
+          <div class="sug-why">A continuous passive read on every retainer — reply latency, sentiment trend across incoming messages, approval queue aging, time since last proactive SuperBad touch. Surfaced as a quiet coloured halo, not a dashboard. Early warning for clients drifting toward churn <em>before</em> they tell you.</div>
+          <div class="sug-how">Reads existing Client Context + inbox sentiment tags + activity log. One derived field on each client, updated on relevant writes. Cockpit health banner on red.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Lead gen upgrades -->
+  <div class="spec-group">
+    <div class="spec-group-head">Better lead generation</div>
+    <div class="suggestions">
+
+      <div class="sug" data-id="sug-sentiment-reply">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Sentiment-Aware Reply Drafts</div><div class="sug-cat cat-leads">Lead Gen</div></div>
+          <div class="sug-why">Prospect replies. Claude reads the tone — warm / cold / curious / objection / excited — tags it, drafts a reply in matching register. Appears inline as a suggested reply, not auto-send. Collapses the "what do I say back" friction that kills momentum on live leads.</div>
+          <div class="sug-how">Slots into Unified Inbox as a single draft-suggestion module. Same Claude primitive as outreach generation.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-icp-learning">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Self-Tuning ICP Scoring</div><div class="sug-cat cat-leads">Lead Gen</div></div>
+          <div class="sug-why">Pre-send ICP scoring already exists. The upgrade: feed every outcome back — replied / didn't / converted / unsubscribed — into the scoring context so the ICP bar tightens itself every month. After 90 days the model knows which prospects are actually SuperBad's people.</div>
+          <div class="sug-how">Outcome table already planned in the activity log. Monthly batch Claude call reads the outcome rollup into the scoring prompt. Zero new infra.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-warm-signal">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Warm-Signal Watchtower</div><div class="sug-cat cat-leads">Lead Gen</div></div>
+          <div class="sug-why">Passive monitoring of prospects and lapsed leads for public signals that mean <em>now's the moment</em>: new hire, funding round, rebrand, office move, competitor mention. Surfaced as a one-line nudge in the cockpit with a pre-drafted tailored outreach. Makes outreach feel like radar, not cold shooting.</div>
+          <div class="sug-how">Daily SerpAPI + Meta Ad Library + news API sweep per watchlist prospect. LLM parses signals against a "reason to reach out" taxonomy. One activity-log row per trigger.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-referral-engine">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Quiet Referral Engine</div><div class="sug-cat cat-leads">Lead Gen</div></div>
+          <div class="sug-why">At specific earned transition moments — first deliverable approved, 6-month mark, case-study-ready — the client portal quietly surfaces a "know someone who'd benefit?" card with pre-filled share-kit (their brand colours, the SuperBad pitch, their personal referral link). Honours "earned CTAs at transition moments" — proportional, never nagging.</div>
+          <div class="sug-how">Uses Client Context to detect the moment. Share-kit is a branded mini-page. Referral tracking piggybacks on existing intro-funnel UTM primitives.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-follow-up-graph">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Strategy-Level A/B On Outreach</div><div class="sug-cat cat-leads">Lead Gen</div></div>
+          <div class="sug-why">Outreach copy is never templated — so A/B happens at the <em>strategy</em> level: observation-first vs insight-first, pattern-break openers vs slow-burn, one-CTA vs zero-CTA. Platform runs several strategies in parallel, reports reply-rate per strategy, lets winning strategies bias future generations. Doubles as training signal for voice.</div>
+          <div class="sug-how">Strategy is a field on outreach generation requests. Aggregated reply-rate per strategy rolls up weekly. No new surfaces, one extra field + one query.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Platform efficiency upgrades -->
+  <div class="spec-group">
+    <div class="spec-group-head">Better platform efficiency</div>
+    <div class="suggestions">
+
+      <div class="sug" data-id="sug-audit-log">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Universal Audit Log</div><div class="sug-cat cat-ops">Platform Ops</div></div>
+          <div class="sug-why">Every admin action — card dragged, deal edited, email sent, client added — gets a timestamped immutable row. You never have to ask "who did what, when, why" again. Quiet insurance for the day a client disputes something.</div>
+          <div class="sug-how">Sales Pipeline already defines an append-only activity log with nullable FKs. Generalise that table to every mutation at the Drizzle layer.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-undo">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Global Undo Toast</div><div class="sug-cat cat-ops">Platform Ops</div></div>
+          <div class="sug-why">Every destructive action gets a 10-second "undo" toast. The cheapest thing you can build that makes software feel trustworthy — Notion, Linear, Superhuman all win on this detail alone.</div>
+          <div class="sug-how">Soft-delete pattern at the data layer, a shared toast component, one undo adapter. Pairs naturally with the audit log.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-safe-to-send">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Safe-To-Send Gate</div><div class="sug-cat cat-ops">Platform Ops</div></div>
+          <div class="sug-why">Every outbound email flows through a single <em>canSendTo(recipient)</em> check. Suppression list, bounce history, unsubscribe flags, frequency caps. One primitive. Protects deliverability forever. Impossible to retrofit if you get it wrong early.</div>
+          <div class="sug-how">Single middleware wrapped around the Resend adapter. Every send path imports it. Non-negotiable discipline, not a toggle.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-quiet-mode">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Quiet-Mode Outreach Window</div><div class="sug-cat cat-ops">Platform Ops</div></div>
+          <div class="sug-why">Automated outreach can only send between 8am–6pm recipient-local, never on public holidays. Protects sender reputation, respects recipients, and removes the "oh no I sent that at 11pm" anxiety. Set once, enforced forever.</div>
+          <div class="sug-how">Single gate in the channel adapter layer. Holiday calendar is a static JSON updated yearly. Rejected sends queue for next safe window.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-timezone">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Timezone-Correct Everything</div><div class="sug-cat cat-ops">Platform Ops</div></div>
+          <div class="sug-why">Store every timestamp in UTC, display every timestamp in the viewer's local timezone. Cheap day one. Catastrophic to retrofit once a Perth client says "why does my invoice say Tuesday when I paid Wednesday".</div>
+          <div class="sug-how">A date-display utility used everywhere, one <em>timezone</em> column on user records. A Phase 4 build-plan rule, not a feature.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-semantic-search">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Global Semantic Search</div><div class="sug-cat cat-intel">Intelligence</div></div>
+          <div class="sug-why">Type anything — "that clinic in Brighton", "the guy who wanted three shoot days", "the blog post about rebranding" — and get matches across contacts, deals, emails, blog drafts, notes. Not keyword search. Meaning search.</div>
+          <div class="sug-how">Embeddings stored alongside each record on write (vector column per entity). SQLite's sqlite-vec extension handles nearest-neighbour. No external vector DB.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-morning-audio">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Morning Brief · Listen In The Car</div><div class="sug-cat cat-ops">Platform Ops</div></div>
+          <div class="sug-why">The cockpit's narrative morning brief exists in spec. Pipe it to a 6:30am email with a 30-second audio attachment — voice-generated, SuperBad tone. You hear the state of the business before you hit the studio. Nothing else does this well.</div>
+          <div class="sug-how">Claude (in stack) for text, TTS API for voice, Resend (in stack) for delivery, daily cron. Zero new architectural surface.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-weekly-pdf">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">Monday Founder-State PDF</div><div class="sug-cat cat-ops">Platform Ops</div></div>
+          <div class="sug-why">Every Monday 7am, a branded one-page PDF lands in Andy's inbox. MRR, ARR, deals by stage, clients that went quiet, overdue invoices, content engine output, weekly wins. Print it, drink coffee, decide the week.</div>
+          <div class="sug-how">Puppeteer HTML-to-PDF (in stack). Template is one React component. Cron, email, done. Composes existing data.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-cost-guardrails">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">LLM Cost Guardrails</div><div class="sug-cat cat-intel">Intelligence</div></div>
+          <div class="sug-why">The Cost &amp; Usage Observatory reports spend. The upgrade adds hard ceilings: per-job daily caps, per-subscriber monthly caps, emergency circuit-breaker if the weekly burn trips an alert. Tier limits protect margin at the product layer; this protects margin at the infrastructure layer.</div>
+          <div class="sug-how">Middleware wrapped around the LLM model registry. Rejected calls queue or fail-soft with a graceful message. Settings-registry keys for every cap.</div>
+        </div>
+      </div>
+
+      <div class="sug" data-id="sug-snapshot-replay">
+        <div class="checkbox"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7.5l3.5 3L12 3" fill="none" stroke="#FDF5E6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div>
+          <div class="sug-head"><div class="sug-title">LLM Call Snapshot + Replay</div><div class="sug-cat cat-intel">Intelligence</div></div>
+          <div class="sug-why">Every LLM call stores its inputs, prompt, model, settings, and output. Anything weird in production can be replayed locally against a newer model or a tweaked prompt. Debugging AI features without this is guessing; with it, it's science.</div>
+          <div class="sug-how">Uniform logger wrapped around the model registry. Stored as JSON-L on disk or in a <em>llm_calls</em> table. Simple replay CLI.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ 07 · HONEST RELITY CHECK ═══════ -->
+<section>
+  <div class="reality">
+    <div class="reality-eyebrow">07 · Honest Reality Check</div>
+    <h3>The Parts That Could Still Bite.</h3>
+    <p class="q">Not to be scary — just so you know where to watch the road.</p>
+    <ul>
+      <li><strong>Phase 3.5 is easy to underestimate.</strong> Twenty-one specs written over months each have their own internal logic. The reconciliation work is catching the moments where Spec A quietly assumes Spec B behaves one way and Spec B actually behaves another. Step 11 alone surfaced 24+ frictions — the remaining Batch C steps will surface more. Rushing 3.5 means shipping contradictions.</li>
+      <li><strong>The Brand DNA question bank is still creative work, not code.</strong> Fifty to a hundred indirect-signal questions per bank with branching logic and a signal-tag taxonomy. If the questions are generic, the profile is generic, and every downstream LLM call inherits that mediocrity. Load the brand-voice skill the morning of and take it slow when that build session comes.</li>
+      <li><strong>Content engine output in your voice is the whole ballgame.</strong> If Claude's blog drafts sound like LinkedIn boilerplate, the one-gate review becomes a chore and the engine dies on the vine. Prompt engineering is the real work here — the feature surface is easy.</li>
+      <li><strong>Cold email deliverability is infrastructure, not code.</strong> Subdomain setup, SPF/DKIM/DMARC, warming the sender, staying under volume thresholds. Worth a full setup wizard of its own + the Safe-To-Send Gate above. Get it wrong and outreach silently goes to spam for months.</li>
+      <li><strong>DNS access for superbadmedia.com.au is still unresolved.</strong> Blocks client portals, cold-email subdomain, the eventual /lite cutover, the Content Engine's /blog routing. Resolve it early in Phase 5, not late.</li>
+      <li><strong>The GHL cutover is sequenced, not big-bang.</strong> GHL runs real CRM + live site editing today. Running Lite alongside GHL for weeks is the correct answer, and that's more work than switching. The cutover plan needs its own Phase 4 attention.</li>
+      <li><strong>Handoff-note hygiene between sessions is the entire difference between shipping and re-discovering.</strong> One slipped handoff costs a full rediscovery session. Tick a spec here only after the handoff note is written.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <p class="fq">"Boring underneath, beautiful on top.<br>Ship it quietly."</p>
+  <div class="fmeta">SuperBad Lite Tracker · v2 · Saved Locally · <span id="timestamp"></span></div>
+  <button class="reset" id="resetBtn">Reset All Ticks</button>
+</footer>
+
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'sbl-progress-v2';
+
+  let state = {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch (e) { state = {}; }
+
+  const save = () => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  };
+
+  // Collect all default-checked specs so resets restore them
+  const defaultChecked = {};
+  document.querySelectorAll('.spec').forEach(el => {
+    if (el.classList.contains('checked')) defaultChecked[el.dataset.id] = true;
+  });
+
+  document.querySelectorAll('.spec, .sug').forEach(el => {
+    const id = el.dataset.id;
+    if (id && Object.prototype.hasOwnProperty.call(state, id)) {
+      if (state[id]) el.classList.add('checked');
+      else el.classList.remove('checked');
+    } else if (el.classList.contains('checked')) {
+      state[id] = true;
+    }
+  });
+  save();
+
+  document.querySelectorAll('.spec, .sug').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      el.classList.toggle('checked');
+      state[id] = el.classList.contains('checked');
+      save();
+      updateRing();
+    });
+  });
+
+  const ringFill = document.getElementById('ringFill');
+  const ringNum = document.getElementById('ringNum');
+  const ringSub = document.getElementById('ringSub');
+  const CIRC = 2 * Math.PI * 66;
+
+  function updateRing() {
+    const specs = document.querySelectorAll('.spec');
+    const total = specs.length;
+    const done = document.querySelectorAll('.spec.checked').length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+
+    ringNum.innerHTML = pct + '<span style="font-size:20px;opacity:.6">%</span>';
+    ringSub.textContent = done + ' of ' + total + ' specs';
+    const offset = CIRC - (CIRC * pct / 100);
+    ringFill.setAttribute('stroke-dasharray', CIRC);
+    ringFill.setAttribute('stroke-dashoffset', offset);
+  }
+
+  ringFill.setAttribute('stroke-dasharray', CIRC);
+  ringFill.setAttribute('stroke-dashoffset', CIRC);
+  setTimeout(updateRing, 200);
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (!confirm('Reset all progress back to the current locked state? All 21 specs will remain ticked; upgrades will be unticked.')) return;
+    state = Object.assign({}, defaultChecked);
+    save();
+    document.querySelectorAll('.spec, .sug').forEach(el => {
+      const id = el.dataset.id;
+      if (state[id]) el.classList.add('checked');
+      else el.classList.remove('checked');
+    });
+    updateRing();
+  });
+
+  const d = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('timestamp').textContent =
+    'Opened ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+})();
+</script>
+</body>
+</html>
