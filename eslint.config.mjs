@@ -1,6 +1,10 @@
+import { createJiti } from "jiti";
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+
+const jiti = createJiti(import.meta.url);
+const litePlugin = (await jiti.import("./lib/eslint-rules/index.ts")).default;
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -13,6 +17,26 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    // Custom Lite rules — enforce the adapter-boundary discipline from
+    // FOUNDATIONS §11.2 / §11.6 / §11.7. Scoped to feature code only;
+    // the adapter folders themselves are carved out.
+    files: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}"],
+    ignores: [
+      "lib/channels/**",
+      "lib/ai/**",
+      "lib/stripe/**",
+      "lib/eslint-rules/**",
+    ],
+    plugins: {
+      lite: litePlugin,
+    },
+    rules: {
+      "lite/no-direct-anthropic-import": "error",
+      "lite/no-direct-stripe-customer-create": "error",
+      "lite/no-direct-resend-send": "error",
+    },
+  },
 ]);
 
 export default eslintConfig;

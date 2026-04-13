@@ -45,3 +45,11 @@ next-env.d.ts
 # OS / tooling
 Thumbs.db
 .cache/
+
+# SQLite dev DB
+dev.db
+dev.db-shm
+dev.db-wal
+tests/.test-*.db
+tests/.test-*.db-shm
+tests/.test-*.db-wal

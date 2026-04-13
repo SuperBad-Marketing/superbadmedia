@@ -58,9 +58,9 @@ A6 — activity_log + scheduled_tasks + formatTimestamp + LLM model registry +
 - `lib/db/schema/scheduled-tasks.ts` — `scheduled_tasks` table + 31-value `task_type` enum (`new`).
 - `lib/db/schema/external-call-log.ts` — `external_call_log` table (`new`).
 - `lib/db/schema/messages.ts` — `messages` + `threads` tables (`new`).
-- `lib/db/schema/user.ts` — add `timezone` column **only if A5 didn't already** (`edit` conditional).
+- `lib/db/schema/user.ts` — **A5 already added `timezone` and `role`**; A6 does not re-add. Only edit if a column A6 genuinely owns needs appending.
 - `lib/db/schema/index.ts` — extend barrel (`edit`).
-- `lib/db/migrations/0001_*.sql` — add migration for these tables (`new`).
+- `lib/db/migrations/0002_*.sql` — schema migration for the new tables (A5 used 0000 for schema + 0001 for seed; A6's schema starts at 0002). Generate via `npx drizzle-kit generate --name=...`.
 - `lib/activity-log.ts` — `logActivity({ userId, kind, payload, ... })` (`new`).
 - `lib/format-timestamp.ts` — `formatTimestamp(date, tz)` helper (Australia/Melbourne default) (`new`).
 - `lib/ai/models.ts` — registry: `MODELS = { 'brand-dna-portrait': 'claude-opus-4-6', 'drift-check': 'claude-haiku-4-5-20251001', ... }` keyed on every job slug from `lib/ai/prompts/INDEX.md` + Observatory §4.2 (`new`).
@@ -80,11 +80,11 @@ Anything outside this list = stop and patch the brief.
 - [ ] A5 closed cleanly — verify: `ls sessions/a5-handoff.md`.
 - [ ] `lib/db/index.ts` exports a Drizzle client — verify: `Grep "export.*db" lib/db/index.ts`.
 - [ ] `lib/db/schema/settings.ts` exists with `settings` table — verify: `Grep "settings" lib/db/schema/settings.ts`.
-- [ ] `lib/db/schema/user.ts` exists with the seven preference columns — verify: `Grep "motion_preference\|sounds_enabled\|first_signed_in_at" lib/db/schema/user.ts`.
+- [ ] `lib/db/schema/user.ts` exists with the seven preference columns **plus `timezone` and `role`** (landed in A5) — verify: `Grep "motion_preference\|sounds_enabled\|first_signed_in_at\|timezone\|role" lib/db/schema/user.ts`.
 - [ ] `lib/kill-switches.ts` exports `scheduled_tasks_enabled` — verify: `Grep "scheduled_tasks_enabled" lib/kill-switches.ts`.
 - [ ] `lib/types/glossary.ts` exports the 11 entity types — verify: `Grep "export type" lib/types/glossary.ts`.
-- [ ] `docs/settings-registry.md` reflects 67 keys total post-A5 — verify: `Grep "Total: 67" docs/settings-registry.md`.
-- [ ] **Consolidated 166-value `activity_log.kind` enum source file:** A5's handoff names whether this exists. If A5 logged a PATCHES_OWED row that the source file is missing, escalate at G1 — do **not** invent the 166 values from the various spec handoffs unsupervised. Either A6 author the consolidated enum from `docs/specs/*.md` `## activity_log.kind` sections (~half a session's work; flag tier escalation if it tips A6 over budget) or pause and surface a product question.
+- [ ] `docs/settings-registry.md` reflects 68 keys total post-A5 — verify: `Grep "Total: 68" docs/settings-registry.md`. (A5 corrected the earlier arithmetic error: pre-A5 registry was 61 keys, not 60.)
+- [ ] **Consolidated 166-value `activity_log.kind` enum source file does NOT exist.** A5 confirmed via Phase 3.5 Batch A step 2a search — the consolidated artefact was never produced. A6 must either (a) consolidate the 166 values from `docs/specs/*.md` `## activity_log.kind` sections itself (expect a context-budget squeeze; split at G3 70% if needed), or (b) pause and surface as a product question. PATCHES_OWED row logged by A5 under `a5_activity_log_enum_source_missing`. Do NOT invent values.
 - [ ] `lib/ai/prompts/INDEX.md` exists — verify: `ls lib/ai/prompts/INDEX.md` (the file the LLM model registry's job slugs are aligned to).
 - [ ] `vitest.config.ts` 30s timeout intact (A3) — verify: `Grep "testTimeout" vitest.config.ts`.
 

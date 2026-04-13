@@ -5,6 +5,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url(),
   NEXTAUTH_URL: z.url(),
   NEXTAUTH_SECRET: z.string().min(1).optional(),
+  DATABASE_URL: z.string().min(1).default("file:./dev.db"),
 });
 
 const parsed = envSchema.safeParse(process.env);

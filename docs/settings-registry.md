@@ -77,6 +77,23 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 > **Note.** Other Intro Funnel autonomy thresholds (abandon cadence: 15 min / 24 h / 3 d; advance notice: 5 business days; per-week cap: 3; reschedule limit: 2; refund window: 48 h; SMS quiet hours: 8 a.m.–9 p.m. local; email quiet hours: 7 a.m.–10 p.m. local; shoot duration: 60 min) are still expressed as literals in `intro_funnel_config` or in §11/§12/§14/§16 spec prose. **Phase 3.5 Batch C step 15 (literal grep) owes a sweep that registers the remaining Intro Funnel keys.** Tracked in `PATCHES_OWED.md`.
 
+## Email adapter (owner: Phase 5 Wave 2 B3 — email adapter / drift grader; A5 seeded the keys)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `email.quiet_window_start_hour` | `8` | integer | Outreach-only quiet-window start (local hour), per FOUNDATIONS §11.4 |
+| `email.quiet_window_end_hour` | `18` | integer | Outreach-only quiet-window end (local hour), per FOUNDATIONS §11.4 |
+| `email.drift_check_threshold` | `0.7` | decimal | `checkBrandVoiceDrift()` score threshold, per FOUNDATIONS §11.5 |
+| `email.drift_retry_count` | `1` | integer | Drift-grader retry count before flagging for review |
+
+## Alerts (owner: Phase 5 Wave 2 B1 — observability; A5 seeded the keys)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `alerts.anthropic_daily_cap_aud` | `25.00` | decimal | Daily Anthropic spend cap before cost alert fires |
+| `alerts.stripe_fee_anomaly_multiplier` | `2.0` | decimal | Multiplier on weekly-median Stripe fees that triggers anomaly alert |
+| `alerts.resend_bounce_rate_threshold` | `0.05` | decimal | Resend bounce-rate threshold that triggers sender-reputation alert |
+
 ## Hiring Pipeline (owner: `docs/specs/hiring-pipeline.md` §18)
 
 | Key | Default | Type | Description |
@@ -119,7 +136,9 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Plan: 10
 - Portal: 5
 - Intro Funnel: 1 (more owed; see Batch C step 15)
+- Email adapter: 4 (added 2026-04-14, A5)
+- Alerts: 3 (added 2026-04-14, A5)
 - Hiring: 28
-- **Total: 60 keys at v1.0 seed**
+- **Total: 68 keys at v1.0 seed** (was 61 pre-A5; earlier "Total: 60" line was an arithmetic mistake)
 
-Phase 5 Session A (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.
+Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.
