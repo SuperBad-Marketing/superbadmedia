@@ -375,6 +375,7 @@ Each of the following specs must expose a `getWaitingItems(userId)` function mat
 - Brand DNA Assessment
 - Content Engine
 - Client Context Engine
+- Six-Week Plan Generator (emits 4 kinds per `docs/specs/six-week-plan-generator.md` §12.2: `six_week_plan_strategy_review`, `six_week_plan_detail_review`, `six_week_plan_revision_request`, `six_week_plan_refresh_review`)
 
 **Phase 3.5 patch owed** — add the `getWaitingItems()` contract + its expected return shape to each spec's integration surfaces. Cockpit build session can stub any source whose spec hasn't been patched in time.
 
@@ -395,7 +396,7 @@ Affected specs:
 
 ### Health banner source contracts
 
-Each banner-contributing spec exposes `getHealthBanners(userId)` matching the §System-health banner strip contract. Applies to Unified Inbox, Content Engine, Finance Dashboard, SaaS Subscription Billing.
+Each banner-contributing spec exposes `getHealthBanners(userId)` matching the §System-health banner strip contract. Applies to Unified Inbox, Content Engine, Finance Dashboard, SaaS Subscription Billing, and Six-Week Plan Generator (emits `six_week_plan_retainer_payment_without_refresh_review` per `docs/specs/six-week-plan-generator.md` §12.2).
 
 ### Task Manager — column rules inherited, not re-derived
 

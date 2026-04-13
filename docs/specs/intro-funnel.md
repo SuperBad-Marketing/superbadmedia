@@ -196,6 +196,12 @@ export const introFunnelSubmissions = sqliteTable('intro_funnel_submissions', {
   plan_ready_at: integer('plan_ready_at', { mode: 'timestamp' }),
   deliverables_ready_at: integer('deliverables_ready_at', { mode: 'timestamp' }),
 
+  // First-visit-after-bundle deliverables hub (F3.a, 2026-04-13 Phase 3.5 Step 11 Stage 3).
+  // Null until the prospect's first `/portal/[token]` visit after `deliverables_ready_at`
+  // is non-null, at which point Client Management §10.2.1 renders the one-shot hub and sets
+  // this to now(). Sticky server-side — subsequent visits bypass the hub.
+  bundled_hub_seen_at: integer('bundled_hub_seen_at', { mode: 'timestamp' }),
+
   created_at: integer('created_at', { mode: 'timestamp' }).notNull(),
   updated_at: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
@@ -986,6 +992,8 @@ Server sends single bundled announcement email to prospect (classification: deli
 Six-Week Plan releases to prospect portal per S6WPG §2.6
 ```
 
+**First-visit-after-bundle hub (F3.a, 2026-04-13 Phase 3.5 Step 11 Stage 3).** The bundled email's CTA lands on `/portal/[token]` as normal. Client Management §10.2.1 detects `intro_funnel_submissions.deliverables_ready_at` is non-null AND `bundled_hub_seen_at` is null, and renders a one-shot deliverables hub — two equal tiles (gallery, plan) with a Tier-2 `motion:bundle_reveal` moment — before handing off to chat-home. Hub suppresses the generic 3-step first-visit tour for bundled-release portals; hub + bartender first-visit opening line together *are* the orchestrated arrival. See Client Management §10.2.1 for hub behaviour. Hub header copy + dismiss-to-tile microcopy land in §24 content mini-session alongside the bundled announcement email.
+
 The bundle gate is checked twice: once on `gallery_attached`, once on `six_week_plan_approved`. Whichever handler observes both flags non-null fires the transition. Idempotency: if `funnel_state` is already `deliverables_ready`, the second handler no-ops on the transition + email.
 
 **Cockpit visibility for the waiting half.** While waiting on the slower side, Andy's cockpit shows a quiet feed entry `intro_funnel_awaiting_bundle { deal_id, prospect_name, waiting_on: 'gallery' | 'plan' }` so he knows which side is the gate. Refreshes (i.e. clears + re-emits with updated `waiting_on`) on each side completing.
@@ -1336,6 +1344,7 @@ Separate from the build sessions above. This is a creative/authoring session usi
 - **Landing page hero visual direction** + past work curation guidance
 - **Upfront timeframe signposting (F2.a, 2026-04-13)** — copy lines for landing page ("what happens after the shoot"), payment-confirmation surface, booking-confirmation email, post-shoot portal "awaiting bundle" state. Sets the customer expectation that **photos and the six-week plan arrive together within ~7 days post-shoot**, framed as care (we're putting both into your hands at the same moment, not drip-feeding) rather than apology. The bundled-release rule in §15.1 only works narratively if this signposting is in place.
 - **Bundled deliverables-ready announcement email** — single email covering both gallery and Six-Week Plan. Brand-voice body that introduces both artefacts and points to the portal. (Replaces the photos-only "your photos are ready" wording originally implied in §15.1.)
+- **First-visit-after-bundle deliverables hub copy (F3.a, 2026-04-13)** — one-line header above the two tiles ("Everything you paid for, together" is a placeholder seed — final wording authored here), each tile's one-line label + accent microcopy, and the bartender first-visit opening line that runs when the prospect lands in chat-home after dismissing the hub (must acknowledge both deliverables, offer navigation, never summarise the plan or explain the gallery). Hub behaviour owned by Client Management §10.2.1; copy authored here because this is the Intro Funnel bundled-release moment.
 
 All copy committed to the codebase (no CMS). Andy reviews inline during the mini-session.
 

@@ -272,6 +272,31 @@ Mode determined at render time from `deals.stage` + `subscription_state` + shoot
 
 ### 10.2 Portal home — full-page chat
 
+The portal opens on a full-page chat interface, **except on the first-visit-after-bundle case described in §10.2.1**, where a one-shot deliverables hub renders first and hands off to chat-home on dismiss.
+
+### 10.2.1 First-visit-after-bundle deliverables hub (added 2026-04-13 Phase 3.5 Step 11 Stage 3 per F3.a)
+
+**Trigger.** Portal `/portal/[token]` is visited for the first time after Intro Funnel §15.1's bundled `deliverables_ready` transition has fired. Detected server-side via an `intro_funnel_submissions.bundled_hub_seen_at` flag (null = not yet shown; set to `now()` on first render). Flag is sticky server-side — clearing client storage / switching devices does **not** re-show the hub. Token-based portal auth means the flag is scoped to the contact's submission row, not a browser session.
+
+**Replaces.** The generic 3-step first-visit tour (§1 lock #9) is **suppressed** for bundled-release portals — the hub *is* the orchestrated first-visit moment. Prospects entering the portal through any other path (e.g. retainer-won portal, direct/referral onboarding) still see the standard 3-step tour.
+
+**Screen.** A single full-bleed screen with two equal-weight tiles side-by-side (stacked on mobile): **Your photos & video** (gallery) and **Your plan** (Six-Week Plan). Each tile shows a one-line label and a small accent — thumbnail strip / plan-title teaser — but no long copy. One short header above both tiles ("Everything you paid for, together" — final copy in Intro Funnel content mini-session §24, not authored in this spec). No "skip" affordance; tapping either tile dismisses the hub and lands on that section; tapping outside tiles does nothing (intentional — the prospect chooses their path).
+
+**Motion.** `motion:bundle_reveal` — Tier-2 candidate, owned by this spec for the hub's entrance choreography, listed on the design-system-baseline revisit queue. Tiles surface together (stagger ≤ house-spring ceiling). Dismiss-to-tile transition inherits Tier-1 house spring.
+
+**Dismiss behaviour.** Tapping a tile (a) sets `bundled_hub_seen_at = now()`, (b) routes to `/portal/[token]/gallery` or `/portal/[token]/plan` accordingly, (c) queues the bartender first-visit opening line to run on the prospect's *next* navigation back to chat-home (the bartender opener acknowledges both deliverables and offers navigation; prompt update owed on §10.4 Prompt 1 to read `bundled_hub_seen_at` + gallery/plan presence). The hub is **one-shot**: any future visit goes straight to chat-home, whether or not both tiles were opened.
+
+**Subsequent visits.** Standard §10.2 chat-home. Gallery and plan remain accessible via the menu overlay (§10.3 navigation).
+
+**Edge cases.**
+- Hub renders even if only one of gallery/plan is live at the moment of visit — but `intro_funnel_submissions.deliverables_ready_at` must be non-null (bundle gate has fired), so by definition both sides are live when the hub can render. If the hub somehow renders with only one side live, the missing tile is replaced with a dry "arriving shortly" placeholder (belt-and-braces; should not happen given the bundle gate).
+- Prospect revokes portal access and a new token is issued — the hub state tracks the `intro_funnel_submissions` row, not the token, so re-issued tokens for the same prospect do not re-trigger the hub.
+- Retainer conversion before the hub has been seen — the conversion path fires its own "welcome to the retainer" moment (Stage 4 scope); the hub is suppressed for converters who never clicked through the bundled email.
+
+**Patch on `intro_funnel_submissions`:** add `bundled_hub_seen_at timestamp (nullable)` column. Logged in PATCHES_OWED for Intro Funnel §4.1.
+
+### 10.2.2 Portal home (chat) — standard first-visit and steady-state
+
 The portal opens on a full-page chat interface. Nothing else on the screen except:
 - The conversation thread (persistent history from previous visits).
 - The chat input with a subtle pulsing glow around the box.

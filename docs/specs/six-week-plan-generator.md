@@ -299,8 +299,21 @@ Review transitions are Tier-1 (standard house spring): week-card expand, regen s
 
 Rendered inside the shared `/portal/[token]` shell. Appears as a menu item in the portal's main navigation labelled **Your plan** (only appears when a plan is `approved` or later states). Lives at `/portal/[token]/plan`.
 
+> **Single surface, evolving source (F3.e, 2026-04-13 Phase 3.5 Step 11 Stage 3).** `/portal/[token]/plan` is the one plan surface the prospect / client ever sees across their lifecycle. The read-source evolves under the hood:
+> - **Pre-retainer (Deal not yet Won):** reads `six_week_plans` directly.
+> - **Retainer migration window (Deal Won, `active_strategy.status = pending_refresh_review`):** reads the migrated copy on Client Context `active_strategy` (per §8.1); navigation label stays "Your plan"; page renders read-only with a quiet band explaining Andy's doing a pass before kickoff. No activation affordances.
+> - **Retainer live (Andy has completed refresh-review AND first retainer payment has fired):** reads Client Context `active_strategy`; navigation label flips to "Your strategy"; tracker mode activates.
+>
+> The prospect never sees two plan surfaces. The retainer-mode Client Management portal does not add a second plan/strategy surface alongside this one — this spec's `/portal/[token]/plan` is the canonical portal plan surface in both pre-retainer and retainer modes. Patch owed on `docs/specs/client-management.md` §10 to lock this (retainer mode consumes, does not duplicate).
+
 ### 6.1 Pre-activation state (post-approval, pre-"Start Week 1")
 
+> **First-visit-after-bundle hub.** The prospect's very first portal visit after the bundled `deliverables_ready` transition does **not** open directly on this plan page. Per F3.a (Phase 3.5 Step 11 Stage 3, 2026-04-13), Client Management §10.2.1 defines a one-shot deliverables hub that presents gallery + plan as equal first-order tiles, with a Tier-2 `motion:bundle_reveal` moment playing out across both. After the hub dismiss, the prospect lands on standard portal chat-home; the bartender's first-visit opening line acknowledges both deliverables and offers navigation. The plan section described below is what the prospect reaches from the hub's plan tile (or from chat-home nav on subsequent visits). Hub is one-shot: subsequent visits go straight to chat-home as normal. Patch owed on `docs/specs/client-management.md` §10.2.1 to define the hub behaviour; motion candidate `motion:bundle_reveal` added to the design-system-baseline revisit queue (per §13.4 update).
+
+- **Revision reply inline card (conditional, F3.c — 2026-04-13 Phase 3.5 Step 11 Stage 3).** If the plan has a sent revision reply (`six_week_plans.revision_reply_sent_at` non-null) and the prospect hasn't dismissed (`revision_reply_dismissed_at` null), a small inline card renders directly above the intro block. Two variants:
+  - *Regenerate variant* (when `revision_resolution = 'regenerated'`): "Your plan was revised after your note." Copy; single-line dismiss control. No expanded body — the revised plan *is* the reply; prospect reads it below.
+  - *Explain / hand-reject variant* (when `revision_resolution ∈ {'explained', 'hand_rejected'}`): "Andy replied to your revision note — [read]." Click expands inline (not a modal) to show `revision_reply_body` as read-only prose. Dismiss control below.
+  Styling: quiet inline, not a banner, not a modal. Tier-1 house spring on entrance (first view). One card at a time — §7.4 one-revision enforcement means regenerate and explain paths never co-exist on the same plan.
 - **Intro block.** Plan's `plan_intro` paragraph, set large, no ornament.
 - **6 week cards, read-only.** All accordions collapsed by default. First expand is Tier-2 motion candidate (see §13). No check-off affordances. Each card expand reveals the full week content (theme, why, angles, channels, tasks, success signal, fallback).
 - **Primary action: "Start Week 1."** Prominent button below intro block. Copy finalised in content mini-session — leans into the honest framing ("You're running this. When you're ready, we'll start the clock.").
@@ -330,14 +343,31 @@ Pre-retainer rate limit: `portal.chat_calls_per_day_pre_retainer` settings key a
 
 ### 6.5 PDF takeaway
 
-Generated on-demand (not pre-rendered) when prospect clicks "Download as PDF". Puppeteer renders a print-styled version of the portal plan surface into a paginated PDF. Branded with SuperBad visual identity. Contains all 6 weeks fully expanded + plan intro. Does NOT include progress state (even if activated) — PDF is a static snapshot of the plan itself.
+**Stance (F3.b, 2026-04-13 Phase 3.5 Step 11 Stage 3): brand-forward, marketing-collateral weight.** For the 90%+ of prospects who don't convert, this PDF plus the day-60 final email attachment is the only persistent artefact they carry away. It must land legibly as SuperBad's work when it ends up on a shared drive, emailed to a business partner, or printed for an accountant — a warm proof-of-work surface that earns its presence outside the portal walls.
 
-PDF cached for 24h per plan version. Regenerated if plan is superseded or regenerated via revision (new version → new PDF).
+**Render.** Generated on-demand (not pre-rendered) when prospect clicks "Download as PDF". Puppeteer renders a print-styled version of the portal plan surface into a paginated PDF. Contains all 6 weeks fully expanded + plan intro. Does NOT include progress state (even if activated) — PDF is a static snapshot of the plan itself. Text layer preserved (Puppeteer default) — accessible + searchable + copyable.
+
+**Filename.** `SuperBad-Six-Week-Plan-[business-slug]-[YYYY-MM-DD].pdf` where `business-slug` is derived from `contacts.business_name` via slugify (lowercase, non-alphanumerics → hyphens, collapsed runs) and `YYYY-MM-DD` is the plan's `approved_at` date. Example: `SuperBad-Six-Week-Plan-coldbrew-corner-cafe-2026-05-02.pdf`.
+
+**Cover page.** First page is a full-bleed cover: SuperBad mark + prospect's business name + plan date ("Strategy dated May 2026" or similar — exact wording in content mini-session §17) + the subtitle "Six-Week Plan". No content preview; the cover is the single framing beat before the plan begins on page 2.
+
+**Per-page chrome.** Intermediate pages carry a minimal branded footer: SuperBad mark (small, left) + page number (right). Header is clean — no chrome, just plan content. Sprinkle line (§13.3) is reserved for the closing page, not repeated per-footer (protects the line's weight as a single beat).
+
+**Closing page.** Final page is a dedicated sign-off spread: the sprinkle line set in larger typography as the closing beat, with SuperBad mark beneath. No CTA, no "learn more" link — the line is the signoff.
+
+**First-download UX.** Synchronous Puppeteer render (typical 2–5s on Coolify). During the call, a branded progress overlay surfaces — SuperBad mark + "Rendering your plan…" + subtle spinner, dismissing automatically when the render completes and the download fires. Overlay inherits Tier-1 house spring for enter/exit. Not a modal the prospect has to acknowledge — it replaces itself with the download moment.
+
+**Cache.** PDF cached for 24h per plan version. Cache invalidates immediately when plan is superseded or regenerated via revision (new version → new PDF on next download).
+
+**Superseded-PDF notice.** Each `six_week_plan_pdf_downloaded` activity_log entry (§10.3) carries `{ plan_id, generation_version }`. On plan-page load, if the prospect's latest `pdf_downloaded` event names a lower `generation_version` than the current plan's `generation_version` (i.e. Andy regenerated after they downloaded), the portal surfaces a prompt modal on next plan-page visit: "Your plan was updated — download the latest version?" with a primary "Download updated plan" action and a secondary "Not now" (which dismisses until the next generation bump). Lock: prompt modal, not a quiet inline note, because the artefact travels beyond the portal — a silent note lets stale versions escape into the wild.
+
+**Day-60 email attachment (see §8.4).** Fresh render at send time — does not rely on the 24h portal cache. Resend attachment size limit (~40 MB) is safe for a 1–3 MB plan PDF.
 
 ### 6.6 Motion treatment
 
-- **Tier-2 candidate:** plan reveal on first portal visit after approval (all week cards cascading into view). Added to design-system-baseline revisit queue as candidate.
-- **Tier-2 candidate:** "Start Week 1" activation moment (Week 1 card transition to live tracker). Added to revisit queue as candidate.
+- **Tier-2 candidate:** `motion:bundle_reveal` — first-visit-after-bundle deliverables hub arrival (gallery tile + plan tile surfacing together). Owned by Client Management §10.2.1 per F3.a (Phase 3.5 Step 11 Stage 3, 2026-04-13); added to design-system-baseline revisit queue as candidate.
+- **Tier-2 candidate:** `motion:plan_reveal` — plan section's internal first-open from the hub's plan tile (all 6 week cards cascading into view). Scoped to the plan section, not the whole portal arrival, after F3.a separated the hub from the plan page.
+- **Tier-2 candidate:** `motion:plan_activate` — "Start Week 1" activation moment (Week 1 card transition to live tracker). Added to revisit queue as candidate.
 - **Tier-1 (house spring):** week card expand/collapse, task check-off, week auto-advance.
 
 ---
@@ -359,19 +389,38 @@ Appears as a separate waiting-item kind on the cockpit: `six_week_plan_revision_
 
 At `/lite/six-week-plans/[planId]/revision-review`, Andy sees the current approved plan + the prospect's note side-by-side. Three actions:
 
-1. **Regenerate with this note.** Note injects into stage 1 as additional context. Full pipeline re-runs (stage 1 → stage 2 → self-review). New plan supersedes the old one (activity log: `six_week_plan_superseded_by_revision`). Andy reviews the new version via the standard two-tier review before it releases.
-2. **Explain why this plan stands.** LLM drafts a short response (Haiku, job `six-week-plan-revision-reply`, prompt at `lib/ai/prompts/six-week-plan-revision-reply.ts`) addressing the prospect's note. Andy reviews + sends. Plan stands as-is.
-3. **Hand-reject.** Andy writes a short note himself, sends, plan stands. (For cases where the LLM-drafted reply doesn't fit.)
+1. **Regenerate with this note.** Note injects into stage 1 as additional context. Full pipeline re-runs (stage 1 → stage 2 → self-review). New plan supersedes the old one (activity log: `six_week_plan_superseded_by_revision`). Andy reviews the new version via the standard two-tier review before it releases. On approval of the new version, `six_week_plan_revision_regenerated` email fires to the prospect (§7.5).
+2. **Explain why this plan stands.** LLM drafts a short response (Haiku, job `six-week-plan-revision-reply`, prompt at `lib/ai/prompts/six-week-plan-revision-reply.ts`) addressing the prospect's note. The draft lands in an editable textarea on this screen; Andy reviews, edits freely if needed, clicks "Send reply" to fire (§7.5). Plan stands as-is.
+3. **Hand-reject.** Same review screen as (2) but with an empty textarea (no LLM draft). Andy writes the reply himself and clicks "Send reply". Classification on the outgoing email is set by which entry button was used; routing to `six_week_plan_revision_explained` is shared between (2) and (3) since the prospect-side beat is identical ("Andy replied to your revision note").
 
-### 7.3 One-revision enforcement
+**Review-before-send lock (F3.c, 2026-04-13 Phase 3.5 Step 11 Stage 3).** No path auto-fires. The Haiku draft in (2) exists to seed Andy, not to send on his behalf. "Send reply" is the only action that causes an outbound email to the prospect in paths (2) + (3); the regenerate path (1) fires its email on the new-plan approval gate, not from this screen.
+
+### 7.3 Prospect-side notification (F3.c, 2026-04-13 Phase 3.5 Step 11 Stage 3)
+
+Revision is an active exchange — the prospect typed a thought and expects a reply. Delivery is **email-first with a quiet portal echo** per `feedback_passive_vs_active_channels`.
+
+**Regenerate path.**
+- Email: `six_week_plan_revision_regenerated` classification (new — see §10.5). Fires when Andy approves the new version via the standard two-tier review. Subject + body drafted in §17 content mini-session; voice: "We took your note on board. Your plan's been revised — open the portal to see it." No plan content in the email body (prospect goes to the portal to read).
+- Portal plan page: small dismissible inline card above the plan — "Your plan was revised after your note." Persists until the prospect dismisses (writes `six_week_plans.revision_reply_dismissed_at = now()`; see §10.1). Once dismissed, never re-surfaces.
+- PDF: F3.b's supersede-prompt modal handles any stale PDF the prospect downloaded pre-revision.
+
+**Explain / hand-reject paths.**
+- Email: `six_week_plan_revision_explained` classification (new — see §10.5). Fires when Andy clicks "Send reply" on the review screen. Andy's reply text is the body (not a summary); the email IS the reply. Voice + subject drafted in §17 content mini-session.
+- Portal plan page: small dismissible inline card above the plan — "Andy replied to your revision note." Clicking opens a read-only view of the reply text (same content as the email body). Dismiss persists per above.
+
+**Card UI discipline.** Cards are single-variant at any time (regenerate OR explain card, not both — only one revision path runs per plan per §7.4 one-revision enforcement). Styling: quiet inline, Tier-1 house spring entrance on first view, not a banner, not a modal. Position: directly above the intro block (§6.1). Patch on §6 owed to add this UI state explicitly.
+
+**Bartender chat awareness.** Once the reply is sent (explain path) or the new plan released (regenerate path), the bartender reads the revision resolution as chat context. If the prospect asks "did Andy write back about my note?" the bartender can surface the reply or point them to the plan page. Patch owed on `docs/specs/client-management.md` §10.3 safe actions.
+
+### 7.4 One-revision enforcement
 
 `six_week_plans.revision_requested_at` tracks the single revision. If set, the "This doesn't fit" link on the portal is replaced with a quieter "Have more questions about this plan? Email Andy" mailto link. No second revision possible through the portal.
 
-### 7.4 Activity log entries
+### 7.5 Activity log entries
 
 - `six_week_plan_revision_requested` (on prospect submit)
-- `six_week_plan_revision_regenerated` (on Andy regen path)
-- `six_week_plan_revision_explained` (on Andy explain path)
+- `six_week_plan_revision_regenerated` (on Andy regen path, fires when new plan is approved — same moment as the outbound email)
+- `six_week_plan_revision_explained` (on Andy explain path AND hand-reject path — both share this kind since the prospect-side beat is identical; payload carries `{ source: 'llm_drafted' | 'hand_written' }` for audit)
 
 ---
 
@@ -385,6 +434,7 @@ When Pipeline transitions the Deal to `won` status, the `deal_won_portal_migrati
 2. The Client Context active_strategy artefact is flagged `pending_refresh_review = true`.
 3. Andy's cockpit gets a quiet feed entry: `six_week_plan_refresh_review_requested { clientId, planId }`.
 4. Activity log: `six_week_plan_migrated_to_client_context`.
+5. **Portal read-source swap (F3.e).** From this transition forward, `/portal/[token]/plan` reads the migrated Client Context `active_strategy` artefact (not `six_week_plans`). The surface is read-only while `pending_refresh_review = true`; a quiet band renders above the intro block with content finalised in §17 (direction: "Andy's doing a pass on this before we kick off — live version lands on first payment"). "Start Week 1" affordance is suppressed in this window — activation is now driven by first retainer payment (§8.3), not the prospect's click. Navigation label stays "Your plan" through this window.
 
 ### 8.2 Andy's refresh-review at retainer kickoff
 
@@ -396,18 +446,33 @@ Route: `/lite/clients/[companyId]/strategy/refresh-review`. Andy reviews the mig
 
 ### 8.3 Week 1 trigger for retainer path
 
-Stripe webhook on first successful retainer charge fires `six_week_plan_retainer_week_1_start`. If the active_strategy artefact is `live` (Andy has done refresh-review), Week 1 begins. If still `pending_refresh_review`, a high-priority cockpit alert tells Andy the retainer payment has landed and the plan isn't set live yet.
+Stripe webhook on first successful retainer charge fires `six_week_plan_retainer_week_1_start`. If the active_strategy artefact is `live` (Andy has done refresh-review), Week 1 begins, the pending-refresh-review band clears, tracker mode activates, and `/portal/[token]/plan`'s navigation label flips from "Your plan" to "Your strategy" (F3.e label switch). If still `pending_refresh_review`, a high-priority cockpit alert tells Andy the retainer payment has landed and the plan isn't set live yet; the portal band remains until Andy completes refresh-review.
 
-### 8.4 Non-converter expiry
+### 8.4 Non-converter expiry (rewritten per F3.d, 2026-04-13 Phase 3.5 Step 11 Stage 3)
 
-At day 60 post-shoot-completion, `six_week_plan_non_converter_expiry` job checks for:
+Two scheduled beats, not one. The email lands seven days before the portal goes quiet so the prospect gets a signposted wind-down rather than a cold shutoff.
+
+**Day 53 — expiry email.** `six_week_plan_expiry_email` job fires at `plan.portal_access_days_post_shoot − plan.expiry_email_days_before_archive` post-shoot-completion (60 − 7 = day 53 by default). Job re-checks the three conditions:
 - Deal NOT in `won` status
 - Portal NOT already archived by another path
 - Andy NOT manually extended the portal (one-off override via Pipeline panel — see §11 settings)
 
-If all three: portal archives (owned by Client Management archive logic — this spec just fires the trigger). Final email sends the PDF plan attached via `sendEmail({ classification: 'transactional' })`.
+If all three hold, sends via `sendEmail({ classification: 'six_week_plan_non_converter_expiry' })`. Body structure (final copy in §17 content mini-session):
+1. Warm sign-off paragraph acknowledging they've had the plan for a few weeks.
+2. Signposting line — the portal goes quiet in a week; they can revisit once if they want; the plan is theirs either way.
+3. **Soft CTA (F3.d Option C)** — one short line: "If anything here lands differently now that you've had it for a few weeks, you know where to find me." with `mailto:` to Andy's inbox, subject prefilled (`"Coming back about my plan — {business_name}"`). No form, no landing page, no pitch. The subject prefill lets Andy's inbox rules auto-surface the thread; Unified Inbox picks up the reply and threads it against the existing Deal for manual re-open.
+4. PDF attached (fresh render at send time per §6.5 F3.b lock — not the 24h cache).
+5. Signed by Andy (reply-to = Andy's address).
 
-Activity log: `six_week_plan_portal_archived_non_converter`.
+Sets `six_week_plans.portal_expiry_email_sent_at = now()`. Activity log: `six_week_plan_expiry_email_sent`.
+
+**Day 60 — portal archive.** `six_week_plan_non_converter_expiry` job runs the same three-condition check. If all hold, portal archives (Client Management §10 Archived mode — minimal offline page, PDF link, Pixieset gallery link). No email fires from this job any more — that's the day-53 job's responsibility. Activity log: `six_week_plan_portal_archived_non_converter`.
+
+**Mid-session archive.** State check is per-request. Prospect in the portal at the exact day-60 boundary sees archived mode on their next navigation. No forced logout, no server-push eviction.
+
+**Retainer conversion or manual extend between day 53 and day 60.** The archive job no-ops on its condition re-check; the expiry email the prospect already received now references a deadline that no longer applies. Benign edge case — the next interaction (retainer kickoff, extended portal) supersedes the signposted wind-down naturally. If Andy wants to follow up proactively ("we saw you came back — here's where we are"), that's a manual outbound from the Pipeline panel, not specced here.
+
+**Post-archive re-engagement path.** The day-53 email's `mailto:` is the canonical door back. A prospect reply lands in Andy's inbox → Unified Inbox threads it against the existing Deal → Andy manually re-opens from the Pipeline panel. No self-serve post-archive portal path in v1.0. Retargeting pixel (`project_outreach_retargeting_pixel`) + social-proof loop (`project_outreach_social_proof_loop`) handle cross-channel nurture independently.
 
 ---
 
@@ -416,6 +481,7 @@ Activity log: `six_week_plan_portal_archived_non_converter`.
 | Key | Default | Type | Description |
 |-----|---------|------|-------------|
 | `plan.portal_access_days_post_shoot` | 60 | integer | Days of portal access for non-converters, from shoot completion |
+| `plan.expiry_email_days_before_archive` | 7 | integer | Days before the day-60 archive at which the expiry email fires (so the email lands on day 53 by default, giving the prospect a signposted wind-down) — per F3.d (2026-04-13) |
 | `plan.chat_calls_per_day_non_converter` | 5 | integer | Daily Opus chat call cap for pre-retainer portal chat. Resolves on Client Management's chat primitive |
 | `plan.chat_calls_per_day_pre_retainer` | 5 | integer | (alias — registered under Client Management; this spec consumes) |
 | `plan.revision_note_min_chars` | 40 | integer | Minimum characters for a prospect's revision note |
@@ -465,17 +531,21 @@ activated_at               timestamp (null until "Start Week 1" clicked or first
 activation_path            enum: 'self_run' | 'retainer_payment' | null
 
 // Revision
-revision_requested_at      timestamp (null or one)
-revision_note              text (null or one)
-revision_resolution        enum: 'regenerated' | 'explained' | 'hand_rejected' | null
+revision_requested_at       timestamp (null or one)
+revision_note               text (null or one)
+revision_resolution         enum: 'regenerated' | 'explained' | 'hand_rejected' | null
+revision_reply_sent_at      timestamp (null until Andy sends reply on explain/hand-reject path, or new plan approved on regenerate path)
+revision_reply_body         text (null until reply sent; captures Andy's final reply text on explain/hand-reject paths so the portal inline card + bartender context can render it without re-reading the email log)
+revision_reply_dismissed_at timestamp (null until prospect dismisses the inline portal card; persists dismiss per F3.c, 2026-04-13)
 
 // Retainer migration
 migrated_to_client_context_at   timestamp (null until Won)
 refresh_reviewed_at             timestamp (null until Andy completes refresh-review)
 
 // Non-converter expiry
-portal_archived_at         timestamp (null until day 60)
-portal_extended_until      timestamp (null; override)
+portal_expiry_email_sent_at timestamp (null until the day-53 expiry email fires — per F3.d, 2026-04-13)
+portal_archived_at          timestamp (null until day 60)
+portal_extended_until       timestamp (null; override)
 ```
 
 **`six_week_plan_task_progress`**
@@ -536,22 +606,25 @@ Added to the cross-spec enum (consolidated at Phase 3.5):
 - `six_week_plan_migrated_to_client_context`
 - `six_week_plan_refresh_review_requested`
 - `six_week_plan_live_strategy_set`
+- `six_week_plan_expiry_email_sent` — day-53 wind-down email sent; payload `{ plan_id, deal_id }` (added per F3.d, 2026-04-13)
 - `six_week_plan_portal_archived_non_converter`
-- `six_week_plan_pdf_downloaded`
+- `six_week_plan_pdf_downloaded` — payload `{ plan_id, generation_version }` per F3.b (2026-04-13) so the portal can detect when a prospect holds a stale PDF version and prompt a re-download
 
 ### 10.4 New `scheduled_tasks` task types
 
 Added to cross-spec list:
 - `six_week_plan_generate` (fires stages 1 + 2 + self-review, chains internally)
 - `six_week_plan_migrate_on_won` (fires on Deal Won transition)
-- `six_week_plan_non_converter_expiry` (daily sweep, fires at day 60)
+- `six_week_plan_expiry_email` (daily sweep, fires at day 53 — per F3.d, 2026-04-13) — sends the wind-down email with PDF attached; re-checks three non-converter conditions before firing
+- `six_week_plan_non_converter_expiry` (daily sweep, fires at day 60) — archives the portal; no longer sends an email, that's the day-53 job's responsibility
 
 ### 10.5 New `sendEmail()` classifications
 
 Added to FOUNDATIONS §11.2 enum:
-- `six_week_plan_released` (transactional — "your plan is ready")
-- `six_week_plan_revision_resolved` (transactional — Andy's explain-reply)
-- `six_week_plan_non_converter_expiry` (transactional — final PDF attachment email)
+- `six_week_plan_released` (transactional — "your plan is ready") — superseded by bundled `deliverables_ready_announcement` per F2.a (see PATCHES_OWED). Retained here for build-session reference; may be deleted during Phase 5 Session A if confirmed unused at build time.
+- `six_week_plan_revision_regenerated` (transactional — prospect's revision produced a new plan; fires on new-plan approval) — added per F3.c (2026-04-13).
+- `six_week_plan_revision_explained` (transactional — Andy's reply on the explain or hand-reject path; carries Andy's reply text as the body) — added per F3.c (2026-04-13); replaces the prior `six_week_plan_revision_resolved` name so the two revision outcomes map 1:1 to their classifications.
+- `six_week_plan_non_converter_expiry` (transactional — final PDF attachment email at day 60)
 
 ---
 
@@ -589,7 +662,7 @@ Post-shoot portal surfaces (deliverables reveal, reflection questionnaire, retai
 
 ### 12.2 Daily Cockpit (locked) — new contract entries
 
-`getWaitingItems()` contract gains 3 new source kinds:
+`getWaitingItems()` contract gains 4 new source kinds:
 - `six_week_plan_strategy_review { plan_id, deal_id, prospect_name }`
 - `six_week_plan_detail_review { plan_id, deal_id, prospect_name }`
 - `six_week_plan_revision_request { plan_id, prospect_name, note_preview }`
@@ -654,12 +727,13 @@ No new eggs proposed. The plan surface is a paid deliverable — voice is dry + 
 
 ### 13.3 Sprinkle claim from `docs/candidates/sprinkle-bank.md`
 
-**Claimed:** one short dry line that appears **once** in the plan PDF's footer — "This plan belongs to you. So does the nerve to run it." (exact line finalised in content mini-session; this is a placeholder seed). Mark as `[CLAIMED by six-week-plan-generator]` in the sprinkle bank. Single-occurrence per PDF, no rotation.
+**Claimed:** one short dry line that appears **once per PDF, on the closing sign-off page** — "This plan belongs to you. So does the nerve to run it." (exact line finalised in content mini-session; this is a placeholder seed). Set in larger typography as the closing beat beneath the SuperBad mark, not repeated in per-page footers. Per F3.b lock (2026-04-13 Phase 3.5 Step 11 Stage 3): single-occurrence per PDF preserves the line's weight; per-page repetition would dilute it. Mark as `[CLAIMED by six-week-plan-generator]` in the sprinkle bank. No rotation.
 
 ### 13.4 Motion candidates (design-system-baseline revisit queue additions)
 
-Two new Tier-2 candidates added (registry growth count managed at revisit):
-- `motion:plan_reveal` — first portal visit after plan approval, all 6 week cards cascade into view with stagger.
+Three Tier-2 candidates (registry growth count managed at revisit):
+- `motion:bundle_reveal` — first-visit-after-bundle deliverables hub arrival; gallery tile + plan tile surfacing together as a single orchestrated beat. Owned by Client Management §10.2.1 per F3.a (Phase 3.5 Step 11 Stage 3, 2026-04-13). One-shot per prospect.
+- `motion:plan_reveal` — plan section's internal first-open (from hub's plan tile); all 6 week cards cascade into view with stagger. Scoped to the plan section only — the hub has its own reveal.
 - `motion:plan_activate` — "Start Week 1" click fires Week 1 card's transition into live tracker mode (clock appears, tasks become interactive, other weeks soften).
 
 No new sounds introduced.
@@ -737,8 +811,12 @@ Dedicated creative session with `superbad-brand-voice` + `superbad-visual-identi
 - Stage 2 per-week elaboration prompt.
 - Self-review checklist (final form).
 - Revision-reply Haiku prompt.
-- Portal plan page copy: intro block surround, "Start Week 1" button copy, revision modal copy + "you get one free revision" language, week-card empty-state text.
-- PDF layout + footer dry line (sprinkle claim).
+- Portal plan page copy: intro block surround, "Start Week 1" button copy, revision modal copy + "you get one free revision" language, week-card empty-state text, **revision reply inline card copy (both regenerate and explain variants) + dismiss microcopy (F3.c, 2026-04-13)**.
+- **Revision-resolution email bodies (F3.c, 2026-04-13)** — `six_week_plan_revision_regenerated` subject + body (voice: "we took your note on board, plan revised, read it on the portal"; no plan content inline) and `six_week_plan_revision_explained` subject + surrounding frame (Andy's reply IS the body; the frame is the envelope around it, signature block, etc.). Voice: direct, personal, Andy's register — not bartender.
+- **Non-converter expiry email (F3.d, 2026-04-13)** — subject + full body for `six_week_plan_non_converter_expiry` (day 53 wind-down). Four beats, in order: (1) warm sign-off paragraph acknowledging the prospect has had the plan for a few weeks; (2) signposting line — portal goes quiet in a week, plan is theirs either way; (3) soft CTA line ("If anything here lands differently now that you've had it for a few weeks, you know where to find me.") with mailto to Andy + subject prefill `"Coming back about my plan — {business_name}"`; (4) signoff signed by Andy. Voice: warm, dry, observational, Andy's register. PDF attached at send time. No pitch, no form, no landing page.
+- **Archived-portal offline-page microcopy (F3.d, 2026-04-13)** — short dry copy for the Client Management §10 Archived mode surface ("Your portal is quiet now. Your plan stays yours — [download PDF].") and the Pixieset gallery link framing. Voice: warm sign-off, not administrative. Belongs here (not Client Management content mini-session) because this is the wind-down beat of the Six-Week Plan arc.
+- **Pending-refresh-review band copy (F3.e, 2026-04-13 Phase 3.5 Step 11 Stage 3)** — short quiet band that renders above the plan intro block on `/portal/[token]/plan` while the migrated `active_strategy` artefact carries `pending_refresh_review = true` (i.e. post-Won, pre-refresh-review-live). Direction: warm, honest, signposts that Andy's doing a retainer-scoped pass and the live version lands on first payment. No pitch, no CTA. One-line placeholder seed for the mini-session: "Andy's doing a pass on this for the retainer — live version lands when your first payment fires." Confirm or replace.
+- **PDF layout direction (F3.b, 2026-04-13 Phase 3.5 Step 11 Stage 3)** — cover page composition (SuperBad mark placement, business-name typography, date framing copy, subtitle), intermediate-page footer spec (logo size + position + page-number typography), closing sign-off spread (sprinkle line typography + logo beneath), render overlay visual direction ("Rendering your plan…" + spinner style inheriting house spring), final sprinkle line wording (placeholder seed "This plan belongs to you. So does the nerve to run it." — confirm or replace).
 - Release email, revision-resolved email (explain path), non-converter expiry email bodies.
 - Browser tab title rotation pool for Andy's review surface.
 - Andy review UI microcopy (badges, flagged-assumption language, regen-note placeholders).
