@@ -80,6 +80,39 @@ export default function Page() {
 }
 ```
 
+### GOTCHA: `"use server"` files may ONLY export async functions
+
+This is a **React rule**, enforced at build time by Turbopack. Every export from a `"use server"` file must be an `async function`. Exporting anything else — constants, arrays, objects, plain functions, type aliases — is a build error.
+
+```typescript
+// ❌ BREAKS THE BUILD
+'use server'
+
+export const QUESTIONS_PER_SECTION = 15        // constant → error
+export const QUESTION_BANK = [...]              // array → error
+export type SubmitResult = { ok: boolean }      // type → error
+export function helper() { ... }                // non-async fn → error
+
+export async function submitAnswer(...) { ... } // ✓ only this is allowed
+```
+
+```typescript
+// ✓ CORRECT — split into two files
+
+// lib/feature/constants.ts (plain module)
+export const QUESTIONS_PER_SECTION = 15
+export const QUESTION_BANK = [...]
+export type SubmitResult = { ok: boolean }
+
+// app/feature/actions.ts (Server Actions only)
+'use server'
+import { QUESTION_BANK, type SubmitResult } from '@/lib/feature/constants'
+
+export async function submitAnswer(...): Promise<SubmitResult> { ... }
+```
+
+**Rule of thumb:** `actions.ts` holds async functions and nothing else. Constants, question banks, type aliases, pure helpers all live in a sibling non-`"use server"` file and are imported in.
+
 ---
 
 ## `after()` for Non-Blocking Side Effects
