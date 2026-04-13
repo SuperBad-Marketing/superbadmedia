@@ -90,6 +90,8 @@ export const MODELS = {
   "inbox-classify-inbound-route": "haiku",
   "inbox-classify-notification-priority": "haiku",
   "inbox-classify-signal-noise": "haiku",
+  // email-adapter / drift-check (1) — A7
+  "drift-check-grader": "haiku",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;

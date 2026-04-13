@@ -15,6 +15,13 @@
       "when": 1776096161890,
       "tag": "0002_a6_activity_scheduled_inbox",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1776097864168,
+      "tag": "0003_a7_email_stripe_pdf",
+      "breakpoints": true
     }
   ]
 }

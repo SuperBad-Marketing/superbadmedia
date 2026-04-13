@@ -26,6 +26,8 @@ const eslintConfig = defineConfig([
       "lib/channels/**",
       "lib/ai/**",
       "lib/stripe/**",
+      "lib/pdf/**",
+      "lib/internal-only.ts",
       "lib/eslint-rules/**",
     ],
     plugins: {

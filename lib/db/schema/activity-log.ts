@@ -249,6 +249,10 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Shape canonicalisation (2) ---
   "company_shape_updated",
   "shape_mismatch_flagged",
+  // --- Email adapter A7 (3) ---
+  "drift_check_failed",
+  "portal_magic_link_sent",
+  "portal_magic_link_redeemed",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

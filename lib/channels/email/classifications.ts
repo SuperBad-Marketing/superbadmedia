@@ -1,0 +1,49 @@
+/**
+ * Email classification enum — the full Phase 3.5 set (16 values).
+ *
+ * Used by:
+ *   - `sendEmail()` to gate on `outreach_send_enabled` kill switch
+ *   - `canSendTo()` for suppression scope (classification-specific vs global)
+ *   - `external_call_log` job field
+ *   - Spam Act / DMARC compliance routing
+ *
+ * Transactional = exempt from quiet window + outreach kill switch.
+ * All others require `outreach_send_enabled = true` and pass quiet-window
+ * and suppression checks.
+ *
+ * Per BUILD_PLAN.md A7 (verbatim set).
+ */
+export const EMAIL_CLASSIFICATIONS = [
+  "transactional",
+  "outreach",
+  "portal_magic_link_recovery",
+  "deliverables_ready_announcement",
+  "six_week_plan_invite",
+  "six_week_plan_followup",
+  "six_week_plan_delivery",
+  "six_week_plan_revision_regenerated",
+  "six_week_plan_revision_explained",
+  "six_week_plan_expiry_email",
+  "hiring_invite",
+  "hiring_followup_question",
+  "hiring_trial_send",
+  "hiring_archive_notice",
+  "hiring_contractor_auth",
+  "hiring_bench_assignment",
+] as const;
+
+export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
+
+/**
+ * Classifications that bypass the outreach kill switch and quiet window.
+ * These are operational emails (auth, delivery confirmations) that must
+ * reach the recipient regardless of outreach state.
+ */
+export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
+  "transactional",
+  "portal_magic_link_recovery",
+] as const;
+
+export function isTransactional(c: EmailClassification): boolean {
+  return (TRANSACTIONAL_CLASSIFICATIONS as readonly string[]).includes(c);
+}
