@@ -1,16 +1,10 @@
 /**
- * Auth.js v5 route handler.
+ * NextAuth v5 route handler.
+ * Handles GET/POST for all Auth.js endpoints:
+ *   /api/auth/signin, /api/auth/signout, /api/auth/session,
+ *   /api/auth/csrf, /api/auth/providers, /api/auth/callback/*
  *
- * Handles all NextAuth API routes under /api/auth/:
- *   GET  /api/auth/session
- *   POST /api/auth/session
- *   GET  /api/auth/providers
- *   POST /api/auth/signin
- *   POST /api/auth/signout
- *   GET  /api/auth/callback/:provider
- *   GET  /api/auth/csrf
- *
- * Owner: A8. Do not add logic here — keep it as the minimal handler.
+ * Owner: A8.
  */
 import { handlers } from "@/lib/auth/auth";
 

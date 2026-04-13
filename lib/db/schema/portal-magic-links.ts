@@ -1,55 +1,46 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
 /**
- * One-time portal access tokens (OTTs).
+ * One-time tokens for portal session recovery and journey-beat email
+ * entry links. Both Intro Funnel (/lite/intro/[token]/*) and Client
+ * Management (/portal/[token]/*) reuse this table.
  *
- * Every client-facing email from SuperBad Lite embeds a fresh OTT that lets
- * the recipient reopen their portal without a password. The token is SHA-256
- * hashed at rest; the raw token only ever appears in the email body.
+ * Column semantics (per Intro Funnel §10.1, generalised in A8):
+ *   - `contact_id`   — who the link is for (always required).
+ *   - `client_id`    — non-null for Client Management reuse; null for Intro Funnel.
+ *   - `submission_id`— scopes the link to an intro-funnel submission row;
+ *                      null when issued for admin-recovery or CM portal links.
+ *   - `ott_hash`     — SHA-256 of the raw 32-byte URL-safe-base64 token.
+ *                      Only the hash is stored; the raw token only ever lives
+ *                      in the email body.
+ *   - `issued_for`   — human-readable label e.g. "portal_access",
+ *                      "journey_beat_email_footer".
+ *   - `expires_at_ms`— absolute expiry epoch-ms; default TTL is 168 h (7 days)
+ *                      from `settings.get('portal.magic_link_ttl_hours')`.
+ *   - `consumed_at_ms` — null until the token is redeemed; subsequent
+ *                        redemption attempts are rejected.
  *
- * `submission_id` is nullable so Client Management can reuse this table for
- * retainer-side portal access (client_id present, submission_id absent).
- *
- * Spec: intro-funnel.md §10.1 + client-management.md §10.1 (generalised at A8).
- * Owner: A8. Consumers: IF-{2..N}, CM-1+, portal r/[token] redeem route.
+ * Owner: A8. Consumers: IF-4 (journey emails), CM-3 (portal shell), A8
+ * recovery form.
  */
-export const PORTAL_MAGIC_LINK_ISSUED_FOR = [
-  "journey_email",
-  "recovery_form",
-  "section_1",
-] as const;
-
-export type PortalMagicLinkIssuedFor =
-  (typeof PORTAL_MAGIC_LINK_ISSUED_FOR)[number];
-
 export const portal_magic_links = sqliteTable(
   "portal_magic_links",
   {
     id: text("id").primaryKey(),
-    /** FK → intro_funnel_submissions — deferred until IF-1 */
-    submission_id: text("submission_id"),
-    /** FK → clients — deferred until CM-1 */
-    client_id: text("client_id"),
-    /** FK → contacts — deferred until SP-1 (contacts table) */
     contact_id: text("contact_id").notNull(),
-    /** SHA-256 hex of the raw 32-byte URL-safe base64 token */
+    client_id: text("client_id"),
+    submission_id: text("submission_id"),
     ott_hash: text("ott_hash").notNull().unique(),
-    issued_for: text("issued_for", {
-      enum: PORTAL_MAGIC_LINK_ISSUED_FOR,
-    }).notNull(),
-    issued_at_ms: integer("issued_at_ms").notNull(),
-    /** Default 168 = 7 days. Overridable per issued_for if needed. */
-    ttl_hours: integer("ttl_hours").notNull(),
-    /** Set when redeemMagicLink() marks the token consumed */
+    issued_for: text("issued_for").notNull().default("portal_access"),
+    expires_at_ms: integer("expires_at_ms").notNull(),
     consumed_at_ms: integer("consumed_at_ms"),
-    /** Light audit trail — IP from the redeem request */
-    consumed_from_ip: text("consumed_from_ip"),
     created_at_ms: integer("created_at_ms").notNull(),
   },
   (t) => ({
+    by_ott_hash: index("portal_magic_links_ott_hash_idx").on(t.ott_hash),
     by_contact: index("portal_magic_links_contact_idx").on(
       t.contact_id,
-      t.issued_at_ms,
+      t.created_at_ms,
     ),
   }),
 );

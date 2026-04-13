@@ -73,7 +73,7 @@ spoofed EU IP. Handoff written.
 - `components/lite/cookie-consent-banner.tsx` — geo-gated GDPR banner + permanent footer link (`new`).
 - `lib/geo/maxmind.ts` — MaxMind GeoLite2 lookup (or IP API fallback) → `isEuIp(ip): boolean` (`new`).
 - `app/api/cookie-consent/route.ts` — POST handler: writes `cookie_consents` row from EU visitors (`new`).
-- `middleware.ts` — extend matcher to allow `/lite/legal/*` without auth (legal pages must be publicly accessible) (`edit`). Also: confirm `/api/cookie-consent` is excluded from auth check.
+- `proxy.ts` — extend matcher to allow `/lite/legal/*` without auth (legal pages must be publicly accessible) (`edit`). Also: confirm `/api/cookie-consent` is excluded from auth check.
 - `docs/settings-registry.md` — add `legal.dsr_email` + `legal.dsr_response_days` rows + update totals (`edit`).
 - `lib/db/migrations/0001_seed_settings.sql` — append `legal.dsr_email` + `legal.dsr_response_days` INSERT OR IGNORE rows (`edit`).
 - `package.json` + lock — MDX rendering package (e.g. `@next/mdx`) if not already present + MaxMind or geo-lookup (`edit`).

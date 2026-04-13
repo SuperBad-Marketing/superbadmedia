@@ -1,115 +1,81 @@
 /**
- * Issue a one-time portal access token (magic link).
+ * Issue a one-time portal magic-link token.
  *
- * Generates a 32-byte cryptographically random token, stores its SHA-256
- * hash in `portal_magic_links`, and returns the full redemption URL.
+ * Writes a hashed OTT row to `portal_magic_links`, logs the activity, and
+ * returns the raw token embedded in the portal URL. Only the SHA-256 hash
+ * is persisted; the raw token exists only in the returned value (and in the
+ * email body the caller embeds it in).
  *
- * The raw token is NEVER stored — only the SHA-256 hex. Send the URL to the
- * recipient via `sendEmail()` in the calling layer; this helper is
- * transport-agnostic.
+ * TTL: `settings.get('portal.magic_link_ttl_hours')` (default 168 h / 7 d).
  *
- * Settings consumed:
- *   - `portal.magic_link_ttl_hours` (default 168)
- *
- * Activity logged:
- *   - `portal_magic_link_sent` on every successful issue.
- *
- * Owner: A8. Consumers: every email that embeds a portal return link.
- *
- * @module
+ * Owner: A8. Consumers: IF-4 (journey emails), A8 recovery form, CM-3.
  */
-import crypto from "node:crypto";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { db } from "@/lib/db";
+import { randomBytes, createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { db as globalDb } from "@/lib/db";
 import { portal_magic_links } from "@/lib/db/schema/portal-magic-links";
-import type { PortalMagicLinkIssuedFor } from "@/lib/db/schema/portal-magic-links";
-import { activity_log } from "@/lib/db/schema/activity-log";
 import settings from "@/lib/settings";
+import { logActivity } from "@/lib/activity-log";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
-// Matches the pattern established in A7 (lib/channels/email/can-send-to.ts):
-// Tests create drizzle(sqlite) without a schema argument; production db has
-// the full schema. Using Record<string,unknown> accepts both.
-type AnyDrizzle = BetterSQLite3Database<Record<string, unknown>>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyDb = BetterSQLite3Database<any>;
 
-export interface IssueMagicLinkParams {
-  /** The contact who will receive this link. Always required. */
+export type IssueMagicLinkInput = {
+  /** The contact row id this link is issued for. */
   contactId: string;
-  /** Intro Funnel submission context — null for retainer/CM portal. */
-  submissionId?: string | null;
-  /** Client row context — set for retainer-side CM portal. */
+  /** Non-null for Client Management portal links; null for Intro Funnel. */
   clientId?: string | null;
-  /** Where in the journey this link is being issued from. */
-  issuedFor: PortalMagicLinkIssuedFor;
-  /** Optional DB override for testing */
-  dbOverride?: AnyDrizzle;
-}
+  /** Scopes the link to an intro-funnel submission row; nullable. */
+  submissionId?: string | null;
+  /** Human-readable description e.g. "portal_access", "journey_beat". */
+  issuedFor?: string;
+};
 
-export interface IssueMagicLinkResult {
-  /** Full redemption URL — embed directly in email body. */
+export type IssueMagicLinkResult = {
+  /** Full portal URL containing the raw token, e.g. /lite/portal/r/<token>. */
   url: string;
-  /** SHA-256 hex hash of the OTT (stored in DB). For logging/audit only. */
-  ottHash: string;
-}
+  /** Raw 32-byte URL-safe-base64 token. Embed in the email body. */
+  rawToken: string;
+};
 
-/**
- * Issue a magic link for a contact.
- *
- * @returns The redemption URL + stored hash.
- * @throws  If DB insert fails. Caller handles the error.
- */
 export async function issueMagicLink(
-  params: IssueMagicLinkParams,
+  input: IssueMagicLinkInput,
+  dbOverride?: AnyDb,
 ): Promise<IssueMagicLinkResult> {
-  const {
-    contactId,
-    submissionId = null,
-    clientId = null,
-    issuedFor,
-    dbOverride,
-  } = params;
+  const database = dbOverride ?? globalDb;
 
-  const database = (dbOverride ?? db) as AnyDrizzle;
-
-  // Read TTL from settings (hours)
   const ttlHours = await settings.get("portal.magic_link_ttl_hours");
-
-  // Generate 32-byte random token, URL-safe base64 encoded
-  const rawToken = crypto.randomBytes(32).toString("base64url");
-
-  // SHA-256 hash for DB storage (raw token never persisted)
-  const ottHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-
   const now = Date.now();
+  const rawToken = randomBytes(32).toString("base64url");
+  const ottHash = createHash("sha256").update(rawToken).digest("hex");
+  const expiresAtMs = now + ttlHours * 60 * 60 * 1000;
 
   await database.insert(portal_magic_links).values({
-    id: crypto.randomUUID(),
-    submission_id: submissionId,
-    client_id: clientId,
-    contact_id: contactId,
+    id: randomUUID(),
+    contact_id: input.contactId,
+    client_id: input.clientId ?? null,
+    submission_id: input.submissionId ?? null,
     ott_hash: ottHash,
-    issued_for: issuedFor,
-    issued_at_ms: now,
-    ttl_hours: ttlHours,
+    issued_for: input.issuedFor ?? "portal_access",
+    expires_at_ms: expiresAtMs,
     consumed_at_ms: null,
-    consumed_from_ip: null,
     created_at_ms: now,
   });
 
-  // Log activity using same DB instance so tests stay isolated
-  await database.insert(activity_log).values({
-    id: crypto.randomUUID(),
+  await logActivity({
+    contactId: input.contactId,
     kind: "portal_magic_link_sent",
-    contact_id: contactId,
-    company_id: null,
-    deal_id: null,
-    body: `Magic link issued (${issuedFor})`,
-    meta: JSON.stringify({ issued_for: issuedFor, submission_id: submissionId }),
-    created_at_ms: now,
-    created_by: null,
+    body: `Magic link issued for ${input.issuedFor ?? "portal_access"}`,
+    meta: {
+      submission_id: input.submissionId ?? null,
+      client_id: input.clientId ?? null,
+    },
   });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  const url = `${appUrl}/lite/portal/r/${rawToken}`;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const url = `${baseUrl}/lite/portal/r/${rawToken}`;
 
-  return { url, ottHash };
+  return { url, rawToken };
 }

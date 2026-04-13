@@ -1,60 +1,79 @@
 /**
- * Magic-link OTT redeem endpoint.
+ * Magic-link redemption endpoint.
  *
  * GET /lite/portal/r/[token]
  *
- * Exchanges a one-time-use token for a portal session cookie and redirects
- * to the portal root. Invalid / expired / already-consumed tokens redirect
- * to the recovery form with an `error` query param.
+ * Exchanges a one-time token for a portal session cookie and redirects to
+ * the originally requested portal URL (or the portal root if unknown).
  *
- * Cookie attributes: httpOnly, Secure (production), SameSite=Lax, 90-day
- * rolling TTL (from `portal.session_cookie_ttl_days` setting).
+ * Flow:
+ *   1. `redeemMagicLink(token)` — validates TTL + single-use, marks consumed.
+ *   2. On success: encode session as base64url, set as httpOnly cookie,
+ *      log `portal_session_started`, redirect to portal root.
+ *   3. On failure (invalid / expired / already used): redirect to recovery
+ *      form with a non-revealing error query param.
+ *
+ * Cookie TTL: `settings.get('portal.session_cookie_ttl_days')` (default 90 d).
  *
  * Owner: A8.
  */
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { redeemMagicLink } from "@/lib/portal/redeem-magic-link";
-import { buildPortalCookieAttrs } from "@/lib/portal/guard";
+import {
+  encodePortalSession,
+  PORTAL_SESSION_COOKIE,
+} from "@/lib/portal/guard";
+import { logActivity } from "@/lib/activity-log";
 import settings from "@/lib/settings";
 
 export async function GET(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
 
-  if (!token) {
+  if (!token || typeof token !== "string") {
     return NextResponse.redirect(
-      new URL("/lite/portal/recover?error=invalid", req.url),
+      new URL("/lite/portal/recover?reason=invalid", request.url),
     );
   }
 
-  // Extract client IP for audit trail (header set by Coolify / reverse proxy)
-  const clientIp =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    undefined;
+  const session = await redeemMagicLink(token);
 
-  const result = await redeemMagicLink(token, clientIp);
-
-  if (!result.success) {
-    const url = new URL("/lite/portal/recover", req.url);
-    url.searchParams.set("error", result.reason);
-    return NextResponse.redirect(url);
+  if (!session) {
+    return NextResponse.redirect(
+      new URL("/lite/portal/recover?reason=expired", request.url),
+    );
   }
 
-  // Issue portal session cookie
   const ttlDays = await settings.get("portal.session_cookie_ttl_days");
-  const cookieAttrs = buildPortalCookieAttrs(result.contactId, ttlDays);
+  const maxAgeSeconds = ttlDays * 24 * 60 * 60;
 
-  const response = NextResponse.redirect(new URL("/lite/portal", req.url));
-  response.cookies.set(cookieAttrs.name, cookieAttrs.value, {
-    httpOnly: cookieAttrs.httpOnly,
-    sameSite: cookieAttrs.sameSite,
-    path: cookieAttrs.path,
-    maxAge: cookieAttrs.maxAge,
+  const cookieValue = encodePortalSession(session);
+
+  await logActivity({
+    contactId: session.contactId,
+    kind: "portal_session_started",
+    body: "Portal session started via magic link",
+    meta: {
+      submission_id: session.submissionId,
+      client_id: session.clientId,
+    },
+  });
+
+  // Determine redirect destination — default to portal root
+  const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
+  const destination =
+    callbackUrl && callbackUrl.startsWith("/lite/") ? callbackUrl : "/lite/portal";
+
+  const response = NextResponse.redirect(new URL(destination, request.url));
+
+  response.cookies.set(PORTAL_SESSION_COOKIE, cookieValue, {
+    httpOnly: true,
     secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: maxAgeSeconds,
   });
 
   return response;

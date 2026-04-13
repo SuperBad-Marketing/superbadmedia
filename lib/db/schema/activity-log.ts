@@ -253,6 +253,8 @@ export const ACTIVITY_LOG_KINDS = [
   "drift_check_failed",
   "portal_magic_link_sent",
   "portal_magic_link_redeemed",
+  // --- Portal guard A8 (1) ---
+  "portal_session_started",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

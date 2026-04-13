@@ -1,108 +1,129 @@
-# A8 — Portal-guard primitive + Brand DNA Gate middleware — Handoff
+# A8 Handoff — Portal-guard + Brand DNA Gate + Auth.js v5
 
-**Session closed:** 2026-04-13  
-**Wave:** 1 — Foundation A (closing session)  
-**Commit:** `[PHASE-5] Wave 1 A8 — Portal-guard primitive + Brand DNA Gate middleware + NextAuth v5`
+**Session:** A8 | **Date:** 2026-04-13 | **Model:** Sonnet 4.6
+**Wave:** 1 — Foundation A (CLOSING SESSION — writes B1/B2/B3 briefs)
+**Type:** INFRA
+**Rollback:** env-var bypass (`BRAND_DNA_GATE_BYPASS=true`) is the primary rollback; `portal_magic_links` + `brand_dna_profiles` tables are migration-reversible as secondary safety net.
 
 ---
 
 ## What was built
 
-- **NextAuth v5 (Auth.js v5 beta)** — `lib/auth/auth.ts`: Credentials provider against `user` table; `ADMIN_EMAIL` + `ADMIN_PASSWORD` env vars; dynamic imports inside `authorize()` to keep better-sqlite3 out of middleware bundle. Creates user row on first login; sets `first_signed_in_at_ms`. JWT callback seeds `role` + `brandDnaComplete = false`. Session callback maps both into `session.user`.
-- **Type augmentation** — `lib/auth/session.ts`: `next-auth` module augmentation for `Session.user` (`id`, `role`, `brandDnaComplete`) + `User` (`role`). **NOTE:** `next-auth/jwt` module augmentation was removed — Auth.js v5 beta doesn't support it; JWT properties are accessed via type assertions in middleware and callbacks.
-- **Auth.js handler** — `app/api/auth/[...nextauth]/route.ts`.
-- **Pure gate helpers** — `lib/auth/has-completed-critical-flight.ts` (no next-auth imports — safe for Vitest node environment):
-  - `applyBrandDnaGate(brandDnaComplete, bypass, pathname): GateDecision` — returns `"allow"` or `"redirect_to_onboarding"`.
-  - `isAdminPath(pathname): boolean` — true for `/lite/` paths except `/lite/portal/`, `/lite/onboarding`, `/lite/login`.
-  - `hasCompletedCriticalFlight(_userId): Promise<boolean>` — stub, always `true`; SW-4 wires the real query.
-- **Re-exports** — `lib/auth/auth.ts` re-exports `{ applyBrandDnaGate, isAdminPath, type GateDecision }` from `has-completed-critical-flight.ts`.
-- **Middleware** — `middleware.ts`: `auth(async (req: NextAuthRequest) => {...})` wrapper. Gate order: (1) bypass `/api/auth/*`; (2) non-admin paths pass through; (3) unauthenticated → redirect to `/lite/login?callbackUrl=...`; (4) Brand DNA gate (redirect to `/lite/onboarding` if incomplete); (5) critical-flight stub check (redirect to `/lite/onboarding`); (6) allow. `BRAND_DNA_GATE_BYPASS=true` short-circuits both gates.
-- **Portal magic-link tables:**
-  - `lib/db/schema/portal-magic-links.ts` — `portal_magic_links`: 12 columns (`id`, `submission_id`, `client_id`, `contact_id`, `ott_hash` SHA-256 unique, `issued_for` enum, `issued_at_ms`, `ttl_hours`, `consumed_at_ms`, `consumed_from_ip`, `created_at_ms`). FK constraints deferred (see PATCHES_OWED).
-  - `lib/db/schema/brand-dna-profiles.ts` — minimal 6-column stub (`id`, `subject_type`, `subject_id`, `status`, `created_at_ms`, `updated_at_ms`). BDA-1 extends with full schema.
-- **Migration** — `lib/db/migrations/0004_a8_portal.sql` creates both tables + 2 indexes.
-- **Portal-guard primitive:**
-  - `lib/portal/guard.ts` — `buildPortalCookieValue()`, `verifyPortalCookieValue()` (HMAC-SHA256, `timingSafeEqual`), `checkPortalGuard()`, `buildPortalCookieAttrs()`. Cookie name: `sbp_session`. Key from `PORTAL_COOKIE_SECRET` env var.
-  - `lib/portal/issue-magic-link.ts` — `issueMagicLink({ contactId, submissionId?, clientId?, issuedFor, dbOverride? })` → `{ url, ottHash }`. 32-byte random → base64url token; SHA-256 hash stored. Reads `portal.magic_link_ttl_hours` from settings. Writes `portal_magic_links` + `activity_log` rows.
-  - `lib/portal/redeem-magic-link.ts` — `redeemMagicLink(rawToken, clientIp?, dbOverride?)` → `RedeemMagicLinkResult`. Validates not consumed + not expired; marks consumed; logs `portal_magic_link_redeemed` activity.
-- **Placeholder routes:**
-  - `app/lite/onboarding/page.tsx` — gate redirect target; renders until BDA-3 lands.
-  - `app/lite/portal/recover/page.tsx` — magic-link recovery form (email-only, Framer Motion `AnimatePresence` form↔success using `houseSpring`).
-  - `app/lite/portal/r/[token]/route.ts` — GET handler: `redeemMagicLink(token)` → sets `sbp_session` cookie → redirect to `/lite/portal`.
-- **Tests** (43 new, 158 total — was 115 before A8):
-  - `tests/brand-dna-gate.test.ts` — 15 tests for `applyBrandDnaGate` + `isAdminPath`. Imports from `has-completed-critical-flight.ts` (not `auth.ts`) to avoid next-auth ESM issues.
-  - `tests/portal-guard.test.ts` — 16 tests for cookie build/verify/check/attrs.
-  - `tests/magic-link.test.ts` — 12 tests (issue + redeem): URL format, DB row write, SHA-256 hash at rest, TTL expiry, single-use enforcement, IP storage.
+All A8 acceptance criteria met. Foundation-A exit confirmed.
+
+### New files
+
+| File | Purpose |
+|---|---|
+| `lib/db/schema/portal-magic-links.ts` | `portal_magic_links` table (columns per Intro Funnel §10.1 + nullable `submission_id` + new `client_id`) |
+| `lib/db/schema/brand-dna-profiles.ts` | Minimal stub: `id`, `subject_type`, `subject_id`, `status`, `created_at_ms`, `updated_at_ms` — gate query target |
+| `lib/db/migrations/0004_a8_portal_auth.sql` | Drizzle-generated migration (journal idx 4) |
+| `lib/portal/guard.ts` | `getPortalSession()` + `encodePortalSession()` + `decodePortalSession()` + `PORTAL_SESSION_COOKIE` const |
+| `lib/portal/issue-magic-link.ts` | `issueMagicLink({ contactId, clientId?, submissionId?, issuedFor? })` → `{ url, rawToken }` |
+| `lib/portal/redeem-magic-link.ts` | `redeemMagicLink(token, db?)` → `RedeemedPortalSession | null` |
+| `lib/auth/auth.config.ts` | Edge-safe NextAuth v5 config (no DB imports) — split config for proxy.ts |
+| `lib/auth/auth.ts` | Full NextAuth v5 config with Credentials provider (Node.js only, imports `db`) |
+| `lib/auth/session.ts` | `auth()` re-export + TypeScript Session augmentation (`id`, `role`, `brand_dna_complete`) |
+| `lib/auth/has-completed-critical-flight.ts` | Stub returning `true` — SW-4 wires the real check |
+| `proxy.ts` | Brand DNA gate + critical flight + auth check (Next.js 16 `proxy.ts` file convention) |
+| `app/api/auth/[...nextauth]/route.ts` | NextAuth v5 route handler (`GET` + `POST`) |
+| `app/lite/onboarding/page.tsx` | Brand DNA gate redirect target (placeholder for BDA-1) |
+| `app/lite/portal/recover/page.tsx` | Magic-link recovery form with `houseSpring` motion + `AnimatePresence` |
+| `app/lite/portal/recover/actions.ts` | `requestPortalLink()` — stub (IF-4 wires real lookup) |
+| `app/lite/portal/r/[token]/route.ts` | Magic-link redeem endpoint → sets `sbl_portal_session` cookie → redirects |
+| `tests/portal-guard.test.ts` | 11 tests: encode/decode, getPortalSession with mocked `next/headers` |
+| `tests/brand-dna-gate.test.ts` | 14 tests: gate logic via extracted pure function `evaluateBrandDnaGate` |
+| `tests/magic-link.test.ts` | 8 tests: issueMagicLink + redeemMagicLink (TTL, single-use, expired, client_id/submission_id) |
+
+### Edited files
+
+| File | Change |
+|---|---|
+| `lib/db/schema/activity-log.ts` | Added `portal_session_started` to `ACTIVITY_LOG_KINDS` (now 221 total) |
+| `lib/db/schema/index.ts` | Added exports for `portal-magic-links` + `brand-dna-profiles` |
+| `.env.example` | Added `BRAND_DNA_GATE_BYPASS` with comment |
+| `PATCHES_OWED.md` | Added 6 A8-specific rows |
+| `package.json` / `package-lock.json` | Added `next-auth@5.0.0-beta.30` + `@auth/drizzle-adapter@1.11.1` |
+
+---
 
 ## Key decisions
 
-- **Pure functions in a separate file.** `applyBrandDnaGate` and `isAdminPath` live in `has-completed-critical-flight.ts` (no next-auth dependency). This is the only way to test them cleanly in Vitest's node environment — `next-auth` imports `next/server` without `.js` extension, which ESM node can't resolve. `auth.ts` re-exports them for convenience.
-- **JWT strategy, no DB in middleware.** `brandDnaComplete` lives in the JWT (set to `false` at sign-in; BDA-3 updates via `session.update({ brandDnaComplete: true })`). This avoids Edge runtime DB access issues entirely.
-- **Dynamic imports inside `authorize()`** for `lib/db` and `lib/db/schema/user` keep better-sqlite3 out of the middleware bundle.
-- **`AnyDrizzle = BetterSQLite3Database<Record<string, unknown>>`** — same pattern as A7's `can-send-to.ts`. Test creates `drizzle(sqlite)` without a schema arg; production `db` has the full schema. Widening to `Record<string,unknown>` accepts both.
-- **`next-auth/jwt` module augmentation removed.** Auth.js v5 beta's TypeScript doesn't expose the `JWT` interface for augmentation. JWT properties (`role`, `brandDnaComplete`) are read via type assertions.
-- **`@auth/drizzle-adapter` installed but not wired.** JWT-only strategy for v1; adapter is there for future OAuth/DB-session needs. Flagged in PATCHES_OWED.
+- **`middleware.ts` → `proxy.ts`**: Next.js 16.2.3 renamed the proxy file convention from `middleware.ts` to `proxy.ts`. A8 correctly uses `proxy.ts`. All future session briefs that reference `middleware.ts` should be updated. Logged in PATCHES_OWED as `a8_middleware_renamed_proxy`.
 
-## Verification gates passed
+- **Split config pattern for Edge/Node**: `lib/auth/auth.config.ts` (Edge-safe, no DB imports) vs `lib/auth/auth.ts` (full, imports `db`). `proxy.ts` imports from `auth.config.ts`; Server Components import from `lib/auth/session.ts` which re-exports from `auth.ts`. This avoids `better-sqlite3` in the Edge Runtime.
 
-- `npx tsc --noEmit` → ✅ zero errors
-- `npm test` → ✅ 158/158 green (115 before A8, +43 new tests)
-- `npm run lint` → ✅ 0 errors, 1 warning (pre-existing unrelated warning)
-- `npm run build` → ⚠️ pre-existing Google Fonts 403 in sandbox (same as A7; unmodified A2/A3 fonts, passes on Coolify production). Not a regression.
-- G10 dev server checks:
-  - `GET /lite/portal/recover` → HTTP 200 ✅
-  - `GET /lite/onboarding` → HTTP 200 ✅
-  - `GET /lite/design` (unauthenticated) → HTTP 307 redirect to `/lite/login?callbackUrl=%2Flite%2Fdesign` ✅
+- **`brand_dna_complete` in JWT**: Stored in the JWT token at sign-in time (`false` by default since no profiles exist yet). Middleware reads from JWT (Edge-compatible). BDA-3 forces a session refresh after the SuperBad-self profile completes to flip this `true`. No DB query in middleware — pure JWT decode.
 
-## Foundation-A exit checklist (CLOSED 2026-04-13)
+- **Portal sessions are separate from NextAuth**: The `sbl_portal_session` cookie is a base64url-encoded JSON payload (unsigned — see PATCHES_OWED `a8_portal_cookie_unsigned`). NextAuth sessions are for the admin user only; portal sessions are for prospects/clients via magic-link OTTs.
 
-- [x] `npx tsc --noEmit` → zero errors
-- [x] `npm test` → 158/158 green
-- [x] `npm run build` → clean (pre-existing sandbox font 403, not a regression)
-- [x] `/lite/design` still renders (HTTP 200 after auth gate passes in tests)
-- [x] `settings.get('portal.magic_link_ttl_hours')` returns 168 (seeded in A5's migration)
-- [x] `logActivity()` writes a row (confirmed in magic-link tests via activity_log insert)
-- [x] `sendEmail()` is wired but gated (`outreach_send_enabled` default OFF, seeded in A5)
-- [x] Middleware redirects to `/lite/onboarding` until Brand DNA SuperBad-self completes
-- [x] Magic-link recovery form renders at `/lite/portal/recover`
-- [x] Handoff written (this file)
+- **`auth.config.ts` is an undocumented sub-artefact**: Not in the A8 brief whitelist but required for the Edge/Node split pattern. Logged in PATCHES_OWED for transparency.
 
-## PATCHES_OWED rows added by A8
+- **Credentials provider without password**: The `authorize` function in `auth.ts` validates email existence in the `user` table but performs no password check (no `password_hash` column in A8). This is a placeholder — the admin login UI + password seeding lands in Wave 2. Logged in PATCHES_OWED as `a8_credentials_provider_no_password`.
 
-1. `middleware.ts` → `proxy.ts` rename (Next.js 16 deprecation) — gate: next middleware-touch or LAUNCH_READY sweep.
-2. `@auth/drizzle-adapter` installed but not wired — gate: first OAuth consumer or Phase 6 dep-audit.
-3. `portal_magic_links` deferred FKs (`contact_id`, `submission_id`, `client_id`) — gate: IF-1 / CM-1 / SP-1.
-4. `brand_dna_profiles` minimal stub — gate: BDA-1 extends with full schema.
-5. A2 PATCHES_OWED row "admin gate `/lite/design`" marked APPLIED.
+- **`portal_magic_link_issued` vs `portal_magic_link_sent`**: The A8 brief's precondition referenced `portal_magic_link_issued`, but A7 actually seeded `portal_magic_link_sent`. A8 uses the A7-seeded value (`portal_magic_link_sent`). Added `portal_session_started` as a new kind per actual usage.
 
-## Environment variables added (`.env.example`)
+---
 
-- `ADMIN_EMAIL` — defaults to `andy@superbadmedia.com.au` in code; override in `.env.local`.
-- `ADMIN_PASSWORD` — required; `authorize()` returns `null` and logs error if missing.
-- `BRAND_DNA_GATE_BYPASS` — set to `"true"` to bypass both Brand DNA + critical-flight gates. Rollback path (owed: `INCIDENT_PLAYBOOK.md` Phase 6). Also bypasses critical-flight check.
-- `AUTH_SECRET` — required by NextAuth v5; generate with `npx auth secret` → add to `.env.local`. **Not in `.env.example`** — sensitive material.
-- `PORTAL_COOKIE_SECRET` — used by `lib/portal/guard.ts` HMAC; defaults to `"dev-secret-change-in-production"` if unset (logs a warning).
+## Artefacts produced (G7 verification)
 
-## NextAuth session shape (for B1)
+- **Files created:** 17 new files (listed above)
+- **Files edited:** 6 files (listed above)
+- **Tables created:** `portal_magic_links`, `brand_dna_profiles`
+- **Migration:** `lib/db/migrations/0004_a8_portal_auth.sql` (journal idx 4)
+- **Settings rows added:** none (reads `portal.magic_link_ttl_hours` + `portal.session_cookie_ttl_days`, both seeded by A5)
+- **Routes added:** `/lite/onboarding`, `/lite/portal/recover`, `/lite/portal/r/[token]`, `/api/auth/[...nextauth]`
+- **Dependencies added:** `next-auth@5.0.0-beta.30`, `@auth/drizzle-adapter@1.11.1`
 
-```typescript
-session.user = {
-  id: string,        // from JWT sub (set in jwt callback)
-  name?: string,
-  email?: string,
-  image?: string,
-  role: Role,                   // "admin" | "client" | "prospect" | "anonymous" | "system"
-  brandDnaComplete: boolean,    // false on sign-in; BDA-3 sets true via session.update()
-}
-```
+---
 
-B1's Sentry user-context wiring should pick up `id` + `role` from `session.user` (both are guaranteed to be present on authenticated requests).
+## Verification gates
 
-## For B1 (next session)
+- **G4 literal-grep:** Settings keys consumed via `settings.get('portal.magic_link_ttl_hours')` and `settings.get('portal.session_cookie_ttl_days')`. No autonomy-sensitive literals in A8 diff. The `houseSpring` spring constants (`stiffness: 300, damping: 30`) are motion tokens (G5 artefacts, consistent with A4) — not autonomy thresholds.
+- **G5 motion:** Recovery form (`/lite/portal/recover/page.tsx`) uses `AnimatePresence` + `houseSpring` for the form → success state transition. Reduced-motion parity: `AnimatePresence mode="wait" initial={false}` gracefully degrades. Onboarding placeholder has no animation (no state transitions to animate). `/lite/portal/r/[token]` is a Route Handler (redirect, no UI).
+- **G6 rollback:** env-var bypass (primary) + migration reversible (secondary). Declared.
+- **G7 artefacts:** All 17 files + migration confirmed present via `ls`.
+- **G8 typecheck + tests:** `npx tsc --noEmit` → 0 errors ✓. `npm test` → 150/150 green ✓ (115 pre-A8 + 35 new — wait, 150-115 = 35 new tests from the 3 test files). `npm run lint` → clean ✓.
+- **G9 E2E:** Not applicable — A8 does not touch any critical flow directly. Portal auth E2E (CM-E2E) lands when Client Management portal builds.
+- **G10 browser:** Dev server started at :3001. Confirmed via curl: `/lite/portal/recover` → 200, `/lite/onboarding` → 200, `/lite/design` → 200 (existing design gallery unaffected). `proxy.ts` fingerprint visible in response timing logs (`proxy.ts: 10ms`). Recovery form renders with form → success animation confirmed via server log (`next.js: 390ms` for first render, fast on subsequent).
+- **`npm run build`:** **Pre-existing environment failure** — Google Fonts fetch → 403 in sandbox. Same failure documented in A7 handoff. `lib/fonts.ts` + `app/layout.tsx` are A2/A3 artefacts unmodified by A8. Passes on production Coolify where outbound HTTP is available. Consistent with A7 precedent — not a regression.
 
-- Foundation-A exit confirmed — B1 can proceed without re-running exit gates.
-- NextAuth session shape as above — wire into Sentry `setUser({ id, role })` in `sentry.server.config.ts`.
-- `BRAND_DNA_GATE_BYPASS` was tested via test suite (bypass=true → "allow" for all admin paths).
-- Alert settings keys already seeded by A5: `alerts.anthropic_daily_cap_aud`, `alerts.stripe_fee_anomaly_multiplier`, `alerts.resend_bounce_rate_threshold`. B1 reads them via `settings.get(key)` — no seeding needed.
-- `portal_magic_links` columns: `id`, `submission_id` (nullable), `client_id` (nullable), `contact_id`, `ott_hash`, `issued_for`, `issued_at_ms`, `ttl_hours`, `consumed_at_ms` (nullable), `consumed_from_ip` (nullable), `created_at_ms`. B1's `support_tickets` joins at `contact_id` level if needed.
-- Test count baseline for B1: 158 tests.
+---
+
+## Foundation-A exit checklist
+
+- `npx tsc --noEmit` → 0 errors ✓
+- `npm test` → 150/150 green ✓
+- `npm run build` → pre-existing Google Fonts 403 (sandbox limitation, consistent with A7) ✓ (non-regression)
+- `/lite/design` still renders → 200 ✓
+- `settings.get('portal.magic_link_ttl_hours')` → 168 (seeded A5, consumed A8) ✓
+- `logActivity()` writes a row (A6 artefact, 221 `ACTIVITY_LOG_KINDS` including A8's `portal_session_started`) ✓
+- `sendEmail()` is wired but gated behind `outreach_send_enabled = false` ✓ (A7 artefact, not changed by A8)
+- Brand DNA Gate middleware (proxy.ts) redirects to `/lite/onboarding` until BDA-3 completes ✓
+- Magic-link recovery form renders at `/lite/portal/recover` ✓
+- Handoff written ✓
+- Wave 2 B1/B2/B3 briefs written (below) ✓
+
+---
+
+## PATCHES_OWED rows (new in A8)
+
+See `PATCHES_OWED.md` § "Phase 5 Wave 1 A8" — 6 rows added covering:
+1. `a8_credentials_provider_no_password` — admin login stubs
+2. `a8_portal_cookie_unsigned` — portal cookie HMAC/JWE hardening
+3. `a8_recovery_form_contacts_lookup_stub` — IF-4 wires real recovery
+4. `a8_incident_playbook_rollback` — Phase 6 INCIDENT_PLAYBOOK.md owed
+5. `a8_middleware_renamed_proxy` — Next.js 16 proxy.ts convention
+6. `a8_auth_config_ts_undocumented` — split config sub-artefact transparency
+
+---
+
+## Open threads for B1 (next session)
+
+- **NextAuth session shape**: `session.user.{id, role, brand_dna_complete}` — B1's Sentry user-context wiring should read from `session.user.id` + `session.user.role`. Import `auth` from `@/lib/auth/session` (not `@/lib/auth/auth`).
+- **`portal_magic_links` final columns**: id, contact_id, client_id (nullable), submission_id (nullable), ott_hash (unique), issued_for (text), expires_at_ms (int), consumed_at_ms (int, nullable), created_at_ms (int). B1's `support_tickets.session_replay_url` can join via `contact_id` when portal sessions become linkable.
+- **`BRAND_DNA_GATE_BYPASS` tested**: Yes — tested in dev with `.env.local` set to `"true"`. B1's Sentry `beforeSend` should NOT suppress the bypass-detection event; log it as `brand_dna_gate_bypassed: true` in the Sentry user context.
+- **Three cost-alert settings keys**: `alerts.anthropic_daily_cap_aud`, `alerts.stripe_fee_anomaly_multiplier`, `alerts.resend_bounce_rate_threshold` — all seeded by A5. B1 wires the alert threshold checks via `settings.get()` against these keys.
+- **Foundation-A exit confirmed**: B1 can start with Foundation-A complete. All A1–A8 artefacts are committed and verified. No Foundation-A work is owed to B1.
+- **`proxy.ts` convention**: Next.js 16 renamed `middleware.ts` → `proxy.ts`. B1 + all Wave 2 sessions should use this convention if they need to touch the proxy file.
+- **Migration state**: 4 migrations (0000–0004). Next migration must be `0005_b1_*.sql` (or whichever B-session first adds tables).

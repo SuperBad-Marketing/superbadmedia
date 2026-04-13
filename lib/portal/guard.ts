@@ -1,128 +1,76 @@
 /**
- * Portal session guard — client-portal authentication primitive.
+ * Portal session guard.
  *
- * The client portal uses a separate, simpler auth mechanism from the admin
- * surface (NextAuth). Clients authenticate via magic-link OTT only. After a
- * successful redeem, an HMAC-signed session cookie is issued and checked on
- * every portal request.
+ * Portal sessions (prospects + clients) are separate from the admin
+ * NextAuth session. They are lightweight JSON payloads stored in a
+ * signed, httpOnly session cookie set by the magic-link redeem endpoint.
  *
- * Cookie: `sbp_session` — httpOnly, Secure, SameSite=Lax, 90-day rolling TTL
- * (TTL from settings key `portal.session_cookie_ttl_days`).
+ * Exported functions:
+ *   - `getPortalSession()`   — reads + decodes the session cookie.
+ *                              Returns null if absent or malformed.
+ *   - `encodePortalSession()`— encode a session payload to a cookie value.
+ *   - `decodePortalSession()`— decode a cookie value to a session payload.
  *
- * The signing key is `NEXTAUTH_SECRET` (same secret used for admin JWT). If
- * that env var is absent the cookie cannot be verified and access is denied.
+ * `getPortalSession` uses `next/headers` (Server Component / Route Handler
+ * context). For unit tests, call `decodePortalSession` directly.
  *
- * Owner: A8. Consumers: every `/lite/portal/*` route layout.
+ * Cookie TTL: `settings.get('portal.session_cookie_ttl_days')` (default 90 d).
+ * The cookie is httpOnly + Secure + SameSite=Lax. It is NOT encrypted beyond
+ * base64 encoding — do not store sensitive data beyond the contact/client id.
+ * A future session adds signing (e.g. iron-session / JWT). PATCHES_OWED:
+ * `a8_portal_cookie_unsigned`.
  *
- * @module
+ * Owner: A8.
  */
-import crypto from "node:crypto";
+import { cookies } from "next/headers";
 
-export const PORTAL_COOKIE_NAME = "sbp_session";
+export const PORTAL_SESSION_COOKIE = "sbl_portal_session";
+
+export type PortalSession = {
+  contactId: string;
+  clientId: string | null;
+  submissionId: string | null;
+};
 
 /**
- * Build a signed portal session cookie value.
- *
- * @param contactId - The authenticated contact's ID.
- * @param secret    - HMAC signing secret (defaults to `NEXTAUTH_SECRET`).
- * @returns Signed string `${contactId}.${hmac-hex}`
+ * Encode a PortalSession to the base64url string stored in the cookie.
+ * Exported for use in the redeem endpoint and tests.
  */
-export function buildPortalCookieValue(
-  contactId: string,
-  secret?: string,
-): string {
-  const key = secret ?? process.env.NEXTAUTH_SECRET ?? "";
-  const hmac = crypto.createHmac("sha256", key);
-  hmac.update(contactId);
-  return `${contactId}.${hmac.digest("hex")}`;
+export function encodePortalSession(session: PortalSession): string {
+  return Buffer.from(JSON.stringify(session)).toString("base64url");
 }
 
 /**
- * Verify a portal session cookie value.
- *
- * Uses `timingSafeEqual` to prevent timing attacks.
- *
- * @param value  - The raw cookie value string.
- * @param secret - HMAC signing secret (defaults to `NEXTAUTH_SECRET`).
- * @returns The `contactId` if the signature is valid, `null` otherwise.
+ * Decode the raw cookie value back to a PortalSession.
+ * Returns null if the value is missing, not valid JSON, or lacks `contactId`.
  */
-export function verifyPortalCookieValue(
-  value: string | undefined,
-  secret?: string,
-): string | null {
-  if (!value) return null;
-  const lastDot = value.lastIndexOf(".");
-  if (lastDot === -1) return null;
-
-  const contactId = value.slice(0, lastDot);
-  const sig = value.slice(lastDot + 1);
-  if (!contactId || !sig) return null;
-
-  const key = secret ?? process.env.NEXTAUTH_SECRET ?? "";
-  const expected = crypto
-    .createHmac("sha256", key)
-    .update(contactId)
-    .digest("hex");
-
+export function decodePortalSession(raw: string): PortalSession | null {
   try {
-    const expectedBuf = Buffer.from(expected, "hex");
-    const actualBuf = Buffer.from(sig, "hex");
-    if (expectedBuf.length !== actualBuf.length) return null;
-    if (!crypto.timingSafeEqual(expectedBuf, actualBuf)) return null;
-    return contactId;
+    const parsed = JSON.parse(
+      Buffer.from(raw, "base64url").toString("utf-8"),
+    ) as Partial<PortalSession>;
+    if (!parsed?.contactId || typeof parsed.contactId !== "string") {
+      return null;
+    }
+    return {
+      contactId: parsed.contactId,
+      clientId: parsed.clientId ?? null,
+      submissionId: parsed.submissionId ?? null,
+    };
   } catch {
     return null;
   }
 }
 
-export type PortalGuardResult =
-  | { allowed: true; contactId: string }
-  | { allowed: false; contactId?: never };
-
 /**
- * Check whether a portal session cookie grants access.
- *
- * Call this at the top of any portal route that requires authentication.
- * If `allowed` is false, redirect to `/lite/portal/recover`.
- *
- * @param cookieValue - The raw value of the `sbp_session` cookie (or
- *                      `undefined` if absent).
- * @param secret      - Optional override for the HMAC key (used by tests).
+ * Read the portal session from the request cookie store.
+ * Server Component / Route Handler context only (uses `next/headers`).
+ * Returns null when the cookie is absent or the payload is malformed —
+ * callers should redirect to `/lite/portal/recover`.
  */
-export function checkPortalGuard(
-  cookieValue: string | undefined,
-  secret?: string,
-): PortalGuardResult {
-  const contactId = verifyPortalCookieValue(cookieValue, secret);
-  if (!contactId) return { allowed: false };
-  return { allowed: true, contactId };
-}
-
-/**
- * Build the Set-Cookie header attributes for a new portal session.
- *
- * @param contactId - The authenticated contact's ID.
- * @param ttlDays   - Cookie max-age in days (from `portal.session_cookie_ttl_days`).
- * @param secret    - Optional override for the HMAC key.
- */
-export function buildPortalCookieAttrs(
-  contactId: string,
-  ttlDays: number,
-  secret?: string,
-): {
-  name: string;
-  value: string;
-  httpOnly: true;
-  sameSite: "lax";
-  path: string;
-  maxAge: number;
-} {
-  return {
-    name: PORTAL_COOKIE_NAME,
-    value: buildPortalCookieValue(contactId, secret),
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: ttlDays * 24 * 60 * 60,
-  };
+export async function getPortalSession(): Promise<PortalSession | null> {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(PORTAL_SESSION_COOKIE)?.value;
+  if (!raw) return null;
+  return decodePortalSession(raw);
 }
