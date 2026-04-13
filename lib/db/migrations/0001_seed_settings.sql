@@ -100,3 +100,9 @@ INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `update
   ('alerts.anthropic_daily_cap_aud', '25.00', 'decimal', 'Daily Anthropic spend cap before cost alert fires', 0),
   ('alerts.stripe_fee_anomaly_multiplier', '2.0', 'decimal', 'Multiplier on weekly-median Stripe fees that triggers anomaly alert', 0),
   ('alerts.resend_bounce_rate_threshold', '0.05', 'decimal', 'Resend bounce-rate threshold that triggers sender-reputation alert', 0);
+--> statement-breakpoint
+
+-- Legal (2 — B3)
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES
+  ('legal.dsr_email', 'privacy@superbadmedia.com.au', 'string', 'Privacy Act DSR contact address — disclosed in Privacy Policy', 0),
+  ('legal.dsr_response_days', '30', 'integer', 'Statutory DSR response commitment (days) — Privacy Act 1988 (Cth)', 0);

@@ -45,6 +45,9 @@ function isPublicRoute(pathname: string): boolean {
     pathname.startsWith("/lite/onboarding") ||
     pathname.startsWith("/lite/login") ||
     pathname.startsWith("/lite/design") ||
+    // Legal pages are publicly accessible (no auth gate) — B3
+    pathname.startsWith("/lite/legal/") ||
+    pathname === "/lite/legal" ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico"

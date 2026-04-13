@@ -115,6 +115,10 @@ const registry = {
   "alerts.anthropic_daily_cap_aud": decimal,
   "alerts.stripe_fee_anomaly_multiplier": decimal,
   "alerts.resend_bounce_rate_threshold": decimal,
+
+  // Legal (2 — B3)
+  "legal.dsr_email": str,
+  "legal.dsr_response_days": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

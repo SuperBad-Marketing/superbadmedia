@@ -17,6 +17,8 @@ export const LEGAL_DOC_TYPES = [
   "client_agreement",
   "subscriber_tos",
   "cookie_policy",
+  // Added B3 — /lite/legal/acceptable-use page
+  "acceptable_use",
 ] as const;
 
 export type LegalDocType = (typeof LEGAL_DOC_TYPES)[number];

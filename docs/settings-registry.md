@@ -94,6 +94,13 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `alerts.stripe_fee_anomaly_multiplier` | `2.0` | decimal | Multiplier on weekly-median Stripe fees that triggers anomaly alert |
 | `alerts.resend_bounce_rate_threshold` | `0.05` | decimal | Resend bounce-rate threshold that triggers sender-reputation alert |
 
+## Legal (owner: `docs/specs/legal-pages.md` §3; B3 seeds)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `legal.dsr_email` | `"privacy@superbadmedia.com.au"` | string | Privacy Act DSR contact address — disclosed in Privacy Policy |
+| `legal.dsr_response_days` | `30` | integer | Statutory DSR response commitment (days) — Privacy Act 1988 (Cth) |
+
 ## Hiring Pipeline (owner: `docs/specs/hiring-pipeline.md` §18)
 
 | Key | Default | Type | Description |
@@ -138,7 +145,8 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Intro Funnel: 1 (more owed; see Batch C step 15)
 - Email adapter: 4 (added 2026-04-14, A5)
 - Alerts: 3 (added 2026-04-14, A5)
+- Legal: 2 (added 2026-04-13, B3)
 - Hiring: 28
-- **Total: 68 keys at v1.0 seed** (was 61 pre-A5; earlier "Total: 60" line was an arithmetic mistake)
+- **Total: 70 keys at v1.0 seed** (was 68 pre-B3)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.
