@@ -145,7 +145,7 @@ Black Han Sans appears in **exactly these 8 locations** across the entire app. A
 1. Marketing landing page hero (Lite-hosted, post-GHL).
 2. Morning brief headline / day eyebrow (above the narrative paragraph).
 3. Quote page hero (prospect's company name or "Welcome, [Name]").
-4. SaaS customer dashboard welcome hero.
+4. Subscriber dashboard welcome hero.
 5. Client portal welcome hero.
 6. Empty state hero text ("No leads yet.", "Inbox clear. Suspicious.", etc.).
 7. Tier 2 arrival reveal text ("Welcome aboard", "First client. Don't fuck it up.", milestone overlays).
@@ -185,7 +185,7 @@ Three locked tokens, mapped to purpose not size.
 **`--radius-generous` closed list:**
 1. Quote page hero card.
 2. Morning brief panel.
-3. SaaS customer dashboard hero card.
+3. Subscriber dashboard hero card.
 4. Client portal welcome panel.
 
 Adding a 5th surface to this list requires explicit Andy approval.
@@ -234,7 +234,7 @@ Reserved for the closed list below. Each moment has its own named choreography. 
 3. **Quote accepted (customer side, on quote page).** Warm pulse across the surface, glow bloom, the **quote accepted** sound, the Accept button transforms into a "Welcome aboard" state. ~1.2s total. Single most brand-critical moment in the app.
 4. **Stripe subscription activated (admin side, watching the Kanban).** Deal card lifts out of Negotiating, drifts across to Won, graduates into a client card with a warm colour shift. ~1s total. Paired with the **subscription activated** sound.
 5. **Setup wizard completion (any wizard, any role).** Final step: wizard panel warm-pulses, short reward choreography plays, panel resolves into the user's previous context. **Silent** (no sound — registry is full).
-6. **Portal first-ever load.** Both client portal AND SaaS customer dashboard. Tracked via `first_seen_at` timestamp on the relationship record. Chrome fades in with the user's name prominent. Subsequent loads use Tier 1.
+6. **Portal first-ever load.** Both client portal AND Subscriber dashboard. Tracked via `first_seen_at` timestamp on the relationship record. Chrome fades in with the user's name prominent. Subsequent loads use Tier 1.
 7. **Inbox zero.** Inbox transitions from ≥1 message to 0 — last message card shrinks out, empty state fades in with a dry SuperBad-voice line. ~600ms. Silent.
 
 **Tier 2 conditional overlays** (extend an existing Tier 2 moment, do not add new ones):
@@ -331,7 +331,7 @@ The chrome of every admin page (`/lite`, `/lite/pipeline`, `/lite/inbox`, `/lite
 
 **Per-page secondary panes:** some pages add a secondary in-content list pane (Inbox: message list + reader, Client detail: client list + detail). These are **per-spec decisions**, declared in the relevant feature spec, not in the global shell.
 
-**Mobile:** admin is desktop-first. Responsive collapsing of the sidebar to a top-bar drawer is in scope but Andy is desktop-mouse-first, so this is a low-priority Phase 5 polish task. Client portals and SaaS customer dashboards are mobile-first separately and use their own shell.
+**Mobile:** admin is desktop-first. Responsive collapsing of the sidebar to a top-bar drawer is in scope but Andy is desktop-mouse-first, so this is a low-priority Phase 5 polish task. Client portals and Subscriber dashboards are mobile-first separately and use their own shell.
 
 ---
 
@@ -372,7 +372,7 @@ Desaturated and cream-forward. Red is muted to a deeper rust shade as the primar
 }
 ```
 
-**Per-role visibility:** all 3 presets are exposed to admin, clients, and SaaS customers. A SaaS customer's pick applies only to their dashboard; a client's pick applies only to their portal. They do not bleed into admin.
+**Per-role visibility:** all 3 presets are exposed to admin, Clients, and Subscribers. A Subscriber's pick applies only to their dashboard; a Client's pick applies only to their portal. They do not bleed into admin.
 
 ---
 
@@ -484,7 +484,7 @@ Built fresh in Phase 5 sessions, inheriting tokens from this spec.
 |---|---|---|
 | `AdminShell` | Sidebar + main layout (Q9) | First UI session |
 | `PortalShell` | Client portal chrome (mobile-first) | Client portal spec session |
-| `DashboardShell` | SaaS customer dashboard chrome (mobile-first) | SaaS dashboard spec session |
+| `DashboardShell` | Subscriber dashboard chrome (mobile-first) | SaaS dashboard spec session |
 | `WizardShell` | Setup wizard pattern (per FOUNDATIONS + memory) | Setup wizards spec session |
 | `KanbanBoard` | Deal cards, drag-and-drop, stage transitions | Sales pipeline spec session |
 | `BrandHero` | Black Han Sans hero text wrapper for the 8 closed locations | First UI session |

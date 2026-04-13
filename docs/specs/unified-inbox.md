@@ -776,7 +776,7 @@ Surfaces owed to a later Content Mini-Session with `superbad-brand-voice` + `sup
 **Setup wizard shell reference (added 2026-04-13 Phase 3.5):** this flow renders through the `WizardDefinition` primitive owned by [setup-wizards.md](./setup-wizards.md). The Graph API consent is split into two wizard keys (per Phase 3.5 patch):
 
 - **`graph-api-admin`** (admin, §5.1 in setup-wizards) — Andy connecting his own M365 tenant. Steps 1–9 below are the admin definition. Render mode: slideover (launched from `/lite/integrations` or morning-brief health banner on disconnect).
-- **`graph-api-client`** (client, §5.3 in setup-wizards) — forward-looking hook for a future retainer/SaaS client to connect their own mailbox. Same step spine, client-tone copy, no "admin rights" escape hatch, completion payload scoped to the client's own Graph subscription. Not built in v1 but reserved as a wizard key so the split is honest.
+- **`graph-api-client`** (client, §5.3 in setup-wizards) — forward-looking hook for a future Client or Subscriber to connect their own mailbox. Same step spine, client-tone copy, no "admin rights" escape hatch, completion payload scoped to their own Graph subscription. Not built in v1 but reserved as a wizard key so the split is honest.
 
 This spec owns all step content and copy for both variants. Shell chrome (progress bar, resume, cancel, celebration, Observatory integration) lives in the primitive.
 

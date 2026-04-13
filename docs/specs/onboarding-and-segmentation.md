@@ -24,7 +24,7 @@ Governing memories: `feedback_onboarding_multiple_entry_paths.md`, `project_bran
 | 5d | Rev Seg Q4: 12-month goal | 5 options: "Keep things ticking over" / "Grow — more of the right customers" / "Scale — double down and push hard" / "Launch something new alongside what we've got" / "Honestly, figure out what's next" |
 | 5e | Rev Seg Q5: Industry vertical | 8 broad neutral categories + Other with free-text: Health & wellness / Professional services / Trades & construction / Hospitality & food / Education / Retail / Creative & media / Other: ___ |
 | 6 | SaaS onboarding order | Brand DNA first, right after payment. Quality over convenience. Full sequence: Payment → Brand DNA → Revenue Segmentation → product config → product unlocked. |
-| 7 | Brand DNA nudge surface purpose | Retake prompting, not first-time completion. Brand DNA is a hard gate — every SaaS customer completes it before product access. Nudge becomes "It's been a while — has anything changed?" |
+| 7 | Brand DNA nudge surface purpose | Retake prompting, not first-time completion. Brand DNA is a hard gate — every Subscriber completes it before product access. Nudge becomes "It's been a while — has anything changed?" |
 | 8 | SaaS product config shape | Each product implements an interface contract + UX constraints. Products own the content, onboarding owns the frame. |
 | 9 | Retainer entry paths | All retainer clients enter via quote acceptance. Direct sales, referrals, and any other path go through Quote Builder first. One trigger, one flow. |
 | 10 | Legacy migration | None. No migration tooling. Existing clients re-onboard through the same flow as new clients. GHL subscriptions cancelled manually once confirmed in Lite. |
@@ -95,7 +95,7 @@ Final step of onboarding. "Confirm your email address — this is how you'll log
 - If practical setup incomplete: 24h → 72h → weekly automated email reminders.
 - Cockpit shows incomplete onboarding status on the client's record throughout.
 
-### 2.2 SaaS customer onboarding
+### 2.2 Subscriber onboarding
 
 **Trigger:** Stripe Payment Element success on any SaaS product signup.
 
@@ -147,7 +147,7 @@ All retainer clients enter via quote acceptance. There is no alternative trigger
 - The "what we already know" summary always has material to work with.
 - No legacy migration path. Existing GHL clients re-onboard through the same flow.
 
-SaaS customers enter via Stripe payment on product signup. One trigger per product.
+Subscribers enter via Stripe payment on product signup. One trigger per product.
 
 ---
 
@@ -227,8 +227,8 @@ The Revenue Segmentation primitive is designed to plug into any future onboardin
 
 ### 4.2 Surfaces
 
-- **Daily Cockpit:** alerts when a SaaS customer newly crosses the Hot threshold. Phrased as attention, not a to-do: "[Company name] just hit hot — $1M+ revenue, daily user, wants to scale." Aggregated count of total Warm and Hot customers in the cockpit's SaaS health section.
-- **Sales Pipeline:** standing "Upsell candidates" filter showing all Warm and Hot SaaS customers. Sortable by tier, revenue, engagement. Andy browses this when he's in prospecting mode.
+- **Daily Cockpit:** alerts when a Subscriber newly crosses the Hot threshold. Phrased as attention, not a to-do: "[Company name] just hit hot — $1M+ revenue, daily user, wants to scale." Aggregated count of total Warm and Hot Subscribers in the cockpit's SaaS health section.
+- **Sales Pipeline:** standing "Upsell candidates" filter showing all Warm and Hot Subscribers. Sortable by tier, revenue, engagement. Andy browses this when he's in prospecting mode.
 
 ### 4.3 Signal inputs
 
@@ -244,7 +244,7 @@ The Revenue Segmentation primitive is designed to plug into any future onboardin
 
 ### 4.4 Brand DNA retake as engagement signal
 
-Brand DNA completion is no longer a differentiating signal (mandatory for all SaaS customers). However, a **retake** is a strong voluntary engagement signal — the customer is investing another 30 minutes to refine their profile. Retakes surface as a bonus signal on the cockpit: "[Company name] just retook their Brand DNA assessment." Not factored into Warm/Hot thresholds in v1, but visible to Andy as qualitative intelligence.
+Brand DNA completion is no longer a differentiating signal (mandatory for all Subscribers). However, a **retake** is a strong voluntary engagement signal — the Subscriber is investing another 30 minutes to refine their profile. Retakes surface as a bonus signal on the cockpit: "[Company name] just retook their Brand DNA assessment." Not factored into Warm/Hot thresholds in v1, but visible to Andy as qualitative intelligence.
 
 ---
 
@@ -402,7 +402,7 @@ Both paths converge on Brand DNA as the first active client task. Both respect t
 
 **No pre-populated summary.** Cold signups don't have enough context depth. A thin summary ("you signed up for ContentEngine") is worse than none.
 
-**Design:** same premium feel as retainer welcome screen. The SaaS customer's first impression of SuperBad should not feel like a downgrade from the retainer experience.
+**Design:** same premium feel as retainer welcome screen. The Subscriber's first impression of SuperBad should not feel like a downgrade from the retainer experience.
 
 ---
 
@@ -434,7 +434,7 @@ Onboarding progress is derived from existing primitives:
 
 ### 9.3 Company auto-creation for SaaS
 
-When a SaaS customer completes payment, the system auto-creates:
+When a Subscriber completes payment, the system auto-creates:
 1. A `contacts` record (from signup form: name, email)
 2. A `companies` record (from signup form: business name, location)
 3. Links the contact to the company
@@ -551,7 +551,7 @@ Brand DNA has its own tab title treatments (claimed in its spec).
 ### 13.3 Sales Pipeline (LOCKED)
 
 - `companies.location` is a new column used for upsell targeting. Pipeline should capture location during deal creation for retainer clients.
-- Upsell filter ("Warm" and "Hot" SaaS customers) surfaces as a standing filter on the pipeline board.
+- Upsell filter ("Warm" and "Hot" Subscribers) surfaces as a standing filter on the pipeline board.
 
 ### 13.4 Client Context Engine (#7)
 
@@ -645,11 +645,11 @@ A contact who completed Brand DNA during a trial shoot (or via tokenised invite)
 
 **What's the hardest part?** The welcome screen's "what we already know about you" paragraph. It reads deal notes, quote context, and outreach research — all unstructured data — and synthesises a warm, specific, observant paragraph that makes the client feel known. If this paragraph is generic or wrong, the welcome screen fails. The Claude prompt for this synthesis is the highest-leverage creative task in this spec.
 
-**What could go wrong?** Brand DNA as a hard SaaS gate is the biggest bet. If 60% of paying SaaS customers abandon during the assessment, that's a real problem. The mitigation is that Brand DNA is designed to be engaging, not boring — but it's still 30 minutes before product access. Monitor closely post-launch.
+**What could go wrong?** Brand DNA as a hard SaaS gate is the biggest bet. If 60% of paying Subscribers abandon during the assessment, that's a real problem. The mitigation is that Brand DNA is designed to be engaging, not boring — but it's still 30 minutes before product access. Monitor closely post-launch.
 
 **Is this actually doable?** Yes. The spec is primarily a composition layer — it orchestrates primitives that are defined in their own specs (Brand DNA, setup wizards, product config). The new logic is: welcome screen, Revenue Segmentation questionnaire, onboarding orchestrator routing, upsell targeting filter, and email generation. None of these are architecturally complex. Phase 5 sizing: 2 sessions.
 
-**IMPORTANT BUILD NOTE:** Brand DNA is a hard portal lock for both retainer and SaaS clients. Optional for trial shoot only. Do not confuse these rules during implementation. The welcome email, welcome screen, and orchestrator all assume Brand DNA completion is required — there is no "skip" path for retainer or SaaS.
+**IMPORTANT BUILD NOTE:** Brand DNA is a hard portal lock for both Clients and Subscribers. Optional for trial shoot only. Do not confuse these rules during implementation. The welcome email, welcome screen, and orchestrator all assume Brand DNA completion is required — there is no "skip" path for retainer or SaaS.
 
 ---
 

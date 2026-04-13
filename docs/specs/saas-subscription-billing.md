@@ -730,7 +730,7 @@ All templates: transactional classification (§11.2), bypass quiet window (§11.
 ### 13.4 Onboarding + Segmentation (LOCKED)
 - SaaS onboarding trigger: Stripe payment success on SaaS product
 - Brand DNA pre-seeding for cold outreach prospects (new mechanism)
-- Revenue Segmentation after Brand DNA for SaaS customers
+- Revenue Segmentation after Brand DNA for Subscribers
 - Each product's `productConfig` interface contract defines menu items and first-run view
 
 ### 13.5 Brand DNA Assessment (LOCKED)

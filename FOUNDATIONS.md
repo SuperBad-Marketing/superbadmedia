@@ -245,6 +245,71 @@ Every spec that touches subscription state — Quote Builder, SaaS Subscription 
 
 ---
 
+## 13. Glossary (added 2026-04-13 — Phase 3.5 step 8)
+
+Canonical terms for SuperBad Lite. Every spec, code comment, prompt, and UI string uses these names and no other. Variants listed as **"NOT"** are banned and patched to the canonical form on sight.
+
+### Business lifecycle — the contact's relationship to SuperBad
+
+| Canonical | Definition | NOT | Boundary rule |
+|---|---|---|---|
+| **Lead** | Top of funnel: identified in Lead Gen research, not yet paid, no Deal row yet (or Deal exists at stages `Lead` / `Contacted` / `Conversation`). | ~~Prospect~~, ~~candidate~~, ~~target~~ | Promoted to **Prospect** the moment money lands (trial-shoot payment, direct deposit against a quote, or SaaS trial-payment). |
+| **Prospect** | Has paid SuperBad at least once but has not converted to a signed retainer. Includes: trial-shoot payers (`deals.subscription_state = 'trial_pending'` through `'trial_completed_awaiting_decision'`), quote recipients mid-acceptance, direct/referral sales conversations with money on the table. | ~~Lead~~ (once paid), ~~candidate~~, ~~customer~~ | Promoted to **Client** on retainer signing (`deals.stage = 'won'` AND `won_outcome = 'retainer'`). OR promoted to **Subscriber** on SaaS conversion (`won_outcome = 'saas'`). |
+| **Client** | Signed retainer. Receives services, has a portal, is the subject of Client Context + Content Engine output. | ~~Customer~~, ~~account~~ | A contact can only be a Client via retainer. SaaS does not create Clients. **"Retainer client"** is permitted as an emphasis/disambiguation phrase in prose where Clients and Subscribers both appear in the same sentence — otherwise use **Client** alone. |
+| **Subscriber** | Pays for a SaaS product subscription (small / medium / large tier). Receives product access via the SaaS dashboard. | ~~SaaS customer~~, ~~SaaS client~~, ~~account~~, ~~tenant~~ | Separate lifecycle from Client. A contact can be both a Client AND a Subscriber simultaneously (different Deals). |
+| **Contact** | The underlying person record — the FK target for every business-lifecycle state above. Table: `contacts`. One contact can appear across multiple Deals over time. | ~~User~~ (reserved for Auth.js `user` table), ~~person~~, ~~record~~ | `contacts.stripe_customer_id` may exist even for Leads/Prospects — see "Stripe identity" below. |
+| **Company** | The underlying business record. Table: `companies`. Contacts belong to companies (multi-contact per company supported per `project_client_size_diversity` memory). | ~~Organisation~~, ~~account~~, ~~business~~ (as noun) | `companies.shape` is the canonical shape classifier per F1.b. |
+
+### Onboarding entry paths (added 2026-04-13 — F4.c lock)
+
+| Canonical | Definition | Detection rule |
+|---|---|---|
+| **trial-shoot graduate** | Retainer or SaaS contact who entered Lite via the paid trial shoot funnel. | An `intro_funnel_submissions` row exists for the contact's company. |
+| **direct/referral** | Retainer contact who entered Lite via direct outreach reply, referral, or manual admin create — without buying the trial shoot first. | No `intro_funnel_submissions` row for the contact's company. |
+| **legacy** | Imported contact from pre-Lite operations (GHL migration, handful expected per `project_ghl_current_stack`). | Flagged at import; treated as direct/referral for onboarding flow purposes. |
+
+Trial-shoot graduates bypass Onboarding §8.1 welcome screen; direct/referral + legacy route through it. Both converge on the Brand DNA gate + bartender kickoff per Client Management §10.
+
+### Sales artefacts
+
+| Canonical | Definition | NOT | Boundary rule |
+|---|---|---|---|
+| **Deal** | Unit of sales-pipeline record; one row per opportunity. Table: `deals`. | ~~Opportunity~~, ~~pipeline card~~ (card is the UI, Deal is the record) | Every business-lifecycle transition writes `activity_log` against the Deal. |
+| **Quote** | Canonical internal + code term for the pricing artefact. Tables: `quotes`, `quote_versions`. | ~~Proposal~~ (internal), ~~offer~~, ~~pitch~~ | **Exception:** `Proposal` is permitted as a **client-facing surface-copy word** on PDF take-aways and legacy-language links (e.g. "View original proposal →" on invoices). Felt-experience-wins per memory — "proposal" reads warmer in a hand-off artefact than "quote". Code, admin UI, specs, database columns all use `Quote`. |
+| **Invoice** | Canonical. Tables: `invoices`, `invoice_items`. | ~~Bill~~, ~~charge~~ (charge is a Stripe term, separate layer) | — |
+
+### Hiring
+
+| Canonical | Definition | NOT |
+|---|---|---|
+| **Candidate** | Person in the Hiring Pipeline being evaluated for a Hire. | ~~Applicant~~, ~~prospect~~ (reserved for sales lifecycle above) |
+| **Hire** | Noun: a successful Candidate who has been engaged. Verb: to hire. | ~~Contractor~~ (contractor is a Hire subtype — see Hiring Pipeline spec for sub-terms) |
+
+### Payment identity — the Stripe boundary
+
+| Canonical | Definition |
+|---|---|
+| `stripe.Customer` | A Stripe API object — a payment-attachment identity only. Created lazily via `ensureStripeCustomer()` (§11.7). **Has no relationship to SuperBad's business lifecycle.** A `stripe.Customer` can exist for a Lead or Prospect who has paid the $297 trial shoot but never converted. |
+| **Client** / **Subscriber** / **Prospect** / **Lead** | SuperBad's business-lifecycle terms. See above. **Never confuse with `stripe.Customer`.** |
+| `customer` (standalone noun, SuperBad context) | **BANNED.** Use the business-lifecycle term (Lead / Prospect / Client / Subscriber) that applies. This avoids the collision with `stripe.Customer` and the ambiguity between services-side clients and SaaS-side subscribers. |
+
+**Permitted uses of "customer":**
+- **`customer-facing`** (compound adjective) — OK. Means "any surface rendered to a non-admin user" (includes Leads, Prospects, Clients, Subscribers, and unauthenticated marketing-site visitors). This is the deliberate broad-audience descriptor.
+- **Stripe API references** (`customer.subscription.created`, `customer.default_payment_method`, `customer.subscription.deleted`) — OK. These are Stripe's own event / field names; spec / code must match Stripe verbatim.
+- **Code enum values** (`actor_type: 'public' | 'admin' | 'customer'` in Surprise & Delight) — OK. Here `customer` means "authenticated non-admin role" as a code-level bucket. Reserved as a technical enum label, not a natural-language noun.
+
+### Voice & naming notes
+
+- **"Retainer client"** is redundant — Client already implies retainer. Patch to **Client** on sight.
+- **"SaaS client"** is a category error — SaaS contacts are **Subscribers**, not Clients.
+- **"Account"** is not used as a SuperBad noun for any contact/company relationship. Reserved for optional future multi-seat SaaS work (v1.1+).
+
+### Patch policy
+
+Any spec, prompt, content mini-session output, or Phase 5 code that uses a non-canonical term is a patch owed. Phase 3.5 Batch C step 8 (this section) is the single authoritative list; any disagreement between this glossary and a spec is resolved by patching the spec.
+
+---
+
 ## Build-time disciplines (non-negotiable during Phase 5)
 
 Consolidated from across Phase 2 decisions. Every build session must honour these:

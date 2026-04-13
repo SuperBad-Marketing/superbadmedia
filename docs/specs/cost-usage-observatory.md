@@ -209,23 +209,29 @@ Shape per entry:
 
 Bands are **required at registration time** — a job without bands fails type-check. The "Unknown job" trap: if `external_call_log.insert()` is called with a `job` key not in the registry, the insert still succeeds (so we never lose a call), but the row is logged with a synthetic tier-severe `cost_anomaly` flagging the missing registration. In development, the same case throws hard.
 
-**Registered jobs inventory (consolidated 2026-04-13 Phase 3.5).** This is the authoritative list of every job name that exists across the locked specs. Phase 5 foundation session seeds the registry from this list. New specs extend; they do not fork.
+**Registered jobs inventory (consolidated 2026-04-13 Phase 3.5; reconciled with `lib/ai/prompts/INDEX.md` 2026-04-13 Batch C step 9).** This is the authoritative list of every job name that exists across the locked specs. Phase 5 foundation session seeds the registry from this list. New specs extend; they do not fork.
+
+**Naming convention.** Each job name in this list is the canonical key in `lib/ai/models.ts`. Where a prompt file exists at `lib/ai/prompts/<slug>.ts`, its slug **is** the job name (1:1) — see `lib/ai/prompts/INDEX.md`. Jobs without a prompt file (system-level prompts embedded in code, or stub files still owed) are listed below with `[stub owed]` or `[code-embedded]`. Phase 5 build sessions for each owner spec extract any inline prompt text into the named stub before shipping.
 
 *Anthropic LLM jobs (per-spec owners):*
-- **Lead Generation:** `outreach-writer` (Opus), `reply-classifier` (Haiku), `icp-scorer` (Haiku)
-- **Brand DNA:** `brand-dna-generator` (Opus), `brand-dna-section-insight` (Sonnet), `brand-dna-first-impression` (Sonnet), `brand-dna-company-blend` (Sonnet), `brand-dna-retake-comparison` (Sonnet)
-- **Client Context Engine:** `context-extract-signals` (Haiku), `context-summarise` (Sonnet), `context-draft-reply` (Opus)
-- **Quote Builder:** `quote-draft-from-context` (Opus), `quote-pdf-cover-line` (Haiku, rotation-pool variant optional)
-- **Content Engine:** `content-keyword-research` (Sonnet), `content-generate-draft` (Opus), `content-fan-out` (Sonnet), `content-newsletter-glue` (Haiku), `content-outreach-match` (Sonnet), `content-rankings-summary` (Haiku)
-- **Unified Inbox:** `inbox-signal-noise-classify` (Haiku), `inbox-threading` (Haiku), `inbox-reply-suggest` (Sonnet)
-- **Daily Cockpit:** `cockpit-brief-morning` (Opus), `cockpit-brief-midday` (Sonnet), `cockpit-brief-evening` (Sonnet), `cockpit-narrative-regen` (Sonnet)
-- **Intro Funnel / Six-Week Plan:** `intro-funnel-reflection-synth` (Sonnet), `six-week-plan-generate` (Opus)
-- **Surprise & Delight:** `delight-voice-line-generate` (Haiku)
-- **Cost Observatory:** `diagnose-cost-anomaly` (Opus), `draft-negative-margin-email` (Opus), `draft-weekly-digest` (Haiku)
-- **Setup Wizards** (added 2026-04-13): `admin-setup-assistant` (Opus) — contextual chat helper that opens after two consecutive step failures in admin wizards; reads wizard state + error payload + thread history
-- **Finance Dashboard** (added 2026-04-13): `finance-narrative` (Haiku) — regenerates the finance narrative tile on material events; follows the `maybeRegenerateBrief()` pattern
-- **Hiring Pipeline** (added 2026-04-13): `hiring-brief-synthesize` (Sonnet), `hiring-discovery-agent` (Sonnet, web-search enabled), `hiring-candidate-score` (Haiku), `hiring-invite-draft` (Sonnet), `hiring-followup-question-draft` (Haiku), `hiring-trial-task-author` (Sonnet), `hiring-portfolio-ingest-vision` (Sonnet vision), `hiring-archive-reflection-ingest` (Haiku)
-- **Brand-voice drift check (universal, §11.5):** `voice-drift-check` (Haiku)
+- **Lead Generation:** `lead-gen-outreach-draft` (Opus), `lead-gen-reply-classifier` (Haiku) [stub owed], `lead-gen-icp-scorer` (Haiku) [stub owed]
+- **Brand DNA:** `brand-dna-generate-prose-portrait` (Opus), `brand-dna-generate-section-insight` (Opus), `brand-dna-generate-first-impression` (Opus), `brand-dna-generate-company-blend` (Opus), `brand-dna-generate-retake-comparison` (Opus)
+- **Client Context Engine:** `client-context-summarise` (Haiku), `client-context-extract-action-items` (Haiku), `client-context-draft-reply` (Opus), `client-context-regenerate-draft-with-nudge` (Opus), `client-context-reformat-draft-for-channel` (Haiku)
+- **Quote Builder:** `quote-builder-draft-from-context` (Opus), `quote-builder-draft-intro-paragraph` (Opus), `quote-builder-draft-send-email` (Opus), `quote-builder-draft-scope-summary` (Haiku), `quote-builder-draft-pdf-cover-line` (Opus, rotation-pool variant optional), `quote-builder-draft-settle-email` (Opus), `quote-builder-draft-cancel-intercept-email` (Opus)
+- **Branded Invoicing:** `invoice-draft-send-email` (Opus), `invoice-draft-reminder` (Opus), `invoice-draft-supersede-notification` (Haiku)
+- **Content Engine:** `content-score-keyword-rankability` (Haiku), `content-generate-topic-outline` (Haiku), `content-generate-blog-post` (Opus), `content-rewrite-for-newsletter` (Haiku), `content-generate-social-draft` (Haiku), `content-select-visual-template` (Haiku), `content-generate-image-prompt` (Haiku), `content-match-content-to-prospects` (Haiku), `content-draft-outreach-email` (Opus), `content-generate-embed-form-styles` (Haiku)
+- **Unified Inbox:** `inbox-classify-inbound-route` (Haiku), `inbox-classify-notification-priority` (Haiku), `inbox-classify-signal-noise` (Haiku), `inbox-threading` (Haiku) [stub owed], `inbox-reply-suggest` (Sonnet) [stub owed]
+- **Daily Cockpit:** `cockpit-brief` (Opus for morning slot, Sonnet for midday/evening — slot is a parameter, not a separate job), `cockpit-narrative-regen` (Sonnet) [stub owed — fires from `maybeRegenerateBrief()` on material events]
+- **Intro Funnel:** `intro-funnel-signal-tag-extraction` (Haiku), `intro-funnel-reflection-synthesis` (Opus), `intro-funnel-retainer-fit-recommendation` (Opus), `intro-funnel-abandon-email` (Haiku), `intro-funnel-apology-email` (Haiku)
+- **Six-Week Plan Generator:** `six-week-plan-strategy` (Opus), `six-week-plan-weeks` (Opus), `six-week-plan-review` (Haiku), `six-week-plan-revision-reply` (Haiku)
+- **Cost Observatory:** `observatory-diagnose-cost-anomaly` (Opus), `observatory-draft-negative-margin-email` (Opus), `observatory-draft-weekly-digest` (Haiku)
+- **Surprise & Delight:** `delight-voice-line-generate` (Haiku) [stub owed — single short prompt for ambient line generation; may consolidate to `[code-embedded]` if final design uses inline rotation pools]
+- **Setup Wizards** (added 2026-04-13): `admin-setup-assistant` (Opus) [stub owed — `lib/ai/prompts/admin-setup-assistant.ts`] — contextual chat helper that opens after two consecutive step failures in admin wizards; reads wizard state + error payload + thread history
+- **Finance Dashboard** (added 2026-04-13): `finance-draft-narrative` (Haiku) — regenerates the finance narrative tile on material events; follows the `maybeRegenerateBrief()` pattern
+- **Hiring Pipeline** (added 2026-04-13): `hiring-brief-synthesize` (Sonnet) [stub owed], `hiring-discovery-agent` (Sonnet, web-search enabled) [stub owed], `hiring-candidate-score` (Haiku) [stub owed], `hiring-invite-draft` (Sonnet) [stub owed], `hiring-followup-question-draft` (Haiku) [stub owed], `hiring-trial-task-author` (Sonnet) [stub owed], `hiring-portfolio-ingest-vision` (Sonnet vision) [stub owed], `hiring-archive-reflection-ingest` (Haiku) [stub owed]
+- **Client Management** (added 2026-04-13 Batch C): `client-mgmt-bartender-opening-line` (Haiku) — single-line bartender greeting; **kickoff-variant branch** (added 2026-04-13 Step 11 Stage 4 F4.b) fires once on first retainer-mode login post-Brand-DNA-gate-clear, surfaces first-shoot-scheduling as primary next action, stamped by `contacts.retainer_kickoff_bartender_said_at`. Variant selection lives inside the prompt file. `client-mgmt-chat-response` (Opus) — multi-turn bartender chat. `client-mgmt-escalation-summary` (Haiku) — concise factual summary for Andy on bartender-flagged escalations.
+- **Task Manager** (added 2026-04-13 Batch C): `task-manager-parse-braindump` (Haiku) — parses freeform braindump text into structured tasks.
+- **Brand-voice drift check (universal, §11.5):** `voice-drift-check` (Haiku) [code-embedded — the drift-check prompt is part of the `checkBrandVoiceDrift()` primitive defined in FOUNDATIONS §11.5; no separate `lib/ai/prompts/` file is owed]
 
 *Non-LLM integration-registry read jobs (same cost log, no Anthropic cost):*
 - **Stripe** (added 2026-04-13 per Finance Dashboard): `stripe-balance-read`, `stripe-balance-transactions-read`

@@ -70,7 +70,7 @@ The Brand DNA assessment renders through the `WizardDefinition` primitive owned 
 **Four access paths converge on the same assessment:**
 
 1. **Retainer client onboarding** — Deal transitions to Won with `won_outcome = 'retainer'`. Portal created, locked behind Brand DNA. Assessment is the first and only thing available. Required.
-2. **SaaS customer onboarding** — After Stripe payment success. Portal created, locked behind Brand DNA. Required.
+2. **Subscriber onboarding** — After Stripe payment success. Portal created, locked behind Brand DNA. Required.
 3. **Trial shoot client** — Portal created at Intro Funnel section 1 submit. Brand DNA surfaces as an optional nudge alongside questionnaire progress, calendar booking, and deliverables. Not required, but strongly encouraged.
 4. **Tokenised invite** — Andy generates a one-time link from a contact record. The invitee clicks, gets a temporary session scoped to the assessment. Results attach to the contact record.
 
@@ -297,7 +297,7 @@ Every downstream Claude call that touches a contact reads the Brand DNA profile.
 
 ### 7.2 Absent profile fallback
 
-- **Retainer/SaaS clients:** profile is never absent — portal gate enforces completion before access.
+- **Clients / Subscribers:** profile is never absent — portal gate enforces completion before access.
 - **Trial shoot clients:** profile may be absent (optional). Outbound comms to them read SuperBad's own profile for voice. No client-specific conditioning. No nudge UX — the portal nudge handles it.
 - **Prospects/contacts:** outbound is always in SuperBad's voice. No prospect-specific Brand DNA exists.
 
@@ -596,7 +596,7 @@ The largest and most important content session in the entire project. Must not b
 
 1. **Exact question count per section.** Spec targets ~15–18. Content mini-session may land higher or lower once the tag taxonomy is finalised and questions are mapped.
 2. **Supplement depth for "somewhat" vs "not at all."** Spec targets ~10–15 and ~15–20 respectively. May converge to a single supplement length if the questions work for both.
-3. **Shape detection for non-Intro-Funnel entries.** Trial shoot and SaaS clients enter via the Intro Funnel which already classifies shape. Tokenised invite links need to capture shape — either Andy sets it when generating the link, or the assessment asks as a pre-gate question alongside the alignment gate.
+3. **Shape detection for non-Intro-Funnel entries.** Trial-shoot Prospects and Subscribers enter via the Intro Funnel which already classifies shape. Tokenised invite links need to capture shape — either Andy sets it when generating the link, or the assessment asks as a pre-gate question alongside the alignment gate.
 4. **Visual asset generation tooling.** Which API for reference imagery generation. Resolve in Phase 5 infra.
 5. **Reveal motion choreography.** Exact timing, easing, sequence. Phase 5 build session C with iteration headroom.
 

@@ -2,7 +2,7 @@
 
 **Phase 3 spec. Locked 2026-04-12 mini-brainstorm #3.**
 
-Cross-cutting feature. Applies everywhere Lite has a rendered surface — admin platform (`/lite`), public marketing pages, quote pages, client portals, SaaS customer dashboards, wizards, cockpit, inbox. Not a module you can visit on its own.
+Cross-cutting feature. Applies everywhere Lite has a rendered surface — admin platform (`/lite`), public marketing pages, quote pages, client portals, Subscriber dashboards, wizards, cockpit, inbox. Not a module you can visit on its own.
 
 The governing philosophy for this entire spec lives in memory at `feedback_surprise_and_delight_philosophy.md`. That memory is the source of truth for tone, cadence, and boundaries. **Read it before building any surface that references this spec.** This file is the implementation-facing artefact; the memory is the philosophy-facing artefact. If they ever disagree, the memory wins and this file gets patched.
 
