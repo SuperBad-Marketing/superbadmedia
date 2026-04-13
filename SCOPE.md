@@ -1,6 +1,6 @@
 # SuperBad Lite — Scope
 
-**Phase 1 output. Locked 2026-04-11. Patched 2026-04-11 (mini-brainstorm) — see §"Additional v1 features (added 2026-04-11)" below and the updated newsletter non-goal.**
+**Phase 1 output. Locked 2026-04-11. Patched 2026-04-11 and 2026-04-12 via mini-brainstorms — see the four "Additional v1 features" sections below and the updated newsletter non-goal.**
 
 Lite is a CRM-style operations platform for SuperBad Marketing. Internal-first, beautiful on top, boring underneath. This document captures what's in v1, what's explicitly out, and the design decisions locked during the Phase 1 brainstorm.
 
@@ -402,6 +402,207 @@ A single button on every client record: **"Export everything Lite knows about [C
 
 ---
 
+## Additional v1 features (added 2026-04-12 mini-brainstorm #3)
+
+One cross-cutting feature added to v1 scope in a third mini-brainstorm on 2026-04-12. Has its own Phase 3 spec session in the backlog and is subject to the same design principles and build disciplines as the core areas. Unlike the other added features, this one is **not a module you visit** — it touches every user-facing surface in Lite.
+
+### 13. Surprise & Delight (cross-cutting voice + hidden eggs)
+
+**Purpose:** make Lite feel like SuperBad wrote it, top to bottom, without burning out the voice. Two layers:
+
+- **80% ambient voice** — always-on dry observational copy in a **closed list** of six surface categories (empty states, error pages, loading copy, success toasts, placeholder text, morning brief narrative). Concentration is what makes it land. Voice wallpaper kills voice magic. Every ambient line is Claude-generated via a new `generateInVoice()` primitive and passes the Brand-Voice Drift Check (Foundations §11.5) against SuperBad's own Brand DNA profile. Andy authors zero lines. Honours `feedback_no_content_authoring` and `feedback_dont_undershoot_llm_capability`.
+
+- **20% hidden eggs** — rare Metal Gear Solid-tradition moments where Lite demonstrates it's been watching. The reward is never content — it's *"oh, Lite noticed."* Rarity is the whole mechanic. One canonical admin egg locked (CRT turn-off after three 2am late-night sessions: *"you've been up until 2am three nights running. I'm pulling the plug."*). Twelve public eggs locked in the spec catalogue, spanning late-night visitors, Sunday researchers, Melbourne public holidays (reuses the `/data/au-holidays.json` from Foundations §11.4), fifth-time visitors, LinkedIn referrals, "cheap/discount" Google intent, rapid scrollers vs deep readers, abandoned tabs, Melbourne rain (Open-Meteo), and a structural public CRT turn-off equivalent that closes the site between 1am–7am Melbourne local.
+
+**Tone asymmetry:**
+- **Admin (signed-in Andy or staff)** → roommate voice. Can push into Psycho Mantis territory — fourth-wall, surveillance-adjacent, cheeky — because he's opted in to the platform.
+- **Public (marketing site, pre-acceptance quote pages, lead forms)** → bartender voice. Attentive, dry, never accusatory, never reveals invasive knowledge, **never pitches**. Selling kills the magic.
+- **Customer portal / SaaS dashboard** → bartender voice with slight opted-in latitude. Never pushes into admin-roommate territory.
+
+**Public knowledge ceiling:** only browser-freely-given data may feed triggers on public or customer surfaces — local time, timezone, referrer, tab state, scroll, cookies, public weather APIs, day-of-week, holiday calendars. Never IP geolocation, ISP, or GPS. **The joke is SuperBad noticing obvious things nobody else notices, not demonstrating forbidden knowledge.**
+
+**Cadence:**
+- **Public visitors** — **one guaranteed first-visit egg** (fallback welcome egg fires at session-end if no situational trigger matched), then max 2 per rolling 14-day window.
+- **Authenticated users** — max 1 per 7-day rolling window.
+- **Crossover preserved** — a public visitor who logs in mid-session keeps their earned egg history (transferred from cookie to user record).
+
+**Context-aware suppression:** hidden eggs are hard-gated during mid-payment, mid-email-compose, quote acceptance, error recovery, wizard steps, first-ever authenticated login, and the first 30 seconds of any session. Fail-closed; ambiguous state = no fire.
+
+**Riddle loop (Q2 path):** hidden eggs are also reachable via social-media riddles. Answer resolves in a public search bar, a dedicated `/say/[answer]` URL, or the admin search bar — **all three surfaces route through a single shared `resolveRiddleAnswer()` resolver**. Logged-in askers get a richer reward with a tiny persistent trace in their account; public askers get a public reward. **Wrong answers get dry micro-responses** — hybrid architecture: 5–7 pre-generated common-wrong responses per riddle + live Claude fallback for novel wrongs, capped at ~100 unique calls per riddle lifetime with a pre-generated catch-all beyond that. Wrong-answer responses also pass the drift check. Riddles and reward content are all Claude-generated; Andy authors none of it.
+
+**Kill switch:** Settings → Display → "No tricks" toggle for authenticated users; a small footer "No tricks" link sets a cookie for public. Ambient layer cannot be disabled — ambient IS the voice, and disabling the voice is disabling SuperBad.
+
+**Silent dependency on `brand-dna-assessment.md`:** this spec can be written (it is) but cannot be **built** before Brand DNA Assessment ships AND Andy has taken SuperBad's own assessment (Founder + Business profiles). The drift check grades every voice line against SuperBad's own Brand DNA profile; without the profile, there is nothing to grade against. Phase 3 backlog ordering reflects this — Brand DNA stays ahead of Surprise & Delight; Phase 5 build order is Brand DNA feature → SuperBad's own assessment run → Surprise & Delight build.
+
+**Technical footprint:**
+- New tables: `riddles`, `riddle_resolutions`, `hidden_egg_fires`, `ambient_copy_cache`.
+- New user columns: `last_hidden_egg_fired_at`, `hidden_egg_tricks_enabled`, `fired_egg_ids_recent`.
+- New Claude primitives: `generateInVoice(slot, context, brandDnaProfile)` and `resolveRiddleAnswer(input, context)`.
+- Trigger evaluators live in `lib/eggs/triggers/*.ts` — one file per egg, pure functions, deterministic rules over real event data. No ML, no fuzzy derivation, fail-closed, unit-tested against fixture data.
+- Cost architecture: Haiku-tier for drift check + ambient generation + novel wrong-answer fallback; Opus-tier only for riddle reward content. Sub-$5/month estimated total.
+
+**Closed-list exemptions:** hidden-layer effects (CRT turn-off motion, rain ambient sound sample) are **explicitly exempt** from the Tier 2 motion closed list in `docs/specs/design-system-baseline.md` and from the sound registry in Foundations §10, because they fire at most once-per-month-per-user. Each exemption is named explicitly in the spec; unnamed hidden effects do not exist.
+
+**New build-time disciplines added by this spec:** 19 (every ambient line routes through `generateInVoice()` + drift check), 20 (triggers read real event data only, fail closed), 21 (every hidden egg fire logs trigger evidence), 22 (singular riddle resolver — one function, many surfaces), 23 (hidden-layer closed-list exemptions are explicit or nonexistent).
+
+**Aligned memories:** `feedback_surprise_and_delight_philosophy` (the canonical philosophy document — source of truth for tone, cadence, and boundaries), `feedback_no_content_authoring` (Andy authors nothing), `feedback_dont_undershoot_llm_capability` (Claude generates ambient + reward content without labelled training data), `feedback_curated_customisation` (closed list of ambient surface categories; closed list of eggs; never user-configurable), `feedback_individual_feel` (eggs make each surface feel noticed rather than processed), `project_brand_dna_as_perpetual_context` (SuperBad's own Brand DNA profile is what the drift check reads against).
+
+**Out of scope for v1:** achievements / streaks / points / levels / badges / collectables / any gamification mechanic, egg discovery surface, multi-language voice treatment, user-configurable eggs, public API for the riddle loop, analytics dashboards beyond the raw `hidden_egg_fires` log, any behavioural surface that rewards frequency of use.
+
+**Follow-up brainstorm owed:** 3–5 additional admin eggs beyond the canonical CRT turn-off, to give Phase 5 enough variety for rotation. Out of scope for this spec; scheduled before Phase 5 build session for this feature.
+
+---
+
+## Additional v1 features (added 2026-04-12 mini-brainstorm #4)
+
+One operational-spine feature added to v1 scope in a fourth mini-brainstorm on 2026-04-12. Has its own Phase 3 spec (`docs/specs/task-manager.md`), is load-bearing for `docs/specs/client-management.md` (deliverables), and is composed by the Daily Cockpit, Client Portal, Comms Inbox, and future entity profile pages.
+
+### 14. Task Manager (+ Braindump primitive)
+
+**Purpose:** Andy's operational spine. A proper task manager with due dates, priorities, checklists, recurrence, filters, and entity links — plus a globally-available braindump primitive that turns messy natural-language capture into parsed, entity-linked, structured tasks via Claude, with in-place human review before commit.
+
+**Two surfaces:**
+- **Task Manager module** at `/lite/tasks` — list view with filters (status, kind, priority, due, entity, has-braindump-source), right-side detail drawer, search, bulk delete.
+- **Braindump primitive** — globally available floating bottom-right button + `Cmd+Shift+D` shortcut on admin surfaces only. Opens a modal with a textarea → Claude parses on submit → proto-task cards render in-place → user edits / resolves entity ambiguity via `⇄` swap affordance → commits. Raw text persisted in `braindumps` table. Never mounted on customer-facing surfaces (shell-level decision, not URL-based).
+
+**Deliverables are tasks.** Client deliverables move from a hypothetical Client-Management-owned data model to a `kind='client_deliverable'` row in the shared `tasks` table with approval workflow attached. Client Management references this spec rather than defining its own deliverables model. This is the load-bearing architectural decision for downstream specs.
+
+**Entity linking (polymorphic-by-convention):** every task has nullable `entity_type` + `entity_id` columns following the `activity_log` pattern. Linked tasks surface on the entity's profile page (client, lead, prospect, deal). Kind + entity link together determine client portal visibility: only `client_deliverable` and `client_task` with `entity_type='client'` surface to the matching client portal.
+
+**Closed `kind` enum (5 values):** `personal`, `admin`, `prospect_followup`, `client_deliverable`, `client_task`. Additions require a brainstorm gate.
+
+**Closed `status` enum (7 values):** `todo`, `in_progress`, `blocked`, `awaiting_approval`, `delivered`, `done`, `cancelled`. State machine validated in `lib/tasks/transitions.ts`. Kind-aware UI — `awaiting_approval` and `delivered` only valid for `client_deliverable`.
+
+**Approval workflow for deliverables:** dual-entry — tokenised magic-link email (transactional, bypasses Foundations §11.4 outreach quiet window) OR direct portal visit. Single `approveDeliverable(taskId, decision, feedback?)` primitive in `lib/tasks/approve.ts` — the only code path for deliverable approval, forking is a code-review reject. Rejection feedback surfaces as an inbound message in the comms inbox with `source='task_rejection'`. 48h unacknowledged reminder respects the quiet window (one step closer to nagging).
+
+**Recurrence:** preset enum only (`daily`, `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly`) + `recurrence_day` integer. Auto-spawn on completion via `markTaskDone()`, not on calendar cron. Irregular patterns ("first Thursday of month") handled manually in v1. Task templates flagged as v1.1 concept.
+
+**Checklists:** optional inline, stored as JSON column. Parser emits checklists for countable phrasings ("4 instagram posts"). Per-task `checklist_auto_complete` boolean (default true) auto-transitions the task on final-box check. Transition shows a visible Tier 2 toast with a 10s undo window.
+
+**Cockpit integration (locked):** tasks are one of many data sources feeding the Daily Cockpit's existing Kanban columns — cockpit consumes, does not re-derive. Column rules: **Must Do** = overdue OR (due-today AND priority=high); **Should Do** = due today, normal/low priority; **If Time** = due within 7 days AND priority=high. `awaiting_approval` and `blocked` tasks stay **off** Must Do / Should Do / If Time (attention is external, not Andy's) and surface as passive counts in the narrative morning brief. Cockpit is read-only against tasks — no edit, no drag, no create. Clicking a cockpit task card opens the Task Manager drawer.
+
+**Notifications (minimal + gated morning digest):**
+- Client-facing: approval request email (transactional, instant), 48h reminder (respects quiet window), approval outcome email to Andy (transactional, instant).
+- Andy-facing: zero push notifications on his own tasks; cockpit is the primary surface.
+- **Morning digest** at 08:00 Melbourne, gated by two conditions (both required): (1) Andy has not signed in to `/lite` between 00:00 and 08:00 that day, (2) there is something to report (≥1 overdue, ≥1 due-today, OR ≥1 new approval outcome since yesterday's digest). Terse bucketed list (Overdue / Today / Approval news), no prose, subject line via `generateInVoice()`, static dry fallback pre-Brand-DNA. Toggle in Settings → Display, default on.
+- Braindump ingestion: silent. Review modal IS the notification.
+
+**Technical footprint:**
+- New tables: `tasks`, `braindumps`.
+- New Claude primitive: `parseBraindump(rawText, surfaceContext?)` — Haiku-tier, single call per commit, returns typed `ParsedBraindump` with confidence scores and entity candidate arrays for ambiguity resolution. Reads Brand DNA profile, today's date, Andy's timezone, and recent contacts/clients for entity matching.
+- New Claude primitive: `approveDeliverable(taskId, decision, feedback?)` — single code path for deliverable approval, validates session/token binding, transitions status, fires cockpit signal + inbox message on rejection, idempotent.
+- New helper: `lib/tasks/transitions.ts` — state machine validator.
+- New helper: `lib/tasks/queries.ts` with `getTasksForClientPortal(clientId, sessionContactId)` — data-layer filtering, never trust caller.
+- New helper: `lib/tasks/notifications.ts` — thin module for the two client-facing sends, cockpit signal wiring, and the 08:00 digest cron.
+- New helper: `lib/tasks/digest.ts` — Cloudflare cron at 08:00 Melbourne, applies gate conditions, generates + sends digest via `generateInVoice()`.
+
+**Build-time disciplines added by this spec (24–29):**
+- **24.** Task state transitions go through `lib/tasks/transitions.ts` — bypassing is a code-review reject.
+- **25.** Deliverable approval goes through `approveDeliverable()` only — one function, multiple surface bindings.
+- **26.** Braindump ingestion goes through `parseBraindump()` only — no second parser.
+- **27.** Braindump is never rendered on customer-facing surfaces — mount decision is shell-level, not URL-based.
+- **28.** Client portal task visibility goes through `getTasksForClientPortal()` only — authorisation is data-layer, not caller-layer.
+- **29.** Every task-related email send declares its `classification` ('transactional' | 'outreach') at the send gate call site — missing classification is a runtime error.
+
+**Foundations §11 patch owed (Phase 5):** `sendEmail()` gate (§11.2) gains a required `classification: 'transactional' | 'outreach'` parameter. Transactional bypasses §11.4 outreach quiet window; outreach respects it. Formalises the rule that approval request emails fire instantly regardless of time of day while reminder-to-action nudges respect the window.
+
+**Cross-spec flags:**
+- **Client Management (#8)** — deliverables are tasks via this spec. Do not define a separate `deliverables` table; reference `tasks` filtered by `kind='client_deliverable' AND entity_type='client' AND entity_id=:client_id`. The approval workflow is the one defined here. Flag in the backlog entry.
+- **Daily Cockpit (#12)** — Task Manager joins the cockpit's data sources list. Column rules above are the contract; cockpit consumes, does not re-derive. Flag in the backlog entry.
+- **Comms Inbox (#11)** — gains a nullable `linked_task_id` column and a new `source` value `'task_rejection'`. Rendering treatment for that source flagged for the comms-inbox spec.
+- **Client Portal** (rolled into Client Management #8 until/unless split) — renders portal-visible tasks as read-only except for the Approve / Reject action on `awaiting_approval` rows. Flag when that surface is specced.
+- **Intro Funnel (LOCKED)** — potential retrofit for post-shoot reflection follow-up actions to become auto-generated `client_task`/`client_deliverable` rows. Out of scope now; flag for future retrofit session.
+- **Sales Pipeline (LOCKED)** — Pipeline Deal cards could render a task-count badge via `WHERE entity_type='deal' AND entity_id=:deal_id`. Out of scope now; flag for Phase 5 build integration.
+
+**Aligned memories:** `feedback_no_content_authoring` (Andy authors nothing — braindump parser + digest subject via `generateInVoice()`), `feedback_curated_customisation` (closed enums for kind + status + recurrence, no sliders or pickers for notification preferences), `feedback_primary_action_focus` (drawer not modal on list page, no alternate UX paths), `feedback_dont_undershoot_llm_capability` (braindump parser ships in v1, no "wait for training data" deferral), `feedback_individual_feel` (client portal deliverable cards feel like the client's own work, not a shared task board), `project_brand_dna_as_perpetual_context` (parser + digest subject read Brand DNA).
+
+**Out of scope for v1:** task templates (flagged v1.1), subtasks (checklist replaces), task dependencies (blocking chains), shared-assignee / team tasks (single operator), time tracking / estimates, per-task notification preferences, drag-and-drop reordering, calendar integration beyond manual due-date set, irregular recurrence patterns ("first Thursday of month" handled manually), bulk edit UI beyond bulk delete, AI task suggestions ("Claude thinks you should do this" surface — Lite responds to Andy's intent, doesn't generate its own agenda).
+
+**Voice & delight treatment per S&D cross-cutting rule:** empty states, loading copy, placeholder text, morning brief narrative (passive task counts), and the braindump modal placeholder all use `generateInVoice()`. Success toasts are silent except on the checklist-auto-complete undo window. No new hidden eggs proposed. **Sprinkle claimed from `docs/candidates/sprinkle-bank.md`:** §2 browser tab title (dynamic — `"SuperBad Lite — 4 overdue"` vs `"SuperBad Lite — nothing's on fire"`). Mark `[CLAIMED by task-manager]`.
+
+**Silent dependencies:** none hard. Task Manager can be built as soon as Phase 5 starts — it has no un-shipped prerequisite. `generateInVoice()` falls back to static dry lines pre-Brand-DNA and pre-S&D. Task Manager should be high-priority in Phase 5 ordering because five downstream specs consume it.
+
+---
+
+## Additional v1 features (added 2026-04-12 mini-brainstorm #5)
+
+### 15. Finance Dashboard (operator-only)
+
+**Purpose:** Andy's financial visibility surface. P&L, projections, expenses, and reporting — all in one place inside Lite, so he never needs to open a spreadsheet or log into Stripe's dashboard to understand the business's financial position.
+
+**Operator-only for v1.** No client-facing financial views. Client-facing spend/ROI reporting is a natural v1.1 add once the data's flowing.
+
+**Data sources:** Stripe billing data (subscriptions, invoices, payments), quote values from the Quote Builder, manual expense entry for costs Stripe doesn't see (software subscriptions, contractor costs, equipment, etc.).
+
+**Core surfaces (Phase 3 spec session will lock the detail):**
+- **P&L view** — revenue vs expenses over time, filterable by period
+- **Projections** — forward-looking revenue based on active retainers, subscriptions, and pipeline deals
+- **Expense tracking** — manual entry for non-Stripe costs, categorised
+- **Reporting** — exportable summaries for BAS/tax time, per-client revenue breakdowns
+
+**Sequencing note:** best specced after Branded Invoicing (#4) and SaaS Subscription Billing (#9) are locked, since those specs define the revenue data model this feature reads from.
+
+---
+
+## Additional v1 features (added 2026-04-13)
+
+### 16. Cost & Usage Observatory (operator-only)
+
+**Purpose:** Andy's cost-attribution surface. Every external API/LLM call (Anthropic, Stripe, Resend, Meta/Google Ads, SerpAPI, Pixieset, Graph API, etc.) logs a cost tuple at the call site. The Observatory aggregates and visualises that data so Andy can see where tokens and API spend are going, and decide whether a background task is runaway, a feature is unexpectedly expensive, or a subscriber/client is disproportionately costly.
+
+**Operator-only for v1.** No client-facing usage views beyond what SaaS Subscription Billing already surfaces to subscribers (their own usage against their tier cap).
+
+**Split dimension — INTERNAL vs EXTERNAL:**
+- **Internal** — Andy's own operations: outreach writer, ICP scoring, reply classification, Brand DNA runs for SuperBad itself, admin-side LLM calls, ad spend on SuperBad's own campaigns.
+- **External** — costs attributable to a specific client or SaaS subscriber: per-client Brand DNA assessments, Content Engine runs per subscriber, per-client email sends, per-client ad campaign spend.
+
+**Core surfaces (Phase 3 spec session will lock the detail):**
+- Total cost over time, split internal vs external
+- Drill-down by job name (what code path is spending) — uses the LLM model registry job keys + analogous keys for non-LLM APIs
+- Drill-down by actor (which client/subscriber accumulated what cost)
+- Anomaly flags — runaway background task, feature cost per run exceeds expected band, a subscriber's usage cost approaching or exceeding their tier revenue
+- "Where is the money going" summary — plain-English narrative for the morning cockpit
+
+**Plumbing dependency:** requires a FOUNDATIONS.md patch that generalises the LLM model registry logging into a broader external-call observability primitive — every API wrapper must log `{job, actor_type: internal|external, actor_id, units, estimated_cost_aud, timestamp}` at the call site. Retroactive patch across every locked integration spec (they currently don't require actor attribution).
+
+**Sequencing note:** spec after Daily Cockpit locks (Cockpit may want to surface a cost-anomaly signal — cheap to build in now, expensive to bolt on later). Phase 3.5 backward reconciliation must diff every locked spec for missing call-site actor-attribution.
+
+---
+
+## Additional v1 features (added 2026-04-13 — Phase 3.5 SCOPE reconciliation)
+
+These four features had full Phase 3 specs but were never promoted to first-class SCOPE entries. Resolved at the Phase 3.5 Batch A stop point.
+
+### 17. Branded Invoicing
+
+**Purpose:** invoice generation and delivery for manual-billed clients (those paying via bank transfer / occasional Stripe one-off rather than Stripe's standard subscription flow). Owns the full invoice lifecycle: generation (auto or manual), pre-send review window, delivery (email + branded web view), overdue tracking, reminders, mark-as-paid, and the monthly self-perpetuating task chain that keeps invoices firing without Andy touching anything.
+
+**Shape:** an invoice in Lite is "a branded financial document that happens to comply with tax law", parallel to Quote Builder's "a premium branded document that happens to transact". Web view + auto-generated PDF + inline Stripe payment.
+
+**Directly downstream of Quote Builder** — consumes the `scheduled_tasks` worker primitive (Quote Builder's `manual_invoice_generate` + `manual_invoice_send` two-step chain). See `docs/specs/branded-invoicing.md`.
+
+### 18. Intro Funnel (paid $297 trial shoot)
+
+**Purpose:** SuperBad's customer-facing acquisition surface for the paid $297 trial-shoot offer. Covers the entire journey from first landing-page visit through the trial shoot itself and on to the retainer/SaaS decision. The primary acquisition surface for Arm 1 (retainer).
+
+**Shape:** landing page → 3-section questionnaire (branched by business shape) → Stripe Checkout → booking flow → 60-minute on-site shoot → Pixieset gallery delivery → reflection questionnaire → retainer-fit recommendation → 60 days of portal access for non-converters. Drops cards directly at the Pipeline's **Trial Shoot** stage via `createDealFromLead()`. Supersedes the single "Paid intro offer" bullet under §1 Lead Generation.
+
+**Delivers three artefacts per paying prospect:** 1× short-form video, 10 edited photographs, 6-week marketing plan *(see #19)*. See `docs/specs/intro-funnel.md`.
+
+### 19. Six-Week Plan Generator
+
+**Purpose:** produces the bespoke week-by-week marketing plan that ships as a trial-shoot deliverable alongside the video + photos. Framed as "what we'd implement if we were your agency" — the prospect can self-run it if they don't convert, or take it forward as the live retainer strategy if they do.
+
+**Shape:** two-stage autonomous Opus generation (outline → weekly detail), reviewed and approved by Andy before any prospect sees the plan. On retainer conversion, the plan migrates as-is into Client Context as the client's active strategy — it is the retainer plan, just self-run until conversion. See `docs/specs/six-week-plan-generator.md`.
+
+### 20. Hiring Pipeline
+
+**Purpose:** parallel CRM for headhunting — tracking candidates through sourced, invited, trial, hired, bench, archived stages. Reuses the Sales Pipeline's `KanbanBoard` + `activity_log` primitives. Ships in v1.0 so the infrastructure is ready the moment a first-hire trigger fires, and so the outreach / ICP / reply-intelligence patterns already built for Lead Gen are reusable for recruiting without a later retrofit.
+
+**Shape:** sourced → invited → trial → hired, with bench + archive side-stages. Shares the Unified Inbox `hiring_invite` reply-dispatch table, Cost Observatory's 8 hiring jobs, and Finance Dashboard's contractor-payments rollup. See `docs/specs/hiring-pipeline.md`.
+
+---
+
 ## Explicit non-goals for v1
 
 - **Not a creative production tool.** No video editing, design surfaces, or Frame.io replacement.
@@ -441,6 +642,33 @@ A single button on every client record: **"Export everything Lite knows about [C
 - Staff role fine-grained permissions (when first hire happens)
 - Package builder detailed UX
 - Client portal detailed UX
+
+---
+
+## v1.1 / post-launch roadmap (not in v1.0 scope)
+
+Features deliberately parked for v1.1 or later. Explicitly **not** in v1.0 scope — but captured here so Phase 4 doesn't accidentally fold them in, and so v1.1 planning has a starting list.
+
+### v1.1 (post-launch, priority-ordered)
+
+1. **Self-serve help / support surface** (client-facing). A help/FAQ page + guided support request flow for retainer clients so they aren't defaulting to emailing Andy for every question. Unified Inbox still routes channels; this is the missing *destination* for client-originated help. Added 2026-04-13 after honest day-in-life review.
+2. **Editable autonomy rules surface** (admin). Admin UI to edit the per-feature autonomy thresholds currently stored as defaults in the `settings` table (invoice pre-send window length, outreach earned-autonomy thresholds, which AI drafts auto-send vs require review, reply-draft auto-send threshold, etc.). Foundation session in v1.0 provisions the `settings` table with defaults so v1.0 features read from it; v1.1 just builds the editor on top. Added 2026-04-13.
+3. **Daily debrief capture** (admin, end-of-day). Guided 3–5 minute capture of offline events and conversations (calls made, in-person meetings, creative decisions, gut-feel notes) — writes into both perpetual LLM contexts (Brand DNA + Client Context Engine) so the offline layer doesn't leave the data model stale. Cockpit surfaces it as an optional end-of-day tile. Added 2026-04-13 after honest day-in-life review.
+4. **Lite → personal calendar mirror.** One-way sync from Lite's native calendar (shoots, scheduled comms, key dates) into Andy's personal Gmail calendar so the "Lite is my only calendar" rule doesn't leave him blind on his phone outside Lite. One-way only (Lite → Gmail); reverse direction stays out of scope. Added 2026-04-13.
+5. **Twilio voice integration.** Click-to-call from a contact/client profile, recorded + transcribed + auto-logged into activity feed and Client Context Engine. SMS via Twilio is already in v1.0 (Intro Funnel). Voice extends the same vendor — adapter, not a new integration. Added 2026-04-13.
+6. **Video call integration** (Zoom / Teams / Google Meet). Schedule, join, and auto-log meetings into activity feed + Client Context Engine. Transcription + summary via existing LLM plumbing. Separate from Twilio voice because vendor surface is completely different. Added 2026-04-13.
+
+### Already-parked items (referenced from memory / earlier scope)
+
+- **Strategic planning feature** — goal setting + live progress tracking; needs real operational data to be valuable (memory `project_strategic_planning_postlaunch.md`).
+- **Web buildouts as a service** — retainer add-on only; powered by Brand DNA + Client Context; v1.1+ (memory `project_web_buildouts_service.md`).
+- **Ad campaign builder** (dual-use, LTV-based ROAS) — parked until ad builder brainstorms (memories `project_ad_builder_dual_use_and_creative.md` + `project_ad_campaign_builder_ltv_roas.md`).
+- **Task templates + irregular recurrences** — v1.1 concept per Task Manager scope.
+- **Client-facing spend/ROI reporting** — natural v1.1 add once Finance Dashboard data is flowing.
+- **Staff RBAC** — fine-grained permissions deferred until first hire; v1 has a single role field only.
+- **Meta channel integration** (Instagram / Facebook) — deferred past v1 due to Meta App review friction.
+- **Full autonomous outreach send mode** — v1.0 gates outreach behind earned autonomy per track; full autonomy without manual approval is a later unlock.
+- **Automatic inbound email reply detection** — v1.0 uses manual "They replied" button; automatic detection deferred.
 
 ---
 

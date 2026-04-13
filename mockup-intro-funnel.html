@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad — the $297 trial shoot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red: #B22848;
+    --brand-cream: #FDF5E6;
+    --brand-pink: #F4A0B0;
+    --brand-orange: #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-300: #D4D2C2;
+    --neutral-100: #FDF5E6;
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; scroll-behavior: smooth; }
+  body {
+    background: var(--neutral-900);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 17px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 40% at 80% 10%, rgba(242, 140, 82, 0.12), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 60%, rgba(178, 40, 72, 0.08), transparent 60%);
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.04; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .page { position: relative; z-index: 2; }
+
+  /* ---- top bar ---- */
+  nav.top {
+    padding: 24px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo { font-family: "Pacifico"; font-size: 26px; color: var(--brand-cream); }
+  .top .right {
+    display: flex; gap: 28px; align-items: center;
+    font-size: 13px; color: var(--neutral-500);
+  }
+  .top a { color: var(--neutral-500); text-decoration: none; transition: color 200ms var(--spring); }
+  .top a:hover { color: var(--brand-cream); }
+
+  /* ---- hero ---- */
+  .hero {
+    padding: 40px 40px 100px;
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.1fr 1fr;
+    gap: 80px; align-items: start;
+  }
+  .hero .label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 3px;
+    color: var(--brand-pink); text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: "Black Han Sans"; font-size: 88px; line-height: 0.95;
+    color: var(--brand-cream); letter-spacing: -2px;
+    margin-bottom: 32px;
+  }
+  .hero h1 em {
+    font-family: "Playfair Display"; font-style: italic;
+    color: var(--brand-pink); font-weight: 500;
+  }
+  .hero .dek {
+    font-family: "Playfair Display"; font-style: italic;
+    font-size: 22px; line-height: 1.45;
+    color: var(--neutral-300); max-width: 520px;
+    margin-bottom: 16px;
+  }
+  .hero .dek em { color: var(--brand-cream); font-style: italic; }
+  .hero .mutter {
+    font-size: 14px; font-style: italic; color: var(--brand-pink);
+    opacity: 0.8;
+  }
+
+  .price-card {
+    background: rgba(34, 34, 31, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 20px;
+    padding: 40px 36px;
+    display: flex; flex-direction: column; gap: 22px;
+    position: relative;
+  }
+  .price-card::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(178, 40, 72, 0.1), transparent 50%);
+    border-radius: 20px; pointer-events: none;
+  }
+  .price-card .eyebrow {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--brand-orange); text-transform: uppercase;
+  }
+  .price-card .price {
+    font-family: "Black Han Sans"; font-size: 72px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -1px;
+  }
+  .price-card .price sup {
+    font-family: "DM Sans"; font-size: 16px; color: var(--brand-pink);
+    font-weight: 400; vertical-align: super;
+    margin-left: 8px;
+  }
+  .price-card ul {
+    list-style: none; display: flex; flex-direction: column; gap: 12px;
+    padding-top: 12px; border-top: 1px solid rgba(253, 245, 230, 0.08);
+  }
+  .price-card li {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 15px; line-height: 1.5;
+  }
+  .price-card li::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--brand-red); margin-top: 10px; flex-shrink: 0;
+  }
+  .price-card .cta-row {
+    display: flex; flex-direction: column; gap: 8px; padding-top: 8px;
+  }
+  .price-card button {
+    width: 100%; padding: 18px;
+    font-family: "Righteous"; font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--brand-red); color: var(--brand-cream);
+    border: none; border-radius: 10px; cursor: pointer;
+    transition: all 200ms var(--spring);
+  }
+  .price-card button:hover {
+    background: #8F1D3A; transform: translateY(-1px);
+    box-shadow: 0 10px 30px rgba(178, 40, 72, 0.3);
+  }
+  .price-card .fine {
+    font-size: 12px; color: var(--neutral-500); font-style: italic;
+    text-align: center;
+  }
+
+  /* ---- editorial break ---- */
+  .pullquote {
+    padding: 80px 40px;
+    max-width: 900px; margin: 0 auto;
+    text-align: center;
+  }
+  .pullquote p {
+    font-family: "Playfair Display"; font-style: italic;
+    font-size: 36px; line-height: 1.3; color: var(--brand-cream);
+    letter-spacing: -0.3px;
+  }
+  .pullquote .attr {
+    margin-top: 24px;
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2px;
+    color: var(--brand-pink); text-transform: uppercase;
+  }
+
+  /* ---- what's a trial shoot ---- */
+  .what {
+    max-width: 1200px; margin: 0 auto;
+    padding: 60px 40px 100px;
+    display: grid; grid-template-columns: 1fr 1.5fr; gap: 80px;
+    align-items: start;
+  }
+  .what .kicker {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 3px;
+    color: var(--brand-orange); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .what h2 {
+    font-family: "Black Han Sans"; font-size: 56px;
+    color: var(--brand-cream); line-height: 1; letter-spacing: -1px;
+  }
+  .what h2 em {
+    font-family: "Playfair Display"; font-style: italic;
+    color: var(--brand-pink); font-weight: 500;
+  }
+  .what .body {
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .what .body p {
+    font-size: 18px; line-height: 1.65;
+  }
+  .what .body p em { color: var(--brand-cream); font-style: italic; font-family: "Playfair Display"; }
+
+  /* ---- form section (sample of section 2 — shape-branched question) ---- */
+  .form-section {
+    background: var(--neutral-800);
+    padding: 80px 40px;
+    position: relative;
+  }
+  .form-inner {
+    max-width: 760px; margin: 0 auto;
+  }
+  .form-inner .step {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 3px;
+    color: var(--brand-pink); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .form-inner h3 {
+    font-family: "Playfair Display"; font-style: italic;
+    font-size: 44px; line-height: 1.2; color: var(--brand-cream);
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+  }
+  .form-inner .shape-pills {
+    display: flex; gap: 8px; margin-bottom: 40px;
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .shape-pill {
+    padding: 8px 14px; border-radius: 999px;
+    border: 1px solid rgba(253, 245, 230, 0.15);
+    cursor: pointer; color: var(--neutral-500);
+    transition: all 200ms var(--spring);
+  }
+  .shape-pill:hover { color: var(--brand-cream); }
+  .shape-pill.active {
+    background: var(--brand-red); color: var(--brand-cream);
+    border-color: var(--brand-red);
+  }
+
+  .q-options {
+    display: grid; gap: 12px;
+  }
+  .q-options label {
+    padding: 20px 24px;
+    background: var(--neutral-900);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 12px;
+    cursor: pointer; display: flex; align-items: center; gap: 16px;
+    transition: all 250ms var(--spring);
+    font-size: 16px; color: var(--neutral-300);
+  }
+  .q-options label:hover {
+    background: var(--neutral-700);
+    border-color: rgba(244, 160, 176, 0.3);
+    color: var(--brand-cream);
+  }
+  .q-options input { accent-color: var(--brand-red); width: 16px; height: 16px; }
+
+  /* ---- payment section ---- */
+  .payment-section {
+    padding: 100px 40px;
+    max-width: 760px; margin: 0 auto;
+  }
+  .payment-section .step {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 3px;
+    color: var(--brand-pink); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .payment-section h3 {
+    font-family: "Playfair Display"; font-style: italic;
+    font-size: 40px; color: var(--brand-cream);
+    margin-bottom: 12px;
+  }
+  .payment-section .amount {
+    font-family: "Black Han Sans"; font-size: 56px;
+    color: var(--brand-cream); letter-spacing: -1px;
+    margin: 24px 0 8px;
+  }
+  .payment-section .amount small {
+    font-family: "DM Sans"; font-size: 16px; color: var(--brand-pink);
+    font-weight: 400; margin-left: 8px;
+  }
+  .payment-section .hint {
+    font-size: 13px; font-style: italic; color: var(--neutral-500);
+    margin-bottom: 40px;
+  }
+  .stripe-element {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.1);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex; gap: 16px; align-items: center;
+    margin-bottom: 14px;
+  }
+  .stripe-element.card .card-row {
+    display: flex; gap: 16px; flex: 1;
+    font-family: "DM Sans"; color: var(--neutral-500); font-size: 15px;
+  }
+  .stripe-element .card-row input {
+    background: transparent; border: none; outline: none;
+    color: var(--brand-cream); flex: 1;
+    font-family: inherit; font-size: 15px;
+  }
+  .stripe-element .card-row input::placeholder { color: var(--neutral-500); }
+  .stripe-brands {
+    display: flex; gap: 4px; opacity: 0.5;
+  }
+  .stripe-brands span {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1px;
+    padding: 3px 6px; border-radius: 4px;
+    background: rgba(253, 245, 230, 0.1); color: var(--neutral-300);
+  }
+  .pay-button {
+    width: 100%; margin-top: 20px;
+    padding: 20px;
+    font-family: "Righteous"; font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--brand-red); color: var(--brand-cream);
+    border: none; border-radius: 10px; cursor: pointer;
+    transition: all 200ms var(--spring);
+  }
+  .pay-button:hover { background: #8F1D3A; }
+  .secure {
+    text-align: center; margin-top: 16px;
+    font-size: 12px; color: var(--neutral-500); font-style: italic;
+  }
+
+  /* ---- footer ---- */
+  footer {
+    padding: 80px 40px 40px;
+    text-align: center;
+    border-top: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  footer .mark {
+    font-family: "Pacifico"; font-size: 28px; color: var(--brand-cream);
+    margin-bottom: 16px;
+  }
+  footer .line {
+    font-family: "Playfair Display"; font-style: italic;
+    color: var(--brand-pink); font-size: 15px;
+    max-width: 500px; margin: 0 auto 24px;
+  }
+  footer .meta {
+    font-size: 12px; color: var(--neutral-500);
+    display: flex; justify-content: center; gap: 24px;
+  }
+  footer .meta a { color: var(--neutral-500); text-decoration: none; }
+  footer .meta a:hover { color: var(--brand-cream); }
+
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <div class="logo">SuperBad</div>
+    <div class="right">
+      <a href="#">what we do</a>
+      <a href="#">the work</a>
+      <a href="#">the studio</a>
+      <a href="#">say hi</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-text">
+      <div class="label">A $297 trial shoot · melbourne · we come to you</div>
+      <h1>Find out if<br/>we're right<br/>for each other<br/><em>before either of us commits.</em></h1>
+      <p class="dek">
+        Sixty minutes on-site. Real deliverables you'd actually use. <em>And a six-week marketing plan written for you</em> — one you can run yourself if you decide we're not the right call.
+      </p>
+      <p class="mutter">no subscriptions to cancel. no upsell in the follow-up. we don't do that.</p>
+    </div>
+
+    <div class="price-card">
+      <div class="eyebrow">The whole thing</div>
+      <div class="price">$297<sup>once. nothing recurring.</sup></div>
+      <ul>
+        <li>A 60-minute on-site shoot at your place</li>
+        <li>Edited hero stills + one short-form video</li>
+        <li>A six-week marketing plan, written for you — yours to run with</li>
+        <li>Everything delivered inside your own private portal</li>
+        <li>Reschedule any time up to 48 hours before — life happens, we get it</li>
+      </ul>
+      <div class="cta-row">
+        <button onclick="document.getElementById('form').scrollIntoView()">Start — takes 90 seconds</button>
+        <p class="fine">we'll ask three questions, then your contact details, then you pay.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pullquote">
+    <p>"Our last three retainers started here. Two of them told us afterwards that the thing that convinced them wasn't the photos — it was how the conversation went."</p>
+    <div class="attr">— Andy · SuperBad Marketing</div>
+  </section>
+
+  <section class="what">
+    <div>
+      <div class="kicker">What a trial shoot actually is</div>
+      <h2>Not a sales call.<br/><em>Not a free sample.</em></h2>
+    </div>
+    <div class="body">
+      <p>It's a small, paid piece of real work. An hour on-site, we shoot, we edit, we deliver — inside a portal that's yours to keep whether you come back or not. <em>The brief is deliberately narrow</em> so we can't fake it with volume.</p>
+      <p>A few days later, you'll get a six-week marketing plan — written for your business, not a template. <em>It's a step-by-step plan we'd happily run ourselves.</em> If you'd rather take it and run it in-house, you're welcome to. It's yours either way.</p>
+      <p>About a third of the people who do a trial shoot end up on a retainer. About a third take the plan and run it themselves. About a third disappear entirely. <em>All three are fine.</em></p>
+    </div>
+  </section>
+
+  <section class="form-section" id="form">
+    <div class="form-inner">
+      <div class="step">Step 1 of 3 · section 2 of 4</div>
+      <h3>Before we meet — which sounds most like your business right now?</h3>
+
+      <div class="shape-pills">
+        <span class="shape-pill">Solo founder</span>
+        <span class="shape-pill active">Small team</span>
+        <span class="shape-pill">Established studio</span>
+      </div>
+
+      <div class="q-options">
+        <label><input type="radio" name="q" /> We're in the messy middle — growing, but without a clear brand voice yet.</label>
+        <label><input type="radio" name="q" /> We know who we are, but the visuals haven't caught up.</label>
+        <label><input type="radio" name="q" /> Everything's fine — we're testing if there's a version of "fine" that's sharper.</label>
+        <label><input type="radio" name="q" /> We're pivoting, and the old photos absolutely don't fit anymore.</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="payment-section">
+    <div class="step">Step 3 of 3 · the paying part</div>
+    <h3>You're in. Card details, then we're done.</h3>
+    <div class="amount">$297.00 <small>AUD · once · reschedule up to 48 hours before</small></div>
+    <p class="hint">your booking is held once you pay. reschedule any time up to 48 hours before the shoot — inside that window we'd have to hold the spot, but extenuating circumstances are just a conversation.</p>
+
+    <div class="stripe-element card">
+      <div class="card-row">
+        <input placeholder="card number" style="flex: 2;" />
+        <input placeholder="MM/YY" style="max-width: 80px;" />
+        <input placeholder="CVC" style="max-width: 60px;" />
+      </div>
+      <div class="stripe-brands">
+        <span>VISA</span>
+        <span>MC</span>
+        <span>AMEX</span>
+      </div>
+    </div>
+
+    <div class="stripe-element">
+      <div class="card-row">
+        <input placeholder="name on card" style="flex: 1;" />
+      </div>
+    </div>
+
+    <button class="pay-button">Pay $297 & book the shoot →</button>
+    <p class="secure">secured by Stripe · we never see your card details</p>
+  </section>
+
+  <footer>
+    <div class="mark">SuperBad</div>
+    <p class="line">Marketing for people who'd rather be doing something else. Melbourne, Australia.</p>
+    <div class="meta">
+      <a href="#">contact</a>
+      <span>·</span>
+      <a href="#">terms</a>
+      <span>·</span>
+      <a href="#">privacy</a>
+      <span>·</span>
+      <span>© 2026 SuperBad Media</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // shape pill toggle (mimics the branching behaviour)
+  document.querySelectorAll('.shape-pill').forEach(p => {
+    p.addEventListener('click', () => {
+      document.querySelectorAll('.shape-pill').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

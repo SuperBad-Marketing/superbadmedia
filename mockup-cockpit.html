@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad Lite — daily cockpit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red:      #B22848;
+    --brand-cream:    #FDF5E6;
+    --brand-pink:     #F4A0B0;
+    --brand-orange:   #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-950: #0F0F0E;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-300: #D4D2C2;
+    --neutral-100: #FDF5E6;
+    --success: #7BAE7E;
+    --surface-0: var(--neutral-900);
+    --surface-1: var(--neutral-800);
+    --surface-2: var(--neutral-700);
+    --radius-default: 8px;
+    --radius-generous: 16px;
+    --inner-highlight: inset 0 1px 0 rgba(253, 245, 230, 0.04);
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--surface-0);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 70% 10%, rgba(242, 140, 82, 0.06), transparent 55%),
+                radial-gradient(ellipse at 0% 100%, rgba(178, 40, 72, 0.045), transparent 60%);
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 240px 1fr 320px;
+    min-height: 100vh;
+  }
+
+  /* ---------- sidebar ---------- */
+  aside.nav {
+    background: var(--surface-1);
+    padding: 24px 16px;
+    box-shadow: var(--inner-highlight), 1px 0 0 rgba(253, 245, 230, 0.025);
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 26px; color: var(--brand-cream);
+    padding: 4px 8px;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .logo .lite {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; color: var(--brand-pink);
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid rgba(244, 160, 176, 0.25);
+    border-radius: 4px;
+    align-self: center;
+  }
+  nav .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.6px; color: var(--neutral-500);
+    text-transform: uppercase; padding: 12px 12px 8px;
+  }
+  nav ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 6px;
+    color: var(--neutral-300); text-decoration: none;
+    font-size: 14px;
+    transition: background 160ms var(--spring), color 160ms var(--spring);
+  }
+  nav a:hover { background: rgba(253, 245, 230, 0.04); color: var(--brand-cream); }
+  nav a.active { background: rgba(178, 40, 72, 0.12); color: var(--brand-cream); }
+  nav a .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neutral-500); }
+  nav a.active .dot { background: var(--brand-red); }
+  nav a .count {
+    margin-left: auto; font-size: 11px;
+    padding: 1px 6px; border-radius: 999px;
+    background: rgba(253, 245, 230, 0.06); color: var(--neutral-300);
+  }
+
+  .nav-footer {
+    margin-top: auto; padding: 12px;
+    font-family: "DM Sans"; font-style: italic;
+    color: var(--brand-pink); font-size: 12px; opacity: 0.7;
+    line-height: 1.5;
+  }
+
+  /* ---------- main ---------- */
+  main {
+    padding: 40px 48px 80px;
+    display: flex; flex-direction: column; gap: 32px;
+    min-width: 0;
+  }
+
+  .morning {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .morning .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 2px; color: var(--brand-pink);
+    text-transform: uppercase;
+  }
+  .morning h1 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 48px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.5px;
+  }
+  .morning .brief {
+    font-family: "DM Sans", sans-serif;
+    font-size: 17px;
+    color: var(--neutral-300);
+    max-width: 640px; margin-top: 12px; line-height: 1.6;
+  }
+  .morning .brief em { color: var(--brand-cream); font-style: normal; font-weight: 500; }
+  .morning .mutter {
+    font-style: italic; color: var(--brand-pink);
+    font-size: 13px; margin-top: 8px;
+  }
+
+  /* ---------- columns ---------- */
+  .columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .col {
+    background: var(--surface-1);
+    border-radius: var(--radius-generous);
+    padding: 20px;
+    box-shadow: var(--inner-highlight);
+    min-height: 420px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .col-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .col-header h2 {
+    font-family: "Righteous", sans-serif;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-cream);
+  }
+  .col-header.must h2 { color: var(--brand-orange); }
+  .col-header .count {
+    font-size: 11px; color: var(--neutral-500);
+    font-family: "DM Sans", sans-serif;
+  }
+
+  .task {
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+    cursor: pointer;
+    transition: transform 200ms var(--spring), background 200ms var(--spring);
+    border: 1px solid transparent;
+  }
+  .task:hover {
+    transform: translateY(-1px);
+    background: var(--surface-2);
+    border-color: rgba(253, 245, 230, 0.06);
+  }
+  .task .title { color: var(--brand-cream); font-size: 14px; font-weight: 500; }
+  .task .meta {
+    display: flex; gap: 8px; align-items: center; font-size: 11px;
+    color: var(--neutral-500);
+  }
+  .task .meta .pill {
+    padding: 1px 7px; border-radius: 999px; font-size: 10px;
+    background: rgba(253, 245, 230, 0.04);
+    font-family: "Righteous"; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .task .meta .pill.overdue { background: rgba(178, 40, 72, 0.2); color: #F4A0B0; }
+  .task .meta .pill.brand   { background: rgba(242, 140, 82, 0.15); color: var(--brand-orange); }
+  .task .meta .client { color: var(--brand-pink); font-style: italic; }
+
+  .passive {
+    margin-top: auto;
+    padding-top: 14px; border-top: 1px dashed rgba(253, 245, 230, 0.08);
+    color: var(--neutral-500); font-size: 12px; font-style: italic;
+    line-height: 1.5;
+  }
+  .passive strong { color: var(--neutral-300); font-style: normal; font-weight: 500; }
+
+  /* ---------- right rail ---------- */
+  aside.rail {
+    padding: 40px 28px;
+    display: flex; flex-direction: column; gap: 28px;
+    border-left: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .rail h3 {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    margin-bottom: 12px;
+  }
+  .clients { display: flex; flex-direction: column; gap: 8px; }
+  .client-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 6px;
+    transition: background 160ms var(--spring);
+    cursor: pointer;
+  }
+  .client-row:hover { background: rgba(253, 245, 230, 0.04); }
+  .health-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .health-dot.healthy  { background: var(--success); }
+  .health-dot.cooling  { background: var(--brand-orange); }
+  .health-dot.atrisk   { background: var(--brand-red); box-shadow: 0 0 0 3px rgba(178,40,72,0.15); }
+  .health-dot.stale    { background: var(--neutral-500); }
+  .client-row .name { color: var(--brand-cream); font-size: 13px; flex: 1; }
+  .client-row .sub { color: var(--neutral-500); font-size: 11px; font-style: italic; }
+
+  .scheduled {
+    background: var(--surface-1);
+    border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .sched-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px;
+  }
+  .sched-row .label { color: var(--neutral-300); }
+  .sched-row .when { color: var(--neutral-500); font-size: 11px; font-family: "Righteous"; letter-spacing: 1px; }
+
+  .heartbeat {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--neutral-500);
+    padding: 8px 10px; border-radius: 6px;
+    background: rgba(123, 174, 126, 0.08);
+    border: 1px solid rgba(123, 174, 126, 0.15);
+  }
+  .heartbeat .pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s infinite var(--spring);
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .alert {
+    background: linear-gradient(135deg, rgba(178,40,72,0.12), rgba(242,140,82,0.06));
+    border: 1px solid rgba(178, 40, 72, 0.25);
+    padding: 14px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .alert .who {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--brand-orange);
+  }
+  .alert .what { color: var(--brand-cream); font-size: 13px; }
+  .alert .why { color: var(--brand-pink); font-size: 12px; font-style: italic; }
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="nav">
+    <div class="logo">SuperBad<span class="lite">Lite</span></div>
+
+    <nav>
+      <div class="eyebrow">Today</div>
+      <ul>
+        <li><a href="#" class="active"><span class="dot"></span>Cockpit<span class="count">11</span></a></li>
+        <li><a href="#"><span class="dot"></span>Inbox<span class="count">4</span></a></li>
+        <li><a href="#"><span class="dot"></span>Approvals<span class="count">7</span></a></li>
+      </ul>
+
+      <div class="eyebrow">Clients</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Pipeline</a></li>
+        <li><a href="#"><span class="dot"></span>Clients</a></li>
+        <li><a href="#"><span class="dot"></span>Quotes</a></li>
+        <li><a href="#"><span class="dot"></span>Invoices</a></li>
+      </ul>
+
+      <div class="eyebrow">Growth</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Outreach</a></li>
+        <li><a href="#"><span class="dot"></span>Content</a></li>
+        <li><a href="#"><span class="dot"></span>Products</a></li>
+      </ul>
+    </nav>
+
+    <div class="nav-footer">
+      been a minute since we heard from Nguyen & Co. might be nothing.
+    </div>
+  </aside>
+
+  <main>
+    <section class="morning">
+      <div class="eyebrow">Sunday · 13 April</div>
+      <h1>Morning, Andy.</h1>
+      <p class="brief">
+        Four things want your attention. <em>Mercer's quote expires tomorrow</em> — the bartender nudged them on Friday, nothing back. The trial shoot portal for <em>Halcyon Nguyen</em> has been quiet for six days; Lite drafted a check-in. Two invoices cleared overnight. And the Tuesday shoot with Bowerbird still doesn't have a location locked.
+      </p>
+      <p class="mutter">three of yesterday's approvals are waiting. no rush. there never is.</p>
+    </section>
+
+    <section class="columns">
+
+      <div class="col">
+        <div class="col-header must">
+          <h2>Must do</h2>
+          <span class="count">4 · due today</span>
+        </div>
+
+        <div class="task">
+          <div class="title">Lock Tuesday shoot location — Bowerbird Projects</div>
+          <div class="meta">
+            <span class="pill overdue">overdue 1d</span>
+            <span class="client">Bowerbird Projects</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Review Mercer quote before auto-expire</div>
+          <div class="meta">
+            <span class="pill">expires 18:00</span>
+            <span class="client">Mercer Advisory</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Approve Halcyon Nguyen check-in draft</div>
+          <div class="meta">
+            <span class="pill brand">drafted</span>
+            <span class="client">Halcyon Nguyen</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Call back Priya Ravi — left voicemail Friday</div>
+          <div class="meta">
+            <span class="pill overdue">overdue 2d</span>
+            <span class="client">new lead</span>
+          </div>
+        </div>
+
+        <div class="passive">
+          <strong>3 tasks waiting on others.</strong> Quiet for now. The bartender's watching.
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="col-header">
+          <h2>Should do</h2>
+          <span class="count">5 · due today</span>
+        </div>
+
+        <div class="task">
+          <div class="title">Review Content Engine draft — "Why your shoot won't save your brand"</div>
+          <div class="meta">
+            <span class="pill brand">drafted</span>
+            <span class="client">SuperBad blog</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Send April invoice batch (3 companies, manual billed)</div>
+          <div class="meta">
+            <span class="pill">ready</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Outreach approvals — 12 drafted, 4 flagged for review</div>
+          <div class="meta">
+            <span class="pill brand">drafted</span>
+            <span class="client">earned autonomy — 4 held back</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Confirm Thursday call time with Quiet Thunder Studio</div>
+          <div class="meta">
+            <span class="pill">reply owed</span>
+            <span class="client">Quiet Thunder</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Respond to Brand DNA preview request from new SaaS trial</div>
+          <div class="meta">
+            <span class="pill">reply owed</span>
+            <span class="client">new SaaS signup</span>
+          </div>
+        </div>
+
+        <div class="passive">
+          <strong>2 tasks blocked</strong> — waiting on Stripe webhook replay + Cloudflare DNS.
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="col-header">
+          <h2>If time</h2>
+          <span class="count">2 · this week</span>
+        </div>
+
+        <div class="task">
+          <div class="title">Review newly enriched SaaS prospects (48 added this week)</div>
+          <div class="meta">
+            <span class="pill brand">ICP scored</span>
+            <span class="client">31 passed / 17 cut</span>
+          </div>
+        </div>
+
+        <div class="task">
+          <div class="title">Pick one anti-motivation post format for Thursday carousel</div>
+          <div class="meta">
+            <span class="pill">not urgent</span>
+            <span class="client">SuperBad socials</span>
+          </div>
+        </div>
+
+        <div class="passive">
+          the rest can wait. lite keeps a tidy room.
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <aside class="rail">
+    <div>
+      <h3>Client health</h3>
+      <div class="clients">
+        <div class="client-row"><span class="health-dot atrisk"></span><span class="name">Mercer Advisory</span><span class="sub">quote expiring</span></div>
+        <div class="client-row"><span class="health-dot cooling"></span><span class="name">Halcyon Nguyen</span><span class="sub">6 days quiet</span></div>
+        <div class="client-row"><span class="health-dot cooling"></span><span class="name">Quiet Thunder Studio</span><span class="sub">awaiting reply</span></div>
+        <div class="client-row"><span class="health-dot healthy"></span><span class="name">Bowerbird Projects</span><span class="sub">active</span></div>
+        <div class="client-row"><span class="health-dot healthy"></span><span class="name">Fenwick &amp; Roe</span><span class="sub">active</span></div>
+        <div class="client-row"><span class="health-dot healthy"></span><span class="name">North Arm Builders</span><span class="sub">paid yesterday</span></div>
+        <div class="client-row"><span class="health-dot stale"></span><span class="name">The Paper Mill</span><span class="sub">dormant 31d</span></div>
+      </div>
+    </div>
+
+    <div class="alert">
+      <div class="who">Warm upsell — new</div>
+      <div class="what">Bowerbird Projects just flagged budget intent in reply</div>
+      <div class="why">reply intelligence routed this 11 min ago</div>
+    </div>
+
+    <div>
+      <h3>Scheduled · next 24h</h3>
+      <div class="scheduled">
+        <div class="sched-row"><span class="label">Manual invoice generate — 3 companies</span><span class="when">09:00</span></div>
+        <div class="sched-row"><span class="label">Mercer quote auto-expire</span><span class="when">18:00</span></div>
+        <div class="sched-row"><span class="label">Outreach warmup ramp — day 18/28</span><span class="when">07:00 daily</span></div>
+        <div class="sched-row"><span class="label">Content Engine ranking snapshot</span><span class="when">02:00</span></div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Worker</h3>
+      <div class="heartbeat"><span class="pulse"></span>cron healthy · last beat 12s ago</div>
+    </div>
+  </aside>
+
+</div>
+</body>
+</html>

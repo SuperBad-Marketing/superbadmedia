@@ -155,11 +155,83 @@ Five primitives integrated from the 2026-04-12 upgrades review (`where-we-are.ht
 
 **11.2 Safe-to-send gate.** Every outbound email — cold outreach, magic-link logins, Stripe receipts, wizard confirmations, newsletter, deliverable notifications, morning brief, Monday founder PDF, any future channel — flows through a single `canSendTo(recipient, channel, purpose)` check before touching the Resend adapter. The gate consults: suppression list, bounce history, unsubscribe flags, frequency caps per recipient per purpose. Rejected sends log the reason and are either dropped (transactional) or queued for the next safe window (outreach/automations). **Non-negotiable discipline, not a toggleable feature.** No send path imports the Resend client directly — every path imports the gate-wrapped `sendEmail()` from the channel adapter. Protects primary-domain and cold-subdomain reputation forever. Impossible to retrofit if missed early.
 
+**`sendEmail()` signature** (added 2026-04-13 Phase 3.5): `sendEmail({ to, subject, body, classification, purpose, ... })`. The `classification` parameter is a top-level enum that determines which sending domain and reputation pool the send uses, and which gates apply:
+
+- **Base values** (locked): `'transactional' | 'outreach'`. Transactional goes via the primary domain with no quiet-window gate; outreach goes via the cold-outreach subdomain with the §11.4 quiet window applied.
+- **Spec-extensible values** (each added by a spec that needs it): `'hiring_invite'`, `'hiring_followup_question'`, `'hiring_trial_send'`, `'hiring_archive_notice'`, `'hiring_contractor_auth'`, `'hiring_bench_assignment'` (Hiring Pipeline, 2026-04-13). Each maps to a domain pool and gate profile inside the adapter — feature code passes the classification, never a domain/pool directly.
+- New classification values added in Phase 5 require a one-line adapter update; the classification enum lives in one place (`lib/channels/email/classifications.ts`) and is the single source of truth.
+
 **11.3 Timezone-correct timestamps.** Every timestamp is stored in UTC at the database layer. Every timestamp displayed in the UI is rendered in the viewer's local timezone via a single `formatTimestamp(date, tz)` utility. A `timezone` column lives on the `user` table (default `Australia/Melbourne`, editable in Settings → Display). Email and PDF templates render in recipient-local timezones where recipient identity is known. **No ad-hoc `new Date().toLocaleString()` in component code** — all time display routes through the utility. Cheap to enforce day one, catastrophic to retrofit once clients outside Melbourne start paying invoices.
 
 **11.4 Outreach quiet window.** Automated cold-outreach sends (first-touch, follow-ups, auto-nudges, stale-deal reminders) are gated to **08:00–18:00 Australia/Melbourne local, Monday–Friday, excluding Australian public holidays**. Transactional sends (magic-links, receipts, subscription lifecycle emails) are unaffected — they go whenever they need to. The holiday calendar lives as a static JSON file at `/data/au-holidays.json`, updated annually via a brief scheduled maintenance ticket. Rejected sends queue for the next safe window rather than failing. Gate lives inside the Resend channel adapter and composes naturally with the safe-to-send gate (§11.2). Protects sender reputation, respects recipients, removes Andy's "oh no I sent that at 11pm" anxiety.
 
 **11.5 Brand-voice drift check.** Every LLM-generated artefact destined for external delivery — outreach draft, blog post, newsletter rewrite, social draft, reply draft, morning brief narrative, automated client email — passes a final Claude grading call that reads the relevant Brand DNA profile (the client's own for client-facing output, SuperBad's own for SuperBad-facing output) and scores the draft against its signal tags. Drafts scoring below the drift threshold are regenerated once automatically with the drift feedback included in the prompt; a second failure surfaces a visible "voice drift flagged" warning on the review surface rather than blocking. One extra Claude call per generation, Haiku-tier (cheap), composes with the "Brand DNA as perpetual context" pattern already locked in memory (`project_brand_dna_as_perpetual_context.md`) and the "two perpetual contexts" principle (`project_two_perpetual_contexts.md`). Zero new infrastructure. The difference between a platform that generates content and a platform that generates **your** content.
+
+**11.6 LLM model registry + external-call observability** (added 2026-04-13 Phase 3.5 per `project_llm_model_registry.md`). Every LLM call in Lite routes through a central registry at `lib/ai/models.ts` that maps **job names** (`outreach-writer`, `reply-classifier`, `brand-dna-generator`, `icp-scorer`, `finance-narrative`, `hiring-brief-synthesize`, etc.) to current model IDs. Feature code asks for a job, never for a model ID directly. The registry is the single point of configuration for:
+
+- **Job → model mapping** (e.g. `outreach-writer → claude-sonnet-4-6`). A model deprecation or upgrade is a one-file edit.
+- **External-call logging.** Every call writes a row to `external_call_log` (job name, model id, input tokens, output tokens, cost tuple, latency ms, timestamp, request id). Source of truth for the Cost & Usage Observatory.
+- **Integration read jobs** beyond Anthropic (`stripe-balance-read`, `stripe-balance-transactions-read`, etc.) follow the same pattern and log to the same table.
+- **Quarterly review ritual** (Phase 6 operational cadence): re-read Anthropic's model page, update mappings, run the cost diff. AUTONOMY_PROTOCOL.md must include a "things that drift over time" section covering models, Stripe API versions, Resend SDK, Meta/Google Ads APIs — each with a review cadence and the registry/config file that owns it.
+- **Build-time discipline:** no feature file imports `@anthropic-ai/sdk` directly. The ESLint rule enforcing this lands in the foundation session. Found bypass = refactor task, not a patch.
+
+Phase 3.5 patch: the `cost-usage-observatory.md` §7 model registry lists every known job name across all 21 specs; new specs extend it rather than forking.
+
+**11.7 Stripe identity primitive** (added 2026-04-13 Phase 3.5 Step 11). Every Stripe-touching code path — Intro Funnel PaymentIntent, Quote Builder Checkout, Branded Invoicing draft + send, SaaS Subscription Billing, one-off project invoices — calls `ensureStripeCustomer(contactId): Promise<string>` before creating any Stripe object. The helper:
+
+- Reads `contacts.stripe_customer_id`. If non-null, returns it.
+- If null, calls `stripe.customers.create({ email, name, metadata: { contact_id } })` using the canonical email + name from `contacts`, persists the returned ID to `contacts.stripe_customer_id` (unique index enforces one Stripe Customer per contact), returns it.
+
+**Creation is lazy — a Stripe Customer exists only for contacts who have actually paid.** Abandoned leads never hit Stripe. The same contact across multiple deals (trial shoot → retainer → SaaS add-on) shares one Stripe Customer ID forever. `deals.stripe_customer_id` remains a denormalised mirror for subscription-state-machine reads (§12) but the canonical identity is `contacts.stripe_customer_id`.
+
+**No feature code imports `stripe.customers.create` directly.** Every Stripe create path goes through this helper. ESLint rule in the foundation session enforces this — same pattern as the LLM model registry (§11.6).
+
+**Business-lifecycle separation (terminology lock).** The Stripe `Customer` object is a payment-attachment identity only. It has no relationship to SuperBad's business lifecycle. A contact can hold a Stripe Customer ID while still being a **Lead/Prospect** in SuperBad's business sense (e.g. they've paid for a trial shoot but haven't converted to retainer). Only a signed retainer promotes the business-lifecycle status to **Client**. The Phase 3.5 step 8 glossary pass (pending) codifies this as a canonical term separation: `stripe.Customer` (Stripe's payment identity) ≠ **Client** (SuperBad's retainer-holding contact) ≠ **customer** (never used alone — avoid in specs and code to prevent collision).
+
+---
+
+## 12. Canonical subscription state machine (added 2026-04-13 — Phase 3.5 step 10)
+
+Every spec that touches subscription state — Quote Builder, SaaS Subscription Billing, Branded Invoicing, Client Management, Intro Funnel — references the state machine below. No spec re-describes it. Any spec whose transitions conflict with this machine is the spec that must be patched.
+
+**States:**
+
+- `trial_pending` — trial shoot paid ($297 via Stripe Checkout), shoot not yet happened.
+- `trial_active` — trial shoot happened; prospect in the post-shoot window (has portal access, has six-week plan, has not yet accepted retainer or SaaS subscription).
+- `trial_completed_awaiting_decision` — retainer-fit recommendation delivered to Andy's cockpit; quote not yet sent.
+- `quote_draft` — draft quote exists, not sent.
+- `quote_sent` — quote sent, awaiting prospect action.
+- `quote_accepted` — prospect accepted; payment setup in flight.
+- `active_current` — subscription live, payments current (Stripe or manual).
+- `past_due` — payment failed (Stripe auto-retry in progress) OR manual invoice ≥30 days overdue.
+- `paused` — SaaS pre-term pause (one per commitment, 1 month max). Retainer clients cannot pause.
+- `cancel_scheduled_preterm` — customer requested cancel within committed term; continues paying through `committed_until_date`, then auto-ends.
+- `cancelled_buyout` — customer paid the buyout fee to end the commitment immediately. Subscription ends now.
+- `cancelled_paid_remainder` — `cancel_scheduled_preterm` reached `committed_until_date` without reversal. Terminal.
+- `cancelled_post_term` — customer cancelled after the committed term expired. Terminal, no fee.
+- `ended_gracefully` — commitment completed, no action taken, auto-converts to month-to-month OR ends per product rules. Terminal.
+
+**Canonical persistence:** `deals.subscription_state` (enum above) is the single source of truth, denormalised alongside:
+- `deals.committed_until_date` (date, nullable — null for month-to-month SaaS)
+- `deals.pause_used_this_commitment` (boolean, SaaS only, anti-stack)
+- `deals.billing_cadence` (enum: `monthly | annual_monthly | annual_upfront`)
+- `deals.stripe_subscription_id` + `deals.stripe_customer_id` (text, nullable — Stripe-billed path only)
+
+**Two billing paths, one state machine:**
+- **Stripe-billed:** `Stripe.Subscription` is authoritative for billing cycle; Lite enforces commitment via the cancel flow, NOT Stripe Phases.
+- **Manual-billed:** `invoices` table + `scheduled_tasks` chain (`manual_invoice_generate` → `manual_invoice_send` per cycle). Chain stops the moment `deals.subscription_state != 'active_current'`.
+
+**Trigger table:** see each spec's own transition callers. Canonical transition owners:
+- `createDealFromLead()` → `trial_pending`: Intro Funnel.
+- `trial_active` → `trial_completed_awaiting_decision`: Intro Funnel post-shoot reflection.
+- `quote_draft` → `quote_sent`: Quote Builder.
+- `quote_accepted` → `active_current`: Quote Builder (+ Stripe checkout.session.completed OR manual first-invoice paid).
+- `active_current` → `past_due`: Branded Invoicing (overdue threshold) OR SaaS Subscription Billing (Stripe `invoice.payment_failed`).
+- `active_current` → `paused`: SaaS Subscription Billing.
+- `active_current` → `cancel_scheduled_preterm` / `cancelled_buyout` / `cancelled_post_term`: Quote Builder (cancel flow at `/lite/portal/subscription`).
+- `cancel_scheduled_preterm` → `cancelled_paid_remainder`: scheduled task at `committed_until_date`.
+
+**Cross-cutting rule:** every state exit that ends billing writes an `activity_log.kind = 'subscription_state_changed'` row with the old/new state + reason. The same write path feeds Daily Cockpit's `maybeRegenerateBrief('subscription_event', payload)`.
 
 ---
 
@@ -184,6 +256,7 @@ Consolidated from across Phase 2 decisions. Every build session must honour thes
 15. **All timestamps UTC in storage, local in display** (§11.3). No `new Date().toLocaleString()`, no `toISOString()`, no `dateFns.format()` in user-facing rendering. Always route through the `formatTimestamp(date, tz)` utility with an explicit timezone. Schema defaults to `timestamp_ms` integer columns (UTC epoch). A `timezone` column on `user` is required before the first display surface ships.
 16. **Automated cold outreach honours the quiet window** (§11.4). Any code path that enqueues automated cold-outreach sends imports `isWithinQuietWindow()` from the outreach adapter. Rejected sends enqueue for the next safe window, never fail silently. Transactional paths are exempt and must not import this helper — the separation is the discipline.
 17. **All external-facing LLM output passes the drift check** (§11.5). Every generation site — Lead Gen outreach, Content Engine blog/newsletter/social drafts, Client Context Engine draft replies, Morning Brief narrative, automated client emails, any future LLM output destined for a real human inbox — routes the draft through `checkBrandVoiceDrift(draft, brandDnaProfile)` before the result is shown to Andy or sent. Applies whether the Brand DNA profile is the client's or SuperBad's own. Internal-only LLM output (signal extraction, action-item tagging, summary regeneration) is exempt.
+18. **Lite's local dev server runs on port 3001, not 3000.** HQ already occupies `localhost:3000` on Andy's Mac. Lite is locked to `localhost:3001` via `"dev": "next dev -p 3001"` in `package.json` from the first Phase 5 session that initialises the Next.js project. Both projects can run simultaneously in side-by-side Terminal tabs without interference. Production URLs (`lite.superbadmedia.com.au`, later `superbadmedia.com.au/lite`) are unaffected — this rule is local-dev-only.
 
 ---
 

@@ -101,6 +101,8 @@ Dragging a card into `Lost` opens a modal with a closed list of 7 reasons:
 
 ### 4.1 New tables
 
+> **Consolidated `activity_log.kind` enum** — this is the authoritative location for every `activity_log.kind` value across the platform. Each downstream spec that declares `activity_log.kind` additions in its own prose (e.g. Quote Builder §5.7, Branded Invoicing §5.3, Intro Funnel §12, Unified Inbox §6, Six-Week Plan §7, etc.) is a **declarer**; the enum definition below is the **single receiver**. Phase 5 foundation migration seeds this union. If a new spec adds a value, patch this enum in the same session.
+
 ```ts
 // companies — the top-level CRM entity
 export const companies = sqliteTable('companies', {
@@ -118,6 +120,14 @@ export const companies = sqliteTable('companies', {
   trial_shoot_completed_at: integer('trial_shoot_completed_at', { mode: 'timestamp' }),
   trial_shoot_plan: text('trial_shoot_plan'), // free-form plan/brief
   trial_shoot_feedback: text('trial_shoot_feedback'), // questionnaire JSON or text
+  // Business-structure shape — canonical source across the platform (added 2026-04-13 Phase 3.5 Step 11 F1.b).
+  // Downstream consumers (Brand DNA §8.1, Six-Week Plan §4, retainer-fit §13.4, Onboarding, Cockpit brief)
+  // all read from this column. Nullable: companies minted before shape was captured (e.g. legacy leads) stay null.
+  // Intro Funnel + Brand DNA keep their own `shape` columns as historical snapshots, NOT sources of truth.
+  // Mutations write an `activity_log.kind = 'company_shape_updated'` row and mark downstream artefacts stale.
+  shape: text('shape', {
+    enum: ['solo_founder', 'founder_led_team', 'multi_stakeholder_company'],
+  }),
   first_seen_at: integer('first_seen_at', { mode: 'timestamp' }).notNull(),
   created_at: integer('created_at', { mode: 'timestamp' }).notNull(),
   updated_at: integer('updated_at', { mode: 'timestamp' }).notNull(),
@@ -136,6 +146,10 @@ export const contacts = sqliteTable('contacts', {
   phone: text('phone'),
   is_primary: integer('is_primary', { mode: 'boolean' }).notNull().default(false),
   notes: text('notes'),
+  // Stripe identity — canonical. Created lazily on first payment via FOUNDATIONS §11.7 `ensureStripeCustomer(contactId)`.
+  // Same contact across multiple deals (trial shoot + retainer + SaaS) shares one Stripe Customer.
+  // `deals.stripe_customer_id` (§12 state machine) is a denormalised mirror for subscription-path reads.
+  stripe_customer_id: text('stripe_customer_id').unique(),
   created_at: integer('created_at', { mode: 'timestamp' }).notNull(),
   updated_at: integer('updated_at', { mode: 'timestamp' }).notNull(),
 })
@@ -151,7 +165,7 @@ export const deals = sqliteTable('deals', {
   }).notNull().default('lead'),
   value_cents: integer('value_cents'),                       // optional from any stage
   value_estimated: integer('value_estimated', { mode: 'boolean' }).notNull().default(true),
-  won_outcome: text('won_outcome', { enum: ['retainer', 'saas'] }), // required when stage='won'
+  won_outcome: text('won_outcome', { enum: ['retainer', 'saas', 'project'] }), // required when stage='won'. 'project' added per Quote Builder §5.6 cross-spec flag (one-off project work that settles without a subscription).
   loss_reason: text('loss_reason', {
     enum: ['price', 'timing', 'went_with_someone_else', 'not_a_fit', 'ghosted', 'internal_change', 'other'],
   }),
@@ -173,6 +187,7 @@ export const activity_log = sqliteTable('activity_log', {
   deal_id: text('deal_id').references(() => deals.id, { onDelete: 'cascade' }),
   kind: text('kind', {
     enum: [
+      // --- Sales Pipeline (original, 2026-04-11) ---
       'note',                       // manual note added by Andy
       'stage_change',               // any stage transition
       'email_sent',                 // outbound
@@ -184,6 +199,131 @@ export const activity_log = sqliteTable('activity_log', {
       'trial_shoot_booked',
       'trial_shoot_completed',
       'feedback_received',
+      // --- Cross-spec extensions (consolidated 2026-04-13 Phase 3.5) ---
+      // Each block owned by the originating spec. Phase 5 foundation migration seeds the full union.
+      // Cost & Usage Observatory (10):
+      'cost_anomaly_fired', 'cost_anomaly_acknowledged', 'cost_anomaly_resolved',
+      'kill_switch_triggered', 'kill_switch_released', 'band_adjusted',
+      'monthly_threshold_crossed', 'projection_threshold_crossed',
+      'cost_attribution_transferred', 'observatory_settings_changed',
+      // Finance Dashboard (8, added 2026-04-13):
+      'finance_expense_created', 'finance_expense_updated', 'finance_expense_confirmed',
+      'finance_recurring_booked', 'finance_recurring_created', 'finance_recurring_paused',
+      'finance_export_generated', 'finance_bas_filed',
+      // Hiring Pipeline (16, added 2026-04-13):
+      'candidate_sourced', 'candidate_invited', 'candidate_applied', 'candidate_followup_received',
+      'candidate_screened', 'candidate_trial_sent', 'candidate_trial_delivered', 'candidate_trial_reviewed',
+      'candidate_benched', 'candidate_paused', 'candidate_resumed', 'candidate_archived',
+      'candidate_unarchived', 'role_brief_opened', 'role_brief_regenerated', 'role_brief_closed',
+      // Client Context Engine — active_strategy artefact (4, added 2026-04-13 Phase 3.5 step 2):
+      'active_strategy_created', 'active_strategy_reviewed',
+      'active_strategy_updated', 'active_strategy_archived',
+      // --- Consolidated 2026-04-13 Phase 3.5 step 2a (spec self-containment pass) ---
+      // Each block owned by the originating spec; values are additive, non-breaking.
+      // Quote Builder (17 — `quote_sent` already above in original block):
+      'quote_draft_started', 'quote_viewed', 'quote_accepted', 'quote_settled',
+      'quote_superseded', 'quote_expired', 'quote_withdrawn',
+      'scheduled_task_dispatched',
+      'subscription_cancel_intercepted_preterm',
+      'subscription_early_cancel_paid_remainder',
+      'subscription_early_cancel_buyout_50pct',
+      'subscription_paused', 'subscription_pause_ended',
+      'subscription_upgrade_intent', 'subscription_downgrade_intent',
+      'subscription_cancelled_post_term', 'subscription_ended_gracefully',
+      // Branded Invoicing (8):
+      'invoice_generated', 'invoice_sent', 'invoice_overdue',
+      'invoice_reminder_sent', 'invoice_marked_paid', 'invoice_paid_online',
+      'invoice_superseded', 'invoice_voided',
+      // Brand DNA Assessment (8):
+      'assessment_started', 'section_completed', 'assessment_completed',
+      'profile_generated', 'blend_generated',
+      'invite_created', 'invite_used', 'retake_started',
+      // Intro Funnel (21 — `trial_shoot_booked` / `trial_shoot_completed` already above in original block;
+      //   Intro Funnel's `shoot_*` values are a distinct naming family for the portal-side shoot lifecycle
+      //   and are intentionally preserved alongside the original `trial_shoot_*` values):
+      'intro_funnel_started', 'intro_funnel_section_completed',
+      'intro_funnel_abandoned', 'intro_funnel_paid',
+      'intro_funnel_sms_sent', 'intro_funnel_sms_delivered', 'intro_funnel_sms_replied',
+      'intro_funnel_cancelled_refunded', 'intro_funnel_cancelled_no_refund',
+      'intro_funnel_no_show',
+      'shoot_booked', 'shoot_rescheduled', 'shoot_cancelled',
+      'shoot_cancelled_by_superbad', 'shoot_rescheduled_by_superbad',
+      'shoot_reschedule_limit_hit',
+      'deliverables_ready', 'deliverables_viewed',
+      'post_trial_negative_feedback', 'retainer_fit_recommendation_ready',
+      'reflection_complete',
+      // Lead Generation (10):
+      'outreach_sent', 'outreach_opened', 'outreach_clicked',
+      'outreach_replied', 'outreach_bounced', 'outreach_unsubscribed',
+      'sequence_stopped_engagement', 'sequence_stopped_manual',
+      'autonomy_graduated', 'autonomy_demoted',
+      // Content Engine (15):
+      'content_topic_researched', 'content_topic_vetoed',
+      'content_draft_generated', 'content_draft_approved', 'content_draft_rejected',
+      'content_post_published',
+      'content_newsletter_scheduled', 'content_newsletter_sent',
+      'content_social_draft_generated', 'content_social_published',
+      'content_subscriber_added', 'content_subscriber_removed',
+      'content_outreach_matched',
+      'content_seed_keyword_added', 'content_seed_keyword_removed',
+      // Client Context Engine — non-active_strategy (11):
+      'context_summary_regenerated',
+      'action_item_extracted', 'action_item_manual_created',
+      'action_item_completed', 'action_item_dismissed', 'action_item_edited',
+      'draft_generated', 'draft_nudged', 'draft_sent',
+      'draft_discarded', 'draft_channel_switched',
+      // Client Management (8):
+      'portal_chat_message_sent', 'portal_chat_escalated', 'portal_chat_action_taken',
+      'data_export_requested', 'data_export_completed',
+      'external_link_added', 'external_link_removed',
+      'client_profile_viewed_by_admin',
+      // Daily Cockpit (8):
+      'cockpit_brief_generated', 'cockpit_brief_regenerated',
+      'cockpit_brief_skipped_quiet',
+      'cockpit_waiting_opened', 'cockpit_health_opened',
+      'cockpit_chip_tapped', 'cockpit_banner_dismissed',
+      'cockpit_slot_rolled_over',
+      // Onboarding + Segmentation (8):
+      'onboarding_started', 'onboarding_welcome_email_sent',
+      'onboarding_brand_dna_started', 'onboarding_revenue_seg_completed',
+      'onboarding_product_config_completed',
+      'onboarding_practical_setup_step_completed',
+      'onboarding_credentials_created', 'onboarding_completed',
+      // SaaS Subscription Billing (11):
+      'saas_product_created', 'saas_product_published', 'saas_product_archived',
+      'saas_subscription_created', 'saas_subscription_upgraded',
+      'saas_subscription_downgraded', 'saas_subscription_product_switched',
+      'saas_payment_failed_lockout', 'saas_payment_recovered',
+      'saas_data_loss_warning_sent', 'saas_usage_limit_reached',
+      // Setup Wizards (6):
+      'wizard_started', 'wizard_step_completed', 'wizard_completed',
+      'wizard_abandoned', 'wizard_resumed', 'integration_registered',
+      // Unified Inbox (18):
+      'inbox_thread_created', 'inbox_message_received', 'inbox_message_sent',
+      'inbox_routed', 'inbox_routed_reviewed',
+      'inbox_notification_fired', 'inbox_notification_corrected',
+      'inbox_draft_generated', 'inbox_draft_refined',
+      'inbox_draft_sent', 'inbox_draft_discarded',
+      'inbox_hygiene_purged', 'inbox_noise_promoted', 'inbox_keep_pinned',
+      'inbox_import_completed', 'inbox_import_backfilled',
+      'inbox_ticket_status_changed', 'inbox_thread_merged',
+      // Six-Week Plan Generator (17):
+      'six_week_plan_generation_started',
+      'six_week_plan_strategy_ready_for_review',
+      'six_week_plan_strategy_approved', 'six_week_plan_strategy_regenerated',
+      'six_week_plan_detail_ready_for_review',
+      'six_week_plan_approved', 'six_week_plan_released',
+      'six_week_plan_self_activated',
+      'six_week_plan_revision_requested', 'six_week_plan_revision_regenerated',
+      'six_week_plan_revision_explained',
+      'six_week_plan_superseded_by_revision',
+      'six_week_plan_migrated_to_client_context',
+      'six_week_plan_refresh_review_requested',
+      'six_week_plan_live_strategy_set',
+      'six_week_plan_portal_archived_non_converter',
+      'six_week_plan_pdf_downloaded',
+      // Shape canonicalisation (2, added 2026-04-13 Phase 3.5 Step 11 F1.b):
+      'company_shape_updated', 'shape_mismatch_flagged',
     ],
   }).notNull(),
   body: text('body').notNull(),     // human-readable summary
@@ -203,6 +343,21 @@ export const webhook_events = sqliteTable('webhook_events', {
   error: text('error'),
 })
 ```
+
+### 4.1A Shape editing surface + staleness cascade (added 2026-04-13 Phase 3.5 Step 11 F1.b)
+
+**Admin surface.** Company profile (rendered by Client Management on `/lite/companies/[id]`) exposes a **Shape** dropdown with the three enum values (`solo_founder` / `founder_led_team` / `multi_stakeholder_company`) plus a `—` option for null. Andy-only. Every change:
+
+1. Writes `activity_log.kind = 'company_shape_updated'` with `meta: { old, new, reason?: string }`.
+2. Fires a **staleness cascade** across downstream artefacts tied to the company:
+   - `brand_dna_profiles.needs_regeneration = true` on the current profile (where `is_current = true`). Surfaces a "shape changed — retake recommended" banner; next Brand DNA regeneration clears the flag.
+   - `active_strategy` (Client Context Engine) → mark stale via Context Engine's staleness mechanism. Next read regenerates.
+   - `intro_funnel_retainer_fit` → if `acted_on = false`, mark stale; cockpit card surfaces a warning chip "shape changed since this was generated".
+   - Cockpit brief → no retroactive patch; next `maybeRegenerateBrief()` reads new shape.
+   - Six-Week Plan → if pre-conversion and not yet approved, mark stale via plan's regeneration flag (see Six-Week Plan §4). If post-conversion, cascade flows via `active_strategy`.
+3. **No eager regeneration.** Artefacts are marked stale; they regenerate lazily on next access. Prevents Opus-call stampedes and lets Andy undo an accidental change without immediate cost.
+
+**Source-of-truth discipline.** Every downstream consumer reads `companies.shape` first, falling back to `intro_funnel_submissions.shape` only if canonical is null. No downstream reads `brand_dna_profiles.shape` as a source of truth — that column is a historical snapshot only.
 
 ### 4.2 Validation rules (enforced in `validateDeal()` before every write)
 
@@ -418,7 +573,7 @@ Calls into the pipeline via two functions:
 ### 10.4 Lead Generation (future spec)
 
 Calls into the pipeline via:
-- `createDealFromLead(companyData, contactData, source)` — creates Company + Contact + Deal at stage `Lead`
+- `createDealFromLead(companyData, contactData, source)` — lookup-or-create Company + Contact, then create a new Deal. **Contact dedupe rule** (added 2026-04-13 Phase 3.5 Step 11): match existing contact on normalised `email`, then normalised `phone` as fallback. On match, reuse the contact row (update any newly-supplied fields via a non-destructive merge — never overwrite a populated field with `null`) and attach the new Deal to that contact's existing Company. Never create a duplicate contact for the same email/phone. Company dedupe follows the same rule on normalised company name + domain. Default stage is `Lead` except where `source` dictates otherwise (e.g. `intro_funnel_contact_submitted` → `Trial Shoot`).
 - `attachOutboundEmailToDeal(dealId, emailRecord)` — logs activity, triggers `Lead → Contacted` on first send
 
 ### 10.5 Unified Inbox (future spec)
@@ -448,6 +603,51 @@ From the locked sound registry (design system baseline §10):
 - `glass-tap` — generic UI confirm (modal buttons)
 
 All sounds gated by the `prefersSound` user preference (Settings → Display).
+
+---
+
+## 11A. Voice & Delight treatment (added 2026-04-13 Phase 3.5)
+
+Pipeline is an admin surface, so voice is dry-observational (admin-roommate register) rather than client-polished. This section makes the cross-cutting Voice & Delight discipline concrete for Pipeline.
+
+### 11A.1 Empty states
+
+Every column, feed, and panel uses the locked `EmptyState` primitive with a copy entry from the central empty-state bank (design system baseline). Pipeline-specific entries:
+
+- **`Lead` column empty** — *"No leads yet. Lead Gen will fill this in when it's built."*
+- **`Contacted` column empty** — *"Nothing out there waiting for a reply. Enviable."*
+- **`Won` column empty** — *"Quiet in here. For now."*
+- **`Lost` column empty** — *"Either we're winning everything or you haven't updated this in a while. One of those."*
+- **Deal activity feed empty** — *"Nothing's happened here yet. Deal's too new to gossip about."*
+- **Company feed empty on a brand-new Company** — *"First note, first entry. Tidy."*
+
+Copy lives in `lib/copy/empty-states.ts` keyed by surface + context, not duplicated inline. Sprinkle bank claim: Pipeline consumes ~6 entries, all within admin-voice budget.
+
+### 11A.2 Toasts
+
+All Pipeline toasts go through the locked `toast()` primitive (design system baseline §6). Sound pairings from §11 apply automatically — feature code never calls sound APIs directly.
+
+Pipeline-specific toast copy (dry, never cheerleading):
+- **Stage advance (non-Won):** *"Moved to {stage}."*
+- **Won (Stripe-driven):** *"{Company} converted. Nice."* + `chime-bright`
+- **Won (manual):** *"Logged as Won. Hope you invoiced them."* + `chime-bright`
+- **Lost:** *"Marked Lost. Reason saved."* + no sound (muted event)
+- **Bounce rollback:** *"{Contact} bounced. Deal rolled back to Lead."* + `urgent-thud`
+- **Snoozed:** *"Snoozed until {date}."* + `tick-warm`
+
+Never use exclamation marks except on `Won`. Never say "success" or "🎉".
+
+### 11A.3 Tier 2 cinematic discipline
+
+Pipeline is explicitly **closed-list Tier 2 budget = 0**. No cinematic moments on this surface. Card hover, drag settle, and Won chime are Tier 1 only. This is deliberate — reserves the Tier 2 budget for client-facing flagship surfaces.
+
+### 11A.4 Surprise & Delight hooks
+
+Pipeline is **admin-roommate register only** for S&D. Eligible ambient moments:
+- Very rare (≤ once/month, registry-gated) easter-egg toast when Andy closes 3 Won deals in a single session: *"That's three. Either you're crushing it or it's a slow Tuesday."*
+- No ambient moments on Lost / bounce / rollback events. Those stay dry.
+
+S&D data-access: reads only `deals`, `activity_log`, Andy's session timestamps. No cross-client inference. Registered in the S&D audit checklist (see surprise-and-delight.md §[audit]).
 
 ---
 

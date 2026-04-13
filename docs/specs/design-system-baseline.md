@@ -579,6 +579,7 @@ These are the rules every build session in Phase 5 must honour. Violating any of
 9. **Density preset declared per page layout, never per component.** Every feature spec declares which preset its screens use.
 10. **Reduced motion + sounds-off + large-text + compact-density must produce a usable variant of every screen.** Tested in the first Phase 5 UI session and re-verified per feature.
 11. **Tokens in JSDoc.** Every custom Lite primitive gets a JSDoc comment listing which tokens it consumes — makes downstream impact analysis trivial when a token changes.
+12. **Voice is part of the design system** (added 2026-04-13 Phase 3.5). Every feature spec declares its voice register (admin-roommate / client-bartender / neutral-system) and consumes empty-state, toast, and sprinkle copy from the central banks — never inlined strings. Banks live at `lib/copy/empty-states.ts`, `lib/copy/toasts.ts`, and `lib/copy/sprinkles.ts` (S&D registry). Cross-reference: surprise-and-delight.md is authoritative for the closed-list discipline and data-access audit; individual feature specs declare their sprinkle-bank claims. An admin surface that calls a client-register sprinkle (or vice-versa) is a spec violation. Motion-universal rule (see §208 / Motion) applies to every state change; reduced-motion parity is a Phase 5 verification gate in AUTONOMY_PROTOCOL.
 
 ---
 

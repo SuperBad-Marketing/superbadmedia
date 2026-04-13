@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad Lite — dashboard preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  /* ---------- tokens (mirrors docs/specs/design-system-baseline.md) ---------- */
+  :root {
+    --brand-red:      #B22848;
+    --brand-cream:    #FDF5E6;
+    --brand-pink:     #F4A0B0;
+    --brand-orange:   #F28C52;
+    --brand-charcoal: #1A1A18;
+
+    --neutral-950: #0F0F0E;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-300: #D4D2C2;
+    --neutral-100: #FDF5E6;
+
+    --success: #7BAE7E;
+    --warning: var(--brand-orange);
+    --error:   var(--brand-red);
+
+    --surface-0: var(--neutral-900);
+    --surface-1: var(--neutral-800);
+    --surface-2: var(--neutral-700);
+    --surface-3: var(--neutral-600);
+
+    --radius-tight:    4px;
+    --radius-default:  8px;
+    --radius-generous: 16px;
+
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+
+    --inner-highlight: inset 0 1px 0 rgba(253, 245, 230, 0.04);
+
+    /* house spring, roughly */
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--surface-0);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+
+  /* subtle warm vignette so the canvas feels like sun through a wood-panel office */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 70% 10%, rgba(242, 140, 82, 0.06), transparent 55%),
+                radial-gradient(ellipse at 0% 100%, rgba(178, 40, 72, 0.045), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 248px 1fr;
+    grid-template-rows: 100vh;
+  }
+
+  /* ---------- sidebar ---------- */
+  aside {
+    background: var(--surface-1);
+    box-shadow: var(--inner-highlight), 1px 0 0 rgba(253, 245, 230, 0.025);
+    padding: var(--space-5) var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    min-height: 0;
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 26px;
+    color: var(--brand-cream);
+    padding: var(--space-2) var(--space-3);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .logo .lite {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--brand-pink);
+    text-transform: uppercase;
+    align-self: center;
+    padding: 2px 6px;
+    border: 1px solid rgba(244, 160, 176, 0.25);
+    border-radius: var(--radius-tight);
+  }
+
+  nav ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  nav .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    padding: var(--space-3) var(--space-3) var(--space-2);
+  }
+  nav button {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 10px var(--space-3);
+    border-radius: var(--radius-default);
+    color: var(--neutral-300);
+    font-size: 14px;
+    transition: background 220ms var(--spring), color 220ms var(--spring), transform 220ms var(--spring);
+    position: relative;
+  }
+  nav button:hover { background: var(--surface-2); color: var(--brand-cream); }
+  nav button.active {
+    background: var(--surface-2);
+    color: var(--brand-cream);
+    box-shadow: var(--inner-highlight);
+  }
+  nav button.active::before {
+    content: "";
+    position: absolute;
+    left: -17px;
+    top: 10px; bottom: 10px;
+    width: 3px;
+    background: var(--brand-red);
+    border-radius: 0 3px 3px 0;
+  }
+  nav svg { flex: none; width: 18px; height: 18px; stroke-width: 1.6; }
+  nav .count {
+    margin-left: auto;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    background: var(--surface-3);
+    color: var(--neutral-300);
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+  nav .count.hot { background: rgba(178, 40, 72, 0.2); color: var(--brand-pink); }
+
+  .user {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--surface-2);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+  }
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-red), var(--brand-orange));
+    display: grid; place-items: center;
+    color: var(--brand-cream);
+    font-family: "Righteous", sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    flex: none;
+  }
+  .user .name { color: var(--brand-cream); font-size: 13px; font-weight: 500; }
+  .user .role { color: var(--neutral-500); font-size: 11px; font-family: "Righteous", sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ---------- main ---------- */
+  main {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+  }
+  header.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-5) var(--space-6);
+    gap: var(--space-5);
+  }
+  .page-title {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .page-title span { color: var(--brand-cream); }
+  .search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+  .search input {
+    all: unset;
+    width: 100%;
+    padding: 10px var(--space-4) 10px 38px;
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    color: var(--neutral-300);
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px;
+    transition: box-shadow 220ms var(--spring);
+  }
+  .search input:focus {
+    box-shadow: var(--inner-highlight), 0 0 0 2px var(--brand-pink);
+  }
+  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--neutral-500); width: 16px; height: 16px; }
+
+  .topbar-actions { display: flex; gap: var(--space-3); align-items: center; }
+  .icon-btn {
+    all: unset;
+    cursor: pointer;
+    width: 40px; height: 40px;
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    display: grid; place-items: center;
+    color: var(--neutral-300);
+    transition: background 220ms var(--spring), color 220ms var(--spring);
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--brand-cream); }
+  .icon-btn svg { width: 18px; height: 18px; stroke-width: 1.6; }
+
+  /* ---------- pages ---------- */
+  .pages { overflow-y: auto; padding: 0 var(--space-6) var(--space-7); }
+  .pages::-webkit-scrollbar { width: 10px; }
+  .pages::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 10px; border: 2px solid var(--surface-0); }
+
+  .page { display: none; }
+  .page.active { display: block; animation: pageIn 420ms var(--spring) both; }
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* reveal helper — staggered with CSS var delay */
+  .stagger { opacity: 0; transform: translateY(10px); animation: revealIn 540ms var(--spring) forwards; animation-delay: var(--d, 0ms); }
+  @keyframes revealIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- cockpit ---------- */
+  .brief {
+    background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 100%);
+    border-radius: var(--radius-generous);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-7) var(--space-7) var(--space-6);
+    position: relative;
+    overflow: hidden;
+  }
+  .brief::after {
+    content: "";
+    position: absolute;
+    top: -40%; right: -10%;
+    width: 60%; height: 180%;
+    background: radial-gradient(ellipse, rgba(244, 160, 176, 0.09), transparent 60%);
+    pointer-events: none;
+  }
+  .brief .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .brief .eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--brand-pink);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.4); }
+  }
+  .brief h1 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 40px;
+    color: var(--brand-cream);
+    line-height: 1.1;
+    margin-bottom: var(--space-5);
+    letter-spacing: -0.5px;
+  }
+  .brief .narrative {
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--neutral-300);
+    max-width: 70ch;
+    position: relative;
+    z-index: 1;
+    animation: fadeBrief 800ms var(--spring) both;
+    animation-delay: 380ms;
+  }
+  @keyframes fadeBrief {
+    from { opacity: 0; filter: blur(3px); }
+    to   { opacity: 1; filter: blur(0); }
+  }
+  .brief .narrative .accent {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    color: var(--brand-pink);
+  }
+  .brief .footer-row {
+    display: flex;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid rgba(253, 245, 230, 0.06);
+    position: relative;
+    z-index: 1;
+  }
+  .brief-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .brief-metric .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+  }
+  .brief-metric .value {
+    font-family: "DM Sans", sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--brand-cream);
+  }
+  .brief-metric .delta { font-size: 11px; color: var(--success); }
+  .brief-metric .delta.warn { color: var(--warning); }
+
+  /* today board */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: var(--space-7) 0 var(--space-4);
+  }
+  .section-head h2 {
+    font-family: "DM Sans", sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--brand-cream);
+  }
+  .section-head .sub {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+  }
+
+  .today-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+  .today-col {
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 260px;
+  }
+  .today-col h3 {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .today-col h3 .count { color: var(--brand-cream); }
+  .today-col.must h3 .count { color: var(--brand-red); }
+  .task {
+    background: var(--surface-2);
+    border-radius: var(--radius-default);
+    padding: var(--space-3) var(--space-4);
+    box-shadow: var(--inner-highlight);
+    cursor: pointer;
+    transition: transform 280ms var(--spring), background 280ms var(--spring);
+  }
+  .task:hover { background: var(--surface-3); transform: translateY(-2px); }
+  .task .title { color: var(--brand-cream); font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .task .meta { color: var(--neutral-500); font-size: 12px; display: flex; gap: var(--space-3); }
+  .task .meta .tag {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: var(--radius-tight);
+    text-transform: uppercase;
+  }
+  .tag.retainer { background: rgba(244, 160, 176, 0.12); color: var(--brand-pink); }
+  .tag.saas     { background: rgba(242, 140, 82, 0.12); color: var(--brand-orange); }
+  .tag.client   { background: rgba(123, 174, 126, 0.12); color: var(--success); }
+  .tag.pipeline { background: rgba(212, 210, 194, 0.08); color: var(--neutral-300); }
+
+  /* ---------- pipeline ---------- */
+  .pipeline-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-5);
+    gap: var(--space-4);
+  }
+  .view-switcher {
+    display: inline-flex;
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: 3px;
+  }
+  .view-switcher button {
+    all: unset;
+    cursor: pointer;
+    padding: 7px 14px;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    border-radius: var(--radius-tight);
+    transition: background 220ms var(--spring), color 220ms var(--spring);
+  }
+  .view-switcher button.active { background: var(--surface-3); color: var(--brand-cream); }
+
+  .cta {
+    all: unset;
+    cursor: pointer;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    padding: 10px 18px;
+    border-radius: var(--radius-default);
+    font-family: "Righteous", sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: var(--inner-highlight);
+    transition: transform 220ms var(--spring), background 220ms var(--spring);
+  }
+  .cta:hover { background: #c82e53; transform: translateY(-1px); }
+  .cta.ghost {
+    background: var(--surface-1);
+    color: var(--neutral-300);
+  }
+  .cta.ghost:hover { background: var(--surface-2); color: var(--brand-cream); }
+
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(220px, 1fr));
+    gap: var(--space-3);
+    overflow-x: auto;
+    padding-bottom: var(--space-4);
+  }
+  .kcol {
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-4) var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 480px;
+  }
+  .kcol h3 {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 var(--space-2) var(--space-2);
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+    margin-bottom: var(--space-2);
+  }
+  .kcol h3 .num {
+    background: var(--surface-3);
+    color: var(--neutral-300);
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+  .kcard {
+    background: var(--surface-2);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-3) var(--space-4);
+    cursor: grab;
+    transition: transform 280ms var(--spring), background 280ms var(--spring);
+    user-select: none;
+  }
+  .kcard:hover { transform: translateY(-2px); background: var(--surface-3); }
+  .kcard.dragging { opacity: 0.4; cursor: grabbing; }
+  .kcard .company { color: var(--brand-cream); font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .kcard .sub { color: var(--neutral-500); font-size: 11px; margin-bottom: var(--space-2); }
+  .kcard .bottom { display: flex; justify-content: space-between; align-items: center; }
+  .kcard .value { color: var(--brand-pink); font-family: "Righteous", sans-serif; font-size: 11px; letter-spacing: 1px; }
+  .kcard .stale { color: var(--brand-orange); font-size: 10px; font-family: "Righteous", sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+  .kcol.won-col h3 .num { background: rgba(123, 174, 126, 0.18); color: var(--success); }
+  .kcol.lost-col h3 .num { background: rgba(128, 127, 115, 0.2); color: var(--neutral-500); }
+
+  /* ---------- lead gen queue ---------- */
+  .queue {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-2);
+    min-height: 540px;
+  }
+  .queue-list {
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 620px;
+    overflow-y: auto;
+  }
+  .queue-item {
+    background: transparent;
+    border-radius: var(--radius-default);
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: background 220ms var(--spring);
+    position: relative;
+  }
+  .queue-item:hover { background: var(--surface-2); }
+  .queue-item.active { background: var(--surface-2); box-shadow: var(--inner-highlight); }
+  .queue-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 10px; bottom: 10px;
+    width: 3px;
+    background: var(--brand-pink);
+    border-radius: 0 3px 3px 0;
+  }
+  .queue-item .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .queue-item .name { color: var(--brand-cream); font-size: 13px; font-weight: 500; }
+  .queue-item .score {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: var(--brand-cream);
+    background: var(--surface-3);
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+  .queue-item .score.hot { background: rgba(178, 40, 72, 0.25); color: var(--brand-pink); }
+  .queue-item .sub { color: var(--neutral-500); font-size: 11px; }
+
+  .draft {
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .draft-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  .draft-head .company-name { color: var(--brand-cream); font-size: 22px; font-weight: 600; margin-bottom: 2px; }
+  .draft-head .meta { color: var(--neutral-500); font-size: 13px; display: flex; gap: var(--space-3); }
+  .pill {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    background: var(--surface-3);
+    color: var(--neutral-300);
+  }
+  .pill.retainer { background: rgba(244, 160, 176, 0.12); color: var(--brand-pink); }
+  .pill.saas     { background: rgba(242, 140, 82, 0.12); color: var(--brand-orange); }
+  .pill.win      { background: rgba(123, 174, 126, 0.12); color: var(--success); }
+
+  .signals { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+  .signal {
+    background: var(--surface-2);
+    border-radius: var(--radius-default);
+    padding: var(--space-3) var(--space-4);
+    box-shadow: var(--inner-highlight);
+  }
+  .signal .lbl { font-family: "Righteous", sans-serif; font-size: 9px; letter-spacing: 1px; color: var(--neutral-500); text-transform: uppercase; margin-bottom: 2px; }
+  .signal .v { color: var(--brand-cream); font-size: 13px; font-weight: 500; }
+
+  .email-preview {
+    background: var(--surface-2);
+    border-radius: var(--radius-default);
+    padding: var(--space-5);
+    box-shadow: var(--inner-highlight);
+  }
+  .email-preview .subj { color: var(--brand-cream); font-weight: 600; margin-bottom: var(--space-3); font-size: 15px; }
+  .email-preview p { color: var(--neutral-300); font-size: 14px; margin-bottom: var(--space-3); line-height: 1.6; }
+  .email-preview .sig { color: var(--neutral-500); font-size: 13px; font-style: italic; }
+
+  .draft-actions { display: flex; gap: var(--space-3); justify-content: flex-end; }
+  .btn {
+    all: unset;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: var(--radius-default);
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: background 220ms var(--spring), color 220ms var(--spring), transform 220ms var(--spring);
+  }
+  .btn.ghost { background: var(--surface-2); color: var(--neutral-300); }
+  .btn.ghost:hover { background: var(--surface-3); color: var(--brand-cream); }
+  .btn.primary { background: var(--brand-red); color: var(--brand-cream); box-shadow: var(--inner-highlight); }
+  .btn.primary:hover { background: #c82e53; transform: translateY(-1px); }
+
+  /* ---------- clients ---------- */
+  .clients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  .client-card {
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-5);
+    cursor: pointer;
+    transition: transform 280ms var(--spring), background 280ms var(--spring);
+    position: relative;
+    overflow: hidden;
+  }
+  .client-card:hover { transform: translateY(-3px); background: var(--surface-2); }
+  .client-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--brand-red), var(--brand-orange));
+    opacity: 0.7;
+  }
+  .client-card h3 { color: var(--brand-cream); font-size: 17px; font-weight: 600; margin-bottom: 2px; }
+  .client-card .vertical { color: var(--brand-pink); font-size: 12px; font-family: "Righteous", sans-serif; letter-spacing: 1px; text-transform: uppercase; margin-bottom: var(--space-4); }
+  .client-card .mrr {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-3) 0;
+    border-top: 1px solid rgba(253, 245, 230, 0.06);
+    border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+    margin-bottom: var(--space-3);
+  }
+  .client-card .mrr .lbl { font-family: "Righteous", sans-serif; font-size: 9px; letter-spacing: 1px; color: var(--neutral-500); text-transform: uppercase; align-self: center; }
+  .client-card .mrr .v { color: var(--brand-cream); font-size: 18px; font-weight: 600; }
+  .client-card .status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 12px;
+    color: var(--neutral-500);
+  }
+  .client-card .status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .client-card.warn .status .dot { background: var(--brand-orange); }
+
+  /* ---------- inbox ---------- */
+  .inbox {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: var(--space-5);
+    min-height: 560px;
+  }
+  .thread-list {
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    overflow: hidden;
+    max-height: 640px;
+    overflow-y: auto;
+  }
+  .thread {
+    padding: var(--space-4) var(--space-5);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+    transition: background 220ms var(--spring);
+    position: relative;
+  }
+  .thread:hover { background: var(--surface-2); }
+  .thread.active { background: var(--surface-2); }
+  .thread.active::before {
+    content: "";
+    position: absolute;
+    left: 0; top: var(--space-4); bottom: var(--space-4);
+    width: 3px; background: var(--brand-pink);
+  }
+  .thread.unread .from { color: var(--brand-cream); font-weight: 600; }
+  .thread.unread::after {
+    content: "";
+    position: absolute;
+    right: var(--space-5); top: 50%;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--brand-pink);
+    transform: translateY(-50%);
+  }
+  .thread .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .thread .from { color: var(--neutral-300); font-size: 14px; }
+  .thread .time { color: var(--neutral-500); font-size: 11px; }
+  .thread .subject { color: var(--neutral-300); font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .thread .preview { color: var(--neutral-500); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .message {
+    background: var(--surface-1);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .message-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  .message-head h2 { color: var(--brand-cream); font-size: 22px; font-weight: 600; margin-bottom: var(--space-2); }
+  .message-head .from { color: var(--neutral-500); font-size: 13px; }
+  .message-body { color: var(--neutral-300); font-size: 14px; line-height: 1.7; }
+  .message-body p { margin-bottom: var(--space-3); }
+
+  .suggested-reply {
+    background: var(--surface-2);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight);
+    padding: var(--space-5);
+    position: relative;
+  }
+  .suggested-reply .lbl {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--brand-pink);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: var(--space-3);
+  }
+  .suggested-reply .lbl .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brand-pink); }
+  .suggested-reply .draft-text { color: var(--neutral-300); font-size: 14px; line-height: 1.6; margin-bottom: var(--space-4); }
+  .nudge {
+    display: flex;
+    gap: var(--space-3);
+  }
+  .nudge input {
+    all: unset;
+    flex: 1;
+    padding: 8px var(--space-3);
+    background: var(--surface-1);
+    border-radius: var(--radius-tight);
+    color: var(--neutral-300);
+    font-size: 13px;
+    box-shadow: var(--inner-highlight);
+  }
+  .nudge input::placeholder { color: var(--neutral-500); font-style: italic; }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: var(--space-6);
+    left: 50%;
+    transform: translateX(-50%) translateY(40px);
+    background: var(--surface-2);
+    color: var(--brand-cream);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-default);
+    box-shadow: var(--inner-highlight), 0 8px 24px rgba(0,0,0,0.4);
+    font-size: 13px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 280ms var(--spring), transform 280ms var(--spring);
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.show::before {
+    content: "";
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    margin-right: var(--space-3);
+    vertical-align: middle;
+  }
+
+  /* Tier-2-style first-load stagger for sidebar + topbar */
+  .app aside        { animation: slideLeft 520ms var(--spring) both; }
+  .app header.topbar { animation: fadeDown 520ms var(--spring) both; animation-delay: 100ms; }
+  @keyframes slideLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fadeDown  { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  @media (max-width: 1180px) {
+    .kanban { grid-template-columns: repeat(8, 220px); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside>
+    <div class="logo">SuperBad <span class="lite">Lite</span></div>
+    <nav>
+      <div class="eyebrow">Today</div>
+      <ul>
+        <li><button data-page="cockpit" class="active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M4.22 4.22l1.42 1.42M2 12h2M4.22 19.78l1.42-1.42M12 20v2M19.78 19.78l-1.42-1.42M20 12h2M19.78 4.22l-1.42 1.42"/><circle cx="12" cy="12" r="5"/></svg>
+          Cockpit
+        </button></li>
+      </ul>
+      <div class="eyebrow">Growth</div>
+      <ul>
+        <li><button data-page="pipeline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="8" rx="1"/></svg>
+          Pipeline
+          <span class="count">23</span>
+        </button></li>
+        <li><button data-page="leadgen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          Lead gen queue
+          <span class="count hot">7</span>
+        </button></li>
+        <li><button data-page="inbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></svg>
+          Inbox
+          <span class="count">12</span>
+        </button></li>
+      </ul>
+      <div class="eyebrow">Delivery</div>
+      <ul>
+        <li><button data-page="clients">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Clients
+          <span class="count">8</span>
+        </button></li>
+        <li><button data-page="cockpit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Calendar
+        </button></li>
+        <li><button data-page="cockpit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Quotes
+        </button></li>
+      </ul>
+      <div class="eyebrow">Platform</div>
+      <ul>
+        <li><button data-page="cockpit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-7m0 0H4m9 0V4m0 3v3m7 4h-3m0 0H4m9 0v-3m0 3v3"/></svg>
+          SaaS products
+        </button></li>
+        <li><button data-page="cockpit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button></li>
+      </ul>
+    </nav>
+    <div class="user">
+      <div class="avatar">AR</div>
+      <div>
+        <div class="name">Andy Robinson</div>
+        <div class="role">Admin</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <header class="topbar">
+      <div class="page-title"><span id="breadcrumb">Cockpit</span> · <span id="breadcrumb-date">Sunday, 12 April</span></div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="Search prospects, clients, messages…" />
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        </button>
+        <button class="icon-btn" title="Add">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="pages">
+
+      <!-- ====== COCKPIT ====== -->
+      <section class="page active" data-page="cockpit">
+        <div class="brief">
+          <div class="eyebrow"><span class="dot"></span> Morning brief · Sun 12 April</div>
+          <h1>Sunday. Quiet before the noise.</h1>
+          <p class="narrative">
+            Three leads rolled in overnight — <span class="accent">two medical aesthetics, one allied health</span> — and the pipeline's holding steady at twenty-three. Lumen Clinic is still sitting in Quoted, day eleven. Probably worth a nudge Monday morning. Otherwise, the week opens soft: one shoot day Tuesday, one approvals queue to clear, and Karma Dental's invoice went through at 3:14am while you were asleep. Not bad for a Sunday.
+          </p>
+          <div class="footer-row">
+            <div class="brief-metric">
+              <div class="label">Pipeline</div>
+              <div class="value">$47,200</div>
+              <div class="delta">+$8,400 this week</div>
+            </div>
+            <div class="brief-metric">
+              <div class="label">MRR</div>
+              <div class="value">$31,800</div>
+              <div class="delta">8 active clients</div>
+            </div>
+            <div class="brief-metric">
+              <div class="label">Outreach last 7d</div>
+              <div class="value">94 sent</div>
+              <div class="delta">12% reply</div>
+            </div>
+            <div class="brief-metric">
+              <div class="label">Lumen Clinic</div>
+              <div class="value">Quoted</div>
+              <div class="delta warn">Stale · day 11</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h2>Today</h2>
+          <div class="sub">Pulled from deadlines · 3 views</div>
+        </div>
+
+        <div class="today-grid">
+          <div class="today-col must stagger" style="--d:120ms">
+            <h3>Must do <span class="count">2</span></h3>
+            <div class="task">
+              <div class="title">Approve Lumen Clinic ad creatives</div>
+              <div class="meta"><span class="tag client">Client</span><span>Due 10am</span></div>
+            </div>
+            <div class="task">
+              <div class="title">Nudge Parkview Dental (day 11, Quoted)</div>
+              <div class="meta"><span class="tag pipeline">Pipeline</span><span>Stale</span></div>
+            </div>
+          </div>
+          <div class="today-col stagger" style="--d:200ms">
+            <h3>Should do <span class="count">3</span></h3>
+            <div class="task">
+              <div class="title">Review 7 lead gen drafts in queue</div>
+              <div class="meta"><span class="tag retainer">Retainer</span><span>~15 min</span></div>
+            </div>
+            <div class="task">
+              <div class="title">Karma Dental shoot day prep — Tuesday</div>
+              <div class="meta"><span class="tag client">Client</span><span>Tomorrow</span></div>
+            </div>
+            <div class="task">
+              <div class="title">Record April Brand DNA reveal for Bloom MedSpa</div>
+              <div class="meta"><span class="tag client">Client</span><span>This week</span></div>
+            </div>
+          </div>
+          <div class="today-col stagger" style="--d:280ms">
+            <h3>If time <span class="count">2</span></h3>
+            <div class="task">
+              <div class="title">Content engine: review 2 blog drafts</div>
+              <div class="meta"><span class="tag saas">Content</span></div>
+            </div>
+            <div class="task">
+              <div class="title">Settle on next SaaS product spec</div>
+              <div class="meta"><span class="tag saas">SaaS</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== PIPELINE ====== -->
+      <section class="page" data-page="pipeline">
+        <div class="pipeline-head">
+          <div class="view-switcher">
+            <button class="active">Kanban</button>
+            <button>List</button>
+            <button>Forecast</button>
+          </div>
+          <button class="cta">+ New deal</button>
+        </div>
+
+        <div class="kanban" id="kanban">
+          <div class="kcol" data-col="lead">
+            <h3>Lead <span class="num">4</span></h3>
+            <div class="kcard" draggable="true"><div class="company">Harbour Physio</div><div class="sub">Allied Health · Sydney</div><div class="bottom"><span class="value">—</span><span class="stale">Day 2</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Lume Dermatology</div><div class="sub">Med Aesthetics · Melbourne</div><div class="bottom"><span class="value">—</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Ridgemont Financial</div><div class="sub">Finance · Perth</div><div class="bottom"><span class="value">—</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Rosewood Optical</div><div class="sub">Optometry · Brisbane</div><div class="bottom"><span class="value">—</span></div></div>
+          </div>
+          <div class="kcol" data-col="contacted">
+            <h3>Contacted <span class="num">5</span></h3>
+            <div class="kcard" draggable="true"><div class="company">Birchgrove Smiles</div><div class="sub">Dental · Sydney</div><div class="bottom"><span class="value">—</span><span class="stale">Day 4</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Halo Chiropractic</div><div class="sub">Allied Health</div><div class="bottom"><span class="value">—</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Verde Landscaping</div><div class="sub">Home Services</div><div class="bottom"><span class="value">—</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Nellie's Coffee Roasters</div><div class="sub">Hospitality</div><div class="bottom"><span class="value">—</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Kingsway Legal</div><div class="sub">Legal</div><div class="bottom"><span class="value">—</span></div></div>
+          </div>
+          <div class="kcol" data-col="conversation">
+            <h3>Conversation <span class="num">3</span></h3>
+            <div class="kcard" draggable="true"><div class="company">Stellar Aesthetics</div><div class="sub">Med Aesthetics · Melbourne</div><div class="bottom"><span class="value">est. 4.5k/mo</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Fernwood Counselling</div><div class="sub">Allied Health</div><div class="bottom"><span class="value">est. 3k/mo</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Clarity Vision</div><div class="sub">Optometry</div><div class="bottom"><span class="value">—</span></div></div>
+          </div>
+          <div class="kcol" data-col="trial">
+            <h3>Trial shoot <span class="num">2</span></h3>
+            <div class="kcard" draggable="true"><div class="company">The Drip Lab</div><div class="sub">Med Aesthetics · $297 paid</div><div class="bottom"><span class="value">Shoot Thu</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Southside Strength</div><div class="sub">Fitness · $297 paid</div><div class="bottom"><span class="value">Shoot next wk</span></div></div>
+          </div>
+          <div class="kcol" data-col="quoted">
+            <h3>Quoted <span class="num">3</span></h3>
+            <div class="kcard" draggable="true"><div class="company">Lumen Clinic</div><div class="sub">Med Aesthetics · Melbourne</div><div class="bottom"><span class="value">$6,200/mo</span><span class="stale">Day 11</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Parkview Dental</div><div class="sub">Dental · Adelaide</div><div class="bottom"><span class="value">$4,800/mo</span><span class="stale">Day 6</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Meridian Wealth</div><div class="sub">Finance · Melbourne</div><div class="bottom"><span class="value">$5,400/mo</span></div></div>
+          </div>
+          <div class="kcol" data-col="negotiating">
+            <h3>Negotiating <span class="num">2</span></h3>
+            <div class="kcard" draggable="true"><div class="company">Atlas Veterinary</div><div class="sub">Vet · Sydney</div><div class="bottom"><span class="value">$3,900/mo</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">North Collective</div><div class="sub">Fitness · Melbourne</div><div class="bottom"><span class="value">$5,200/mo</span></div></div>
+          </div>
+          <div class="kcol won-col" data-col="won">
+            <h3>Won <span class="num">3</span></h3>
+            <div class="kcard" draggable="true"><div class="company">Bloom MedSpa</div><div class="sub">Med Aesthetics · Onboarded</div><div class="bottom"><span class="value">$5,800/mo</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Karma Dental</div><div class="sub">Dental · Onboarded</div><div class="bottom"><span class="value">$4,200/mo</span></div></div>
+            <div class="kcard" draggable="true"><div class="company">Elevate Physio</div><div class="sub">Allied Health · Onboarded</div><div class="bottom"><span class="value">$3,600/mo</span></div></div>
+          </div>
+          <div class="kcol lost-col" data-col="lost">
+            <h3>Lost <span class="num">1</span></h3>
+            <div class="kcard" draggable="true"><div class="company">Sun &amp; Stone</div><div class="sub">Hospitality · Price</div><div class="bottom"><span class="value">—</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== LEAD GEN QUEUE ====== -->
+      <section class="page" data-page="leadgen">
+        <div class="section-head" style="margin-top: var(--space-2)">
+          <h2>Approval queue</h2>
+          <div class="sub">7 drafts · Last run 03:00 AEDT · Warmup day 19/28</div>
+        </div>
+
+        <div class="queue">
+          <div class="queue-list">
+            <div class="queue-item active" data-lead="0">
+              <div class="top"><span class="name">Stellar Aesthetics</span><span class="score hot">94</span></div>
+              <div class="sub">Med Aesthetics · Retainer track</div>
+            </div>
+            <div class="queue-item" data-lead="1">
+              <div class="top"><span class="name">Fernwood Counselling</span><span class="score hot">89</span></div>
+              <div class="sub">Allied Health · Retainer track</div>
+            </div>
+            <div class="queue-item" data-lead="2">
+              <div class="top"><span class="name">Birchgrove Smiles</span><span class="score">81</span></div>
+              <div class="sub">Dental · Retainer track</div>
+            </div>
+            <div class="queue-item" data-lead="3">
+              <div class="top"><span class="name">Kingsway Legal</span><span class="score">78</span></div>
+              <div class="sub">Legal · SaaS track</div>
+            </div>
+            <div class="queue-item" data-lead="4">
+              <div class="top"><span class="name">Halo Chiropractic</span><span class="score">74</span></div>
+              <div class="sub">Allied Health · Retainer track</div>
+            </div>
+            <div class="queue-item" data-lead="5">
+              <div class="top"><span class="name">Nellie's Coffee Roasters</span><span class="score">68</span></div>
+              <div class="sub">Hospitality · SaaS track</div>
+            </div>
+            <div class="queue-item" data-lead="6">
+              <div class="top"><span class="name">Verde Landscaping</span><span class="score">64</span></div>
+              <div class="sub">Home Services · SaaS track</div>
+            </div>
+          </div>
+
+          <div class="draft" id="draftPane">
+            <div class="draft-head">
+              <div>
+                <div class="company-name">Stellar Aesthetics</div>
+                <div class="meta">
+                  <span class="pill retainer">Retainer track</span>
+                  <span>stellaraesthetics.com.au</span>
+                  <span>·</span>
+                  <span>Melbourne VIC</span>
+                </div>
+              </div>
+              <span class="pill win">Score 94</span>
+            </div>
+
+            <div class="signals">
+              <div class="signal"><div class="lbl">Meta ads active</div><div class="v">7 active creatives</div></div>
+              <div class="signal"><div class="lbl">Monthly spend est.</div><div class="v">$3–5k</div></div>
+              <div class="signal"><div class="lbl">Last ad refresh</div><div class="v">47 days ago</div></div>
+              <div class="signal"><div class="lbl">Site speed</div><div class="v">72 / 100</div></div>
+              <div class="signal"><div class="lbl">Instagram</div><div class="v">8.4k · posting 2×/wk</div></div>
+              <div class="signal"><div class="lbl">Founded</div><div class="v">2019 · WHOIS match</div></div>
+            </div>
+
+            <div class="email-preview">
+              <div class="subj">About that Botox creative that's been running since February</div>
+              <p>Hi Elena,</p>
+              <p>Watched your current Meta ads for about four minutes this morning. The Botox creative set has been running since the second week of February — which is longer than Google recommends a single creative run, and the engagement curve on ads like those starts flattening around week six.</p>
+              <p>Not pitching anything yet. Just — if you'd like, I can put together a side-by-side of what your top-performing creative is doing versus what three comparable clinics in Melbourne are running right now. No cost. No hook. Just a thing I'd find interesting if I were you.</p>
+              <div class="sig">— Andy<br/>SuperBad Marketing</div>
+            </div>
+
+            <div class="draft-actions">
+              <button class="btn ghost">Regenerate</button>
+              <button class="btn ghost">Edit</button>
+              <button class="btn ghost">Skip</button>
+              <button class="btn primary" id="approveSend">Approve &amp; send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== CLIENTS ====== -->
+      <section class="page" data-page="clients">
+        <div class="section-head" style="margin-top: var(--space-2)">
+          <h2>Active clients</h2>
+          <div class="sub">8 clients · $31,800 MRR</div>
+        </div>
+        <div class="clients-grid">
+          <div class="client-card stagger" style="--d:60ms">
+            <h3>Bloom MedSpa</h3>
+            <div class="vertical">Med Aesthetics</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$5,800</span></div>
+            <div class="status"><span class="dot"></span>All deliverables on track</div>
+          </div>
+          <div class="client-card stagger" style="--d:120ms">
+            <h3>Karma Dental</h3>
+            <div class="vertical">Dental</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$4,200</span></div>
+            <div class="status"><span class="dot"></span>Invoice paid 3:14am</div>
+          </div>
+          <div class="client-card warn stagger" style="--d:180ms">
+            <h3>Lumen Clinic</h3>
+            <div class="vertical">Med Aesthetics</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$4,900</span></div>
+            <div class="status"><span class="dot"></span>2 creatives awaiting approval</div>
+          </div>
+          <div class="client-card stagger" style="--d:240ms">
+            <h3>Elevate Physio</h3>
+            <div class="vertical">Allied Health</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$3,600</span></div>
+            <div class="status"><span class="dot"></span>Shoot day booked Tuesday</div>
+          </div>
+          <div class="client-card stagger" style="--d:300ms">
+            <h3>Ridge Financial</h3>
+            <div class="vertical">Finance</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$4,100</span></div>
+            <div class="status"><span class="dot"></span>Brand DNA complete</div>
+          </div>
+          <div class="client-card stagger" style="--d:360ms">
+            <h3>Alto Optical</h3>
+            <div class="vertical">Optometry</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$3,900</span></div>
+            <div class="status"><span class="dot"></span>April content delivered</div>
+          </div>
+          <div class="client-card stagger" style="--d:420ms">
+            <h3>Canopy Dental</h3>
+            <div class="vertical">Dental</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$2,900</span></div>
+            <div class="status"><span class="dot"></span>Onboarding — day 4</div>
+          </div>
+          <div class="client-card stagger" style="--d:480ms">
+            <h3>Oak &amp; Iron Gym</h3>
+            <div class="vertical">Fitness</div>
+            <div class="mrr"><span class="lbl">MRR</span><span class="v">$2,400</span></div>
+            <div class="status"><span class="dot"></span>Gallery uploaded</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== INBOX ====== -->
+      <section class="page" data-page="inbox">
+        <div class="section-head" style="margin-top: var(--space-2)">
+          <h2>Inbox</h2>
+          <div class="sub">12 messages · 3 unread</div>
+        </div>
+        <div class="inbox">
+          <div class="thread-list">
+            <div class="thread unread active">
+              <div class="top"><span class="from">Elena — Stellar Aesthetics</span><span class="time">08:14</span></div>
+              <div class="subject">Re: about that Botox creative…</div>
+              <div class="preview">Ha — honest enough. I'll bite. Send the side-by-side.</div>
+            </div>
+            <div class="thread unread">
+              <div class="top"><span class="from">Karma Dental</span><span class="time">03:14</span></div>
+              <div class="subject">Invoice 0142 — paid</div>
+              <div class="preview">Stripe · $4,200 · April retainer</div>
+            </div>
+            <div class="thread unread">
+              <div class="from">Jade — Bloom MedSpa</div>
+              <div class="subject">Approval: April hero creative</div>
+              <div class="preview">Love it. One tiny tweak on the headline and we're good to go live…</div>
+            </div>
+            <div class="thread">
+              <div class="top"><span class="from">Lumen Clinic</span><span class="time">Fri</span></div>
+              <div class="subject">Re: proposal — a few questions</div>
+              <div class="preview">Just had a chat internally. The monthly number makes sense, we're…</div>
+            </div>
+            <div class="thread">
+              <div class="top"><span class="from">Parkview Dental</span><span class="time">Thu</span></div>
+              <div class="subject">Quote accepted — welcome email</div>
+              <div class="preview">Thanks Andy, signed and paid. Looking forward to kicking off.</div>
+            </div>
+            <div class="thread">
+              <div class="top"><span class="from">The Drip Lab</span><span class="time">Thu</span></div>
+              <div class="subject">Trial shoot — location confirmation</div>
+              <div class="preview">Our studio is on Gertrude St. Parking is chaos, just a heads up…</div>
+            </div>
+            <div class="thread">
+              <div class="top"><span class="from">Resend · delivery</span><span class="time">Wed</span></div>
+              <div class="subject">Daily outreach report</div>
+              <div class="preview">23 sent · 2 replies · 8 opens · 0 bounces</div>
+            </div>
+          </div>
+
+          <div class="message">
+            <div class="message-head">
+              <div>
+                <h2>Re: about that Botox creative…</h2>
+                <div class="from">Elena — Stellar Aesthetics &lt;elena@stellaraesthetics.com.au&gt; · 08:14</div>
+              </div>
+              <span class="pill retainer">Retainer lead</span>
+            </div>
+            <div class="message-body">
+              <p>Ha — honest enough. I'll bite.</p>
+              <p>Send the side-by-side. I've been muttering about those Botox ads to my team for a month and everyone keeps telling me they're fine. Would be useful to have someone from outside actually show me the numbers. Genuinely curious what the other three clinics are running.</p>
+              <p>If the work lines up we can talk about what a fuller engagement looks like. No rush on your end — this week or next is fine.</p>
+              <p>— Elena</p>
+            </div>
+
+            <div class="suggested-reply">
+              <div class="lbl"><span class="dot"></span>Suggested reply · warm · context engine</div>
+              <div class="draft-text">
+                Elena — perfect. I'll have the side-by-side over to you by Wednesday. Three clinics, their top ads by reach, and a short note on what each one is doing that yours isn't. No fluff and no slide deck. If it's useful we can talk next steps after you've read it; if it isn't, at least you'll have a clearer picture of what your market is running. Back to you Wednesday.
+              </div>
+              <div class="nudge">
+                <input placeholder="nudge it — e.g. 'less formal', 'mention the shoot Thursday'…" />
+                <button class="btn primary">Send reply</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast">Approved · queued for 09:00 Mon AEST</div>
+
+<script>
+  // ---------- routing ----------
+  const navButtons = document.querySelectorAll('nav button[data-page]');
+  const pages = document.querySelectorAll('.page');
+  const breadcrumb = document.getElementById('breadcrumb');
+  const labels = {
+    cockpit: 'Cockpit',
+    pipeline: 'Pipeline',
+    leadgen: 'Lead Gen Queue',
+    clients: 'Clients',
+    inbox: 'Inbox',
+  };
+
+  function switchPage(name) {
+    pages.forEach(p => p.classList.toggle('active', p.dataset.page === name));
+    navButtons.forEach(b => b.classList.toggle('active', b.dataset.page === name));
+    breadcrumb.textContent = labels[name] || name;
+    // re-run stagger animations by reflowing
+    document.querySelectorAll('.page.active .stagger').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight; // reflow
+      el.style.animation = '';
+    });
+  }
+
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => switchPage(btn.dataset.page));
+  });
+
+  // ---------- pipeline: draggable cards ----------
+  let dragged = null;
+  document.querySelectorAll('.kcard').forEach(card => {
+    card.addEventListener('dragstart', () => {
+      dragged = card;
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      dragged = null;
+      // recount columns
+      document.querySelectorAll('.kcol').forEach(col => {
+        const num = col.querySelectorAll('.kcard').length;
+        const span = col.querySelector('h3 .num');
+        if (span) span.textContent = num;
+      });
+    });
+  });
+  document.querySelectorAll('.kcol').forEach(col => {
+    col.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (dragged) col.appendChild(dragged);
+    });
+  });
+
+  // ---------- lead gen queue interaction ----------
+  const leads = [
+    {
+      name: "Stellar Aesthetics", track: "retainer", score: 94,
+      domain: "stellaraesthetics.com.au", city: "Melbourne VIC",
+      signals: [
+        ["Meta ads active", "7 active creatives"],
+        ["Monthly spend est.", "$3–5k"],
+        ["Last ad refresh", "47 days ago"],
+        ["Site speed", "72 / 100"],
+        ["Instagram", "8.4k · posting 2×/wk"],
+        ["Founded", "2019 · WHOIS match"],
+      ],
+      subj: "About that Botox creative that's been running since February",
+      body: [
+        "Hi Elena,",
+        "Watched your current Meta ads for about four minutes this morning. The Botox creative set has been running since the second week of February — which is longer than Google recommends a single creative run, and the engagement curve on ads like those starts flattening around week six.",
+        "Not pitching anything yet. Just — if you'd like, I can put together a side-by-side of what your top-performing creative is doing versus what three comparable clinics in Melbourne are running right now. No cost. No hook. Just a thing I'd find interesting if I were you."
+      ],
+    },
+    {
+      name: "Fernwood Counselling", track: "retainer", score: 89,
+      domain: "fernwoodcounselling.com.au", city: "Adelaide SA",
+      signals: [
+        ["Meta ads active", "0 (was 3)"],
+        ["Last ad seen", "83 days ago"],
+        ["Google Ads", "Active · branded"],
+        ["Site speed", "58 / 100"],
+        ["Instagram", "2.1k · dormant"],
+        ["Team size", "6–10"],
+      ],
+      subj: "Not running ads for almost three months — noticed",
+      body: [
+        "Hi Miriam,",
+        "Your Meta ads stopped running on the 18th of January. No judgement — ad fatigue is real, especially when you've got a clinic to run. But if the reason was 'they stopped working' rather than 'we chose to pause', I'd like to show you one thing I noticed about your old creative set that I'd do differently.",
+        "Five minutes, no pitch. Reply and I'll send it over."
+      ],
+    },
+    {
+      name: "Birchgrove Smiles", track: "retainer", score: 81,
+      domain: "birchgrovesmiles.com.au", city: "Sydney NSW",
+      signals: [
+        ["Meta ads active", "2 active"],
+        ["Last ad refresh", "12 days ago"],
+        ["Google Maps reviews", "4.8 · 340+"],
+        ["Site speed", "81 / 100"],
+        ["Instagram", "5.2k · weekly"],
+        ["Website stack", "Squarespace"],
+      ],
+      subj: "Your reviews deserve better ads",
+      body: [
+        "Hi Dr Chen,",
+        "You've got three-hundred-and-forty 4.8-star reviews and the exact same two creative hooks that everyone in Sydney dental is running. I've looked at a lot of these in the last month — yours is the only practice I've seen where the reviews are clearly better than the advertising.",
+        "If you're open to it, I'd love to show you a 60-second breakdown of what I'd change. No meeting, no call — just a short Loom. Reply 'ok' and I'll send it."
+      ],
+    },
+    {
+      name: "Kingsway Legal", track: "saas", score: 78,
+      domain: "kingswaylegal.com.au", city: "Brisbane QLD",
+      signals: [
+        ["Meta ads active", "0"],
+        ["Google Ads", "Active · aggressive"],
+        ["Spend est.", "$12k+/mo"],
+        ["Site speed", "64 / 100"],
+        ["Team size", "20–50"],
+        ["Founded", "2014"],
+      ],
+      subj: "Your Google Ads are working. Your landing pages aren't.",
+      body: [
+        "Hi Mark,",
+        "Your Google Ads spend is landing people on the same page template as ten other firms in Brisbane. The ads are doing the work; the pages are where the conversion is getting eaten.",
+        "I build a small SaaS tool that generates firm-specific landing pages from existing brand assets in about 4 minutes — built for exactly this problem. If you'd like a free one built off your actual site so you can see it before you commit to anything, reply and I'll send it."
+      ],
+    },
+    {
+      name: "Halo Chiropractic", track: "retainer", score: 74,
+      domain: "halochiro.com.au", city: "Perth WA",
+      signals: [
+        ["Meta ads active", "4 active"],
+        ["Last refresh", "21 days ago"],
+        ["Site speed", "70 / 100"],
+        ["Instagram", "3.8k · 3×/wk"],
+        ["Founded", "2020"],
+        ["Team size", "2–5"],
+      ],
+      subj: "Your Instagram is louder than your ads",
+      body: [
+        "Hi Tom,",
+        "Your organic Instagram output is better than your paid creative, which is unusual — normally it's the other way around. If you've got two to twenty minutes I'd love to show you how we'd use your organic library as the scaffolding for a paid set that actually feels like the rest of your brand.",
+        "No pitch this email. Just asking if you'd like to see it."
+      ],
+    },
+    {
+      name: "Nellie's Coffee Roasters", track: "saas", score: 68,
+      domain: "nellies.coffee", city: "Melbourne VIC",
+      signals: [
+        ["Meta ads active", "1 active"],
+        ["Google Ads", "Inactive"],
+        ["Site speed", "88 / 100"],
+        ["Instagram", "12k · daily"],
+        ["Shopify", "Confirmed"],
+        ["Founded", "2017"],
+      ],
+      subj: "A Shopify store this good deserves a proper email sequence",
+      body: [
+        "Hi Nell,",
+        "The brand, the photography, the grind notes on the product pages — all of that is beautifully done. The email sequence that fires when someone abandons a cart isn't, yet.",
+        "I've got a small SaaS tool built specifically for Shopify coffee roasters that generates an on-brand three-email abandoned-cart sequence from your existing product copy. I can set it up against your store in about an hour and you can see the drafts before anything fires. If you're open to that, reply 'send it'."
+      ],
+    },
+    {
+      name: "Verde Landscaping", track: "saas", score: 64,
+      domain: "verdelandscaping.com.au", city: "Geelong VIC",
+      signals: [
+        ["Meta ads active", "0"],
+        ["Google Ads", "Sporadic"],
+        ["Website", "Wix · 2018 template"],
+        ["Site speed", "41 / 100"],
+        ["Instagram", "800 · monthly"],
+        ["Founded", "2015"],
+      ],
+      subj: "The quote request form on your site loses about 30% of people",
+      body: [
+        "Hi Dan,",
+        "Tested your quote request form on my phone this morning. Between the scroll and the captcha, it took four taps to submit — and the Wix template you're on is slower than it needs to be. Roughly a third of people who land on that page will give up before finishing.",
+        "I've got a SaaS tool built for trades businesses that replaces forms like yours with a two-tap version that sits on your existing site. Free to test. Interested?"
+      ],
+    },
+  ];
+
+  const queueItems = document.querySelectorAll('.queue-item');
+  const draftPane = document.getElementById('draftPane');
+
+  function renderDraft(i) {
+    const lead = leads[i];
+    draftPane.innerHTML = `
+      <div class="draft-head">
+        <div>
+          <div class="company-name">${lead.name}</div>
+          <div class="meta">
+            <span class="pill ${lead.track}">${lead.track === 'retainer' ? 'Retainer track' : 'SaaS track'}</span>
+            <span>${lead.domain}</span>
+            <span>·</span>
+            <span>${lead.city}</span>
+          </div>
+        </div>
+        <span class="pill win">Score ${lead.score}</span>
+      </div>
+      <div class="signals">
+        ${lead.signals.map(([l, v]) => `<div class="signal"><div class="lbl">${l}</div><div class="v">${v}</div></div>`).join('')}
+      </div>
+      <div class="email-preview">
+        <div class="subj">${lead.subj}</div>
+        ${lead.body.map(p => `<p>${p}</p>`).join('')}
+        <div class="sig">— Andy<br/>SuperBad Marketing</div>
+      </div>
+      <div class="draft-actions">
+        <button class="btn ghost">Regenerate</button>
+        <button class="btn ghost">Edit</button>
+        <button class="btn ghost">Skip</button>
+        <button class="btn primary" id="approveSend">Approve &amp; send</button>
+      </div>
+    `;
+    wireApproveButton();
+    // reveal animation
+    draftPane.style.animation = 'none';
+    draftPane.offsetHeight;
+    draftPane.style.animation = 'pageIn 420ms var(--spring) both';
+  }
+
+  queueItems.forEach(item => {
+    item.addEventListener('click', () => {
+      queueItems.forEach(x => x.classList.remove('active'));
+      item.classList.add('active');
+      renderDraft(parseInt(item.dataset.lead, 10));
+    });
+  });
+
+  // ---------- toast ----------
+  const toast = document.getElementById('toast');
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+
+  function wireApproveButton() {
+    const btn = document.getElementById('approveSend');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const activeItem = document.querySelector('.queue-item.active');
+      const name = activeItem?.querySelector('.name')?.textContent || 'draft';
+      showToast(`${name} · approved · queued for 09:00 Mon AEST`);
+      // gentle "consumed" fade on the queue item
+      if (activeItem) {
+        activeItem.style.transition = 'opacity 400ms var(--spring), transform 400ms var(--spring)';
+        activeItem.style.opacity = '0.35';
+      }
+    });
+  }
+  wireApproveButton();
+
+  // ---------- cockpit task click toasts for flavour ----------
+  document.querySelectorAll('.task').forEach(t => {
+    t.addEventListener('click', () => showToast(`"${t.querySelector('.title').textContent}" — opened`));
+  });
+
+  // ---------- client cards click flavour ----------
+  document.querySelectorAll('.client-card').forEach(c => {
+    c.addEventListener('click', () => showToast(`${c.querySelector('h3').textContent} — opening profile`));
+  });
+
+  // ---------- threads click flavour ----------
+  document.querySelectorAll('.thread').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.thread').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad — your room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red: #B22848;
+    --brand-cream: #FDF5E6;
+    --brand-pink: #F4A0B0;
+    --brand-orange: #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-300: #D4D2C2;
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--neutral-900);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242, 140, 82, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178, 40, 72, 0.08), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244, 160, 176, 0.05), transparent 60%);
+  }
+
+  /* subtle film grain */
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.035; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .wrap {
+    position: relative; z-index: 2;
+    max-width: 760px;
+    margin: 0 auto;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    padding: 0 24px;
+  }
+
+  header.top {
+    padding: 24px 4px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 24px; color: var(--brand-cream);
+  }
+  .who {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .who em { color: var(--brand-pink); font-style: normal; }
+
+  /* ---------- chat surface ---------- */
+  .thread {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 4px 40px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .thread::-webkit-scrollbar { width: 6px; }
+  .thread::-webkit-scrollbar-track { background: transparent; }
+  .thread::-webkit-scrollbar-thumb { background: rgba(253, 245, 230, 0.08); border-radius: 3px; }
+
+  .opening {
+    margin-top: 12px;
+    display: flex; flex-direction: column; gap: 20px;
+    animation: rise 900ms var(--spring) both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .opening .line {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 28px; line-height: 1.3;
+    color: var(--brand-cream);
+    letter-spacing: -0.2px;
+    max-width: 640px;
+  }
+  .opening .line em { color: var(--brand-pink); font-style: italic; }
+  .opening .under {
+    font-family: "DM Sans"; font-size: 15px; color: var(--neutral-500);
+    font-style: italic;
+  }
+
+  .msg {
+    display: flex; flex-direction: column; gap: 6px;
+    animation: rise 500ms var(--spring) both;
+  }
+  .msg.bartender {
+    max-width: 580px;
+  }
+  .msg.user {
+    max-width: 460px; align-self: flex-end; align-items: flex-end;
+  }
+  .msg .body {
+    padding: 14px 18px;
+    border-radius: 18px;
+    font-size: 15px; line-height: 1.55;
+  }
+  .msg.bartender .body {
+    background: rgba(253, 245, 230, 0.04);
+    color: var(--neutral-300);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-top-left-radius: 6px;
+  }
+  .msg.user .body {
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border-top-right-radius: 6px;
+  }
+  .msg .stamp {
+    font-size: 10px; font-family: "Righteous"; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+    padding: 0 8px;
+  }
+  .msg.user .stamp { color: var(--brand-pink); }
+
+  .card-attach {
+    margin-top: 8px; padding: 14px;
+    background: rgba(253, 245, 230, 0.04);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 12px;
+    max-width: 420px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .card-attach .label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    color: var(--brand-orange); text-transform: uppercase;
+  }
+  .card-attach .title { color: var(--brand-cream); font-size: 16px; }
+  .card-attach .row {
+    display: flex; justify-content: space-between; font-size: 13px;
+    color: var(--neutral-500);
+    padding-top: 8px; border-top: 1px solid rgba(253,245,230,0.05);
+  }
+  .card-attach .row strong { color: var(--neutral-300); font-weight: 500; }
+  .card-attach .actions {
+    display: flex; gap: 8px; margin-top: 6px;
+  }
+  .card-attach button {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 8px 14px; border-radius: 6px;
+    cursor: pointer; border: 1px solid transparent;
+    background: var(--brand-red); color: var(--brand-cream);
+    transition: all 200ms var(--spring);
+  }
+  .card-attach button:hover { background: #8F1D3A; }
+  .card-attach button.ghost {
+    background: transparent; color: var(--neutral-300);
+    border-color: rgba(253, 245, 230, 0.15);
+  }
+
+  /* ---------- composer ---------- */
+  .composer {
+    padding: 16px 4px 28px;
+    position: relative;
+  }
+  .input {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 999px;
+    padding: 6px 6px 6px 22px;
+    transition: border-color 300ms var(--spring);
+  }
+  .input:focus-within { border-color: rgba(244, 160, 176, 0.35); }
+  .input input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--brand-cream); font-family: "DM Sans"; font-size: 15px;
+    padding: 12px 0;
+  }
+  .input input::placeholder { color: var(--neutral-500); font-style: italic; }
+  .input .send {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--brand-red); color: var(--brand-cream);
+    display: grid; place-items: center;
+    border: none; cursor: pointer;
+    transition: transform 200ms var(--spring);
+  }
+  .input .send:hover { transform: scale(1.06); }
+
+  .hint {
+    margin-top: 10px; padding: 0 20px;
+    font-size: 12px; font-style: italic; color: var(--neutral-500);
+    display: flex; justify-content: space-between;
+  }
+  .hint .tab {
+    font-family: "Righteous"; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--brand-pink); font-size: 10px; font-style: normal;
+    cursor: pointer;
+  }
+  .hint .tab:hover { color: var(--brand-cream); }
+
+  /* ---------- menu bubble ---------- */
+  .menu-btn {
+    position: fixed;
+    bottom: 32px; right: 32px; z-index: 20;
+    height: 56px;
+    padding: 0 22px 0 18px;
+    border-radius: 999px;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    box-shadow: 0 12px 40px rgba(178, 40, 72, 0.35), inset 0 1px 0 rgba(253, 245, 230, 0.12);
+    transition: transform 400ms var(--spring), box-shadow 400ms var(--spring);
+    animation: breathe 3.6s var(--spring) infinite;
+  }
+  .menu-btn::before {
+    content: ""; position: absolute; inset: -4px;
+    border-radius: 999px;
+    border: 1px solid rgba(244, 160, 176, 0.4);
+    opacity: 0;
+    animation: halo 3.6s var(--spring) infinite;
+    pointer-events: none;
+  }
+  .menu-btn:hover {
+    transform: scale(1.04) translateY(-1px);
+    box-shadow: 0 16px 50px rgba(178, 40, 72, 0.45), inset 0 1px 0 rgba(253, 245, 230, 0.18);
+    animation-play-state: paused;
+  }
+  .menu-btn svg { width: 18px; height: 18px; }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 10px 30px rgba(178, 40, 72, 0.3), inset 0 1px 0 rgba(253, 245, 230, 0.1); }
+    50%      { box-shadow: 0 14px 44px rgba(178, 40, 72, 0.5), inset 0 1px 0 rgba(253, 245, 230, 0.14); }
+  }
+  @keyframes halo {
+    0%   { opacity: 0; transform: scale(1); }
+    40%  { opacity: 0.6; }
+    100% { opacity: 0; transform: scale(1.18); }
+  }
+
+  /* ---------- menu overlay ---------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 30;
+    background: rgba(26, 26, 24, 0.88);
+    backdrop-filter: blur(20px);
+    display: none;
+    opacity: 0;
+    transition: opacity 400ms var(--spring);
+  }
+  .overlay.open { display: block; opacity: 1; }
+  .overlay .inner {
+    max-width: 900px; margin: 0 auto;
+    padding: 80px 40px;
+    height: 100%; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 48px;
+  }
+  .overlay .greet {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 20px; color: var(--brand-pink);
+    max-width: 480px;
+  }
+  .overlay .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .menu-item {
+    padding: 32px 28px;
+    background: rgba(34, 34, 31, 0.6);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-generous, 16px);
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 8px;
+    transition: all 300ms var(--spring);
+  }
+  .menu-item:hover {
+    background: rgba(34, 34, 31, 0.9);
+    border-color: rgba(244, 160, 176, 0.3);
+    transform: translateY(-2px);
+  }
+  .menu-item .eyebrow {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--brand-orange); text-transform: uppercase;
+  }
+  .menu-item h3 {
+    font-family: "Black Han Sans"; font-size: 28px; color: var(--brand-cream);
+    line-height: 1;
+  }
+  .menu-item p {
+    font-size: 13px; color: var(--neutral-500); font-style: italic;
+  }
+  .overlay .close {
+    position: absolute; top: 28px; right: 40px;
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2px;
+    color: var(--brand-cream); text-transform: uppercase;
+    cursor: pointer;
+    padding: 8px 14px;
+    border: 1px solid rgba(253, 245, 230, 0.2); border-radius: 6px;
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <header class="top">
+      <div class="logo">SuperBad</div>
+      <div class="who">signed in as <em>priya ravi</em> · mercer advisory</div>
+    </header>
+
+    <div class="thread" id="thread">
+
+      <div class="opening">
+        <div class="line">
+          Priya, good to see you. <em>Quieter week than last.</em> Want the short version or the long one?
+        </div>
+        <div class="under">ask me anything about your work with us, or tap the menu for the rest of your room.</div>
+      </div>
+
+      <div class="msg user" style="animation-delay: 400ms">
+        <div class="body">short version, please</div>
+        <div class="stamp">you · 10:42</div>
+      </div>
+
+      <div class="msg bartender" style="animation-delay: 900ms">
+        <div class="body">
+          Bowerbird is locked for Tuesday, 10am. Your April invoice cleared — receipt's under Invoices. The retainer quote from Andy is sitting with you, expires tomorrow evening. I've got nothing else pressing.
+        </div>
+        <div class="card-attach">
+          <div class="label">Quote waiting on you</div>
+          <div class="title">Q1 retainer — Mercer Advisory</div>
+          <div class="row"><span>Expires</span><strong>Tomorrow, 18:00</strong></div>
+          <div class="row"><span>Commitment</span><strong>3 months, monthly</strong></div>
+          <div class="row"><span>Per month</span><strong>$4,400 inc. GST</strong></div>
+          <div class="actions">
+            <button>Open quote</button>
+            <button class="ghost">Later</button>
+          </div>
+        </div>
+        <div class="stamp">superbad · 10:42</div>
+      </div>
+
+      <div class="msg user" style="animation-delay: 1400ms">
+        <div class="body">can I push Tuesday's shoot to Thursday? Priya's dentist moved.</div>
+        <div class="stamp">you · 10:44</div>
+      </div>
+
+      <div class="msg bartender" style="animation-delay: 1900ms">
+        <div class="body">
+          Can do. Andy's open Thursday 9am, 11am, or 2pm. Which one works — I'll move the booking, keep your location, send you a confirmation. If none of those fit, I'll loop him in directly.
+        </div>
+        <div class="stamp">superbad · 10:44</div>
+      </div>
+
+    </div>
+
+    <div class="composer">
+      <div class="input">
+        <input type="text" placeholder="ask, or say thanks, or go on a tangent. it's your room." />
+        <button class="send" aria-label="send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="hint">
+        <span>the bartender reads your whole history. always.</span>
+        <span class="tab" onclick="document.getElementById('overlay').classList.add('open')">open menu →</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="menu-btn" onclick="document.getElementById('overlay').classList.add('open')" aria-label="open your room">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <span>Your room</span>
+  </button>
+
+  <div class="overlay" id="overlay">
+    <div class="close" onclick="document.getElementById('overlay').classList.remove('open')">close</div>
+    <div class="inner">
+      <p class="greet">
+        Your room. Everything's here — but most days you won't need to leave the front page.
+      </p>
+      <div class="grid">
+        <div class="menu-item">
+          <span class="eyebrow">March → April</span>
+          <h3>Deliverables</h3>
+          <p>everything we've made for you. gallery, files, approvals.</p>
+        </div>
+        <div class="menu-item">
+          <span class="eyebrow">All paid · one open</span>
+          <h3>Invoices</h3>
+          <p>receipts, upcoming, card on file.</p>
+        </div>
+        <div class="menu-item">
+          <span class="eyebrow">Completed Feb 2026</span>
+          <h3>Brand DNA</h3>
+          <p>your profile. retake when something meaningful shifts.</p>
+        </div>
+        <div class="menu-item">
+          <span class="eyebrow">3 months · monthly</span>
+          <h3>Package</h3>
+          <p>what you're committed to, what's included, when it renews.</p>
+        </div>
+        <div class="menu-item">
+          <span class="eyebrow">Email · cleared</span>
+          <h3>Messages</h3>
+          <p>every email thread between you and Andy, in one place.</p>
+        </div>
+        <div class="menu-item">
+          <span class="eyebrow">ready when you are</span>
+          <h3>Export everything</h3>
+          <p>your files, your history, a single zip. no questions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

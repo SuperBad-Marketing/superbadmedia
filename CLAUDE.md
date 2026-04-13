@@ -35,6 +35,7 @@ Phase 0 — Pre-flight scaffolding (DONE, carried out from the HQ session)
 Phase 1 — Scope brainstorm            → SCOPE.md
 Phase 2 — Foundations brainstorm       → FOUNDATIONS.md (tech stack, hosting, domain, auth, data)
 Phase 3 — Feature specs                → docs/specs/*.md (one per scoped feature)
+Phase 3.5 — Spec review (exit gate)    → cross-spec reconciliation, gap check, data model sanity
 Phase 4 — Build plan                   → BUILD_PLAN.md + updated SESSION_TRACKER.md
 Phase 5 — Build execution              → session by session, handoff notes, verification
 Phase 6 — Launch + iterate             → domain cutover, monitoring, real use

@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad — Brand DNA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red: #B22848;
+    --brand-cream: #FDF5E6;
+    --brand-pink: #F4A0B0;
+    --brand-orange: #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-500: #807F73;
+    --neutral-300: #D4D2C2;
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--neutral-900);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+
+  /* ---- ambient section world (changes by scene) ---- */
+  .scene-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    transition: opacity 1200ms var(--spring), filter 1200ms var(--spring);
+  }
+  .scene-bg .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.35;
+    transition: all 2400ms var(--spring);
+  }
+  .scene-bg .b1 { background: var(--brand-red);    width: 600px; height: 600px; top: -100px; left: -150px; }
+  .scene-bg .b2 { background: var(--brand-orange); width: 500px; height: 500px; bottom: -150px; right: -100px; opacity: 0.3; }
+  .scene-bg .b3 { background: var(--brand-pink);   width: 400px; height: 400px; top: 40%; left: 50%; opacity: 0.12; }
+
+  /* scene 2 — identity */
+  body.scene-2 .b1 { background: var(--brand-orange); transform: translate(100px, 200px) scale(1.2); }
+  body.scene-2 .b2 { background: var(--brand-pink); transform: translate(-200px, -100px); }
+  /* scene 3 — reveal */
+  body.scene-3 .scene-bg { filter: saturate(1.3); }
+  body.scene-3 .b1 { transform: translate(-200px, -100px) scale(1.4); }
+  body.scene-3 .b2 { transform: translate(100px, 100px); opacity: 0.45; }
+  body.scene-3 .b3 { opacity: 0.2; }
+
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.04; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ---- shell ---- */
+  .stage {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  header.top {
+    padding: 28px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo { font-family: "Pacifico"; font-size: 22px; color: var(--brand-cream); opacity: 0.9; }
+  .progress-bar {
+    display: flex; gap: 4px; align-items: center;
+  }
+  .progress-bar .seg {
+    width: 44px; height: 2px;
+    background: rgba(253, 245, 230, 0.1);
+    border-radius: 2px; overflow: hidden;
+    position: relative;
+  }
+  .progress-bar .seg.done {
+    background: var(--brand-pink);
+  }
+  .progress-bar .seg.active::after {
+    content: ""; position: absolute; inset: 0;
+    background: var(--brand-cream);
+    transform-origin: left; transform: scaleX(0.4);
+  }
+  .progress-bar .label {
+    margin-left: 12px;
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .progress-bar .label em { color: var(--brand-pink); font-style: normal; }
+
+  /* ---- scenes ---- */
+  .scene {
+    flex: 1; display: none;
+    opacity: 0;
+    transition: opacity 800ms var(--spring);
+  }
+  .scene.active { display: flex; opacity: 1; }
+
+  .controls {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    z-index: 20;
+    display: flex; gap: 10px;
+    background: rgba(34, 34, 31, 0.85);
+    backdrop-filter: blur(10px);
+    padding: 8px; border-radius: 999px;
+    border: 1px solid rgba(253, 245, 230, 0.08);
+  }
+  .controls button {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 10px 18px; border-radius: 999px;
+    cursor: pointer; border: none;
+    background: transparent; color: var(--neutral-500);
+    transition: all 200ms var(--spring);
+  }
+  .controls button:hover { color: var(--brand-cream); }
+  .controls button.active { background: var(--brand-red); color: var(--brand-cream); }
+
+  /* ---- scene 1: question card ---- */
+  .question-scene {
+    justify-content: center; align-items: center;
+    padding: 40px;
+  }
+  .q-card {
+    max-width: 780px; width: 100%;
+    display: flex; flex-direction: column; gap: 40px;
+    animation: riseIn 900ms var(--spring);
+  }
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .q-eyebrow {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--brand-pink);
+    display: flex; gap: 16px; align-items: center;
+  }
+  .q-eyebrow::after {
+    content: ""; flex: 1; height: 1px; background: rgba(244, 160, 176, 0.2);
+  }
+  .q-text {
+    font-family: "DM Sans", sans-serif;
+    font-weight: 500;
+    font-size: 38px; line-height: 1.25; color: var(--brand-cream);
+    letter-spacing: -0.8px;
+    max-width: 680px;
+  }
+  .q-hint {
+    font-size: 14px; font-style: italic; color: var(--neutral-500);
+    margin-top: -16px;
+  }
+  .options {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .opt {
+    padding: 22px 24px;
+    background: rgba(34, 34, 31, 0.7);
+    border: 1px solid rgba(253, 245, 230, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 300ms var(--spring);
+    text-align: left;
+    font-family: "DM Sans"; font-size: 16px; color: var(--neutral-300);
+    line-height: 1.5;
+    position: relative; overflow: hidden;
+  }
+  .opt:hover {
+    background: rgba(34, 34, 31, 0.95);
+    border-color: rgba(244, 160, 176, 0.4);
+    transform: translateY(-2px);
+    color: var(--brand-cream);
+  }
+  .opt::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(178, 40, 72, 0.1), transparent 40%);
+    opacity: 0; transition: opacity 300ms var(--spring);
+  }
+  .opt:hover::before { opacity: 1; }
+  .opt .letter {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--brand-orange); text-transform: uppercase;
+    display: block; margin-bottom: 8px;
+  }
+
+  /* ---- scene 2: section insight ---- */
+  .insight-scene {
+    justify-content: center; align-items: center;
+    padding: 40px;
+  }
+  .insight {
+    max-width: 700px; text-align: center;
+    display: flex; flex-direction: column; gap: 28px;
+    animation: riseIn 1200ms var(--spring);
+  }
+  .insight .label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--brand-pink);
+  }
+  .insight .quote {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 36px; line-height: 1.35; color: var(--brand-cream);
+    letter-spacing: -0.3px;
+  }
+  .insight .attribution {
+    font-family: "DM Sans"; font-style: italic;
+    font-size: 13px; color: var(--brand-pink); opacity: 0.7;
+    margin-top: 16px;
+  }
+  .insight .continue {
+    margin-top: 32px;
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--brand-cream);
+    padding: 14px 32px;
+    background: transparent;
+    border: 1px solid rgba(253, 245, 230, 0.25);
+    border-radius: 999px;
+    cursor: pointer; align-self: center;
+    transition: all 300ms var(--spring);
+  }
+  .insight .continue:hover {
+    background: var(--brand-red); border-color: var(--brand-red);
+  }
+
+  /* ---- scene 3: prose portrait ---- */
+  .reveal-scene {
+    overflow-y: auto;
+    padding: 80px 40px 120px;
+    justify-content: flex-start; align-items: center;
+  }
+  .reveal {
+    max-width: 780px; width: 100%;
+    display: flex; flex-direction: column; gap: 56px;
+  }
+  .reveal .open {
+    display: flex; flex-direction: column; gap: 20px;
+    animation: riseIn 1400ms var(--spring);
+  }
+  .reveal .label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 3px;
+    color: var(--brand-orange); text-transform: uppercase;
+  }
+  .reveal h1 {
+    font-family: "Black Han Sans"; font-size: 88px; line-height: 0.95;
+    color: var(--brand-cream); letter-spacing: -1.5px;
+  }
+  .reveal h1 em {
+    font-family: "Playfair Display"; font-style: italic;
+    color: var(--brand-pink); font-weight: 500;
+  }
+  .reveal .first {
+    font-family: "DM Sans", sans-serif;
+    font-size: 20px; line-height: 1.6; color: var(--neutral-300);
+    max-width: 640px;
+  }
+  .reveal .first em { color: var(--brand-cream); font-style: normal; font-weight: 500; }
+
+  .reveal section {
+    padding-top: 32px;
+    border-top: 1px solid rgba(253, 245, 230, 0.1);
+    display: flex; flex-direction: column; gap: 16px;
+    animation: riseIn 1400ms var(--spring) both;
+  }
+  .reveal section:nth-of-type(2) { animation-delay: 200ms; }
+  .reveal section:nth-of-type(3) { animation-delay: 400ms; }
+  .reveal section:nth-of-type(4) { animation-delay: 600ms; }
+
+  .reveal section h2 {
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2px;
+    color: var(--brand-pink); text-transform: uppercase;
+  }
+  .reveal section p {
+    font-size: 17px; line-height: 1.7; color: var(--neutral-300);
+  }
+  .reveal section p em { color: var(--brand-cream); font-style: normal; font-weight: 500; }
+
+  .tag-row {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding-top: 8px;
+  }
+  .tag {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 6px 12px; border-radius: 999px;
+    background: rgba(244, 160, 176, 0.08);
+    color: var(--brand-pink);
+    border: 1px solid rgba(244, 160, 176, 0.15);
+  }
+  .tag.strong { background: rgba(178, 40, 72, 0.2); color: var(--brand-cream); border-color: rgba(178, 40, 72, 0.4); }
+
+  .signature {
+    margin-top: 48px; padding: 32px;
+    text-align: center;
+    border-top: 1px solid rgba(253, 245, 230, 0.08);
+    font-family: "DM Sans", sans-serif; font-style: italic;
+    font-size: 15px; color: var(--brand-pink); opacity: 0.8;
+    line-height: 1.7;
+  }
+
+</style>
+</head>
+<body class="scene-1">
+
+  <div class="scene-bg">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+  </div>
+
+  <div class="stage">
+    <header class="top">
+      <div class="logo">SuperBad</div>
+      <div class="progress-bar">
+        <div class="seg done"></div>
+        <div class="seg done"></div>
+        <div class="seg active"></div>
+        <div class="seg"></div>
+        <div class="seg"></div>
+        <div class="label">section <em>3 of 5</em> · identity</div>
+      </div>
+    </header>
+
+    <!-- SCENE 1: question card -->
+    <section class="scene question-scene active" id="scene-1">
+      <div class="q-card">
+        <div class="q-eyebrow">Identity · Q3 of 6</div>
+        <h2 class="q-text">When someone meets your business for the first time, what do you most want them to feel?</h2>
+        <p class="q-hint">pick the one closest. you can change your mind later.</p>
+        <div class="options">
+          <button class="opt"><span class="letter">A</span>That they've found something quietly confident — not been sold to.</button>
+          <button class="opt"><span class="letter">B</span>That we know exactly what we're doing, and we charge accordingly.</button>
+          <button class="opt"><span class="letter">C</span>That we're warm, approachable, and genuinely enjoy what we do.</button>
+          <button class="opt"><span class="letter">D</span>That we're the obvious premium choice for people who care.</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 2: section insight -->
+    <section class="scene insight-scene" id="scene-2">
+      <div class="insight">
+        <div class="label">Between sections · a small observation</div>
+        <div class="quote">
+          "There's a pattern forming. You don't want to shout, but you don't want to blend in either. Understated — but on your own terms."
+        </div>
+        <div class="attribution">— halfway through. two sections to go.</div>
+        <button class="continue" onclick="goTo(3)">Keep going →</button>
+      </div>
+    </section>
+
+    <!-- SCENE 3: prose portrait reveal -->
+    <section class="scene reveal-scene" id="scene-3">
+      <div class="reveal">
+
+        <div class="open">
+          <span class="label">Your brand DNA · Mercer Advisory</span>
+          <h1>Quietly<br/>confident,<br/><em>with a dry streak.</em></h1>
+          <p class="first">
+            You've built something that doesn't want to shout. <em>That's not the same as being quiet.</em> There's a sharp point of view underneath the calm surface — you just prefer to earn attention rather than demand it. When you talk about your work, you sound more like a trusted colleague than a salesperson. Keep that.
+          </p>
+        </div>
+
+        <section>
+          <h2>How you sound</h2>
+          <p>Direct, slightly wry, comfortable with pauses. <em>You'd rather say one good sentence than three safe ones.</em> You don't mind leaving a joke in the room unexplained, and you'd rather underplay a win than oversell it. The people you want to work with tend to notice exactly that.</p>
+          <div class="tag-row">
+            <span class="tag strong">dry</span>
+            <span class="tag strong">direct</span>
+            <span class="tag">understated</span>
+            <span class="tag">colleague, not salesperson</span>
+            <span class="tag">earned, not demanded</span>
+          </div>
+        </section>
+
+        <section>
+          <h2>What you're building toward</h2>
+          <p>A business that runs on <em>referrals and reputation</em>, not on being the loudest in the room. You'd rather turn away a bad fit than win them on price. The ceiling you're reaching for is quality-of-client first, revenue second — though the second tends to follow when the first is right.</p>
+          <div class="tag-row">
+            <span class="tag strong">referral-led growth</span>
+            <span class="tag">reputation over reach</span>
+            <span class="tag">quality of client</span>
+            <span class="tag">selective</span>
+          </div>
+        </section>
+
+        <section>
+          <h2>Where we need to be careful</h2>
+          <p>The quiet-confidence thing only works if the craft is obviously there. <em>If the work looks corporate, the voice stops working.</em> Your visual identity and your writing need to match the register — one beat warmer than professional, one beat drier than charming. The edges matter more than they look like they do.</p>
+          <div class="tag-row">
+            <span class="tag">visual register: warm, editorial</span>
+            <span class="tag">never corporate</span>
+            <span class="tag">edges matter</span>
+          </div>
+        </section>
+
+        <div class="signature">
+          written for you, by Lite, on Sunday April 13.<br/>
+          we'll check in on this in a year. sooner if something meaningful shifts.
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <div class="controls">
+    <button class="active" onclick="goTo(1)">1 · question</button>
+    <button onclick="goTo(2)">2 · between sections</button>
+    <button onclick="goTo(3)">3 · reveal</button>
+  </div>
+
+<script>
+  function goTo(n) {
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.getElementById('scene-' + n).classList.add('active');
+    document.body.className = 'scene-' + n;
+    document.querySelectorAll('.controls button').forEach((b, i) => {
+      b.classList.toggle('active', i + 1 === n);
+    });
+  }
+</script>
+
+</body>
+</html>
