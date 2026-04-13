@@ -81,9 +81,13 @@ These apply in Phase 1, Phase 2, Phase 3, and any future brainstorm:
 
 ## Git
 
-- Do not commit unless Andy asks.
-- Message format: `[PHASE|TYPE] description` (e.g. `[PHASE-1] Scope brainstorm output`, `[BUILD] Add stripe webhook handler`).
+- **Auto-commit at the end of every clean stopping point.** When a Phase 3.5 stage/batch finishes, a Phase 5 build session ends with verification passing, or any natural work unit reaches a clean state (handoff note written, `SESSION_TRACKER.md` Next Action updated, no half-finished work), commit without asking. This is the default — not a thing Andy has to prompt for.
+- **Never commit half-finished work.** If the session ended early (context compacted mid-task, verification failed, debugging in progress, a brainstorm got interrupted before a decision was locked, spec patches only partially applied), don't commit. Leave the working tree dirty so the next session picks up the thread. When in doubt, ask.
+- **One concern per commit.** If a single session produced multiple unrelated concerns (e.g. unrelated spec fixes alongside the primary work), use separate commits. The catch-up commit `af5068b` is the one-time exception to this rule; future commits follow it strictly.
+- **Phase 5 verification gates are non-negotiable before commit.** `npx tsc --noEmit` zero errors + `npm test` green + manual browser check for UI work. Failed gate = don't commit; fix first.
+- **Message format:** `[PHASE|TYPE] short description` (e.g. `[PHASE-3.5] Step 11 Stage 2 — reflection → retainer-fit walkthrough`, `[BUILD] Add stripe webhook handler`, `[FIX] Correct drift-check threshold in brand-voice gate`).
 - Never push without instruction. Never amend existing commits.
+- Never commit files that likely contain secrets (`.env`, credentials, keys). Flag them if staged.
 
 ## Marketing site
 
