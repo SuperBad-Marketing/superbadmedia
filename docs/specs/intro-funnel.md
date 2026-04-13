@@ -1059,25 +1059,27 @@ The bundle gate is checked twice: once on `gallery_attached`, once on `six_week_
 
 **Cockpit visibility for the waiting half.** While waiting on the slower side, Andy's cockpit shows a quiet feed entry `intro_funnel_awaiting_bundle { deal_id, prospect_name, waiting_on: 'gallery' | 'plan' }` so he knows which side is the gate. Refreshes (i.e. clears + re-emits with updated `waiting_on`) on each side completing.
 
-### 15.2 Portal gallery component
+### 15.2 Portal gallery launch card
 
 On portal load in `deliverables_ready` state:
-- Launch CTA appears with house-spring motion
-- Prospect clicks launch
-- Native gallery component mounts at `/lite/intro/[token]/deliverables`
-- Component calls Pixieset API via `lib/integrations/pixieset.ts` to fetch gallery contents (image list, metadata, full-size URLs)
-- Renders in our design system with cinematic reveal (Tier-2 candidate #3)
-- `deliverables_viewed` activity log fires on first view (quiet cockpit surface)
+- On-brand "Your gallery is ready" launch card renders at `/lite/intro/[token]/deliverables` using the design system + house-spring motion (Tier-2 reveal candidate #3 — the reveal moment lives on this card, not inside the gallery).
+- Card is brand-forward: title, short brand-voice intro copy (drift-checked per §11.5), launch CTA.
+- CTA opens `deals.pixieset_gallery_url` in a new tab (`target="_blank" rel="noopener noreferrer"`).
+- `deliverables_viewed` activity log fires on CTA click (quiet cockpit surface).
+- No image list, no thumbnails, no Pixieset API call — Pixieset hosts and renders the gallery itself.
 
-### 15.3 Pixieset API integration
+### 15.3 Pixieset integration posture (F2.c — RESOLVED 2026-04-13, outcome B)
 
-`lib/integrations/pixieset.ts` — capability confirmation **moved earlier (F2.c, 2026-04-13 Phase 3.5 Step 11 Stage 2)**: a 1-session Phase 4 prep spike confirms the API surface (private gallery access, image-URL fetching, auth model, rate limits) before BUILD_PLAN.md is finalised. The deliverables reveal is one of the funnel's bigger emotional moments; surprise risk gets removed before the build commits to either path.
+The pre-build feasibility spike (Phase 5 Wave 0 P0, see `sessions/p0-pixieset-spike-handoff.md`) confirmed:
 
-**Two outcomes from the spike:**
+- Pixieset exposes **no public developer API** for private-gallery reads. The only documented "public API" is their Instatus status-page feed.
+- No webhook / push signal exists for "gallery ready".
+- Pixieset explicitly does not support iframe embedding.
+- The only read-access path is reverse-engineered internal endpoints requiring a session cookie — unsupportable and likely a ToS violation. Not an option.
 
-1. **API sufficient** → inline gallery component path (§15.2) builds as specced. Cinematic Tier-2 reveal candidate #3 is live. `deliverables_viewed` fires on first view inside the portal.
+**Path locked: on-brand link-out (Path B).** No `lib/integrations/pixieset.ts` client is built for v1.0; Pixieset is not an integration in the SW-5 wizard sense either (nothing to authorise). The `gallery_ready_at` timestamp is set by Andy pasting the gallery URL in the admin UI (per §15.1) — this is the canonical trigger, not a webhook and not polling.
 
-2. **API insufficient** → on-brand link-out fallback. The portal still renders a branded "Your gallery is ready" surface using the design system + house-spring motion (NOT a raw HTML anchor). The CTA opens the Pixieset gallery in a new tab. Cinematic Tier-2 reveal candidate #3 does **not** fire on this path (the reveal happens in Pixieset's UI, outside our control). `deliverables_viewed` fires when the CTA is clicked. If this path lands as v1.0 default, a Phase 4 mop-up brainstorm decides whether to evaluate Pixieset alternatives (Pic-Time, Cloudspot, ShootProof) before accepting it as final.
+Mop-up brainstorm on Pixieset alternatives (Pic-Time, Cloudspot, ShootProof) was considered and declined: all three have the same closed-ecosystem posture, so switching would not unlock Path A. Revisit only if real customer feedback in v1.0 says the link-out reveal underdelivers.
 
 ### 15.4 Retention
 

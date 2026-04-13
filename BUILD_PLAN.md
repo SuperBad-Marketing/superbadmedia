@@ -55,11 +55,13 @@ AUTONOMY_PROTOCOL.md and LAUNCH_READY.md are separate artefacts in the same Phas
 
 ## Wave 0 — Pre-build spike
 
-Before BUILD_PLAN.md is considered final, the Pixieset API spike (F2.c) runs as a one-session deliverable-independence check. Outcome routes the Intro Funnel deliverables-reveal build path.
+**Status: CLOSED 2026-04-13 — outcome B (on-brand link-out) locked.** See `sessions/p0-pixieset-spike-handoff.md`.
 
-| ID | Type | Context | Purpose |
-|---|---|---|---|
-| P0 | SPIKE | small | Pixieset API capability check (private gallery access, image-URL fetch, auth model, rate limits). Outcome: sufficient → inline gallery (IF-2 path A); insufficient → on-brand link-out fallback (IF-2 path B). If insufficient and alternatives evaluation warranted, spawn one bounded mop-up brainstorm per Phase 4 guardrails. |
+The Pixieset API spike (F2.c) ran as a one-session deliverable-independence check. Pixieset exposes no public developer API, no webhook, and no iframe embedding. Path A (inline native gallery) is structurally impossible; Path B (on-brand link-out + manual URL paste trigger) is v1.0. Alternatives mop-up declined (Pic-Time / Cloudspot / ShootProof share the same closed posture). IF-2 builds Path B only.
+
+| ID | Type | Context | Purpose | Status |
+|---|---|---|---|---|
+| P0 | SPIKE | small | Pixieset API capability check (private gallery access, image-URL fetch, auth model, rate limits). | CLOSED — outcome B |
 
 **Rollback:** n/a (research only, no code change).
 **Settings keys:** none.
@@ -383,7 +385,7 @@ Sessions LG-1..LG-10 per group 3. Depends on SW-5 (integration wizards for SerpA
 | ID | Context | Purpose |
 |---|---|---|
 | IF-1 | large | Landing + questionnaire (SW-2 step-types) + Stripe Payment Element + `createDealFromLead()` + `ensureStripeCustomer()` |
-| IF-2 | large | Calendar booking + confirmation + reminders + shoot-day portal view + reflection form (branches by P0 outcome: inline Pixieset gallery vs on-brand link-out) |
+| IF-2 | large | Calendar booking + confirmation + reminders + shoot-day portal view + reflection form + on-brand "Your gallery is ready" link-out launch card (P0 outcome B, 2026-04-13: Pixieset has no public API, no webhook, no iframe support — Path B is the only path. CTA opens `pixieset_gallery_url` in a new tab; `deliverables_viewed` fires on click. Tier-2 reveal lives on the launch card, not inside the gallery.) |
 | IF-3 | large | Retainer/SaaS offer + synthesis Opus (reads Brand DNA via BDA-4 gate) + quote recommendation + abandon tracking + drift check |
 | IF-4 | medium | Portal-guard recovery flow (consumes A8) + OTT magic-link embedding at every send point |
 | IF-E2E | small | **Playwright E2E: landing → questionnaire → booking → payment.** Mandatory. |
