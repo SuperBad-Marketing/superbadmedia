@@ -148,6 +148,24 @@ Write `sessions/<id>-handoff.md`. Must cover:
 
 Handoff is the contract with the next session. Treat it as authoritative.
 
+### G11.b — Next-session brief (rolling cadence)
+
+Phase 4 was meant to pre-compile every `sessions/<id>-brief.md` up-front. That didn't happen for Wave 1 A1–A4 — those sessions ran from inline BUILD_PLAN blocks, and the gap was only closed by a 2026-04-14 mop-up. To prevent the gap recurring, brief authoring is now a **rolling cadence**, owned by the closing session of each wave:
+
+- **Within-wave continuity:** every Phase 5 session's handoff also writes the **next session's brief** (`sessions/<next-id>-brief.md`) using `sessions/_brief-template.md`. The brief is committed in the same commit as the handoff. The `## 10 Notes for the next-session brief writer` block in this session's brief is the source material.
+- **Wave handoff:** the **closing session of each wave** additionally writes briefs for **every session in the next wave**, against current repo state. (Closing session = the last session in a wave per the BUILD_PLAN sequence — e.g. A8 closes Wave 1 and writes B1 + B2 + B3 briefs.)
+- **Definition checkpoint:** the closing session's G9 / G11 are not satisfied until the next-wave briefs exist.
+
+**Escape hatch (context-tight closure):** if a closing session's context budget is at risk of breaching G3 70% before next-wave briefs can be written cleanly, **split**:
+
+- The closing session writes its handoff + the immediate-next session's brief only.
+- The closing session's handoff explicitly logs the split and lists which next-wave briefs are still owed.
+- The first session of the next wave starts fresh on `/normal` (or whatever its own tier prescribes), reads the closing handoff, writes the remaining next-wave briefs as its first action, then proceeds with its own work.
+
+**Why not pre-compile everything in one Phase 4 session?** Briefs written too far in advance against an unstable repo decay fast (column names, file paths, settings keys, helper signatures). Wave-by-wave keeps every brief grep-verifiable against the repo at the moment it's needed. The trade-off is more brief-writing across sessions — accepted because the failure mode of a stale brief (G1 false-positive, scope drift) is worse than the marginal cost of writing one per session.
+
+**Mop-up rule:** if a session discovers its own brief doesn't exist (because a prior closing session was interrupted before §10 was honoured), it pauses, escalates a one-line note to `PATCHES_OWED.md`, and writes its own brief from `BUILD_PLAN.md` + the relevant spec(s) before proceeding with G1. This is permitted because the alternative — building blind — is worse. It is **not** permitted to spawn a further mop-up session from within that session (anti-cycle rule per `project_phase_3_5_and_4_mop_up_sessions_authorised`).
+
 ### G12 — Tracker update + commit
 
 - Update `SESSION_TRACKER.md` **🧭 Next Action** to point at the next session in `BUILD_PLAN.md`.
