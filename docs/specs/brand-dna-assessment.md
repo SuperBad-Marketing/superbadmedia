@@ -476,6 +476,22 @@ Every answer saves immediately. `current_section` on the profile record tracks p
 
 **Silent dependency for Surprise & Delight:** the S&D spec cannot be built until this milestone completes.
 
+### 11.1 First-Login Brand DNA Gate (F2.b, 2026-04-13 Phase 3.5 Step 11 Stage 2)
+
+Andy completing SuperBad's own profile is the **platform-unlock event**. Until it exists, Lite is non-functional for Andy.
+
+**Gate behaviour.** A Next.js middleware (foundation primitive — see FOUNDATIONS §11.8) runs on every admin route. It checks for a `brand_dna_profiles` row where `subject_type = 'superbad_self'` AND `status = 'complete'`. If absent, every admin route 302-redirects to `/lite/onboarding`, which mounts the standard Brand DNA Assessment with Andy as the subject (Founder mode, per §3.1). No skip option exists in the UI.
+
+**Why a hard gate, not a nudge.** Per project memories `project_brand_dna_as_perpetual_context.md` and `project_two_perpetual_contexts.md`, every downstream LLM call on behalf of SuperBad reads this profile. Without it, every Brand-DNA-consuming feature (Intro Funnel synthesis, retainer-fit recommendation, Lead Gen drafts, Outreach reply intelligence, brand-voice drift checks, Cockpit briefs) would either fail or fall back to lower-quality output. The platform makes a stronger commitment by refusing to operate without its perpetual context, rather than tolerating a degraded mode.
+
+**Removed by this gate.** No stub primitive, no `loadSuperBadPerpetualBrandDna()` indirection helper, no `brand_dna.use_superbad_stub` settings flag, no stub markdown file. Consumer prompts read the profile directly.
+
+**Implementation safety net.** A `BRAND_DNA_GATE_BYPASS=true` env var (off by default; not surfaced in any UI) lets Andy bypass the gate manually if a bug in the gate ever locks him out of his own platform. Foundation session implements; documented in INCIDENT_PLAYBOOK.md.
+
+**Onboarding voice.** First-login experience frames the gate as "Lite needs to know who you are before it can do anything for you." Single-paragraph framing. Motion-treated reveal. This is also the moment that establishes the bar for the full Brand DNA Assessment quality (per `project_brand_dna_flagship_experience.md`) — Andy's own first run is the proof point.
+
+**Build-order implication for Phase 4.** Brand DNA Assessment (at minimum the SuperBad-self path + the gate middleware) must build before any Brand-DNA-consuming feature can ship. Specifically blocks: Intro Funnel synthesis (§13.3) + retainer-fit (§13.4), Lead Gen draft generation, Outreach reply intelligence, brand-voice drift checks, Cockpit briefs that reference perpetual voice. The full client-facing Brand DNA Assessment surface can ship later in Phase 5 — only the SuperBad-self slice is gating.
+
 ---
 
 ## 12. Voice & delight treatment

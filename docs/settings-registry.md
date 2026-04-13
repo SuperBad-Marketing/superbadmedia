@@ -65,6 +65,14 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `portal.chat_calls_per_day_pre_retainer` | `5` | integer | Daily Opus chat call cap in pre-retainer rendering mode |
 | `portal.chat_calls_per_day_retainer` | `25` | integer | Daily Opus chat call cap for retainer clients |
 
+## Intro Funnel (owner: `docs/specs/intro-funnel.md`)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `intro_funnel.reflection_delay_hours_after_deliverables` | `24` | integer | Hours after the bundled `deliverables_ready` transition (§15.1) before the reflection CTA appears in the prospect portal |
+
+> **Note.** Other Intro Funnel autonomy thresholds (abandon cadence: 15 min / 24 h / 3 d; advance notice: 5 business days; per-week cap: 3; reschedule limit: 2; refund window: 48 h; SMS quiet hours: 8 a.m.–9 p.m. local; email quiet hours: 7 a.m.–10 p.m. local; shoot duration: 60 min) are still expressed as literals in `intro_funnel_config` or in §11/§12/§14/§16 spec prose. **Phase 3.5 Batch C step 15 (literal grep) owes a sweep that registers the remaining Intro Funnel keys.** Tracked in `PATCHES_OWED.md`.
+
 ## Hiring Pipeline (owner: `docs/specs/hiring-pipeline.md` §18)
 
 | Key | Default | Type | Description |
@@ -106,6 +114,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Wizards: 6
 - Plan: 8
 - Portal: 3
+- Intro Funnel: 1 (more owed; see Batch C step 15)
 - Hiring: 28
 - **Total: 56 keys at v1.0 seed**
 

@@ -188,6 +188,16 @@ Phase 3.5 patch: the `cost-usage-observatory.md` §7 model registry lists every 
 
 **Business-lifecycle separation (terminology lock).** The Stripe `Customer` object is a payment-attachment identity only. It has no relationship to SuperBad's business lifecycle. A contact can hold a Stripe Customer ID while still being a **Lead/Prospect** in SuperBad's business sense (e.g. they've paid for a trial shoot but haven't converted to retainer). Only a signed retainer promotes the business-lifecycle status to **Client**. The Phase 3.5 step 8 glossary pass (pending) codifies this as a canonical term separation: `stripe.Customer` (Stripe's payment identity) ≠ **Client** (SuperBad's retainer-holding contact) ≠ **customer** (never used alone — avoid in specs and code to prevent collision).
 
+**11.8 First-Login Brand DNA Gate** (added 2026-04-13 Phase 3.5 Step 11 Stage 2 — F2.b resolution). Lite refuses to operate without its perpetual SuperBad Brand DNA context. A Next.js middleware runs on every admin route and checks for a `brand_dna_profiles` row with `subject_type = 'superbad_self'` AND `status = 'complete'`. If absent, every admin route 302-redirects to `/lite/onboarding`, which mounts the standard Brand DNA Assessment with Andy as the subject (Founder mode per Brand DNA Assessment §3.1). No skip option exists in the UI.
+
+**Why a hard gate, not a nudge.** Per project memories `project_brand_dna_as_perpetual_context.md` and `project_two_perpetual_contexts.md`, every downstream LLM call on behalf of SuperBad reads this profile. Without it, every Brand-DNA-consuming feature (Intro Funnel synthesis, retainer-fit recommendation, Lead Gen drafts, Outreach reply intelligence, brand-voice drift checks, Cockpit briefs) would either fail or fall back to lower-quality output. The platform makes a stronger commitment by refusing to operate without its perpetual context, rather than tolerating a degraded mode. **No stub primitive exists** — consumer prompts read the profile directly.
+
+**Implementation safety net.** A `BRAND_DNA_GATE_BYPASS=true` env var (off by default; not surfaced in any UI) lets Andy bypass the gate manually if a bug in the gate ever locks him out of his own platform. Foundation session implements; documented in INCIDENT_PLAYBOOK.md (Phase 6).
+
+**Phase 4 build-order constraint.** Brand DNA Assessment (at minimum the SuperBad-self path + the gate middleware) must build before any Brand-DNA-consuming feature can ship. Specifically blocks: Intro Funnel synthesis (§13.3) + retainer-fit (§13.4), Lead Gen draft generation, Outreach reply intelligence, brand-voice drift checks (§11.5 above), Cockpit briefs that reference perpetual voice. The full client-facing Brand DNA Assessment surface can ship later in Phase 5 — only the SuperBad-self slice is gating.
+
+**Owner.** Brand DNA Assessment §11.1 owns the gate semantics; the foundation session owns the middleware implementation + env-var bypass.
+
 ---
 
 ## 12. Canonical subscription state machine (added 2026-04-13 — Phase 3.5 step 10)

@@ -66,9 +66,11 @@ Stage 1 → stage 2 → self-review → Andy review queue entry. See §4.
 
 Two-tier review at `/lite/six-week-plans/[planId]/review` (see §5). Andy approves → plan transitions to `approved`. Activity log: `six_week_plan_approved`.
 
-### 2.6 Plan releases to portal
+### 2.6 Plan releases to portal — bundled with gallery (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2)
 
-On approval, the plan becomes visible inside the prospect's Client Management portal at `/portal/[token]/plan` (see §6). Scheduled email fires to the prospect announcing both the gallery and the plan are ready. `activity_log` entry: `six_week_plan_released`. Cockpit surface: quiet feed entry.
+On approval, the plan becomes visible inside the prospect's Client Management portal at `/portal/[token]/plan` (see §6) **and** the bundled-deliverables gate fires per Intro Funnel §15.1: `intro_funnel_submissions.plan_ready_at = NOW`; if `gallery_ready_at` is also non-null, the unified `deliverables_ready` transition fires now (otherwise it fires when the gallery URL is later pasted). The single bundled announcement email (covering both gallery and plan) is owned by Intro Funnel §15.1 — this spec does **not** send its own release email, to avoid two beats.
+
+`activity_log` entries: `six_week_plan_approved` (this spec, on review approval), then `six_week_plan_released` only when the bundled `deliverables_ready` fires. Cockpit surface: quiet feed entry on bundled release; if the plan is approved before the gallery, Andy sees the existing `intro_funnel_awaiting_bundle { waiting_on: 'gallery' }` entry per Intro Funnel §17.2.
 
 ### 2.7 Prospect experience
 

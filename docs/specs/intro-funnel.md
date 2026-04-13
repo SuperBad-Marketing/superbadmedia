@@ -12,7 +12,7 @@ The Intro Funnel composes, rather than re-specifies, the five Foundations §11 c
 - §11.2 safe-to-send gate (every outbound email and SMS flows through it)
 - §11.3 timezone-correct timestamps (all times stored UTC, rendered via `formatTimestamp()` in the prospect's tz)
 - §11.4 outreach quiet window (abandon-cadence emails and SMS obey it; SMS uses a stricter 8am–9pm local window)
-- §11.5 brand-voice drift check (all customer-facing Claude output — synthesis, retainer-fit recommendation, abandonment emails, apology emails — passes through it)
+- §11.5 brand-voice drift check (synthesis, abandonment emails, apology emails — all customer-facing Claude output — passes through it; the retainer-fit recommendation is internal-only per §13.4 / F2.d but also passes through it as a belt-and-braces voice-consistency check on Andy's surfaces)
 
 Integration with the Sales Pipeline (`docs/specs/sales-pipeline.md`) is via `createDealFromLead(..., source: 'intro_funnel_trial_shoot')` at Stripe payment success (not at contact submission — see §5.2 for why). Before payment, prospects exist as `intro_funnel_submissions` without a Pipeline Deal; that changes in the refinement below.
 
@@ -109,7 +109,7 @@ Narrated once so every subsequent section has the shared mental model.
 
 7. **The shoot itself.** Happens in meatspace. Andy runs it. Nothing inside Lite until he's back and uploads deliverables.
 
-8. **Deliverables reveal.** Andy pastes the Pixieset gallery URL into the Trial Shoot panel on the Deal profile (Pipeline integration). Portal transitions to `deliverables_ready`. Next time the prospect opens the portal, a branded gallery component fetches from Pixieset API and renders inline with a cinematic reveal (Tier-2 candidate #3). `activity_log` entry `deliverables_ready`, quiet cockpit surface. On first view, `deliverables_viewed`.
+8. **Deliverables reveal — bundled (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2).** Two parallel pre-conditions must both be met before the portal flips to `deliverables_ready`: (i) Andy pastes the Pixieset gallery URL into the Trial Shoot panel on the Deal profile (Pipeline integration); and (ii) Andy approves the Six-Week Plan in the review queue (Six-Week Plan Generator §2.5). Whichever lands second fires the bundled transition (see §15.1 for the gate logic). One announcement email goes out covering both artefacts. Next time the prospect opens the portal, the gallery component (Pixieset, Tier-2 reveal candidate #3) and the Six-Week Plan section (S6WPG §6) are both live. `activity_log` entries: `gallery_attached`, `six_week_plan_approved`, then the bundled `deliverables_ready`. On first views: `deliverables_viewed`, `six_week_plan_viewed`. **Customer-perceived timeframe is signposted upfront** in landing/payment/booking copy (~7 days post-shoot) so the bundled wait reads as expected, not as a delay — see §24 content mini-session.
 
 9. **Reflection questionnaire.** A day or so after deliverables go live (configurable delay, starting at 24h), the portal surfaces the post-shoot reflection (§13). 8 questions, linear arc with safety valve at Q1. Prospect completes.
 
@@ -187,6 +187,14 @@ export const introFunnelSubmissions = sqliteTable('intro_funnel_submissions', {
     enum: ['pending', 't_15m_sent', 't_24h_sent', 't_3d_sent', 'demoted', 'not_applicable'],
   }).notNull().default('pending'),
   last_activity_at: integer('last_activity_at', { mode: 'timestamp' }).notNull(),
+
+  // Bundled-deliverables-release gate (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2).
+  // `deliverables_ready` only fires when both timestamps are non-null. Whichever lands
+  // second triggers the unified state transition + bundled announcement email.
+  // `deliverables_ready_at` is set by the gate handler to the LATER of the two.
+  gallery_ready_at: integer('gallery_ready_at', { mode: 'timestamp' }),
+  plan_ready_at: integer('plan_ready_at', { mode: 'timestamp' }),
+  deliverables_ready_at: integer('deliverables_ready_at', { mode: 'timestamp' }),
 
   created_at: integer('created_at', { mode: 'timestamp' }).notNull(),
   updated_at: integer('updated_at', { mode: 'timestamp' }).notNull(),
@@ -381,7 +389,9 @@ export const introFunnelConfig = sqliteTable('intro_funnel_config', {
   confirmation_email_subject: text('confirmation_email_subject'),
   confirmation_email_body: text('confirmation_email_body'),
 
-  // Reflection timing
+  // Reflection timing — DEPRECATED column (F2.e, 2026-04-13 Phase 3.5 Step 11 Stage 2).
+  // Migrated to `settings.get('intro_funnel.reflection_delay_hours_after_deliverables')` per Step 7a discipline.
+  // Phase 5 Intro Funnel build session: drop this column from the migration; consume settings only.
   reflection_delay_hours_after_deliverables: integer('reflection_delay_hours_after_deliverables').notNull().default(24),
 
   updated_at: integer('updated_at', { mode: 'timestamp' }).notNull(),
@@ -480,7 +490,7 @@ shoot_approaching           ← (48h before slot_start_at)
 shoot_morning_of            ← (day of slot_start_at at 6am local)
   ↓ (time-based)
 shoot_completed_awaiting_deliverables  ← (1h after slot_end_at)
-  ↓ (triggered by Andy pasting Pixieset URL)
+  ↓ (triggered by bundle gate per §15.1: BOTH gallery URL pasted AND Six-Week Plan approved)
 deliverables_ready
   ↓ (reflection completed)
 reflection_complete
@@ -839,7 +849,9 @@ Standard RFC 5545 ICS file, attached to the confirmation email. Includes shoot t
 
 ### 13.1 Reflection timing
 
-Reflection surface becomes available `intro_funnel_config.reflection_delay_hours_after_deliverables` hours after `deliverables_ready` fires (default 24h). Hourly cron checks and transitions the portal to surface the reflection CTA.
+Reflection surface becomes available `intro_funnel_config.reflection_delay_hours_after_deliverables` hours after `deliverables_ready` fires (default 24h — registered as `intro_funnel.reflection_delay_hours_after_deliverables` in `docs/settings-registry.md`). Hourly cron checks and transitions the portal to surface the reflection CTA.
+
+**Note (F2.a, 2026-04-13).** `deliverables_ready` is the bundled state per §15.1 — fires only when **both** the Pixieset gallery URL is pasted and the Six-Week Plan is approved. The 24h reflection clock runs from that single bundled transition. The prospect therefore always has both artefacts in hand for at least 24h before being asked to reflect.
 
 ### 13.2 Reflection question arc (8 questions, one per screen)
 
@@ -860,18 +872,18 @@ The single most load-bearing Claude generation in Intro Funnel.
 
 - **Model:** `claude-opus-4-6`
 - **Prompt file:** `lib/intro-funnel/prompts/reflection-synthesis.ts`
-- **Inputs:** reflection answers, shape, signal tags, onboarding questionnaire answers, Brand DNA perpetual context (once Brand DNA Assessment ships; stubbed before then), SuperBad brand voice skill
+- **Inputs:** reflection answers, shape, signal tags, onboarding questionnaire answers, **SuperBad's perpetual Brand DNA profile (`brand_dna_profiles` row where `subject_type = 'superbad_self'`, `status = 'complete'`)** — guaranteed to exist by the foundation-level First-Login Brand DNA Gate (FOUNDATIONS §11.8 / Brand DNA Assessment §11), so the prompt reads it unconditionally with no stub fallback (F2.b, 2026-04-13 Phase 3.5 Step 11 Stage 2)
 - **Output:** prose synthesis that mirrors the prospect's own reasoning back to them in SuperBad's voice, framing continuation as the obvious next step
 - **Drift check:** §11.5 passes before display. Fail → show a safe fallback synthesis that's still warm but less personal.
 - **Storage:** `intro_funnel_reflections.synthesis_text` + metadata (model, prompt_version, drift_check_passed, generated_at)
 
 ### 13.4 Retainer-fit recommendation
 
-Fires in the background after reflection completes.
+Fires in the background after reflection completes — **including when the safety valve was triggered** (F2.d, 2026-04-13 Phase 3.5 Step 11 Stage 2).
 
 - **Model:** `claude-opus-4-6`
 - **Prompt file:** `lib/intro-funnel/prompts/retainer-fit.ts`
-- **Inputs:** onboarding questionnaire answers, enrichment viability profile, reflection answers, synthesis text, SuperBad perpetual Brand DNA context, standing brief from Settings
+- **Inputs:** onboarding questionnaire answers, enrichment viability profile, reflection answers (including the safety-valve free-text feedback when present), synthesis text (null if safety valve skipped Q8), **SuperBad's perpetual Brand DNA profile** (read unconditionally per F2.b — guaranteed by First-Login Brand DNA Gate; see §13.3), standing brief from Settings, **`safety_valve_triggered` boolean flag** (so the prompt can branch into the safety-valve handling described below)
 - **Output:** structured JSON
   ```ts
   {
@@ -881,9 +893,11 @@ Fires in the background after reflection completes.
     flags: Array<{ type: string, detail: string }>, // e.g. [{ type: 'budget_concern', detail: '...' }]
   }
   ```
+- **Safety-valve branch (F2.d).** When `safety_valve_triggered = true`, the prompt is biased to honour the negative signal: `recommendation_type` typically lands on `'neither'` (with rare exceptions where the underlying business signal is strong enough to warrant `'retainer'` or `'saas'` despite the experience friction); `flags` includes a `{ type: 'safety_valve_triggered', detail: <summary of the feedback> }` entry; `reasoning_text` names the safety valve as the primary input and explicitly does not pitch around it. The output remains useful for Andy's manual handling — informing the conversation, not pre-empting it.
 - **Drift check:** §11.5 passes before storage. Fail → re-generate once with an amended prompt; if second fail, store with `drift_check_passed: false` and still surface to Andy (with a warning chip in the cockpit card — Andy is the ultimate arbiter).
 - **Storage:** `intro_funnel_retainer_fit` row
-- **Surface:** quiet cockpit feed entry `retainer_fit_recommendation_ready`, plus display on the Pipeline Trial Shoot panel for the Deal.
+- **Surface — Andy-only, hard lock (F2.d).** Quiet cockpit feed entry `retainer_fit_recommendation_ready`, plus display on the Pipeline Trial Shoot panel for the Deal. **The retainer-fit recommendation is internal-only and must never reach the prospect via any channel — no email, no SMS, no portal surface, no PDF, no quote auto-population copy that quotes the recommendation back at them.** Build-time discipline: every consumer of `intro_funnel_retainer_fit` must be on an Andy-authenticated route or an Andy-targeted comm. A `lib/intro-funnel/retainer-fit.ts` accessor function with a `// internal-only` JSDoc + an ESLint-able marker keeps this honest. Phase 5 Intro Funnel build session adds the marker; Phase 4 foundation session adds the lint rule (or comments-as-discipline if a custom rule is overkill).
+- **Cockpit ordering on safety-valve path (F2.d).** Both cards may fire on the same Deal: the urgent `post_trial_negative_feedback` card AND the quiet `retainer_fit_recommendation_ready` entry. Cockpit's existing urgent-above-quiet ordering handles the layout — no new ordering rule needed. The retainer-fit card visually deprioritises (smaller, lower) when the urgent card is present on the same Deal.
 
 ### 13.5 Decision CTA handling
 
@@ -946,23 +960,35 @@ Once demoted, the contact flows back to the cold outreach pool. Lead Gen's `gene
 
 ### 15.1 Flow
 
+**Bundled release rule (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2).** `deliverables_ready` is a unified state that fires only when **both** the Pixieset gallery URL has been pasted **and** the Six-Week Plan has been approved by Andy. Whichever step lands second is the trigger. One announcement email goes out covering both. Reflection clock starts from this single transition (see §13.1). Rationale: clean single reveal moment ("here's your shoot, here's what to do with it"); avoids two separate reveal beats; matches Six-Week Plan §2.6. The trade-off — that one artefact may have to wait briefly for the other — is mitigated by upfront timeframe signposting in landing/payment/booking copy (see §24 content mini-session).
+
 ```
 Shoot happens (meatspace)
   ↓
-Andy processes photos/videos in his existing workflow
+[parallel pre-conditions, in any order]
+  ├─ Andy processes photos → creates Pixieset gallery → pastes URL
+  │     POST /api/deals/[id]/pixieset-gallery { url }
+  │     Server parses URL, stores pixieset_gallery_id + pixieset_gallery_url on deals + intro_funnel_submissions
+  │     Sets intro_funnel_submissions.gallery_ready_at = NOW
+  │     activity_log entry: gallery_attached (silent)
+  │
+  └─ Andy fills Trial Shoot panel notes → Generate plan → review queue → approve
+        Six-Week Plan Generator §2.5 transitions plan to 'approved'
+        Sets intro_funnel_submissions.plan_ready_at = NOW
+        activity_log entry: six_week_plan_approved (already specced in S6WPG §2.5)
   ↓
-Andy creates a Pixieset gallery in his Pixieset account (manual, outside Lite)
+Bundle gate: when BOTH gallery_ready_at AND plan_ready_at are non-null
   ↓
-Andy pastes the gallery URL into the Trial Shoot panel on the Deal profile
-  ↓
-POST /api/deals/[id]/pixieset-gallery { url }
-  ↓
-Server parses URL → extracts pixieset_gallery_id
-Server stores pixieset_gallery_id + pixieset_gallery_url on deals + intro_funnel_submissions
 Server transitions funnel_state → 'deliverables_ready'
+Server sets intro_funnel_submissions.deliverables_ready_at = NOW (= the later of gallery_ready_at, plan_ready_at)
 Server writes activity_log entry deliverables_ready (quiet)
-Server sends notification email to prospect: "Your photos are ready"
+Server sends single bundled announcement email to prospect (classification: deliverables_ready_announcement; copy drafted in §24 content mini-session — covers both gallery + plan in one beat)
+Six-Week Plan releases to prospect portal per S6WPG §2.6
 ```
+
+The bundle gate is checked twice: once on `gallery_attached`, once on `six_week_plan_approved`. Whichever handler observes both flags non-null fires the transition. Idempotency: if `funnel_state` is already `deliverables_ready`, the second handler no-ops on the transition + email.
+
+**Cockpit visibility for the waiting half.** While waiting on the slower side, Andy's cockpit shows a quiet feed entry `intro_funnel_awaiting_bundle { deal_id, prospect_name, waiting_on: 'gallery' | 'plan' }` so he knows which side is the gate. Refreshes (i.e. clears + re-emits with updated `waiting_on`) on each side completing.
 
 ### 15.2 Portal gallery component
 
@@ -976,7 +1002,13 @@ On portal load in `deliverables_ready` state:
 
 ### 15.3 Pixieset API integration
 
-`lib/integrations/pixieset.ts` — exact capability confirmation happens in the Phase 5 integration session, not now. If the Pixieset API turns out to be insufficient for what we need (e.g., can't fetch image URLs, can't access private galleries), the documented fallback is a direct gallery URL link-out using `deals.pixieset_gallery_url`. The native gallery component degrades to a large "Open gallery in new tab" CTA.
+`lib/integrations/pixieset.ts` — capability confirmation **moved earlier (F2.c, 2026-04-13 Phase 3.5 Step 11 Stage 2)**: a 1-session Phase 4 prep spike confirms the API surface (private gallery access, image-URL fetching, auth model, rate limits) before BUILD_PLAN.md is finalised. The deliverables reveal is one of the funnel's bigger emotional moments; surprise risk gets removed before the build commits to either path.
+
+**Two outcomes from the spike:**
+
+1. **API sufficient** → inline gallery component path (§15.2) builds as specced. Cinematic Tier-2 reveal candidate #3 is live. `deliverables_viewed` fires on first view inside the portal.
+
+2. **API insufficient** → on-brand link-out fallback. The portal still renders a branded "Your gallery is ready" surface using the design system + house-spring motion (NOT a raw HTML anchor). The CTA opens the Pixieset gallery in a new tab. Cinematic Tier-2 reveal candidate #3 does **not** fire on this path (the reveal happens in Pixieset's UI, outside our control). `deliverables_viewed` fires when the CTA is clicked. If this path lands as v1.0 default, a Phase 4 mop-up brainstorm decides whether to evaluate Pixieset alternatives (Pic-Time, Cloudspot, ShootProof) before accepting it as final.
 
 ### 15.4 Retention
 
@@ -1076,7 +1108,10 @@ Per Q15 policy. Enumerated:
 - `intro_funnel_complete` (all 4 sections submitted, questionnaire_complete state)
 - `retainer_fit_recommendation_ready` (with recommendation summary in card)
 - `deliverables_viewed` (once per deal, first view)
+- `six_week_plan_viewed` (once per deal, first view) — F2.a addition
 - `reflection_complete` (with synthesis summary)
+- `intro_funnel_awaiting_bundle` (F2.a addition) — quiet feed entry showing which side of the bundle gate Andy still needs to complete (`waiting_on: 'gallery' | 'plan'`); refreshes when state changes; clears on `deliverables_ready`.
+- `deliverables_ready` (bundled — single quiet feed entry naming both artefacts as released)
 
 ### 17.3 Silent (activity_log only)
 
@@ -1107,9 +1142,9 @@ All prompts live under `lib/intro-funnel/prompts/` in version-controlled files. 
 | `abandon-email.ts` | Haiku | Draft abandonment rescue email (24h + 3d variants) | Submission state, questionnaire answers, shape, stage (24h/3d) | Email subject + body |
 | `apology-email.ts` | Haiku | Draft apology email for SuperBad-initiated cancel/reschedule | Reason note, prospect context, mode (cancel/reschedule) | Email subject + body |
 
-Every customer-facing output (synthesis, retainer-fit, abandon emails, apology emails) passes through §11.5 drift check before send/display. Failures route to safe fallbacks — none of these LLM calls are allowed to silently ship broken output.
+Every customer-facing output (synthesis, abandon emails, apology emails) passes through §11.5 drift check before send/display. The retainer-fit recommendation is internal-only per §13.4 (F2.d, 2026-04-13) — never reaches the prospect via any channel — but also passes through the drift check as a belt-and-braces voice-consistency safeguard on Andy's surfaces. Failures route to safe fallbacks — none of these LLM calls are allowed to silently ship broken output.
 
-All prompts read the SuperBad perpetual Brand DNA context (once Brand DNA Assessment ships) AND the Client Context Engine output (once Context Engine ships, backlog #7) — the two-perpetual-contexts memory. Before those ship, prompts read a stubbed baseline that carries SuperBad's brand voice + business context from the `superbad-brand-voice` and `superbad-business-context` skills.
+All prompts read the SuperBad perpetual Brand DNA context — guaranteed by the First-Login Brand DNA Gate (FOUNDATIONS §11.8 / Brand DNA Assessment §11.1, F2.b 2026-04-13) — AND the Client Context Engine output (once Context Engine ships, backlog #7), per the two-perpetual-contexts memory. No stub path exists; the gate guarantees the perpetual profile is real before any consumer runs.
 
 ---
 
@@ -1299,6 +1334,8 @@ Separate from the build sessions above. This is a creative/authoring session usi
 - **Confirmation email copy** (post-payment) — brand-voice body, booking details templating
 - **Apology email templates** — SuperBad-initiated cancel + reschedule variants
 - **Landing page hero visual direction** + past work curation guidance
+- **Upfront timeframe signposting (F2.a, 2026-04-13)** — copy lines for landing page ("what happens after the shoot"), payment-confirmation surface, booking-confirmation email, post-shoot portal "awaiting bundle" state. Sets the customer expectation that **photos and the six-week plan arrive together within ~7 days post-shoot**, framed as care (we're putting both into your hands at the same moment, not drip-feeding) rather than apology. The bundled-release rule in §15.1 only works narratively if this signposting is in place.
+- **Bundled deliverables-ready announcement email** — single email covering both gallery and Six-Week Plan. Brand-voice body that introduces both artefacts and points to the portal. (Replaces the photos-only "your photos are ready" wording originally implied in §15.1.)
 
 All copy committed to the codebase (no CMS). Andy reviews inline during the mini-session.
 

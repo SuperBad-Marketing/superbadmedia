@@ -8,14 +8,13 @@
 
 **Read before starting:** `CLAUDE.md`, `START_HERE.md` § Phase 3.5, `SCOPE.md`, `FOUNDATIONS.md` (§12 canonical subscription state machine is new), `PATCHES_OWED.md` (authoritative patch list), `docs/settings-registry.md` (new — 56 keys at v1.0 seed), the three most recent Phase 3.5 handoffs (`sessions/phase-3.5-batch-b-handoff.md` + `sessions/phase-3.5-batch-a-handoff.md` + `sessions/phase-3.5-step-2a-self-containment-handoff.md`), every memory entry in `~/.claude/projects/-Users-Andy-Desktop-SuperBad-Lite/memory/` (lock-date-filter per spec). Phase 3.5 is the heaviest-read phase in the project — context compression between sub-passes is mandatory.
 
-**Next session topic:** Phase 3.5 **Step 11 walkthrough — Stage 2 (Trial Shoot → Deliverables → Reflection → Retainer-Fit Recommendation)**, then Stages 3 + 4, then Batch C (steps 8, 9, 12, 13, 15).
+**Next session topic:** Phase 3.5 **Step 11 walkthrough — Stage 3 (Six-Week Plan Generator flow)**, then Stage 4, then Batch C (steps 8, 9, 12, 13, 15).
 
-**Step 11 is split into 4 stages.** Stage 1 (Entry → Booking) completed 2026-04-13 — see `sessions/phase-3.5-step-11-stage-1-handoff.md`. Four Stage 1 flags resolved: F1.a (portal session durability), F1.b (canonical `companies.shape` + lazy staleness cascade), F1.c (lazy `ensureStripeCustomer()` + `contacts.stripe_customer_id` + terminology lock), F1.d (Setup Wizards sequencing note). Multiple spec patches applied inline + ~15 downstream consumer patches logged in `PATCHES_OWED.md`.
+**Step 11 is split into 4 stages.** Stage 1 (Entry → Booking) DONE 2026-04-13 — see `sessions/phase-3.5-step-11-stage-1-handoff.md`. Stage 2 (Trial Shoot → Reflection → Retainer-Fit) DONE 2026-04-13 — see `sessions/phase-3.5-step-11-stage-2-handoff.md`. Stage 1 flags: F1.a (portal session durability — patches deferred to Stage 4 closure), F1.b (canonical `companies.shape` + lazy staleness cascade), F1.c (lazy `ensureStripeCustomer()` + `contacts.stripe_customer_id` + terminology lock), F1.d (Setup Wizards sequencing note). Stage 2 flags: F2.a (bundled gallery+plan `deliverables_ready` release with upfront timeframe signposting), F2.b (First-Login Brand DNA Gate — replaces stub primitive entirely; cascades into Phase 4 build order), F2.c (Pixieset API spike moved to Phase 4 prep), F2.d (retainer-fit fires on safety-valve path but is hard internal-only), F2.e (`intro_funnel.reflection_delay_hours_after_deliverables` migrated to settings registry; broader Intro Funnel registry sweep flagged for Batch C step 15).
 
 Remaining Step 11 stages:
-- **Stage 2:** Trial Shoot → Pixieset deliverables reveal → reflection questionnaire → Claude synthesis reveal → retainer-fit recommendation. Anticipated friction: Six-Week Plan generation timing (where in the flow does it land?), Brand DNA context stubbing when synthesis runs pre-Brand-DNA-ship, Pixieset API capability risk, safety-valve-to-retainer-fit interaction.
-- **Stage 3:** Six-Week Plan Generator — prospect portal receipt, revision flow, non-converter 60-day lifecycle, plan-to-active_strategy migration on retainer conversion.
-- **Stage 4:** Retainer conversion — Quote Builder handoff, Stripe Checkout (reusing Stripe Customer from F1.c), Client Management portal migration, Onboarding + Brand DNA unlock sequencing.
+- **Stage 3 (next):** Six-Week Plan Generator — prospect portal receipt, revision flow, non-converter 60-day lifecycle, plan-to-active_strategy migration on retainer conversion. Anticipated friction (per Stage 2 handoff §"What the next session should know"): plan-as-PDF persistence path against bundled-release wording (F2.a), revision-resolution UX when Andy hand-rejects vs regenerates, day-60 archive copy honouring "your plan stays yours" framing, plan migration on retainer conversion (prospect-side double-show risk during migration window), Daily Cockpit waiting-items contract (4 new source kinds in §12.2). Stage 3 must also confirm no Six-Week Plan code path reads Brand DNA on a non-admin route (F2.b cascade).
+- **Stage 4:** Retainer conversion — Quote Builder handoff, Stripe Checkout (reusing Stripe Customer from F1.c), Client Management portal migration, Onboarding + Brand DNA unlock sequencing. **Stage 4 closure also folds in F1.a portal-guard primitive + magic-link-in-every-email patches** (whole-arc concerns deferred from Stage 1).
 
 **Batch A DONE 2026-04-13** (steps 3, 3a, 3b, 4, 5). See `sessions/phase-3.5-batch-a-handoff.md`.
 **Batch B DONE 2026-04-13** (steps 6, 7, 7a, 10). See `sessions/phase-3.5-batch-b-handoff.md`.
@@ -28,9 +27,9 @@ Remaining Step 11 stages:
 
 **Next actions (in order):**
 1. ~~**Step 11 walkthrough Stage 1 (Entry → Booking)** — DONE 2026-04-13.~~ See `sessions/phase-3.5-step-11-stage-1-handoff.md`.
-2. **Step 11 walkthrough Stage 2 (Trial Shoot → Reflection → Retainer-Fit)** — product-judgement with Andy. Next.
-3. **Step 11 walkthrough Stage 3 (Six-Week Plan flow)** — product-judgement with Andy.
-4. **Step 11 walkthrough Stage 4 (Retainer conversion)** — product-judgement with Andy.
+2. ~~**Step 11 walkthrough Stage 2 (Trial Shoot → Reflection → Retainer-Fit)** — DONE 2026-04-13.~~ See `sessions/phase-3.5-step-11-stage-2-handoff.md`.
+3. **Step 11 walkthrough Stage 3 (Six-Week Plan flow)** — product-judgement with Andy. Next.
+4. **Step 11 walkthrough Stage 4 (Retainer conversion + F1.a portal-guard/magic-link closure)** — product-judgement with Andy.
 5. **Batch C (steps 8, 9, 12, 13, 15)** — autonomous: spec-pair contract audits, LLM job inventory vs model registry, portal token lifecycle, external-service auth shape, final literal-grep. Note: Step 8 glossary pass must fold in the F1.c `stripe.Customer` ≠ **Client** terminology lock.
 6. **Stop 14** — product-judgement (TBD content).
 7. **Stop 16** — Phase 3.5 exit approval from Andy.
