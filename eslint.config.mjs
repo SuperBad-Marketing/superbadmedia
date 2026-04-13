@@ -27,6 +27,7 @@ const eslintConfig = defineConfig([
       "lib/ai/**",
       "lib/stripe/**",
       "lib/pdf/**",
+      "lib/crypto/vault.ts",
       "lib/internal-only.ts",
       "lib/eslint-rules/**",
     ],
@@ -37,6 +38,7 @@ const eslintConfig = defineConfig([
       "lite/no-direct-anthropic-import": "error",
       "lite/no-direct-stripe-customer-create": "error",
       "lite/no-direct-resend-send": "error",
+      "lite/no-direct-crypto": "error",
     },
   },
 ]);

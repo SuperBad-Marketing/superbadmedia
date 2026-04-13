@@ -1,0 +1,38 @@
+# Litestream — continuous SQLite replication to Cloudflare R2.
+#
+# Run as a sidecar alongside the Next.js container in Coolify:
+#   litestream replicate -config /app/litestream.yml
+#
+# Recovery procedure: see docs/dr-runbook.md.
+# Restore drill is a mandatory precondition for Phase 6 launch — see LAUNCH_READY.md.
+#
+# Key env vars (set in Coolify production environment):
+#   DB_FILE_PATH      — absolute path to the SQLite file on the Coolify volume
+#                       (same location as DATABASE_URL but without the "file:" prefix).
+#                       Example: /data/db.sqlite
+#   R2_BUCKET_NAME    — Cloudflare R2 bucket name (e.g. superbad-lite-backups)
+#   R2_ENDPOINT_URL   — R2 S3-compatible endpoint
+#                       (e.g. https://<account_id>.r2.cloudflarestorage.com)
+#   R2_ACCESS_KEY_ID  — R2 API token (Access Key ID)
+#   R2_SECRET_ACCESS_KEY — R2 API token (Secret Access Key)
+#
+# ATO 7-year retention: Cloudflare R2 object lifecycle rules must be
+# configured in the R2 dashboard to NEVER expire objects in this bucket.
+# Do NOT enable any delete-after or transition rules on this bucket.
+# See FOUNDATIONS.md §5 for policy rationale.
+
+dbs:
+  - path: ${DB_FILE_PATH}
+    replicas:
+      - type: s3
+        bucket: ${R2_BUCKET_NAME}
+        endpoint: ${R2_ENDPOINT_URL}
+        access-key-id: ${R2_ACCESS_KEY_ID}
+        secret-access-key: ${R2_SECRET_ACCESS_KEY}
+        # Sync every WAL frame as it's written — near-real-time RPO.
+        sync-interval: 1s
+        # Keep at least 24 hours of snapshots for point-in-time restore.
+        # ATO 7-year legal retention is enforced via R2 bucket lifecycle
+        # rules (no-expire policy), not via this Litestream retention setting.
+        retention: 24h
+        retention-check-interval: 1h
