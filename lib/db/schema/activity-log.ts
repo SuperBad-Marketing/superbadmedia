@@ -255,6 +255,8 @@ export const ACTIVITY_LOG_KINDS = [
   "portal_magic_link_redeemed",
   // --- Portal guard A8 (1) ---
   "portal_session_started",
+  // --- Support + error triage B1 (1) ---
+  "support_ticket_created",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

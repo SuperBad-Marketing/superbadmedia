@@ -6,6 +6,7 @@ import { getActivePresets } from "@/lib/presets";
 import { MotionProvider } from "@/components/lite/motion-provider";
 import { SoundProvider } from "@/components/lite/sound-provider";
 import { ThemeProvider } from "@/components/lite/theme-provider";
+import { ReportIssueButton } from "@/components/lite/report-issue-button";
 
 import "./globals.css";
 
@@ -32,6 +33,9 @@ export default async function RootLayout({
             <SoundProvider>
               {children}
               <Toaster />
+              <footer className="mt-auto flex justify-end px-4 pb-3 pt-2">
+                <ReportIssueButton />
+              </footer>
             </SoundProvider>
           </MotionProvider>
         </ThemeProvider>

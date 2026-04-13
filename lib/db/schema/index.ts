@@ -8,3 +8,4 @@ export * from "./legal-doc-versions";
 export * from "./email-suppressions";
 export * from "./portal-magic-links";
 export * from "./brand-dna-profiles";
+export * from "./support-tickets";
