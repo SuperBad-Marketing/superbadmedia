@@ -48,6 +48,9 @@ function isPublicRoute(pathname: string): boolean {
     // Legal pages are publicly accessible (no auth gate) — B3
     pathname.startsWith("/lite/legal/") ||
     pathname === "/lite/legal" ||
+    // Brand DNA assessment — bypasses brand-dna gate (user IS taking the assessment).
+    // Auth is resolved inside Server Components and Actions via auth() — BDA-2.
+    pathname.startsWith("/lite/brand-dna") ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico"

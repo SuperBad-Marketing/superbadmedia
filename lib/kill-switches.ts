@@ -17,7 +17,8 @@ export type KillSwitchKey =
   | "scheduled_tasks_enabled"
   | "llm_calls_enabled"
   | "drift_check_enabled"
-  | "sentry_enabled";
+  | "sentry_enabled"
+  | "brand_dna_assessment_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -27,6 +28,7 @@ const defaults: KillSwitchRegistry = {
   llm_calls_enabled: false,
   drift_check_enabled: false,
   sentry_enabled: false,
+  brand_dna_assessment_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

@@ -25,6 +25,8 @@ const eslintConfig = defineConfig([
     ignores: [
       "lib/channels/**",
       "lib/ai/**",
+      // brand-dna generate-insight is an LLM caller (same boundary as lib/ai/) — BDA-2
+      "lib/brand-dna/generate-insight.ts",
       "lib/stripe/**",
       "lib/pdf/**",
       "lib/crypto/vault.ts",
