@@ -729,6 +729,67 @@ See §7.1 for state-dependent surfaces. Key cross-cutting concerns:
 - **No keyboard shortcuts** — per the CLAUDE.md "Andy is mouse-first" rule; applies to customer too unless we have reason to believe otherwise.
 - **No chat, no messaging, no notifications surface** — explicitly out of scope. Communication happens via email/SMS/phone outside the portal.
 
+### 10.1 Portal-guard recovery flow + magic-link-in-every-email (F1.a resolution, 2026-04-13 Phase 3.5 Step 11 Stage 4 closure)
+
+**Problem this closes.** A prospect who's paid real money for a trial shoot can lose their portal session (different device, expired cookies, spam-filtered magic link) and become unable to re-enter. Section 1's single magic link is a single point of failure across a journey that spans weeks.
+
+**Primitive.** `portal-guard` — a cross-cutting foundation primitive (owed on `FOUNDATIONS.md` §11 — Phase 4 foundation session). Session-cookie check with magic-link recovery fallback. Consumers: this spec's `/lite/intro/[token]/*` routes, and `docs/specs/client-management.md` §10 `/portal/[token]/*` routes. One behaviour, two mount points.
+
+**Guard behaviour.** Every `/lite/intro/[token]/*` route that requires prospect identity runs the guard before render:
+
+1. **Session cookie present and valid** → render.
+2. **Session cookie missing or expired** → render a single-screen recovery form mounted at `/lite/intro/[token]/recover` (or as an in-place overlay on the requested route — Phase 5 implementation detail). Form has one field: email address. On submit:
+   - Server looks up `intro_funnel_submissions` by `submitted_email`. If found, mints a fresh magic-link OTT (one-time-use, 7-day TTL), sends it via `sendEmail({ classification: 'portal_magic_link_recovery' })`, and renders a "check your inbox" confirmation state.
+   - If not found (wrong email, typo, prospect never submitted section 1), renders a single dry line pointing to Andy's direct email as the fallback ("Doesn't look like we've got that one. Drop Andy a line: andy@superbadmedia.com.au"). No enumeration, no retry loop — anything beyond the happy path escalates to human.
+3. **Magic-link consumption** → OTT consumed → Auth.js session cookie minted (90-day rolling TTL, httpOnly, secure) → redirect to the originally requested URL.
+
+**Magic-link-in-every-email.** Every journey-beat prospect-facing email sent by this spec embeds a fresh magic-link OTT (one-time-use, 7-day TTL, scoped to this `intro_funnel_submissions` row) as the "Return to your portal" link in the email footer. The OTT is generated at send time, stored hashed on a new row in `portal_magic_links` (see §4.1 addition below), and consumed on click. Consequence: the prospect accumulates multiple backup entry points as their journey progresses — the latest email always works, and older unspent OTTs remain valid until their individual TTL expires.
+
+Covered send points (inline patch — each of these sections emits a customer-facing email that now carries the embedded OTT):
+- §11.4 payment receipt (`trial_shoot_payment_receipt`)
+- §12.3 booking confirmation (`shoot_booking_confirmed`) + `.ics` attachment email
+- §12.4 reschedule confirmation (`shoot_reschedule_confirmed`)
+- §12.5 SuperBad-initiated reschedule / cancel apology (`apology_email`)
+- §13.1 reflection-ready nudge (`reflection_ready`)
+- §15 bundled deliverables announcement (`deliverables_ready_announcement`)
+- §17.x any transactional email fired by this spec's notifications (abandonment rescue emails §14.4 already embed the portal return link; they must route through the same OTT helper so every link is fresh)
+
+Phase 5 Session C build gate: `sendEmail()` wrapper for this spec's classifications enforces OTT generation as a precondition — a journey-beat email sent without an embedded fresh OTT is a bug caught by lint.
+
+**Token lifecycle (technical defaults, locked silently per `feedback_technical_decisions_claude_calls`):**
+- Magic-link OTT: one-time-use, 7-day TTL, SHA-256 hashed at rest, 32-byte random (URL-safe base64).
+- Portal URL token (`[token]` in route): stable per contact, never expires, never rotated (journey emails sent at section 1 submit reference it months later).
+- Session cookie: httpOnly, secure, SameSite=Lax, 90-day rolling TTL per existing §10 Return-path spec.
+
+**New classification.** `portal_magic_link_recovery` added to FOUNDATIONS §11.2 `sendEmail()` classification enum (patch owed — logged in PATCHES_OWED for Phase 5 Session A).
+
+**New table.** `portal_magic_links` (added to §4.1):
+```
+id                  primary key
+submission_id       FK → intro_funnel_submissions (nullable; null when issued
+                    for retainer-side Client Management portal — future consumer)
+contact_id          FK → contacts
+ott_hash            text (SHA-256 of token; raw token only ever in email body)
+issued_for          text enum: 'journey_email' | 'recovery_form' | 'section_1'
+issued_at           timestamp
+ttl_hours           integer (default 168 — 7 days; overridable per issued_for)
+consumed_at         timestamp (null until consumed)
+consumed_from_ip    text (null until consumed; light audit trail)
+```
+
+Phase 4 foundation session generalises this table so Client Management's `/portal/[token]/*` consumer reuses it without a second primitive — the `submission_id` column becomes nullable and a parallel `client_id` column is added at that time.
+
+**Settings keys.** Two new keys owed on `docs/settings-registry.md` Portal namespace (patch logged below):
+- `portal.magic_link_ttl_hours` (default 168)
+- `portal.session_cookie_ttl_days` (default 90)
+
+**Activity log.** New `activity_log.kind` values:
+- `portal_magic_link_issued` — payload `{ submission_id?, contact_id, issued_for }`
+- `portal_magic_link_consumed` — payload `{ submission_id?, contact_id, issued_for, time_to_consume_hours }`
+- `portal_recovery_form_submitted` — payload `{ submission_id?, email, matched: boolean }`
+
+**Out of scope.** No rate limiting on recovery-form submission beyond standard Next.js edge throttle (v1 — the form's damage surface is capped to "send a fresh email to someone who already has a submission on file" so abuse cost is low). No client-side magic-link pre-fetching (email clients do this routinely and would auto-consume OTTs — mitigated by keeping OTTs valid for 7 days so a prefetched-and-consumed link still works for the prospect when they actually click). No device-trust / remember-me surface — the 90-day session cookie is the remember-me.
+
 ---
 
 ## 11. Payment flow spec

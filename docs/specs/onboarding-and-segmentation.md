@@ -363,16 +363,27 @@ Magic link only via Auth.js v5. No passwords. The credential creation step is: "
 
 ### 8.1 Retainer welcome screen
 
-**URL:** `/portal/[token]` (first visit, before Brand DNA).
+**Entry-path branch (F4.c, 2026-04-13 Phase 3.5 Step 11 Stage 4).** The welcome screen runs for **direct/referral retainer entrants only**. Trial-shoot graduates bypass this surface entirely — their portal experience is continuous (pre-retainer → retainer) and a fresh "welcome to SuperBad" interstitial breaks the lived continuity per `feedback_felt_experience_wins`. Their retainer transition is fully handled by `docs/specs/client-management.md` §10 Retainer kickoff transition (Brand DNA gate → bartender-led kickoff, F4.b).
+
+**Detection.** Trial-shoot graduate = a row exists in `intro_funnel_submissions` for this contact's company. Direct/referral = no such row. The first render of `/portal/[token]` after `deals.stage = 'won'` evaluates this at render time:
+
+- **Trial-shoot graduate:** redirect directly to the retainer portal in `/portal/[token]` chat-home surface. F4.b's Brand DNA gate + bartender kickoff fire as specified in Client Management §10.
+- **Direct/referral:** render §8.1 welcome screen below.
+
+Both paths converge on Brand DNA as the first active client task. Both respect the same §10 Brand DNA portal gate (pre-assessment lock). The branch is a surface difference only, not a data-model or state-machine difference.
+
+**URL (direct/referral path):** `/portal/[token]` (first visit, before Brand DNA).
 
 **Content:**
 1. Client's name — large, prominent.
 2. One dry SuperBad-voice line — Claude-generated via `generateInVoice('onboarding_welcome_retainer', context)`. Admin-roommate register. Not a pitch, not a celebration — a greeting.
-3. **"What we already know about you"** — Claude-generated summary paragraph from deal notes, quote context, outreach research (if any). Warm, observant, specific. Not a data dump. Generated via Opus with SuperBad Brand DNA + client context as inputs. Reads the client doc source hierarchy: client-supplied docs > direct answers > owned web > scrapes > LLM inference.
+3. **"What we already know about you"** — Claude-generated summary paragraph from deal notes, quote context, outreach research (if any). Warm, observant, specific. Not a data dump. Generated via Opus with SuperBad Brand DNA + client context as inputs. Reads the client doc source hierarchy: client-supplied docs > direct answers > owned web > scrapes > LLM inference. The summary prompt reads from direct/referral context sources only — trial-shoot artefacts (shoot-day notes, six-week plan, reflection) are not in scope for this prompt because trial-shoot graduates never reach this surface.
 4. **Step preview:**
    - "First: getting to know you properly. This is the good part. (~30 minutes)"
    - "Then: a bit of practical admin you can do whenever. (~10 minutes)"
 5. Single CTA button: "Let's get started" → Brand DNA Assessment.
+
+**One-shot.** New column `contacts.onboarding_welcome_seen_at timestamp nullable` — set on first render, used to prevent the welcome screen re-appearing on later logins (subsequent direct/referral logins go straight to chat-home / Brand DNA gate per normal retainer flow).
 
 **Design:** premium feel consistent with Brand DNA's visual language. This is the gateway to the flagship experience — it must match that bar. Full-bleed, minimal UI, name and text as the hero elements.
 
@@ -408,6 +419,9 @@ Revenue Segmentation fields (SaaS-only, nullable for retainer companies):
 - `industry_vertical_other` — text, nullable. Free-text qualifier when `industry_vertical = 'other'`.
 - `location` — text. Captured at SaaS signup or from the pipeline for retainer clients. Used as geography gate for upsell targeting.
 - `revenue_segmentation_completed_at` — timestamp, nullable. When the customer finished Revenue Segmentation.
+
+**New column on `contacts`** (added per F4.c, 2026-04-13 Phase 3.5 Step 11 Stage 4):
+- `onboarding_welcome_seen_at` — timestamp, nullable. Set on first render of the direct/referral retainer welcome screen §8.1. Null for trial-shoot graduates (they bypass that surface entirely) and for contacts who haven't yet logged in post-Won. Used to one-shot the welcome surface.
 
 ### 9.2 No new tables
 

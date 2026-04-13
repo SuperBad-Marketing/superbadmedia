@@ -263,9 +263,25 @@ The same `/portal/[token]` shell renders three lifecycle modes:
 
 Mode determined at render time from `deals.stage` + `subscription_state` + shoot completion + archive scheduled-task state. Migration from pre-retainer → retainer is automatic on first retainer payment (`deals.stage` → `'won'`). Migration from pre-retainer → archived is driven by the `portal_archive_non_converter` scheduled task seeded by Intro Funnel at shoot completion.
 
+**Retainer kickoff transition (F4.b, 2026-04-13 Phase 3.5 Step 11 Stage 4; entry-path branch added F4.c, 2026-04-13 Stage 4).** The first portal visit after `deals.stage = 'won'` runs an entry-path-dependent sequence.
+
+**Entry-path branch.** Direct/referral retainer entrants (no `intro_funnel_submissions` row for the contact's company) route first to `docs/specs/onboarding-and-segmentation.md` §8.1 welcome screen; on "Let's get started" they arrive at the Brand DNA gate below. Trial-shoot graduates (an `intro_funnel_submissions` row exists) bypass §8.1 and land directly on the sequence below. Both paths converge on the same two-beat sequence:
+
+1. **Brand DNA gate (hard lock).** Server-side render check: if no `brand_dna_profiles` row exists for this contact with `status = 'complete'`, the retainer portal is **locked** to the Brand DNA Assessment flow per `docs/specs/brand-dna-assessment.md` §10.6 (portal gate, pre-assessment). All retainer-mode surfaces (chat, invoices, bookings, deliverables, data export) render as blurred/outlined previews; the only live affordance is "Complete your Brand DNA" routing to the assessment. No skip. If the client completed Brand DNA during the pre-retainer wait period (per `project_brand_dna_after_trial_shoot` memory — optional unlock during deliverable wait), the gate passes immediately and the client never sees the lock state on first retainer login.
+2. **Bartender-led kickoff (on gate-clear).** Once Brand DNA is complete (either pre-conversion, or just now on this login), the portal unlocks and the three-step first-visit tour from §1 lock #9 is **suppressed** for retainer-converters (the pre-retainer portal already ran the tour — or the bundled hub §10.2.1). Instead, on the first chat-home render after gate-clear, the bartender's opening line (§10.2.2 Prompt 1) fires a **retainer-kickoff variant**: scripted template acknowledging kickoff, surfacing the single next primary action (first shoot scheduling — flagged as "once your first invoice clears" if not yet cleared), warm register, no pitch. Fires once per contact, stamped by `clients.retainer_kickoff_bartender_said_at = now()` (new column §10.9). Subsequent logins receive standard context-aware opener.
+
+**Motion.** Gate-clear → unlocked portal transitions under house spring (nav items + previously-blurred sections fade in, staggered ≤ spring ceiling). Per `feedback_motion_is_universal` this is a state change and earns motion.
+
+**Activity log.**
+- `retainer_mode_brand_dna_gate_entered` on first retainer-mode render that hits the lock (payload `{ client_id, contact_id }`).
+- `retainer_kickoff_bartender_message_sent` on kickoff opener fire (payload `{ client_id, contact_id, gate_bypassed_pre_retainer: boolean }`).
+
+Prompt 1 (§10.2.2) gains a new input flag `kickoff_variant: boolean` — true when `retainer_kickoff_bartender_said_at IS NULL AND brand_dna_profiles.status = 'complete' AND deals.stage = 'won'`. Prompt file owed: `lib/ai/prompts/portal-bartender-opening.ts` gains the kickoff-variant branch; content in Client Management mini-session (§content authoring).
+
 ### 10.1 Identity and access
 
 - URL: `/portal/[token]` — token-based access, no sign-in required for initial onboarding. Magic link for ongoing auth (locked in Onboarding spec).
+- **`portal-guard` primitive (F1.a resolution, 2026-04-13 Phase 3.5 Step 11 Stage 4 closure).** Every `/portal/[token]/*` route runs the shared foundation primitive defined in `FOUNDATIONS.md` §11 (patch owed, Phase 4 foundation session) and contract-specified in `docs/specs/intro-funnel.md` §10.1: session-cookie check with magic-link recovery fallback. Session cookie missing/expired → render a single-field recovery form that looks up `contacts` by email and, if matched, emails a fresh magic-link OTT (classification `portal_magic_link_recovery`). Unmatched emails route to a dry line pointing at Andy's direct email. OTT TTL = `settings.get('portal.magic_link_ttl_hours')` (default 168). Session cookie TTL = `settings.get('portal.session_cookie_ttl_days')` (default 90). Portal URL token is stable per contact and never rotated — the magic link is the recovery mechanism, not the identity rotator. Every retainer-mode journey email sent by Client Management (deliverable announcements, invoice links, booking confirmations) embeds a fresh OTT in the portal-return link; enforced by the `sendEmail()` wrapper at call site.
 - Every surface says **"SuperBad"**, never "SuperBad Lite."
 - Each contact gets their own individual portal. Portals are isolated per contact — chat, Brand DNA, and the bartender opening line are scoped to the individual. Shared company data (deliverables, invoices, package) is visible but presented as "your" deliverables, "your" invoices.
 - Portal feel: the client's own private space with SuperBad (`feedback_individual_feel`). Not a dashboard. Not a shared platform.
@@ -595,6 +611,7 @@ If the migration job fails, it retries via the `scheduled_tasks` exponential ret
 |--------|------|-------------|
 | `portal_chat_last_seen_at` | integer, nullable (UTC epoch ms) | When the client last viewed the chat. Used for "new messages" indicators |
 | `portal_last_visited_at` | integer, nullable (UTC epoch ms) | When the client last visited any portal page. Used for "new deliverables" badge logic |
+| `retainer_kickoff_bartender_said_at` | integer, nullable (UTC epoch ms) | When the retainer-kickoff-variant bartender opening line fired for this contact on first post-Won login. Null = kickoff variant has not fired yet (either pre-retainer, or Brand DNA gate still blocking). Per F4.b (2026-04-13) |
 
 ### 15.3 Tables referenced (not created by this spec)
 
@@ -613,7 +630,7 @@ If the migration job fails, it retries via the `scheduled_tasks` exponential ret
 - `client_data_export` — background ZIP generation
 - `intro_funnel_portal_migration` — post-Won migration job
 
-### 15.5 New `activity_log.kind` values (8)
+### 15.5 New `activity_log.kind` values (10)
 
 - `portal_chat_message_sent` — client sent a message to the AI chat
 - `portal_chat_escalated` — AI chat escalated a request to Andy
@@ -623,6 +640,8 @@ If the migration job fails, it retries via the `scheduled_tasks` exponential ret
 - `external_link_added` — external link added to company profile
 - `external_link_removed` — external link removed from company profile
 - `client_profile_viewed_by_admin` — Andy viewed a client profile (for activity log completeness)
+- `retainer_mode_brand_dna_gate_entered` — first retainer-mode render hit the Brand DNA lock; payload `{ client_id, contact_id }` (added per F4.b, 2026-04-13)
+- `retainer_kickoff_bartender_message_sent` — retainer-kickoff-variant bartender opener fired; payload `{ client_id, contact_id, gate_bypassed_pre_retainer: boolean }` (added per F4.b, 2026-04-13)
 
 ---
 
@@ -728,6 +747,7 @@ Portal pages (client-facing — "SuperBad", never "Lite"):
 Small — most copy is Claude-generated at runtime. Can fold into another spec's content session:
 
 - First-visit portal tour copy (3 steps, bartender voice)
+- **Retainer-kickoff-variant bartender opening line (F4.b, 2026-04-13 Phase 3.5 Step 11 Stage 4)** — scripted template for the first chat-home render after retainer-mode Brand DNA gate-clears. Warm register, acknowledges kickoff, surfaces first-shoot scheduling as the single primary next action (with "once your first invoice clears" modifier when invoice not yet cleared). No pitch, no multi-item list. Fires once per contact (stamped by `contacts.retainer_kickoff_bartender_said_at`). Prompt lives at `lib/ai/prompts/portal-bartender-opening.ts` (kickoff-variant branch).
 - Portal error page dry one-liner (fallback chain terminal)
 - Empty state copy for: no clients yet, no deliverables, no invoices, no comms, no external links, no Brand DNA
 - Loading state copy for: AI chat warming up, export generating, gallery loading

@@ -57,6 +57,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `plan.self_review_retry_on_fail` | `1` | integer | Max retries on stage 2 if self-review flags issues |
 | `plan.extend_portal_days_on_manual_override` | `30` | integer | Default days added when Andy manually extends a non-converter's portal |
 | `plan.expiry_email_days_before_archive` | `7` | integer | Days before the day-60 archive at which the wind-down expiry email fires (default: day 53), per F3.d (2026-04-13) |
+| `plan.refresh_review_block_escalation_hours` | `24` | integer | Hours since a queued retainer payment after which the cockpit pending-refresh-review banner escalates amber → red, per F4.a (2026-04-13) |
 
 ## Portal (owner: `docs/specs/client-management.md` §10; Intro Funnel consumes)
 
@@ -65,6 +66,8 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `portal.non_converter_archive_days` | `60` | integer | Days post-shoot-completion before non-converter portal archives |
 | `portal.chat_calls_per_day_pre_retainer` | `5` | integer | Daily Opus chat call cap in pre-retainer rendering mode |
 | `portal.chat_calls_per_day_retainer` | `25` | integer | Daily Opus chat call cap for retainer clients |
+| `portal.magic_link_ttl_hours` | `168` | integer | TTL for magic-link OTTs embedded in journey-beat emails + recovery-form sends; 7 days default, per F1.a (2026-04-13) |
+| `portal.session_cookie_ttl_days` | `90` | integer | Rolling TTL for the portal-guard session cookie, per F1.a (2026-04-13) |
 
 ## Intro Funnel (owner: `docs/specs/intro-funnel.md`)
 
@@ -113,10 +116,10 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 - Finance: 11
 - Wizards: 6
-- Plan: 9
-- Portal: 3
+- Plan: 10
+- Portal: 5
 - Intro Funnel: 1 (more owed; see Batch C step 15)
 - Hiring: 28
-- **Total: 57 keys at v1.0 seed**
+- **Total: 60 keys at v1.0 seed**
 
 Phase 5 Session A (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

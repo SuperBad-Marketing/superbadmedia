@@ -396,7 +396,7 @@ Affected specs:
 
 ### Health banner source contracts
 
-Each banner-contributing spec exposes `getHealthBanners(userId)` matching the §System-health banner strip contract. Applies to Unified Inbox, Content Engine, Finance Dashboard, SaaS Subscription Billing, and Six-Week Plan Generator (emits `six_week_plan_retainer_payment_without_refresh_review` per `docs/specs/six-week-plan-generator.md` §12.2).
+Each banner-contributing spec exposes `getHealthBanners(userId)` matching the §System-health banner strip contract. Applies to Unified Inbox, Content Engine, Finance Dashboard, SaaS Subscription Billing, and Six-Week Plan Generator (emits `six_week_plan_retainer_payment_without_refresh_review` per `docs/specs/six-week-plan-generator.md` §12.2; banner payload carries `{ plan_id, client_id, payment_received_at, hours_since_payment, escalation_threshold_hours, severity: 'amber' | 'red' }` and escalates amber → red once `hours_since_payment > escalation_threshold_hours`, threshold sourced from `settings.get('plan.refresh_review_block_escalation_hours')` — per F4.a, 2026-04-13).
 
 ### Task Manager — column rules inherited, not re-derived
 

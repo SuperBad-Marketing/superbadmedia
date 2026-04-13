@@ -446,7 +446,14 @@ Route: `/lite/clients/[companyId]/strategy/refresh-review`. Andy reviews the mig
 
 ### 8.3 Week 1 trigger for retainer path
 
-Stripe webhook on first successful retainer charge fires `six_week_plan_retainer_week_1_start`. If the active_strategy artefact is `live` (Andy has done refresh-review), Week 1 begins, the pending-refresh-review band clears, tracker mode activates, and `/portal/[token]/plan`'s navigation label flips from "Your plan" to "Your strategy" (F3.e label switch). If still `pending_refresh_review`, a high-priority cockpit alert tells Andy the retainer payment has landed and the plan isn't set live yet; the portal band remains until Andy completes refresh-review.
+Stripe webhook on first successful retainer charge fires `six_week_plan_retainer_week_1_start`. The handler branches on `active_strategy.status`:
+
+- **`live` (Andy has published refresh-review):** Week 1 begins immediately. Pending-refresh-review band clears, tracker mode activates, and `/portal/[token]/plan`'s navigation label flips from "Your plan" to "Your strategy" (F3.e label switch). Activity log: `six_week_plan_retainer_week_1_activated` with payload `{ plan_id, client_id, trigger: 'payment' }`.
+- **`pending_refresh_review` (payment arrived first — F4.a, 2026-04-13 Phase 3.5 Step 11 Stage 4):** Week 1 does **not** fire. The handler stamps `six_week_plans.retainer_payment_received_at = now()` (new column §10.1) and logs activity `six_week_plan_retainer_payment_queued_pending_refresh_review { plan_id, client_id }`. `/portal/[token]/plan`'s band copy shifts from the pre-payment variant ("Andy's doing a pass on this for the retainer — live version lands when your first payment fires.") to the post-payment variant ("Kicking off Week 1 shortly — Andy's finalising the refreshed plan."). Label stays "Your plan"; tracker stays suppressed. Cockpit `getHealthBanners()` surfaces `six_week_plan_retainer_payment_without_refresh_review` at **amber** priority; banner escalates to **red** once `now() − retainer_payment_received_at > settings.get('plan.refresh_review_block_escalation_hours')` (default 24 — see §9).
+
+**Retroactive fire on refresh-review publish.** When Andy publishes refresh-review (§8.2, any of the three actions sets `active_strategy.status = live`), the publish handler checks `retainer_payment_received_at`. If non-null, Week 1 fires retroactively in the same transaction: band clears, tracker activates, label flips, activity log `six_week_plan_retainer_week_1_activated { plan_id, client_id, trigger: 'refresh_review_publish', payment_received_at }`. The cockpit health banner clears. Week-1 content-engine briefs and scheduled-tasks downstream of Week 1 activation treat the publish moment as Week-1-day-1 (never backdate content-dependent timers — retroactive firing is logical, not temporal).
+
+Rationale (F4.a, 2026-04-13 Phase 3.5 Step 11 Stage 4): queueing preserves the F3.e lock that `active_strategy` isn't consumed as live until Andy publishes, while keeping the client's commitment moment frictionless. Payment isn't blocked, tracker isn't activated against a stale plan, and Andy gets a proportional blocker signal. Per `feedback_felt_experience_wins` the client never sees "pending refresh review" language — the band shifts to a kickoff-imminent tone once they've paid.
 
 ### 8.4 Non-converter expiry (rewritten per F3.d, 2026-04-13 Phase 3.5 Step 11 Stage 3)
 
@@ -490,6 +497,7 @@ Sets `six_week_plans.portal_expiry_email_sent_at = now()`. Activity log: `six_we
 | `plan.pdf_cache_hours` | 24 | integer | Hours to cache a rendered PDF before regenerating |
 | `plan.self_review_retry_on_fail` | 1 | integer | Max retries on stage 2 if self-review flags issues |
 | `plan.extend_portal_days_on_manual_override` | 30 | integer | Default days added when Andy manually extends a non-converter's portal |
+| `plan.refresh_review_block_escalation_hours` | 24 | integer | Hours since a queued retainer payment (payment arrived pre-refresh-review) after which the cockpit `six_week_plan_retainer_payment_without_refresh_review` banner escalates from amber to red — per F4.a (2026-04-13) |
 
 All consumed via `settings.get(key)` — no literals in feature code.
 
@@ -541,6 +549,10 @@ revision_reply_dismissed_at timestamp (null until prospect dismisses the inline 
 // Retainer migration
 migrated_to_client_context_at   timestamp (null until Won)
 refresh_reviewed_at             timestamp (null until Andy completes refresh-review)
+retainer_payment_received_at    timestamp (null until first retainer Stripe webhook fires; non-null
+                                 while a payment is queued awaiting refresh-review publish per F4.a,
+                                 2026-04-13; used by cockpit banner escalation + retroactive Week 1
+                                 activation on publish)
 
 // Non-converter expiry
 portal_expiry_email_sent_at timestamp (null until the day-53 expiry email fires — per F3.d, 2026-04-13)
@@ -606,6 +618,8 @@ Added to the cross-spec enum (consolidated at Phase 3.5):
 - `six_week_plan_migrated_to_client_context`
 - `six_week_plan_refresh_review_requested`
 - `six_week_plan_live_strategy_set`
+- `six_week_plan_retainer_payment_queued_pending_refresh_review` — Stripe retainer webhook fired before Andy published refresh-review; Week 1 held; payload `{ plan_id, client_id }` (added per F4.a, 2026-04-13)
+- `six_week_plan_retainer_week_1_activated` — Week 1 fired; payload `{ plan_id, client_id, trigger: 'payment' | 'refresh_review_publish', payment_received_at?: timestamp }` (added per F4.a, 2026-04-13)
 - `six_week_plan_expiry_email_sent` — day-53 wind-down email sent; payload `{ plan_id, deal_id }` (added per F3.d, 2026-04-13)
 - `six_week_plan_portal_archived_non_converter`
 - `six_week_plan_pdf_downloaded` — payload `{ plan_id, generation_version }` per F3.b (2026-04-13) so the portal can detect when a prospect holds a stale PDF version and prompt a re-download
@@ -669,7 +683,7 @@ Post-shoot portal surfaces (deliverables reveal, reflection questionnaire, retai
 - `six_week_plan_refresh_review { plan_id, client_id, client_name }`
 
 `getHealthBanners()` contract gains 1 new kind:
-- `six_week_plan_retainer_payment_without_refresh_review { plan_id, client_id }` — high priority, alerts when Stripe payment lands before Andy has done refresh-review.
+- `six_week_plan_retainer_payment_without_refresh_review { plan_id, client_id, payment_received_at, hours_since_payment, escalation_threshold_hours, severity: 'amber' | 'red' }` — alerts when Stripe payment lands before Andy has done refresh-review. Severity is `amber` while `hours_since_payment ≤ escalation_threshold_hours` and `red` once exceeded; threshold = `settings.get('plan.refresh_review_block_escalation_hours')`. Banner clears when refresh-review publishes (Week 1 fires retroactively — §8.3). Per F4.a (2026-04-13).
 
 No `maybeRegenerateBrief()` subjects owed.
 
@@ -815,7 +829,9 @@ Dedicated creative session with `superbad-brand-voice` + `superbad-visual-identi
 - **Revision-resolution email bodies (F3.c, 2026-04-13)** — `six_week_plan_revision_regenerated` subject + body (voice: "we took your note on board, plan revised, read it on the portal"; no plan content inline) and `six_week_plan_revision_explained` subject + surrounding frame (Andy's reply IS the body; the frame is the envelope around it, signature block, etc.). Voice: direct, personal, Andy's register — not bartender.
 - **Non-converter expiry email (F3.d, 2026-04-13)** — subject + full body for `six_week_plan_non_converter_expiry` (day 53 wind-down). Four beats, in order: (1) warm sign-off paragraph acknowledging the prospect has had the plan for a few weeks; (2) signposting line — portal goes quiet in a week, plan is theirs either way; (3) soft CTA line ("If anything here lands differently now that you've had it for a few weeks, you know where to find me.") with mailto to Andy + subject prefill `"Coming back about my plan — {business_name}"`; (4) signoff signed by Andy. Voice: warm, dry, observational, Andy's register. PDF attached at send time. No pitch, no form, no landing page.
 - **Archived-portal offline-page microcopy (F3.d, 2026-04-13)** — short dry copy for the Client Management §10 Archived mode surface ("Your portal is quiet now. Your plan stays yours — [download PDF].") and the Pixieset gallery link framing. Voice: warm sign-off, not administrative. Belongs here (not Client Management content mini-session) because this is the wind-down beat of the Six-Week Plan arc.
-- **Pending-refresh-review band copy (F3.e, 2026-04-13 Phase 3.5 Step 11 Stage 3)** — short quiet band that renders above the plan intro block on `/portal/[token]/plan` while the migrated `active_strategy` artefact carries `pending_refresh_review = true` (i.e. post-Won, pre-refresh-review-live). Direction: warm, honest, signposts that Andy's doing a retainer-scoped pass and the live version lands on first payment. No pitch, no CTA. One-line placeholder seed for the mini-session: "Andy's doing a pass on this for the retainer — live version lands when your first payment fires." Confirm or replace.
+- **Pending-refresh-review band copy (F3.e, 2026-04-13 Phase 3.5 Step 11 Stage 3; extended F4.a, 2026-04-13 Stage 4)** — short quiet band that renders above the plan intro block on `/portal/[token]/plan` while the migrated `active_strategy` artefact carries `pending_refresh_review = true` (i.e. post-Won, pre-refresh-review-live). Direction: warm, honest, signposts that Andy's doing a retainer-scoped pass. No pitch, no CTA. Two variants required (F4.a):
+  - **Pre-payment variant** (`retainer_payment_received_at IS NULL`) — signposts the refresh-review + that the live version lands on first payment. Placeholder seed: "Andy's doing a pass on this for the retainer — live version lands when your first payment fires." Confirm or replace.
+  - **Post-payment variant** (`retainer_payment_received_at IS NOT NULL`) — client has paid; Andy's still finalising. Tone should read as imminent kickoff, not delay. Placeholder seed: "Kicking off Week 1 shortly — Andy's finalising the refreshed plan." Confirm or replace. Must not reference "pending refresh review" or any internal-state language per `feedback_felt_experience_wins`.
 - **PDF layout direction (F3.b, 2026-04-13 Phase 3.5 Step 11 Stage 3)** — cover page composition (SuperBad mark placement, business-name typography, date framing copy, subtitle), intermediate-page footer spec (logo size + position + page-number typography), closing sign-off spread (sprinkle line typography + logo beneath), render overlay visual direction ("Rendering your plan…" + spinner style inheriting house spring), final sprinkle line wording (placeholder seed "This plan belongs to you. So does the nerve to run it." — confirm or replace).
 - Release email, revision-resolved email (explain path), non-converter expiry email bodies.
 - Browser tab title rotation pool for Andy's review surface.
