@@ -235,6 +235,12 @@ Four legal/product questions surfaced by Batch C step 13 and answered by Andy in
 - `lib/fonts.ts` `dispatchBodyFont` · **Swap Outfit for Fontshare-hosted General Sans.** Spec's Dispatch preset calls for General Sans (IT Foundry, Fontshare-only). Google Fonts substitute Outfit is character-adjacent but not identical. If Dispatch preset ends up being a popular pick and the visual gap matters, wire Fontshare via `@font-face` in `globals.css` for General Sans specifically. · A2 handoff · 2026-04-13 · **gate: post-launch / on first real user complaint (Phase 6)**
 - `app/lite/design/page.tsx` + real admin gate · **Wire Brand DNA Gate + role check in front of `/lite/design`.** Route is currently publicly accessible (robots: noindex but not auth-gated). A8 (portal-guard primitive + middleware) must add `/lite/design` to the admin-only path set. · A2 handoff · 2026-04-13 · **gate: Phase 5 Wave 1 A8 build session**
 
+### Phase 5 Wave 1 A3 — design-primitives follow-ups (2026-04-14)
+
+- `components/ui/form.tsx` · **Replace the local `Slot` with a library `Slot`** once a consumer needs richer composition semantics (ref forwarding across complex children, Radix-style `asChild` patterns). A3's hand-rolled 20-line `Slot` clones a single element and merges props — fine for every current form consumer, but brittle if a feature spec nests children or needs `forwardRef` chaining. Non-blocking. · A3 handoff · 2026-04-14 · **gate: first feature session that hits the limit, or `LAUNCH_READY` dep audit**
+- `package.json` · **Audit `next-themes` removal.** Pulled transitively by `npx shadcn add sonner`; unused in Lite (dark-only app sets the `dark` class via `getActivePresets()`). Candidate for deletion during `LAUNCH_READY` dep-weight sweep. · A3 handoff · 2026-04-14 · **gate: Phase 6 LAUNCH_READY dep audit**
+- `lib/copy/empty-states.ts` (new file) · **Stand up the empty-state copy bank** once any feature spec starts calling `<EmptyState>`. Spec rule 12 ("voice is part of the design system") requires bank-sourced copy, never inlined strings; A3 accepts inline strings only because no feature surface consumes `EmptyState` yet. First consumer session creates the bank and migrates the A3 demo strings into it. · A3 handoff · 2026-04-14 · **gate: first feature session that calls `<EmptyState>`**
+
 ## Applied
 
 All rows below applied by `phase-3.5-backward-reconciliation` on 2026-04-13 unless noted.

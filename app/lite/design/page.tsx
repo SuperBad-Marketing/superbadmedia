@@ -17,6 +17,8 @@ import {
 import { getActivePresets } from "@/lib/presets";
 
 import { setThemePreset, setTypefacePreset } from "./actions";
+import { PrimitivesGallery } from "./primitives-gallery";
+import { A11yPanel } from "./a11y-panel";
 
 export const metadata: Metadata = {
   title: "SuperBad — Design Baseline",
@@ -267,6 +269,14 @@ export default async function DesignPage() {
         >
           Primary CTA · tab to see ring
         </button>
+      </Section>
+
+      <Section title="Component primitives (A3)">
+        <PrimitivesGallery />
+      </Section>
+
+      <Section title="Accessibility variants (A3 — 10 locked axes)">
+        <A11yPanel />
       </Section>
 
       <Section title="Typography sample — 3-preset sentence">

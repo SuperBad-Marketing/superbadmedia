@@ -5,6 +5,9 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     environment: "node",
+    // Primitive import smoke tests cold-start Next's compile pipeline
+    // for each module; raise the default 5s ceiling accordingly.
+    testTimeout: 30_000,
   },
   resolve: {
     alias: {

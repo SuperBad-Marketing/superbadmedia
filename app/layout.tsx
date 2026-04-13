@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 
 import { allFontVariables } from "@/lib/fonts";
 import { getActivePresets } from "@/lib/presets";
+import { MotionProvider } from "@/components/lite/motion-provider";
+import { SoundProvider } from "@/components/lite/sound-provider";
+import { ThemeProvider } from "@/components/lite/theme-provider";
 
 import "./globals.css";
 
@@ -15,7 +19,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { htmlClassNames } = await getActivePresets();
+  const { htmlClassNames, theme, typeface } = await getActivePresets();
 
   return (
     <html
@@ -23,7 +27,14 @@ export default async function RootLayout({
       className={`${htmlClassNames} ${allFontVariables} h-full antialiased`}
     >
       <body className="bg-background text-foreground min-h-full flex flex-col">
-        {children}
+        <ThemeProvider value={{ theme, typeface }}>
+          <MotionProvider>
+            <SoundProvider>
+              {children}
+              <Toaster />
+            </SoundProvider>
+          </MotionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

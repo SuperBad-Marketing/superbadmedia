@@ -292,3 +292,42 @@
     line-height: var(--text-body-lh);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Keyframes used by SkeletonTile + Tier2Reveal                       */
+/* Both degrade cleanly under prefers-reduced-motion via `motion-safe:`*/
+/* Tailwind variants applied at the component layer.                  */
+/* ------------------------------------------------------------------ */
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes tier2-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Text-size-large user preference — consumed by the Settings → Display
+   panel (lands post-A8). Opt-in via `[data-text-size="large"]` on <html>. */
+[data-text-size="large"] {
+  --text-body: 18px;
+  --text-small: 16px;
+}
+
+/* Compact density — consumed by per-page layout classes per spec rule 9. */
+[data-density="compact"] {
+  --space-5: 16px;
+  --space-6: 24px;
+}
