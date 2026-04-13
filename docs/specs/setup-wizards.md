@@ -298,6 +298,8 @@ Plain English, terse, one screen. Admin tone gets the quiet version (three lines
 
 First admin sign-in where `wizard_completions` has no row matching any of the critical-flight wizards. Detected by `hasCompletedCriticalFlight(user)` helper.
 
+**Sequencing lock (2026-04-13, mirror of Brand DNA Assessment §11.1 post-completion handoff).** Critical flight detection runs in the same Next.js middleware layer as the First-Login Brand DNA Gate. Order: Brand DNA gate clears first (SuperBad-self profile complete), then `hasCompletedCriticalFlight(user)` is checked. If false, admin routes 302-redirect to `/lite/setup/critical-flight/[nextWizardKey]` instead of falling through to cockpit. Brand DNA reveal transitions directly into `stripe-admin` with no cockpit detour between the two gates — they run as one continuous first-run admin onboarding arc ending at the capstone (§8.3). The middleware check self-terminates per user once all three critical-flight `wizard_completions` rows exist. Lazy-surfacing of non-critical wizards (§8.4) only begins after the flight completes.
+
 ### 8.2 Critical flight sequence
 
 Three wizards, in fixed order:

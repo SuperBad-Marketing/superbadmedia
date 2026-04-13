@@ -115,6 +115,15 @@ Phase-5-gated FOUNDATIONS patches (land alongside the relevant build session, no
 - `docs/specs/sales-pipeline.md` activity_log.kind enum · Add `gallery_attached`, `intro_funnel_awaiting_bundle`, `six_week_plan_viewed` (or confirm existing values cover them). · F2.a resolution · 2026-04-13 · **gate: Phase 5 Sales Pipeline build session (or rolled into Intro Funnel build session)**
 - `docs/specs/daily-cockpit.md` `getWaitingItems()` source-spec stubs · Acknowledge `intro_funnel_awaiting_bundle { waiting_on: 'gallery' | 'plan' }` as a quiet feed entry from Intro Funnel; refreshes (clear + re-emit) on each side completing. · F2.a resolution · 2026-04-13 · **gate: Phase 5 Daily Cockpit build session**
 
+### Phase 3.5 Step 11 Stage 3 follow-up — Admin first-login sequencing lock (Brand DNA → Setup Wizards critical flight)
+
+Andy's verification question after Stage 3 surfaced a handoff gap: each gate was individually specced but the bridge beat ("after Brand DNA completes, Setup Wizards critical flight auto-triggers as one continuous arc") was implicit. Locked now.
+
+- ~~`docs/specs/brand-dna-assessment.md` §11.1 · Added "Post-completion handoff into Setup Wizards critical flight" block: reveal settles → direct transition into `stripe-admin` → Resend → Graph API → capstone → cockpit, no cockpit detour between gates. `hasCompletedCriticalFlight(user)` detection runs in same middleware layer as the Brand DNA gate; if Brand DNA clears but critical flight incomplete, admin routes 302 to `/lite/setup/critical-flight/[nextWizardKey]`. Middleware check self-terminates per user once all three critical-flight `wizard_completions` rows exist.~~ · Admin first-login sequencing lock · 2026-04-13 · **APPLIED 2026-04-13** inline.
+- ~~`docs/specs/setup-wizards.md` §8.1 · Added mirror sequencing lock: critical-flight middleware check runs after Brand DNA gate clears; lazy-surfacing (§8.4) only begins after flight completes.~~ · Admin first-login sequencing lock · 2026-04-13 · **APPLIED 2026-04-13** inline.
+- `FOUNDATIONS.md` §11.8 (First-Login Brand DNA Gate primitive) · Extend primitive definition to include the critical-flight middleware layering — same middleware stack, Brand DNA gate runs first, critical-flight check runs second, both self-terminate per user on completion. · Admin first-login sequencing lock · 2026-04-13 · **gate: Phase 4 foundation session**
+- `INCIDENT_PLAYBOOK.md` (Phase 6) · Document the critical-flight bypass path alongside `BRAND_DNA_GATE_BYPASS=true` — if a bug in the critical-flight middleware ever locks Andy out mid-flight, a similar env var or manual `wizard_completions` row insert is the recovery path. · Admin first-login sequencing lock · 2026-04-13 · **gate: Phase 6 launch**
+
 ### Phase 3.5 Step 11 Stage 3 — F3.f (Daily Cockpit contract verification)
 
 - ~~`docs/specs/six-week-plan-generator.md` §12.2 · Fixed count typo: "3 new source kinds" → "4 new source kinds" (list already had 4; only the intro line was wrong).~~ · F3.f resolution · 2026-04-13 · **APPLIED 2026-04-13** inline.
