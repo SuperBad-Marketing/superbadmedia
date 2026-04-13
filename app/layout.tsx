@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+
+import { allFontVariables } from "@/lib/fonts";
+import { getActivePresets } from "@/lib/presets";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,13 +10,18 @@ export const metadata: Metadata = {
   description: "SuperBad operations platform.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { htmlClassNames } = await getActivePresets();
+
   return (
-    <html lang="en" className="dark h-full antialiased">
+    <html
+      lang="en"
+      className={`${htmlClassNames} ${allFontVariables} h-full antialiased`}
+    >
       <body className="bg-background text-foreground min-h-full flex flex-col">
         {children}
       </body>

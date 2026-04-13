@@ -2,43 +2,264 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * SuperBad Design System — Baseline tokens (A2)
+ * Reference spec: docs/specs/design-system-baseline.md
+ * TypeScript mirror: lib/design-tokens.ts (kept in sync via tests/tokens.test.ts)
+ * Dark-only in v1. Theme preset is a class on <html>.
+ */
+
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  /* Brand tokens — load-bearing, never altered by presets */
+  --brand-red: #B22848;
+  --brand-cream: #FDF5E6;
+  --brand-pink: #F4A0B0;
+  --brand-orange: #F28C52;
+  --brand-charcoal: #1A1A18;
+
+  /* Warm neutral scale (8 steps, warm-biased) */
+  --neutral-950: #0F0F0E;
+  --neutral-900: #1A1A18;
+  --neutral-800: #22221F;
+  --neutral-700: #2C2C28;
+  --neutral-600: #3D3D37;
+  --neutral-500: #807F73;
+  --neutral-300: #D4D2C2;
+  --neutral-100: #FDF5E6;
+
+  /* Surface strategy — stacked warm tints */
+  --surface-0: var(--neutral-900);
+  --surface-1: var(--neutral-800);
+  --surface-2: var(--neutral-700);
+  --surface-3: var(--neutral-600);
+
+  /* Inner highlight applied to every elevated surface. Cream, not white. */
+  --highlight-opacity: 0.04;
+  --surface-highlight: inset 0 1px 0 rgba(253, 245, 230, var(--highlight-opacity));
+
+  /* Semantic tokens */
+  --success: #7BAE7E;
+  --warning: var(--brand-orange);
+  --error: var(--brand-red);
+  --info: var(--neutral-300);
+
+  /* Accent CTA — primary-action colour. Preset-overridable. */
+  --accent-cta: var(--brand-red);
+  --accent-cta-fg: var(--neutral-100);
+
+  /* Customer warmth + focus ring */
+  --focus-ring: var(--brand-pink);
+  --focus-ring-offset: var(--surface-0);
+
+  /* Accent opacity knobs (quiet-hours halves these) */
+  --brand-pink-opacity: 1;
+  --brand-orange-opacity: 1;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Corner radius — three tokens, mapped to purpose */
+  --radius-tight: 4px;
+  --radius-default: 8px;
+  --radius-generous: 16px;
+
+  /* Type scale */
+  --text-display: 64px;
+  --text-display-lh: 1.0;
+  --text-h1: 40px;
+  --text-h1-lh: 1.1;
+  --text-h2: 28px;
+  --text-h2-lh: 1.2;
+  --text-h3: 20px;
+  --text-h3-lh: 1.3;
+  --text-body: 16px;
+  --text-body-lh: 1.5;
+  --text-small: 14px;
+  --text-small-lh: 1.5;
+  --text-micro: 12px;
+  --text-micro-lh: 1.4;
+  --text-narrative: 24px;
+  --text-narrative-lh: 1.5;
+
+  /* Font-family stacks — driven by next/font CSS variables */
+  --font-display: var(--font-black-han-sans), system-ui, sans-serif;
+  --font-label: var(--font-righteous), system-ui, sans-serif;
+  --font-logo: var(--font-pacifico), cursive;
+  /* Body + narrative are preset-swappable */
+  --font-body: var(--font-dm-sans), system-ui, sans-serif;
+  --font-narrative: var(--font-playfair-display), Georgia, serif;
+
+  /* Motion — house spring timing exposed to CSS for parity with lib/design-tokens.ts */
+  --motion-tier1-duration: 280ms;
+  --motion-tier1-ease: cubic-bezier(0.2, 0.8, 0.2, 1.05);
+  --motion-tier2-slow: 800ms;
+  --motion-tier2-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* shadcn compatibility shims — remapped to SuperBad tokens so
+   * components/ui/* built against shadcn defaults pick up the brand. */
+  --radius: var(--radius-default);
+  --background: var(--surface-0);
+  --foreground: var(--neutral-300);
+  --card: var(--surface-1);
+  --card-foreground: var(--neutral-300);
+  --popover: var(--surface-2);
+  --popover-foreground: var(--neutral-300);
+  --primary: var(--accent-cta);
+  --primary-foreground: var(--accent-cta-fg);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--neutral-300);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--neutral-500);
+  --accent: var(--surface-3);
+  --accent-foreground: var(--neutral-100);
+  --destructive: var(--error);
+  --destructive-foreground: var(--neutral-100);
+  --border: var(--neutral-600);
+  --input: var(--surface-1);
+  --ring: var(--focus-ring);
+  --chart-1: var(--brand-red);
+  --chart-2: var(--brand-orange);
+  --chart-3: var(--brand-pink);
+  --chart-4: var(--success);
+  --chart-5: var(--neutral-500);
+  --sidebar: var(--surface-1);
+  --sidebar-foreground: var(--neutral-300);
+  --sidebar-primary: var(--accent-cta);
+  --sidebar-primary-foreground: var(--accent-cta-fg);
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--neutral-100);
+  --sidebar-border: var(--neutral-600);
+  --sidebar-ring: var(--focus-ring);
+}
+
+/* Theme preset — Late Shift. Warmer, redder base; pink promoted to CTA. */
+.theme-late-shift {
+  --neutral-900: #1F1A1A;
+  --brand-charcoal: #1F1A1A;
+  --neutral-800: #27201F;
+  --neutral-700: #312826;
+  --accent-cta: var(--brand-pink);
+  --accent-cta-fg: var(--neutral-900);
+  --highlight-opacity: 0.025;
+}
+
+/* Theme preset — Quiet Hours. Desaturated, cream-forward, muted red. */
+.theme-quiet-hours {
+  --brand-red: #8C2236;
+  --accent-cta: #8C2236;
+  --accent-cta-fg: var(--neutral-100);
+  --brand-pink-opacity: 0.5;
+  --brand-orange-opacity: 0.5;
+  --neutral-300: #DDDBC9;
+}
+
+/* Typeface preset — Long Read. Body + narrative swap only. */
+.typeface-long-read {
+  --font-body: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+  --font-narrative: var(--font-cormorant-garamond), Georgia, serif;
+}
+
+/* Typeface preset — Dispatch. Body + narrative swap only.
+ * Body uses Outfit as an on-brand substitute for General Sans (General Sans
+ * isn't on Google Fonts; Outfit is the closest character-forward stablemate).
+ * Swap to Fontshare-hosted General Sans in a later wave if needed. */
+.typeface-dispatch {
+  --font-body: var(--font-outfit), system-ui, sans-serif;
+  --font-narrative: var(--font-dm-serif-display), Georgia, serif;
+}
+
+/* Tailwind v4 theme mapping — exposes CSS custom properties as utility classes. */
 @theme inline {
+  /* Colour — neutral scale */
+  --color-neutral-950: var(--neutral-950);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-100: var(--neutral-100);
+
+  /* Colour — brand */
+  --color-brand-red: var(--brand-red);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-charcoal: var(--brand-charcoal);
+
+  /* Colour — surfaces */
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  /* Colour — semantic */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-accent-cta: var(--accent-cta);
+  --color-accent-cta-fg: var(--accent-cta-fg);
+  --color-focus-ring: var(--focus-ring);
+
+  /* shadcn compatibility colour shims */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Spacing */
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-7: var(--space-7);
+  --spacing-8: var(--space-8);
+
+  /* Radius — SuperBad purpose-mapped tokens */
+  --radius-tight: var(--radius-tight);
+  --radius-default: var(--radius-default);
+  --radius-generous: var(--radius-generous);
+  /* shadcn radius shim */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -46,85 +267,28 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-}
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Fonts */
+  --font-display: var(--font-display);
+  --font-label: var(--font-label);
+  --font-logo: var(--font-logo);
+  --font-body: var(--font-body);
+  --font-narrative: var(--font-narrative);
+  --font-sans: var(--font-body);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-body);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    font-family: var(--font-body);
+  }
   body {
     @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+    font-size: var(--text-body);
+    line-height: var(--text-body-lh);
   }
 }
