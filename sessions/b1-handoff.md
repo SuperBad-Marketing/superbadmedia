@@ -127,3 +127,9 @@ See `PATCHES_OWED.md` § "Phase 5 Wave 2 B1" — 6 rows added:
 - **`lib/crypto/`**: Does NOT exist yet (B2 creates it). Confirmed: `ls lib/crypto/ 2>/dev/null` returns nothing.
 - **Session shape stable**: `session.user.{ id, role, brand_dna_complete }` unchanged. B2 can reference `lib/auth/session.ts` for auth.
 - **proxy.ts is sole middleware**: `middleware.ts` deleted. B2 must not recreate it.
+
+---
+
+## Autonomy loop note
+
+`RemoteTrigger` tool was not available in this environment. The hourly safety-net cron will fire the next session (Wave 2 B2). This is a known environment limitation — no action required.
