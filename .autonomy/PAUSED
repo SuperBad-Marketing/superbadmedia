@@ -1,0 +1,6 @@
+Paused: 2026-04-14 evening (AEST)
+Reason: Font vendoring required before A9 can build cleanly in CCR sandbox.
+  - `lib/fonts.ts` uses `next/font/google` which needs build-time network access
+  - Sandbox has no outbound to fonts.googleapis.com → `npm run build` fails every run
+  - Fix: swap to `next/font/local` with vendored `.woff2` under `public/fonts/`
+Resume: after fonts vendored + verified locally. Delete this file + push.
