@@ -8,5 +8,8 @@ export * from "./legal-doc-versions";
 export * from "./email-suppressions";
 export * from "./portal-magic-links";
 export * from "./brand-dna-profiles";
+export * from "./brand-dna-answers";
+export * from "./brand-dna-blends";
+export * from "./brand-dna-invites";
 export * from "./support-tickets";
 export * from "./cookie-consents";

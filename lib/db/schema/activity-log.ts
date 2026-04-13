@@ -257,6 +257,9 @@ export const ACTIVITY_LOG_KINDS = [
   "portal_session_started",
   // --- Support + error triage B1 (1) ---
   "support_ticket_created",
+  // --- Brand DNA invite flow BDA-1 (2) ---
+  "brand_dna_invite_sent",
+  "brand_dna_invite_redeemed",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

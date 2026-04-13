@@ -43,6 +43,13 @@
       "when": 1776110000000,
       "tag": "0006_b3_legal",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1776120000000,
+      "tag": "0007_bda1_brand_dna",
+      "breakpoints": true
     }
   ]
 }
