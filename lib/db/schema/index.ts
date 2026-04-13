@@ -6,3 +6,5 @@ export * from "./external-call-log";
 export * from "./messages";
 export * from "./legal-doc-versions";
 export * from "./email-suppressions";
+export * from "./portal-magic-links";
+export * from "./brand-dna-profiles";
