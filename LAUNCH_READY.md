@@ -125,7 +125,14 @@ Any handoff that fails = fix before launch. The dry-run is the last-line integra
 - [ ] **`/lite/admin/docs` internal reference route live** — links to Brand DNA, settings registry, access matrix, state machine, shared-primitive registry. Andy's own in-platform reference.
 - [ ] **GHL shutdown plan confirmed** — `superbadmedia.com.au/` homepage either cutover to Lite-served or deliberately left on GHL through shadow; documented either way.
 
-## §12 — Final sign-off
+## §12 — Brand polish assets
+
+- [ ] **Sound registry populated** — all 7 sounds in `lib/sounds.ts` have approved files in `/public/sounds/approved/`. Sourcing session: Sonnet-assisted Freesound API (+ optional ElevenLabs SFX) pulls 3 on-brand candidates per key; Andy listens and picks one per sound in a single sitting. Curated presets per `feedback_curated_customisation` — no sliders, no open picker.
+- [ ] **`docs/sound-attributions.md` complete** — licence + source URL + author credit logged for every approved file (Freesound CC-BY attribution requirement).
+- [ ] **`SoundProvider` `onloaderror` flipped from silent no-op to `console.warn`** — per A4 handoff deferred TODO. Missing-file = real warning, not expected state.
+- [ ] **Sounds-off variant re-verified** on a real device after files land — `users.sounds_enabled = false` actually mutes every Tier 2 choreography.
+
+## §13 — Final sign-off
 
 - [ ] **Every row above ticked.**
 - [ ] **Andy walks the admin surface** and signs off on visceral feel (motion, sound, density, voice, dry-voice eggs) before DNS cutover.
