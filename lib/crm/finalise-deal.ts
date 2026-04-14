@@ -13,6 +13,11 @@ type Db = BetterSQLite3Database<Record<string, unknown>> | typeof defaultDb;
 
 export interface FinaliseWonPayload {
   won_outcome: DealWonOutcome;
+  /** Optional — Stripe-driven Wons pass the canonical amount here.
+   *  When provided, the deal's `value_cents` is stamped and
+   *  `value_estimated` is flipped to `false` (the amount is no longer a
+   *  guess, it's what the customer actually paid). Manual Wons omit it. */
+  value_cents?: number;
 }
 
 export interface FinaliseLostPayload {
@@ -46,6 +51,10 @@ export function finaliseDealAsWon(
   return database.transaction((tx: Db) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const txDb = tx as any;
+    const valueUpdate =
+      typeof payload.value_cents === "number"
+        ? { value_cents: payload.value_cents, value_estimated: false }
+        : {};
     txDb
       .update(deals)
       .set({
@@ -54,6 +63,7 @@ export function finaliseDealAsWon(
         // reversed in a prior session. Terminal-state hygiene.
         loss_reason: null,
         loss_notes: null,
+        ...valueUpdate,
       })
       .where(eq(deals.id, dealId))
       .run();

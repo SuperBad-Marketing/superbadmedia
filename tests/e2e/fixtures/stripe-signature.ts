@@ -17,7 +17,10 @@
 import { createHmac } from "node:crypto";
 import { E2E_CONSTANTS } from "../../../playwright.config";
 
-export function buildSignedWebhook(eventType = "customer.created"): {
+export function buildSignedWebhook(
+  eventType = "customer.created",
+  dataObject: Record<string, unknown> = { id: "cus_e2e_placeholder" },
+): {
   body: string;
   signature: string;
   eventId: string;
@@ -27,7 +30,7 @@ export function buildSignedWebhook(eventType = "customer.created"): {
     id: eventId,
     object: "event",
     type: eventType,
-    data: { object: { id: "cus_e2e_placeholder" } },
+    data: { object: dataObject },
   };
   const body = JSON.stringify(payload);
 

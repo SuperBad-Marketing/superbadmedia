@@ -132,6 +132,7 @@ const registry = {
   "pipeline.stale_thresholds.quoted_days": integer,
   "pipeline.stale_thresholds.negotiating_days": integer,
   "pipeline.snooze_default_days": integer,
+  "pipeline.stripe_webhook_dispatch_enabled": boolean,
 } as const;
 
 export type SettingsKey = keyof typeof registry;
