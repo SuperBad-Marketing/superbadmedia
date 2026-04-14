@@ -19,7 +19,8 @@ export type KillSwitchKey =
   | "drift_check_enabled"
   | "sentry_enabled"
   | "brand_dna_assessment_enabled"
-  | "setup_wizards_enabled";
+  | "setup_wizards_enabled"
+  | "wizards_nudges_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -31,6 +32,7 @@ const defaults: KillSwitchRegistry = {
   sentry_enabled: false,
   brand_dna_assessment_enabled: false,
   setup_wizards_enabled: false,
+  wizards_nudges_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

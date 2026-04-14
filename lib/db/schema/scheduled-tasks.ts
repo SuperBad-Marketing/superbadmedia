@@ -47,6 +47,10 @@ export const SCHEDULED_TASK_TYPES = [
   "cost_anomaly_detector_learned",
   "cost_anomaly_diagnose",
   "weekly_digest_send",
+  // --- Setup Wizards (3) ---
+  "wizard_resume_nudge",
+  "wizard_expiry_warn",
+  "wizard_expire",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",
