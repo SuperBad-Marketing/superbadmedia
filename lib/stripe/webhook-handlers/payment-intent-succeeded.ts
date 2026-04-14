@@ -138,7 +138,8 @@ export async function handlePaymentIntentSucceeded(
     quote.retainer_monthly_cents_inc_gst > 0
   ) {
     try {
-      const { stripe } = await import("@/lib/stripe/client");
+      const { getStripe } = await import("@/lib/stripe/client");
+      const stripe = getStripe();
       const customerId =
         typeof pi.customer === "string" ? pi.customer : pi.customer.id;
 

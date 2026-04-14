@@ -16,7 +16,7 @@ import { quotes } from "@/lib/db/schema/quotes";
 import { deals } from "@/lib/db/schema/deals";
 import { contacts } from "@/lib/db/schema/contacts";
 import { loadPublicQuoteByToken } from "@/lib/quote-builder/load-public-quote";
-import { stripe } from "@/lib/stripe/client";
+import { getStripe } from "@/lib/stripe/client";
 import { ensureStripeCustomer } from "@/lib/stripe/customer";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +48,8 @@ export async function POST(
   if (quote.expires_at_ms && quote.expires_at_ms < Date.now()) {
     return NextResponse.json({ error: "quote_expired" }, { status: 400 });
   }
+
+  const stripe = getStripe();
 
   // Reuse existing PI if we've already created one for this quote.
   if (quote.stripe_payment_intent_id) {

@@ -12,12 +12,18 @@
  *
  * Owner: SW-5c.
  */
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { defineConfig } from "@playwright/test";
 
 const PORT = 3101;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
-const DB_FILE = path.join("tests", "e2e", ".test-critical-flight.db");
+// Hermetic DB lives outside the project directory because Andy's Desktop
+// is iCloud-synced — iCloud Drive intercepts sqlite writes inside the
+// project and silently drops them, producing "FILE 2.db" duplicates.
+const DB_FILE = path.join(os.tmpdir(), "sblite-e2e", ".test-critical-flight.db");
+fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 
 // Deterministic per-run secrets. Safe: never read outside the webServer
 // subprocess and the globalSetup that seeds it.
@@ -50,19 +56,24 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
 
   webServer: {
-    command: `next dev -p ${PORT}`,
+    // Uses `next build && next start` instead of `next dev` because Next 16
+    // Turbopack's dev server silently drops better-sqlite3 writes from RSC
+    // (see qbe2e_dev_server_write_persistence in PATCHES_OWED.md). `next
+    // start` against a production build persists writes normally.
+    command: `next build && next start -p ${PORT}`,
     url: `${BASE_URL}/api/auth/session`,
     reuseExistingServer: false,
-    timeout: 180_000,
+    timeout: 360_000,
     stdout: "pipe",
     stderr: "pipe",
     env: {
-      NODE_ENV: "development",
-      DATABASE_URL: `file:./${DB_FILE}`,
-      DB_FILE_PATH: `./${DB_FILE}`,
+      NODE_ENV: "production",
+      DATABASE_URL: `file:${DB_FILE}`,
+      DB_FILE_PATH: DB_FILE,
       NEXT_PUBLIC_APP_URL: BASE_URL,
       NEXTAUTH_URL: BASE_URL,
       NEXTAUTH_SECRET,
+      AUTH_TRUST_HOST: "true",
       STRIPE_WEBHOOK_SECRET,
       STRIPE_SECRET_KEY: process.env.STRIPE_TEST_KEY ?? "",
       STRIPE_PUBLISHABLE_KEY: "pk_test_placeholder",

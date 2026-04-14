@@ -14,13 +14,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockSearch = vi.hoisted(() => vi.fn());
 const mockCreate = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/stripe/client", () => ({
-  stripe: {
-    customers: {
-      search: mockSearch,
-      create: mockCreate,
-    },
+const mockStripeInstance = {
+  customers: {
+    search: mockSearch,
+    create: mockCreate,
   },
+};
+
+vi.mock("@/lib/stripe/client", () => ({
+  getStripe: () => mockStripeInstance,
 }));
 
 import { ensureStripeCustomer } from "@/lib/stripe/customer";

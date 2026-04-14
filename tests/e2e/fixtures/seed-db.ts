@@ -36,7 +36,9 @@ export const E2E_USER = {
   role: "admin" as const,
 } as const;
 
-export const E2E_DB_PATH = path.resolve(process.cwd(), E2E_CONSTANTS.DB_FILE);
+export const E2E_DB_PATH = path.isAbsolute(E2E_CONSTANTS.DB_FILE)
+  ? E2E_CONSTANTS.DB_FILE
+  : path.resolve(process.cwd(), E2E_CONSTANTS.DB_FILE);
 const AUTH_STATE_PATH = path.resolve(
   process.cwd(),
   "tests/e2e/.auth-state.json",
@@ -57,6 +59,7 @@ export function openTestDb(): {
 }
 
 function clearPreviousRun(): void {
+  fs.mkdirSync(path.dirname(E2E_DB_PATH), { recursive: true });
   for (const ext of ["", "-wal", "-shm"]) {
     const p = `${E2E_DB_PATH}${ext}`;
     if (fs.existsSync(p)) fs.unlinkSync(p);

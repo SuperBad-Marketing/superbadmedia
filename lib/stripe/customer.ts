@@ -12,7 +12,7 @@
  *
  * Owner: A7. Consumer: Quote Builder (QB-3), SaaS billing (Wave 5+).
  */
-import { stripe } from "@/lib/stripe/client";
+import { getStripe } from "@/lib/stripe/client";
 import type { ContactId } from "@/lib/types/glossary";
 
 export interface EnsureStripeCustomerResult {
@@ -34,6 +34,7 @@ export async function ensureStripeCustomer(
   const id = String(contactId);
 
   // Search for existing customer by metadata
+  const stripe = getStripe();
   const existing = await stripe.customers.search({
     query: `metadata['contact_id']:'${id}'`,
     limit: 1,
