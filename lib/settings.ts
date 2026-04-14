@@ -134,6 +134,7 @@ const registry = {
   "pipeline.snooze_default_days": integer,
   "pipeline.stripe_webhook_dispatch_enabled": boolean,
   "pipeline.resend_webhook_dispatch_enabled": boolean,
+  "pipeline.sd_three_wons_last_fired_ms": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

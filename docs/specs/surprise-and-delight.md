@@ -134,6 +134,20 @@ When a milestone is detected:
 
 **Why this is an admin egg, not automation:** Andy is the bartender. Lite spots the moment; Andy decides whether to act on it. The magic is Lite quietly reading three months of notes and surfacing *"hey, this is coming up"* — not Lite sending emails on Andy's behalf without asking.
 
+### 3. Three Wons in a session
+
+**Trigger:** Andy closes 3 deals into `Won` (via finalisation or Stripe webhook dispatch) in a single browser session on `/lite/admin/pipeline`. Session is evaluated client-side (ref counter); the monthly cap is evaluated server-side via `pipeline.sd_three_wons_last_fired_ms`.
+
+**Effect:** A dry admin-roommate toast on the third Won confirmation.
+
+**Copy:** *"That's three. Either you're crushing it or it's a slow Tuesday."*
+
+**Cap:** once per 30 days per Andy. Source of truth: `pipeline.sd_three_wons_last_fired_ms` setting (stamped on fire; cleared implicitly by cooldown expiry).
+
+**Data source:** deal finalisation events in `activity_log` (read implicitly via the session-local counter the board maintains) + the monthly cooldown stamp. No cross-client inference.
+
+**Cross-spec coupling:** added by SP-9 (sales-pipeline §11A.4). The server-side check currently lives at `app/lite/admin/pipeline/three-wons-egg.ts`. When this spec's `hidden_egg_fires` table lands in Phase 5, the egg migrates to writing a row there and the settings key retires — tracked in `PATCHES_OWED.md`.
+
 ---
 
 ## Public egg catalogue (locked — Andy approved 2026-04-12)

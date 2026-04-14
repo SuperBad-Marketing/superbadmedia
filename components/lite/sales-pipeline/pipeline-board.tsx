@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
 
 import { KanbanBoard } from "@/components/lite/kanban-board";
 import { EmptyState } from "@/components/lite/empty-state";
+import { useToastWithSound } from "@/components/lite/toast-with-sound";
+import type { SoundKey } from "@/components/lite/sound-provider";
 import { LEGAL_TRANSITIONS } from "@/lib/crm/legal-transitions";
 import type {
   DealStage,
@@ -12,7 +13,12 @@ import type {
   DealLossReason,
 } from "@/lib/db/schema/deals";
 import { DealCard, type PipelineCardDeal } from "./deal-card";
-import { STAGE_COLUMNS, type StageColumn } from "./stage-config";
+import {
+  STAGE_COLUMNS,
+  getStageEmptyState,
+  type StageColumn,
+} from "./stage-config";
+import { maybeFireThreeWonsEgg } from "@/app/lite/admin/pipeline/three-wons-egg";
 import {
   transitionDealAction,
   finaliseWonAction,
@@ -41,6 +47,10 @@ export function PipelineBoard({
   const [pending, startTransition] = React.useTransition();
   const [localDeals, setLocalDeals] = React.useState(deals);
   const [finalise, setFinalise] = React.useState<PendingFinalise>(null);
+  const toast = useToastWithSound();
+  // Session-scoped counter for the "three Wons" admin egg (§11A.4). Resets
+  // on page reload; the server-side monthly cooldown is the real gate.
+  const wonsThisSessionRef = React.useRef(0);
 
   React.useEffect(() => setLocalDeals(deals), [deals]);
 
@@ -70,10 +80,12 @@ export function PipelineBoard({
           prev.map((d) => (d.id === card.id ? { ...d, stage: toStage } : d)),
         );
         const label = STAGE_COLUMNS.find((c) => c.id === toStage)?.label ?? toStage;
-        toast(`Moved to ${label}.`);
+        // `kanban-drop` is the registry-locked sound for drag settle / tick-warm
+        // slot per §11 sound mapping.
+        toast(`Moved to ${label}.`, { sound: "kanban-drop" });
       });
     },
-    [],
+    [toast],
   );
 
   const onQuickAction = React.useCallback(
@@ -84,7 +96,7 @@ export function PipelineBoard({
       };
       toast(copy[kind]);
     },
-    [],
+    [toast],
   );
 
   const onSnoozed = React.useCallback((dealId: string, _untilMs: number) => {
@@ -99,6 +111,9 @@ export function PipelineBoard({
 
   const confirmWon = React.useCallback(
     (dealId: string, wonOutcome: DealWonOutcome) => {
+      const card = finalise?.kind === "won" ? finalise.card : null;
+      const companyName = card?.company_name ?? "Deal";
+      const billingMode = card?.billing_mode ?? "stripe";
       startTransition(async () => {
         const result = await finaliseWonAction(dealId, wonOutcome);
         if (!result.ok) {
@@ -111,10 +126,32 @@ export function PipelineBoard({
           ),
         );
         setFinalise(null);
-        toast("Marked as Won.");
+        // Won sound pairing per §11 sound mapping: retainer → quote-accepted,
+        // saas → subscription-activated, project → quote-accepted (sister
+        // chime covers both retainer and project). The `chime-bright` name
+        // in §11A.2 maps to these two locked registry entries.
+        const sound: SoundKey =
+          wonOutcome === "saas" ? "subscription-activated" : "quote-accepted";
+        const wonMessage =
+          billingMode === "manual"
+            ? "Logged as Won. Hope you invoiced them."
+            : `${companyName} converted. Nice.`;
+        toast(wonMessage, { sound });
+        wonsThisSessionRef.current += 1;
+        if (wonsThisSessionRef.current >= 3) {
+          // Fire-and-forget; server-side gate enforces the ≤ once/month cap.
+          void maybeFireThreeWonsEgg().then((fired) => {
+            if (fired) {
+              toast(
+                "That's three. Either you're crushing it or it's a slow Tuesday.",
+              );
+              wonsThisSessionRef.current = 0;
+            }
+          });
+        }
       });
     },
-    [],
+    [finalise, toast],
   );
 
   const confirmLost = React.useCallback(
@@ -133,10 +170,12 @@ export function PipelineBoard({
           prev.map((d) => (d.id === dealId ? { ...d, stage: "lost" } : d)),
         );
         setFinalise(null);
-        toast("Marked as Lost.");
+        // Lost is deliberately muted (§11A.2 — no sound; not a cheerleading
+        // event).
+        toast("Marked Lost. Reason saved.");
       });
     },
-    [],
+    [toast],
   );
 
   return (
@@ -163,9 +202,10 @@ export function PipelineBoard({
             </span>
           </div>
         )}
-        renderColumnEmpty={(column) => (
-          <EmptyState hero={column.emptyHero} message={column.emptyMessage} />
-        )}
+        renderColumnEmpty={(column) => {
+          const copy = getStageEmptyState(column);
+          return <EmptyState hero={copy.hero} message={copy.message} />;
+        }}
         renderCard={(deal, { isDragging }) => (
           <DealCard
             deal={deal}

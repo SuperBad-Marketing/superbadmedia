@@ -151,6 +151,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `pipeline.snooze_default_days` | `3` | integer | Default snooze duration when Andy snoozes a stale deal |
 | `pipeline.stripe_webhook_dispatch_enabled` | `true` | boolean | Master kill switch for Stripe webhook business dispatch (signature verification + idempotency still run when `false`, only deal/company mutations are skipped) |
 | `pipeline.resend_webhook_dispatch_enabled` | `true` | boolean | Master kill switch for Resend webhook business dispatch (signature verification + idempotency still run when `false`, only contact/deal/company mutations are skipped) |
+| `pipeline.sd_three_wons_last_fired_ms` | `0` | integer | Unix-ms timestamp of the last "three Wons in a session" S&D egg fire (sales-pipeline §11A.4 + surprise-and-delight admin egg #3). Enforces the ≤ once/30-day cap server-side. `0` = never fired. |
 
 ---
 
@@ -165,7 +166,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Alerts: 3 (added 2026-04-14, A5)
 - Legal: 2 (added 2026-04-13, B3)
 - Hiring: 28
-- Sales Pipeline: 9 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1 — `resend_webhook_dispatch_enabled`)
-- **Total: 82 keys at v1.0 seed** (was 73 pre-SP-3, 80 pre-SP-7, 81 pre-SP-8)
+- Sales Pipeline: 10 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1; SP-9 added 1 — `sd_three_wons_last_fired_ms`)
+- **Total: 84 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

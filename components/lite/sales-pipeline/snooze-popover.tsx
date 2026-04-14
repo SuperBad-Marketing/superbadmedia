@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
+import { useToastWithSound } from "@/components/lite/toast-with-sound";
 import {
   Popover,
   PopoverContent,
@@ -56,6 +56,7 @@ export function SnoozePopover({
   onSnoozed?: (untilMs: number) => void;
 }) {
   const router = useRouter();
+  const toast = useToastWithSound();
   const [open, setOpen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
   const [customDate, setCustomDate] = React.useState<string>(() =>
@@ -70,7 +71,9 @@ export function SnoozePopover({
           toast.error(result.error);
           return;
         }
-        toast.success(`Snoozed until ${formatMelbourne(result.untilMs)}.`);
+        toast.success(`Snoozed until ${formatMelbourne(result.untilMs)}.`, {
+          sound: "kanban-drop",
+        });
         onSnoozed?.(result.untilMs);
         setOpen(false);
         router.refresh();
