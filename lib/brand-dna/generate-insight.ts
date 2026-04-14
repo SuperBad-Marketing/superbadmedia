@@ -22,6 +22,7 @@ import { brand_dna_answers } from "@/lib/db/schema/brand-dna-answers";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { killSwitches } from "@/lib/kill-switches";
 import { modelFor } from "@/lib/ai/models";
+import { buildSectionInsightPrompt } from "@/lib/ai/prompts/brand-dna-assessment/generate-section-insight";
 import { SECTION_TITLES } from "./question-bank";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -109,14 +110,11 @@ export async function generateSectionInsight(
     messages: [
       {
         role: "user",
-        content: `You're helping reveal the brand DNA of ${subjectName}.
-They just completed the "${sectionTitle}" section of their Brand DNA Assessment.
-Their strongest signal tags from this section: ${topTags || "no tags yet"}.
-
-Write 2–3 sentences. Sharp, perceptive, slightly warm. No marketing speak.
-No hedging phrases like "it seems like" or "you might be". Write as if you're
-naming something the person already knew but hadn't articulated yet. Don't
-start with "You" — vary the sentence structure.`,
+        content: buildSectionInsightPrompt({
+          subjectName,
+          sectionTitle,
+          topTags,
+        }),
       },
     ],
   });
