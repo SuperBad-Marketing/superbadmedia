@@ -143,6 +143,13 @@ Step types are defined in `lib/wizards/steps/<type>.tsx`. Each exports a `<Step>
 
 ~12 wizards at spec time. Each requires a vendor manifest (integration wizards) + completion contract. Consuming specs patch their existing inline wizard descriptions to point at this inventory.
 
+**Route tree.** Two dedicated-route homes (SW-9 lock, 2026-04-14):
+
+- `/lite/setup/critical-flight/[key]` — the three first-run admin wizards (§8.2). Middleware-gated, sequential, capstones into `/lite/first-run`.
+- `/lite/setup/admin/[key]` — every other admin wizard (integrations + config). No middleware gate; surfaced lazily via feature interception or the `/lite/integrations` hub (§8.4). Cancel/done return to cockpit (`/lite`).
+
+Client-audience wizards continue to live at their own per-spec routes (Brand DNA at `/lite/brand-dna/...`, Onboarding + Segmentation at `/lite/onboarding/...`, etc.). The `/lite/setup/*` tree is admin-only.
+
 ### 5.1 Admin integration wizards (8)
 
 | Key | Audience | Render | Completion contract |
