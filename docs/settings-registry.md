@@ -159,6 +159,8 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 |---|---|---|---|
 | `quote.default_expiry_days` | `14` | integer | Default expiry window (days) for newly-drafted quotes; per-quote picker in the QB-2 editor overrides. Source: spec Q8 / §4.1. |
 | `quote.setup_fee_monthly_saas` | `0` | integer | One-off setup fee in cents applied to SaaS subscription signups; `0` = no fee. Consumed by QB-5 + SaaS Subscription Billing. |
+| `quote.reminder_days` | `3` | integer | Days after quote-send before the `quote_reminder_3d` task fires if the client has not viewed. Source: spec §3.1.5 + §8. |
+| `quote.intro_paragraph_redraft_hourly_cap` | `5` | integer | Soft cap on Opus redraft calls for the "What you told us" paragraph, per quote per rolling hour. Source: spec §6.2. |
 
 ---
 
@@ -174,7 +176,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Legal: 2 (added 2026-04-13, B3)
 - Hiring: 28
 - Sales Pipeline: 10 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1; SP-9 added 1 — `sd_three_wons_last_fired_ms`)
-- Quote Builder: 2 (QB-1 seeded 2 — `quote.default_expiry_days`, `quote.setup_fee_monthly_saas`)
-- **Total: 86 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1)
+- Quote Builder: 4 (QB-1 seeded 2; QB-4b added 2 — `quote.reminder_days`, `quote.intro_paragraph_redraft_hourly_cap`)
+- **Total: 88 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1, 86 pre-QB-4b)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

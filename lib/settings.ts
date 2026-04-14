@@ -136,9 +136,11 @@ const registry = {
   "pipeline.resend_webhook_dispatch_enabled": boolean,
   "pipeline.sd_three_wons_last_fired_ms": integer,
 
-  // Quote Builder (2 — QB-1)
+  // Quote Builder (4 — QB-1 + QB-4b)
   "quote.default_expiry_days": integer,
   "quote.setup_fee_monthly_saas": integer,
+  "quote.reminder_days": integer,
+  "quote.intro_paragraph_redraft_hourly_cap": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

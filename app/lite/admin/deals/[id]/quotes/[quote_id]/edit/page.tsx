@@ -16,6 +16,7 @@ import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
 import { quotes } from "@/lib/db/schema/quotes";
 import { catalogue_items } from "@/lib/db/schema/catalogue-items";
+import { quote_templates } from "@/lib/db/schema/quote-templates";
 import { QuoteEditor } from "@/components/lite/quote-builder/quote-editor";
 import {
   emptyQuoteContent,
@@ -74,6 +75,17 @@ export default async function EditQuotePage({
 
   const defaultExpiryDays = await settings.get("quote.default_expiry_days");
 
+  const templates = await db
+    .select({
+      id: quote_templates.id,
+      name: quote_templates.name,
+      structure: quote_templates.structure,
+      term_length_months: quote_templates.term_length_months,
+    })
+    .from(quote_templates)
+    .where(isNull(quote_templates.deleted_at_ms))
+    .orderBy(asc(quote_templates.structure), asc(quote_templates.name));
+
   const content: QuoteContent =
     (quote.content_json as QuoteContent | null) ??
     emptyQuoteContent(defaultExpiryDays);
@@ -114,6 +126,7 @@ export default async function EditQuotePage({
           description: c.description,
         }))}
         defaultExpiryDays={defaultExpiryDays}
+        templates={templates}
       />
     </main>
   );

@@ -29,7 +29,11 @@ import {
 } from "@/lib/quote-builder/content-shape";
 import type { CatalogueItemUnit } from "@/lib/db/schema/catalogue-items";
 
-import { updateDraftQuoteAction } from "@/app/lite/admin/deals/[id]/quotes/[quote_id]/edit/actions";
+import {
+  updateDraftQuoteAction,
+  redraftIntroParagraphAction,
+  applyQuoteTemplateAction,
+} from "@/app/lite/admin/deals/[id]/quotes/[quote_id]/edit/actions";
 import { CataloguePicker, type CatalogueItemView } from "./catalogue-picker";
 import { PreviewPane } from "./preview-pane";
 import { SendQuoteModal } from "./send-quote-modal";
@@ -47,6 +51,12 @@ type EditorProps = {
   initialContent: QuoteContent;
   catalogue: CatalogueItemView[];
   defaultExpiryDays: number;
+  templates: Array<{
+    id: string;
+    name: string;
+    structure: "retainer" | "project" | "mixed";
+    term_length_months: number | null;
+  }>;
 };
 
 function formatMoney(cents: number): string {
@@ -64,6 +74,9 @@ export function QuoteEditor(props: EditorProps) {
     props.initialContent.expiry_days ?? props.defaultExpiryDays,
   );
   const [isSaving, startSave] = useTransition();
+  const [isRedrafting, startRedraft] = useTransition();
+  const [isApplying, startApply] = useTransition();
+  const [redraftInstruction, setRedraftInstruction] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">(
     "desktop",
   );
@@ -150,6 +163,49 @@ export function QuoteEditor(props: EditorProps) {
     );
   }
 
+  function onRedraftIntro() {
+    startRedraft(async () => {
+      const res = await redraftIntroParagraphAction({
+        quote_id: props.quoteId,
+        freeformInstruction: redraftInstruction.trim() || null,
+      });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      const v = res.value;
+      if (!v.paragraph_text) {
+        toast("No sources yet — write the first line by hand.");
+        return;
+      }
+      patchSection("whatYouToldUs", {
+        prose: v.paragraph_text,
+        provenance: v.provenance,
+        confidence: v.confidence,
+      });
+      toast.success(
+        `Redrafted · ${v.confidence} confidence · ${v.remaining} left this hour`,
+      );
+      setRedraftInstruction("");
+    });
+  }
+
+  function onApplyTemplate(templateId: string) {
+    startApply(async () => {
+      const res = await applyQuoteTemplateAction({
+        quote_id: props.quoteId,
+        template_id: templateId,
+        current_content: content,
+      });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      setContent(res.value.content);
+      toast.success("Template applied.");
+    });
+  }
+
   function onSave() {
     const payload: QuoteContent = {
       ...content,
@@ -207,19 +263,39 @@ export function QuoteEditor(props: EditorProps) {
             }
             className="min-h-[120px]"
           />
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-2">
               {content.sections.whatYouToldUs.provenance
                 ? `Drafted from: ${content.sections.whatYouToldUs.provenance}`
                 : "Hand-written"}
+              {content.sections.whatYouToldUs.confidence && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-[10px] uppercase tracking-wider",
+                    content.sections.whatYouToldUs.confidence === "low" &&
+                      "border-amber-500/50 text-amber-600",
+                  )}
+                >
+                  {content.sections.whatYouToldUs.confidence} confidence
+                </Badge>
+              )}
             </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Optional — e.g. make it shorter, reference the EOFY deadline"
+              value={redraftInstruction}
+              onChange={(e) => setRedraftInstruction(e.target.value)}
+              className="h-8 text-xs"
+            />
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              disabled
-              title="Redraft from context — ships with the Claude draft prompt (later wave)"
+              onClick={onRedraftIntro}
+              disabled={isRedrafting}
             >
-              Redraft
+              {isRedrafting ? "Redrafting…" : "Redraft"}
             </Button>
           </div>
         </div>
@@ -372,6 +448,30 @@ export function QuoteEditor(props: EditorProps) {
               }
             />
           </div>
+          {props.templates.length > 0 && (
+            <div className="flex-1 min-w-[160px]">
+              <label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Apply template
+              </label>
+              <Select
+                value=""
+                onValueChange={(v) => v && onApplyTemplate(v)}
+                disabled={isApplying}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={isApplying ? "Applying…" : "Pick one"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {props.templates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name} · {t.structure}
+                      {t.term_length_months ? ` · ${t.term_length_months}mo` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="ml-auto flex gap-2">
             <Button variant="outline" onClick={onSave} disabled={isSaving}>
               {isSaving ? "Saving…" : "Save draft"}

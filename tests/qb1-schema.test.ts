@@ -55,7 +55,7 @@ describe("QB-1 — migration 0016 schema", () => {
     expect(abn?.notnull).toBe(0);
   });
 
-  it("seeds both new Quote Builder settings keys", () => {
+  it("seeds all Quote Builder settings keys (QB-1 + QB-4b)", () => {
     const rows = sqlite
       .prepare(
         "SELECT key, value FROM settings WHERE key LIKE 'quote.%' ORDER BY key",
@@ -63,6 +63,8 @@ describe("QB-1 — migration 0016 schema", () => {
       .all() as { key: string; value: string }[];
     expect(rows).toEqual([
       { key: "quote.default_expiry_days", value: "14" },
+      { key: "quote.intro_paragraph_redraft_hourly_cap", value: "5" },
+      { key: "quote.reminder_days", value: "3" },
       { key: "quote.setup_fee_monthly_saas", value: "0" },
     ]);
   });
