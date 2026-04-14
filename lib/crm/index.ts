@@ -27,3 +27,21 @@ export { isDealStale } from "./is-stale";
 export type { IsDealStaleInput, PipelineStaleThresholds } from "./is-stale";
 export { snoozeDeal } from "./snooze-deal";
 export type { SnoozeDealOpts } from "./snooze-deal";
+export {
+  TRIAL_SHOOT_SEQUENCE,
+  TRIAL_SHOOT_STATUSES,
+  isForwardTransition,
+  isTrialShootComplete,
+  legalForwardTargets,
+} from "./trial-shoot-status";
+export type { TrialShootStatus } from "./trial-shoot-status";
+export {
+  advanceTrialShootStatus,
+  advanceTrialShootStatusOnFeedback,
+} from "./advance-trial-shoot-status";
+export type {
+  AdvanceTrialShootStatusOpts,
+  AdvanceTrialShootStatusResult,
+} from "./advance-trial-shoot-status";
+export { updateTrialShootPlan } from "./update-trial-shoot-plan";
+export type { UpdateTrialShootPlanOpts } from "./update-trial-shoot-plan";
