@@ -32,6 +32,8 @@ Three bounded sessions, each end-to-end on their own. Run before spec work.
 | **M1.2** | Performance proof-of-work strategy | PARKED P2 | `docs/brainstorm/marketing-site/PERFORMANCE_PROOF.md` — decision on how performance credibility is demonstrated on launch | Blocks M1.3 (Trial funnel) and M2 Services spec |
 | **M1.3** | Start-a-Trial funnel sub-brainstorm | PARKED P3, depends on M1.2 | `docs/brainstorm/marketing-site/TRIAL_FUNNEL.md` — entry page, services page, pricing, booking flow, pre-filled experience, About-embedding | Blocks M2 Trial funnel spec |
 
+**⚠ M1.3 paused 2026-04-14.** The Lite `docs/specs/intro-funnel.md` is actively under Phase 3.5 / Phase 5 build work. Running M1.3 now would force premature judgement calls on surfaces the Lite team is still shaping (landing page URL canonicalisation, services/pricing placement, pre-filled outreach arrival, About-embed). **Resume trigger:** Lite Intro Funnel reaches stable build state (all Phase 3.5 patches landed + initial Phase 5 build sessions complete for intro-funnel surfaces). Until then M1.3 is blocked — not on another brainstorm, on the Lite build itself.
+
 **Rule per Lite CLAUDE.md:** no sub-brainstorm spawns another sub-brainstorm. If something new surfaces, park it for M1.4+ after M1.3 closes.
 
 ---
