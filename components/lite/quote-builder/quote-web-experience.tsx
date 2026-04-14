@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { toast } from "sonner";
 
 import { houseSpring } from "@/lib/design-tokens";
 import type { QuoteContent } from "@/lib/quote-builder/content-shape";
 import type { QuoteStatus } from "@/lib/db/schema/quotes";
-import { acceptQuoteAction } from "@/app/lite/quotes/[token]/actions";
+import {
+  QuoteAcceptBlock,
+  type AcceptPhase,
+} from "./quote-accept-block";
 
 function formatMoney(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-AU", {
@@ -28,6 +30,8 @@ export type QuoteWebExperienceProps = {
   oneOffCents: number | null;
   totalCents: number;
   expiresAtMs: number | null;
+  /** Billing mode of the company — determines Stripe vs manual accept flow. */
+  paymentMode?: "stripe" | "manual";
   /**
    * `live` is the real client-facing surface (default).
    * `modal-preview` renders a non-interactive snapshot for the Send modal:
@@ -47,9 +51,14 @@ const SECTION_LABELS = [
 export function QuoteWebExperience(props: QuoteWebExperienceProps) {
   const mode = props.mode ?? "live";
   const isPreview = mode === "modal-preview";
+  const paymentMode = props.paymentMode ?? "stripe";
   const [activeSection, setActiveSection] = React.useState(1);
+  const [acceptPhase, setAcceptPhase] = React.useState<AcceptPhase>(
+    props.status === "accepted" ? "confirmed" : "idle",
+  );
   const sectionRefs = React.useRef<(HTMLElement | null)[]>([]);
   const reduced = useReducedMotion();
+  const dimBackdrop = acceptPhase === "payment" || acceptPhase === "confirming";
 
   // Stepper observer — skip in preview mode (no scroll-snap to track).
   React.useEffect(() => {
@@ -94,6 +103,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
         <Stepper
           active={activeSection}
           onJump={jumpTo}
+          locked={acceptPhase !== "idle" && acceptPhase !== "confirmed"}
         />
       )}
 
@@ -104,6 +114,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
             : "mx-auto max-w-3xl snap-y snap-proximity overflow-y-auto"
         }
         style={isPreview ? undefined : { height: "100vh", scrollSnapType: "y proximity" }}
+        data-accept-phase={acceptPhase}
       >
         {/* Hero */}
         <header
@@ -141,6 +152,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
           index={1}
           title={SECTION_LABELS[0]}
           isPreview={isPreview}
+          isDimmed={dimBackdrop}
           ref={(el) => {
             sectionRefs.current[0] = el;
           }}
@@ -163,6 +175,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
           index={2}
           title={SECTION_LABELS[1]}
           isPreview={isPreview}
+          isDimmed={dimBackdrop}
           ref={(el) => {
             sectionRefs.current[1] = el;
           }}
@@ -207,6 +220,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
           index={3}
           title={SECTION_LABELS[2]}
           isPreview={isPreview}
+          isDimmed={dimBackdrop}
           ref={(el) => {
             sectionRefs.current[2] = el;
           }}
@@ -256,6 +270,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
           index={4}
           title={SECTION_LABELS[3]}
           isPreview={isPreview}
+          isDimmed={dimBackdrop}
           ref={(el) => {
             sectionRefs.current[3] = el;
           }}
@@ -287,15 +302,23 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
           index={5}
           title={SECTION_LABELS[4]}
           isPreview={isPreview}
+          isDimmed={false}
           ref={(el) => {
             sectionRefs.current[4] = el;
           }}
         >
-          <AcceptBlock
-            token={props.token}
-            disabled={isPreview || props.status === "accepted"}
-            statusMessage={statusMessage(props.status)}
-          />
+          {isPreview ? (
+            <PreviewAcceptPlaceholder />
+          ) : (
+            <QuoteAcceptBlock
+              token={props.token}
+              paymentMode={paymentMode}
+              quoteNumber={props.quoteNumber}
+              disabled={props.status === "accepted"}
+              alreadyAccepted={props.status === "accepted"}
+              onPhaseChange={setAcceptPhase}
+            />
+          )}
         </Section>
 
         {!isPreview && (
@@ -321,9 +344,33 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
   );
 }
 
-function statusMessage(status: QuoteStatus): string | null {
-  if (status === "accepted") return "You've already accepted this one. Thanks.";
-  return null;
+function PreviewAcceptPlaceholder() {
+  return (
+    <div className="space-y-6 opacity-80">
+      <label className="flex items-start gap-3 text-base">
+        <input
+          type="checkbox"
+          disabled
+          className="mt-1 h-5 w-5 accent-[var(--brand-red)]"
+        />
+        <span>
+          I agree to the terms of service and privacy policy.
+        </span>
+      </label>
+      <button
+        type="button"
+        disabled
+        className="rounded-md px-6 py-3 text-base font-medium text-white"
+        style={{
+          backgroundColor: "var(--brand-red)",
+          opacity: 0.45,
+          cursor: "not-allowed",
+        }}
+      >
+        Accept
+      </button>
+    </div>
+  );
 }
 
 const Section = React.forwardRef<
@@ -332,21 +379,24 @@ const Section = React.forwardRef<
     index: number;
     title: string;
     isPreview: boolean;
+    isDimmed?: boolean;
     children: React.ReactNode;
   }
->(function Section({ index, title, isPreview, children }, ref) {
+>(function Section({ index, title, isPreview, isDimmed, children }, ref) {
   return (
     <section
       ref={ref}
       data-section-index={index}
       className={
-        isPreview
+        (isPreview
           ? "border-t px-6 py-10"
-          : "snap-start px-6 py-16 md:py-20"
+          : "snap-start px-6 py-16 md:py-20") +
+        " transition-all duration-300"
       }
       style={{
         borderColor: "color-mix(in srgb, var(--brand-charcoal) 10%, transparent)",
         ...(isPreview ? {} : { minHeight: "100dvh" }),
+        ...(isDimmed ? { opacity: 0.15, filter: "blur(2px)" } : {}),
       }}
     >
       <div
@@ -361,12 +411,13 @@ const Section = React.forwardRef<
   );
 });
 
-function Stepper(props: { active: number; onJump: (i: number) => void }) {
+function Stepper(props: { active: number; onJump: (i: number) => void; locked?: boolean }) {
   const reduced = useReducedMotion();
   return (
     <nav
       aria-label="Quote sections"
       className="fixed right-6 top-1/2 z-10 hidden -translate-y-1/2 md:block"
+      style={props.locked ? { pointerEvents: "none", opacity: 0.3 } : undefined}
     >
       <ol className="flex flex-col gap-3">
         {SECTION_LABELS.map((label, i) => {
@@ -377,6 +428,7 @@ function Stepper(props: { active: number; onJump: (i: number) => void }) {
               <button
                 type="button"
                 onClick={() => props.onJump(idx)}
+                disabled={props.locked}
                 className="group flex items-center gap-3"
                 aria-current={isActive ? "step" : undefined}
                 aria-label={`Jump to section ${idx}: ${label}`}
@@ -408,86 +460,3 @@ function Stepper(props: { active: number; onJump: (i: number) => void }) {
   );
 }
 
-function AcceptBlock(props: {
-  token: string;
-  disabled: boolean;
-  statusMessage: string | null;
-}) {
-  const [agreed, setAgreed] = React.useState(false);
-  const [pending, setPending] = React.useState(false);
-
-  async function onAccept() {
-    setPending(true);
-    const res = await acceptQuoteAction({
-      token: props.token,
-      acceptedTermsVersionId: null,
-    });
-    setPending(false);
-    if (!res.ok) toast.error(res.error);
-  }
-
-  if (props.statusMessage) {
-    return (
-      <p
-        className="text-base italic"
-        style={{ fontFamily: "var(--font-narrative)" }}
-      >
-        {props.statusMessage}
-      </p>
-    );
-  }
-
-  const acceptDisabled = props.disabled || !agreed || pending;
-
-  return (
-    <div className="space-y-6">
-      <label className="flex cursor-pointer items-start gap-3 text-base">
-        <input
-          type="checkbox"
-          checked={agreed}
-          onChange={(e) => setAgreed(e.target.checked)}
-          disabled={props.disabled}
-          className="mt-1 h-5 w-5 cursor-pointer accent-[var(--brand-red)]"
-        />
-        <span>
-          I agree to the{" "}
-          <a
-            href="/lite/legal/terms-of-service"
-            target="_blank"
-            rel="noopener"
-            className="underline underline-offset-4"
-            style={{ color: "var(--brand-red)" }}
-          >
-            terms of service
-          </a>{" "}
-          and{" "}
-          <a
-            href="/lite/legal/privacy-policy"
-            target="_blank"
-            rel="noopener"
-            className="underline underline-offset-4"
-            style={{ color: "var(--brand-red)" }}
-          >
-            privacy policy
-          </a>
-          .
-        </span>
-      </label>
-
-      <button
-        type="button"
-        onClick={onAccept}
-        disabled={acceptDisabled}
-        className="rounded-md px-6 py-3 text-base font-medium text-white transition-opacity"
-        style={{
-          backgroundColor: "var(--brand-red)",
-          opacity: acceptDisabled ? 0.45 : 1,
-          cursor: acceptDisabled ? "not-allowed" : "pointer",
-        }}
-        data-testid="quote-accept-button"
-      >
-        {pending ? "Working…" : "Accept"}
-      </button>
-    </div>
-  );
-}

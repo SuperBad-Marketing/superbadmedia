@@ -99,6 +99,13 @@
       "when": 1776230000000,
       "tag": "0017_qb4b_intro_paragraph_and_reminder",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1776240000000,
+      "tag": "0018_qb4c_quote_accept_legal_versions",
+      "breakpoints": true
     }
   ]
 }

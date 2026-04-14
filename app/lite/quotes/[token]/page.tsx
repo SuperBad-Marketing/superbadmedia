@@ -111,6 +111,7 @@ export default async function PublicQuotePage({
       oneOffCents={quote.one_off_cents_inc_gst}
       totalCents={quote.total_cents_inc_gst}
       expiresAtMs={quote.expires_at_ms}
+      paymentMode={company.billing_mode}
     />
   );
 }

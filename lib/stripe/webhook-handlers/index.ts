@@ -43,6 +43,7 @@ export async function dispatchStripeEvent(
     case "payment_intent.succeeded":
       return handlePaymentIntentSucceeded(
         event.data.object as Stripe.PaymentIntent,
+        { nowMs: opts.nowMs, dbArg: opts.dbArg, eventId: event.id },
       );
     default:
       return { result: "skipped", error: `unhandled_event_type:${event.type}` };

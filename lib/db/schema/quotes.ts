@@ -83,6 +83,12 @@ export const quotes = sqliteTable(
     stripe_payment_intent_id: text("stripe_payment_intent_id"),
     stripe_subscription_id: text("stripe_subscription_id"),
 
+    // legal acceptance (QB-4c) — IDs of the legal_doc_versions rows the
+    // client agreed to at Accept time. Nullable: manual-billed quotes
+    // that pre-date the columns or imports have no record.
+    accepted_tos_version_id: text("accepted_tos_version_id"),
+    accepted_privacy_version_id: text("accepted_privacy_version_id"),
+
     // pdf
     pdf_cache_key: text("pdf_cache_key"),
 
