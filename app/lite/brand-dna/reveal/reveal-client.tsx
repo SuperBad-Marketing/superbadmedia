@@ -21,6 +21,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { SessionProvider, useSession } from "next-auth/react";
 
 import { useSound } from "@/components/lite/sound-provider";
 import { tier2 } from "@/lib/motion/choreographies";
@@ -37,7 +38,18 @@ interface RevealClientProps {
   alreadyComplete: boolean;
 }
 
-export function RevealClient({
+export function RevealClient(props: RevealClientProps) {
+  // SessionProvider is scoped here so `useSession().update()` can re-mint
+  // Andy's JWT once `markProfileComplete` resolves. Narrowest possible
+  // surface — only the reveal tree needs session-aware hooks. BDA-4.
+  return (
+    <SessionProvider>
+      <RevealInner {...props} />
+    </SessionProvider>
+  );
+}
+
+function RevealInner({
   profileId,
   firstImpression,
   prosePortrait,
@@ -46,6 +58,7 @@ export function RevealClient({
   alreadyComplete,
 }: RevealClientProps) {
   const { play } = useSound();
+  const { update } = useSession();
   const choreography = tier2["brand-dna-reveal"];
 
   const [phase, setPhase] = React.useState<"impression" | "sections" | "portrait">(
@@ -71,11 +84,21 @@ export function RevealClient({
   React.useEffect(() => {
     if (phase !== "portrait") return;
     if (alreadyComplete) return;
+    let cancelled = false;
     const fire = window.setTimeout(() => {
-      void markProfileComplete(profileId);
+      void (async () => {
+        await markProfileComplete(profileId);
+        if (cancelled) return;
+        // Re-mint the JWT with brand_dna_complete=true so the gate clears
+        // without a manual sign-out. BDA-4.
+        await update();
+      })();
     }, 800);
-    return () => window.clearTimeout(fire);
-  }, [phase, alreadyComplete, profileId]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fire);
+    };
+  }, [phase, alreadyComplete, profileId, update]);
 
   const paragraphs = splitPortraitParagraphs(prosePortrait);
 

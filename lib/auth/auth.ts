@@ -22,9 +22,36 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { user as userTable } from "@/lib/db/schema";
 import { authConfig } from "./auth.config";
+import { isBrandDnaCompleteForUser } from "./brand-dna-complete-check";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+
+  callbacks: {
+    ...authConfig.callbacks,
+    /**
+     * Node-side jwt override (BDA-4). Runs the Edge-safe base first to keep
+     * id/role/default-brand_dna_complete stable, then — on sign-in or an
+     * explicit `session.update()` trigger — re-queries `brand_dna_profiles`
+     * for the SuperBad-self row and flips `token.brand_dna_complete`.
+     *
+     * Kill-switch (`brand_dna_assessment_enabled`) gates the DB call via
+     * `isBrandDnaCompleteForUser`, so deployments without Brand DNA pay no
+     * cost here.
+     */
+    async jwt(params) {
+      const token = await authConfig.callbacks!.jwt!(params);
+      const { trigger } = params;
+      const shouldRefresh =
+        trigger === "signIn" || trigger === "signUp" || trigger === "update";
+      if (!shouldRefresh) return token;
+      const userId =
+        (token.id as string | undefined) ?? (token.sub as string | undefined);
+      if (!userId) return token;
+      token.brand_dna_complete = await isBrandDnaCompleteForUser(userId);
+      return token;
+    },
+  },
 
   providers: [
     Credentials({
