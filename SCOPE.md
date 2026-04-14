@@ -658,6 +658,20 @@ Features deliberately parked for v1.1 or later. Explicitly **not** in v1.0 scope
 5. **Twilio voice integration.** Click-to-call from a contact/client profile, recorded + transcribed + auto-logged into activity feed and Client Context Engine. SMS via Twilio is already in v1.0 (Intro Funnel). Voice extends the same vendor — adapter, not a new integration. Added 2026-04-13.
 6. **Video call integration** (Zoom / Teams / Google Meet). Schedule, join, and auto-log meetings into activity feed + Client Context Engine. Transcription + summary via existing LLM plumbing. Separate from Twilio voice because vendor surface is completely different. Added 2026-04-13.
 
+### Prospecting & sales automation cluster (v1.1+)
+
+Added 2026-04-14. A group of outreach/sales-intelligence features that extend the v1.0 outreach engine once it's running with real reply data. All read from both perpetual LLM contexts (Brand DNA + Client Context) and write findings back into the Contacts/Outreach data model — no standalone dashboards.
+
+- **Buying signal monitor.** Watches verticals for new clinic openings, "marketing manager" job ads, Google review score drops, and competitor client losses. Fires warm prospects into the outreach queue with the trigger captured as context.
+- **Ad Library spy.** Scrapes Meta Ad Library for businesses in target verticals running ads — especially ones running them badly. Prospects already have budget; the bad ads become the outreach hook.
+- **Google Business auditor.** Pulls GMB data (review score, response rate, photo quality) to build an instant digital-health snapshot before outreach. Feeds the dossier + the observation hook.
+- **Dossier builder.** One-click assembly of a complete prospect brief — principals, revenue signals, ad spend estimate, team size, recent news — ready for outreach or a call. Consumes the monitors above.
+- **LinkedIn connection script.** Generates personalised connection requests + follow-up messages from the prospect's profile, recent posts, and business context. Subject to `feedback_outreach_never_templated` — end-to-end LLM per prospect.
+- **Case study matcher.** Detects a lead's vertical and auto-serves the most relevant case study / social proof at the right nurture-sequence moment. Plugs into the v1.0 reply-intelligence router.
+- **Objection content sender.** Monitors lead behaviour (link clicks, page views) to infer objections, then triggers the right piece of content — ROI article, FAQ, testimonial — automatically. Passive-channel delivery only per `feedback_passive_vs_active_channels`.
+- **Pre-call prep kit.** Thirty minutes before a call, pulls everything known about a prospect into a one-page brief: gaps, goals, likely objections, recommended positioning. Earned-CTA moment per `feedback_earned_ctas_at_transition_moments`.
+- **Proposal auto-writer.** From call notes / CRM data, writes a bespoke proposal in SuperBad voice — pain points, solution, pricing, ROI case. Dual-quote strategy per `project_dual_quote_strategy`. Take-away artefact rules per `feedback_takeaway_artefacts_brand_forward`.
+
 ### Already-parked items (referenced from memory / earlier scope)
 
 - **Strategic planning feature** — goal setting + live progress tracking; needs real operational data to be valuable (memory `project_strategic_planning_postlaunch.md`).

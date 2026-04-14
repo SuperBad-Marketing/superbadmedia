@@ -46,6 +46,9 @@ next-env.d.ts
 Thumbs.db
 .cache/
 
+# Local vision / pitch artefacts (kept on disk, not repo)
+superbad-lite-vision.html
+
 # SQLite dev DB
 dev.db
 dev.db-shm
