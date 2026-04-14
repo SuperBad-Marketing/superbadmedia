@@ -36,9 +36,10 @@ describe("SP-1 enum shape", () => {
     expect(DEAL_LOSS_REASONS).toHaveLength(7);
   });
 
-  it("deals.subscription_state is the 7-tuple from Quote Builder §5.6", () => {
+  it("deals.subscription_state is the 8-tuple (Quote Builder §5.6 + past_due via subscription-lifecycle webhooks)", () => {
     expect([...DEAL_SUBSCRIPTION_STATES]).toEqual([
       "active",
+      "past_due",
       "paused",
       "pending_early_exit",
       "cancelled_paid_remainder",
