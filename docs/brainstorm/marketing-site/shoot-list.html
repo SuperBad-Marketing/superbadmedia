@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBad — Self-Shot Portfolio List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Righteous&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #B22848;
+    --cream: #FDF5E6;
+    --pink: #F4A0B0;
+    --orange: #F28C52;
+    --charcoal: #1A1A18;
+    --charcoal-lift: #22221F;
+    --hair: rgba(253, 245, 230, 0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--charcoal);
+    color: var(--cream);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* Vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.35) 100%);
+  }
+
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 48px; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    padding: 120px 0 80px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .hero .eyebrow {
+    font-family: 'Righteous', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 36px;
+  }
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(64px, 11vw, 180px);
+    line-height: 0.88;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+  }
+  .hero h1 .red { color: var(--red); }
+  .hero .dek {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(20px, 2.2vw, 28px);
+    line-height: 1.45;
+    color: var(--cream);
+    max-width: 720px;
+    opacity: 0.9;
+  }
+  .hero .meta {
+    margin-top: 48px;
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--cream);
+    opacity: 0.7;
+  }
+  .hero .meta span em { color: var(--orange); font-style: normal; }
+
+  /* ---------- Section ---------- */
+  section {
+    padding: 100px 0;
+    border-bottom: 1px solid var(--hair);
+    position: relative;
+  }
+  .section-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(40px, 5vw, 72px);
+    line-height: 0.95;
+    color: var(--cream);
+    margin-bottom: 60px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Decisions list ---------- */
+  .decisions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    background: var(--hair);
+  }
+  .decision {
+    background: var(--charcoal);
+    padding: 32px;
+  }
+  .decision .n {
+    font-family: 'Righteous', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    color: var(--orange);
+    display: block;
+    margin-bottom: 12px;
+  }
+  .decision .t {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--cream);
+    margin-bottom: 10px;
+  }
+  .decision .d {
+    font-size: 15px;
+    color: var(--cream);
+    opacity: 0.75;
+    line-height: 1.55;
+  }
+
+  /* ---------- Anchors ---------- */
+  .anchor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    gap: 80px;
+    padding: 80px 0;
+    border-top: 1px solid var(--hair);
+    align-items: start;
+  }
+  .anchor:first-of-type { border-top: none; padding-top: 0; }
+  .anchor .side .number {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 140px;
+    line-height: 0.8;
+    color: var(--red);
+    opacity: 0.95;
+    letter-spacing: -0.04em;
+  }
+  .anchor .side .kicker {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-top: 20px;
+  }
+  .anchor h3 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    color: var(--cream);
+    margin-bottom: 12px;
+  }
+  .anchor h3 .q { color: var(--red); }
+  .anchor .sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--cream);
+    opacity: 0.85;
+    margin-bottom: 32px;
+  }
+  .anchor dl {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 14px 24px;
+    margin-top: 24px;
+  }
+  .anchor dt {
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--orange);
+    padding-top: 4px;
+  }
+  .anchor dd {
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--cream);
+    opacity: 0.9;
+  }
+  .anchor dd em {
+    font-family: 'DM Sans', sans-serif;
+    font-style: italic;
+    color: var(--pink);
+  }
+  .anchor dd.risk { color: var(--pink); opacity: 0.85; }
+
+  /* ---------- Supporting grid ---------- */
+  .support-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    background: var(--hair);
+  }
+  .support {
+    background: var(--charcoal);
+    padding: 36px 32px;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .support .top {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-bottom: 16px;
+  }
+  .support .num {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 42px;
+    line-height: 1;
+    color: var(--red);
+  }
+  .support h4 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 30px;
+    line-height: 1;
+    color: var(--cream);
+    letter-spacing: -0.01em;
+  }
+  .support .tag {
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 14px;
+    display: block;
+  }
+  .support p {
+    font-size: 15px;
+    line-height: 1.55;
+    opacity: 0.85;
+  }
+  .support .sig {
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: var(--pink);
+    margin-top: 18px;
+    opacity: 0.75;
+  }
+
+  /* ---------- Pull quote ---------- */
+  .pull {
+    padding: 120px 0;
+    text-align: center;
+    border-bottom: 1px solid var(--hair);
+  }
+  .pull blockquote {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(32px, 4vw, 54px);
+    line-height: 1.2;
+    color: var(--cream);
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .pull blockquote::before, .pull blockquote::after {
+    content: '"';
+    color: var(--red);
+    font-size: 1.2em;
+    line-height: 0;
+    position: relative;
+  }
+  .pull blockquote::before { margin-right: 0.1em; top: 0.15em; }
+  .pull blockquote::after { margin-left: 0.05em; top: 0.15em; }
+
+  /* ---------- Deliverables table ---------- */
+  table.deliv {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  table.deliv th {
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--orange);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--hair);
+  }
+  table.deliv td {
+    padding: 22px 20px;
+    border-bottom: 1px solid var(--hair);
+    color: var(--cream);
+    opacity: 0.9;
+    vertical-align: top;
+  }
+  table.deliv tr:last-child td { border-bottom: none; }
+  table.deliv td strong { font-weight: 700; color: var(--cream); opacity: 1; }
+
+  /* ---------- Reality / parked ---------- */
+  .notes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-top: 40px;
+  }
+  .note-card {
+    padding: 32px;
+    border: 1px solid var(--hair);
+  }
+  .note-card h5 {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 18px;
+  }
+  .note-card ul { list-style: none; }
+  .note-card li {
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 10px 0;
+    opacity: 0.88;
+    border-bottom: 1px dashed var(--hair);
+  }
+  .note-card li:last-child { border-bottom: none; }
+  .note-card li::before {
+    content: '—';
+    color: var(--orange);
+    margin-right: 12px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    padding: 80px 0 120px;
+    text-align: center;
+  }
+  footer .wordmark {
+    font-family: 'Pacifico', cursive;
+    font-size: 48px;
+    color: var(--red);
+    margin-bottom: 20px;
+    line-height: 1;
+  }
+  footer .line {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--cream);
+    opacity: 0.6;
+    font-size: 16px;
+    margin-bottom: 28px;
+  }
+  footer .stamp {
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--cream);
+    opacity: 0.4;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .wrap { padding: 0 24px; }
+    .decisions, .support-grid { grid-template-columns: 1fr; }
+    .anchor { grid-template-columns: 1fr; gap: 32px; }
+    .anchor .side .number { font-size: 96px; }
+    .anchor dl { grid-template-columns: 1fr; gap: 4px 0; }
+    .anchor dt { padding-top: 16px; }
+    .notes { grid-template-columns: 1fr; }
+    .hero { padding: 72px 0 48px; }
+    section { padding: 64px 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="eyebrow">M1.1 · Portfolio brainstorm · Locked</div>
+    <h1>Fourteen<br>pieces<span class="red">.</span><br>One grid<span class="red">.</span></h1>
+    <p class="dek">A self-shot launch portfolio for the Work door. Four anchors, ten supporting. Every piece solo-achievable in Melbourne. Every piece graded Warm Filmic. Every piece opens the same way — held still, then a breath, then motion.</p>
+    <div class="meta">
+      <span>Grade · <em>A · Warm Filmic</em></span>
+      <span>Target · <em>&gt;$500k operators</em></span>
+      <span>Signature · <em>Stillness → motion</em></span>
+      <span>Audio · <em>Silent default</em></span>
+    </div>
+  </header>
+
+  <!-- DECISIONS -->
+  <section>
+    <div class="section-label">What we locked</div>
+    <h2 class="section-title">Seven decisions<br>before a single<br>frame.</h2>
+    <div class="decisions">
+      <div class="decision"><span class="n">01</span><div class="t">Venue philosophy</div><div class="d">Mix of real Melbourne venues for hospo / retail / trades anchors, constructed for the manifesto piece, public or controlled for craft studies.</div></div>
+      <div class="decision"><span class="n">02</span><div class="t">Target scale</div><div class="d">Every venue is a &gt;$500k revenue operator. Not vertical-bound — bound by visible maturity. No first-year popups.</div></div>
+      <div class="decision"><span class="n">03</span><div class="t">Anchor mix</div><div class="d">Four anchors. One constructed (Andy's manifesto). Three real-venue: hospitality, retail, and trades or services.</div></div>
+      <div class="decision"><span class="n">04</span><div class="t">Supporting mix</div><div class="d">Ten pieces. Five venue-lighter shoots at real businesses. Five craft studies under full control — no permission needed.</div></div>
+      <div class="decision"><span class="n">05</span><div class="t">Shared signature</div><div class="d">Every piece opens on a held still frame (2–3s) before motion. Every human piece contains one held close-up of a face, no dialogue.</div></div>
+      <div class="decision"><span class="n">06</span><div class="t">Grade</div><div class="d">A · Warm Filmic, Portra 400. Applied to all footage via the <code style="font-family:inherit; opacity:0.8; color:var(--pink)">A_WarmFilmic.cube</code> LUT.</div></div>
+      <div class="decision"><span class="n">07</span><div class="t">Audio</div><div class="d">Silent by default. Opt-in unmute on every Work tile and detail page. No ambient UI sound anywhere.</div></div>
+    </div>
+  </section>
+
+  <!-- PULL QUOTE -->
+  <div class="pull">
+    <blockquote>Any agency can shoot a café. Shooting a roaster and making it cinematic is the proof the eye travels.</blockquote>
+  </div>
+
+  <!-- ANCHORS -->
+  <section>
+    <div class="section-label">Anchors · Four pieces</div>
+    <h2 class="section-title">The four that<br>earn the grid.</h2>
+
+    <article class="anchor">
+      <div class="side">
+        <div class="number">01</div>
+        <div class="kicker">Constructed · Founder</div>
+      </div>
+      <div class="body">
+        <h3>The Room<span class="q">.</span></h3>
+        <p class="sub">Andy in the chair. One monologue. One idea. No résumé.</p>
+        <dl>
+          <dt>Concept</dt><dd>The manifesto piece. Founder in the red-backdrop garage studio, yellow armchair, dry-voice monologue on what SuperBad exists for and against. One sitter, one day.</dd>
+          <dt>Location</dt><dd>Constructed — Andy's garage studio. SuperBad Red backdrop + retro yellow armchair.</dd>
+          <dt>Signature</dt><dd>Opens on held static of the empty chair <em>(B)</em>. Held close-up of Andy's face mid-sentence <em>(D)</em>.</dd>
+          <dt>Complexity</dt><dd>Low. Solo, controlled lighting, single location.</dd>
+          <dt>Why it sells</dt><dd>Founder voice. Point of view. Production restraint. Doubles as <strong>/start</strong> About content — one asset, two jobs.</dd>
+          <dt>Risk</dt><dd class="risk">Self-indulgence. Script must be dry and short. One idea, no résumé.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="anchor">
+      <div class="side">
+        <div class="number">02</div>
+        <div class="kicker">Real venue · Hospitality</div>
+      </div>
+      <div class="body">
+        <h3>Open<span class="q">.</span></h3>
+        <p class="sub">A long-running Melbourne institution, before service begins.</p>
+        <dl>
+          <dt>Concept</dt><dd>The room before service. First staff arrival. The rituals of opening. One sitter — owner or long-term head of house — in a natural pose. Ends just as the first customer arrives.</dd>
+          <dt>Venue criteria</dt><dd>10+ years trading. Visible heritage fitout. Owner or operator willing to sit 5 minutes on camera. Warm interior palette that flatters the Portra grade.</dd>
+          <dt>Scouting shortlist</dt><dd>Tiamo (Lygon), Pellegrini's, Mario's Fitzroy, Cumulus Inc., European, a Carlton wine bar with heritage fitout.</dd>
+          <dt>Signature</dt><dd>Held static of the empty dining room <em>(B)</em>. Close-up of the owner mid-thought <em>(D)</em>.</dd>
+          <dt>Complexity</dt><dd>Medium. Permission + 3–4 hour access window before service.</dd>
+          <dt>Why it sells</dt><dd>Answers the "do you shoot businesses like mine" question for every hospo prospect on arrival. Visual richness does half the work.</dd>
+          <dt>Risk</dt><dd class="risk">Permission bottleneck. Mitigated by the shortlist and pitching it as mutual marketing — SuperBad ships the piece graded, venue gets a free short film.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="anchor">
+      <div class="side">
+        <div class="number">03</div>
+        <div class="kicker">Real venue · Retail</div>
+      </div>
+      <div class="body">
+        <h3>Stock<span class="q">.</span></h3>
+        <p class="sub">A day inside an established Melbourne specialty retailer.</p>
+        <dl>
+          <dt>Concept</dt><dd>Opening rituals. A staff member at work. Product detail. One customer moment. One held owner-or-manager close-up.</dd>
+          <dt>Venue criteria</dt><dd>Independent. Heritage brand. Visible craft culture. A product catalogue that photographs well under Portra. Established team — not solo owner-operator.</dd>
+          <dt>Scouting shortlist</dt><dd>Readings Carlton flagship, Double Monk, P. Johnson Melbourne, Velodrome / Abbotsford Cycles, Enoteca Sileno, Goldmine Records, Mecca Coffee.</dd>
+          <dt>Signature</dt><dd>B + D — staff member's face in held close-up.</dd>
+          <dt>Complexity</dt><dd>Medium. Permission + half-day access.</dd>
+          <dt>Why it sells</dt><dd>Retail is the second-most-common SuperBad prospect vertical. One strong piece unlocks the whole category.</dd>
+          <dt>Risk</dt><dd class="risk">Retail interiors can be visually cluttered. Scout for clean lines and considered merchandising — not "everything on the shelf".</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="anchor">
+      <div class="side">
+        <div class="number">04</div>
+        <div class="kicker">Real venue · Trades / Services</div>
+      </div>
+      <div class="body">
+        <h3>The Craft<span class="q">.</span></h3>
+        <p class="sub">A Melbourne maker at work. The differentiator piece.</p>
+        <dl>
+          <dt>Concept</dt><dd>Hands. Tools. Process. One held maker close-up. One held static of the finished object. A 90-second film that argues we can make any business cinematic.</dd>
+          <dt>Venue criteria</dt><dd>Visible craft. Photogenic workspace. A maker willing to let the camera near the hands. Workshop scale — not hobby bench.</dd>
+          <dt>Scouting shortlist</dt><dd>Market Lane roastery (Sth Melbourne), P. Johnson workroom, Hillvale Photo Lab, Captain's of Industry (barber + bootmaker), Peggy &amp; Finn, Busyman Bicycles.</dd>
+          <dt>Signature</dt><dd>B + D — maker's face, not hands. Hands get their own close-up inside the craft sequence.</dd>
+          <dt>Complexity</dt><dd>Medium. One maker, usually flexible on timing.</dd>
+          <dt>Why it sells</dt><dd>The differentiator. Any agency can shoot a café. Shooting a roaster or a tailor and making it cinematic is proof the eye travels.</dd>
+          <dt>Risk</dt><dd class="risk">Workshops are often noisy and visually dense. Scout for window light and clean tool surfaces. Be prepared to re-stage minor details.</dd>
+        </dl>
+      </div>
+    </article>
+  </section>
+
+  <!-- PULL QUOTE 2 -->
+  <div class="pull">
+    <blockquote>Stillness is where SuperBad lives. Motion is earned.</blockquote>
+  </div>
+
+  <!-- SUPPORTING -->
+  <section>
+    <div class="section-label">Supporting · Ten pieces</div>
+    <h2 class="section-title">The ten that<br>fill the grid<br>between them.</h2>
+
+    <h3 style="font-family:'Righteous',sans-serif; font-size:13px; letter-spacing:0.3em; color:var(--orange); margin-bottom:24px; text-transform:uppercase;">Venue-lighter · 5 pieces · 30–45s each</h3>
+    <div class="support-grid" style="margin-bottom: 60px;">
+
+      <div class="support">
+        <div><div class="top"><span class="num">05</span><h4>Flowers in</h4></div>
+        <span class="tag">Florist · Market run</span>
+        <p>Market arrivals, unwrapping, first bouquet of the day, florist at the bench.</p></div>
+        <div class="sig">B + D · Human close-up</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">06</span><h4>The pour</h4></div>
+        <span class="tag">Café · First coffee</span>
+        <p>Grinder, tamp, pull, cup to saucer, barista hand-off to an unseen customer.</p></div>
+        <div class="sig">B + D · Barista face on hand-off</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">07</span><h4>Paper</h4></div>
+        <span class="tag">Butcher · Deli · Cheesemonger</span>
+        <p>Knife work. Paper wrap. Handover. The ritual of the counter.</p></div>
+        <div class="sig">B + D · Counter-hand close-up</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">08</span><h4>Shelves</h4></div>
+        <span class="tag">Bookshop · Quiet hours</span>
+        <p>Reshelving, a bookseller's hands, a single browsing customer seen from behind, one held staff close-up.</p></div>
+        <div class="sig">B + D · Staff face</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">09</span><h4>Prep</h4></div>
+        <span class="tag">Restaurant · 4pm</span>
+        <p>Pure mise en place. No service, no plating. The room settling into readiness.</p></div>
+        <div class="sig">B + D · Chef face, not dish</div>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Righteous',sans-serif; font-size:13px; letter-spacing:0.3em; color:var(--orange); margin-bottom:24px; text-transform:uppercase;">Craft studies · 5 pieces · 20–40s each · No permission needed</h3>
+    <div class="support-grid">
+
+      <div class="support">
+        <div><div class="top"><span class="num">10</span><h4>Steam</h4></div>
+        <span class="tag">Macro · Coffee texture</span>
+        <p>Kettle. Bloom. Espresso pull. Pour. Steam against charcoal. A pure texture piece.</p></div>
+        <div class="sig">B only</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">11</span><h4>Record</h4></div>
+        <span class="tag">Macro · Retro soul</span>
+        <p>Vinyl rotation. Needle drop. Label detail. Sleeve art. The genre's beauty in miniature.</p></div>
+        <div class="sig">B only</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">12</span><h4>Boot</h4></div>
+        <span class="tag">Macro · Craft patience</span>
+        <p>Leather detail. Brush strokes. Polish. The finished pair on a wooden floor.</p></div>
+        <div class="sig">B only</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">13</span><h4>Type</h4></div>
+        <span class="tag">Studio · Typography</span>
+        <p>SuperBad Red backdrop. Black Han Sans letters — printed Letraset, wood type, large-format letterpress. The brand's type system as video.</p></div>
+        <div class="sig">B only</div>
+      </div>
+
+      <div class="support">
+        <div><div class="top"><span class="num">14</span><h4>Morning</h4></div>
+        <span class="tag">Domestic · First minute</span>
+        <p>Light through a window. A hand. A cup. A watch. A door. The first minute of a day — solo-achievable, no subject needed.</p></div>
+        <div class="sig">B only</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DELIVERABLES -->
+  <section>
+    <div class="section-label">Per-piece deliverables</div>
+    <h2 class="section-title">What ships<br>with each one.</h2>
+    <table class="deliv">
+      <thead><tr><th>Tier</th><th>Pieces</th><th>Video</th><th>Stills</th><th>Written</th><th>Template</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Anchor</strong></td>
+          <td>4</td>
+          <td>90s hero film</td>
+          <td>3–5 stills</td>
+          <td>Brief · Outcome · Pull quote</td>
+          <td>A · Scrolling narrative</td>
+        </tr>
+        <tr>
+          <td><strong>Supporting</strong></td>
+          <td>10</td>
+          <td>30–45s (venue) · 20–40s (craft study)</td>
+          <td>—</td>
+          <td>One-line description + year</td>
+          <td>B · Fullscreen + credits strip</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top: 32px; opacity: 0.7; font-size: 15px;">Total: <strong style="color: var(--cream); opacity: 1;">14 pieces on the launch Work grid</strong> — comfortably inside the 12–16 range a curated anchors-at-rhythm-points layout supports.</p>
+  </section>
+
+  <!-- NOTES / PARKED -->
+  <section>
+    <div class="section-label">Before we ship</div>
+    <h2 class="section-title">Reality check<br>&amp; what's parked.</h2>
+
+    <div class="notes">
+      <div class="note-card">
+        <h5>Honest risks</h5>
+        <ul>
+          <li>Shortlist venues are best-guesses for "&gt;$500k + heritage + shoot-ready." Andy swaps any that don't fit.</li>
+          <li>"Type" leans on access to Letraset / wood type / letterpress. If access is hard it swaps for "Ink" (fountain pen) or "Backdrop" (red field abstract).</li>
+          <li>Biggest launch risk is permission timing on Anchors 2–4. Mitigation: Anchor 1 + 5 craft studies = 6 pieces, almost half the grid, independent of anyone else's yes.</li>
+          <li>Weather windows for any exterior-dependent shots — book them, don't hope them.</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <h5>Parked for M3.1 · Production plan</h5>
+        <ul>
+          <li>Release / permission template — standard one-pager for venues and sitters.</li>
+          <li>Music scoring — per-piece call at edit time, not list-level.</li>
+          <li>Naming / slugs — finalised at publish time. Working titles above are placeholders.</li>
+          <li>Shoot batch sequencing — solo shoots first (manifesto + 5 craft studies), then real-venue anchors as access confirms, venue-lighter supporting last.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wordmark">SuperBad</div>
+    <div class="line">Fourteen pieces. One grid. One voice.</div>
+    <div class="stamp">M1.1 · Locked · Ready for M3.1</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
