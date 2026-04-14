@@ -50,6 +50,13 @@
       "when": 1776120000000,
       "tag": "0007_bda1_brand_dna",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1776130000000,
+      "tag": "0008_sw1_wizards",
+      "breakpoints": true
     }
   ]
 }

@@ -13,3 +13,6 @@ export * from "./brand-dna-blends";
 export * from "./brand-dna-invites";
 export * from "./support-tickets";
 export * from "./cookie-consents";
+export * from "./wizard-progress";
+export * from "./wizard-completions";
+export * from "./integration-connections";
