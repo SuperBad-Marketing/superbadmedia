@@ -46,6 +46,18 @@ export default async function CriticalFlightWizardPage({
       ? def.voiceTreatment.outroCopy
       : def.voiceTreatment.outroCopy({});
 
+  // graph-api-admin-only: compute the Microsoft authorize URL from env.
+  // If MS_GRAPH_CLIENT_ID / MS_GRAPH_TENANT_ID are unset (common in dev
+  // until Andy registers an Azure app) the URL is a harmless "#". SW-7-b
+  // hardens the real oauth flow; until then, the E2E testToken path
+  // bypasses this entirely.
+  const graphAuthorizeUrl = buildGraphAuthorizeUrl();
+
+  // Test-only injection flag — strictly non-production. The graph-api-admin
+  // client reads `?testToken=…` from the URL only when this flag is true.
+  // Gated here so production pages never set it.
+  const allowTestTokenInjection = process.env.NODE_ENV !== "production";
+
   return (
     <div className="min-h-screen bg-background">
       <CriticalFlightClient
@@ -55,7 +67,31 @@ export default async function CriticalFlightWizardPage({
         outroCopy={outroCopy}
         expiryDays={expiryDays}
         webhookProbeTimeoutMs={webhookProbeTimeoutMs}
+        graphAuthorizeUrl={graphAuthorizeUrl}
+        allowTestTokenInjection={allowTestTokenInjection}
       />
     </div>
   );
+}
+
+function buildGraphAuthorizeUrl(): string {
+  const clientId = process.env.MS_GRAPH_CLIENT_ID;
+  const tenantId = process.env.MS_GRAPH_TENANT_ID ?? "common";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  if (!clientId) return "#";
+  const redirectUri = `${appUrl}/api/oauth/graph-api/callback`;
+  const scopes = [
+    "offline_access",
+    "User.Read",
+    "Mail.Send",
+    "Calendars.Read",
+  ].join(" ");
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: "code",
+    redirect_uri: redirectUri,
+    response_mode: "query",
+    scope: scopes,
+  });
+  return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?${params.toString()}`;
 }

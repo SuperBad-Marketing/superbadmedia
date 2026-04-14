@@ -14,3 +14,4 @@
  */
 import "./stripe-admin";
 import "./resend";
+import "./graph-api-admin";
