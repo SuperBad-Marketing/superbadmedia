@@ -39,6 +39,11 @@ export const EMAIL_CLASSIFICATIONS = [
   // keep per-classification suppression granularity.
   "quote_reminder",
   "quote_expired",
+  // BI-1 — Branded Invoicing emails. Invoices are engaged-conversation
+  // transactional; bypass outreach kill switch + global quiet window.
+  "invoice_send",
+  "invoice_reminder",
+  "invoice_supersede",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -54,6 +59,9 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "quote_send",
   "quote_reminder",
   "quote_expired",
+  "invoice_send",
+  "invoice_reminder",
+  "invoice_supersede",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

@@ -58,6 +58,9 @@ export const companies = sqliteTable(
       .notNull()
       .default(true),
     abn: text("abn"),
+    // Branded Invoicing — default payment terms inherited by every invoice
+    // issued to this company (spec Q4). BI-1.
+    payment_terms_days: integer("payment_terms_days").notNull().default(14),
     first_seen_at_ms: integer("first_seen_at_ms").notNull(),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),

@@ -24,3 +24,4 @@ export * from "./sequences";
 export * from "./catalogue-items";
 export * from "./quote-templates";
 export * from "./quotes";
+export * from "./invoices";

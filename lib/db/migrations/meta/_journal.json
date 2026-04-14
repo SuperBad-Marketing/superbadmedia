@@ -113,6 +113,13 @@
       "when": 1776250000000,
       "tag": "0019_qb7_expired_at",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1776260000000,
+      "tag": "0020_bi1_branded_invoicing",
+      "breakpoints": true
     }
   ]
 }

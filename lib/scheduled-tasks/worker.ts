@@ -7,6 +7,7 @@ import {
   type ScheduledTaskRow,
   type ScheduledTaskType,
 } from "@/lib/db/schema/scheduled-tasks";
+import { sweepOverdueInvoices } from "@/lib/invoicing/sweep";
 
 export type TaskHandler = (task: ScheduledTaskRow) => Promise<void>;
 export type HandlerMap = Partial<Record<ScheduledTaskType, TaskHandler>>;
@@ -71,6 +72,12 @@ export async function tick(handlers: HandlerMap): Promise<number> {
       await handleFailure(claimed, err);
     }
     processed++;
+  }
+
+  try {
+    await sweepOverdueInvoices({ nowMs: now });
+  } catch (err) {
+    console.error("[scheduled-tasks] overdue sweep failed", err);
   }
 
   await writeHeartbeat(now, processed);

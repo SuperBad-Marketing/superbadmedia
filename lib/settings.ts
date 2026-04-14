@@ -141,6 +141,10 @@ const registry = {
   "quote.setup_fee_monthly_saas": integer,
   "quote.reminder_days": integer,
   "quote.intro_paragraph_redraft_hourly_cap": integer,
+
+  // Branded Invoicing (2 — BI-1)
+  "invoice.review_window_days": integer,
+  "invoice.overdue_reminder_days": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

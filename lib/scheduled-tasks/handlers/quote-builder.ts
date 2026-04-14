@@ -15,9 +15,7 @@ import { handleQuoteReminder3d } from "@/lib/quote-builder/handle-quote-reminder
  * caught + retried with backoff and surface in the admin "needs
  * attention" queue.
  *
- * Stub slots remaining (4):
- *   - manual_invoice_generate    → BI-1 (blocked on `invoices` table + `generateInvoice`)
- *   - manual_invoice_send        → BI-1 (blocked on `sendInvoice`)
+ * Stub slots remaining (2):
  *   - subscription_pause_resume_reminder → Client Portal cancel-flow session
  *   - subscription_pause_resume          → Client Portal cancel-flow session
  *
@@ -26,6 +24,9 @@ import { handleQuoteReminder3d } from "@/lib/quote-builder/handle-quote-reminder
  *   - quote_email_send       (QB-3)
  *   - quote_expire           (QB-6)
  *   - quote_reminder_3d      (QB-6)
+ *
+ * Invoicing handlers (manual_invoice_generate, manual_invoice_send,
+ * invoice_overdue_reminder) live in `lib/invoicing/handlers.ts` (BI-1).
  */
 export class NotImplementedError extends Error {
   constructor(taskType: ScheduledTaskType) {
@@ -104,8 +105,6 @@ const quoteReminder3d: TaskHandler = async (task) => {
 export const QUOTE_BUILDER_HANDLERS: HandlerMap = {
   quote_expire: quoteExpire,
   quote_reminder_3d: quoteReminder3d,
-  manual_invoice_generate: stub("manual_invoice_generate"),
-  manual_invoice_send: stub("manual_invoice_send"),
   subscription_pause_resume_reminder: stub("subscription_pause_resume_reminder"),
   subscription_pause_resume: stub("subscription_pause_resume"),
   quote_pdf_render: quotePdfRender,
@@ -114,8 +113,6 @@ export const QUOTE_BUILDER_HANDLERS: HandlerMap = {
 
 /** Stub-only slots — used by qb1-handlers test to assert "still stubbed". */
 export const QUOTE_BUILDER_STUB_TASK_TYPES: readonly ScheduledTaskType[] = [
-  "manual_invoice_generate",
-  "manual_invoice_send",
   "subscription_pause_resume_reminder",
   "subscription_pause_resume",
 ];

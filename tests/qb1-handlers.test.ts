@@ -36,13 +36,11 @@ describe("QB-1 — scheduled-tasks handler registry", () => {
     }
   });
 
-  it("covers all 8 QB task types from spec §8.3 (4 stubs + 4 impls after QB-6)", () => {
+  it("covers the QB-owned task types (impls + remaining stubs after BI-1)", () => {
     expect([...QUOTE_BUILDER_TASK_TYPES].sort()).toEqual(
       [
         "quote_expire",
         "quote_reminder_3d",
-        "manual_invoice_generate",
-        "manual_invoice_send",
         "subscription_pause_resume_reminder",
         "subscription_pause_resume",
         "quote_pdf_render",
@@ -51,11 +49,9 @@ describe("QB-1 — scheduled-tasks handler registry", () => {
     );
   });
 
-  it("QB-6 narrowed the stub list to 4 (manual_invoice_* + subscription_pause_*)", () => {
+  it("BI-1 narrowed the stub list to 2 (subscription_pause_* only)", () => {
     expect([...QUOTE_BUILDER_STUB_TASK_TYPES].sort()).toEqual(
       [
-        "manual_invoice_generate",
-        "manual_invoice_send",
         "subscription_pause_resume_reminder",
         "subscription_pause_resume",
       ].sort(),
