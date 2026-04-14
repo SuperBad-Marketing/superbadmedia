@@ -5,36 +5,9 @@ import { db as defaultDb } from "@/lib/db";
 import { deals, type DealRow, type DealStage } from "@/lib/db/schema/deals";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { validateDeal } from "./validate-deal";
+import { LEGAL_TRANSITIONS } from "./legal-transitions";
 
-/**
- * Legal-transition matrix per sales-pipeline §3.2/§3.3.
- *
- * - Forward auto-transitions (§3.2) plus manual overrides (§3.3) collapse to
- *   one matrix keyed on the current stage.
- * - `won` is terminal (graduates to Client Management).
- * - `lost` is terminal *except* `lost → lead` which is an explicit rekindle
- *   path per brief §2.
- * - Re-opening a `won` deal is deliberately out of scope for SP-2 (see brief
- *   §4 notes + SP-3+ open thread); consumers must not call this helper to
- *   flip a won deal.
- */
-export const LEGAL_TRANSITIONS: Record<DealStage, ReadonlyArray<DealStage>> = {
-  lead: ["contacted", "conversation", "trial_shoot", "quoted", "lost"],
-  contacted: ["lead", "conversation", "trial_shoot", "quoted", "lost"],
-  conversation: [
-    "lead",
-    "contacted",
-    "trial_shoot",
-    "quoted",
-    "negotiating",
-    "lost",
-  ],
-  trial_shoot: ["conversation", "quoted", "negotiating", "lost"],
-  quoted: ["conversation", "trial_shoot", "negotiating", "won", "lost"],
-  negotiating: ["conversation", "trial_shoot", "quoted", "won", "lost"],
-  won: [],
-  lost: ["lead"],
-};
+export { LEGAL_TRANSITIONS };
 
 export interface TransitionDealStageOpts {
   /** Identity of the actor triggering the transition (user id, webhook tag,
