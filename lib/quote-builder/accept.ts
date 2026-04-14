@@ -12,6 +12,7 @@ import {
 import { finaliseDealAsWon } from "@/lib/crm/finalise-deal";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { killSwitches } from "@/lib/kill-switches";
 import { getCurrentQuoteLegalVersions } from "@/lib/quote-builder/legal";
 
 type DatabaseLike = typeof defaultDb;
@@ -200,18 +201,26 @@ export async function acceptQuote(
     // today (project). Enqueue `manual_invoice_generate` at
     // `first_invoice_date - 3 days`. For v1 we take `first_invoice_date = now`
     // so generate runs immediately (run_at = now).
-    await enqueueTask({
-      task_type: "manual_invoice_generate",
-      runAt: now,
-      payload: {
-        deal_id: deal.id,
-        cycle_index: 0,
-        cycle_start: now,
-        cycle_end: committed_until_ms ?? now,
-        send_at: now,
-      },
-      idempotencyKey: `manual_invoice_generate:${deal.id}:0`,
-    });
+    //
+    // Kill-switch `invoicing_manual_cycle_enqueue_enabled` (QB-6): gated
+    // off until BI-1 lands the `invoices` table + `generateInvoice` /
+    // `sendInvoice` primitives. Flipping it on before BI-1 mints dead-
+    // lettered tasks. When BI-1 ships, its handoff flips this + backfills
+    // any missed cycles.
+    if (killSwitches.invoicing_manual_cycle_enqueue_enabled) {
+      await enqueueTask({
+        task_type: "manual_invoice_generate",
+        runAt: now,
+        payload: {
+          deal_id: deal.id,
+          cycle_index: 0,
+          cycle_start: now,
+          cycle_end: committed_until_ms ?? now,
+          send_at: now,
+        },
+        idempotencyKey: `manual_invoice_generate:${deal.id}:0`,
+      });
+    }
 
     // Settle email — transactional, fire via quote_email_send handler.
     await enqueueManualSettleEmail({

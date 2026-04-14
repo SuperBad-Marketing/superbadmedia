@@ -34,6 +34,11 @@ export const EMAIL_CLASSIFICATIONS = [
   // engaged a sales conversation, so it bypasses the outreach kill switch
   // and the global quiet window. Reminder + expiry land at QB-6.
   "quote_send",
+  // QB-6 — 3-day unread reminder + expiry notice. Both transactional by
+  // the same engaged-conversation reasoning as quote_send; separate keys
+  // keep per-classification suppression granularity.
+  "quote_reminder",
+  "quote_expired",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -47,6 +52,8 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "transactional",
   "portal_magic_link_recovery",
   "quote_send",
+  "quote_reminder",
+  "quote_expired",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

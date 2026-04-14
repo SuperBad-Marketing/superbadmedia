@@ -74,6 +74,7 @@ export const ACTIVITY_LOG_KINDS = [
   "quote_settled",
   "quote_superseded",
   "quote_expired",
+  "quote_reminder_sent",
   "quote_withdrawn",
   "scheduled_task_dispatched",
   "subscription_cancel_intercepted_preterm",

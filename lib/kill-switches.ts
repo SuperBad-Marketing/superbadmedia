@@ -20,7 +20,8 @@ export type KillSwitchKey =
   | "sentry_enabled"
   | "brand_dna_assessment_enabled"
   | "setup_wizards_enabled"
-  | "wizards_nudges_enabled";
+  | "wizards_nudges_enabled"
+  | "invoicing_manual_cycle_enqueue_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -33,6 +34,12 @@ const defaults: KillSwitchRegistry = {
   brand_dna_assessment_enabled: false,
   setup_wizards_enabled: false,
   wizards_nudges_enabled: false,
+  // QB-6: gate for `manual_invoice_generate` enqueue in
+  // `lib/quote-builder/accept.ts`. Default false — flip on ONLY after
+  // BI-1 lands the `invoices` table + `generateInvoice`/`sendInvoice`
+  // primitives. Until then, manual-billed acceptance skips the enqueue
+  // rather than minting dead-lettered tasks.
+  invoicing_manual_cycle_enqueue_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

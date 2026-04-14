@@ -24,7 +24,7 @@ export const MODEL_IDS = {
 export type ModelId = (typeof MODEL_IDS)[ModelTier];
 
 export const MODELS = {
-  // quote-builder (7)
+  // quote-builder (8)
   "quote-builder-draft-from-context": "opus",
   "quote-builder-draft-intro-paragraph": "opus",
   "quote-builder-draft-send-email": "opus",
@@ -32,6 +32,7 @@ export const MODELS = {
   "quote-builder-draft-pdf-cover-line": "opus",
   "quote-builder-draft-settle-email": "opus",
   "quote-builder-draft-cancel-intercept-email": "opus",
+  "quote-builder-draft-reminder-3d": "opus",
   // branded-invoicing (3)
   "invoice-draft-send-email": "opus",
   "invoice-draft-reminder": "opus",

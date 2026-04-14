@@ -36,17 +36,30 @@ describe("QB-1 — scheduled-tasks handler registry", () => {
     }
   });
 
-  it("covers all 8 QB task types from spec §8.3 (6 stubs + 2 QB-3 impls)", () => {
-    expect(QUOTE_BUILDER_TASK_TYPES).toEqual([
-      "quote_expire",
-      "quote_reminder_3d",
-      "manual_invoice_generate",
-      "manual_invoice_send",
-      "subscription_pause_resume_reminder",
-      "subscription_pause_resume",
-      "quote_pdf_render",
-      "quote_email_send",
-    ]);
+  it("covers all 8 QB task types from spec §8.3 (4 stubs + 4 impls after QB-6)", () => {
+    expect([...QUOTE_BUILDER_TASK_TYPES].sort()).toEqual(
+      [
+        "quote_expire",
+        "quote_reminder_3d",
+        "manual_invoice_generate",
+        "manual_invoice_send",
+        "subscription_pause_resume_reminder",
+        "subscription_pause_resume",
+        "quote_pdf_render",
+        "quote_email_send",
+      ].sort(),
+    );
+  });
+
+  it("QB-6 narrowed the stub list to 4 (manual_invoice_* + subscription_pause_*)", () => {
+    expect([...QUOTE_BUILDER_STUB_TASK_TYPES].sort()).toEqual(
+      [
+        "manual_invoice_generate",
+        "manual_invoice_send",
+        "subscription_pause_resume_reminder",
+        "subscription_pause_resume",
+      ].sort(),
+    );
   });
 
   it("stub handlers throw NotImplementedError (surfaces as failed in worker)", async () => {
