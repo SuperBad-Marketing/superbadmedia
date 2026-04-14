@@ -37,7 +37,28 @@ const defaults: KillSwitchRegistry = {
 // ops can flip a switch without a rebuild. Production enablement comes
 // from a follow-up migration that writes into `settings` — B1 owns the
 // runtime-wired path.
-export const killSwitches: KillSwitchRegistry = { ...defaults };
+//
+// `KILL_SWITCHES_ON` (SW-5c): comma-separated list of switch keys to flip
+// on at process boot. Intended for the Playwright webServer + future dev
+// workflows that need a subset of switches enabled without rebuilding.
+// Unknown keys are ignored. Never set in production until B1's DB-backed
+// path lands — this is a stop-gap for out-of-process enablement only.
+const envOverride = process.env.KILL_SWITCHES_ON;
+const enabled = new Set<string>(
+  envOverride
+    ? envOverride
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean)
+    : [],
+);
+
+export const killSwitches: KillSwitchRegistry = Object.fromEntries(
+  (Object.keys(defaults) as KillSwitchKey[]).map((k) => [
+    k,
+    enabled.has(k) ? true : defaults[k],
+  ]),
+) as KillSwitchRegistry;
 
 export function resetKillSwitchesToDefaults(): void {
   for (const key of Object.keys(defaults) as KillSwitchKey[]) {

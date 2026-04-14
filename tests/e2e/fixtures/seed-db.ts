@@ -1,0 +1,133 @@
+/**
+ * Playwright globalSetup — seed hermetic sqlite + pre-signed session cookie.
+ *
+ * Runs once before the test suite:
+ *   1. Clears any previous hermetic DB at `tests/e2e/.test-critical-flight.db`.
+ *   2. Applies `lib/db/migrations/*` via drizzle's migrator.
+ *   3. Seeds one admin user row.
+ *   4. Encodes a NextAuth v5 session JWT with `brand_dna_complete=true` +
+ *      `critical_flight_complete=false` and writes Playwright's
+ *      `storageState` JSON so every `test.use({ storageState })` run
+ *      starts already-signed-in as the test admin.
+ *
+ * The webServer (see `playwright.config.ts`) is started with the same
+ * DATABASE_URL and NEXTAUTH_SECRET, so it decodes the cookie transparently.
+ *
+ * Consumers (spec files) can import `E2E_USER`, `E2E_DB_PATH`, and
+ * `openTestDb()` from this module to assert against the same DB rows the
+ * dev server wrote.
+ *
+ * Owner: SW-5c.
+ */
+import fs from "node:fs";
+import path from "node:path";
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { migrate as drizzleMigrate } from "drizzle-orm/better-sqlite3/migrator";
+import { encode } from "@auth/core/jwt";
+
+import * as schema from "@/lib/db/schema";
+import { E2E_CONSTANTS } from "../../../playwright.config";
+
+export const E2E_USER = {
+  id: "e2e-admin-user",
+  email: "andy+e2e@superbadmedia.com.au",
+  name: "Andy (E2E)",
+  role: "admin" as const,
+} as const;
+
+export const E2E_DB_PATH = path.resolve(process.cwd(), E2E_CONSTANTS.DB_FILE);
+const AUTH_STATE_PATH = path.resolve(
+  process.cwd(),
+  "tests/e2e/.auth-state.json",
+);
+
+// NextAuth v5 non-secure cookie name + matching salt.
+const SESSION_COOKIE_NAME = "authjs.session-token";
+
+export function openTestDb(): {
+  sqlite: Database.Database;
+  db: ReturnType<typeof drizzle<typeof schema>>;
+} {
+  const sqlite = new Database(E2E_DB_PATH);
+  sqlite.pragma("journal_mode = WAL");
+  sqlite.pragma("foreign_keys = ON");
+  const db = drizzle(sqlite, { schema });
+  return { sqlite, db };
+}
+
+function clearPreviousRun(): void {
+  for (const ext of ["", "-wal", "-shm"]) {
+    const p = `${E2E_DB_PATH}${ext}`;
+    if (fs.existsSync(p)) fs.unlinkSync(p);
+  }
+  if (fs.existsSync(AUTH_STATE_PATH)) fs.unlinkSync(AUTH_STATE_PATH);
+}
+
+function migrateAndSeed(): void {
+  const sqlite = new Database(E2E_DB_PATH);
+  sqlite.pragma("journal_mode = WAL");
+  sqlite.pragma("foreign_keys = ON");
+  const db = drizzle(sqlite);
+  drizzleMigrate(db, {
+    migrationsFolder: path.resolve(process.cwd(), "lib/db/migrations"),
+  });
+
+  // Admin user — satisfies completeStripeAdminAction's auth().user.id lookup.
+  sqlite
+    .prepare(
+      `INSERT OR REPLACE INTO user
+       (id, email, name, role, timezone, motion_preference,
+        sounds_enabled, density_preference, text_size_preference,
+        theme_preset, typeface_preset, created_at_ms)
+       VALUES (?, ?, ?, 'admin', 'Australia/Melbourne', 'full',
+               1, 'comfortable', 'default', 'base-nova', 'default', ?)`,
+    )
+    .run(E2E_USER.id, E2E_USER.email, E2E_USER.name, Date.now());
+
+  sqlite.close();
+}
+
+async function writeAuthState(): Promise<void> {
+  // Seven-day JWT — plenty for a single test run.
+  const exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+  const token = await encode({
+    token: {
+      sub: E2E_USER.id,
+      id: E2E_USER.id,
+      email: E2E_USER.email,
+      name: E2E_USER.name,
+      role: E2E_USER.role,
+      brand_dna_complete: true,
+      critical_flight_complete: false,
+      iat: Math.floor(Date.now() / 1000),
+      exp,
+    } as Record<string, unknown>,
+    secret: E2E_CONSTANTS.NEXTAUTH_SECRET,
+    salt: SESSION_COOKIE_NAME,
+  });
+
+  const state = {
+    cookies: [
+      {
+        name: SESSION_COOKIE_NAME,
+        value: token,
+        domain: "127.0.0.1",
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Lax" as const,
+        expires: exp,
+      },
+    ],
+    origins: [],
+  };
+  fs.mkdirSync(path.dirname(AUTH_STATE_PATH), { recursive: true });
+  fs.writeFileSync(AUTH_STATE_PATH, JSON.stringify(state, null, 2));
+}
+
+export default async function globalSetup(): Promise<void> {
+  clearPreviousRun();
+  migrateAndSeed();
+  await writeAuthState();
+}

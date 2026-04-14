@@ -53,3 +53,11 @@ dev.db-wal
 tests/.test-*.db
 tests/.test-*.db-shm
 tests/.test-*.db-wal
+
+# Playwright (E2E)
+test-results/
+playwright-report/
+tests/e2e/.test-*.db
+tests/e2e/.test-*.db-shm
+tests/e2e/.test-*.db-wal
+tests/e2e/.auth-state.json
