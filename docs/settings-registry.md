@@ -138,6 +138,18 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `hiring.staleness.applied_days` | `7` | integer | Applied staleness threshold |
 | `hiring.staleness.screened_days` | `5` | integer | Screened staleness threshold |
 
+## Sales Pipeline (owner: `docs/specs/sales-pipeline.md` §8)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `pipeline.stale_thresholds.lead_days` | `14` | integer | Days in lead stage before stale halo fires |
+| `pipeline.stale_thresholds.contacted_days` | `5` | integer | Days in contacted stage before stale halo fires |
+| `pipeline.stale_thresholds.conversation_days` | `7` | integer | Days in conversation stage before stale halo fires |
+| `pipeline.stale_thresholds.trial_shoot_days` | `14` | integer | Days in trial_shoot stage before stale halo fires |
+| `pipeline.stale_thresholds.quoted_days` | `5` | integer | Days in quoted stage before stale halo fires |
+| `pipeline.stale_thresholds.negotiating_days` | `3` | integer | Days in negotiating stage before stale halo fires |
+| `pipeline.snooze_default_days` | `3` | integer | Default snooze duration when Andy snoozes a stale deal |
+
 ---
 
 ## Totals
@@ -151,6 +163,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Alerts: 3 (added 2026-04-14, A5)
 - Legal: 2 (added 2026-04-13, B3)
 - Hiring: 28
-- **Total: 73 keys at v1.0 seed** (was 70 pre-SW-2)
+- Sales Pipeline: 7 (added 2026-04-14, SP-3)
+- **Total: 80 keys at v1.0 seed** (was 73 pre-SP-3)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

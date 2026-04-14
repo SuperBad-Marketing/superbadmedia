@@ -23,3 +23,5 @@ export {
   LEGAL_TRANSITIONS,
 } from "./transition-deal-stage";
 export type { TransitionDealStageOpts } from "./transition-deal-stage";
+export { isDealStale } from "./is-stale";
+export type { IsDealStaleInput, PipelineStaleThresholds } from "./is-stale";

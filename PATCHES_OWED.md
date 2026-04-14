@@ -38,6 +38,7 @@ Phase-5-gated FOUNDATIONS patches (land alongside the relevant build session, no
 - ~~All locked specs · Inline cross-spec contract detail currently only in handoffs (Phase 3.5 step 2a)~~ — **APPLIED 2026-04-13** by `phase-3.5-step-2a-self-containment` (see Applied section below)
 - ~~All locked specs with autonomy thresholds expressed as literals · Convert to `settings.get()` keys per Phase 3.5 step 7a~~ — **APPLIED 2026-04-13** by Phase 3.5 Batch B step 7a (see Applied section below)
 - Locked specs pre-dating the "Voice & delight treatment" convention · Add the section per cross-cutting discipline (Sales Pipeline done 2026-04-13; audit remaining specs) · Cross-cutting principle audit · 2026-04-13
+- `docs/specs/design-system-baseline.md` §6 · Add "Won card outcome badge (RETAINER/SAAS)" as either a 9th BHS location or swap one of the existing 8 · flagged in sales-pipeline.md §7.3 and realised in SP-3 `won-badge.tsx` · SP-3 · 2026-04-14
 - ~~Locked specs with LLM prompt text inline in prose · Extract prompts to `lib/ai/prompts/<name>.ts` stubs (Phase 3.5 step 3b)~~ — **APPLIED 2026-04-13** by Phase 3.5 Batch A step 3b (see Applied section below)
 
 ### Cross-cutting

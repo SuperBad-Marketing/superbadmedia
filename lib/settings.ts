@@ -123,6 +123,15 @@ const registry = {
   // Legal (2 — B3)
   "legal.dsr_email": str,
   "legal.dsr_response_days": integer,
+
+  // Sales Pipeline (7 — SP-3)
+  "pipeline.stale_thresholds.lead_days": integer,
+  "pipeline.stale_thresholds.contacted_days": integer,
+  "pipeline.stale_thresholds.conversation_days": integer,
+  "pipeline.stale_thresholds.trial_shoot_days": integer,
+  "pipeline.stale_thresholds.quoted_days": integer,
+  "pipeline.stale_thresholds.negotiating_days": integer,
+  "pipeline.snooze_default_days": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;
