@@ -43,6 +43,9 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `wizards.help_escalation_failure_count` | `2` | integer | Consecutive step failures before the help affordance appears |
 | `wizards.step_retry_max` | `3` | integer | Hard cap on retries per step before shell surfaces a permanent error state |
 | `wizards.critical_flight_wizards` | `['stripe-admin','resend','graph-api-admin']` | string[] | Ordered list of critical-flight wizard keys |
+| `wizards.dns_verify_poll_interval_ms` | `10000` | integer | `dns-verify` step — resolver poll interval (ms), per SW-2 (2026-04-14) |
+| `wizards.async_check_timeout_ms` | `600000` | integer | `async-check` step — long-running job max wait (ms, 10 min), per SW-2 (2026-04-14) |
+| `wizards.webhook_probe_timeout_ms` | `300000` | integer | `webhook-probe` step — inbound POST max wait (ms, 5 min), per SW-2 (2026-04-14) |
 
 ## Six-Week Plan Generator (owner: `docs/specs/six-week-plan-generator.md` §9)
 
@@ -139,7 +142,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 ## Totals
 
 - Finance: 11
-- Wizards: 6
+- Wizards: 9
 - Plan: 10
 - Portal: 5
 - Intro Funnel: 1 (more owed; see Batch C step 15)
@@ -147,6 +150,6 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Alerts: 3 (added 2026-04-14, A5)
 - Legal: 2 (added 2026-04-13, B3)
 - Hiring: 28
-- **Total: 70 keys at v1.0 seed** (was 68 pre-B3)
+- **Total: 73 keys at v1.0 seed** (was 70 pre-SW-2)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

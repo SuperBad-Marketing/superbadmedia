@@ -32,7 +32,12 @@ import { motion } from "framer-motion";
 import { XIcon, LifeBuoyIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { houseSpring } from "@/lib/design-tokens";
-import type { WizardAudience } from "@/lib/wizards/types";
+import { killSwitches } from "@/lib/kill-switches";
+import { STEP_TYPE_REGISTRY } from "@/components/lite/wizard-steps";
+import type {
+  WizardAudience,
+  WizardStepDefinition,
+} from "@/lib/wizards/types";
 
 export type WizardShellProps = {
   /** Stable wizard key (maps to WizardDefinition.key). Used as a test hook. */
@@ -53,8 +58,18 @@ export type WizardShellProps = {
    * consecutive step failures (`settings.wizards.help_escalation_failure_count`).
    */
   help?: React.ReactNode;
-  /** Step body — provided by SW-2's step-type runtime. */
-  children: React.ReactNode;
+  /**
+   * Step body. Pass `children` for custom rendering, OR pass `step` +
+   * `stepState` + `onStepStateChange` + `onNext` to render via
+   * `STEP_TYPE_REGISTRY`. The registry path is what SW-3+ real wizards use.
+   */
+  children?: React.ReactNode;
+  step?: WizardStepDefinition;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stepState?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onStepStateChange?: (next: any) => void;
+  onNext?: () => void;
 };
 
 export function WizardShell({
@@ -66,10 +81,50 @@ export function WizardShell({
   onCancel,
   help,
   children,
+  step,
+  stepState,
+  onStepStateChange,
+  onNext,
 }: WizardShellProps) {
   const [helpOpen, setHelpOpen] = React.useState(false);
   const stepCount = stepLabels.length;
   const safeCurrent = Math.min(Math.max(currentStep, 0), Math.max(stepCount - 1, 0));
+
+  // Kill-switch short-circuit. Every wizard surface refuses to render when
+  // `setup_wizards_enabled` is off — mid-flight wizards safely pause (spec §8).
+  if (!killSwitches.setup_wizards_enabled) {
+    return (
+      <div
+        data-wizard-shell-disabled
+        data-wizard-key={wizardKey}
+        className="flex min-h-full items-center justify-center px-6 py-12 text-center text-sm text-muted-foreground"
+      >
+        Setup is paused for maintenance. Come back shortly — we&apos;ll hold
+        your progress.
+      </div>
+    );
+  }
+
+  // Resolve the step body. If a `step` definition is provided, render it
+  // via STEP_TYPE_REGISTRY; otherwise fall back to `children` (SW-1 chrome
+  // pattern).
+  const stepBody: React.ReactNode = step
+    ? (() => {
+        const def = STEP_TYPE_REGISTRY[step.type];
+        if (!def) return children ?? null;
+        const Comp = def.Component;
+        return (
+          <Comp
+            stepKey={step.key}
+            state={stepState}
+            onChange={onStepStateChange ?? (() => {})}
+            onNext={onNext ?? (() => {})}
+            audience={audience}
+            config={step.config}
+          />
+        );
+      })()
+    : children;
 
   return (
     <div
@@ -124,7 +179,7 @@ export function WizardShell({
       </header>
 
       {/* Step body */}
-      <div className="flex-1 px-6 py-6">{children}</div>
+      <div className="flex-1 px-6 py-6">{stepBody}</div>
 
       {/* Bottom chrome: expiry hint (dry, terse) */}
       <footer className="border-t px-6 py-2 text-xs text-muted-foreground">

@@ -6,11 +6,20 @@
  * uses renderToStaticMarkup + string matching, consistent with the
  * existing `tests/` convention (node env, no @testing-library).
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { WizardShell } from "@/components/lite/wizard-shell";
+import { killSwitches, resetKillSwitchesToDefaults } from "@/lib/kill-switches";
+
+// SW-2 added `setup_wizards_enabled` — must be on for chrome tests below.
+beforeAll(() => {
+  killSwitches.setup_wizards_enabled = true;
+});
+afterAll(() => {
+  resetKillSwitchesToDefaults();
+});
 
 const baseProps = {
   wizardKey: "stripe-admin",

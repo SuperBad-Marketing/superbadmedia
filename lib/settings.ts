@@ -47,6 +47,9 @@ const registry = {
   "wizards.critical_flight_wizards": z
     .string()
     .transform((v) => JSON.parse(v) as string[]),
+  "wizards.dns_verify_poll_interval_ms": integer,
+  "wizards.async_check_timeout_ms": integer,
+  "wizards.webhook_probe_timeout_ms": integer,
 
   // Plan (10)
   "plan.portal_access_days_post_shoot": integer,

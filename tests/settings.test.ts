@@ -47,11 +47,11 @@ describe("settings registry + seed migration", () => {
     }
   });
 
-  it("seeds 70 keys total (68 pre-B3 + 2 legal keys added in B3)", () => {
+  it("seeds 73 keys total (70 pre-SW-2 + 3 wizards step-type timeout keys)", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(70);
+    expect(count.n).toBe(73);
   });
 
   it("stores portal.magic_link_ttl_hours = 168", () => {
@@ -87,7 +87,7 @@ describe("settings registry + seed migration", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(70);
+    expect(count.n).toBe(73);
   });
 
   it("every SETTINGS_KEYS entry is a string matching the feature.rule shape", () => {

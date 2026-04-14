@@ -57,6 +57,13 @@
       "when": 1776130000000,
       "tag": "0008_sw1_wizards",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1776140000000,
+      "tag": "0009_sw2_wizard_step_timeouts",
+      "breakpoints": true
     }
   ]
 }
