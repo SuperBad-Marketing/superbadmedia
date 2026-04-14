@@ -74,10 +74,11 @@
 - G4 literal-grep — no autonomy thresholds introduced. `MAX_BODY_CHARS=280`
   is a readability truncation for log bodies, not a tunable; `rows={5}`
   is UI layout. No new settings keys.
-- Manual browser — owed next session. Needs a seeded company with
-  `trial_shoot_status='booked'` and a known id; open
-  `/lite/admin/companies/<id>`, advance through the stepper, confirm
-  completed_at stamp, save a plan, confirm toast.
+- Manual browser — **verified 2026-04-14** against seeded Fitzroy
+  Florist (`trial_shoot_status='booked'`). Stepper advanced through
+  arrived → shot → completed_awaiting_feedback, plan saved, completed_at
+  stamped. Seed lives in `scripts/seed-pipeline.ts`; reset+reseed via
+  `NODE_OPTIONS='-r ./scripts/shim-server-only.cjs' npx tsx scripts/dev-reset-and-seed.ts`.
 
 ## Not shipped (out of scope per brief §3)
 

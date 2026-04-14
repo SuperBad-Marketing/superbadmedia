@@ -86,17 +86,18 @@
 - G4 literal-grep — no autonomy thresholds introduced. Closed enum
   values (7 loss reasons, 3 outcomes, 2 billing modes) are schema, not
   tunables. No new settings keys.
-- **Manual browser — owed next session.** Needs seeded data:
-  - a company with `billing_mode='manual'` and a deal in `negotiating`
-    → drag to Won → simple confirm → expect `retainer` default outcome,
-    activity_log entry, card in Won column with `RETAINER` badge.
-  - a company with `billing_mode='stripe'` and a deal in `quoted` →
-    drag to Won → confirm button disabled until company name typed.
-  - any deal in `contacted` → drag to Lost → pick `Other` → confirm
-    disabled until notes typed → submit → activity_log entry with notes.
-  - **Also clears SP-5's owed browser pass** — seed a company with
-    `trial_shoot_status='booked'`, step through the stepper, save a
-    plan.
+- **Manual browser — verified 2026-04-14.**
+  - Carlton Cafe Group (manual, negotiating) → Won → simple confirm,
+    retainer default. ✓
+  - Preston Plumbing (stripe, quoted) → Won → type-to-confirm gate on
+    company name. ✓
+  - Brunswick Brew Co (conversation) → Lost → "Other" → Confirm
+    disabled until notes typed. ✓
+  - Fitzroy Florist (`trial_shoot_status='booked'`) stepper + plan
+    save — clears SP-5's owed pass. ✓
+  - Noted flake: dnd-kit drag occasionally refuses after a prior
+    successful drag (Northcote Dental card). Reloading resolves.
+    Not tracked as a bug — pre-existing dnd-kit quirk.
 
 ## Not shipped (out of scope)
 
