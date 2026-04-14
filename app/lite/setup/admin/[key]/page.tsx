@@ -4,46 +4,120 @@
  * Parallel tree to `/lite/setup/critical-flight/[key]`. Houses wizards that
  * aren't part of the first-run critical arc (spec §8.2) — admin surfaces
  * the user lands on from the integrations hub or from feature-triggered
- * interception (spec §8.4). SW-9 shipped the first wizard (`pixieset-admin`);
- * SW-10 adds `meta-ads` (oauth-consent pattern). Future admin wizards
- * (Google Ads, Twilio, generic API-key) add per-wizard client files +
- * dispatcher branches here.
+ * interception (spec §8.4).
+ *
+ * Dispatcher: CLIENT_MAP of wizard-key → renderer. SW-13 landed this
+ * refactor (brief §4 Option A) when the generic `api-key` wizard
+ * introduced the fourth distinct props shape + the first *dynamically
+ * selected* wizard (vendor picked via `?vendor=…`). Replaced the prior
+ * if-chain (SW-9 through SW-12). Adding a new wizard = add one
+ * `CLIENT_MAP` row; no growing chain.
  *
  * Route-tree decision per SW-9: `/lite/setup/admin/[key]` (not
  * `/lite/setup/integrations/[key]`). Rationale: not every future admin
  * wizard is a vendor integration.
  *
- * Owner: SW-9. Extended by SW-10 (meta-ads branch + Meta authorize URL).
+ * Owner: SW-9. Dispatcher refactored by SW-13.
  */
+import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth/session";
 import { getWizard } from "@/lib/wizards/registry";
+import type {
+  WizardAudience,
+  WizardStepDefinition,
+} from "@/lib/wizards/types";
 import { getWizardShellConfig } from "@/lib/wizards/shell-config";
 import { META_OAUTH_SCOPES } from "@/lib/integrations/vendors/meta-ads";
 import {
   GOOGLE_OAUTH_SCOPES,
   GOOGLE_OAUTH_AUTHORIZE_URL,
 } from "@/lib/integrations/vendors/google-ads";
+import {
+  isApiKeyVendor,
+  getApiKeyVendorProfile,
+} from "@/lib/wizards/defs/api-key";
 import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
 import { MetaAdsClient } from "./clients/meta-ads-client";
 import { GoogleAdsClient } from "./clients/google-ads-client";
 import { TwilioClient } from "./clients/twilio-client";
+import { ApiKeyClient } from "./clients/api-key-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
 
+/**
+ * Common props every per-wizard client accepts. Per-wizard extras
+ * (authorize URLs, vendor profiles) are added by the client's renderer.
+ */
+type CommonClientProps = {
+  audience: WizardAudience;
+  steps: WizardStepDefinition[];
+  outroCopy: string;
+  expiryDays: number;
+};
+
+type DispatcherArgs = {
+  common: CommonClientProps;
+  allowTestTokenInjection: boolean;
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+type ClientRenderer = (args: DispatcherArgs) => ReactNode;
+
+const CLIENT_MAP: Record<string, ClientRenderer> = {
+  "pixieset-admin": ({ common }) => <PixiesetAdminClient {...common} />,
+  "meta-ads": ({ common, allowTestTokenInjection }) => (
+    <MetaAdsClient
+      {...common}
+      authorizeUrl={buildMetaAuthorizeUrl()}
+      allowTestTokenInjection={allowTestTokenInjection}
+    />
+  ),
+  "google-ads": ({ common, allowTestTokenInjection }) => (
+    <GoogleAdsClient
+      {...common}
+      authorizeUrl={buildGoogleAuthorizeUrl()}
+      allowTestTokenInjection={allowTestTokenInjection}
+    />
+  ),
+  twilio: ({ common }) => <TwilioClient {...common} />,
+  "api-key": ({ common, searchParams }) => {
+    const raw =
+      typeof searchParams.vendor === "string" ? searchParams.vendor : "";
+    if (!isApiKeyVendor(raw)) return null;
+    const profile = getApiKeyVendorProfile(raw);
+    return (
+      <ApiKeyClient
+        {...common}
+        vendor={profile.vendor}
+        vendorLabel={profile.label}
+      />
+    );
+  },
+};
+
 export default async function AdminWizardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ key: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { key } = await params;
+  const sp = await searchParams;
   const session = await auth();
   if (!session?.user?.id) redirect("/lite/login");
 
   const def = getWizard(key);
   if (!def) notFound();
   if (def.audience !== "admin") notFound();
+
+  // api-key wizard: unknown/missing `?vendor=` → 404.
+  if (def.key === "api-key") {
+    const raw = typeof sp.vendor === "string" ? sp.vendor : "";
+    if (!isApiKeyVendor(raw)) notFound();
+  }
 
   const { expiryDays } = await getWizardShellConfig();
 
@@ -56,62 +130,20 @@ export default async function AdminWizardPage({
   // that support it read `?testToken=…` from the URL only when this is true.
   const allowTestTokenInjection = process.env.NODE_ENV !== "production";
 
-  if (def.key === "pixieset-admin") {
-    return (
-      <div className="min-h-screen bg-background">
-        <PixiesetAdminClient
-          audience={def.audience}
-          steps={def.steps}
-          outroCopy={outroCopy}
-          expiryDays={expiryDays}
-        />
-      </div>
-    );
-  }
+  const common: CommonClientProps = {
+    audience: def.audience,
+    steps: def.steps,
+    outroCopy,
+    expiryDays,
+  };
 
-  if (def.key === "meta-ads") {
-    const metaAuthorizeUrl = buildMetaAuthorizeUrl();
-    return (
-      <div className="min-h-screen bg-background">
-        <MetaAdsClient
-          audience={def.audience}
-          steps={def.steps}
-          outroCopy={outroCopy}
-          expiryDays={expiryDays}
-          authorizeUrl={metaAuthorizeUrl}
-          allowTestTokenInjection={allowTestTokenInjection}
-        />
-      </div>
-    );
-  }
+  const renderer = CLIENT_MAP[def.key];
+  const rendered = renderer
+    ? renderer({ common, allowTestTokenInjection, searchParams: sp })
+    : null;
 
-  if (def.key === "google-ads") {
-    const googleAuthorizeUrl = buildGoogleAuthorizeUrl();
-    return (
-      <div className="min-h-screen bg-background">
-        <GoogleAdsClient
-          audience={def.audience}
-          steps={def.steps}
-          outroCopy={outroCopy}
-          expiryDays={expiryDays}
-          authorizeUrl={googleAuthorizeUrl}
-          allowTestTokenInjection={allowTestTokenInjection}
-        />
-      </div>
-    );
-  }
-
-  if (def.key === "twilio") {
-    return (
-      <div className="min-h-screen bg-background">
-        <TwilioClient
-          audience={def.audience}
-          steps={def.steps}
-          outroCopy={outroCopy}
-          expiryDays={expiryDays}
-        />
-      </div>
-    );
+  if (rendered) {
+    return <div className="min-h-screen bg-background">{rendered}</div>;
   }
 
   return (

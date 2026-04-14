@@ -19,3 +19,4 @@ import "./pixieset-admin";
 import "./meta-ads";
 import "./google-ads";
 import "./twilio";
+import "./api-key";
