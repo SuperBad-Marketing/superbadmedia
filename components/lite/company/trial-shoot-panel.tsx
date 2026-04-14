@@ -17,7 +17,7 @@ import {
   TRIAL_SHOOT_SEQUENCE,
   legalForwardTargets,
   type TrialShootStatus,
-} from "@/lib/crm";
+} from "@/lib/crm/trial-shoot-status";
 
 import {
   advanceTrialShootStatusAction,
