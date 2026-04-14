@@ -64,6 +64,13 @@
       "when": 1776140000000,
       "tag": "0009_sw2_wizard_step_timeouts",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1776150000000,
+      "tag": "0010_sw3_verify_timeout",
+      "breakpoints": true
     }
   ]
 }

@@ -46,6 +46,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `wizards.dns_verify_poll_interval_ms` | `10000` | integer | `dns-verify` step — resolver poll interval (ms), per SW-2 (2026-04-14) |
 | `wizards.async_check_timeout_ms` | `600000` | integer | `async-check` step — long-running job max wait (ms, 10 min), per SW-2 (2026-04-14) |
 | `wizards.webhook_probe_timeout_ms` | `300000` | integer | `webhook-probe` step — inbound POST max wait (ms, 5 min), per SW-2 (2026-04-14) |
+| `wizards.verify_timeout_ms` | `4000` | integer | Completion-contract `verify()` timeout (ms), per SW-3 (2026-04-14) |
 
 ## Six-Week Plan Generator (owner: `docs/specs/six-week-plan-generator.md` §9)
 
