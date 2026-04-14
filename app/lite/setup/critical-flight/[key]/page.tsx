@@ -21,8 +21,8 @@ import { getWizardShellConfig } from "@/lib/wizards/shell-config";
 import settings from "@/lib/settings";
 import { CriticalFlightClient } from "./critical-flight-client";
 
-// Side-effect import — registers stripeAdminWizard on module load.
-import "@/lib/wizards/defs/stripe-admin";
+// Side-effect import — registers every WizardDefinition via the barrel.
+import "@/lib/wizards/defs";
 
 export default async function CriticalFlightWizardPage({
   params,

@@ -9,12 +9,13 @@
  * serialisable step list + voice treatment; the non-serialisable contract
  * `verify` function stays on the server (invoked via actions).
  *
- * SW-5 ships only the stripe-admin branch: the step configs for api-key
- * testing + webhook probing are wired to stripe-specific Server Actions.
- * Future slices (Resend, graph-api-admin) branch by `wizardKey` as they
- * ship their own WizardDefinition + actions.
+ * SW-6 branches by `wizardKey` between `stripe-admin` (api-key-paste →
+ * webhook-probe → review → celebration) and `resend` (api-key-paste →
+ * review → celebration — no webhook). A third wizard (graph-api-admin,
+ * SW-7) will revisit whether the wizardKey-branch pattern still reads
+ * cleanly or should be split into per-wizard client files.
  *
- * Owner: SW-5.
+ * Owner: SW-5 (stripe-admin branch), SW-6 (resend branch + branching).
  */
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -28,7 +29,12 @@ import {
   checkStripeWebhookReceivedAction,
   completeStripeAdminAction,
 } from "./actions";
+import {
+  testResendKeyAction,
+  completeResendAction,
+} from "./actions-resend";
 import type { StripeAdminPayload } from "@/lib/wizards/defs/stripe-admin";
+import type { ResendAdminPayload } from "@/lib/wizards/defs/resend";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 
 export type CriticalFlightClientProps = {
@@ -42,6 +48,45 @@ export type CriticalFlightClientProps = {
 
 type StepStates = Record<string, unknown>;
 
+type PastedKeyState = {
+  key: string;
+  verified: boolean;
+  maskedSuffix: string | null;
+  error: string | null;
+};
+
+type WebhookProbeState = {
+  endpoint: string;
+  received: boolean;
+  receivedAtMs: number | null;
+};
+
+type ReviewState = {
+  summary: { label: string; value: string }[];
+  confirmed: boolean;
+};
+
+function initialStates(wizardKey: string, outroCopy: string): StepStates {
+  const base: StepStates = {
+    "paste-key": {
+      key: "",
+      verified: false,
+      maskedSuffix: null,
+      error: null,
+    } satisfies PastedKeyState,
+    review: { summary: [], confirmed: false } satisfies ReviewState,
+    celebrate: { outroCopy, observatorySummary: null },
+  };
+  if (wizardKey === "stripe-admin") {
+    base["webhook-probe"] = {
+      endpoint: "https://api.stripe.com → /api/stripe/webhook",
+      received: false,
+      receivedAtMs: null,
+    } satisfies WebhookProbeState;
+  }
+  return base;
+}
+
 export function CriticalFlightClient({
   wizardKey,
   audience,
@@ -52,21 +97,9 @@ export function CriticalFlightClient({
 }: CriticalFlightClientProps) {
   const router = useRouter();
   const [index, setIndex] = React.useState(0);
-  const [states, setStates] = React.useState<StepStates>(() => ({
-    "paste-key": {
-      key: "",
-      verified: false,
-      maskedSuffix: null,
-      error: null,
-    },
-    "webhook-probe": {
-      endpoint: "https://api.stripe.com → /api/stripe/webhook",
-      received: false,
-      receivedAtMs: null,
-    },
-    review: { summary: [], confirmed: false },
-    celebrate: { outroCopy, observatorySummary: null },
-  }));
+  const [states, setStates] = React.useState<StepStates>(() =>
+    initialStates(wizardKey, outroCopy),
+  );
   const [webhookSince] = React.useState(() => Date.now());
 
   const step = steps[index];
@@ -75,7 +108,7 @@ export function CriticalFlightClient({
   React.useEffect(() => {
     if (step.type !== "review-and-confirm") return;
     setStates((prev) => {
-      const next = buildReviewSummary(prev);
+      const next = buildReviewSummary(wizardKey, prev);
       const current = (prev.review as { summary?: unknown[] } | undefined)
         ?.summary;
       if (
@@ -99,7 +132,7 @@ export function CriticalFlightClient({
         },
       };
     });
-  }, [step.type]);
+  }, [step.type, wizardKey]);
 
   const stepState = states[step.key];
   const onStepStateChange = React.useCallback(
@@ -114,23 +147,28 @@ export function CriticalFlightClient({
   }, [steps.length]);
 
   const onComplete = React.useCallback(async (): Promise<CelebrationCompleteResult> => {
-    const pasted = states["paste-key"] as {
-      key: string;
-      verified: boolean;
-    };
-    const webhook = states["webhook-probe"] as {
-      received: boolean;
-      receivedAtMs: number | null;
-    };
-    const reviewed = states.review as { confirmed: boolean };
-    const payload: StripeAdminPayload = {
-      apiKey: pasted.key,
-      verifiedAt: pasted.verified ? Date.now() : 0,
-      webhookReceivedAt: webhook.receivedAtMs ?? 0,
-      confirmedAt: reviewed.confirmed ? Date.now() : 0,
-    };
-    return completeStripeAdminAction(payload);
-  }, [states]);
+    const pasted = states["paste-key"] as PastedKeyState;
+    const reviewed = states.review as ReviewState;
+    if (wizardKey === "stripe-admin") {
+      const webhook = states["webhook-probe"] as WebhookProbeState;
+      const payload: StripeAdminPayload = {
+        apiKey: pasted.key,
+        verifiedAt: pasted.verified ? Date.now() : 0,
+        webhookReceivedAt: webhook.receivedAtMs ?? 0,
+        confirmedAt: reviewed.confirmed ? Date.now() : 0,
+      };
+      return completeStripeAdminAction(payload);
+    }
+    if (wizardKey === "resend") {
+      const payload: ResendAdminPayload = {
+        apiKey: pasted.key,
+        verifiedAt: pasted.verified ? Date.now() : 0,
+        confirmedAt: reviewed.confirmed ? Date.now() : 0,
+      };
+      return completeResendAction(payload);
+    }
+    return { ok: false, reason: `Unknown wizard: ${wizardKey}` };
+  }, [wizardKey, states]);
 
   const onDone = React.useCallback(() => {
     router.refresh();
@@ -139,12 +177,14 @@ export function CriticalFlightClient({
 
   const configuredStep: WizardStepDefinition = React.useMemo(() => {
     if (step.type === "api-key-paste") {
+      const testCall =
+        wizardKey === "resend" ? testResendKeyAction : testStripeKeyAction;
       return {
         ...step,
         config: {
           ...(step.config ?? {}),
           label: (step.config as { label?: string } | undefined)?.label ?? "API key",
-          testCall: async (key: string) => testStripeKeyAction(key),
+          testCall: async (key: string) => testCall(key),
         },
       };
     }
@@ -175,7 +215,7 @@ export function CriticalFlightClient({
       };
     }
     return step;
-  }, [step, webhookProbeTimeoutMs, webhookSince, onComplete, onDone]);
+  }, [step, wizardKey, webhookProbeTimeoutMs, webhookSince, onComplete, onDone]);
 
   const handleCancel = React.useCallback(() => {
     router.push("/lite/first-run");
@@ -198,20 +238,30 @@ export function CriticalFlightClient({
 }
 
 function buildReviewSummary(
+  wizardKey: string,
   states: StepStates,
 ): { label: string; value: string }[] {
-  const pasted = states["paste-key"] as {
-    maskedSuffix: string | null;
-  };
-  const webhook = states["webhook-probe"] as { received: boolean };
-  return [
-    {
-      label: "Stripe key",
-      value: pasted.maskedSuffix ?? "(not tested)",
-    },
-    {
-      label: "Webhook",
-      value: webhook.received ? "Received ✓" : "Not yet",
-    },
-  ];
+  const pasted = states["paste-key"] as PastedKeyState;
+  if (wizardKey === "stripe-admin") {
+    const webhook = states["webhook-probe"] as WebhookProbeState;
+    return [
+      {
+        label: "Stripe key",
+        value: pasted.maskedSuffix ?? "(not tested)",
+      },
+      {
+        label: "Webhook",
+        value: webhook.received ? "Received ✓" : "Not yet",
+      },
+    ];
+  }
+  if (wizardKey === "resend") {
+    return [
+      {
+        label: "Resend key",
+        value: pasted.maskedSuffix ?? "(not tested)",
+      },
+    ];
+  }
+  return [];
 }
