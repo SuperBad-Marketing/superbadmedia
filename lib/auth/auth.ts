@@ -25,7 +25,7 @@ import { authConfig } from "./auth.config";
 import { isBrandDnaCompleteForUser } from "./brand-dna-complete-check";
 import { hasCompletedCriticalFlight } from "./has-completed-critical-flight";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
 
   callbacks: {
