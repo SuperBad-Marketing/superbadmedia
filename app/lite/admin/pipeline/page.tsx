@@ -62,6 +62,9 @@ export default async function PipelinePage() {
 
   const nowMs = Date.now();
   const thresholds = await loadThresholds();
+  const snoozeDefaultDays = await settingsRegistry.get(
+    "pipeline.snooze_default_days",
+  );
 
   // Single query. Primary contact resolution lives below (§ preflight rule):
   // prefer `deals.primary_contact_id`; else company's `is_primary` contact;
@@ -154,7 +157,7 @@ export default async function PipelinePage() {
           {cards.length} deal{cards.length === 1 ? "" : "s"} across 8 stages.
         </p>
       </div>
-      <PipelineBoard deals={cards} />
+      <PipelineBoard deals={cards} snoozeDefaultDays={snoozeDefaultDays} />
     </main>
   );
 }

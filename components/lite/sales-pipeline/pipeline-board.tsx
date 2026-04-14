@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { KanbanBoard } from "@/components/lite/kanban-board";
 import { EmptyState } from "@/components/lite/empty-state";
-import { LEGAL_TRANSITIONS } from "@/lib/crm";
+import { LEGAL_TRANSITIONS } from "@/lib/crm/legal-transitions";
 import type { DealStage } from "@/lib/db/schema/deals";
 import { DealCard, type PipelineCardDeal } from "./deal-card";
 import { STAGE_COLUMNS, type StageColumn } from "./stage-config";
@@ -18,7 +18,13 @@ const WON_LOST: ReadonlySet<DealStage> = new Set(["won", "lost"]);
  * server action returns `{ok:true}`. Won/Lost drops are deferred to SP-6
  * and blocked at the drop gate with an explanatory toast.
  */
-export function PipelineBoard({ deals }: { deals: PipelineCardDeal[] }) {
+export function PipelineBoard({
+  deals,
+  snoozeDefaultDays,
+}: {
+  deals: PipelineCardDeal[];
+  snoozeDefaultDays: number;
+}) {
   const [pending, startTransition] = React.useTransition();
   const [localDeals, setLocalDeals] = React.useState(deals);
 
@@ -55,16 +61,24 @@ export function PipelineBoard({ deals }: { deals: PipelineCardDeal[] }) {
   );
 
   const onQuickAction = React.useCallback(
-    (kind: "nudge" | "open" | "snooze", _dealId: string) => {
+    (kind: "nudge" | "open", _dealId: string) => {
       const copy: Record<typeof kind, string> = {
         nudge: "Send nudge lands with Lead Gen.",
         open: "Deal detail slide-over is on the list.",
-        snooze: "Snooze lands in SP-4.",
       };
       toast(copy[kind]);
     },
     [],
   );
+
+  const onSnoozed = React.useCallback((dealId: string, _untilMs: number) => {
+    // Optimistic: halo suppression is server-state-driven (next revalidate
+    // will re-set `is_stale` off the fresh snoozed_until_ms), but drop it
+    // locally so the halo disappears immediately.
+    setLocalDeals((prev) =>
+      prev.map((d) => (d.id === dealId ? { ...d, is_stale: false } : d)),
+    );
+  }, []);
 
   return (
     <div
@@ -98,6 +112,8 @@ export function PipelineBoard({ deals }: { deals: PipelineCardDeal[] }) {
             deal={deal}
             isDragging={isDragging}
             onQuickAction={onQuickAction}
+            onSnoozed={onSnoozed}
+            snoozeDefaultDays={snoozeDefaultDays}
           />
         )}
       />

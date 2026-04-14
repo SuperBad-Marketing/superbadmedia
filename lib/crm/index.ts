@@ -25,3 +25,5 @@ export {
 export type { TransitionDealStageOpts } from "./transition-deal-stage";
 export { isDealStale } from "./is-stale";
 export type { IsDealStaleInput, PipelineStaleThresholds } from "./is-stale";
+export { snoozeDeal } from "./snooze-deal";
+export type { SnoozeDealOpts } from "./snooze-deal";

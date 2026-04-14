@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { DealStage, DealWonOutcome } from "@/lib/db/schema/deals";
 import { WonBadge } from "./won-badge";
+import { SnoozePopover } from "./snooze-popover";
 
 export interface PipelineCardDeal {
   id: string;
@@ -37,10 +38,14 @@ export function DealCard({
   deal,
   isDragging,
   onQuickAction,
+  onSnoozed,
+  snoozeDefaultDays,
 }: {
   deal: PipelineCardDeal;
   isDragging: boolean;
-  onQuickAction: (kind: "nudge" | "open" | "snooze", dealId: string) => void;
+  onQuickAction: (kind: "nudge" | "open", dealId: string) => void;
+  onSnoozed: (dealId: string, untilMs: number) => void;
+  snoozeDefaultDays: number;
 }) {
   const [hover, setHover] = React.useState(false);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -141,9 +146,10 @@ export function DealCard({
                 onClick={() => onQuickAction("open", deal.id)}
                 label="Open detail"
               />
-              <QuickAction
-                onClick={() => onQuickAction("snooze", deal.id)}
-                label="Snooze"
+              <SnoozePopover
+                dealId={deal.id}
+                defaultDays={snoozeDefaultDays}
+                onSnoozed={(untilMs) => onSnoozed(deal.id, untilMs)}
               />
             </div>
           </motion.div>
