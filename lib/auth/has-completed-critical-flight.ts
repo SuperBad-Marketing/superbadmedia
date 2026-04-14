@@ -1,20 +1,31 @@
 /**
- * Critical-flight wizard completion check.
+ * Critical-flight wizard completion check — SW-4 (real implementation).
  *
- * Returns true if the current admin user has completed the critical-flight
- * onboarding wizard. A8 ships a stub that always returns `true` — the wizard
- * progress table lands in SW-1 (Wave 6) and SW-4 wires the real DB check.
+ * Returns true when every key in `settings.wizards.critical_flight_wizards`
+ * has at least one row in `wizard_completions` for this user. Kill-switch
+ * gated: when `setup_wizards_enabled` is false the whole sequencer is off
+ * and this short-circuits to true — matches SW-2/SW-3's no-op semantics.
  *
- * The seam is exposed here so middleware.ts can reference it now; SW-4 only
- * needs to update this function's implementation, not the call site.
+ * Consumed by NextAuth's jwt callback to populate
+ * `session.user.critical_flight_complete`, which middleware (proxy.ts)
+ * reads for gate 2.
  *
- * Owner: A8 (stub). Real implementation owner: SW-4.
+ * Owner: SW-4.
  */
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+
+import { getCriticalFlightStatus } from "@/lib/wizards/critical-flight";
+import { killSwitches } from "@/lib/kill-switches";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyDb = BetterSQLite3Database<any>;
+
 export async function hasCompletedCriticalFlight(
-  // SW-4 will use this to look up wizard progress for the given user.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   userId: string,
+  dbOverride?: AnyDb,
 ): Promise<boolean> {
-  // Stub: always complete until SW-4 lands the wizard-progress table.
-  return true;
+  if (!killSwitches.setup_wizards_enabled) return true;
+  if (!userId) return false;
+  const { remaining } = await getCriticalFlightStatus(userId, dbOverride);
+  return remaining.length === 0;
 }

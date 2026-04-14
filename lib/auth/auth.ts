@@ -23,6 +23,7 @@ import { db } from "@/lib/db";
 import { user as userTable } from "@/lib/db/schema";
 import { authConfig } from "./auth.config";
 import { isBrandDnaCompleteForUser } from "./brand-dna-complete-check";
+import { hasCompletedCriticalFlight } from "./has-completed-critical-flight";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -49,6 +50,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         (token.id as string | undefined) ?? (token.sub as string | undefined);
       if (!userId) return token;
       token.brand_dna_complete = await isBrandDnaCompleteForUser(userId);
+      token.critical_flight_complete = await hasCompletedCriticalFlight(userId);
       return token;
     },
   },

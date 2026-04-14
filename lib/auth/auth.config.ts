@@ -39,6 +39,10 @@ export const authConfig = {
         // brand_dna_complete: starts false; BDA-3 (Wave 3) forces a
         // session refresh after the SuperBad-self profile is completed.
         token.brand_dna_complete = false;
+        // critical_flight_complete: starts false; the Node-side jwt
+        // override in auth.ts refreshes it against wizard_completions on
+        // signIn / signUp / session.update(). SW-4.
+        token.critical_flight_complete = false;
       }
       return token;
     },
@@ -53,6 +57,8 @@ export const authConfig = {
         session.user.role = (token.role as string) ?? "prospect";
         session.user.brand_dna_complete =
           (token.brand_dna_complete as boolean) ?? false;
+        session.user.critical_flight_complete =
+          (token.critical_flight_complete as boolean) ?? false;
       }
       return session;
     },

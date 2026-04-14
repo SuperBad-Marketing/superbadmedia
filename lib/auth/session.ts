@@ -32,6 +32,14 @@ declare module "next-auth" {
        * Middleware reads this to enforce FOUNDATIONS §11.8 gate.
        */
       brand_dna_complete: boolean;
+      /**
+       * True once every critical-flight wizard
+       * (`settings.wizards.critical_flight_wizards`) has a
+       * `wizard_completions` row for this user. Cached in the JWT at
+       * sign-in; refreshed on `session.update()`. Middleware reads this
+       * for gate 2 per spec §8.1. SW-4.
+       */
+      critical_flight_complete: boolean;
     } & DefaultSession["user"];
   }
 }

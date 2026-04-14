@@ -82,12 +82,19 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/lite/onboarding", req.url));
   }
 
-  // ── Gate 2: Critical Flight (stub; SW-4 wires the real check) ────────────
-  // hasCompletedCriticalFlight() is a pure async stub returning true.
-  // Cannot await in middleware without making it async — the auth() wrapper
-  // provides synchronous access to req.auth. Critical flight is always
-  // complete in A8 scope; SW-4 will lift this check into the jwt callback
-  // and read it from req.auth.user.critical_flight_complete.
+  // ── Gate 2: Critical Flight ───────────────────────────────────────────────
+  // The jwt callback (`lib/auth/auth.ts`) calls hasCompletedCriticalFlight()
+  // at sign-in / session.update() and caches the result on the JWT; gate 2
+  // reads it from req.auth.user.critical_flight_complete. Edge-safe.
+  //
+  // The target route `/lite/first-run` is allowlisted out of gate 2 (below)
+  // to prevent a redirect loop. It redirects to the next incomplete wizard.
+  if (
+    !pathname.startsWith("/lite/first-run") &&
+    !req.auth.user?.critical_flight_complete
+  ) {
+    return NextResponse.redirect(new URL("/lite/first-run", req.url));
+  }
 
   return NextResponse.next();
 });
