@@ -11,3 +11,15 @@ export {
   normaliseCompanyName,
   normaliseDomain,
 } from "./normalise";
+export { validateDeal } from "./validate-deal";
+export type {
+  ValidateDealInput,
+  ValidateDealResult,
+  ValidateDealOk,
+  ValidateDealErr,
+} from "./validate-deal";
+export {
+  transitionDealStage,
+  LEGAL_TRANSITIONS,
+} from "./transition-deal-stage";
+export type { TransitionDealStageOpts } from "./transition-deal-stage";
