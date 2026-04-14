@@ -45,3 +45,9 @@ export type {
 } from "./advance-trial-shoot-status";
 export { updateTrialShootPlan } from "./update-trial-shoot-plan";
 export type { UpdateTrialShootPlanOpts } from "./update-trial-shoot-plan";
+export { finaliseDealAsWon, finaliseDealAsLost } from "./finalise-deal";
+export type {
+  FinaliseWonPayload,
+  FinaliseLostPayload,
+  FinaliseDealOpts,
+} from "./finalise-deal";

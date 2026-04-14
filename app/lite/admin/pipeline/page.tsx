@@ -140,6 +140,7 @@ export default async function PipelinePage() {
       next_action_text: r.deal.next_action_text,
       is_stale: stale,
       company_name: r.company.name,
+      billing_mode: r.company.billing_mode,
       contact_name: contact?.name ?? null,
       contact_role: contact?.role ?? null,
       last_activity_label: relativeLabel(

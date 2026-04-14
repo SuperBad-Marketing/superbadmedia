@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import type { DealStage, DealWonOutcome } from "@/lib/db/schema/deals";
+import type { CompanyBillingMode } from "@/lib/db/schema/companies";
 import { WonBadge } from "./won-badge";
 import { SnoozePopover } from "./snooze-popover";
 
@@ -18,6 +19,7 @@ export interface PipelineCardDeal {
   next_action_text: string | null;
   is_stale: boolean;
   company_name: string;
+  billing_mode: CompanyBillingMode;
   contact_name: string | null;
   contact_role: string | null;
   last_activity_label: string | null;
