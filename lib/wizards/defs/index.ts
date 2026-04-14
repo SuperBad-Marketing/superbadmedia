@@ -16,3 +16,4 @@ import "./stripe-admin";
 import "./resend";
 import "./graph-api-admin";
 import "./pixieset-admin";
+import "./meta-ads";
