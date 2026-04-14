@@ -27,6 +27,7 @@ import {
 import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
 import { MetaAdsClient } from "./clients/meta-ads-client";
 import { GoogleAdsClient } from "./clients/google-ads-client";
+import { TwilioClient } from "./clients/twilio-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -95,6 +96,19 @@ export default async function AdminWizardPage({
           expiryDays={expiryDays}
           authorizeUrl={googleAuthorizeUrl}
           allowTestTokenInjection={allowTestTokenInjection}
+        />
+      </div>
+    );
+  }
+
+  if (def.key === "twilio") {
+    return (
+      <div className="min-h-screen bg-background">
+        <TwilioClient
+          audience={def.audience}
+          steps={def.steps}
+          outroCopy={outroCopy}
+          expiryDays={expiryDays}
         />
       </div>
     );
