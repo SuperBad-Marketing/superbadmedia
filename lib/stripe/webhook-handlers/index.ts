@@ -4,6 +4,7 @@ import { db as defaultDb } from "@/lib/db";
 import settings from "@/lib/settings";
 import { handleCheckoutSessionCompleted } from "./checkout-session-completed";
 import { handlePaymentIntentSucceeded } from "./payment-intent-succeeded";
+import { handlePaymentIntentFailed } from "./payment-intent-failed";
 import type { DispatchOutcome } from "./types";
 
 export type { DispatchOutcome } from "./types";
@@ -42,6 +43,11 @@ export async function dispatchStripeEvent(
       );
     case "payment_intent.succeeded":
       return handlePaymentIntentSucceeded(
+        event.data.object as Stripe.PaymentIntent,
+        { nowMs: opts.nowMs, dbArg: opts.dbArg, eventId: event.id },
+      );
+    case "payment_intent.payment_failed":
+      return handlePaymentIntentFailed(
         event.data.object as Stripe.PaymentIntent,
         { nowMs: opts.nowMs, dbArg: opts.dbArg, eventId: event.id },
       );
