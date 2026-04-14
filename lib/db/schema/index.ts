@@ -16,3 +16,7 @@ export * from "./cookie-consents";
 export * from "./wizard-progress";
 export * from "./wizard-completions";
 export * from "./integration-connections";
+export * from "./companies";
+export * from "./contacts";
+export * from "./deals";
+export * from "./webhook-events";

@@ -9,6 +9,7 @@ import {
   ACTIVITY_LOG_KINDS,
   activity_log,
 } from "@/lib/db/schema/activity-log";
+import { companies } from "@/lib/db/schema/companies";
 
 const TEST_DB = path.join(process.cwd(), "tests/.test-activity-log.db");
 
@@ -70,10 +71,22 @@ describe("activity_log schema + kind enum", () => {
   });
 
   it("insert + read via Drizzle ORM round-trips", async () => {
+    const companyId = randomUUID();
+    await db.insert(companies).values({
+      id: companyId,
+      name: "Test Co",
+      name_normalised: "test co",
+      billing_mode: "stripe",
+      do_not_contact: false,
+      trial_shoot_status: "none",
+      first_seen_at_ms: Date.now(),
+      created_at_ms: Date.now(),
+      updated_at_ms: Date.now(),
+    });
     const id = randomUUID();
     await db.insert(activity_log).values({
       id,
-      company_id: "company-1",
+      company_id: companyId,
       kind: "note",
       body: "test note",
       meta: { source: "test" },

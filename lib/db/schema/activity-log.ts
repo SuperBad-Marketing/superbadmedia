@@ -1,4 +1,7 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { companies } from "./companies";
+import { contacts } from "./contacts";
+import { deals } from "./deals";
 
 /**
  * Cross-spec audit log. The consolidated `kind` union lives here as the
@@ -6,10 +9,8 @@ import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
  * block below. Lifted from `docs/specs/sales-pipeline.md` §4.1 (Phase 3.5
  * step 2a consolidation, 2026-04-13) plus post-step-2a additions.
  *
- * `company_id` / `contact_id` / `deal_id` are polymorphic scopes. They are
- * declared as text (not FK-constrained) because the companies / contacts /
- * deals tables land in a later Sales Pipeline session — PATCHES_OWED row
- * `a6_activity_log_fk_refs_deferred` tracks the FK wiring.
+ * FK refs on `company_id` (cascade), `contact_id` (set null), and
+ * `deal_id` (cascade) wired in SP-1 once the upstream tables landed.
  */
 export const ACTIVITY_LOG_KINDS = [
   // --- Sales Pipeline (original, 11) ---
@@ -269,9 +270,15 @@ export const activity_log = sqliteTable(
   "activity_log",
   {
     id: text("id").primaryKey(),
-    company_id: text("company_id"),
-    contact_id: text("contact_id"),
-    deal_id: text("deal_id"),
+    company_id: text("company_id").references(() => companies.id, {
+      onDelete: "cascade",
+    }),
+    contact_id: text("contact_id").references(() => contacts.id, {
+      onDelete: "set null",
+    }),
+    deal_id: text("deal_id").references(() => deals.id, {
+      onDelete: "cascade",
+    }),
     kind: text("kind", { enum: ACTIVITY_LOG_KINDS }).notNull(),
     body: text("body").notNull(),
     meta: text("meta", { mode: "json" }),
