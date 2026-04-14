@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SuperBad — Colour Grading Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Righteous&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --charcoal: #1A1A18;
+    --cream: #FDF5E6;
+    --red: #B22848;
+    --pink: #F4A0B0;
+    --orange: #F28C52;
+    --dim: rgba(253, 245, 230, 0.55);
+    --dimmer: rgba(253, 245, 230, 0.25);
+    --hair: rgba(253, 245, 230, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--charcoal);
+    color: var(--cream);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding: 64px 48px 120px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 720px) { body { padding: 32px 20px 80px; } }
+
+  /* Grain overlay — the one texture we locked */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  header { margin-bottom: 72px; }
+  .eyebrow {
+    font-family: 'Righteous', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(40px, 6vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+  h1 em { font-style: normal; color: var(--red); }
+  .lede {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(18px, 1.6vw, 22px);
+    line-height: 1.5;
+    max-width: 68ch;
+    color: var(--dim);
+  }
+  .lede b { color: var(--cream); font-weight: 500; }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(32px, 3.6vw, 52px);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-family: 'Righteous', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 10px;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: var(--hair);
+    margin: 96px 0 64px;
+  }
+
+  /* Grade panel */
+  .grade {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) 1.6fr;
+    gap: 48px;
+    margin-bottom: 96px;
+    padding-bottom: 96px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .grade:last-of-type { border-bottom: none; margin-bottom: 48px; }
+  @media (max-width: 960px) {
+    .grade { grid-template-columns: 1fr; gap: 32px; }
+  }
+
+  .grade-meta .tag {
+    display: inline-block;
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    background: var(--cream);
+    padding: 6px 12px;
+    margin-bottom: 20px;
+  }
+  .grade-meta .tag.recommended { background: var(--red); color: var(--cream); }
+  .grade-meta h2 { margin-bottom: 8px; }
+  .grade-meta .tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--pink);
+    font-size: 18px;
+    margin-bottom: 28px;
+  }
+  .grade-meta p { color: var(--dim); margin-bottom: 16px; font-size: 15px; }
+  .grade-meta .risk {
+    border-left: 2px solid var(--orange);
+    padding: 8px 0 8px 16px;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--dim);
+  }
+  .grade-meta .risk b { color: var(--orange); font-weight: 400; font-family: 'Righteous', sans-serif; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+
+  .specs {
+    margin-top: 28px;
+    padding: 20px 24px;
+    background: rgba(253, 245, 230, 0.03);
+    border: 1px solid var(--hair);
+  }
+  .specs h4 {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 12px;
+  }
+  .specs dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; font-size: 13px; }
+  .specs dt { color: var(--dimmer); font-family: 'Righteous', sans-serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; padding-top: 3px; }
+  .specs dd { color: var(--cream); font-variant-numeric: tabular-nums; }
+
+  /* Image grid */
+  .images {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .image-cell {
+    position: relative;
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background: #000;
+  }
+  .image-cell img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: filter 0.4s ease;
+  }
+  .image-cell::after {
+    content: attr(data-label);
+    position: absolute;
+    top: 12px; left: 12px;
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: rgba(26, 26, 24, 0.6);
+    padding: 4px 8px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Side-by-side comparison */
+  .compare-section { margin-top: 48px; }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+  @media (max-width: 960px) {
+    .compare-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .compare-cell { position: relative; aspect-ratio: 4/5; overflow: hidden; }
+  .compare-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .compare-cell .label {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 14px 16px;
+    background: linear-gradient(to top, rgba(26,26,24,0.85), transparent);
+  }
+  .compare-cell .label .letter {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--cream);
+  }
+  .compare-cell .label .name {
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-top: 4px;
+  }
+
+  .subject-picker {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .subject-picker button {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid var(--hair);
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .subject-picker button:hover { border-color: var(--pink); color: var(--pink); }
+  .subject-picker button.active { background: var(--red); border-color: var(--red); color: var(--cream); }
+
+  /* Experiment panel */
+  .experiment {
+    margin-top: 48px;
+    padding: 40px;
+    background: rgba(253, 245, 230, 0.02);
+    border: 1px solid var(--hair);
+  }
+  @media (max-width: 720px) { .experiment { padding: 24px; } }
+  .experiment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 24px;
+  }
+  @media (max-width: 960px) { .experiment-grid { grid-template-columns: 1fr; } }
+  .experiment-image { aspect-ratio: 4/5; overflow: hidden; background: #000; }
+  .experiment-image img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.2s ease; }
+  .controls { display: flex; flex-direction: column; gap: 18px; }
+  .control label {
+    display: flex; justify-content: space-between;
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 8px;
+  }
+  .control label span { color: var(--cream); font-variant-numeric: tabular-nums; }
+  .control input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    background: transparent;
+  }
+  .control input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px; background: var(--hair);
+  }
+  .control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--red);
+    border-radius: 50%;
+    margin-top: -6px;
+    cursor: pointer;
+  }
+  .reset-btn {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid var(--hair);
+    padding: 10px 16px;
+    cursor: pointer;
+    margin-top: 12px;
+    align-self: flex-start;
+  }
+  .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .reading-note {
+    margin-top: 48px;
+    padding: 28px 32px;
+    border-left: 2px solid var(--red);
+    background: rgba(178, 40, 72, 0.04);
+    max-width: 68ch;
+  }
+  .reading-note h4 {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+  .reading-note p { color: var(--cream); font-size: 15px; line-height: 1.6; }
+
+  footer {
+    margin-top: 96px;
+    padding-top: 32px;
+    border-top: 1px solid var(--hair);
+    color: var(--dimmer);
+    font-size: 12px;
+    font-family: 'Righteous', sans-serif;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* SVG filters get attached to a hidden svg below */
+  .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  /* Grade classes — applied to .image-cell img */
+  .grade-a img { filter: url(#grade-a); }
+  .grade-b img { filter: url(#grade-b); }
+  .grade-c img { filter: url(#grade-c); }
+  .grade-d1 img { filter: url(#grade-d1); }
+  .grade-d2 img { filter: url(#grade-d2); }
+  .grade-raw img { filter: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Decision aid · Q13 · Colour grading</div>
+  <h1>Pick the <em>grade</em>.</h1>
+  <p class="lede">
+    The brand locks palette, type, and background — but not how the <b>work itself</b> should look.
+    Below: four candidate grades, each applied to the same images using real tone curves and
+    colour-matrix filters. Scroll through, then use the experiment panel at the bottom to tune
+    your own. The recommendation (A) is tagged — but you're driving.
+  </p>
+</header>
+
+<!-- SVG filter defs -->
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+
+    <!-- A: Warm Filmic (Portra 400-ish)
+         Gentle lift on blacks (warm), mild highlight warmth, slight desaturation,
+         subtle S-curve. The modern premium-commercial standard. -->
+    <filter id="grade-a">
+      <feColorMatrix type="matrix" values="
+        1.05 0    0    0  0.02
+        0    0.98 0    0  0.01
+        0    0    0.92 0  -0.01
+        0    0    0    1  0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.06 0.25 0.5 0.78 0.96"/>
+        <feFuncG type="table" tableValues="0.05 0.24 0.5 0.78 0.95"/>
+        <feFuncB type="table" tableValues="0.04 0.22 0.48 0.74 0.92"/>
+      </feComponentTransfer>
+      <feColorMatrix type="saturate" values="0.92"/>
+    </filter>
+
+    <!-- B: 70s Warm Fade
+         Heavy black lift to warm brown, strong yellow/orange highlight push,
+         muted saturation, faded low-contrast look. -->
+    <filter id="grade-b">
+      <feColorMatrix type="matrix" values="
+        1.08 0.02 0    0  0.05
+        0.01 1.02 0    0  0.03
+        0    0    0.85 0  -0.02
+        0    0    0    1  0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.16 0.32 0.52 0.72 0.88"/>
+        <feFuncG type="table" tableValues="0.14 0.30 0.50 0.70 0.85"/>
+        <feFuncB type="table" tableValues="0.11 0.25 0.44 0.62 0.78"/>
+      </feComponentTransfer>
+      <feColorMatrix type="saturate" values="0.72"/>
+    </filter>
+
+    <!-- C: Warm-neutral cinematic
+         Warm highlights, blacks near zero, high contrast S-curve, moderate saturation. -->
+    <filter id="grade-c">
+      <feColorMatrix type="matrix" values="
+        1.03 0    0    0  0.01
+        0    1    0    0  0
+        0    0    0.97 0  -0.005
+        0    0    0    1  0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.01 0.18 0.48 0.82 1"/>
+        <feFuncG type="table" tableValues="0    0.16 0.46 0.80 0.99"/>
+        <feFuncB type="table" tableValues="0    0.15 0.44 0.76 0.95"/>
+      </feComponentTransfer>
+      <feColorMatrix type="saturate" values="0.95"/>
+    </filter>
+
+    <!-- D1: Warm creative side (mirrors A) -->
+    <filter id="grade-d1">
+      <feColorMatrix type="matrix" values="
+        1.05 0    0    0  0.02
+        0    0.98 0    0  0.01
+        0    0    0.92 0  -0.01
+        0    0    0    1  0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.06 0.25 0.5 0.78 0.96"/>
+        <feFuncG type="table" tableValues="0.05 0.24 0.5 0.78 0.95"/>
+        <feFuncB type="table" tableValues="0.04 0.22 0.48 0.74 0.92"/>
+      </feComponentTransfer>
+      <feColorMatrix type="saturate" values="0.92"/>
+    </filter>
+
+    <!-- D2: Performance/documentary side — flat, neutral, slightly cool, low saturation -->
+    <filter id="grade-d2">
+      <feColorMatrix type="matrix" values="
+        0.98 0    0    0  0
+        0    0.99 0    0  0
+        0    0    1.02 0  0.005
+        0    0    0    1  0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.03 0.22 0.48 0.74 0.93"/>
+        <feFuncG type="table" tableValues="0.03 0.22 0.48 0.74 0.94"/>
+        <feFuncB type="table" tableValues="0.04 0.24 0.50 0.76 0.96"/>
+      </feComponentTransfer>
+      <feColorMatrix type="saturate" values="0.78"/>
+    </filter>
+
+    <!-- Live experiment filter, rebuilt from sliders -->
+    <filter id="grade-live">
+      <feColorMatrix id="live-matrix" type="matrix" values="
+        1 0 0 0 0
+        0 1 0 0 0
+        0 0 1 0 0
+        0 0 0 1 0"/>
+      <feComponentTransfer id="live-transfer">
+        <feFuncR id="live-r" type="table" tableValues="0 0.25 0.5 0.75 1"/>
+        <feFuncG id="live-g" type="table" tableValues="0 0.25 0.5 0.75 1"/>
+        <feFuncB id="live-b" type="table" tableValues="0 0.25 0.5 0.75 1"/>
+      </feComponentTransfer>
+      <feColorMatrix id="live-sat" type="saturate" values="1"/>
+    </filter>
+
+  </defs>
+</svg>
+
+<!-- ============== GRADE A ============== -->
+<section class="grade" id="grade-a-section">
+  <div class="grade-meta">
+    <span class="tag recommended">Claude's pick</span>
+    <h2>A · Warm Filmic</h2>
+    <div class="tagline">Portra 400, on a good day.</div>
+    <p>Warm highlights, gently lifted blacks, faithful skin tones, restrained saturation. The standard premium-commercial grade of the last five years — Apple product films, A24 trailers, Aesop campaigns, every wedding photographer whose Instagram you secretly admire.</p>
+    <p>Reads as 2026. Carries the warmth the brand asks for without announcing an era. The retro soul comes from composition, subject, and pacing — not from the grade shouting "70s!"</p>
+    <div class="risk"><b>Risk</b> Ubiquitous — every premium brand uses some version of this grade right now.</div>
+
+    <div class="specs">
+      <h4>Technical spec</h4>
+      <dl>
+        <dt>Black point</dt><dd>Lifted to ~6% warm (R 0.06 / G 0.05 / B 0.04)</dd>
+        <dt>Highlight</dt><dd>Held near 1.0; warm channel push</dd>
+        <dt>Contrast</dt><dd>Gentle S-curve</dd>
+        <dt>Saturation</dt><dd>0.92</dd>
+        <dt>Channel mix</dt><dd>R ×1.05, G ×0.98, B ×0.92</dd>
+        <dt>Skin tones</dt><dd>Preserved</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="images grade-a">
+    <div class="image-cell" data-label="Portrait"><img src="https://picsum.photos/seed/sbportrait7/800/1000" alt=""></div>
+    <div class="image-cell" data-label="Product"><img src="https://picsum.photos/seed/sbproduct3/800/1000" alt=""></div>
+    <div class="image-cell" data-label="Lifestyle"><img src="https://picsum.photos/seed/sbscene12/800/1000" alt=""></div>
+  </div>
+</section>
+
+<!-- ============== GRADE B ============== -->
+<section class="grade" id="grade-b-section">
+  <div class="grade-meta">
+    <span class="tag">Option</span>
+    <h2>B · 70s Warm Fade</h2>
+    <div class="tagline">Kodachrome, aged in a drawer.</div>
+    <p>Heavy lifted blacks to warm brown, strong yellow/orange cast in highlights, muted saturation, low contrast. Explicitly referencing 1970s film stocks — Kodachrome and Ektachrome, faded by time.</p>
+    <p>Most on-brief for "1970s warmth" in the brand rules, but period-coded: the grade itself announces retro, rather than the soul being retro in a modern grade. Most likely of the four to look tired by 2030.</p>
+    <div class="risk"><b>Risk</b> Period pastiche. Announces the era instead of inhabiting it.</div>
+
+    <div class="specs">
+      <h4>Technical spec</h4>
+      <dl>
+        <dt>Black point</dt><dd>Lifted to ~15% warm brown (R 0.16 / G 0.14 / B 0.11)</dd>
+        <dt>Highlight</dt><dd>Rolled off to ~0.88</dd>
+        <dt>Contrast</dt><dd>Low — compressed midtones</dd>
+        <dt>Saturation</dt><dd>0.72</dd>
+        <dt>Channel mix</dt><dd>R ×1.08, G ×1.02, B ×0.85</dd>
+        <dt>Cast</dt><dd>Strong yellow/orange global</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="images grade-b">
+    <div class="image-cell" data-label="Portrait"><img src="https://picsum.photos/seed/sbportrait7/800/1000" alt=""></div>
+    <div class="image-cell" data-label="Product"><img src="https://picsum.photos/seed/sbproduct3/800/1000" alt=""></div>
+    <div class="image-cell" data-label="Lifestyle"><img src="https://picsum.photos/seed/sbscene12/800/1000" alt=""></div>
+  </div>
+</section>
+
+<!-- ============== GRADE C ============== -->
+<section class="grade" id="grade-c-section">
+  <div class="grade-meta">
+    <span class="tag">Option</span>
+    <h2>C · Warm-neutral Cinematic</h2>
+    <div class="tagline">Less faded, more confident.</div>
+    <p>Warm skin and highlights, but blacks held near true black and contrast held high. Closer to modern cinema (Deakins, Fraser) than to modern commercial photography. Genre-neutral and era-proof.</p>
+    <p>Retro soul has to come entirely from composition and subject — the grade itself is timeless rather than era-specific. Potentially the longest-lived of the four, but cooler in feel than the brand sells.</p>
+    <div class="risk"><b>Risk</b> Grade feels slightly cooler than SuperBad's warm brand.</div>
+
+    <div class="specs">
+      <h4>Technical spec</h4>
+      <dl>
+        <dt>Black point</dt><dd>True (R 0.01 / G 0 / B 0)</dd>
+        <dt>Highlight</dt><dd>Full 1.0</dd>
+        <dt>Contrast</dt><dd>High S-curve</dd>
+        <dt>Saturation</dt><dd>0.95</dd>
+        <dt>Channel mix</dt><dd>R ×1.03, G ×1.00, B ×0.97</dd>
+        <dt>Cast</dt><dd>Warm highlights only</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="images grade-c">
+    <div class="image-cell" data-label="Portrait"><img src="https://picsum.photos/seed/sbportrait7/800/1000" alt=""></div>
+    <div class="image-cell" data-label="Product"><img src="https://picsum.photos/seed/sbproduct3/800/1000" alt=""></div>
+    <div class="image-cell" data-label="Lifestyle"><img src="https://picsum.photos/seed/sbscene12/800/1000" alt=""></div>
+  </div>
+</section>
+
+<!-- ============== GRADE D ============== -->
+<section class="grade" id="grade-d-section">
+  <div class="grade-meta">
+    <span class="tag">Option</span>
+    <h2>D · Dual Grade</h2>
+    <div class="tagline">Two registers. One agency.</div>
+    <p>Creative work (brand films, lifestyle, portraits) gets the warm filmic grade (essentially A). Performance-adjacent imagery (case studies, Services stills, data-backed work) gets a flatter, more neutral, documentary grade — less styled, more "this is what actually happened".</p>
+    <p>Honest about SuperBad's two service lines. Overbuilt for v1 (performance imagery is minimal on launch) and means visitors see two visual registers on one site, which can dilute the signature.</p>
+    <div class="risk"><b>Risk</b> Two grades = no signature grade. And v1 barely has performance imagery anyway.</div>
+
+    <div class="specs">
+      <h4>Technical spec — creative side</h4>
+      <dl>
+        <dt>Black / Highlight</dt><dd>As grade A</dd>
+        <dt>Saturation</dt><dd>0.92</dd>
+      </dl>
+      <h4 style="margin-top: 14px;">Technical spec — documentary side</h4>
+      <dl>
+        <dt>Black point</dt><dd>Lifted slightly, neutral (R 0.03 / G 0.03 / B 0.04)</dd>
+        <dt>Highlight</dt><dd>Held at 0.93–0.96</dd>
+        <dt>Contrast</dt><dd>Flat, documentary</dd>
+        <dt>Saturation</dt><dd>0.78</dd>
+        <dt>Channel mix</dt><dd>R ×0.98, G ×0.99, B ×1.02 (slight cool)</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="images">
+    <div class="image-cell grade-d1" data-label="Creative"><img src="https://picsum.photos/seed/sbportrait7/800/1000" alt=""></div>
+    <div class="image-cell grade-d2" data-label="Documentary"><img src="https://picsum.photos/seed/sbproduct3/800/1000" alt=""></div>
+    <div class="image-cell grade-d1" data-label="Creative"><img src="https://picsum.photos/seed/sbscene12/800/1000" alt=""></div>
+  </div>
+</section>
+
+<!-- ============== SIDE-BY-SIDE ============== -->
+<div class="section-divider"></div>
+<section class="compare-section">
+  <div class="eyebrow">Same image · Four grades</div>
+  <h2>Side by side.</h2>
+  <p style="color: var(--dim); margin-top: 8px; max-width: 60ch;">Cycle through subjects — portrait, product, lifestyle — and see which grade holds up across all three. The one that still feels right on the scene you didn't expect is usually the right pick.</p>
+
+  <div class="subject-picker" id="subject-picker">
+    <button data-seed="sbportrait7" class="active">Portrait</button>
+    <button data-seed="sbproduct3">Product</button>
+    <button data-seed="sbscene12">Lifestyle</button>
+    <button data-seed="sbfood5">Food</button>
+    <button data-seed="sbstreet9">Street</button>
+    <button data-seed="sbinterior4">Interior</button>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-cell grade-a"><img class="compare-img" src="https://picsum.photos/seed/sbportrait7/800/1000" alt="">
+      <div class="label"><div class="letter">A</div><div class="name">Warm Filmic</div></div>
+    </div>
+    <div class="compare-cell grade-b"><img class="compare-img" src="https://picsum.photos/seed/sbportrait7/800/1000" alt="">
+      <div class="label"><div class="letter">B</div><div class="name">70s Warm Fade</div></div>
+    </div>
+    <div class="compare-cell grade-c"><img class="compare-img" src="https://picsum.photos/seed/sbportrait7/800/1000" alt="">
+      <div class="label"><div class="letter">C</div><div class="name">Warm-neutral Cinematic</div></div>
+    </div>
+    <div class="compare-cell grade-d1"><img class="compare-img" src="https://picsum.photos/seed/sbportrait7/800/1000" alt="">
+      <div class="label"><div class="letter">D</div><div class="name">Dual (creative side)</div></div>
+    </div>
+  </div>
+
+  <div class="reading-note">
+    <h4>How to read this</h4>
+    <p>Skin tones are the first place any grade wins or loses. Check whether portraits still feel like skin (not jaundiced, not green, not dead). Then check whether product shots still sell — a grade that kills colour saturation too far makes food look stale and clothing look faded. Then lifestyle — whether the scene still feels like the time of day it was actually shot.</p>
+  </div>
+</section>
+
+<!-- ============== EXPERIMENT ============== -->
+<div class="section-divider"></div>
+<section class="experiment">
+  <div class="eyebrow">Tune your own</div>
+  <h2>The dark room.</h2>
+  <p style="color: var(--dim); margin-top: 8px; max-width: 60ch;">If you want to drag a slider. Start from one of the four presets, then adjust. Reset returns to neutral.</p>
+
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
+    <button class="reset-btn" data-preset="a">Start from A</button>
+    <button class="reset-btn" data-preset="b">Start from B</button>
+    <button class="reset-btn" data-preset="c">Start from C</button>
+    <button class="reset-btn" data-preset="neutral">Neutral</button>
+  </div>
+
+  <div class="experiment-grid">
+    <div class="experiment-image">
+      <img id="experiment-img" src="https://picsum.photos/seed/sbportrait7/800/1000" alt="" style="filter: url(#grade-live);">
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label>Black lift (warmth of shadows) <span id="val-blacklift">0.00</span></label>
+        <input type="range" id="blacklift" min="0" max="0.25" step="0.01" value="0">
+      </div>
+      <div class="control">
+        <label>Highlight warmth (red push) <span id="val-highwarm">0.00</span></label>
+        <input type="range" id="highwarm" min="-0.1" max="0.15" step="0.01" value="0">
+      </div>
+      <div class="control">
+        <label>Blue channel (higher = cooler) <span id="val-blue">1.00</span></label>
+        <input type="range" id="blue" min="0.7" max="1.1" step="0.01" value="1">
+      </div>
+      <div class="control">
+        <label>Contrast (S-curve strength) <span id="val-contrast">0.00</span></label>
+        <input type="range" id="contrast" min="-0.2" max="0.25" step="0.01" value="0">
+      </div>
+      <div class="control">
+        <label>Saturation <span id="val-saturation">1.00</span></label>
+        <input type="range" id="saturation" min="0.4" max="1.2" step="0.01" value="1">
+      </div>
+      <div class="control">
+        <label>Try on another image <span></span></label>
+        <select id="experiment-subject" style="background: transparent; color: var(--cream); border: 1px solid var(--hair); padding: 8px 12px; font-family: 'DM Sans', sans-serif;">
+          <option value="sbportrait7">Portrait</option>
+          <option value="sbproduct3">Product</option>
+          <option value="sbscene12">Lifestyle</option>
+          <option value="sbfood5">Food</option>
+          <option value="sbstreet9">Street</option>
+          <option value="sbinterior4">Interior</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  SuperBad · Marketing Site Brainstorm · Q13 Colour Grading · Decision Aid
+</footer>
+
+<script>
+  // ===== Side-by-side subject switcher =====
+  const picker = document.getElementById('subject-picker');
+  const compareImgs = document.querySelectorAll('.compare-img');
+  picker.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    [...picker.querySelectorAll('button')].forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    const seed = e.target.dataset.seed;
+    compareImgs.forEach(img => {
+      img.src = `https://picsum.photos/seed/${seed}/800/1000`;
+    });
+  });
+
+  // ===== Live experiment =====
+  const sliders = {
+    blacklift: document.getElementById('blacklift'),
+    highwarm: document.getElementById('highwarm'),
+    blue: document.getElementById('blue'),
+    contrast: document.getElementById('contrast'),
+    saturation: document.getElementById('saturation'),
+  };
+  const vals = {
+    blacklift: document.getElementById('val-blacklift'),
+    highwarm: document.getElementById('val-highwarm'),
+    blue: document.getElementById('val-blue'),
+    contrast: document.getElementById('val-contrast'),
+    saturation: document.getElementById('val-saturation'),
+  };
+  const liveMatrix = document.getElementById('live-matrix');
+  const liveR = document.getElementById('live-r');
+  const liveG = document.getElementById('live-g');
+  const liveB = document.getElementById('live-b');
+  const liveSat = document.getElementById('live-sat');
+
+  function buildCurve(lift, contrast, warmShift) {
+    // 5-stop table. Lift raises the floor. Contrast bends the S. warmShift
+    // can be used to shift red/green/blue tables subtly.
+    const base = [0, 0.25, 0.5, 0.75, 1];
+    return base.map((v, i) => {
+      const s = contrast; // -0.2 .. 0.25
+      // S-curve: push midtones apart if contrast > 0
+      const centered = v - 0.5;
+      const shaped = 0.5 + centered * (1 + s) + Math.sin(centered * Math.PI) * s * 0.3;
+      const lifted = lift + (1 - lift) * shaped;
+      return Math.max(0, Math.min(1, lifted + warmShift)).toFixed(3);
+    }).join(' ');
+  }
+
+  function update() {
+    const bl = parseFloat(sliders.blacklift.value);
+    const hw = parseFloat(sliders.highwarm.value);
+    const blue = parseFloat(sliders.blue.value);
+    const con = parseFloat(sliders.contrast.value);
+    const sat = parseFloat(sliders.saturation.value);
+
+    vals.blacklift.textContent = bl.toFixed(2);
+    vals.highwarm.textContent = hw.toFixed(2);
+    vals.blue.textContent = blue.toFixed(2);
+    vals.contrast.textContent = con.toFixed(2);
+    vals.saturation.textContent = sat.toFixed(2);
+
+    // Matrix: red push based on highwarm, blue channel scale
+    const rMul = 1 + hw;
+    const gMul = 1 + hw * 0.3;
+    const bMul = blue;
+    liveMatrix.setAttribute('values', `
+      ${rMul} 0 0 0 ${bl * 0.4}
+      0 ${gMul} 0 0 ${bl * 0.3}
+      0 0 ${bMul} 0 ${bl * 0.2}
+      0 0 0 1 0
+    `);
+    liveR.setAttribute('tableValues', buildCurve(bl, con, 0));
+    liveG.setAttribute('tableValues', buildCurve(bl * 0.92, con, 0));
+    liveB.setAttribute('tableValues', buildCurve(bl * 0.75, con, 0));
+    liveSat.setAttribute('values', sat.toString());
+  }
+
+  Object.values(sliders).forEach(s => s.addEventListener('input', update));
+
+  const presets = {
+    a: { blacklift: 0.06, highwarm: 0.04, blue: 0.92, contrast: 0.08, saturation: 0.92 },
+    b: { blacklift: 0.16, highwarm: 0.08, blue: 0.85, contrast: -0.1, saturation: 0.72 },
+    c: { blacklift: 0.01, highwarm: 0.03, blue: 0.97, contrast: 0.18, saturation: 0.95 },
+    neutral: { blacklift: 0, highwarm: 0, blue: 1, contrast: 0, saturation: 1 },
+  };
+
+  document.querySelectorAll('.reset-btn[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = presets[btn.dataset.preset];
+      Object.entries(p).forEach(([k, v]) => { sliders[k].value = v; });
+      update();
+    });
+  });
+
+  // Subject switcher for experiment
+  document.getElementById('experiment-subject').addEventListener('change', (e) => {
+    document.getElementById('experiment-img').src = `https://picsum.photos/seed/${e.target.value}/800/1000`;
+  });
+
+  update();
+</script>
+
+</body>
+</html>
