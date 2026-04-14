@@ -32,6 +32,7 @@ import type { CatalogueItemUnit } from "@/lib/db/schema/catalogue-items";
 import { updateDraftQuoteAction } from "@/app/lite/admin/deals/[id]/quotes/[quote_id]/edit/actions";
 import { CataloguePicker, type CatalogueItemView } from "./catalogue-picker";
 import { PreviewPane } from "./preview-pane";
+import { SendQuoteModal } from "./send-quote-modal";
 
 type BillingMode = "stripe" | "manual";
 
@@ -66,6 +67,7 @@ export function QuoteEditor(props: EditorProps) {
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">(
     "desktop",
   );
+  const [sendOpen, setSendOpen] = useState(false);
 
   const totals = useMemo(() => computeTotals(content), [content]);
   const structure = useMemo(() => inferStructure(content), [content]);
@@ -371,12 +373,29 @@ export function QuoteEditor(props: EditorProps) {
             />
           </div>
           <div className="ml-auto flex gap-2">
-            <Button onClick={onSave} disabled={isSaving}>
+            <Button variant="outline" onClick={onSave} disabled={isSaving}>
               {isSaving ? "Saving…" : "Save draft"}
+            </Button>
+            <Button
+              onClick={() => setSendOpen(true)}
+              disabled={
+                isSaving ||
+                content.sections.whatWellDo.line_items.length === 0
+              }
+              className="bg-[#c1202d] text-white hover:bg-[#a81a25]"
+            >
+              Send
             </Button>
           </div>
         </div>
       </section>
+
+      <SendQuoteModal
+        open={sendOpen}
+        onOpenChange={setSendOpen}
+        dealId={props.dealId}
+        quoteId={props.quoteId}
+      />
 
       {/* RIGHT PANE — static preview for QB-2a; live/motion preview in QB-2b */}
       <aside className="lg:sticky lg:top-4 h-fit space-y-3">

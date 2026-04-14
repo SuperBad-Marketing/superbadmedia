@@ -7,9 +7,11 @@ import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
  * and registers a handler in `lib/scheduled-tasks/worker.ts`.
  */
 export const SCHEDULED_TASK_TYPES = [
-  // --- Quote Builder (6) ---
+  // --- Quote Builder (8) ---
   "quote_expire",
   "quote_reminder_3d",
+  "quote_pdf_render",
+  "quote_email_send",
   "manual_invoice_generate",
   "manual_invoice_send",
   "subscription_pause_resume_reminder",

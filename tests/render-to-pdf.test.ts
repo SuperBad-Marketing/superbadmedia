@@ -1,59 +1,49 @@
 /**
- * renderToPdf stub tests — A7.
+ * renderToPdf — QB-3 (real Puppeteer impl).
  *
- * Verifies the stub returns a Buffer placeholder and logs the required
- * warning. No Puppeteer needed — real renderer lands at QB-3.
+ * The pure unit test exercises `resolveExecutablePath()` env handling.
+ * The actual Puppeteer launch is heavy (Chrome process) so the live smoke
+ * is gated on `PUPPETEER_E2E=1` to keep `npm test` green on machines
+ * without Chrome installed at the resolved path. Andy's local + CI both
+ * stay clean; the smoke runs locally on demand and on the e2e job.
  */
-import { describe, it, expect, vi } from "vitest";
-import { renderToPdf } from "@/lib/pdf/render";
+import { describe, it, expect } from "vitest";
+import { resolveExecutablePath, renderToPdf } from "@/lib/pdf/render";
 
-describe("renderToPdf (stub)", () => {
-  it("returns a Buffer", async () => {
-    const result = await renderToPdf("<html><body>Test</body></html>");
-    expect(Buffer.isBuffer(result)).toBe(true);
-  });
-
-  it("buffer contains the PDF stub marker", async () => {
-    const result = await renderToPdf("<html><body>Hello</body></html>");
-    const text = result.toString("utf-8");
-    expect(text).toContain("%PDF-1.4 STUB");
-    expect(text).toContain("QB-3");
-  });
-
-  it("accepts all RenderToPdfOptions without throwing", async () => {
-    await expect(
-      renderToPdf("<html><p>opts</p></html>", {
-        format: "A4",
-        margin: { top: 20, right: 20, bottom: 20, left: 20 },
-        printBackground: true,
-        filename: "test-invoice.pdf",
-      }),
-    ).resolves.toBeInstanceOf(Buffer);
-  });
-
-  it("accepts Letter format", async () => {
-    const result = await renderToPdf("<p>letter</p>", { format: "Letter" });
-    expect(Buffer.isBuffer(result)).toBe(true);
-  });
-
-  it("logs a stub warning containing [renderToPdf] STUB", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+describe("resolveExecutablePath", () => {
+  it("prefers PUPPETEER_EXECUTABLE_PATH when set", () => {
+    const original = process.env.PUPPETEER_EXECUTABLE_PATH;
+    process.env.PUPPETEER_EXECUTABLE_PATH = "/tmp/custom-chrome";
     try {
-      await renderToPdf("<p>hello</p>", { filename: "stub.pdf" });
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("[renderToPdf] STUB"),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
+      expect(resolveExecutablePath()).toBe("/tmp/custom-chrome");
     } finally {
-      warnSpy.mockRestore();
+      if (original === undefined) delete process.env.PUPPETEER_EXECUTABLE_PATH;
+      else process.env.PUPPETEER_EXECUTABLE_PATH = original;
     }
   });
 
-  it("empty HTML still returns a Buffer", async () => {
-    const result = await renderToPdf("");
-    expect(Buffer.isBuffer(result)).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
+  it("falls back to a per-platform default when env unset", () => {
+    const original = process.env.PUPPETEER_EXECUTABLE_PATH;
+    delete process.env.PUPPETEER_EXECUTABLE_PATH;
+    try {
+      const path = resolveExecutablePath();
+      // macOS dev path or linux prod path — both contain "google-chrome" or "Google Chrome"
+      expect(path).toMatch(/[Gg]oogle [Cc]hrome|google-chrome/);
+    } finally {
+      if (original !== undefined) process.env.PUPPETEER_EXECUTABLE_PATH = original;
+    }
   });
+});
+
+const liveSmoke = process.env.PUPPETEER_E2E === "1" ? describe : describe.skip;
+
+liveSmoke("renderToPdf live smoke (PUPPETEER_E2E=1)", () => {
+  it("renders trivial HTML to a real PDF buffer", async () => {
+    const buf = await renderToPdf(
+      "<!doctype html><html><body><h1>Smoke</h1></body></html>",
+    );
+    expect(Buffer.isBuffer(buf)).toBe(true);
+    expect(buf.length).toBeGreaterThan(500);
+    expect(buf.subarray(0, 5).toString("ascii")).toBe("%PDF-");
+  }, 30_000);
 });

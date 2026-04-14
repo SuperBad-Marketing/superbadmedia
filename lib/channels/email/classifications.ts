@@ -30,6 +30,10 @@ export const EMAIL_CLASSIFICATIONS = [
   "hiring_archive_notice",
   "hiring_contractor_auth",
   "hiring_bench_assignment",
+  // QB-3 — quote send is admin-initiated to a recipient who explicitly
+  // engaged a sales conversation, so it bypasses the outreach kill switch
+  // and the global quiet window. Reminder + expiry land at QB-6.
+  "quote_send",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -42,6 +46,7 @@ export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
 export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "transactional",
   "portal_magic_link_recovery",
+  "quote_send",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {
