@@ -28,6 +28,7 @@ Every Phase 5 session runs these in order. The handoff note is only written afte
 - Read `sessions/<id>-brief.md` (pre-compiled by Phase 4).
 - Read the last 2 handoff notes from `sessions/`.
 - Read the spec(s) named in the brief. Do **not** read all 21 specs.
+- **If the brief's Type is `UI`:** read every file listed in §2a "Visual references" of the brief. Specs describe *what*; mockups encode *feel*. A UI session that skips the mockup will ship generic styling and fail G10. If §2a is missing from a `UI` brief, stop — patch the brief with the correct mockup reference(s) before proceeding. This is a hard gate, not an optional polish step.
 - Load only the skills named in the brief's skill whitelist.
 - Confirm the session's model tier matches the current Claude Code model (`/quick` / `/normal` / `/deep`). Mismatch = reset before starting.
 
@@ -131,9 +132,10 @@ For any UI-touching session:
 - Start dev server on `:3001`.
 - Walk the feature in the browser — happy path + one error state + one empty state.
 - Verify motion, sound triggers, reduced-motion parity.
+- **Mockup parity check:** for every mockup cited in brief §2a, open the mockup in a second tab and visually compare side-by-side against the built route. Parity items to confirm: brand palette usage (no generic neutrals where brand colours belong), typography (correct fonts + weights per the mockup), ambient environment (backgrounds, textures, blobs, scenes), wordmark presence, progress / navigation chrome, spacing / rhythm. Any gap that isn't an intentional divergence declared in brief §2a is a G10 failure — patch in-session or hand off as FAILED.
 - Snapshot observations into the handoff; do not stream dev server output into main context.
 
-Type checks verify code; browser verifies feature. Both required.
+Type checks verify code; browser verifies feature; mockup verifies feel. All three required.
 
 ### G11 — Handoff note
 

@@ -22,6 +22,20 @@ Bullet each spec the session implements, by file path **and** section heading. T
 - `docs/specs/<spec>.md` §`<heading>` — `<one-line why>`
 - ...
 
+## 2a. Visual references (required for `UI` type)
+
+If **Type** above is `UI`, list every visual reference the session must match. Specs describe *what*; mockups encode *feel*. A session that cites only the spec will produce a generic result — the mockup is the ground truth for tokens, colours, typography, ambient environment, motion, and micro-interactions.
+
+Required for `UI` sessions, omit for `INFRA` / `AUDIT`:
+
+- `<path>.html` — `<which surface this mockup covers, which sections of it apply>`
+- `docs/superbad_brand_guidelines.html` — brand palette + typography (always cite for client-facing surfaces)
+- `docs/superbad_voice_profile.html` — voice reference (cite when session writes any user-visible copy)
+
+At G0 the session **must open every mockup listed here** and treat it as binding. Divergence from the mockup is a G2 scope breach unless the brief explicitly calls it out below.
+
+**Intentional divergences from the mockup (if any):** `<list, with reason>`
+
 ## 3. Acceptance criteria (verbatim)
 
 Paste the spec's own "success criteria" / "done means" block verbatim. No paraphrasing — paraphrase drift is how scope walks.
