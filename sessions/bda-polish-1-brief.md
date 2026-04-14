@@ -36,6 +36,11 @@ The previous BDA sessions skipped this step. That's the whole reason this sessio
 
 **Intentional divergences from the mockup:** none. If something in the mockup won't port cleanly (e.g. `overflow: hidden` on body conflicts with Next's scroll), note the divergence + reason in the handoff, not here.
 
+**Specific defects to fix (observed 2026-04-14):**
+
+- **Lime-yellow highlight on selected option is fabricated — not in mockup or brand palette.** Selected state must use brand palette per mockup (brand-red background / brand-cream text on the active option, or the mockup's exact chosen-state treatment). Any neon-yellow / lime / chartreuse usage anywhere in `/lite/brand-dna/**` is a bug. Grep the diff at session end to confirm no `yellow`, `lime`, `#d4ff` or similar off-palette hexes remain.
+- **Answer pre-selected on arrival at next question.** Selected-option state is leaking between questions — when the user confirms question N and the page advances to question N+1, option B arrives already highlighted. Root-cause this (likely a stale `selectedOption` in client state or a URL param not cleared on navigation) and fix; add a regression test that navigates through two questions and asserts the second question renders with no option selected.
+
 ## 3. Acceptance criteria (verbatim from review)
 
 ```
@@ -109,7 +114,10 @@ Do **not** touch: other wave surfaces, admin routes, any component outside `bran
 - [ ] `npm run lint` → clean.
 - [ ] `npm run build` → clean.
 - [ ] **G10 mockup parity check:** open `mockup-brand-dna.html` in one tab, built routes in another — side-by-side walkthrough of landing, section question, reflection, insight, reveal. Screenshot each pair into the handoff.
-- [ ] G-gates G0 → G12 run end-to-end with clean handoff.
+- [ ] **G10.5 external-reviewer gate** — spawn sub-agent via `sessions/_reviewer-prompt-template.md`; attach verdict to handoff; FAIL = session closes FAILED.
+- [ ] **Memory-alignment declaration** in handoff — list every memory from `MEMORY.md` that applied (at minimum: `project_brand_dna_flagship_experience`, `feedback_motion_is_universal`, `feedback_individual_feel`, `feedback_visual_references_binding`, `feedback_no_lite_on_client_facing`) and one-line how each was honoured.
+- [ ] **BDA-POLISH-1 closes Wave 3 remediation — trigger G12.5 wave-boundary pause:** write `.autonomy/PAUSED` with "BDA-POLISH-1 remediation complete — human review required." Do NOT self-chain.
+- [ ] G-gates G0 → G12 + G12.5 run end-to-end with clean handoff.
 
 ## 10. Notes for the next-session brief writer
 
