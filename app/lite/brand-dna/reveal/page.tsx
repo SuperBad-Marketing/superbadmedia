@@ -48,11 +48,9 @@ export default async function RevealPage({ searchParams }: RevealPageProps) {
   }
 
   return (
-    <main className="min-h-dvh flex flex-col items-center justify-center px-6 py-16">
-      <Suspense fallback={<RevealShimmer />}>
-        <RevealContent profileId={profileId} />
-      </Suspense>
-    </main>
+    <Suspense fallback={<RevealShimmer />}>
+      <RevealContent profileId={profileId} />
+    </Suspense>
   );
 }
 
@@ -100,27 +98,68 @@ async function RevealContent({ profileId }: { profileId: string }) {
 function RevealShimmer() {
   return (
     <div
-      className="flex flex-col items-center justify-center gap-6 text-center max-w-md"
       role="status"
       aria-live="polite"
       aria-label="Assembling your Brand DNA"
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 24,
+        textAlign: "center",
+        padding: 40,
+      }}
     >
       <p
-        className="text-xs tracking-widest uppercase"
-        style={{ color: "var(--color-neutral-500, #6b7280)" }}
+        style={{
+          fontFamily: "var(--font-label)",
+          fontSize: 11,
+          letterSpacing: "3px",
+          textTransform: "uppercase",
+          color: "var(--brand-pink)",
+          margin: 0,
+        }}
       >
         Assembling your Brand DNA
       </p>
-      <div className="flex flex-col gap-3 w-full max-w-xs animate-pulse">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          width: "100%",
+          maxWidth: 320,
+        }}
+      >
         <div
-          className="h-3 rounded-full"
-          style={{ background: "rgba(255,255,255,0.06)", width: "80%", margin: "0 auto" }}
+          style={{
+            height: 12,
+            borderRadius: 999,
+            background: "rgba(244, 160, 176, 0.18)",
+            width: "80%",
+            margin: "0 auto",
+            animation: "bdaPulse 1800ms ease-in-out infinite",
+          }}
         />
         <div
-          className="h-3 rounded-full"
-          style={{ background: "rgba(255,255,255,0.05)", width: "55%", margin: "0 auto" }}
+          style={{
+            height: 12,
+            borderRadius: 999,
+            background: "rgba(244, 160, 176, 0.12)",
+            width: "55%",
+            margin: "0 auto",
+            animation: "bdaPulse 1800ms ease-in-out infinite 200ms",
+          }}
         />
       </div>
+      <style>{`
+        @keyframes bdaPulse { 0%,100% { opacity: 0.55 } 50% { opacity: 1 } }
+        @media (prefers-reduced-motion: reduce) {
+          [role="status"] > div > div { animation: none !important; opacity: 0.7 !important; }
+        }
+      `}</style>
     </div>
   );
 }

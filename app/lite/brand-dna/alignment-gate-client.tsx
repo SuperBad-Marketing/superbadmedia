@@ -3,37 +3,36 @@
 /**
  * AlignmentGateClient — interactive alignment gate UI.
  *
- * Renders three track-selection cards with houseSpring animations.
- * Submits via the submitAlignmentGate Server Action.
+ * One question, three branded option cards (founder / founder_supplement /
+ * business). Submits via `submitAlignmentGate`. Visual register matches
+ * `mockup-brand-dna.html`'s question scene — Righteous eyebrow + hairline
+ * rule, DM Sans 38px question text, brand option cards.
  *
- * Motion: cards use Framer Motion with houseSpring on hover and selection.
- * AnimatePresence handles the stagger entrance of the three options.
- *
- * Owner: BDA-2.
+ * Owners: BDA-2 (logic), BDA-POLISH-1 (visual port).
  */
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+
 import { houseSpring } from "@/lib/design-tokens";
+
+import { OptionCard } from "@/components/lite/brand-dna/option-card";
 
 const TRACKS = [
   {
     value: "founder",
-    heading: "Completely.",
-    description: "My business is a direct extension of who I am.",
-    emoji: "◎",
+    letter: "A",
+    text: "Completely. My business is a direct extension of who I am.",
   },
   {
     value: "founder_supplement",
-    heading: "Somewhere in between.",
-    description: "There's overlap, but they're not the same thing.",
-    emoji: "◑",
+    letter: "B",
+    text: "Somewhere in between. There's overlap, but they're not the same thing.",
   },
   {
     value: "business",
-    heading: "Not really.",
-    description: "It's more about the work and the clients.",
-    emoji: "○",
+    letter: "C",
+    text: "Not really. It's more about the work and the clients.",
   },
 ] as const;
 
@@ -57,107 +56,116 @@ export function AlignmentGateClient({
     const fd = new FormData();
     fd.set("track", track);
     await submitAction(fd);
-    // redirect() is called inside the action — this line is unreachable on success
     setPending(false);
   }
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-dvh px-6 py-16 gap-10">
-      {/* Question */}
+    <main
+      style={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 40,
+      }}
+    >
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={houseSpring}
-        className="text-center max-w-prose"
+        transition={{ ...houseSpring, duration: 0.9 }}
+        style={{
+          maxWidth: 780,
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          gap: 40,
+        }}
       >
-        <p
-          className="text-xs tracking-widest uppercase mb-4"
-          style={{ color: "var(--color-neutral-400, #9ca3af)" }}
+        <div
+          style={{
+            fontFamily: "var(--font-label)",
+            fontSize: 10,
+            letterSpacing: "2.5px",
+            textTransform: "uppercase",
+            color: "var(--brand-pink)",
+            display: "flex",
+            gap: 16,
+            alignItems: "center",
+          }}
         >
-          Before we start
-        </p>
+          <span>Before we start</span>
+          <span
+            aria-hidden="true"
+            style={{ flex: 1, height: 1, background: "rgba(244, 160, 176, 0.2)" }}
+          />
+        </div>
+
         <h1
-          className="text-2xl sm:text-3xl font-semibold leading-tight"
-          style={{ color: "var(--color-neutral-50, #fafafa)" }}
+          style={{
+            fontFamily: "var(--font-body)",
+            fontWeight: 500,
+            fontSize: 38,
+            lineHeight: 1.25,
+            color: "var(--brand-cream)",
+            letterSpacing: "-0.8px",
+            maxWidth: 680,
+            margin: 0,
+          }}
         >
           Does your business represent your personality?
         </h1>
+
+        <p
+          style={{
+            fontSize: 14,
+            fontStyle: "italic",
+            color: "var(--neutral-500)",
+            marginTop: -16,
+          }}
+        >
+          pick the one closest. you can change your mind later.
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 12,
+          }}
+          className="bda-options-grid"
+        >
+          {TRACKS.map((t) => (
+            <OptionCard
+              key={t.value}
+              letter={t.letter}
+              text={t.text}
+              selected={selected === t.value}
+              disabled={pending}
+              onClick={() => void handleSelect(t.value)}
+            />
+          ))}
+        </div>
+
+        {errorParam && (
+          <p
+            role="alert"
+            style={{
+              fontSize: 14,
+              color: "var(--brand-pink)",
+            }}
+          >
+            Something went wrong. Please try again.
+          </p>
+        )}
       </motion.div>
 
-      {/* Track options */}
-      <div className="flex flex-col gap-3 w-full max-w-md">
-        <AnimatePresence>
-          {TRACKS.map((track, i) => {
-            const isSelected = selected === track.value;
-            const isOther = selected !== null && !isSelected;
-
-            return (
-              <motion.button
-                key={track.value}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{
-                  opacity: isOther ? 0.4 : 1,
-                  y: 0,
-                  scale: isSelected ? 1.02 : 1,
-                }}
-                transition={{ ...houseSpring, delay: i * 0.06 }}
-                whileHover={{ scale: pending ? 1 : 1.01 }}
-                whileTap={{ scale: pending ? 1 : 0.99 }}
-                onClick={() => void handleSelect(track.value)}
-                disabled={pending}
-                style={{
-                  background: isSelected
-                    ? "var(--color-brand-primary, #e8ff47)"
-                    : "rgba(255,255,255,0.05)",
-                  color: isSelected
-                    ? "var(--color-neutral-950, #0a0a0a)"
-                    : "var(--color-neutral-100, #f5f5f5)",
-                  border: "1px solid",
-                  borderColor: isSelected
-                    ? "var(--color-brand-primary, #e8ff47)"
-                    : "rgba(255,255,255,0.1)",
-                  borderRadius: "var(--radius-card, 12px)",
-                  padding: "1.25rem 1.5rem",
-                  textAlign: "left",
-                  cursor: pending ? "default" : "pointer",
-                  width: "100%",
-                }}
-              >
-                <span
-                  className="block text-lg mb-1 font-medium"
-                  style={{ opacity: 0.8 }}
-                >
-                  {track.emoji}
-                </span>
-                <span className="block font-semibold text-base leading-tight">
-                  {track.heading}
-                </span>
-                <span
-                  className="block text-sm mt-0.5"
-                  style={{
-                    color: isSelected
-                      ? "var(--color-neutral-700, #404040)"
-                      : "var(--color-neutral-400, #9ca3af)",
-                  }}
-                >
-                  {track.description}
-                </span>
-              </motion.button>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-
-      {errorParam && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-sm"
-          style={{ color: "var(--color-semantic-error, #ef4444)" }}
-        >
-          Something went wrong. Please try again.
-        </motion.p>
-      )}
+      <style jsx>{`
+        @media (max-width: 640px) {
+          :global(.bda-options-grid) {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

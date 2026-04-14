@@ -3,10 +3,11 @@
 /**
  * ReflectionClient — free-form reflection UI (section 5 only).
  *
- * Prominent Skip affordance. Text area auto-resizes.
- * Motion: form fades in with houseSpring.
+ * Mockup scene-2 register: Righteous label, brand-cream prompt, brand-pink
+ * accents, brand-red submit pill. Skip stays soft. Removes the lime-yellow
+ * `--color-brand-primary` fallback that leaked from BDA-2.
  *
- * Owner: BDA-2.
+ * Owners: BDA-2 (logic), BDA-POLISH-1 (visual port).
  */
 
 import * as React from "react";
@@ -44,37 +45,66 @@ export function ReflectionClient({
     setPending(false);
   }
 
+  const empty = text.trim().length === 0;
+
   return (
     <motion.main
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={houseSpring}
-      className="flex flex-col items-center justify-center min-h-dvh px-6 py-16 gap-8 max-w-xl mx-auto"
+      transition={{ ...houseSpring, duration: 1.0 }}
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 24px",
+        gap: 32,
+        maxWidth: 640,
+        margin: "0 auto",
+      }}
     >
-      <div className="text-center">
+      <div style={{ textAlign: "center" }}>
         <p
-          className="text-xs tracking-widest uppercase mb-4"
-          style={{ color: "var(--color-neutral-500, #6b7280)" }}
+          style={{
+            fontFamily: "var(--font-label)",
+            fontSize: 10,
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+            color: "var(--brand-pink)",
+            marginBottom: 16,
+          }}
         >
           Before the reveal
         </p>
         <h2
-          className="text-2xl font-semibold leading-snug"
-          style={{ color: "var(--color-neutral-50, #fafafa)" }}
+          style={{
+            fontFamily: "var(--font-body)",
+            fontWeight: 500,
+            fontSize: 32,
+            lineHeight: 1.25,
+            color: "var(--brand-cream)",
+            letterSpacing: "-0.6px",
+            margin: 0,
+          }}
         >
           Anything you want to add?
         </h2>
         <p
-          className="mt-2 text-sm"
-          style={{ color: "var(--color-neutral-400, #9ca3af)" }}
+          style={{
+            marginTop: 12,
+            fontSize: 14,
+            color: "var(--neutral-500)",
+            fontStyle: "italic",
+          }}
         >
-          Optional. This goes into your portrait alongside your answers.
+          Optional. Goes into your portrait alongside your answers.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4 w-full max-w-md"
+        style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%" }}
       >
         <input type="hidden" name="profileId" value={profileId} />
 
@@ -86,12 +116,13 @@ export function ReflectionClient({
           placeholder="What did this bring up? What did you notice? What's missing from the picture so far?"
           disabled={pending}
           style={{
-            background: "rgba(255,255,255,0.05)",
-            color: "var(--color-neutral-100, #f5f5f5)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "var(--radius-card, 12px)",
-            padding: "1rem",
-            fontSize: "0.9375rem",
+            background: "rgba(34, 34, 31, 0.7)",
+            color: "var(--brand-cream)",
+            border: "1px solid rgba(253, 245, 230, 0.1)",
+            borderRadius: 12,
+            padding: "16px 18px",
+            fontFamily: "var(--font-body)",
+            fontSize: 16,
             lineHeight: 1.6,
             resize: "vertical",
             width: "100%",
@@ -99,22 +130,24 @@ export function ReflectionClient({
           }}
         />
 
-        <div className="flex gap-3">
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
           <button
             type="submit"
-            disabled={pending || text.trim().length === 0}
+            disabled={pending || empty}
             style={{
-              flex: 1,
-              background: "var(--color-brand-primary, #e8ff47)",
-              color: "var(--color-neutral-950, #0a0a0a)",
-              borderRadius: "var(--radius-button, 8px)",
-              padding: "0.75rem 1.25rem",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              cursor:
-                pending || text.trim().length === 0 ? "default" : "pointer",
-              opacity: pending || text.trim().length === 0 ? 0.5 : 1,
-              border: "none",
+              fontFamily: "var(--font-label)",
+              fontSize: 11,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "var(--brand-cream)",
+              background: empty ? "transparent" : "var(--brand-red)",
+              border: "1px solid",
+              borderColor: empty ? "rgba(253, 245, 230, 0.25)" : "var(--brand-red)",
+              borderRadius: 999,
+              padding: "14px 32px",
+              cursor: pending || empty ? "default" : "pointer",
+              opacity: pending ? 0.6 : 1,
+              transition: "all 300ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             Add to my portrait
@@ -125,13 +158,17 @@ export function ReflectionClient({
             onClick={() => void handleSkip()}
             disabled={pending}
             style={{
-              padding: "0.75rem 1.25rem",
+              fontFamily: "var(--font-label)",
+              fontSize: 11,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "var(--neutral-500)",
               background: "transparent",
-              color: "var(--color-neutral-500, #6b7280)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "var(--radius-button, 8px)",
-              fontSize: "0.875rem",
+              border: "1px solid rgba(253, 245, 230, 0.1)",
+              borderRadius: 999,
+              padding: "14px 24px",
               cursor: pending ? "default" : "pointer",
+              transition: "color 300ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             Skip

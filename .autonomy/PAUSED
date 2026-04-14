@@ -1,3 +1,11 @@
-Paused: 2026-04-14 morning (AEST)
-Reason: Morning check-in — font vendoring session + review of overnight progress.
-Resume: after fonts vendored via next/font/local. Delete this file + push.
+Paused: 2026-04-14 evening (AEST)
+Reason: BDA-POLISH-1 remediation complete — human review required.
+
+The Brand DNA visual-fidelity remediation closed at PASS_WITH_NOTES.
+Andy should review:
+  - Built `/lite/brand-dna/**` against `mockup-brand-dna.html`
+  - Screenshot at `bda-polish-1-section1.png`
+  - Handoff at `sessions/bda-polish-1-handoff.md`
+
+Resume: delete this file once remediation is signed off. Next session is
+Wave 6 QB-4c (per SESSION_TRACKER.md Next Action).

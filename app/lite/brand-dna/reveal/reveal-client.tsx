@@ -1,22 +1,22 @@
 "use client";
 
 /**
- * RevealClient — the cinematic Brand DNA reveal.
+ * RevealClient — the cinematic Brand DNA reveal (mockup scene-3 register).
  *
  * Sequence (per `docs/specs/brand-dna-assessment.md` §10.5):
  *   1. `sound:brand_dna_reveal` fires on mount
- *   2. First impression fades in alone (stillness, ~1.2s)
- *   3. Beat — 2–3 seconds of held stillness
- *   4. Section-by-section build — each section label + insight + chunk of
- *      prose materialises with `houseSpring`
+ *   2. First impression headline + opener fade in (Black Han Sans + Playfair italic accent)
+ *   3. Beat — held stillness (~3s)
+ *   4. Section-by-section build — Righteous label + brand-pink heading + DM Sans body
  *   5. Full prose portrait lands as the finale
  *   6. `markProfileComplete(profileId)` fires at the end
  *
- * Uses the Tier 2 `brand-dna-reveal` choreography for the first-impression
- * reveal; Tier 1 `houseSpring` drives the per-section stagger. Reduced
- * motion degrades to fades without breaking layout.
+ * Visual register matches `mockup-brand-dna.html` `.reveal-scene` — Black Han
+ * Sans display headline with Playfair italic accent fragment, brand-cream
+ * body, Righteous section labels, brand-pink rule between sections, italic
+ * brand-pink signature footer.
  *
- * Owner: BDA-3.
+ * Owners: BDA-3 (logic), BDA-POLISH-1 (visual port).
  */
 
 import * as React from "react";
@@ -24,7 +24,6 @@ import { motion } from "framer-motion";
 import { SessionProvider, useSession } from "next-auth/react";
 
 import { useSound } from "@/components/lite/sound-provider";
-import { tier2 } from "@/lib/motion/choreographies";
 import { houseSpring } from "@/lib/design-tokens";
 
 import { markProfileComplete } from "../actions";
@@ -39,9 +38,6 @@ interface RevealClientProps {
 }
 
 export function RevealClient(props: RevealClientProps) {
-  // SessionProvider is scoped here so `useSession().update()` can re-mint
-  // Andy's JWT once `markProfileComplete` resolves. Narrowest possible
-  // surface — only the reveal tree needs session-aware hooks. BDA-4.
   return (
     <SessionProvider>
       <RevealInner {...props} />
@@ -59,7 +55,6 @@ function RevealInner({
 }: RevealClientProps) {
   const { play } = useSound();
   const { update } = useSession();
-  const choreography = tier2["brand-dna-reveal"];
 
   const [phase, setPhase] = React.useState<"impression" | "sections" | "portrait">(
     "impression",
@@ -89,8 +84,6 @@ function RevealInner({
       void (async () => {
         await markProfileComplete(profileId);
         if (cancelled) return;
-        // Re-mint the JWT with brand_dna_complete=true so the gate clears
-        // without a manual sign-out. BDA-4.
         await update();
       })();
     }, 800);
@@ -100,112 +93,212 @@ function RevealInner({
     };
   }, [phase, alreadyComplete, profileId, update]);
 
+  const { headline, headlineAccent } = splitImpressionHeadline(firstImpression);
   const paragraphs = splitPortraitParagraphs(prosePortrait);
 
   return (
-    <div className="flex flex-col items-center gap-14 w-full max-w-2xl px-4 py-16">
-      {/* First impression — always on screen; fades in on mount */}
-      <motion.section
-        variants={choreography.variants}
-        initial="initial"
-        animate="animate"
-        transition={choreography.transition}
-        className="text-center"
+    <main
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: "40px 24px 120px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 780,
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          gap: 56,
+        }}
       >
-        <p
-          className="text-xs tracking-widest uppercase mb-6"
-          style={{ color: "var(--color-neutral-500, #6b7280)" }}
-        >
-          Here you are
-        </p>
-        <p
-          style={{
-            color: "var(--color-neutral-50, #fafafa)",
-            fontFamily: "var(--font-playfair, 'Playfair Display', serif)",
-            fontSize: "1.75rem",
-            lineHeight: 1.35,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {firstImpression}
-        </p>
-      </motion.section>
-
-      {/* Section-by-section build — stagger starts during the "sections" phase */}
-      {phase !== "impression" && sectionInsights.length > 0 && (
+        {/* Open: label + Black Han Sans headline + opening paragraph */}
         <motion.section
-          initial="initial"
-          animate="animate"
-          variants={choreography.container?.variants}
-          transition={choreography.container?.transition}
-          className="w-full flex flex-col gap-10"
-          aria-label="Signal summary by section"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...houseSpring, duration: 1.4 }}
+          style={{ display: "flex", flexDirection: "column", gap: 20 }}
         >
-          {sectionInsights.map((insightText, index) => {
-            const sectionNumber = index + 1;
-            const title = sectionTitles[index] ?? `Section ${sectionNumber}`;
-            return (
-              <motion.div
-                key={sectionNumber}
-                variants={{
-                  initial: { opacity: 0, y: 12 },
-                  animate: { opacity: 1, y: 0 },
-                }}
-                transition={houseSpring}
-                className="flex flex-col gap-2"
-              >
-                <p
-                  className="text-xs tracking-widest uppercase"
-                  style={{ color: "var(--color-neutral-500, #6b7280)" }}
-                >
-                  Section {sectionNumber} · {title}
-                </p>
-                <p
+          <span
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 10,
+              letterSpacing: "3px",
+              color: "var(--brand-orange)",
+              textTransform: "uppercase",
+            }}
+          >
+            Your brand DNA
+          </span>
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(56px, 9vw, 88px)",
+              lineHeight: 0.95,
+              color: "var(--brand-cream)",
+              letterSpacing: "-1.5px",
+              margin: 0,
+            }}
+          >
+            {headline}
+            {headlineAccent && (
+              <>
+                {" "}
+                <em
                   style={{
-                    color: "var(--color-neutral-100, #f5f5f5)",
-                    fontSize: "1.0625rem",
-                    lineHeight: 1.65,
+                    fontFamily: "var(--font-narrative)",
+                    fontStyle: "italic",
+                    color: "var(--brand-pink)",
+                    fontWeight: 500,
                   }}
                 >
-                  {insightText}
-                </p>
-              </motion.div>
-            );
-          })}
+                  {headlineAccent}
+                </em>
+              </>
+            )}
+          </h1>
         </motion.section>
-      )}
 
-      {/* Full prose portrait — fades in as the finale */}
-      {phase === "portrait" && (
-        <motion.article
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...houseSpring, delay: 0.1 }}
-          className="w-full flex flex-col gap-5"
-          aria-label="Prose portrait"
-        >
-          <p
-            className="text-xs tracking-widest uppercase"
-            style={{ color: "var(--color-neutral-500, #6b7280)" }}
+        {/* Section-by-section build */}
+        {phase !== "impression" && sectionInsights.length > 0 && (
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: 56 }}
+            aria-label="Signal summary by section"
           >
-            The portrait
-          </p>
-          {paragraphs.map((para, i) => (
-            <p
-              key={i}
+            {sectionInsights.map((insightText, index) => {
+              const sectionNumber = index + 1;
+              const title = sectionTitles[index] ?? `Section ${sectionNumber}`;
+              return (
+                <motion.section
+                  key={sectionNumber}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...houseSpring, duration: 1.2, delay: index * 0.2 }}
+                  style={{
+                    paddingTop: 32,
+                    borderTop: "1px solid rgba(253, 245, 230, 0.1)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 16,
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontFamily: "var(--font-label)",
+                      fontSize: 11,
+                      letterSpacing: "2px",
+                      color: "var(--brand-pink)",
+                      textTransform: "uppercase",
+                      margin: 0,
+                    }}
+                  >
+                    Section {sectionNumber} · {title}
+                  </h2>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: 17,
+                      lineHeight: 1.7,
+                      color: "var(--neutral-300)",
+                      margin: 0,
+                    }}
+                  >
+                    {insightText}
+                  </p>
+                </motion.section>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Full prose portrait */}
+        {phase === "portrait" && (
+          <motion.article
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...houseSpring, duration: 1.4, delay: 0.1 }}
+            style={{
+              paddingTop: 32,
+              borderTop: "1px solid rgba(253, 245, 230, 0.1)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+            }}
+            aria-label="Prose portrait"
+          >
+            <h2
               style={{
-                color: "var(--color-neutral-100, #f5f5f5)",
-                fontSize: "1.0625rem",
-                lineHeight: 1.75,
+                fontFamily: "var(--font-label)",
+                fontSize: 11,
+                letterSpacing: "2px",
+                color: "var(--brand-pink)",
+                textTransform: "uppercase",
+                margin: 0,
               }}
             >
-              {para}
+              The portrait
+            </h2>
+            {paragraphs.map((para, i) => (
+              <p
+                key={i}
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 17,
+                  lineHeight: 1.7,
+                  color: "var(--neutral-300)",
+                  margin: 0,
+                }}
+              >
+                {para}
+              </p>
+            ))}
+
+            <p
+              style={{
+                marginTop: 48,
+                paddingTop: 32,
+                textAlign: "center",
+                borderTop: "1px solid rgba(253, 245, 230, 0.08)",
+                fontFamily: "var(--font-body)",
+                fontStyle: "italic",
+                fontSize: 15,
+                color: "var(--brand-pink)",
+                opacity: 0.8,
+                lineHeight: 1.7,
+              }}
+            >
+              written for you, by SuperBad, on {formatToday()}.
+              <br />
+              we&apos;ll check in on this in a year. sooner if something meaningful shifts.
             </p>
-          ))}
-        </motion.article>
-      )}
-    </div>
+          </motion.article>
+        )}
+      </div>
+    </main>
   );
+}
+
+function splitImpressionHeadline(text: string): {
+  headline: string;
+  headlineAccent: string | null;
+} {
+  const trimmed = (text ?? "").trim();
+  if (!trimmed) return { headline: "", headlineAccent: null };
+
+  // Take the first sentence as the headline. If it splits cleanly on a comma
+  // or em-dash, the remainder becomes the italic Playfair accent (per mockup).
+  const sentenceMatch = trimmed.match(/^([\s\S]+?[.?!])(\s+([\s\S]+))?$/);
+  const head = sentenceMatch ? sentenceMatch[1].trim() : trimmed;
+
+  const splitMatch = head.match(/^(.+?)[,—](\s+)(.+[.?!])$/);
+  if (splitMatch) {
+    return { headline: splitMatch[1].trim() + ",", headlineAccent: splitMatch[3].trim() };
+  }
+  return { headline: head, headlineAccent: null };
 }
 
 function splitPortraitParagraphs(portrait: string): string[] {
@@ -215,4 +308,13 @@ function splitPortraitParagraphs(portrait: string): string[] {
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
+}
+
+function formatToday(): string {
+  const d = new Date();
+  return d.toLocaleDateString("en-AU", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 }

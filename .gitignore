@@ -22,6 +22,9 @@ dist/
 build/
 coverage/
 *.log
+
+# Playwright MCP scratch dir (snapshots/console logs from in-session browser use)
+.playwright-mcp/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

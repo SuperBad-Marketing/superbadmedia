@@ -1,12 +1,13 @@
 "use client";
 
 /**
- * InsightRevealClient — animates the section insight text in.
+ * InsightRevealClient — between-section insight (mockup scene-2 register).
  *
- * Motion: fade + subtle lift on mount using houseSpring.
- * Reduced-motion parity via MotionConfig (inherited from root MotionProvider).
+ * Playfair Display italic quote, Righteous label, brand-pink attribution.
+ * Centred composition, riseIn motion, reduced-motion parity inherited from
+ * the root MotionProvider.
  *
- * Owner: BDA-2.
+ * Owners: BDA-2 (logic), BDA-POLISH-1 (visual port).
  */
 
 import { motion } from "framer-motion";
@@ -14,23 +15,50 @@ import { houseSpring } from "@/lib/design-tokens";
 
 interface InsightRevealClientProps {
   insight: string;
+  attribution?: string;
 }
 
-export function InsightRevealClient({ insight }: InsightRevealClientProps) {
+export function InsightRevealClient({ insight, attribution }: InsightRevealClientProps) {
   return (
-    <motion.blockquote
-      initial={{ opacity: 0, y: 16 }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={houseSpring}
-      className="text-center max-w-md"
+      transition={{ ...houseSpring, duration: 1.2 }}
       style={{
-        color: "var(--color-neutral-100, #f5f5f5)",
-        fontSize: "1.125rem",
-        lineHeight: 1.65,
-        fontStyle: "italic",
+        maxWidth: 700,
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        gap: 28,
       }}
     >
-      &ldquo;{insight}&rdquo;
-    </motion.blockquote>
+      <blockquote
+        style={{
+          fontFamily: "var(--font-narrative)",
+          fontStyle: "italic",
+          fontSize: 36,
+          lineHeight: 1.35,
+          color: "var(--brand-cream)",
+          letterSpacing: "-0.3px",
+          margin: 0,
+        }}
+      >
+        &ldquo;{insight}&rdquo;
+      </blockquote>
+
+      {attribution && (
+        <p
+          style={{
+            fontFamily: "var(--font-body)",
+            fontStyle: "italic",
+            fontSize: 13,
+            color: "var(--brand-pink)",
+            opacity: 0.7,
+          }}
+        >
+          {attribution}
+        </p>
+      )}
+    </motion.div>
   );
 }

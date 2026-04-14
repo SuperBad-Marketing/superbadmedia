@@ -1,17 +1,14 @@
 /**
  * Brand DNA Assessment — between-section insight page.
  *
- * Route: /lite/brand-dna/section/[n]/insight  (n = 1–4; section 5 goes to reflection)
+ * Route: /lite/brand-dna/section/[n]/insight  (n = 1–4; section 5 → reflection)
  *
- * Shows a loading shimmer while generating the section insight (Opus call,
- * ~2–4 seconds). Once loaded, reveals the insight text with houseSpring
- * animation followed by the next section's title card.
+ * Suspense streams a shimmer while Opus generates the section insight
+ * (~2–4s), then reveals the Playfair quote + brand-pink attribution + a
+ * continue pill to the next section. Visual register matches the mockup
+ * `scene-2` insight composition.
  *
- * Pattern: async Server Component → Suspense boundary → shimmer fallback.
- * The Opus call blocks the InsightContent render; the shimmer shows
- * immediately via streaming.
- *
- * Owner: BDA-2.
+ * Owners: BDA-2 (logic), BDA-POLISH-1 (visual port).
  */
 
 import { notFound, redirect } from "next/navigation";
@@ -52,44 +49,56 @@ export default async function InsightPage({
   const hasNextSection = nextSection <= 5;
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-dvh px-6 py-16 gap-10 max-w-xl mx-auto">
-      {/* Section completion label */}
+    <main
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 40,
+        gap: 40,
+      }}
+    >
       <p
-        className="text-xs tracking-widest uppercase"
-        style={{ color: "var(--color-neutral-500, #6b7280)" }}
+        style={{
+          fontFamily: "var(--font-label)",
+          fontSize: 10,
+          letterSpacing: "3px",
+          textTransform: "uppercase",
+          color: "var(--brand-pink)",
+          margin: 0,
+        }}
       >
-        Section {section} complete
+        Between sections · a small observation
       </p>
 
-      {/* Insight content — suspends while generating */}
       <Suspense fallback={<InsightShimmer />}>
-        <InsightContent profileId={profileId} section={section} />
+        <InsightContent
+          profileId={profileId}
+          section={section}
+          attribution={
+            hasNextSection
+              ? `halfway-ish. ${5 - section} ${5 - section === 1 ? "section" : "sections"} to go.`
+              : "that's the last one."
+          }
+        />
       </Suspense>
 
-      {/* Next section transition — always rendered (below the fold initially) */}
       {hasNextSection && (
-        <NextSectionCard
+        <NextSectionPill
           nextSection={nextSection as 1 | 2 | 3 | 4 | 5}
           profileId={profileId}
         />
       )}
 
-      {/* Section 5 insight leads to complete (BDA-3 reveal stub) */}
       {!hasNextSection && (
-        <div className="text-center">
-          <p
-            className="text-sm mb-4"
-            style={{ color: "var(--color-neutral-400, #9ca3af)" }}
-          >
-            Your Brand DNA is being assembled.
-          </p>
-          <span
-            className="text-xs"
-            style={{ color: "var(--color-neutral-600, #525252)" }}
-          >
-            The reveal is coming in a future update.
-          </span>
-        </div>
+        <Link
+          href={`/lite/brand-dna/reveal?profileId=${profileId}`}
+          style={pillStyle}
+        >
+          See your brand DNA →
+        </Link>
       )}
     </main>
   );
@@ -100,13 +109,14 @@ export default async function InsightPage({
 async function InsightContent({
   profileId,
   section,
+  attribution,
 }: {
   profileId: string;
   section: number;
+  attribution: string;
 }) {
   const insight = await generateSectionInsight(profileId, section);
-
-  return <InsightRevealClient insight={insight} />;
+  return <InsightRevealClient insight={insight} attribution={attribution} />;
 }
 
 // ── InsightShimmer ─────────────────────────────────────────────────────────────
@@ -114,29 +124,44 @@ async function InsightContent({
 function InsightShimmer() {
   return (
     <div
-      className="flex flex-col gap-3 w-full max-w-md animate-pulse"
-      aria-label="Loading insight"
       role="status"
+      aria-label="Loading insight"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+        width: "100%",
+        maxWidth: 480,
+      }}
+      className="bda-shimmer"
     >
-      <div
-        className="h-4 rounded-full"
-        style={{ background: "rgba(255,255,255,0.08)", width: "85%" }}
-      />
-      <div
-        className="h-4 rounded-full"
-        style={{ background: "rgba(255,255,255,0.06)", width: "72%" }}
-      />
-      <div
-        className="h-4 rounded-full"
-        style={{ background: "rgba(255,255,255,0.06)", width: "60%" }}
-      />
+      <div style={shimmerLine(0.85, "rgba(244, 160, 176, 0.18)")} />
+      <div style={shimmerLine(0.7, "rgba(244, 160, 176, 0.12)")} />
+      <div style={shimmerLine(0.55, "rgba(244, 160, 176, 0.1)")} />
+      <style>{`
+        @keyframes bdaPulse { 0%,100% { opacity: 0.55 } 50% { opacity: 1 } }
+        .bda-shimmer > div { animation: bdaPulse 1800ms ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .bda-shimmer > div { animation: none; opacity: 0.7; }
+        }
+      `}</style>
     </div>
   );
 }
 
-// ── NextSectionCard ────────────────────────────────────────────────────────────
+function shimmerLine(width: number, bg: string): React.CSSProperties {
+  return {
+    height: 14,
+    borderRadius: 999,
+    background: bg,
+    width: `${Math.round(width * 100)}%`,
+    margin: "0 auto",
+  };
+}
 
-function NextSectionCard({
+// ── NextSectionPill — branded continue affordance ─────────────────────────────
+
+function NextSectionPill({
   nextSection,
   profileId,
 }: {
@@ -144,47 +169,27 @@ function NextSectionCard({
   profileId: string;
 }) {
   return (
-    <div
-      className="w-full max-w-md rounded-2xl p-6 flex flex-col gap-4"
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+    <Link
+      href={`/lite/brand-dna/section/${nextSection}?profileId=${profileId}`}
+      style={pillStyle}
+      aria-label={`Continue to section ${nextSection}: ${SECTION_TITLES[nextSection]} — ${SECTION_SUBTITLES[nextSection]}`}
     >
-      <div>
-        <p
-          className="text-xs tracking-widest uppercase mb-1"
-          style={{ color: "var(--color-neutral-500, #6b7280)" }}
-        >
-          Up next — Section {nextSection}
-        </p>
-        <p
-          className="text-lg font-semibold"
-          style={{ color: "var(--color-neutral-100, #f5f5f5)" }}
-        >
-          {SECTION_TITLES[nextSection]}
-        </p>
-        <p
-          className="text-sm mt-0.5"
-          style={{ color: "var(--color-neutral-400, #9ca3af)" }}
-        >
-          {SECTION_SUBTITLES[nextSection]}
-        </p>
-      </div>
-
-      <Link
-        href={`/lite/brand-dna/section/${nextSection}?profileId=${profileId}`}
-        style={{
-          display: "inline-block",
-          background: "var(--color-brand-primary, #e8ff47)",
-          color: "var(--color-neutral-950, #0a0a0a)",
-          borderRadius: "var(--radius-button, 8px)",
-          padding: "0.75rem 1.5rem",
-          fontSize: "0.875rem",
-          fontWeight: 600,
-          textDecoration: "none",
-          textAlign: "center",
-        }}
-      >
-        Continue →
-      </Link>
-    </div>
+      Keep going →
+    </Link>
   );
 }
+
+const pillStyle: React.CSSProperties = {
+  fontFamily: "var(--font-label)",
+  fontSize: 11,
+  letterSpacing: "2px",
+  textTransform: "uppercase",
+  color: "var(--brand-cream)",
+  padding: "14px 32px",
+  background: "transparent",
+  border: "1px solid rgba(253, 245, 230, 0.25)",
+  borderRadius: 999,
+  textDecoration: "none",
+  display: "inline-block",
+  transition: "background 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+};
