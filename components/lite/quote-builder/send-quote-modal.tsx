@@ -20,14 +20,23 @@ import {
   sendQuoteAction,
   type PrepareSendQuoteResult,
 } from "@/app/lite/admin/deals/[id]/quotes/[quote_id]/edit/actions";
+import {
+  QuoteWebExperience,
+  type QuoteWebExperienceProps,
+} from "./quote-web-experience";
 
 type Drift = Extract<PrepareSendQuoteResult, { ok: true }>["value"]["drift"];
+
+/** Props the editor passes to render the §4.3 page in the modal's left column. */
+export type SendModalPreview = Omit<QuoteWebExperienceProps, "mode" | "token">;
 
 interface SendQuoteModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   dealId: string;
   quoteId: string;
+  /** Snapshot of what the client will see — rendered in left column. */
+  preview: SendModalPreview;
   /** Called after a successful send so the editor can navigate / refresh. */
   onSent?: () => void;
 }
@@ -41,7 +50,7 @@ const SUBJECT_MAX = 60;
  * ("sends now"); kept simple per `feedback_primary_action_focus`.
  */
 export function SendQuoteModal(props: SendQuoteModalProps) {
-  const { open, onOpenChange, dealId, quoteId, onSent } = props;
+  const { open, onOpenChange, dealId, quoteId, preview, onSent } = props;
   const [loading, setLoading] = React.useState(false);
   const [sending, setSending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -139,10 +148,24 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle>Send quote</DialogTitle>
         </DialogHeader>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <aside
+            className="hidden max-h-[60vh] overflow-y-auto rounded-md border border-border lg:block"
+            aria-label="Preview of what the client will see"
+          >
+            <QuoteWebExperience
+              mode="modal-preview"
+              token=""
+              {...preview}
+            />
+          </aside>
+
+          <div>
 
         {loading && (
           <div className="py-10 text-center text-sm text-muted-foreground">
@@ -230,6 +253,9 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
             )}
           </div>
         )}
+
+          </div>
+        </div>
 
         <DialogFooter>
           <Button

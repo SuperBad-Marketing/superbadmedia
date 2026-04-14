@@ -395,6 +395,19 @@ export function QuoteEditor(props: EditorProps) {
         onOpenChange={setSendOpen}
         dealId={props.dealId}
         quoteId={props.quoteId}
+        preview={{
+          status: "sent",
+          quoteNumber: props.quoteNumber,
+          companyName: props.company.name,
+          primaryContactFirstName:
+            props.primaryContact?.name?.split(/\s+/)[0] ?? null,
+          content,
+          termLengthMonths: content.term_length_months,
+          retainerMonthlyCents: totals.retainer_monthly_cents_inc_gst,
+          oneOffCents: totals.one_off_cents_inc_gst,
+          totalCents: totals.total_cents_inc_gst,
+          expiresAtMs: null,
+        }}
       />
 
       {/* RIGHT PANE — static preview for QB-2a; live/motion preview in QB-2b */}
