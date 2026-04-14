@@ -20,3 +20,7 @@ export * from "./companies";
 export * from "./contacts";
 export * from "./deals";
 export * from "./webhook-events";
+export * from "./sequences";
+export * from "./catalogue-items";
+export * from "./quote-templates";
+export * from "./quotes";

@@ -85,6 +85,13 @@
       "when": 1776143797200,
       "tag": "0012_sp3_pipeline_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1776220000000,
+      "tag": "0016_qb1_quote_builder_schema",
+      "breakpoints": true
     }
   ]
 }

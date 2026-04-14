@@ -153,6 +153,13 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `pipeline.resend_webhook_dispatch_enabled` | `true` | boolean | Master kill switch for Resend webhook business dispatch (signature verification + idempotency still run when `false`, only contact/deal/company mutations are skipped) |
 | `pipeline.sd_three_wons_last_fired_ms` | `0` | integer | Unix-ms timestamp of the last "three Wons in a session" S&D egg fire (sales-pipeline §11A.4 + surprise-and-delight admin egg #3). Enforces the ≤ once/30-day cap server-side. `0` = never fired. |
 
+## Quote Builder (owner: `docs/specs/quote-builder.md` §8 + Q8; consumers: QB-2..QB-8 + SaaS Subscription Billing)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `quote.default_expiry_days` | `14` | integer | Default expiry window (days) for newly-drafted quotes; per-quote picker in the QB-2 editor overrides. Source: spec Q8 / §4.1. |
+| `quote.setup_fee_monthly_saas` | `0` | integer | One-off setup fee in cents applied to SaaS subscription signups; `0` = no fee. Consumed by QB-5 + SaaS Subscription Billing. |
+
 ---
 
 ## Totals
@@ -167,6 +174,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Legal: 2 (added 2026-04-13, B3)
 - Hiring: 28
 - Sales Pipeline: 10 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1; SP-9 added 1 — `sd_three_wons_last_fired_ms`)
-- **Total: 84 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9)
+- Quote Builder: 2 (QB-1 seeded 2 — `quote.default_expiry_days`, `quote.setup_fee_monthly_saas`)
+- **Total: 86 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

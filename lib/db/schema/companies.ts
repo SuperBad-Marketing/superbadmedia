@@ -53,6 +53,11 @@ export const companies = sqliteTable(
     trial_shoot_plan: text("trial_shoot_plan"),
     trial_shoot_feedback: text("trial_shoot_feedback"),
     shape: text("shape", { enum: COMPANY_SHAPES }),
+    // Invoicing — consumed by Quote Builder + Branded Invoicing (QB-1).
+    gst_applicable: integer("gst_applicable", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    abn: text("abn"),
     first_seen_at_ms: integer("first_seen_at_ms").notNull(),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
