@@ -20,8 +20,13 @@ import { auth } from "@/lib/auth/session";
 import { getWizard } from "@/lib/wizards/registry";
 import { getWizardShellConfig } from "@/lib/wizards/shell-config";
 import { META_OAUTH_SCOPES } from "@/lib/integrations/vendors/meta-ads";
+import {
+  GOOGLE_OAUTH_SCOPES,
+  GOOGLE_OAUTH_AUTHORIZE_URL,
+} from "@/lib/integrations/vendors/google-ads";
 import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
 import { MetaAdsClient } from "./clients/meta-ads-client";
+import { GoogleAdsClient } from "./clients/google-ads-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -79,6 +84,22 @@ export default async function AdminWizardPage({
     );
   }
 
+  if (def.key === "google-ads") {
+    const googleAuthorizeUrl = buildGoogleAuthorizeUrl();
+    return (
+      <div className="min-h-screen bg-background">
+        <GoogleAdsClient
+          audience={def.audience}
+          steps={def.steps}
+          outroCopy={outroCopy}
+          expiryDays={expiryDays}
+          authorizeUrl={googleAuthorizeUrl}
+          allowTestTokenInjection={allowTestTokenInjection}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div
@@ -109,4 +130,30 @@ function buildMetaAuthorizeUrl(): string {
     scope: META_OAUTH_SCOPES.join(","),
   });
   return `https://www.facebook.com/v20.0/dialog/oauth?${params.toString()}`;
+}
+
+/**
+ * google-ads-only: compute the Google authorize URL from env. If
+ * `GOOGLE_ADS_CLIENT_ID` is unset (common in dev until Andy registers a
+ * Google Cloud app) the URL is a harmless "#". SW-11-b hardens the real
+ * oauth flow; until then the E2E testToken path bypasses this entirely.
+ *
+ * Google requires `access_type=offline` + `prompt=consent` for refresh
+ * tokens; surfaced here for when SW-11-b wires the token exchange.
+ */
+function buildGoogleAuthorizeUrl(): string {
+  const clientId = process.env.GOOGLE_ADS_CLIENT_ID;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  if (!clientId) return "#";
+  const redirectUri = `${appUrl}/api/oauth/google-ads/callback`;
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: "code",
+    redirect_uri: redirectUri,
+    scope: GOOGLE_OAUTH_SCOPES.join(" "),
+    access_type: "offline",
+    prompt: "consent",
+    include_granted_scopes: "true",
+  });
+  return `${GOOGLE_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
 }
