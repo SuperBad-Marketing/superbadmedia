@@ -36,6 +36,12 @@ export type PaymentElementHostHandle = {
 export type PaymentElementHostProps = {
   token: string;
   returnUrl: string;
+  /**
+   * Override the PI endpoint. Defaults to the Quote Builder route.
+   * BI-2b passes `/api/invoices/${token}/payment-intent` to reuse this
+   * host for invoice payment without duplicating the Stripe glue.
+   */
+  paymentIntentEndpoint?: string;
   onReady?: () => void;
   onError?: (message: string) => void;
   handleRef: React.MutableRefObject<PaymentElementHostHandle | null>;
@@ -45,11 +51,14 @@ export function PaymentElementHost(props: PaymentElementHostProps) {
   const [clientSecret, setClientSecret] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
+  const endpoint =
+    props.paymentIntentEndpoint ?? `/api/quotes/${props.token}/payment-intent`;
+
   React.useEffect(() => {
     let cancelled = false;
     async function boot() {
       try {
-        const res = await fetch(`/api/quotes/${props.token}/payment-intent`, {
+        const res = await fetch(endpoint, {
           method: "POST",
         });
         if (!res.ok) {
@@ -72,7 +81,7 @@ export function PaymentElementHost(props: PaymentElementHostProps) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.token]);
+  }, [endpoint]);
 
   if (error) {
     return (

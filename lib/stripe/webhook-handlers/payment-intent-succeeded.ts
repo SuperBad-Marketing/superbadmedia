@@ -6,9 +6,11 @@ import { quotes } from "@/lib/db/schema/quotes";
 import { deals } from "@/lib/db/schema/deals";
 import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
+import { invoices } from "@/lib/db/schema/invoices";
 import { finaliseDealAsWon } from "@/lib/crm/finalise-deal";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueStripeSettleEmail } from "@/lib/quote-builder/accept";
+import { markInvoicePaid } from "@/lib/invoicing/mark-paid";
 import type { DispatchOutcome } from "./types";
 
 type Db = BetterSQLite3Database<Record<string, unknown>> | typeof defaultDb;
@@ -32,6 +34,9 @@ export async function handlePaymentIntentSucceeded(
   opts: HandlePISucceededOpts,
 ): Promise<DispatchOutcome> {
   const productType = pi.metadata?.product_type;
+  if (productType === "invoice") {
+    return handleInvoicePaymentIntentSucceeded(pi, opts);
+  }
   if (productType !== "quote") {
     return { result: "skipped", error: "covered_by_checkout_session" };
   }
@@ -211,6 +216,70 @@ export async function handlePaymentIntentSucceeded(
   // Settle email (transactional, idempotent).
   if (company) {
     await enqueueStripeSettleEmail({ quote, company, primaryContact });
+  }
+
+  return { result: "ok" };
+}
+
+/**
+ * `payment_intent.succeeded` — `metadata.product_type = "invoice"`
+ * (BI-2b). Flip the invoice to `paid`, stamp payment id + paid_via,
+ * back-fill `deals.stripe_customer_id` if missing. Idempotent via
+ * `markInvoicePaid` (re-delivery of the same event is a no-op).
+ *
+ * Spec: docs/specs/branded-invoicing.md §7.2.
+ */
+async function handleInvoicePaymentIntentSucceeded(
+  pi: Stripe.PaymentIntent,
+  opts: HandlePISucceededOpts,
+): Promise<DispatchOutcome> {
+  const invoiceId = pi.metadata?.invoice_id;
+  if (!invoiceId) {
+    return { result: "error", error: "missing_metadata.invoice_id" };
+  }
+
+  const database = opts.dbArg ?? defaultDb;
+  const nowMs = opts.nowMs ?? Date.now();
+
+  const invoice = await database
+    .select()
+    .from(invoices)
+    .where(eq(invoices.id, invoiceId))
+    .get();
+  if (!invoice) {
+    return { result: "error", error: `invoice_not_found:${invoiceId}` };
+  }
+
+  const result = await markInvoicePaid(
+    {
+      invoice_id: invoice.id,
+      paid_via: "stripe",
+      stripe_payment_intent_id: pi.id,
+      nowMs,
+    },
+    database as typeof defaultDb,
+  );
+  if (!result.ok) {
+    return { result: "error", error: result.error };
+  }
+
+  // Back-fill `deals.stripe_customer_id` if the PI carries a customer
+  // that we haven't yet stamped. Keeps future ensureStripeCustomer()
+  // calls idempotent at the CRM boundary.
+  if (pi.customer) {
+    const customerId =
+      typeof pi.customer === "string" ? pi.customer : pi.customer.id;
+    const deal = await database
+      .select()
+      .from(deals)
+      .where(eq(deals.id, invoice.deal_id))
+      .get();
+    if (deal && !deal.stripe_customer_id) {
+      await database
+        .update(deals)
+        .set({ stripe_customer_id: customerId, updated_at_ms: nowMs })
+        .where(eq(deals.id, deal.id));
+    }
   }
 
   return { result: "ok" };
