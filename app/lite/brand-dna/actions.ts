@@ -311,8 +311,53 @@ export async function submitReflection(formData: FormData): Promise<void> {
       .where(eq(brand_dna_profiles.id, profileId));
   }
 
-  // BDA-3 builds the reveal. Redirect to a stub complete placeholder.
-  redirect(`/lite/brand-dna/section/5/insight?profileId=${profileId}`);
+  redirect(`/lite/brand-dna/reveal?profileId=${profileId}`);
+}
+
+// ── markProfileComplete ──────────────────────────────────────────────────────
+
+/**
+ * Mark the superbad_self profile as complete.
+ *
+ * Called by the reveal client at the end of the cinematic sequence, once the
+ * first impression + prose portrait are both on screen. Sets
+ * `status = 'complete'` + `completed_at_ms`. This is the trigger that lets
+ * the Brand DNA Gate clear — the NextAuth `jwt` callback (BDA-4) reads this.
+ *
+ * Idempotent: safe to call more than once. If already complete, no-ops.
+ */
+export async function markProfileComplete(profileId: string): Promise<void> {
+  if (!isAssessmentEnabled()) return;
+  if (!profileId || typeof profileId !== "string") return;
+
+  const rows = await db
+    .select({
+      id: brand_dna_profiles.id,
+      status: brand_dna_profiles.status,
+    })
+    .from(brand_dna_profiles)
+    .where(eq(brand_dna_profiles.id, profileId))
+    .limit(1);
+
+  const existing = rows[0];
+  if (!existing) return;
+  if (existing.status === "complete") return;
+
+  await db
+    .update(brand_dna_profiles)
+    .set({
+      status: "complete",
+      completed_at_ms: Date.now(),
+      updated_at_ms: Date.now(),
+    })
+    .where(eq(brand_dna_profiles.id, profileId));
+
+  const session = await auth();
+  await logActivity({
+    kind: "onboarding_brand_dna_completed",
+    body: `Brand DNA assessment complete`,
+    createdBy: session?.user?.id ?? null,
+  });
 }
 
 // ── Exported helpers (for section page to read profile ID without auth) ───────

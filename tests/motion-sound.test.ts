@@ -9,11 +9,11 @@ import { SOUND_KEYS, soundRegistry } from "@/lib/sounds"
 import { houseSpring } from "@/lib/design-tokens"
 
 describe("Tier 2 choreography registry", () => {
-  it("has exactly 7 locked keys", () => {
-    expect(TIER_2_KEYS).toHaveLength(7)
+  it("has exactly 8 locked keys", () => {
+    expect(TIER_2_KEYS).toHaveLength(8)
   })
 
-  it("names the 7 moments from docs/specs/design-system-baseline.md §Motion", () => {
+  it("names the 8 moments from docs/specs/design-system-baseline.md §Motion + brand-dna-assessment §10.5", () => {
     expect([...TIER_2_KEYS].sort()).toEqual(
       [
         "dashboard-first-load",
@@ -23,6 +23,7 @@ describe("Tier 2 choreography registry", () => {
         "wizard-complete",
         "portal-first-load",
         "inbox-zero",
+        "brand-dna-reveal",
       ].sort()
     )
   })
@@ -57,11 +58,11 @@ describe("houseSpring preset", () => {
 })
 
 describe("Sound registry", () => {
-  it("has exactly 7 locked keys", () => {
-    expect(SOUND_KEYS).toHaveLength(7)
+  it("has exactly 8 locked keys", () => {
+    expect(SOUND_KEYS).toHaveLength(8)
   })
 
-  it("matches the spec's canonical kebab-case keys", () => {
+  it("matches the spec's canonical keys (kebab-case with one underscore-cased entry per brand-dna-assessment §10.5)", () => {
     expect([...SOUND_KEYS].sort()).toEqual(
       [
         "quote-accepted",
@@ -71,6 +72,7 @@ describe("Sound registry", () => {
         "inbox-arrival",
         "deliverable-complete",
         "error",
+        "brand_dna_reveal",
       ].sort()
     )
   })
@@ -79,7 +81,7 @@ describe("Sound registry", () => {
     for (const key of SOUND_KEYS) {
       const entry = soundRegistry[key]
       expect(entry.key).toBe(key)
-      expect(entry.src).toMatch(/^\/sounds\/approved\/[a-z-]+\.mp3$/)
+      expect(entry.src).toMatch(/^\/sounds\/approved\/[a-z_-]+\.mp3$/)
       expect(entry.volume).toBeGreaterThan(0)
       expect(entry.volume).toBeLessThanOrEqual(1)
       expect(entry.character.length).toBeGreaterThan(0)

@@ -185,6 +185,7 @@ export const ACTIVITY_LOG_KINDS = [
   "onboarding_started",
   "onboarding_welcome_email_sent",
   "onboarding_brand_dna_started",
+  "onboarding_brand_dna_completed",
   "onboarding_revenue_seg_completed",
   "onboarding_product_config_completed",
   "onboarding_practical_setup_step_completed",

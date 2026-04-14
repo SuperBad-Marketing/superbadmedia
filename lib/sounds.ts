@@ -1,8 +1,9 @@
 /**
- * Sound registry — locked at 7 sounds per FOUNDATIONS §10 + design system
- * baseline §Sound. Adding an 8th requires explicit Andy approval; gate is
- * the same scarcity discipline as the Tier 2 motion list and the BHS closed
- * list.
+ * Sound registry — locked at 8 sounds per FOUNDATIONS §10 + design system
+ * baseline §Sound. The 8th slot is `brand_dna_reveal` (BDA-3) per
+ * `docs/specs/brand-dna-assessment.md` §10.5. Adding a 9th requires explicit
+ * Andy approval; gate is the same scarcity discipline as the Tier 2 motion
+ * list and the BHS closed list.
  *
  * Keys are canonical and kebab-cased (mirroring the spec). Files are
  * self-hosted under `/public/sounds/approved/<key>.mp3`. Files land in a
@@ -22,6 +23,7 @@ export const SOUND_KEYS = [
   "inbox-arrival",
   "deliverable-complete",
   "error",
+  "brand_dna_reveal",
 ] as const;
 
 export type SoundKey = (typeof SOUND_KEYS)[number];
@@ -87,5 +89,12 @@ export const soundRegistry: Record<SoundKey, SoundRegistryEntry> = {
     volume: 0.4,
     expectedDurationMs: 250,
     character: "Low warm thud, low frequency, warm wooden character — respectful failure, never harsh",
+  },
+  brand_dna_reveal: {
+    key: "brand_dna_reveal",
+    src: "/sounds/approved/brand_dna_reveal.mp3",
+    volume: 0.45,
+    expectedDurationMs: 2400,
+    character: "Slow warm swell — airy pad with a distant bell that lands as the first impression fades in. Cinematic, not triumphant. Paired with the Tier 2 `brand-dna-reveal` choreography.",
   },
 };

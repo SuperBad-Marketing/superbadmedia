@@ -1,10 +1,11 @@
 /**
- * Tier 2 choreography registry — the 7 locked named moments.
+ * Tier 2 choreography registry — the 8 locked named moments.
  *
- * Per `docs/specs/design-system-baseline.md` §Motion. Anything not on this
- * list uses Tier 1 (`houseSpring`) — no new Tier 2 entries without explicit
- * Andy approval, treated with the same scarcity discipline as the sound
- * registry or the BHS closed list.
+ * Per `docs/specs/design-system-baseline.md` §Motion. The 8th slot is
+ * `brand-dna-reveal` (BDA-3) per `docs/specs/brand-dna-assessment.md` §10.5.
+ * Anything not on this list uses Tier 1 (`houseSpring`) — no new Tier 2
+ * entries without explicit Andy approval, treated with the same scarcity
+ * discipline as the sound registry or the BHS closed list.
  *
  * Each entry ships `initial` / `animate` variants + a Framer transition.
  * Consumers render with `<motion.div variants={tier2.quoteAccepted} ...>`.
@@ -30,6 +31,7 @@ export const TIER_2_KEYS = [
   "wizard-complete",
   "portal-first-load",
   "inbox-zero",
+  "brand-dna-reveal",
 ] as const;
 
 export type Tier2Key = (typeof TIER_2_KEYS)[number];
@@ -187,6 +189,37 @@ const inboxZero: ChoreographyEntry = {
   },
 };
 
+/**
+ * 8. Brand DNA reveal. Cinematic — first impression fades in, beat, then
+ *    section-by-section build of tags + prose over ~15–20s. Paired with
+ *    `brand_dna_reveal` sound. Per `docs/specs/brand-dna-assessment.md` §10.5.
+ *
+ *    The choreography exposes an `impression` variant for the solo
+ *    first-impression fade, plus a `section` variant consumed by the
+ *    section-by-section builder. Container is stagger-orchestrated.
+ */
+const brandDnaReveal: ChoreographyEntry = {
+  description:
+    "Cinematic reveal: first impression fades in alone (~1.2s), a 2–3s beat, then section-by-section tags + prose materialise over ~15–20s. Paired with `brand_dna_reveal` sound.",
+  durationMs: 20000,
+  variants: {
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0 },
+  },
+  transition: { duration: 1.2, ease: tier2SlowOut },
+  container: {
+    variants: {
+      initial: {},
+      animate: { transition: { staggerChildren: 0.6, delayChildren: 3.2 } },
+    },
+    transition: { staggerChildren: 0.6, delayChildren: 3.2 },
+  },
+  reduced: {
+    variants: { initial: { opacity: 0 }, animate: { opacity: 1 } },
+    transition: { duration: 0.24, ease: "linear" },
+  },
+};
+
 export const tier2: Record<Tier2Key, ChoreographyEntry> = {
   "dashboard-first-load": dashboardFirstLoad,
   "morning-brief-open": morningBriefOpen,
@@ -195,6 +228,7 @@ export const tier2: Record<Tier2Key, ChoreographyEntry> = {
   "wizard-complete": wizardComplete,
   "portal-first-load": portalFirstLoad,
   "inbox-zero": inboxZero,
+  "brand-dna-reveal": brandDnaReveal,
 };
 
 /**

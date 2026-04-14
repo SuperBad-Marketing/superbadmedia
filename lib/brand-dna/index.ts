@@ -24,3 +24,7 @@ export {
 export type { Question, QuestionOption } from "./question-bank";
 
 export { generateSectionInsight } from "./generate-insight";
+
+// ── BDA-3: portrait generation + reveal ──────────────────────────────────────
+export { generateFirstImpression } from "./generate-first-impression";
+export { generateProsePortrait } from "./generate-prose-portrait";
