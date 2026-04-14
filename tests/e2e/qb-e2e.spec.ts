@@ -35,11 +35,10 @@ test.describe("qb-e2e / public quote accept (manual-billed, project)", () => {
     }
   });
 
-  test("blocker precondition — manual-invoice enqueue kill-switch is OFF", () => {
-    // Hard guard: if BI-1 flips this default ON before BI-E2E lands, the
-    // §3 bullet "zero manual_invoice_generate row" below would start to
-    // legitimately fail. Fail loudly here rather than further down.
-    expect(killSwitches.invoicing_manual_cycle_enqueue_enabled).toBe(false);
+  test("precondition — manual-invoice enqueue kill-switch is ON (BI-1b flip)", () => {
+    // Flipped on 2026-04-15 at BI-1b close. The post-accept assertion
+    // below now expects exactly one `manual_invoice_generate` row.
+    expect(killSwitches.invoicing_manual_cycle_enqueue_enabled).toBe(true);
   });
 
   test("client loads quote → view-tracking flips sent → viewed", async ({
@@ -155,8 +154,8 @@ test.describe("qb-e2e / public quote accept (manual-billed, project)", () => {
           .all();
         expect(acceptedRows.length).toBeGreaterThanOrEqual(1);
 
-        // Manual-invoice enqueue MUST be gated off (kill-switch=false).
-        // No scheduled_tasks row of that type should exist.
+        // With BI-1b's kill-switch flip, accept.ts now enqueues exactly
+        // one `manual_invoice_generate` task for the first billing cycle.
         const manualInvoiceRows = await db
           .select()
           .from(scheduled_tasks)
@@ -164,7 +163,7 @@ test.describe("qb-e2e / public quote accept (manual-billed, project)", () => {
             eq(scheduled_tasks.task_type, "manual_invoice_generate"),
           )
           .all();
-        expect(manualInvoiceRows).toHaveLength(0);
+        expect(manualInvoiceRows).toHaveLength(1);
 
         // NOTE: the brief (and spec §5.1) expect a `quote_settled`
         // activity_log row on accept. Current code emits that row only

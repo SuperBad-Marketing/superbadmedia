@@ -35,11 +35,12 @@ const defaults: KillSwitchRegistry = {
   setup_wizards_enabled: false,
   wizards_nudges_enabled: false,
   // QB-6: gate for `manual_invoice_generate` enqueue in
-  // `lib/quote-builder/accept.ts`. Default false — flip on ONLY after
-  // BI-1 lands the `invoices` table + `generateInvoice`/`sendInvoice`
-  // primitives. Until then, manual-billed acceptance skips the enqueue
-  // rather than minting dead-lettered tasks.
-  invoicing_manual_cycle_enqueue_enabled: false,
+  // `lib/quote-builder/accept.ts`. Flipped ON 2026-04-15 at end of BI-1b
+  // once the invoice pipeline (BI-1a schema + primitives + handlers) and
+  // the token-gated PDF + public read-only view (BI-1b) were all green.
+  // Admin compose/edit + Stripe Payment Element land in BI-2; they do
+  // not depend on this flag.
+  invoicing_manual_cycle_enqueue_enabled: true,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch
