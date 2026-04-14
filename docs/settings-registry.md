@@ -150,6 +150,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `pipeline.stale_thresholds.negotiating_days` | `3` | integer | Days in negotiating stage before stale halo fires |
 | `pipeline.snooze_default_days` | `3` | integer | Default snooze duration when Andy snoozes a stale deal |
 | `pipeline.stripe_webhook_dispatch_enabled` | `true` | boolean | Master kill switch for Stripe webhook business dispatch (signature verification + idempotency still run when `false`, only deal/company mutations are skipped) |
+| `pipeline.resend_webhook_dispatch_enabled` | `true` | boolean | Master kill switch for Resend webhook business dispatch (signature verification + idempotency still run when `false`, only contact/deal/company mutations are skipped) |
 
 ---
 
@@ -164,7 +165,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Alerts: 3 (added 2026-04-14, A5)
 - Legal: 2 (added 2026-04-13, B3)
 - Hiring: 28
-- Sales Pipeline: 8 (SP-3 seeded 7; SP-7 added 1 — `stripe_webhook_dispatch_enabled`)
-- **Total: 81 keys at v1.0 seed** (was 73 pre-SP-3, 80 pre-SP-7)
+- Sales Pipeline: 9 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1 — `resend_webhook_dispatch_enabled`)
+- **Total: 82 keys at v1.0 seed** (was 73 pre-SP-3, 80 pre-SP-7, 81 pre-SP-8)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.
