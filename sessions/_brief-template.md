@@ -94,6 +94,9 @@ Concrete, verifiable list. Each item must be confirmable via grep / curl / typec
 - [ ] `npm test` → green (X / Y).
 - [ ] `npm run build` → clean.
 - [ ] (UI work) dev server boots on `:3001`, `<route>` returns 200.
+- [ ] (UI work) G10 mockup parity check complete — side-by-side screenshots of built route vs each §2a mockup in the handoff.
+- [ ] **G10.5 external-reviewer gate** — sub-agent verdict is `PASS` or `PASS_WITH_NOTES`; verdict attached verbatim to handoff; any notes logged to `PATCHES_OWED.md`. FAIL = session closes as FAILED handoff.
+- [ ] **Memory-alignment declaration** — handoff lists every applied memory with a one-line "how applied" per G11.
 - [ ] G-gates run end-to-end (G0 → G12) with a clean handoff written.
 
 ## 10. Notes for the next-session brief writer (G11 extension)

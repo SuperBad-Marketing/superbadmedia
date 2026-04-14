@@ -137,6 +137,41 @@ For any UI-touching session:
 
 Type checks verify code; browser verifies feature; mockup verifies feel. All three required.
 
+### G10.5 — External reviewer gate (spec-intent ↔ built-reality)
+
+**Added 2026-04-14.** The G0–G10 checks are all self-verified by the same agent that wrote the feature. The agent writes the code, writes the tests, and writes the handoff claiming the tests validate the feature — a closed loop. Mechanical checks (types / tests / lint / build) pass because the agent is internally consistent, not because the implementation matches the spec. The Brand DNA flagship drift (2026-04-14) — built cleanly per the spec's words while missing every visual cue the mockup encoded — is a type specimen of this failure mode.
+
+**The gate:** before writing the handoff, the session spawns a sub-agent (via the `Agent` tool, subagent_type `general-purpose`) with a clean context and hands it **only**:
+
+1. The relevant `docs/specs/<spec>.md` sections the brief named.
+2. Every `mockup-*.html` / brand-guidelines HTML the brief's §2a named.
+3. Every memory file referenced by the session (the sub-agent reads `MEMORY.md` and selectively loads the relevant entries).
+4. The session's diff (from `git diff` at this point) or a focused subset if the diff is large.
+5. The brief's acceptance criteria verbatim.
+
+The sub-agent's sole task is to grade alignment between spec-intent and built-reality across these axes, with no access to the building agent's reasoning:
+
+- **Spec fidelity:** does the diff implement what the spec required? Business rules, edge cases, data shapes — not paraphrases.
+- **Mockup fidelity (for `UI` type):** does the built surface visually match the referenced mockup(s)? Palette, typography, chrome, motion.
+- **Voice fidelity (for any user-visible copy):** does the copy match `docs/superbad_voice_profile.html`? Flag any corporate / generic / explain-the-joke drift.
+- **Memory alignment:** does the diff honour every memory named in the session's §G11 memory-alignment block? Flag silent violations.
+- **Test honesty:** do the tests validate the *spec's intent* or only the agent's interpretation? Flag tests that tautologically pass by asserting what the code happens to do.
+- **Scope discipline:** are there additions outside the brief's file whitelist? Is any feature silently narrowed or widened?
+
+The sub-agent returns a structured verdict: `PASS` / `PASS_WITH_NOTES` / `FAIL`, with a short rationale per axis and a numbered list of specific defects if present.
+
+**Outcomes:**
+
+- `PASS` — proceed to G11.
+- `PASS_WITH_NOTES` — defects are logged to `PATCHES_OWED.md` with a note-tag and session id; proceed to G11.
+- `FAIL` — the session **cannot** close green. Either the building agent fixes the flagged defects in-session and re-runs G10.5, or the session ends as a FAILED handoff with the reviewer's verdict attached. The autonomous loop treats `FAIL` as a verification failure (standard FAILED-handoff path; human required).
+
+**Why a sub-agent instead of a second pass by the same agent:** the building agent has a stake in defending its implementation. A fresh context with no prior investment and no memory of the build steps grades what the code *does* against what the spec *says*, not what the builder *meant*. This is the same logic as a code reviewer not being the author — except automated.
+
+**Cost budget:** the reviewer sub-agent runs with a bounded prompt (spec sections + mockup + memories + diff + criteria). Budget ~5–15% of the session's token spend; far cheaper than re-doing a wave after silent drift ships.
+
+**Reviewer prompt template:** lives at `sessions/_reviewer-prompt-template.md`. The session substitutes the brief-specific inputs and passes the rendered prompt to the sub-agent.
+
 ### G11 — Handoff note
 
 Write `sessions/<id>-handoff.md`. Must cover:
@@ -147,6 +182,8 @@ Write `sessions/<id>-handoff.md`. Must cover:
 - Rollback declaration (per G6).
 - Open threads for the next session.
 - Any new rows added to `PATCHES_OWED.md`.
+- **Memory-alignment declaration** (added 2026-04-14): list every memory from `MEMORY.md` that applied to this session, and in one line each state *how* the diff honoured it. Format: `- <memory-filename> — <one-line how applied>`. If a memory's guidance was knowingly not applied, state that and why. Silent memory violations are a G10.5 fail; declaring a conflict is not. This section forces the building agent to confront memory conflicts rather than ignoring them.
+- **G10.5 reviewer verdict**: attach the sub-agent's PASS / PASS_WITH_NOTES / FAIL verdict and its per-axis rationale verbatim. Do not paraphrase.
 
 Handoff is the contract with the next session. Treat it as authoritative.
 
@@ -174,6 +211,28 @@ Phase 4 was meant to pre-compile every `sessions/<id>-brief.md` up-front. That d
 - Auto-commit (per CLAUDE.md). Message format: `[PHASE-5] <Wave> <session-id> — <short summary>`.
 - Never push. Never amend.
 - Never commit files that may contain secrets.
+
+### G12.5 — Wave-boundary human checkpoint
+
+**Added 2026-04-14.** The existing critical-flow checkpoint (G10 autonomy-loop pause on QB-E2E / BI-E2E / SB-E2E / CM-E2E / IF-E2E completion) surfaces the five biggest reviews in 209 sessions. That's too thin. Silent drift can accumulate across an entire wave before a critical-flow pause catches it — and many waves don't have a critical-flow E2E at their close at all. The wave-boundary checkpoint closes that gap.
+
+**Trigger:** when a session closes and its completion marks the **last session in a Wave** per `BUILD_PLAN.md`, the session performs the critical-flow checkpoint dance regardless of whether the wave ended on a critical-flow E2E:
+
+- Write `.autonomy/PAUSED` containing `Wave <n> complete <timestamp>. Human review required before loop resumes. Delete this file + push to continue.`
+- Append a matching pause note to SESSION_TRACKER.md Next Action.
+- Delete `.autonomy/LOCK`.
+- Commit `[AUTONOMY] Wave <n> complete — wave-boundary checkpoint pause.`
+- Push. Exit (do NOT self-chain).
+
+**Andy's review at each wave boundary** (10 minutes minimum):
+
+- Walk every client-facing route added in the wave in a browser. Compare to the mockups.
+- Sample 5 recent PATCHES_OWED rows — confirm they describe real deferrals, not hidden scope cuts.
+- Sample 2 G10.5 reviewer verdicts — confirm PASS verdicts look like genuine grading, not rubber-stamps.
+- Read the last handoff's Memory-alignment declaration — sanity-check that applied memories were really applied.
+- If anything feels off, write a remediation brief and bump it ahead of the next wave's kickoff.
+
+The cost of each pause is ~10 minutes of Andy's time. The cost of skipping it is discovering drift three waves later and rebuilding — Brand DNA is the first example; the next would cost more because later waves build on earlier ones.
 
 ---
 
