@@ -29,6 +29,11 @@ import {
 import { transitionQuoteStatus } from "@/lib/quote-builder/transitions";
 import { sendEmail } from "@/lib/channels/email/send";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import {
+  forkDraftFromSent,
+  finaliseSupersedeOnSend,
+} from "@/lib/quote-builder/supersede";
+import { withdrawQuote } from "@/lib/quote-builder/withdraw";
 import { paragraphsToHtml } from "@/lib/quote-builder/compose-send-email";
 import { logActivity } from "@/lib/activity-log";
 import { settingsRegistry } from "@/lib/settings";
@@ -333,7 +338,12 @@ export async function sendQuoteAction(input: {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
     const row = await db
-      .select({ token: quotes.token, status: quotes.status, expires_at_ms: quotes.expires_at_ms })
+      .select({
+        token: quotes.token,
+        status: quotes.status,
+        expires_at_ms: quotes.expires_at_ms,
+        supersedes_quote_id: quotes.supersedes_quote_id,
+      })
       .from(quotes)
       .where(eq(quotes.id, input.quote_id))
       .get();
@@ -359,15 +369,31 @@ export async function sendQuoteAction(input: {
     }
 
     // Transition only after the email lands. Concurrency-guarded.
-    await transitionQuoteStatus({
-      quote_id: input.quote_id,
-      from: "draft",
-      to: "sent",
-      patch: {
-        sent_at_ms: Date.now(),
+    // If this draft was forked from a live quote (edit-after-send
+    // flow, §7.7), the old row must transition to `superseded` in the
+    // same txn as the new row flips to `sent`.
+    if (row.supersedes_quote_id) {
+      const supersedeResult = await finaliseSupersedeOnSend({
+        new_quote_id: input.quote_id,
         thread_message_id: result.messageId ?? null,
-      },
-    });
+      });
+      if (!supersedeResult.ok) {
+        return {
+          ok: false,
+          error: `Send ok but supersede finalise failed — ${supersedeResult.error}.`,
+        };
+      }
+    } else {
+      await transitionQuoteStatus({
+        quote_id: input.quote_id,
+        from: "draft",
+        to: "sent",
+        patch: {
+          sent_at_ms: Date.now(),
+          thread_message_id: result.messageId ?? null,
+        },
+      });
+    }
 
     // Warm the PDF cache offline so the first client click is instant.
     await enqueueTask({
@@ -400,6 +426,76 @@ export async function sendQuoteAction(input: {
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Send failed.",
+    };
+  }
+}
+
+/**
+ * Edit-after-send (§7.7). Forks a new `draft` row from a `sent` or
+ * `viewed` source. Returns the new quote id so the caller can redirect
+ * into its edit page. Idempotent — clicking Edit twice on the same
+ * source returns the existing open fork.
+ */
+export async function forkDraftFromSentAction(input: {
+  deal_id: string;
+  source_quote_id: string;
+}): Promise<ActionResult<{ quote_id: string }>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+  try {
+    const result = await forkDraftFromSent({
+      source_quote_id: input.source_quote_id,
+      user_id: session.user.id,
+    });
+    if (!result.ok || !result.quote) {
+      return { ok: false, error: result.error ?? "Fork failed." };
+    }
+    revalidatePath(`/lite/admin/deals/${input.deal_id}`);
+    return { ok: true, value: { quote_id: result.quote.id } };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Fork failed.",
+    };
+  }
+}
+
+/**
+ * Withdraw (§7.8). Transitions draft/sent/viewed → withdrawn and
+ * cancels pending scheduled_tasks on the quote. No replacement.
+ */
+export async function withdrawQuoteAction(input: {
+  deal_id: string;
+  quote_id: string;
+  reason?: string | null;
+}): Promise<ActionResult<{ withdrawn_at_ms: number }>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+  try {
+    const result = await withdrawQuote({
+      quote_id: input.quote_id,
+      reason: input.reason ?? null,
+      by_user_id: session.user.id,
+    });
+    if (!result.ok || !result.quote) {
+      return { ok: false, error: result.error ?? "Withdraw failed." };
+    }
+    revalidatePath(
+      `/lite/admin/deals/${input.deal_id}/quotes/${input.quote_id}/edit`,
+    );
+    revalidatePath(`/lite/admin/deals/${input.deal_id}`);
+    return {
+      ok: true,
+      value: { withdrawn_at_ms: result.quote.withdrawn_at_ms ?? Date.now() },
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Withdraw failed.",
     };
   }
 }

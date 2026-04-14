@@ -67,7 +67,7 @@ export async function handleQuoteExpire(
         quote_id: quote.id,
         from: priorStatus,
         to: "expired",
-        patch: { expires_at_ms: Date.now() },
+        patch: { expired_at_ms: Date.now() },
       },
       database,
     );

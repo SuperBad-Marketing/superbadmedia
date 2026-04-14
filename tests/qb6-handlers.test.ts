@@ -164,7 +164,7 @@ describe("QB-6 — handleQuoteExpire", () => {
 
     const row = testDb.select().from(quotes).where(eq(quotes.id, "q-1")).get();
     expect(row.status).toBe("expired");
-    expect(row.expires_at_ms).toBeTypeOf("number");
+    expect(row.expired_at_ms).toBeTypeOf("number");
 
     expect(sendEmailMock).toHaveBeenCalledTimes(1);
     const call = sendEmailMock.mock.calls[0][0] as {

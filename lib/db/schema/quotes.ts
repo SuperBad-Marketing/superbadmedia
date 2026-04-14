@@ -66,6 +66,9 @@ export const quotes = sqliteTable(
     viewed_at_ms: integer("viewed_at_ms"),
     accepted_at_ms: integer("accepted_at_ms"),
     expires_at_ms: integer("expires_at_ms"),
+    // Actual transition timestamp for status='expired'. Distinct from
+    // `expires_at_ms` (the scheduled expiry). Populated by handleQuoteExpire.
+    expired_at_ms: integer("expired_at_ms"),
     superseded_at_ms: integer("superseded_at_ms"),
     withdrawn_at_ms: integer("withdrawn_at_ms"),
 

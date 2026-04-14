@@ -72,6 +72,7 @@ export type QuoteTransitionPatch = Partial<
     | "viewed_at_ms"
     | "accepted_at_ms"
     | "expires_at_ms"
+    | "expired_at_ms"
     | "superseded_at_ms"
     | "withdrawn_at_ms"
     | "accepted_content_hash"

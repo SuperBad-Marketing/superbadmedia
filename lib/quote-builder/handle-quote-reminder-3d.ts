@@ -98,7 +98,7 @@ export async function handleQuoteReminder3d(
         ? composed.drift.notes
           ? "pass_with_notes"
           : "pass"
-        : "fail_redraft",
+        : "fail_observed",
       llm_job: "draft-quote-reminder-3d",
       attempts: input.attempts ?? 0,
       fallback_used: composed.fallbackUsed,
