@@ -312,6 +312,18 @@ Four legal/product questions surfaced by Batch C step 13 and answered by Andy in
 
 - `app/lite/login/page.tsx` · **Dev-only placeholder page is live but uncommitted** — Untracked file surfaced during SP-4 cleanup. Working `signIn("credentials", …)` form with raw inline styles, no design-system use; self-describes as "Dev-only placeholder. Real login page lands in Wave 2 B-series." Wave 2 B-series closed without replacing it, so admin sign-in in dev currently runs through this page. Needs a proper login surface on house typography + primitives + motion + sound, correct error states, and (per `feedback_setup_is_hand_held` + `feedback_individual_feel`) a branded feel rather than a raw form. File is intentionally left untracked until a dedicated session lands the real page — committing the placeholder would risk it calcifying. Token: `sp4_login_placeholder_owed`. · SP-4 cleanup · 2026-04-14 · **gate: dedicated login-page session (probably sequenced near admin shell UI wave)**
 
+### SB-5 — public checkout page (2026-04-15)
+
+- `/get-started/pricing` → `/get-started/checkout` → Stripe Payment Element (test card `4242 4242 4242 4242`) → `/get-started/welcome` · Andy to walk the full conversion flow end-to-end in the browser. Unit + Playwright coverage is hermetic (fake Stripe); this is the first live Stripe Payment Element surface on a public money path, so manual confirmation matters. Token: `sb5_manual_browser_verify`. · SB-5 · 2026-04-15 · **gate: non-blocking; before launch or next SB wave close**
+
+### Post-v1.0 braindump — future-proofing hooks (2026-04-15)
+
+Cheap v1.0 moves that keep future features (three-mode outreach, platform-data audience seeds, SuperBad-as-a-service) from being expensive retrofits. Each row is a small, zero-to-low-cost insert into an existing Phase 5 build session — not a new feature.
+
+- `docs/specs/outreach-engine.md` + outreach/prospects schema · Add `mode` enum column to `prospects` table (`trial_shoot` | `saas` | `unified`), default `trial_shoot` for v1.0. ICP scoring remains single-track in v1.0, but the column lets post-v1.0 three-mode outreach (per `project_outreach_three_modes`) land without a backfill migration over a populated table. · Braindump 2026-04-15 · 2026-04-15 · **gate: Phase 5 Outreach build session**
+- `FOUNDATIONS.md` §11 (or nearest event-log primitive) + relevant spec schemas · Ensure SaaS subscription lifecycle events, prospect reply events, and retainer conversion events are written to a durable event log with at minimum `{email, timestamp, source, outcome}` — enough signal to later export to Meta/Google Conversions API for lookalike + retarget audience seeding (per `project_lookalike_retarget_from_platform_data`). No sync to build in v1.0; requirement is "don't lose the data." Audit existing tables first — most fields likely already present; patch is confirming + adding any gaps. · Braindump 2026-04-15 · 2026-04-15 · **gate: Phase 5 SaaS billing + Outreach + Sales Pipeline build sessions (cross-cut audit)**
+- Core tables (`clients`, `brand_dna_profiles`, `settings`, and any other top-level tenant-scoped entity) · **Only if zero-cost**, add nullable `tenant_id` column at table-creation time to preserve optionality for the v3+ SuperBad-as-a-service idea (per `project_superbad_as_a_service`). Skip anywhere it adds real complexity to queries, RLS, or joins — this is a "take it if free" patch, not a multi-tenancy build. Default `NULL` = Andy's own tenant in v1.0. · Braindump 2026-04-15 · 2026-04-15 · **gate: Phase 5 foundation + each core-entity build session (zero-cost check only)**
+
 ## Applied
 
 All rows below applied by `phase-3.5-backward-reconciliation` on 2026-04-13 unless noted.

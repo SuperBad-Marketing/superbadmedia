@@ -221,6 +221,83 @@ export async function listActivePricingProducts(): Promise<PricingProduct[]> {
   }));
 }
 
+/**
+ * Single-product-and-tier load for `/get-started/checkout`.
+ *
+ * Resolves `tierId` and validates it belongs to an `active` product with
+ * the given slug, and that all three Stripe Price IDs are populated.
+ * Returns null for any failed check — the route redirects to
+ * `/get-started/pricing` on null.
+ *
+ * Owner: SB-5.
+ */
+export type CheckoutTierLoad = {
+  product: SaasProductRow;
+  tier: SaasTierRow;
+};
+
+export async function loadTierForCheckout(
+  tierId: string,
+  productSlug: string,
+): Promise<CheckoutTierLoad | null> {
+  const [tier] = await db
+    .select()
+    .from(saas_tiers)
+    .where(eq(saas_tiers.id, tierId))
+    .limit(1);
+  if (!tier) return null;
+
+  const [product] = await db
+    .select()
+    .from(saas_products)
+    .where(eq(saas_products.id, tier.product_id))
+    .limit(1);
+  if (!product) return null;
+
+  if (product.slug !== productSlug) return null;
+  if (product.status !== "active") return null;
+  if (
+    !tier.stripe_monthly_price_id ||
+    !tier.stripe_annual_price_id ||
+    !tier.stripe_upfront_price_id
+  ) {
+    return null;
+  }
+
+  return { product, tier };
+}
+
+/**
+ * Full Suite highest-tier monthly price (GST-inclusive cents), or null if
+ * no Full Suite product is live. Used by the checkout page's second-
+ * product nudge line per spec §3.3 and SB-5 brief AC5.
+ */
+export async function loadFullSuiteTopTierMonthlyCents(): Promise<number | null> {
+  const [fs] = await db
+    .select()
+    .from(saas_products)
+    .where(eq(saas_products.slug, "full-suite"))
+    .limit(1);
+  if (!fs || fs.status !== "active") return null;
+
+  const tiers = await db
+    .select()
+    .from(saas_tiers)
+    .where(eq(saas_tiers.product_id, fs.id))
+    .orderBy(asc(saas_tiers.tier_rank));
+  if (tiers.length === 0) return null;
+
+  let topCents = tiers[0].monthly_price_cents_inc_gst;
+  let topRank = tiers[0].tier_rank;
+  for (const t of tiers) {
+    if (t.tier_rank > topRank) {
+      topRank = t.tier_rank;
+      topCents = t.monthly_price_cents_inc_gst;
+    }
+  }
+  return topCents;
+}
+
 export async function loadSaasProductDetail(
   productId: string,
 ): Promise<SaasProductDetail | null> {
