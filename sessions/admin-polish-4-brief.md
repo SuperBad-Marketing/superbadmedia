@@ -52,6 +52,16 @@
 8. **Tables inherit §7 verbatim** (polish-3 locked) — Righteous 10px / 2px-tracking headers on 5% cream bottom border; `rgba(253,245,230,0.03)` row hairlines; row hover `rgba(253,245,230,0.025)`; numeric columns Righteous with letter-spacing. Never `<Card>` or `<Table>` component with theme tokens.
 9. **Warm alert banner recipe** (polish-3 locked) — `linear-gradient(135deg, rgba(178,40,72,0.12), rgba(242,140,82,0.06))` + `1px solid rgba(178,40,72,0.25)` + brand-orange eyebrow + neutral-300 body + pink italic footer. Cool variant (polish-2): `var(--color-surface-2)` + `1px solid rgba(244,160,176,0.18)`. Good variant (unused so far): success rgba.
 
+## 2b. Archetype-vs-tabs resolution (locked 2026-04-16)
+
+The existing `/lite/admin/companies/[id]` surface is a **tabbed page** with `TrialShootPanel` + `BillingTab` as working features. The entity-detail archetype this brief describes lands as a **new default "Overview" tab** — it does not replace the existing tabs. Final tab strip: **Overview** (default, new) · **Trial Shoot** (existing, untouched) · **Billing** (existing, untouched).
+
+- Default URL `/lite/admin/companies/[id]` → Overview tab (the §3 header + §6 hero + three linked panels + §11 banners described below).
+- `/lite/admin/companies/[id]?tab=trial-shoot` → existing `TrialShootPanel`, no changes.
+- `/lite/admin/companies/[id]?tab=billing` → existing `BillingTab`, no changes.
+- Tab strip chrome is visual-polished to the admin-interior §3 vocabulary (Righteous 10–11px / ≥1.5px tracked labels, `layoutId` underline on the active tab using `houseSpring`). No library install — mirror the invoice-filter-active `layoutId` pattern from polish-3.
+- `type Tab = "overview" | "trial-shoot" | "billing";` — `"overview"` is the new default and the value of `activeTab` when `sp.tab` is absent or unrecognised.
+
 ## 3. Acceptance criteria
 
 ```
@@ -69,7 +79,7 @@ Binding rules 01–10 (verbatim from mockup §13):
 10. Numeric columns and counts use Righteous with letter-spacing — never plain DM Sans tabular.
 ```
 
-Session-specific additions:
+Session-specific additions (all apply to the **Overview tab** content — see §2b; the Trial Shoot and Billing tabs are untouched):
 
 - **Hero summary card** — §6 data card. Company name is the BHS H1 in the header (not inside the card). Card carries: status chip (§5), vertical + size badges (Righteous, neutral tone), primary-contact line (contact name + role), engagement arc (days since first contact → last touch), one earned §9 BHS moment on lifetime value *or* Deal-Won count (whichever is the authoritative "paid moment" for this company).
 - **Linked-deals panel** — §6 card wrapping a §7 table. Columns: deal title / stage chip / value / next action / when-touched. Stage chips reuse the sales-pipeline palette from `admin-polish-1`. Empty state: "No deals yet." BHS 24px + Playfair italic `"we haven't tried to sell them anything."`.
@@ -89,7 +99,7 @@ Session-specific additions:
 
 ## 5. File whitelist (G2 scope discipline)
 
-- `app/lite/admin/companies/[id]/page.tsx` — `edit` — header block + hero summary card + linked-deals panel + linked-invoices panel + linked-contacts panel + conditional §11 banners.
+- `app/lite/admin/companies/[id]/page.tsx` — `edit` — header block (shared across tabs) + tab strip (add `"overview"` as default, polish chrome per §2b) + Overview-tab content (hero summary card + linked-deals panel + linked-invoices panel + linked-contacts panel + conditional §11 banners). **Existing `TrialShootPanel` and `BillingTab` branches stay exactly as-is** — do not refactor, rewire, or visually polish them in this session (defer to their own briefs). The `Tab` type widens to include `"overview"`; the `tabs` array gains an `{ id: "overview", label: "Overview" }` entry at index 0; `activeTab` defaults to `"overview"` when `sp.tab` is absent or unrecognised.
 - **May add** `components/lite/admin/companies/company-status-badge.tsx` if a company status chip doesn't already exist — grep first. If adding, mirror `InvoiceStatusBadge` pattern verbatim (TONE map + 1×1 dot + Righteous 10px / 1.5px).
 - **May add** a shared `components/lite/admin/linked-panel.tsx` **only if** the three panels share ≥3 chrome concerns (surface-2 card + header row + §7 table + §8 empty state) and inlining would triple-duplicate. Default is inline three panels; lift only if duplication is load-bearing. (Polish-session threshold: lift when the third consumer arrives.)
 
@@ -125,7 +135,8 @@ Session-specific additions:
 
 ## 9. Definition of done
 
-- [ ] `/lite/admin/companies/[id]` renders §3 entity-detail header (crumbs + BHS name + status chip + voiced deck + meta row) + conditional §11 archived/overdue banners + §6 hero summary card + §6 linked-deals panel (§7 rows + §8 voiced empty) + §6 linked-invoices panel (§7 rows + §8 voiced empty) + §6 linked-contacts panel (§7 rows + §8 voiced empty).
+- [ ] `/lite/admin/companies/[id]` (Overview tab — new default) renders §3 entity-detail header (crumbs + BHS name + status chip + voiced deck + meta row) + polished tab strip (Overview · Trial Shoot · Billing, `layoutId` active-underline on `houseSpring`) + conditional §11 archived/overdue banners + §6 hero summary card + §6 linked-deals panel (§7 rows + §8 voiced empty) + §6 linked-invoices panel (§7 rows + §8 voiced empty) + §6 linked-contacts panel (§7 rows + §8 voiced empty).
+- [ ] `?tab=trial-shoot` still renders `TrialShootPanel` unchanged; `?tab=billing` still renders `BillingTab` unchanged. No functional regression on either existing tab (manual browser check — open both, confirm render + interactions).
 - [ ] Every status / stage surfaces as a §5 chip (Righteous, ≥1.5px tracking, tinted).
 - [ ] One earned §9 BHS moment on the hero card (rule 05) — LTV or Deal-Won count.
 - [ ] All interactive surfaces use rule-09 `duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]` or `houseSpring` — **zero plain `transition` classes on hover affordances.**
