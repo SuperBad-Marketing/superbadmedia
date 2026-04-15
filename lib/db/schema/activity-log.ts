@@ -206,6 +206,7 @@ export const ACTIVITY_LOG_KINDS = [
   "saas_data_loss_warning_sent",
   "saas_usage_limit_reached",
   "saas_usage_period_rollover",
+  "saas_tier_downgrade_scheduled",
   // --- Setup Wizards (6) ---
   "wizard_started",
   "wizard_step_completed",

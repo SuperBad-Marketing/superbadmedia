@@ -44,6 +44,7 @@ export const SCHEDULED_TASK_TYPES = [
   "saas_annual_renewal_reminder",
   "saas_card_expiry_warning",
   "saas_subscription_usage_reset",
+  "saas_subscription_tier_downgrade_apply",
   // --- Cost & Usage Observatory (5) ---
   "cost_anomaly_detector_hard",
   "cost_anomaly_detector_rate",

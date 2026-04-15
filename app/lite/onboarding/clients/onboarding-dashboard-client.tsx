@@ -17,6 +17,7 @@
  * promotes the whole page to `at_cap` takeover per brief §Reconcile.
  */
 import Link from "next/link";
+import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { houseSpring } from "@/lib/design-tokens";
@@ -26,6 +27,7 @@ import type {
   DimensionSnapshot,
   NextTierInfo,
 } from "@/lib/saas-products/usage";
+import { requestSubscriberUpgradeAction } from "../actions-tier-change";
 
 function cadenceLabel(c: string | null): string {
   if (c === "annual_upfront") return "Annual — paid upfront";
@@ -260,19 +262,77 @@ function UpgradeCard({
   nextTier: NextTierInfo;
 }) {
   const priceAud = (nextTier.monthlyPriceCentsIncGst / 100).toFixed(0);
+  const [pending, startTransition] = useTransition();
+  const [state, setState] = useState<
+    | { kind: "idle" }
+    | { kind: "success"; tierName: string }
+    | { kind: "error"; message: string }
+  >({ kind: "idle" });
+
+  if (state.kind === "success") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={houseSpring}
+        data-testid="upgrade-celebration"
+        className="bg-foreground text-background relative flex w-full flex-col gap-3 overflow-hidden rounded-md px-6 py-6"
+      >
+        <Confetti />
+        <span className="text-xs uppercase tracking-[0.22em] opacity-60">
+          Done
+        </span>
+        <span className="font-heading text-2xl font-semibold md:text-3xl">
+          New tier's live.
+        </span>
+        <span className="text-sm opacity-80">
+          {productName} · {state.tierName}. The next invoice will pick up the
+          pro-ration.
+        </span>
+      </motion.div>
+    );
+  }
+
+  const onClick = () => {
+    setState({ kind: "idle" });
+    startTransition(async () => {
+      const res = await requestSubscriberUpgradeAction(nextTier.id);
+      if (!res.ok) {
+        setState({
+          kind: "error",
+          message: errorCopy(res.error),
+        });
+        return;
+      }
+      if (res.result && res.result.blocked) {
+        setState({
+          kind: "error",
+          message: "Usage is above the target tier's limit — upgrade instead.",
+        });
+        return;
+      }
+      setState({ kind: "success", tierName: nextTier.name });
+    });
+  };
+
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ y: pending ? 0 : -2 }}
+      whileTap={{ scale: pending ? 1 : 0.98 }}
       transition={houseSpring}
       data-testid="upgrade-cta"
+      data-pending={pending ? "true" : "false"}
     >
-      <Link
-        href="/lite/portal/subscription"
-        className="bg-foreground text-background hover:bg-foreground/90 flex w-full flex-col gap-2 rounded-md px-6 py-6 no-underline transition-colors"
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={pending}
+        className="bg-foreground text-background hover:bg-foreground/90 flex w-full flex-col gap-2 rounded-md px-6 py-6 text-left no-underline transition-colors disabled:opacity-70"
       >
         <span className="text-xs uppercase tracking-[0.22em] opacity-60">
-          Upgrade {currentTierName ? `from ${currentTierName}` : ""}
+          {pending
+            ? "Working…"
+            : `Upgrade ${currentTierName ? `from ${currentTierName}` : ""}`}
         </span>
         <span className="font-heading text-xl font-semibold md:text-2xl">
           {productName} · {nextTier.name}
@@ -280,8 +340,58 @@ function UpgradeCard({
         <span className="text-sm opacity-80">
           ${priceAud}/mo inc. GST · takes effect immediately
         </span>
-      </Link>
+      </button>
+      {state.kind === "error" ? (
+        <p
+          className="text-foreground/70 mt-2 text-xs"
+          data-testid="upgrade-error"
+        >
+          {state.message}
+        </p>
+      ) : null}
     </motion.div>
+  );
+}
+
+function errorCopy(code: string | undefined): string {
+  if (code === "tier_change_disabled") return "Tier changes are off right now. Try again shortly.";
+  if (code === "invalid_subscription_state")
+    return "Your subscription isn't in a state we can change right now. Open billing details.";
+  if (code === "no_subscription") return "No subscription on file.";
+  if (code === "unauthorised") return "Please sign in again.";
+  return "Something went sideways. Try again in a minute.";
+}
+
+function Confetti() {
+  const pieces = Array.from({ length: 12 });
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      aria-hidden
+      data-testid="confetti"
+    >
+      {pieces.map((_, i) => (
+        <motion.span
+          key={i}
+          className="bg-background absolute block h-1.5 w-1.5 rounded-full"
+          initial={{
+            x: `${(i * 8) % 100}%`,
+            y: "-10%",
+            opacity: 0,
+          }}
+          animate={{
+            y: "110%",
+            opacity: [0, 1, 1, 0],
+            rotate: i * 30,
+          }}
+          transition={{
+            duration: 1.2 + (i % 4) * 0.15,
+            delay: (i % 6) * 0.05,
+            ease: "easeOut",
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
