@@ -1,0 +1,1314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad Lite — admin interior reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red:      #B22848;
+    --brand-cream:    #FDF5E6;
+    --brand-pink:     #F4A0B0;
+    --brand-orange:   #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-950: #0F0F0E;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-400: #A8A596;
+    --neutral-300: #D4D2C2;
+    --neutral-100: #FDF5E6;
+    --success: #7BAE7E;
+    --warn:    #E4B062;
+    --surface-0: var(--neutral-900);
+    --surface-1: var(--neutral-800);
+    --surface-2: var(--neutral-700);
+    --radius-default: 8px;
+    --radius-generous: 16px;
+    --inner-highlight: inset 0 1px 0 rgba(253, 245, 230, 0.04);
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--surface-0);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 120px;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 70% 0%, rgba(242, 140, 82, 0.06), transparent 55%),
+                radial-gradient(ellipse at 0% 100%, rgba(178, 40, 72, 0.045), transparent 60%);
+  }
+
+  .sheet {
+    position: relative; z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 64px 48px;
+    display: flex; flex-direction: column; gap: 80px;
+  }
+
+  /* ---------- sheet header ---------- */
+  header.mast {
+    display: flex; flex-direction: column; gap: 18px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+    padding-bottom: 48px;
+  }
+  .mast .wordmark {
+    font-family: "Pacifico", cursive;
+    font-size: 34px; color: var(--brand-cream);
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .mast .wordmark .lite {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; color: var(--brand-pink);
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid rgba(244, 160, 176, 0.25);
+    border-radius: 4px;
+    align-self: center;
+  }
+  .mast .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 2px; color: var(--brand-pink);
+    text-transform: uppercase;
+  }
+  .mast h1 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 56px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.5px;
+  }
+  .mast .deck {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 20px; color: var(--brand-pink);
+    max-width: 720px; line-height: 1.5;
+  }
+  .mast .body {
+    font-size: 15px; color: var(--neutral-400);
+    max-width: 720px; line-height: 1.65;
+  }
+  .mast .body strong { color: var(--neutral-100); font-weight: 500; }
+
+  .mast .toc {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 24px;
+    margin-top: 8px;
+    font-size: 13px; color: var(--neutral-500);
+  }
+  .mast .toc a {
+    color: var(--neutral-400); text-decoration: none;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+    transition: color 160ms var(--spring), border-color 160ms var(--spring);
+  }
+  .mast .toc a:hover {
+    color: var(--brand-cream); border-color: rgba(244, 160, 176, 0.3);
+  }
+  .mast .toc a::before {
+    content: "§ "; color: var(--neutral-600); font-family: "Righteous"; letter-spacing: 1px;
+  }
+
+  /* ---------- section shell ---------- */
+  section.block { display: flex; flex-direction: column; gap: 24px; }
+  section.block > .heading {
+    display: flex; flex-direction: column; gap: 8px;
+    max-width: 760px;
+  }
+  section.block > .heading .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--brand-orange);
+  }
+  section.block > .heading h2 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 34px; color: var(--brand-cream);
+    line-height: 1.05; letter-spacing: -0.3px;
+  }
+  section.block > .heading p {
+    color: var(--neutral-400);
+    font-size: 15px; line-height: 1.6;
+  }
+  section.block > .heading p em {
+    color: var(--brand-pink); font-style: italic;
+  }
+
+  .specimen {
+    background: var(--surface-1);
+    border-radius: var(--radius-generous);
+    padding: 32px;
+    box-shadow: var(--inner-highlight);
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .specimen .caption {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .specimen .caption .label { color: var(--brand-cream); margin-right: 10px; }
+  .specimen .caption .note { color: var(--neutral-500); font-family: "DM Sans", sans-serif; font-style: italic; letter-spacing: 0; text-transform: none; font-size: 12px; }
+
+  .specimen-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+  }
+  .specimen-grid.triple { grid-template-columns: repeat(3, 1fr); }
+
+  /* ---------- chips / pills ---------- */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    background: rgba(253, 245, 230, 0.06);
+    color: var(--neutral-300);
+    border: 1px solid transparent;
+  }
+  .chip .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: 0.85;
+  }
+  /* stage chips — pipeline */
+  .chip.stage-lead        { background: rgba(244, 160, 176, 0.10); color: var(--brand-pink); }
+  .chip.stage-contacted   { background: rgba(242, 140, 82, 0.12); color: var(--brand-orange); }
+  .chip.stage-conversation{ background: rgba(228, 176, 98, 0.12); color: var(--warn); }
+  .chip.stage-trial       { background: rgba(228, 176, 98, 0.16); color: var(--warn); }
+  .chip.stage-quoted      { background: rgba(242, 140, 82, 0.18); color: var(--brand-orange); }
+  .chip.stage-negotiating { background: rgba(178, 40, 72, 0.18); color: var(--brand-pink); }
+  .chip.stage-won         { background: rgba(123, 174, 126, 0.14); color: var(--success); }
+  .chip.stage-lost        { background: rgba(128, 127, 115, 0.15); color: var(--neutral-400); }
+
+  /* status chips */
+  .chip.status-live       { background: rgba(123, 174, 126, 0.14); color: var(--success); }
+  .chip.status-draft      { background: rgba(244, 160, 176, 0.10); color: var(--brand-pink); }
+  .chip.status-sent       { background: rgba(242, 140, 82, 0.15); color: var(--brand-orange); }
+  .chip.status-viewed     { background: rgba(228, 176, 98, 0.14); color: var(--warn); }
+  .chip.status-accepted   { background: rgba(123, 174, 126, 0.18); color: var(--success); }
+  .chip.status-overdue    { background: rgba(178, 40, 72, 0.22); color: #F4A0B0; }
+  .chip.status-expired    { background: rgba(128, 127, 115, 0.12); color: var(--neutral-400); text-decoration: line-through; text-decoration-color: rgba(212, 210, 194, 0.25); }
+  .chip.status-stale      { background: transparent; color: var(--neutral-500); border: 1px dashed rgba(128, 127, 115, 0.4); }
+  .chip.status-paused     { background: rgba(128, 127, 115, 0.12); color: var(--neutral-400); }
+  .chip.status-soon       { background: rgba(253, 245, 230, 0.04); color: var(--neutral-500); border: 1px solid rgba(253, 245, 230, 0.08); }
+
+  /* numeric / meta pills */
+  .chip.meta-num {
+    font-family: "Righteous", sans-serif;
+    background: rgba(253, 245, 230, 0.05);
+    color: var(--neutral-300);
+    letter-spacing: 1.2px;
+  }
+
+  /* ---------- section header specimen ---------- */
+  .page-header {
+    display: flex; flex-direction: column; gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .page-header .crumbs {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .page-header .crumbs span.sep { color: var(--neutral-600); }
+  .page-header .crumbs span.here { color: var(--brand-pink); }
+  .page-header h3 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 40px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.4px;
+  }
+  .page-header .deck {
+    font-family: "DM Sans", sans-serif;
+    font-size: 16px; color: var(--neutral-400);
+    max-width: 640px; line-height: 1.55;
+  }
+  .page-header .deck em { color: var(--brand-pink); font-style: italic; }
+  .page-header .meta-row {
+    display: flex; gap: 16px; align-items: center;
+    font-size: 12px; color: var(--neutral-500);
+    margin-top: 6px;
+  }
+  .page-header .meta-row .sep { color: var(--neutral-700); }
+
+  /* ---------- toolbar ---------- */
+  .toolbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    box-shadow: var(--inner-highlight);
+  }
+  .toolbar .search {
+    flex: 1; min-width: 200px;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(15, 15, 14, 0.45);
+    border: 1px solid rgba(253, 245, 230, 0.04);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .toolbar .search input {
+    all: unset;
+    flex: 1; color: var(--brand-cream);
+    font-size: 13px;
+    font-family: "DM Sans";
+  }
+  .toolbar .search input::placeholder { color: var(--neutral-500); font-style: italic; }
+  .toolbar .search .hint {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 1.5px; color: var(--neutral-500);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 4px; padding: 2px 6px;
+  }
+  .toolbar .filter-group { display: flex; gap: 6px; }
+  .toolbar .filter {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 6px;
+    background: transparent;
+    color: var(--neutral-400);
+    border: 1px solid rgba(253, 245, 230, 0.05);
+    cursor: pointer;
+    transition: background 160ms var(--spring), color 160ms var(--spring), border-color 160ms var(--spring);
+  }
+  .toolbar .filter:hover { color: var(--brand-cream); border-color: rgba(244, 160, 176, 0.2); }
+  .toolbar .filter.active {
+    background: rgba(178, 40, 72, 0.16);
+    color: var(--brand-cream);
+    border-color: rgba(178, 40, 72, 0.35);
+  }
+  .toolbar .spacer { flex: 1; }
+  .toolbar .action {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
+    padding: 8px 16px; border-radius: 8px;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--inner-highlight), 0 4px 12px rgba(178, 40, 72, 0.25);
+    transition: transform 200ms var(--spring);
+  }
+  .toolbar .action:hover { transform: translateY(-1px); }
+  .toolbar .action.ghost {
+    background: transparent; color: var(--neutral-300);
+    border: 1px solid rgba(253, 245, 230, 0.1);
+    box-shadow: none;
+  }
+
+  /* ---------- data cards ---------- */
+  .data-card {
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    border: 1px solid transparent;
+    transition: transform 200ms var(--spring), border-color 200ms var(--spring);
+    cursor: pointer;
+    position: relative;
+  }
+  .data-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(244, 160, 176, 0.18);
+  }
+  .data-card .top {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  }
+  .data-card .title {
+    font-family: "DM Sans", sans-serif;
+    font-size: 16px; font-weight: 500; color: var(--brand-cream);
+    line-height: 1.3;
+  }
+  .data-card .sub {
+    font-size: 12px; color: var(--brand-pink); font-style: italic;
+  }
+  .data-card .value {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 28px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.3px;
+  }
+  .data-card .value .currency {
+    font-family: "Righteous", sans-serif;
+    font-size: 12px; letter-spacing: 1.5px; color: var(--neutral-500);
+    vertical-align: super; margin-right: 4px;
+  }
+  .data-card .foot {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--neutral-500);
+    padding-top: 10px;
+    border-top: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .data-card .foot .when { font-family: "Righteous"; letter-spacing: 1px; font-size: 10px; }
+
+  /* variant: stale */
+  .data-card.stale {
+    border: 1px dashed rgba(128, 127, 115, 0.35);
+    background: rgba(34, 34, 31, 0.5);
+    box-shadow: none;
+  }
+  .data-card.stale .title { color: var(--neutral-400); }
+  .data-card.stale .sub { color: var(--neutral-500); }
+  .data-card.stale::after {
+    content: ""; position: absolute; inset: 0;
+    border-radius: 12px; pointer-events: none;
+    box-shadow: 0 0 0 0 rgba(128, 127, 115, 0.2);
+    animation: stale-halo 3.2s infinite var(--spring);
+  }
+  @keyframes stale-halo {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(128, 127, 115, 0.15); }
+    50% { box-shadow: 0 0 0 6px rgba(128, 127, 115, 0); }
+  }
+
+  /* variant: urgent */
+  .data-card.urgent {
+    border: 1px solid rgba(178, 40, 72, 0.3);
+    background: linear-gradient(135deg, rgba(178,40,72,0.10), rgba(34,34,31,1) 60%);
+  }
+
+  /* ---------- tables ---------- */
+  .tbl {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .tbl thead th {
+    text-align: left;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .tbl tbody tr {
+    transition: background 160ms var(--spring);
+    cursor: pointer;
+  }
+  .tbl tbody tr:hover { background: rgba(253, 245, 230, 0.025); }
+  .tbl tbody td {
+    padding: 14px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.03);
+    color: var(--neutral-300);
+    vertical-align: middle;
+  }
+  .tbl tbody td.name { color: var(--brand-cream); font-weight: 500; }
+  .tbl tbody td.muted { color: var(--neutral-500); font-style: italic; font-size: 12px; }
+  .tbl tbody td.num {
+    font-family: "Righteous", sans-serif;
+    letter-spacing: 1px; color: var(--brand-cream);
+    text-align: right;
+  }
+  .tbl tbody tr.is-stale td.name { color: var(--neutral-400); }
+  .tbl tbody tr.is-stale td { color: var(--neutral-500); }
+  .tbl tbody tr.is-stale td.muted::before {
+    content: "· "; color: var(--brand-pink); font-style: normal;
+  }
+  .tbl tbody tr.is-won td.name::before {
+    content: "✓ "; color: var(--success); font-family: "Righteous"; margin-right: 4px;
+  }
+
+  .tbl tfoot tr td {
+    padding: 14px;
+    font-size: 12px; color: var(--neutral-500);
+    font-style: italic;
+  }
+
+  /* ---------- empty states ---------- */
+  .empty {
+    padding: 40px 32px;
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+    border: 1px dashed rgba(253, 245, 230, 0.07);
+    border-radius: 12px;
+    background: rgba(15, 15, 14, 0.3);
+  }
+  .empty .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-orange);
+  }
+  .empty h4 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 26px; color: var(--brand-cream);
+    line-height: 1.1; letter-spacing: -0.2px;
+  }
+  .empty p {
+    color: var(--neutral-400); font-size: 14px;
+    max-width: 440px; line-height: 1.55;
+  }
+  .empty p em { color: var(--brand-pink); font-style: italic; }
+  .empty .micro {
+    font-style: italic; color: var(--brand-pink);
+    font-size: 12px; margin-top: 6px;
+  }
+
+  /* ---------- BHS / won moment ---------- */
+  .bhs {
+    position: relative;
+    padding: 36px 40px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(178, 40, 72, 0.22), rgba(242, 140, 82, 0.08) 60%, rgba(34, 34, 31, 0) 95%);
+    border: 1px solid rgba(178, 40, 72, 0.3);
+    overflow: hidden;
+    display: flex; gap: 40px; align-items: center;
+  }
+  .bhs::before {
+    content: ""; position: absolute;
+    width: 320px; height: 320px; right: -120px; top: -120px;
+    background: radial-gradient(circle, rgba(244, 160, 176, 0.18), transparent 60%);
+    pointer-events: none;
+  }
+  .bhs .body { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .bhs .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--brand-pink);
+  }
+  .bhs h4 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 40px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.4px;
+  }
+  .bhs .mutter {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 16px; color: var(--brand-pink);
+    margin-top: 10px;
+    max-width: 400px;
+  }
+  .bhs .amount {
+    position: relative; z-index: 1;
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 56px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.5px;
+    text-align: right;
+  }
+  .bhs .amount .c {
+    font-family: "Righteous", sans-serif;
+    font-size: 14px; letter-spacing: 2px; color: var(--brand-pink);
+    display: block; margin-bottom: 6px;
+  }
+
+  /* ---------- inline / passive ---------- */
+  .passive-line {
+    padding: 14px 16px;
+    border-top: 1px dashed rgba(253, 245, 230, 0.08);
+    color: var(--neutral-500); font-size: 12px; font-style: italic;
+    line-height: 1.55;
+  }
+  .passive-line strong { color: var(--neutral-300); font-style: normal; font-weight: 500; }
+
+  /* ---------- alerts ---------- */
+  .alert {
+    padding: 14px 16px; border-radius: 10px;
+    display: flex; flex-direction: column; gap: 4px;
+    border: 1px solid transparent;
+  }
+  .alert .who {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .alert .what { color: var(--brand-cream); font-size: 14px; }
+  .alert .why { font-size: 12px; font-style: italic; }
+  .alert.warm {
+    background: linear-gradient(135deg, rgba(178,40,72,0.12), rgba(242,140,82,0.06));
+    border-color: rgba(178, 40, 72, 0.25);
+  }
+  .alert.warm .who { color: var(--brand-orange); }
+  .alert.warm .why { color: var(--brand-pink); }
+  .alert.good {
+    background: rgba(123, 174, 126, 0.08);
+    border-color: rgba(123, 174, 126, 0.2);
+  }
+  .alert.good .who { color: var(--success); }
+  .alert.good .why { color: var(--neutral-400); }
+  .alert.cool {
+    background: rgba(15, 15, 14, 0.45);
+    border-color: rgba(253, 245, 230, 0.05);
+  }
+  .alert.cool .who { color: var(--neutral-400); }
+  .alert.cool .why { color: var(--neutral-500); }
+
+  /* ---------- do / don't strip ---------- */
+  .contrast {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .contrast .card {
+    padding: 24px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .contrast .card.bad {
+    background: #18181A;
+    border: 1px solid #2F2F33;
+  }
+  .contrast .card.bad .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: #8A8A92;
+  }
+  .contrast .card.bad h5 {
+    font-family: "Inter", "DM Sans", sans-serif;
+    font-weight: 600;
+    font-size: 18px; color: #E4E4E7;
+    letter-spacing: -0.2px;
+  }
+  .contrast .card.bad .demo {
+    padding: 16px; background: #0F0F11;
+    border: 1px solid #26262A;
+    border-radius: 6px;
+    font-size: 13px; color: #A1A1AA;
+  }
+  .contrast .card.bad .note {
+    font-size: 12px; color: #71717A;
+  }
+
+  .contrast .card.good {
+    background: var(--surface-1);
+    box-shadow: var(--inner-highlight);
+    border: 1px solid rgba(244, 160, 176, 0.1);
+  }
+  .contrast .card.good .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-pink);
+  }
+  .contrast .card.good h5 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 22px; color: var(--brand-cream);
+    letter-spacing: -0.2px;
+  }
+  .contrast .card.good .demo {
+    padding: 16px; background: var(--surface-2);
+    border-radius: 8px;
+    font-size: 13px; color: var(--neutral-300);
+    box-shadow: var(--inner-highlight);
+  }
+  .contrast .card.good .note {
+    font-size: 12px; color: var(--brand-pink); font-style: italic;
+  }
+
+  /* ---------- rules strip ---------- */
+  .rules {
+    background: var(--surface-1);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--inner-highlight);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .rules ol {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 12px;
+    counter-reset: rule;
+  }
+  .rules li {
+    counter-increment: rule;
+    display: grid; grid-template-columns: 40px 1fr; gap: 20px;
+    align-items: baseline;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .rules li:last-child { border-bottom: none; padding-bottom: 0; }
+  .rules li::before {
+    content: "0" counter(rule);
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 24px; color: var(--brand-red);
+    line-height: 1;
+  }
+  .rules li .rule-body {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .rules li .rule-headline {
+    color: var(--brand-cream); font-size: 15px; font-weight: 500;
+  }
+  .rules li .rule-why {
+    color: var(--neutral-400); font-size: 13px; line-height: 1.55;
+  }
+  .rules li .rule-why em { color: var(--brand-pink); font-style: italic; }
+
+  /* ---------- palette tiles ---------- */
+  .palette {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
+  }
+  .swatch {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 12px;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase;
+    box-shadow: var(--inner-highlight);
+    border: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .swatch .name { color: var(--brand-cream); }
+  .swatch .hex { color: rgba(253, 245, 230, 0.6); font-family: "DM Sans"; text-transform: none; letter-spacing: 0; font-size: 11px; margin-top: 2px; }
+
+  .type-strip {
+    display: flex; flex-direction: column; gap: 18px;
+    padding: 28px; border-radius: 14px;
+    background: var(--surface-1);
+    box-shadow: var(--inner-highlight);
+  }
+  .type-strip .row { display: grid; grid-template-columns: 140px 1fr; gap: 24px; align-items: baseline; border-bottom: 1px solid rgba(253, 245, 230, 0.04); padding-bottom: 14px; }
+  .type-strip .row:last-child { border-bottom: none; padding-bottom: 0; }
+  .type-strip .row .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .type-strip .row .sample { color: var(--brand-cream); }
+  .type-strip .row .sample.pacifico { font-family: "Pacifico", cursive; font-size: 34px; }
+  .type-strip .row .sample.bhs { font-family: "Black Han Sans", sans-serif; font-size: 40px; line-height: 1; letter-spacing: -0.4px; }
+  .type-strip .row .sample.righteous { font-family: "Righteous", sans-serif; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--brand-orange); }
+  .type-strip .row .sample.dm { font-family: "DM Sans", sans-serif; font-size: 16px; color: var(--neutral-300); max-width: 540px; line-height: 1.55; }
+  .type-strip .row .sample.playfair { font-family: "Playfair Display", serif; font-style: italic; font-size: 20px; color: var(--brand-pink); }
+
+  /* responsive light touch */
+  @media (max-width: 960px) {
+    .sheet { padding: 40px 24px; gap: 56px; }
+    .specimen-grid, .specimen-grid.triple, .contrast, .palette { grid-template-columns: 1fr 1fr !important; }
+    .bhs { flex-direction: column; align-items: flex-start; }
+    .bhs .amount { text-align: left; }
+    .mast h1 { font-size: 40px; }
+    .mast .toc { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ---------- footer note ---------- */
+  footer.note {
+    padding: 28px; border-radius: 14px;
+    background: rgba(15, 15, 14, 0.45);
+    border: 1px solid rgba(253, 245, 230, 0.04);
+    color: var(--neutral-400);
+    font-size: 13px; line-height: 1.65;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  footer.note strong { color: var(--brand-cream); font-weight: 500; }
+  footer.note em { color: var(--brand-pink); font-style: italic; }
+  footer.note .sig {
+    font-family: "Playfair Display", serif; font-style: italic;
+    color: var(--brand-pink); font-size: 15px;
+    padding-top: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- ========================================================= MAST -->
+  <header class="mast">
+    <div class="wordmark">SuperBad<span class="lite">Lite · admin</span></div>
+    <div class="eyebrow">Admin Interior · reference sheet · 2026-04-15</div>
+    <h1>The room we actually run the business from.</h1>
+    <p class="deck">Every admin interior built before today ships generic — flat black, thin outlined cards, all DM Sans, no warm depth. This sheet is the fix: a shared anchor for every surface behind the nav.</p>
+    <p class="body">
+      <strong>What this is.</strong> A compositional reference — not a design system page (that's <code>/lite/design</code>). It shows how the existing tokens assemble into the primitives admin interiors keep reaching for: stage chips, data cards, table rows, section headers, toolbars, empty states, the Won moment, the stale affordance. If you're building an admin interior from <em>admin-polish-1</em> onward, this file is binding §2a reading alongside the spec.
+    </p>
+    <p class="body">
+      <strong>What this isn't.</strong> Per-route mockups. Those follow — sliced once this anchor is in hand. If a future admin surface needs a primitive that isn't here, cut a surface-specific mockup first and extend this sheet.
+    </p>
+    <div class="toc">
+      <a href="#palette">palette recap</a>
+      <a href="#type">typography recap</a>
+      <a href="#headers">page headers</a>
+      <a href="#toolbars">toolbars</a>
+      <a href="#chips">stage + status chips</a>
+      <a href="#cards">data cards</a>
+      <a href="#tables">table rows</a>
+      <a href="#empty">empty states</a>
+      <a href="#bhs">Won / BHS moment</a>
+      <a href="#stale">stale affordances</a>
+      <a href="#alerts">alerts + banners</a>
+      <a href="#contrast">generic vs branded</a>
+      <a href="#rules">binding rules</a>
+    </div>
+  </header>
+
+  <!-- ========================================================= PALETTE -->
+  <section class="block" id="palette">
+    <div class="heading">
+      <div class="eyebrow">§ 01 · palette recap</div>
+      <h2>Warm neutrals, brand accents, one success green.</h2>
+      <p>Admin interiors <em>do not</em> use pure black. <code>--neutral-900</code> is the floor; surface-1 and surface-2 are the warm greys that cards sit on. Accents carry meaning, not decoration.</p>
+    </div>
+    <div class="palette">
+      <div class="swatch" style="background:#B22848"><div class="name">Brand red</div><div class="hex">#B22848</div></div>
+      <div class="swatch" style="background:#F4A0B0; border-color: rgba(26,26,24,0.3)"><div class="name" style="color:#1A1A18">Brand pink</div><div class="hex" style="color:rgba(26,26,24,0.65)">#F4A0B0</div></div>
+      <div class="swatch" style="background:#F28C52"><div class="name">Brand orange</div><div class="hex">#F28C52</div></div>
+      <div class="swatch" style="background:#FDF5E6"><div class="name" style="color:#1A1A18">Brand cream</div><div class="hex" style="color:rgba(26,26,24,0.65)">#FDF5E6</div></div>
+      <div class="swatch" style="background:#7BAE7E"><div class="name">Success</div><div class="hex">#7BAE7E</div></div>
+      <div class="swatch" style="background:#1A1A18"><div class="name">Surface 0</div><div class="hex">#1A1A18</div></div>
+      <div class="swatch" style="background:#22221F"><div class="name">Surface 1</div><div class="hex">#22221F</div></div>
+      <div class="swatch" style="background:#2C2C28"><div class="name">Surface 2</div><div class="hex">#2C2C28</div></div>
+      <div class="swatch" style="background:#3D3D37"><div class="name">Neutral 600</div><div class="hex">#3D3D37</div></div>
+      <div class="swatch" style="background:#807F73"><div class="name">Neutral 500</div><div class="hex">#807F73</div></div>
+      <div class="swatch" style="background:#D4D2C2"><div class="name" style="color:#1A1A18">Neutral 300</div><div class="hex" style="color:rgba(26,26,24,0.65)">#D4D2C2</div></div>
+      <div class="swatch" style="background:#E4B062"><div class="name">Warn</div><div class="hex">#E4B062</div></div>
+    </div>
+  </section>
+
+  <!-- ========================================================= TYPE -->
+  <section class="block" id="type">
+    <div class="heading">
+      <div class="eyebrow">§ 02 · typography recap</div>
+      <h2>Four voices, each with a job.</h2>
+      <p>Admin interiors lean on the same four typefaces as the rest of Lite. <em>No DM-Sans-only screens.</em> If a surface has no Righteous eyebrow and no Black Han Sans display, it reads as a Linear-clone — that's the failure mode this sheet exists to prevent.</p>
+    </div>
+    <div class="type-strip">
+      <div class="row">
+        <div class="label">Pacifico · wordmark</div>
+        <div class="sample pacifico">SuperBad</div>
+      </div>
+      <div class="row">
+        <div class="label">Black Han Sans · display</div>
+        <div class="sample bhs">Morning, Andy.</div>
+      </div>
+      <div class="row">
+        <div class="label">Righteous · eyebrow / chip</div>
+        <div class="sample righteous">Pipeline · 14 open</div>
+      </div>
+      <div class="row">
+        <div class="label">DM Sans · body</div>
+        <div class="sample dm">Mercer's quote expires tomorrow. The bartender nudged them on Friday, nothing back. Three invoices cleared overnight.</div>
+      </div>
+      <div class="row">
+        <div class="label">Playfair italic · deck / mutter</div>
+        <div class="sample playfair">Three of yesterday's approvals are waiting. no rush. there never is.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= PAGE HEADERS -->
+  <section class="block" id="headers">
+    <div class="heading">
+      <div class="eyebrow">§ 03 · page headers</div>
+      <h2>Every admin page opens with a voice, not a breadcrumb.</h2>
+      <p>Righteous crumb · Black Han Sans page title · DM Sans deck · optional meta row. Deck tells Andy what's on this screen in one sentence. If the deck is generic ("Manage your products"), rewrite it — the deck is the voice moment.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">primary interior page header — toolbar sits underneath</span></div>
+      <div class="page-header">
+        <div class="crumbs">
+          <span>Admin</span><span class="sep">/</span><span>Clients</span><span class="sep">/</span><span class="here">Mercer Advisory</span>
+        </div>
+        <h3>Mercer Advisory</h3>
+        <p class="deck">Retainer since January. Quote renewal expiring <em>tomorrow 18:00</em> — the bartender nudged Friday, nothing back. Five active deliverables this cycle.</p>
+        <div class="meta-row">
+          <span class="chip stage-negotiating"><span class="dot"></span>Negotiating</span>
+          <span class="sep">·</span>
+          <span>LTV $24,800</span>
+          <span class="sep">·</span>
+          <span>42 touchpoints</span>
+          <span class="sep">·</span>
+          <span>last seen <strong style="color:var(--brand-pink);font-style:italic;">6 days ago</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">index-page header — list / kanban / grid lives under this</span></div>
+      <div class="page-header">
+        <div class="crumbs">
+          <span>Admin</span><span class="sep">/</span><span class="here">Pipeline</span>
+        </div>
+        <h3>Pipeline.</h3>
+        <p class="deck">14 live deals, 3 cooling. <em>Two need you before Friday.</em></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= TOOLBARS -->
+  <section class="block" id="toolbars">
+    <div class="heading">
+      <div class="eyebrow">§ 04 · toolbars</div>
+      <h2>Search on the left, actions on the right, filters in between.</h2>
+      <p>Toolbars sit on <code>surface-2</code>, not floating in the void. Primary action is brand-red and Righteous-capped. Secondary actions are ghost outlines. Filter chips animate with the house spring on activate.</p>
+    </div>
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">list-page toolbar · filter chips + primary CTA</span></div>
+      <div class="toolbar">
+        <div class="search">
+          <span style="color:var(--neutral-500)">⌕</span>
+          <input placeholder="Search deals, companies, contacts…" />
+          <span class="hint">⌘K</span>
+        </div>
+        <div class="filter-group">
+          <button class="filter active">All</button>
+          <button class="filter">Hot</button>
+          <button class="filter">Cooling</button>
+          <button class="filter">Stale</button>
+        </div>
+        <div class="spacer"></div>
+        <button class="action ghost">Export</button>
+        <button class="action">New deal</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= CHIPS -->
+  <section class="block" id="chips">
+    <div class="heading">
+      <div class="eyebrow">§ 05 · stage + status chips</div>
+      <h2>Chips earn colour; everything else is neutral.</h2>
+      <p>Pipeline stages get a cool-to-hot accent walk (pink → orange → warn → red → success). Deal outcomes are their own palette. Stale is always a dashed outline over transparent — it never takes colour because stale is the absence of motion.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Pipeline stages</span> <span class="note">used on deal cards + table rows + filter chips</span></div>
+      <div class="chip-row">
+        <span class="chip stage-lead"><span class="dot"></span>Lead</span>
+        <span class="chip stage-contacted"><span class="dot"></span>Contacted</span>
+        <span class="chip stage-conversation"><span class="dot"></span>Conversation</span>
+        <span class="chip stage-trial"><span class="dot"></span>Trial shoot</span>
+        <span class="chip stage-quoted"><span class="dot"></span>Quoted</span>
+        <span class="chip stage-negotiating"><span class="dot"></span>Negotiating</span>
+        <span class="chip stage-won"><span class="dot"></span>Won</span>
+        <span class="chip stage-lost"><span class="dot"></span>Lost</span>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Entity status</span> <span class="note">quotes, invoices, products, integrations, wizards</span></div>
+      <div class="chip-row">
+        <span class="chip status-draft">Draft</span>
+        <span class="chip status-sent">Sent</span>
+        <span class="chip status-viewed">Viewed</span>
+        <span class="chip status-accepted">Accepted</span>
+        <span class="chip status-live">Live</span>
+        <span class="chip status-paused">Paused</span>
+        <span class="chip status-overdue">Overdue 3d</span>
+        <span class="chip status-expired">Expired</span>
+        <span class="chip status-stale">Stale 14d</span>
+        <span class="chip status-soon">Soon</span>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Numeric + meta pills</span> <span class="note">counts, durations, currency tags</span></div>
+      <div class="chip-row">
+        <span class="chip meta-num">14 open</span>
+        <span class="chip meta-num">$24,800 LTV</span>
+        <span class="chip meta-num">Day 18 / 28</span>
+        <span class="chip meta-num">AUD</span>
+        <span class="chip meta-num">V2 · 4 revisions</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= CARDS -->
+  <section class="block" id="cards">
+    <div class="heading">
+      <div class="eyebrow">§ 06 · data cards</div>
+      <h2>Cards live on warm surfaces with an inner highlight.</h2>
+      <p>Every card is <code>surface-2</code> with <code>--inner-highlight</code> along the top edge. Hover lifts by 1px and warms the border to brand-pink at 18% — no shadow bloom. Big numbers are Black Han Sans; currency prefix is Righteous small-caps.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Summary cards</span> <span class="note">index-page metric strip</span></div>
+      <div class="specimen-grid triple">
+        <div class="data-card">
+          <div class="top">
+            <div>
+              <div class="title">Open deals</div>
+              <div class="sub">6 moved this week</div>
+            </div>
+            <span class="chip stage-negotiating"><span class="dot"></span>Negotiating</span>
+          </div>
+          <div class="value">14</div>
+          <div class="foot"><span>3 cooling · 2 stale</span><span class="when">Live</span></div>
+        </div>
+        <div class="data-card">
+          <div class="top">
+            <div>
+              <div class="title">Pipeline value</div>
+              <div class="sub">weighted by stage probability</div>
+            </div>
+          </div>
+          <div class="value"><span class="currency">AUD</span>68,400</div>
+          <div class="foot"><span>↑ 12% on March</span><span class="when">Month-to-date</span></div>
+        </div>
+        <div class="data-card urgent">
+          <div class="top">
+            <div>
+              <div class="title">Waiting on you</div>
+              <div class="sub">quotes expiring inside 48h</div>
+            </div>
+            <span class="chip status-overdue">2 urgent</span>
+          </div>
+          <div class="value">4</div>
+          <div class="foot"><span>Mercer · Quiet Thunder · Fenwick · Nguyen</span><span class="when">Today</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Entity cards</span> <span class="note">deal card, invoice card, error card — same shell, different inner content</span></div>
+      <div class="specimen-grid">
+        <div class="data-card">
+          <div class="top">
+            <div>
+              <div class="title">Mercer Advisory · retainer renewal</div>
+              <div class="sub">Anna Mercer, Bowen Mercer</div>
+            </div>
+            <span class="chip stage-negotiating"><span class="dot"></span>Negotiating</span>
+          </div>
+          <div class="foot">
+            <span>$4,200 / mo · 12 month</span>
+            <span class="when">6d quiet</span>
+          </div>
+        </div>
+        <div class="data-card">
+          <div class="top">
+            <div>
+              <div class="title">Invoice #2026-041 · Bowerbird Projects</div>
+              <div class="sub">March retainer</div>
+            </div>
+            <span class="chip status-overdue">Overdue 3d</span>
+          </div>
+          <div class="foot">
+            <span>$3,800 · sent 12 Mar</span>
+            <span class="when">Reminder sent</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= TABLES -->
+  <section class="block" id="tables">
+    <div class="heading">
+      <div class="eyebrow">§ 07 · table rows</div>
+      <h2>Tables whisper; they don't grid.</h2>
+      <p>No vertical rulers. Horizontal rules are <code>rgba(cream, 0.03)</code> — barely visible. Header row uses Righteous all-caps tracked. Hover tints the row at 2.5% cream. Numeric columns right-align in Righteous.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">deals table · stale + won variants inline</span></div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width:32%">Deal</th>
+            <th>Stage</th>
+            <th>Owner</th>
+            <th>Last touch</th>
+            <th style="text-align:right">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">Mercer Advisory · renewal</td>
+            <td><span class="chip stage-negotiating"><span class="dot"></span>Negotiating</span></td>
+            <td>Andy</td>
+            <td class="muted">6 days ago</td>
+            <td class="num">$4,200/mo</td>
+          </tr>
+          <tr>
+            <td class="name">Bowerbird Projects · project quote</td>
+            <td><span class="chip stage-quoted"><span class="dot"></span>Quoted</span></td>
+            <td>Andy</td>
+            <td class="muted">yesterday</td>
+            <td class="num">$11,400</td>
+          </tr>
+          <tr class="is-stale">
+            <td class="name">The Paper Mill · trial shoot follow-up</td>
+            <td><span class="chip status-stale">Stale 31d</span></td>
+            <td>Andy</td>
+            <td class="muted">dormant — bartender paused</td>
+            <td class="num">—</td>
+          </tr>
+          <tr class="is-won">
+            <td class="name">North Arm Builders · retainer</td>
+            <td><span class="chip stage-won"><span class="dot"></span>Won</span></td>
+            <td>Andy</td>
+            <td class="muted">paid yesterday</td>
+            <td class="num">$2,600/mo</td>
+          </tr>
+          <tr>
+            <td class="name">Quiet Thunder Studio · intro</td>
+            <td><span class="chip stage-conversation"><span class="dot"></span>Conversation</span></td>
+            <td>Andy</td>
+            <td class="muted">3 days ago</td>
+            <td class="num">$—</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="5">5 of 14 shown · filter active: <em>owner = Andy</em></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========================================================= EMPTY -->
+  <section class="block" id="empty">
+    <div class="heading">
+      <div class="eyebrow">§ 08 · empty states</div>
+      <h2>Empty is a voice moment, not a shrug.</h2>
+      <p>Every empty state has an eyebrow, a Black Han Sans line, one sentence of body, and a mutter. <em>Never</em> "No items found." That's the Linear default — and the single clearest signal a surface wasn't built against this sheet.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">no-records empty — voiced, one action available</span></div>
+      <div class="empty">
+        <div class="eyebrow">Pipeline · nothing waiting</div>
+        <h4>Clean board.</h4>
+        <p>No deals above <em>Contacted</em> today — every open thread has a next step, and the bartender's already nudged the ones that drifted. Sit with it for a second before adding more.</p>
+        <p class="micro">lite keeps a tidy room.</p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">first-run empty — primary action inside, not below</span></div>
+      <div class="empty">
+        <div class="eyebrow">Products · step one</div>
+        <h4>Nothing to sell yet.</h4>
+        <p>A product is the thing a prospect actually subscribes to — tier, price, what's included. Start with your default SaaS product; trial shoots and retainers can follow.</p>
+        <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
+          <button class="action" style="padding: 10px 18px;">Add product</button>
+          <button class="action ghost" style="padding: 10px 18px;">Import from Stripe</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= BHS / WON -->
+  <section class="block" id="bhs">
+    <div class="heading">
+      <div class="eyebrow">§ 09 · Won / BHS moment</div>
+      <h2>When something closes, the room notices.</h2>
+      <p>A Won deal, a paid invoice, a successful onboarding — these earn a Black-Han-Sans callout with brand-red gradient and a Playfair mutter. Reserved for genuine wins; if every action triggers BHS it reads as noise.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">deal moved to Won · appears inline on pipeline, also as toast on detail page</span></div>
+      <div class="bhs">
+        <div class="body">
+          <div class="eyebrow">Won — just now</div>
+          <h4>North Arm Builders signed.</h4>
+          <p class="mutter">twelve months. nine weeks from first hello. pipeline's one kinder today.</p>
+        </div>
+        <div class="amount">
+          <span class="c">AUD / year</span>
+          31,200
+        </div>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">paid-invoice variant · softer, same frame</span></div>
+      <div class="bhs" style="background: linear-gradient(135deg, rgba(123, 174, 126, 0.18), rgba(244, 160, 176, 0.05) 60%, rgba(34, 34, 31, 0) 95%); border-color: rgba(123, 174, 126, 0.3);">
+        <div class="body">
+          <div class="eyebrow" style="color:var(--success)">Paid — 07:42</div>
+          <h4>Bowerbird cleared March.</h4>
+          <p class="mutter">stripe took 2.1%. you still up.</p>
+        </div>
+        <div class="amount">
+          <span class="c" style="color:var(--success)">AUD</span>
+          3,800
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= STALE -->
+  <section class="block" id="stale">
+    <div class="heading">
+      <div class="eyebrow">§ 10 · stale affordances</div>
+      <h2>Stale is dashed, dimmed, and breathing slowly.</h2>
+      <p>When a deal, thread, or integration hasn't moved inside its stage threshold, it picks up a dashed border, muted titling, and a 3.2s halo pulse. The pulse is slow enough to read as <em>ambient worry</em>, not an alarm. <em>feedback_motion_is_universal</em> applies — but gently.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">stale deal card · dashed border + muted text + slow halo</span></div>
+      <div class="specimen-grid">
+        <div class="data-card stale">
+          <div class="top">
+            <div>
+              <div class="title">The Paper Mill · trial shoot follow-up</div>
+              <div class="sub">Rachel Zhou · last reply 31 days ago</div>
+            </div>
+            <span class="chip status-stale">Stale 31d</span>
+          </div>
+          <div class="foot">
+            <span>bartender paused · threshold hit</span>
+            <span class="when">Dormant</span>
+          </div>
+        </div>
+        <div class="data-card stale">
+          <div class="top">
+            <div>
+              <div class="title">Meta Ads connection</div>
+              <div class="sub">token expired 4 days ago — wizard not re-run</div>
+            </div>
+            <span class="chip status-stale">Needs re-auth</span>
+          </div>
+          <div class="foot">
+            <span>integration dormant</span>
+            <span class="when">Paused</span>
+          </div>
+        </div>
+      </div>
+      <div class="passive-line">
+        <strong>7 more dormant threads.</strong> The bartender's watching each of them for a change — you don't need to.
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= ALERTS -->
+  <section class="block" id="alerts">
+    <div class="heading">
+      <div class="eyebrow">§ 11 · alerts + banners</div>
+      <h2>Three temperatures. No yellow-triangle clipart.</h2>
+      <p>Warm gradient for attention-needed (new warm upsell, expiring quote). Muted green for good news (paid, integration healthy). Cool dark for informational (scheduled job, kill-switch state). Who / What / Why tri-line structure — <em>why</em> is always italic.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="caption"><span class="label">Specimen</span> <span class="note">three temperatures · inline panel variants</span></div>
+      <div class="specimen-grid triple">
+        <div class="alert warm">
+          <div class="who">Warm upsell · new</div>
+          <div class="what">Bowerbird flagged budget intent in reply</div>
+          <div class="why">reply intelligence routed this 11 min ago</div>
+        </div>
+        <div class="alert good">
+          <div class="who">Cleared · overnight</div>
+          <div class="what">Two invoices paid while you slept</div>
+          <div class="why">North Arm + Bowerbird · total $6,400</div>
+        </div>
+        <div class="alert cool">
+          <div class="who">Scheduled · 18:00</div>
+          <div class="what">Mercer quote auto-expires unless nudged</div>
+          <div class="why">kill switch: quote.auto_expire_enabled</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= CONTRAST -->
+  <section class="block" id="contrast">
+    <div class="heading">
+      <div class="eyebrow">§ 12 · generic vs branded — visual contrast</div>
+      <h2>The left column is what every admin interior shipped as before today. Don't ship that again.</h2>
+      <p>Same surface, same data — only the composition changes. If an in-progress surface looks closer to the left than the right, it's not done.</p>
+    </div>
+
+    <div class="contrast">
+      <div class="card bad">
+        <div class="label">Before · generic</div>
+        <h5>Mercer Advisory</h5>
+        <div class="demo">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <span>Retainer renewal · $4,200/mo</span>
+            <span style="padding: 2px 8px; border: 1px solid #3F3F46; border-radius: 4px; font-size: 11px; color: #A1A1AA;">Negotiating</span>
+          </div>
+          <div style="color: #71717A; font-size: 12px; margin-top: 6px;">Last touch: 6 days ago</div>
+        </div>
+        <div class="note">Flat charcoal (#18181A), Inter 600, hairline outline at #2F2F33, shadcn ghost chip, cool grey meta. Reads as Linear-adjacent. No voice. No warmth. No visual SuperBad.</div>
+      </div>
+
+      <div class="card good">
+        <div class="label">After · branded</div>
+        <h5>Mercer Advisory.</h5>
+        <div class="demo">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <span style="color: var(--brand-cream); font-weight: 500;">Retainer renewal · <span style="font-family: 'Righteous'; letter-spacing: 1px; color: var(--brand-cream);">$4,200</span><span style="font-size: 12px; color: var(--neutral-500);">/mo</span></span>
+            <span class="chip stage-negotiating"><span class="dot"></span>Negotiating</span>
+          </div>
+          <div style="color: var(--brand-pink); font-size: 12px; font-style: italic; margin-top: 6px;">bartender nudged friday · quiet since</div>
+        </div>
+        <div class="note">Surface-2 + inner highlight, Black Han Sans headline, Righteous-tracked stage chip at 18% brand-red, Playfair italic last-touch line in brand-pink. Same data — reads as SuperBad.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= RULES -->
+  <section class="block" id="rules">
+    <div class="heading">
+      <div class="eyebrow">§ 13 · binding rules</div>
+      <h2>What every admin-polish session must hold.</h2>
+      <p>These aren't suggestions. <em>admin-polish-1..N</em> G10 parity checks run against these rules and against the primitives above.</p>
+    </div>
+    <div class="rules">
+      <ol>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Page headers use Black Han Sans, always — with a voiced deck.</div>
+            <div class="rule-why">A DM-Sans "Pipeline" h1 with "Manage your deals" subtitle is a failure signal. <em>Voice lives in the deck; visual weight lives in the title.</em></div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Eyebrows, chips, and metric headers are Righteous, all-caps, tracked ≥1.5px.</div>
+            <div class="rule-why">If a section or category label is DM Sans, it's reading as body copy — not as structure.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Cards sit on <code>surface-2</code> with <code>--inner-highlight</code>. No hairline outlines over flat black.</div>
+            <div class="rule-why">The inner highlight is what gives admin interiors warmth. Thin borders over #18181A read as shadcn/Linear — the exact thing this sheet replaces.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Stale is dashed + muted + slow-pulsing. Never coloured.</div>
+            <div class="rule-why">Stale means <em>absence of motion</em>. Giving it orange or red makes it read as urgent; it's the opposite — it's dormant. The dashed outline is the tell.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Won / paid moments earn the BHS treatment. Nothing else does.</div>
+            <div class="rule-why">If every successful save triggers a gradient callout, BHS stops meaning anything. Reserve for genuine closures — deal won, invoice paid, wizard completed, onboarding finished.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Empty states are voiced. "No items" is a bug.</div>
+            <div class="rule-why">Every empty state gets an eyebrow + BHS title + body + mutter. If you can copy-paste an empty state between surfaces without editing, it's too generic.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Mutter lines live in Playfair italic, brand-pink. One per surface, max.</div>
+            <div class="rule-why">The mutter is the quiet SuperBad joke — overuse drowns it. One per page header, plus optional inline passive-line footers on multi-column layouts.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Primary CTA is brand-red, Righteous-capped, with <code>--inner-highlight</code> + glow. Secondary is ghost.</div>
+            <div class="rule-why">One brand-red action per surface. If two primaries compete, one of them is actually secondary — make it ghost and stop the visual tie.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Hover states animate with <code>--spring</code> over 160–200ms. No CSS default easing.</div>
+            <div class="rule-why"><em>feedback_motion_is_universal</em>. Every hover, every stage change, every filter activate — houseSpring. Default ease-in-out is the generic tell.</div>
+          </div>
+        </li>
+        <li>
+          <div class="rule-body">
+            <div class="rule-headline">Numeric columns and counts use Righteous with letter-spacing — never plain DM Sans tabular.</div>
+            <div class="rule-why">Numbers in Righteous read as earned metrics; numbers in DM Sans read as form input. Admin interiors are for reading, not entry.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ========================================================= FOOTER -->
+  <footer class="note">
+    <div><strong>Binding as of 2026-04-15.</strong> From <em>admin-polish-1</em> forward, every admin-interior UI brief cites this file in §2a. G0 preflight reads it; G10 parity runs side-by-side against the relevant primitives here.</div>
+    <div><strong>Extending the sheet.</strong> If a future admin surface introduces a primitive not shown here (e.g. timeline, thread view, mini-calendar), cut a surface-specific <code>mockup-admin-&lt;surface&gt;.html</code> first and back-fill this sheet with the new primitive before building.</div>
+    <div><strong>Out of scope.</strong> This is not a design system page. Live tokens, motion primitives, and sound triggers live at <code>/lite/design</code>. This sheet is how they compose, not what they are.</div>
+    <div class="sig">—  the room we actually run the business from.</div>
+  </footer>
+
+</div>
+</body>
+</html>
