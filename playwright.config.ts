@@ -76,7 +76,13 @@ export default defineConfig({
       AUTH_TRUST_HOST: "true",
       STRIPE_WEBHOOK_SECRET,
       STRIPE_SECRET_KEY: process.env.STRIPE_TEST_KEY ?? "",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_placeholder",
+      // Live Stripe publishable key pass-through for the SB-E2E golden path
+      // (signup → Payment Element). Falls back to a placeholder for hermetic
+      // specs that don't drive Stripe.js.
+      STRIPE_PUBLISHABLE_KEY:
+        process.env.STRIPE_TEST_PUBLISHABLE_KEY ?? "pk_test_placeholder",
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+        process.env.STRIPE_TEST_PUBLISHABLE_KEY ?? "pk_test_placeholder",
       // Placeholder satisfies Resend SDK's constructor-time format check.
       // Actual sends are blocked by `EMAIL_FROM`'s domain + the `sendEmail`
       // skip-path which returns `{skipped:true}` in non-production when the
