@@ -145,6 +145,9 @@ const registry = {
   // Branded Invoicing (2 — BI-1)
   "invoice.review_window_days": integer,
   "invoice.overdue_reminder_days": integer,
+
+  // SaaS Subscription Billing (1 — SB-2b)
+  "billing.saas.monthly_setup_fee_cents": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

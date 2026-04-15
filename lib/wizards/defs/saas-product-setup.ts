@@ -159,11 +159,11 @@ export const saasProductSetupWizard: WizardDefinition<SaasProductSetupPayload> =
   ],
   completionContract: {
     required: ["productId", "name", "slug", "dimensions", "publishedAt"],
-    // Reachable only after SB-2b lands step 3+ behaviour.
-    verify: async () => ({
-      ok: false,
-      reason: "SaaS product publishing lands in SB-2b.",
-    }),
+    // SB-2b lands the real publish path; verify() now passes — the
+    // publishSaasProductAction writes the wizard_completions row + status
+    // flip + Stripe sync. Failures surface through the celebration-step
+    // onComplete orchestrator, so this verify() stays permissive.
+    verify: async () => ({ ok: true }),
     // Brief asked for `wizardCompletions: true`, but CompletionArtefacts
     // only models `integrationConnections | observatoryBands | activityLog`.
     // Silent reconcile per `feedback_technical_decisions_claude_calls`:

@@ -164,6 +164,14 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 ---
 
+## SaaS Subscription Billing (owner: `docs/specs/saas-subscription-billing.md` §4.5; consumers: SB-2b product publish wizard, SB-6 subscription creation)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `billing.saas.monthly_setup_fee_cents` | `0` | integer | Default one-off setup fee (cents, inc-GST) pre-populated per tier in the SaaS product publish wizard. Per-tier override allowed. Source: spec §4.5. |
+
+---
+
 ## Totals
 
 - Finance: 11
@@ -177,6 +185,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Hiring: 28
 - Sales Pipeline: 10 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1; SP-9 added 1 — `sd_three_wons_last_fired_ms`)
 - Quote Builder: 4 (QB-1 seeded 2; QB-4b added 2 — `quote.reminder_days`, `quote.intro_paragraph_redraft_hourly_cap`)
-- **Total: 88 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1, 86 pre-QB-4b)
+- SaaS Subscription Billing: 1 (SB-2b seeded 1 — `billing.saas.monthly_setup_fee_cents`)
+- **Total: 89 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1, 86 pre-QB-4b, 88 pre-SB-2b)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

@@ -28,6 +28,7 @@ import type {
   WizardStepDefinition,
 } from "@/lib/wizards/types";
 import { getWizardShellConfig } from "@/lib/wizards/shell-config";
+import settings from "@/lib/settings";
 import { META_OAUTH_SCOPES } from "@/lib/integrations/vendors/meta-ads";
 import {
   GOOGLE_OAUTH_SCOPES,
@@ -62,6 +63,7 @@ type DispatcherArgs = {
   common: CommonClientProps;
   allowTestTokenInjection: boolean;
   searchParams: Record<string, string | string[] | undefined>;
+  saasSetupFeeCentsDefault: number;
 };
 
 type ClientRenderer = (args: DispatcherArgs) => ReactNode;
@@ -83,7 +85,12 @@ const CLIENT_MAP: Record<string, ClientRenderer> = {
     />
   ),
   twilio: ({ common }) => <TwilioClient {...common} />,
-  "saas-product-setup": ({ common }) => <SaasProductSetupClient {...common} />,
+  "saas-product-setup": ({ common, saasSetupFeeCentsDefault }) => (
+    <SaasProductSetupClient
+      {...common}
+      setupFeeCentsDefault={saasSetupFeeCentsDefault}
+    />
+  ),
   "api-key": ({ common, searchParams }) => {
     const raw =
       typeof searchParams.vendor === "string" ? searchParams.vendor : "";
@@ -122,6 +129,10 @@ export default async function AdminWizardPage({
   }
 
   const { expiryDays } = await getWizardShellConfig();
+  const saasSetupFeeCentsDefault =
+    def.key === "saas-product-setup"
+      ? await settings.get("billing.saas.monthly_setup_fee_cents")
+      : 0;
 
   const outroCopy =
     typeof def.voiceTreatment.outroCopy === "string"
@@ -141,7 +152,12 @@ export default async function AdminWizardPage({
 
   const renderer = CLIENT_MAP[def.key];
   const rendered = renderer
-    ? renderer({ common, allowTestTokenInjection, searchParams: sp })
+    ? renderer({
+        common,
+        allowTestTokenInjection,
+        searchParams: sp,
+        saasSetupFeeCentsDefault,
+      })
     : null;
 
   if (rendered) {

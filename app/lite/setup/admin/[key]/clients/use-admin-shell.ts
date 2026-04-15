@@ -57,6 +57,7 @@ export function useAdminShell({ steps, initialStates }: UseAdminShellOpts) {
 
   return {
     index,
+    setIndex,
     step,
     states,
     setStates,

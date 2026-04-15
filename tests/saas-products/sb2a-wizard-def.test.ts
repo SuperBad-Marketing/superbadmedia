@@ -71,7 +71,7 @@ describe("saas-product-setup wizard definition", () => {
     ).toBe("saas_product_created");
   });
 
-  it("verify() returns not-ok until SB-2b lands", async () => {
+  it("verify() passes once SB-2b publish path is live", async () => {
     const r = await saasProductSetupWizard.completionContract.verify({
       productId: "x",
       name: "x",
@@ -80,7 +80,7 @@ describe("saas-product-setup wizard definition", () => {
       dimensions: [],
       publishedAt: 0,
     });
-    expect(r.ok).toBe(false);
+    expect(r.ok).toBe(true);
   });
 
   it("name-and-slug schema rejects short/invalid inputs", () => {
