@@ -222,6 +222,22 @@ export async function acceptQuote(
       });
     }
 
+    // Settle log — manual path. Stripe path logs `quote_settled` from
+    // `payment_intent.succeeded`; the manual path has no payment webhook,
+    // so the settle event fires here (spec §5.1: both paths settle).
+    await logActivity({
+      companyId: quote.company_id,
+      dealId: quote.deal_id,
+      contactId: primaryContact?.id ?? null,
+      kind: "quote_settled",
+      body: `Quote ${quote.quote_number} accepted (manual billing).`,
+      meta: {
+        quote_id: quote.id,
+        paidVia: "manual",
+        amount_total: quote.total_cents_inc_gst,
+      },
+    });
+
     // Settle email — transactional, fire via quote_email_send handler.
     await enqueueManualSettleEmail({
       quote,
