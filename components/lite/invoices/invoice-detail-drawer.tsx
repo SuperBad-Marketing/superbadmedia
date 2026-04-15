@@ -27,13 +27,16 @@ import { InvoiceStatusBadge } from "./invoice-status-badge";
 import {
   addInvoiceLineItemAction,
   markInvoicePaidAction,
+  prepareReminderAction,
   removeInvoiceLineItemAction,
   sendInvoiceNowAction,
   sendReminderAction,
   supersedeInvoiceAction,
   updateInvoiceDueDateAction,
   voidInvoiceAction,
+  type PrepareReminderResult,
 } from "@/app/lite/admin/invoices/actions";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   open: boolean;
@@ -637,6 +640,8 @@ function AddLineItemModal(props: {
   );
 }
 
+const SUBJECT_MAX = 60;
+
 function ReminderModal(props: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -644,64 +649,185 @@ function ReminderModal(props: {
   onSent: () => void;
 }) {
   const { open, onOpenChange, detail, onSent } = props;
-  const [busy, setBusy] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [sending, setSending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [draft, setDraft] = React.useState<PrepareReminderResult | null>(null);
 
-  // Deterministic preview — mirrors composeInvoiceReminderEmail logic on the client
-  // for the read-only preview. The actual send is server-side and re-runs the composer.
-  const firstReminder = detail.invoice.reminder_count === 0;
-  const subject = firstReminder
-    ? `Quick one on ${detail.invoice.invoice_number}`
-    : `Following up on ${detail.invoice.invoice_number}`;
+  React.useEffect(() => {
+    if (!open) {
+      setDraft(null);
+      setError(null);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    prepareReminderAction({ invoiceId: detail.invoice.id })
+      .then((res) => {
+        if (cancelled) return;
+        if (!res.ok) {
+          setError(res.error);
+          return;
+        }
+        setDraft(res.value);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, detail.invoice.id]);
 
   async function submit() {
-    setBusy(true);
-    const result = await sendReminderAction({ invoiceId: detail.invoice.id });
-    setBusy(false);
+    if (!draft) return;
+    setSending(true);
+    setError(null);
+    const result = await sendReminderAction({
+      invoiceId: detail.invoice.id,
+      draft: { subject: draft.subject, bodyParagraphs: draft.bodyParagraphs },
+    });
+    setSending(false);
     if (!result.ok) {
-      toast.error(result.error);
+      setError(result.error);
       return;
     }
     toast.success("Reminder sent.");
+    onOpenChange(false);
     onSent();
   }
 
+  const driftBadge = (() => {
+    if (!draft) return null;
+    const pass = draft.drift.pass;
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium",
+          pass
+            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            : "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        )}
+        title={draft.drift.notes}
+      >
+        <span
+          className={cn(
+            "inline-block h-1.5 w-1.5 rounded-full",
+            pass ? "bg-emerald-500" : "bg-amber-500",
+          )}
+        />
+        {pass ? "On voice" : "Drift detected"} · {(draft.drift.score * 100).toFixed(0)}%
+      </span>
+    );
+  })();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Send reminder</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 text-sm">
-          <div>
-            To{" "}
-            <span className="font-medium">
-              {detail.contactName ?? "primary contact"}
-            </span>
-            {detail.contactEmail && (
-              <span className="text-muted-foreground"> · {detail.contactEmail}</span>
+
+        {loading && (
+          <div className="py-10 text-center text-sm text-muted-foreground">
+            Drafting…
+          </div>
+        )}
+
+        {!loading && error && !draft && (
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        {!loading && draft && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                  To
+                </div>
+                <div>
+                  {draft.recipientName}
+                  {draft.recipientEmail && (
+                    <span className="text-muted-foreground">
+                      {" "}· {draft.recipientEmail}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Reminder #{draft.reminderCount + 1} · {draft.daysOverdue} days past due
+                </div>
+              </div>
+              {driftBadge}
+            </div>
+
+            {draft.fallbackUsed && (
+              <div className="rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+                LLM kill switch is off — using the deterministic fallback draft.
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Subject
+              </label>
+              <Input
+                value={draft.subject}
+                maxLength={SUBJECT_MAX + 20}
+                onChange={(e) => setDraft({ ...draft, subject: e.target.value })}
+              />
+              <div
+                className={cn(
+                  "text-right text-xs",
+                  draft.subject.length > SUBJECT_MAX
+                    ? "text-amber-600"
+                    : "text-muted-foreground",
+                )}
+              >
+                {draft.subject.length} / {SUBJECT_MAX}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Body
+              </label>
+              {draft.bodyParagraphs.map((p, i) => (
+                <Textarea
+                  key={i}
+                  value={p}
+                  onChange={(e) => {
+                    const next = [...draft.bodyParagraphs];
+                    next[i] = e.target.value;
+                    setDraft({ ...draft, bodyParagraphs: next });
+                  }}
+                  className="min-h-[60px]"
+                />
+              ))}
+              <div className="text-xs text-muted-foreground">
+                Sign-off &quot;Andy&quot; + a &quot;View invoice →&quot; button are appended automatically.
+              </div>
+            </div>
+
+            {error && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                {error}
+              </div>
             )}
           </div>
-          <div className="rounded-md border border-border bg-muted/30 p-3">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              Subject
-            </div>
-            <div className="font-medium">{subject}</div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Deterministic reminder — Claude-drafted variant lands in BI-2b.
-            Reminder #{detail.invoice.reminder_count + 1}.
-          </p>
-        </div>
+        )}
+
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
             Cancel
           </Button>
           <Button
             onClick={submit}
-            disabled={busy || !detail.contactEmail}
+            disabled={!draft || sending || loading || !draft?.recipientEmail}
             className="bg-[#c1202d] text-white hover:bg-[#a81a25]"
           >
-            {busy ? "Sending…" : "Send reminder"}
+            {sending ? "Sending…" : "Send reminder"}
           </Button>
         </DialogFooter>
       </DialogContent>

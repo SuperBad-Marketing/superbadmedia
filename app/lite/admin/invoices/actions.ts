@@ -19,6 +19,9 @@ import {
   updateInvoiceDueDate,
   voidInvoice,
 } from "@/lib/invoicing/admin-mutations";
+import { composeInvoiceReminderEmailAI } from "@/lib/invoicing/compose-reminder-email";
+import { paragraphsToInvoiceHtml } from "@/lib/invoicing/email-html";
+import type { DriftCheckResult } from "@/lib/ai/drift-check";
 import type { InvoicePaidVia } from "@/lib/db/schema/invoices";
 
 export type ActionResult<T = object> =
@@ -176,12 +179,87 @@ export async function supersedeInvoiceAction(input: {
   return { ok: true, newInvoiceId: result.new_invoice.id };
 }
 
+export interface PrepareReminderResult {
+  subject: string;
+  bodyParagraphs: string[];
+  recipientEmail: string;
+  recipientName: string;
+  invoiceUrl: string;
+  daysOverdue: number;
+  reminderCount: number;
+  drift: DriftCheckResult;
+  fallbackUsed: boolean;
+}
+
+/**
+ * Draft a manual follow-up reminder for Andy to review + edit before
+ * dispatch. Claude-drafted when the LLM kill-switch is on, deterministic
+ * fallback otherwise. Andy ships edits via `sendReminderAction({draft:…})`.
+ */
+export async function prepareReminderAction(input: {
+  invoiceId: string;
+}): Promise<ActionResult<{ value: PrepareReminderResult }>> {
+  const gate = await requireAdmin();
+  if (!gate.ok) return gate;
+
+  try {
+    const draft = await composeInvoiceReminderEmailAI({ invoice_id: input.invoiceId });
+    return {
+      ok: true,
+      value: {
+        subject: draft.subject,
+        bodyParagraphs: draft.bodyParagraphs,
+        recipientEmail: draft.recipientEmail,
+        recipientName: draft.recipientName,
+        invoiceUrl: draft.invoiceUrl,
+        daysOverdue: draft.daysOverdue,
+        reminderCount: draft.reminderCount,
+        drift: draft.drift,
+        fallbackUsed: draft.fallbackUsed,
+      },
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "compose_failed",
+    };
+  }
+}
+
 export async function sendReminderAction(input: {
   invoiceId: string;
+  /** Andy-edited draft from the modal. When omitted, server re-composes and sends. */
+  draft?: { subject: string; bodyParagraphs: string[] };
 }): Promise<ActionResult> {
   const gate = await requireAdmin();
   if (!gate.ok) return gate;
-  const result = await sendInvoiceReminder({ invoice_id: input.invoiceId });
+
+  // Re-fetch the invoice to rebuild the invoice-URL button inside the HTML
+  // the server is about to dispatch. Edits to paragraph text come from
+  // Andy; link + sign-off are server-owned.
+  let override:
+    | { subject: string; bodyParagraphs: string[]; bodyHtml: string }
+    | undefined;
+  if (input.draft) {
+    const invoice = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, input.invoiceId))
+      .get();
+    if (!invoice) return { ok: false, error: "invoice_not_found" };
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://superbadmedia.com.au";
+    const invoiceUrl = `${base.replace(/\/$/, "")}/lite/invoices/${invoice.token}`;
+    override = {
+      subject: input.draft.subject,
+      bodyParagraphs: input.draft.bodyParagraphs,
+      bodyHtml: paragraphsToInvoiceHtml(input.draft.bodyParagraphs, invoiceUrl),
+    };
+  }
+
+  const result = await sendInvoiceReminder({
+    invoice_id: input.invoiceId,
+    draftOverride: override,
+  });
   if (!result.ok) return { ok: false, error: result.error };
   bump(input.invoiceId);
   return { ok: true };

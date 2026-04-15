@@ -7,7 +7,7 @@ import { contacts, type ContactRow } from "@/lib/db/schema/contacts";
 import { sendEmail } from "@/lib/channels/email/send";
 import { logActivity } from "@/lib/activity-log";
 import { transitionInvoiceStatus } from "@/lib/invoicing/transitions";
-import { composeInvoiceSendEmail } from "@/lib/invoicing/compose-emails";
+import { composeInvoiceSendEmailAI } from "@/lib/invoicing/compose-send-email";
 
 type DatabaseLike = typeof defaultDb;
 
@@ -54,7 +54,7 @@ export async function sendInvoice(
 
   const to = recipient?.email ?? null;
 
-  const parts = composeInvoiceSendEmail({ invoice, company });
+  const parts = await composeInvoiceSendEmailAI({ invoice_id: invoice.id }, database);
 
   let messageId: string | undefined;
   if (to) {

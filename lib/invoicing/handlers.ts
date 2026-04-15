@@ -10,7 +10,7 @@ import { generateInvoice } from "@/lib/invoicing/generate";
 import { sendInvoice } from "@/lib/invoicing/send";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { sendEmail } from "@/lib/channels/email/send";
-import { composeInvoiceReminderEmail } from "@/lib/invoicing/compose-emails";
+import { composeInvoiceReminderEmailAI } from "@/lib/invoicing/compose-reminder-email";
 import { logActivity } from "@/lib/activity-log";
 import { transitionInvoiceStatus } from "@/lib/invoicing/transitions";
 import settings from "@/lib/settings";
@@ -192,16 +192,11 @@ const handleInvoiceOverdueReminder: TaskHandler = async (task) => {
     : null;
   const to = recipient?.email ?? null;
 
-  const daysOverdue = Math.max(
-    0,
-    Math.floor((now - current.due_at_ms) / DAY_MS),
+  const parts = await composeInvoiceReminderEmailAI(
+    { invoice_id: current.id, nowMs: now },
+    defaultDb,
   );
-  const parts = composeInvoiceReminderEmail({
-    invoice: current,
-    company,
-    reminderCount: current.reminder_count,
-    daysOverdue,
-  });
+  const daysOverdue = parts.daysOverdue;
 
   if (to) {
     const result = await sendEmail({

@@ -14,10 +14,8 @@ import { deriveInvoiceTotals, sumLineItems } from "@/lib/invoicing/totals";
 import { logActivity } from "@/lib/activity-log";
 import { transitionInvoiceStatus } from "@/lib/invoicing/transitions";
 import { sendEmail } from "@/lib/channels/email/send";
-import {
-  composeInvoiceSupersedeEmail,
-  composeInvoiceReminderEmail,
-} from "@/lib/invoicing/compose-emails";
+import { composeInvoiceSupersedeEmailAI } from "@/lib/invoicing/compose-supersede-email";
+import { composeInvoiceReminderEmailAI } from "@/lib/invoicing/compose-reminder-email";
 import { contacts } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import {
@@ -372,27 +370,16 @@ export async function supersedeInvoice(
 
   // Notify client when the superseded invoice had already left the client's inbox.
   if (previousStatus === "sent" || previousStatus === "overdue") {
-    const deal = await database
-      .select()
-      .from(deals)
-      .where(eq(deals.id, source.deal_id))
-      .get();
-    const recipient = deal?.primary_contact_id
-      ? (await database
-          .select()
-          .from(contacts)
-          .where(eq(contacts.id, deal.primary_contact_id))
-          .get()) ?? null
-      : null;
-    const to = recipient?.email ?? null;
-    if (to) {
-      const parts = composeInvoiceSupersedeEmail({
-        newInvoice,
-        previousInvoiceNumber: source.invoice_number,
-        company,
-      });
+    const parts = await composeInvoiceSupersedeEmailAI(
+      {
+        new_invoice_id: newInvoice.id,
+        previous_invoice_number: source.invoice_number,
+      },
+      database,
+    );
+    if (parts.recipientEmail) {
       await sendEmail({
-        to,
+        to: parts.recipientEmail,
         subject: parts.subject,
         body: parts.bodyHtml,
         classification: "invoice_supersede",
@@ -411,7 +398,16 @@ export async function supersedeInvoice(
  * cron won't fire a duplicate.
  */
 export async function sendInvoiceReminder(
-  input: { invoice_id: string; nowMs?: number },
+  input: {
+    invoice_id: string;
+    nowMs?: number;
+    /** Andy-edited draft from the Send modal. When omitted, the Claude-drafted (or deterministic-fallback) draft is composed and sent. */
+    draftOverride?: {
+      subject: string;
+      bodyParagraphs: string[];
+      bodyHtml: string;
+    };
+  },
   dbOverride?: DatabaseLike,
 ): Promise<AdminMutationResult<{ invoice: InvoiceRow; recipient: string | null }>> {
   const database = dbOverride ?? defaultDb;
@@ -453,18 +449,26 @@ export async function sendInvoiceReminder(
     0,
     Math.floor((now - invoice.due_at_ms) / DAY_MS),
   );
-  const email = composeInvoiceReminderEmail({
-    invoice,
-    company,
-    reminderCount: invoice.reminder_count,
-    daysOverdue,
-  });
+
+  let subject: string;
+  let bodyHtml: string;
+  if (input.draftOverride) {
+    subject = input.draftOverride.subject;
+    bodyHtml = input.draftOverride.bodyHtml;
+  } else {
+    const email = await composeInvoiceReminderEmailAI(
+      { invoice_id: invoice.id, nowMs: now },
+      database,
+    );
+    subject = email.subject;
+    bodyHtml = email.bodyHtml;
+  }
 
   if (to) {
     const result = await sendEmail({
       to,
-      subject: email.subject,
-      body: email.bodyHtml,
+      subject,
+      body: bodyHtml,
       classification: "invoice_reminder",
       purpose: `invoicing:reminder_manual:${invoice.id}`,
     });
