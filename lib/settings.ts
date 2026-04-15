@@ -71,6 +71,9 @@ const registry = {
   "portal.magic_link_ttl_hours": integer,
   "portal.session_cookie_ttl_days": integer,
 
+  // Subscriber auth (SB-6a, 1)
+  "subscriber.magic_link_ttl_hours": integer,
+
   // Intro Funnel (1)
   "intro_funnel.reflection_delay_hours_after_deliverables": integer,
 

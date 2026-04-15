@@ -1,16 +1,22 @@
 /**
- * `/get-started/welcome` — post-checkout landing.
+ * `/get-started/welcome` — transient post-checkout landing.
  *
- * Minimal placeholder. SB-6 builds the real locked onboarding dashboard
- * behind magic-link auth; this page just confirms the payment landed
- * and points at Andy's email while the subscriber-side auth primitive
- * is still being built.
+ * Arriving clients:
+ *   - If already authenticated as `role="client"`, redirect to
+ *     `/lite/onboarding` immediately.
+ *   - Otherwise show a "receipt on the way" interstitial + a resend
+ *     button — the magic-link email is typically already on its way
+ *     from `invoice.payment_succeeded`, but the button covers the case
+ *     where the webhook hasn't fired yet or the subscriber missed it.
  *
- * Owner: SB-5. Successor: SB-6.
+ * Owner: SB-5 (placeholder) → SB-6a (real transient landing).
  */
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { FOOTER_COPY } from "@/lib/content/pricing-page";
+import { auth } from "@/lib/auth/session";
+import { ResendLoginClient } from "./clients/resend-login-client";
 
 export const dynamic = "force-dynamic";
 
@@ -23,11 +29,24 @@ export const metadata: Metadata = {
 export default async function WelcomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string | string[] }>;
+  searchParams: Promise<{ email?: string | string[]; error?: string | string[] }>;
 }) {
+  const session = await auth();
+  if (session?.user?.role === "client") {
+    redirect("/lite/onboarding");
+  }
+
   const sp = await searchParams;
   const emailParam = Array.isArray(sp.email) ? sp.email[0] : sp.email;
   const email = emailParam?.trim() || null;
+  const errorParam = Array.isArray(sp.error) ? sp.error[0] : sp.error;
+
+  const errorMessage =
+    errorParam === "link_invalid"
+      ? "That login link has expired or been used already. Ask for a fresh one below."
+      : errorParam === "missing_token"
+        ? "That link was missing a token. Ask for a fresh one below."
+        : null;
 
   return (
     <section
@@ -42,11 +61,23 @@ export default async function WelcomePage({
       </h1>
       <p className="text-foreground/70 text-base leading-relaxed">
         {email
-          ? `Thanks. A receipt's on the way to ${email}. Andy will be in touch within a business day to get onboarding started.`
-          : "Thanks. A receipt's on the way. Andy will be in touch within a business day to get onboarding started."}
+          ? `A login link is on the way to ${email}. Check your inbox — it usually lands within a minute.`
+          : "A login link is on the way to the email you checked out with. Check your inbox — it usually lands within a minute."}
       </p>
-      <p className="text-foreground/50 mt-8 text-xs">
-        Questions in the meantime?{" "}
+      {errorMessage ? (
+        <p
+          className="mt-6 text-sm text-[#c8312b]"
+          role="alert"
+          data-testid="welcome-error"
+        >
+          {errorMessage}
+        </p>
+      ) : null}
+
+      <ResendLoginClient initialEmail={email} />
+
+      <p className="text-foreground/50 mt-10 text-xs">
+        Stuck?{" "}
         <a
           href={`mailto:${FOOTER_COPY.supportEmail}`}
           className="underline underline-offset-2 hover:text-foreground"

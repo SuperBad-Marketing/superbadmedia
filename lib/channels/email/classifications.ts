@@ -44,6 +44,9 @@ export const EMAIL_CLASSIFICATIONS = [
   "invoice_send",
   "invoice_reminder",
   "invoice_supersede",
+  // SB-6a — SaaS subscriber magic-link login. Transactional; subscriber
+  // just paid, auth delivery bypasses outreach kill switch + quiet window.
+  "subscriber_login_link",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -62,6 +65,7 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "invoice_send",
   "invoice_reminder",
   "invoice_supersede",
+  "subscriber_login_link",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

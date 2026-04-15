@@ -73,6 +73,12 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `portal.magic_link_ttl_hours` | `168` | integer | TTL for magic-link OTTs embedded in journey-beat emails + recovery-form sends; 7 days default, per F1.a (2026-04-13) |
 | `portal.session_cookie_ttl_days` | `90` | integer | Rolling TTL for the portal-guard session cookie, per F1.a (2026-04-13) |
 
+## Subscriber auth (owner: `docs/specs/saas-subscription-billing.md`)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `subscriber.magic_link_ttl_hours` | `24` | integer | TTL for SaaS subscriber login magic-links issued by `invoice.payment_succeeded` + `/get-started/welcome` resend. Single-use. SB-6a (2026-04-15). |
+
 ## Intro Funnel (owner: `docs/specs/intro-funnel.md`)
 
 | Key | Default | Type | Description |

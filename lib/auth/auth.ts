@@ -24,6 +24,7 @@ import { user as userTable } from "@/lib/db/schema";
 import { authConfig } from "./auth.config";
 import { isBrandDnaCompleteForUser } from "./brand-dna-complete-check";
 import { hasCompletedCriticalFlight } from "./has-completed-critical-flight";
+import { redeemSubscriberMagicLink } from "./subscriber-magic-link";
 
 export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
@@ -60,8 +61,41 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       name: "Email",
       credentials: {
         email: { label: "Email", type: "email" },
+        subscriberLoginToken: { label: "Token", type: "text" },
       },
       async authorize(credentials) {
+        // --- Subscriber magic-link branch (SB-6a) ---
+        // If a token is presented, redeem it: promotes prospect→client,
+        // marks token consumed, logs activity. On success returns the
+        // user for session issuance. Admin path is unaffected.
+        if (
+          typeof credentials?.subscriberLoginToken === "string" &&
+          credentials.subscriberLoginToken.length > 0
+        ) {
+          const outcome = await redeemSubscriberMagicLink(
+            credentials.subscriberLoginToken,
+          );
+          if (!outcome.ok) return null;
+          const u = await db
+            .select({
+              id: userTable.id,
+              email: userTable.email,
+              name: userTable.name,
+              role: userTable.role,
+            })
+            .from(userTable)
+            .where(eq(userTable.id, outcome.userId))
+            .get();
+          if (!u) return null;
+          return {
+            id: u.id,
+            email: u.email,
+            name: u.name ?? undefined,
+            role: u.role,
+          };
+        }
+
+        // --- Admin email-only branch (original A8 behaviour) ---
         if (!credentials?.email || typeof credentials.email !== "string") {
           return null;
         }
