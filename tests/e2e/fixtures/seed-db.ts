@@ -60,9 +60,30 @@ export function openTestDb(): {
 
 function clearPreviousRun(): void {
   fs.mkdirSync(path.dirname(E2E_DB_PATH), { recursive: true });
-  for (const ext of ["", "-wal", "-shm"]) {
-    const p = `${E2E_DB_PATH}${ext}`;
-    if (fs.existsSync(p)) fs.unlinkSync(p);
+  // Wipe schema *in-place* rather than `fs.unlinkSync` — the webServer
+  // (started by Playwright BEFORE globalSetup) eagerly opens the DB file
+  // from at least one route worker. Unlinking leaves those handles
+  // pointing at the old (now-orphaned) inode, so subsequent migrations
+  // land on a NEW inode the workers never see — manifesting as
+  // intermittent "no such table: webhook_events" inside the Stripe
+  // webhook handler. Dropping schema preserves the inode.
+  if (fs.existsSync(E2E_DB_PATH)) {
+    const sqlite = new Database(E2E_DB_PATH);
+    try {
+      sqlite.pragma("journal_mode = WAL");
+      sqlite.pragma("foreign_keys = OFF");
+      const objects = sqlite
+        .prepare(
+          "SELECT type, name FROM sqlite_master WHERE type IN ('table','index','trigger','view') AND name NOT LIKE 'sqlite_%'",
+        )
+        .all() as Array<{ type: string; name: string }>;
+      for (const o of objects) {
+        sqlite.exec(`DROP ${o.type.toUpperCase()} IF EXISTS "${o.name}";`);
+      }
+      sqlite.exec("VACUUM;");
+    } finally {
+      sqlite.close();
+    }
   }
   if (fs.existsSync(AUTH_STATE_PATH)) fs.unlinkSync(AUTH_STATE_PATH);
 }
@@ -75,6 +96,31 @@ function migrateAndSeed(): void {
   drizzleMigrate(db, {
     migrationsFolder: path.resolve(process.cwd(), "lib/db/migrations"),
   });
+
+  // Drizzle's migrator only runs entries listed in `meta/_journal.json`.
+  // Pure-data seed migrations (0001, 0013, 0014, 0015 — settings-only,
+  // no schema diff) are intentionally absent from the journal but must
+  // still execute for the runtime to find their kill-switch keys. Their
+  // statements are `INSERT OR IGNORE` so re-running is safe.
+  const journalPath = path.resolve(
+    process.cwd(),
+    "lib/db/migrations/meta/_journal.json",
+  );
+  const journal = JSON.parse(fs.readFileSync(journalPath, "utf8")) as {
+    entries: Array<{ tag: string }>;
+  };
+  const journalled = new Set(journal.entries.map((e) => e.tag));
+  const migrationsDir = path.resolve(process.cwd(), "lib/db/migrations");
+  const seedOnly = fs
+    .readdirSync(migrationsDir)
+    .filter((f) => f.endsWith(".sql"))
+    .map((f) => ({ tag: f.replace(/\.sql$/, ""), file: f }))
+    .filter((m) => !journalled.has(m.tag))
+    .sort((a, b) => a.tag.localeCompare(b.tag));
+  for (const m of seedOnly) {
+    const sql = fs.readFileSync(path.join(migrationsDir, m.file), "utf8");
+    sqlite.exec(sql);
+  }
 
   // Admin user — satisfies completeStripeAdminAction's auth().user.id lookup.
   sqlite

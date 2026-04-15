@@ -77,7 +77,11 @@ export default defineConfig({
       STRIPE_WEBHOOK_SECRET,
       STRIPE_SECRET_KEY: process.env.STRIPE_TEST_KEY ?? "",
       STRIPE_PUBLISHABLE_KEY: "pk_test_placeholder",
-      RESEND_API_KEY: "",
+      // Placeholder satisfies Resend SDK's constructor-time format check.
+      // Actual sends are blocked by `EMAIL_FROM`'s domain + the `sendEmail`
+      // skip-path which returns `{skipped:true}` in non-production when the
+      // email gate isn't opened.
+      RESEND_API_KEY: "re_test_placeholder",
       EMAIL_FROM: "andy@superbadmedia.com.au",
       EMAIL_FROM_NAME: "Andy Robinson — SuperBad",
       ANTHROPIC_API_KEY: "",
