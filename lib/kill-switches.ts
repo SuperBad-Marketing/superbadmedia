@@ -23,7 +23,8 @@ export type KillSwitchKey =
   | "wizards_nudges_enabled"
   | "invoicing_manual_cycle_enqueue_enabled"
   | "saas_usage_enforcement_enabled"
-  | "saas_tier_change_enabled";
+  | "saas_tier_change_enabled"
+  | "saas_payment_recovery_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -53,6 +54,11 @@ const defaults: KillSwitchRegistry = {
   // misbehaving; defaults ON because the feature is the primary path off
   // the at-cap upgrade CTA.
   saas_tier_change_enabled: true,
+  // SB-9: gates the branded past_due recovery path (inline SetupIntent
+  // card update on the onboarding dashboard). Off = dashboard falls back
+  // to the SB-6b Stripe Billing Portal link; counter increment + 7-day
+  // data-loss warning scheduling still run (safe side-effects).
+  saas_payment_recovery_enabled: true,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

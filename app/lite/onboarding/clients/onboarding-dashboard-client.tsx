@@ -28,6 +28,7 @@ import type {
   NextTierInfo,
 } from "@/lib/saas-products/usage";
 import { requestSubscriberUpgradeAction } from "../actions-tier-change";
+import { PastDueCardUpdateClient } from "./past-due-card-update-client";
 
 function cadenceLabel(c: string | null): string {
   if (c === "annual_upfront") return "Annual — paid upfront";
@@ -39,6 +40,8 @@ function cadenceLabel(c: string | null): string {
 type Props = {
   summary: SubscriberSummary;
   usage?: DashboardUsageSnapshot | null;
+  /** SB-9: when true, past_due variant renders inline SetupIntent card update. */
+  paymentRecoveryEnabled?: boolean;
 };
 
 type Variant = "at_cap" | "active" | "past_due" | "waiting";
@@ -53,7 +56,11 @@ function resolveVariant(
   return "waiting";
 }
 
-export function OnboardingDashboardClient({ summary, usage }: Props) {
+export function OnboardingDashboardClient({
+  summary,
+  usage,
+  paymentRecoveryEnabled,
+}: Props) {
   const variant = resolveVariant(summary.subscriptionState, usage);
 
   return (
@@ -106,7 +113,11 @@ export function OnboardingDashboardClient({ summary, usage }: Props) {
           ) : variant === "active" ? (
             <BrandDnaHero />
           ) : variant === "past_due" ? (
-            <BillingPortalHero variant="past_due" />
+            paymentRecoveryEnabled ? (
+              <PastDueCardUpdateClient productName={summary.productName} />
+            ) : (
+              <BillingPortalHero variant="past_due" />
+            )
           ) : (
             <BillingPortalHero variant="waiting" />
           )}

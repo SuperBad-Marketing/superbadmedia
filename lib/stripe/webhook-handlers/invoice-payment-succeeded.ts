@@ -5,6 +5,7 @@ import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { db as defaultDb } from "@/lib/db";
 import { deals } from "@/lib/db/schema/deals";
 import { activity_log } from "@/lib/db/schema/activity-log";
+import { scheduled_tasks } from "@/lib/db/schema/scheduled-tasks";
 import { contacts } from "@/lib/db/schema/contacts";
 import { user as userTable } from "@/lib/db/schema/user";
 import { saas_products } from "@/lib/db/schema/saas-products";
@@ -73,27 +74,56 @@ export async function handleInvoicePaymentSucceeded(
     });
   }
 
-  if (deal.subscription_state !== "past_due") {
+  const hadFailures = (deal.payment_failure_count ?? 0) > 0;
+  if (deal.subscription_state !== "past_due" && !hadFailures) {
     return { result: "ok" };
   }
 
   await database
     .update(deals)
-    .set({ subscription_state: "active", updated_at_ms: nowMs })
+    .set({
+      subscription_state: "active",
+      payment_failure_count: 0,
+      first_payment_failure_at_ms: null,
+      updated_at_ms: nowMs,
+    })
     .where(eq(deals.id, deal.id));
+
+  // Cancel any pending data-loss warning task for this deal. We stored
+  // the idempotency key as `saas_data_loss:{dealId}:{firstFailureMs}`;
+  // a single pending row per cycle, so scope by task_type + payload via
+  // a query on deal_id stored in payload JSON is unnecessary here —
+  // idempotency_key prefix match covers it, but since drizzle-sqlite
+  // doesn't support LIKE ergonomically on prefixes for the scoped
+  // update path, we filter by the known firstFailureMs when present.
+  if (deal.first_payment_failure_at_ms !== null && deal.first_payment_failure_at_ms !== undefined) {
+    await database
+      .update(scheduled_tasks)
+      .set({ status: "skipped", done_at_ms: nowMs })
+      .where(
+        and(
+          eq(
+            scheduled_tasks.idempotency_key,
+            `saas_data_loss:${deal.id}:${deal.first_payment_failure_at_ms}`,
+          ),
+          eq(scheduled_tasks.status, "pending"),
+        ),
+      );
+  }
 
   await database.insert(activity_log).values({
     id: randomUUID(),
     company_id: deal.company_id,
     deal_id: deal.id,
-    kind: "note",
+    kind: "saas_payment_recovered",
     body: `Subscription payment recovered — past_due → active.`,
     meta: {
       kind: "subscription_payment_recovered",
       stripe_subscription_id: subId,
       stripe_invoice_id: invoice.id,
-      previous_state: "past_due",
+      previous_state: deal.subscription_state,
       new_state: "active",
+      previous_failure_count: deal.payment_failure_count ?? 0,
       event_id: opts.eventId,
     },
     created_at_ms: nowMs,

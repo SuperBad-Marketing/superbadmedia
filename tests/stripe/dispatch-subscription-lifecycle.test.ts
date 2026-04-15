@@ -72,6 +72,7 @@ beforeEach(() => {
   );
   vi.mocked(settings.get).mockImplementation(async (key: string) => {
     if (key === "pipeline.stripe_webhook_dispatch_enabled") return true;
+    if (key === "saas.data_loss_warning_days") return 7;
     throw new Error(`Unexpected settings key: ${key}`);
   });
 });
@@ -390,10 +391,19 @@ describe("dispatchStripeEvent — invoice.payment_failed", () => {
     expect(meta.new_state).toBe("past_due");
   });
 
-  it("idempotent: already-past_due → no state change, no new log", async () => {
+  it("repeat failure within same cycle → counter increments, no new log", async () => {
+    // SB-9: second payment_failed in the same cycle increments the
+    // per-cycle counter but does not emit another activity log (first
+    // failure's log is authoritative for the cycle) and does not
+    // re-enqueue the data-loss warning task.
     const { dealId, companyId, subId } = seedSubscribedDeal({
       subscription_state: "past_due",
     });
+    // Simulate prior first failure having stamped the counter.
+    db.update(deals)
+      .set({ payment_failure_count: 1, first_payment_failure_at_ms: 1_600_000_000_000 })
+      .where(eq(deals.id, dealId))
+      .run();
     const event = invoiceEvent("invoice.payment_failed", {
       subscription: subId,
     } as Partial<Stripe.Invoice>);
@@ -402,6 +412,7 @@ describe("dispatchStripeEvent — invoice.payment_failed", () => {
 
     const deal = db.select().from(deals).where(eq(deals.id, dealId)).get();
     expect(deal?.subscription_state).toBe("past_due");
+    expect(deal?.payment_failure_count).toBe(2);
 
     const logs = db
       .select()

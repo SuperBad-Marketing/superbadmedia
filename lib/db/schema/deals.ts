@@ -96,6 +96,12 @@ export const deals = sqliteTable(
     // SaaS linkage (SB-1) — null for retainer/project deals.
     saas_product_id: text("saas_product_id"),
     saas_tier_id: text("saas_tier_id"),
+    // SB-9: per-billing-cycle payment-failure counter. Increments on
+    // `invoice.payment_failed`; resets to 0 / null on `invoice.paid`.
+    // `first_payment_failure_at_ms` stamps only on first failure of a
+    // cycle — data-loss escalation fires 7 days after.
+    payment_failure_count: integer("payment_failure_count").notNull().default(0),
+    first_payment_failure_at_ms: integer("first_payment_failure_at_ms"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },

@@ -20,6 +20,7 @@ import { eq } from "drizzle-orm";
 import { loadSubscriberSummary } from "@/lib/saas-products/subscriber-summary";
 import { loadDashboardUsage } from "@/lib/saas-products/usage";
 import { OnboardingDashboardClient } from "./clients/onboarding-dashboard-client";
+import { killSwitches } from "@/lib/kill-switches";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,13 @@ export default async function OnboardingPage() {
       const usage = contact
         ? await loadDashboardUsage(contact.id, summary.productId)
         : null;
-      return <OnboardingDashboardClient summary={summary} usage={usage} />;
+      return (
+        <OnboardingDashboardClient
+          summary={summary}
+          usage={usage}
+          paymentRecoveryEnabled={killSwitches.saas_payment_recovery_enabled}
+        />
+      );
     }
     // Client session but no SaaS deal on file — rare race window between
     // promotion + deal row hydration. Fall through to the admin placeholder
