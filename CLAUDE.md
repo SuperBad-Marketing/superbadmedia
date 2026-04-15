@@ -21,6 +21,7 @@ Load the `superbad-business-context`, `superbad-brand-voice`, and `superbad-visu
 
 When Andy says **"let's go"** (or "next", "continue", "what's next"), do this in order:
 
+0. **Assess the upcoming task and recommend a model tier** (Haiku / Sonnet / Opus) per the global rule in `~/.claude/CLAUDE.md`. Do this *before* reading any phase docs — the recommendation is cheaper before context fills up. State it in the first message to Andy alongside which phase you're in.
 1. Read `START_HERE.md` (always, every time — the phase protocols live there).
 2. Read `SESSION_TRACKER.md` and find the **🧭 Next Action** block.
 3. Execute the phase that block points at, following the protocol from `START_HERE.md`.

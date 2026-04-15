@@ -1,0 +1,1346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad Lite — quote builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=Pacifico&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red:      #B22848;
+    --brand-cream:    #FDF5E6;
+    --brand-pink:     #F4A0B0;
+    --brand-orange:   #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-950: #0F0F0E;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-400: #A8A699;
+    --neutral-300: #D4D2C2;
+    --neutral-200: #E6E2CF;
+    --neutral-100: #FDF5E6;
+    --success: #7BAE7E;
+    --amber: #E1A54A;
+    --surface-0: var(--neutral-900);
+    --surface-1: var(--neutral-800);
+    --surface-2: var(--neutral-700);
+    --surface-3: #32322D;
+    --radius-default: 8px;
+    --radius-generous: 16px;
+    --inner-highlight: inset 0 1px 0 rgba(253, 245, 230, 0.04);
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --spring-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--surface-0);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 85% 5%, rgba(242, 140, 82, 0.05), transparent 55%),
+                radial-gradient(ellipse at 0% 100%, rgba(178, 40, 72, 0.04), transparent 60%);
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    height: 100vh;
+  }
+
+  /* ---------- sidebar ---------- */
+  aside.nav {
+    background: var(--surface-1);
+    padding: 20px 14px;
+    box-shadow: var(--inner-highlight), 1px 0 0 rgba(253, 245, 230, 0.025);
+    display: flex; flex-direction: column; gap: 20px;
+    overflow-y: auto;
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 22px; color: var(--brand-cream);
+    padding: 4px 8px;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .logo .lite {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 2px; color: var(--brand-pink);
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid rgba(244, 160, 176, 0.25);
+    border-radius: 4px;
+    align-self: center;
+  }
+  nav .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 1.6px; color: var(--neutral-500);
+    text-transform: uppercase; padding: 10px 10px 6px;
+  }
+  nav ul { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+  nav a {
+    display: flex; align-items: center; gap: 9px;
+    padding: 7px 10px; border-radius: 6px;
+    color: var(--neutral-300); text-decoration: none;
+    font-size: 13px;
+    transition: background 160ms var(--spring), color 160ms var(--spring);
+  }
+  nav a:hover { background: rgba(253, 245, 230, 0.04); color: var(--brand-cream); }
+  nav a.active { background: rgba(178, 40, 72, 0.12); color: var(--brand-cream); }
+  nav a .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--neutral-500); }
+  nav a.active .dot { background: var(--brand-red); }
+
+  /* ---------- workspace ---------- */
+  .workspace {
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    min-width: 0; min-height: 0;
+  }
+
+  /* top bar */
+  .topbar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 24px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+    background: var(--surface-0);
+  }
+  .crumbs {
+    font-size: 12px; color: var(--neutral-500);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .crumbs .sep { opacity: 0.4; }
+  .crumbs .current { color: var(--brand-cream); }
+  .quote-number {
+    font-family: "Righteous"; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 11px; color: var(--neutral-400);
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(253, 245, 230, 0.04);
+  }
+  .status-chip {
+    font-family: "Righteous"; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 10px; padding: 4px 9px; border-radius: 999px;
+    background: rgba(225, 165, 74, 0.12); color: var(--amber);
+    border: 1px solid rgba(225, 165, 74, 0.2);
+  }
+  .topbar-actions {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .btn {
+    font-family: "DM Sans"; font-size: 13px; font-weight: 500;
+    padding: 8px 14px; border-radius: 6px; border: 0; cursor: pointer;
+    transition: all 180ms var(--spring);
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .btn-ghost { background: transparent; color: var(--neutral-300); }
+  .btn-ghost:hover { background: rgba(253, 245, 230, 0.05); color: var(--brand-cream); }
+  .btn-secondary { background: var(--surface-2); color: var(--brand-cream); }
+  .btn-secondary:hover { background: var(--surface-3); transform: translateY(-1px); }
+  .btn-primary {
+    background: var(--brand-red); color: var(--brand-cream);
+    font-weight: 600; letter-spacing: 0.2px;
+    box-shadow: 0 1px 0 rgba(253,245,230,0.08) inset, 0 4px 14px rgba(178,40,72,0.35);
+  }
+  .btn-primary:hover { background: #C52D52; transform: translateY(-1px); box-shadow: 0 1px 0 rgba(253,245,230,0.08) inset, 0 6px 20px rgba(178,40,72,0.45); }
+  .btn .chev { font-size: 15px; }
+
+  /* drift indicator */
+  .drift {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11px; color: var(--neutral-400);
+    padding: 4px 10px 4px 8px; border-radius: 999px;
+    background: rgba(123, 174, 126, 0.1);
+    border: 1px solid rgba(123, 174, 126, 0.2);
+    transition: all 300ms var(--spring);
+  }
+  .drift .led { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px rgba(123,174,126,0.6); }
+  .drift.amber { background: rgba(225, 165, 74, 0.12); border-color: rgba(225, 165, 74, 0.25); color: var(--amber); }
+  .drift.amber .led { background: var(--amber); box-shadow: 0 0 6px rgba(225,165,74,0.7); }
+
+  /* ---------- split panes ---------- */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(420px, 40%) 1fr;
+    min-height: 0;
+  }
+
+  /* LEFT — editor */
+  .editor {
+    border-right: 1px solid rgba(253, 245, 230, 0.05);
+    overflow-y: auto;
+    background: var(--surface-0);
+    padding: 28px 28px 80px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .editor::-webkit-scrollbar { width: 8px; }
+  .editor::-webkit-scrollbar-thumb { background: rgba(253,245,230,0.06); border-radius: 4px; }
+  .editor::-webkit-scrollbar-thumb:hover { background: rgba(253,245,230,0.1); }
+
+  .deal-card {
+    background: var(--surface-1);
+    border: 1px solid rgba(253, 245, 230, 0.04);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .deal-card .avatar {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, rgba(242,140,82,0.3), rgba(178,40,72,0.3));
+    display: grid; place-items: center;
+    font-family: "Black Han Sans"; font-size: 15px; color: var(--brand-cream);
+  }
+  .deal-card .meta { flex: 1; min-width: 0; }
+  .deal-card .meta .company { color: var(--brand-cream); font-size: 14px; font-weight: 500; }
+  .deal-card .meta .sub { color: var(--neutral-500); font-size: 11px; margin-top: 2px; }
+  .deal-card .meta .sub .contact { color: var(--brand-pink); font-style: italic; }
+  .billing-badge {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.3px; text-transform: uppercase;
+    padding: 4px 8px; border-radius: 4px;
+    background: rgba(242,140,82,0.15); color: var(--brand-orange);
+    border: 1px solid rgba(242,140,82,0.2);
+  }
+
+  /* structure tabs */
+  .structure-tabs {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+    padding: 4px; background: var(--surface-1); border-radius: 10px;
+  }
+  .structure-tabs button {
+    background: transparent; border: 0; cursor: pointer;
+    padding: 9px 10px; border-radius: 7px;
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--neutral-500);
+    transition: all 200ms var(--spring);
+  }
+  .structure-tabs button:hover { color: var(--neutral-300); }
+  .structure-tabs button.active {
+    background: var(--surface-3); color: var(--brand-cream);
+    box-shadow: 0 1px 0 rgba(253,245,230,0.06) inset, 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  /* section blocks */
+  .section {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .section-head {
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 4px;
+  }
+  .section-num {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px; color: var(--brand-pink);
+    padding: 2px 6px; background: rgba(244,160,176,0.1); border-radius: 4px;
+  }
+  .section-head h3 {
+    font-family: "Black Han Sans"; font-size: 17px; color: var(--brand-cream);
+    letter-spacing: 0.2px;
+  }
+  .section-head .helper {
+    margin-left: auto;
+    font-size: 11px; color: var(--neutral-500); font-style: italic;
+  }
+  .section-body { display: flex; flex-direction: column; gap: 10px; }
+
+  textarea, input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--surface-1);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 8px;
+    color: var(--brand-cream);
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px; line-height: 1.6;
+    padding: 12px 14px;
+    transition: border-color 160ms var(--spring), background 160ms var(--spring);
+    resize: vertical;
+  }
+  textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
+    outline: 0; border-color: rgba(244,160,176,0.35);
+    background: var(--surface-2);
+  }
+  textarea { min-height: 96px; }
+
+  .rank-hint {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--neutral-500);
+    padding: 6px 10px; border-radius: 6px;
+    background: rgba(253, 245, 230, 0.025);
+  }
+  .rank-hint .rank-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .rank-hint .rank-dot.r1 { background: var(--success); }
+  .rank-hint .rank-dot.r2 { background: var(--brand-orange); }
+  .rank-hint strong { color: var(--brand-cream); font-weight: 500; }
+  .rank-hint .actions { margin-left: auto; display: flex; gap: 6px; }
+  .rank-hint .mini {
+    font-size: 10px; color: var(--brand-pink);
+    padding: 3px 7px; border-radius: 4px;
+    background: rgba(244,160,176,0.08);
+    cursor: pointer;
+    transition: background 160ms var(--spring);
+  }
+  .rank-hint .mini:hover { background: rgba(244,160,176,0.15); }
+
+  .confidence {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; font-family: "Righteous"; letter-spacing: 1.3px; text-transform: uppercase;
+    color: var(--success);
+  }
+
+  /* line items */
+  .catalogue-picker {
+    position: relative;
+    background: var(--surface-1);
+    border: 1px solid rgba(253,245,230,0.06);
+    border-radius: 8px;
+    padding: 6px 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .catalogue-picker input {
+    flex: 1; border: 0; background: transparent; padding: 8px 4px;
+  }
+  .catalogue-picker .add {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.4px;
+    color: var(--brand-orange); padding: 6px 10px; border-radius: 6px;
+    background: rgba(242,140,82,0.1); cursor: pointer;
+    transition: all 180ms var(--spring);
+  }
+  .catalogue-picker .add:hover { background: rgba(242,140,82,0.2); }
+
+  .line-items { display: flex; flex-direction: column; gap: 6px; }
+  .line-item {
+    display: grid;
+    grid-template-columns: 1fr 60px 90px 26px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-1);
+    border: 1px solid rgba(253,245,230,0.04);
+    border-radius: 8px;
+    transition: all 200ms var(--spring);
+  }
+  .line-item:hover { border-color: rgba(253,245,230,0.1); }
+  .line-item .name { display: flex; flex-direction: column; gap: 2px; }
+  .line-item .name .title { color: var(--brand-cream); font-size: 13px; font-weight: 500; }
+  .line-item .name .cat {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .line-item .qty, .line-item .price {
+    background: var(--surface-2); border: 1px solid transparent;
+    padding: 6px 8px; border-radius: 5px;
+    color: var(--brand-cream); font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .line-item .qty { text-align: center; }
+  .line-item .price { text-align: right; }
+  .line-item .rm {
+    background: transparent; border: 0; cursor: pointer;
+    color: var(--neutral-500); font-size: 16px; line-height: 1;
+    width: 26px; height: 26px; border-radius: 5px;
+    transition: all 160ms var(--spring);
+  }
+  .line-item .rm:hover { color: var(--brand-pink); background: rgba(244,160,176,0.08); }
+
+  /* price summary */
+  .price-summary {
+    background: var(--surface-1);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .price-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13px;
+  }
+  .price-row .label { color: var(--neutral-400); }
+  .price-row .val { color: var(--brand-cream); font-variant-numeric: tabular-nums; }
+  .price-row.total { padding-top: 10px; border-top: 1px dashed rgba(253,245,230,0.08); }
+  .price-row.total .label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--brand-pink);
+  }
+  .price-row.total .val {
+    font-family: "Black Han Sans"; font-size: 22px; color: var(--brand-cream);
+  }
+  .gst-note { font-size: 10px; color: var(--neutral-500); font-style: italic; margin-top: 2px; }
+
+  /* sidebar controls — collapsible "knobs" row */
+  .knobs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .knob {
+    background: var(--surface-1);
+    border: 1px solid rgba(253,245,230,0.04);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .knob label {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .knob select {
+    appearance: none; background: transparent; border: 0;
+    color: var(--brand-cream); font-family: "DM Sans"; font-size: 13px;
+    padding: 2px 0; cursor: pointer;
+  }
+  .knob select:focus { outline: 0; }
+
+  .save-row {
+    display: flex; gap: 8px;
+    padding-top: 8px; border-top: 1px dashed rgba(253,245,230,0.06);
+  }
+
+  /* RIGHT — preview */
+  .preview-wrap {
+    display: grid; grid-template-rows: 52px 1fr;
+    min-height: 0;
+    background: var(--neutral-950);
+  }
+  .preview-bar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 20px;
+    border-bottom: 1px solid rgba(253,245,230,0.04);
+    background: var(--surface-0);
+  }
+  .preview-label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .preview-label .live {
+    display: inline-flex; align-items: center; gap: 5px; color: var(--success);
+    margin-left: 8px;
+  }
+  .preview-label .live::before {
+    content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--success);
+    animation: pulse 2s infinite var(--spring);
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+  }
+  .device-toggle {
+    margin-left: auto;
+    display: flex; gap: 2px; padding: 3px;
+    background: var(--surface-1); border-radius: 7px;
+  }
+  .device-toggle button {
+    background: transparent; border: 0; cursor: pointer;
+    padding: 5px 10px; border-radius: 5px;
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.3px; text-transform: uppercase;
+    color: var(--neutral-500);
+    transition: all 180ms var(--spring);
+  }
+  .device-toggle button.active {
+    background: var(--surface-3); color: var(--brand-cream);
+  }
+  .stepper-mini {
+    display: flex; gap: 5px;
+    margin-left: 14px;
+  }
+  .stepper-mini .dot {
+    width: 5px; height: 5px; border-radius: 50%; background: var(--neutral-600);
+    transition: all 300ms var(--spring);
+  }
+  .stepper-mini .dot.active { background: var(--brand-pink); width: 14px; border-radius: 3px; }
+
+  /* the actual quote page preview */
+  .preview {
+    overflow: hidden;
+    display: grid; place-items: start center;
+    padding: 28px;
+    min-height: 0;
+    position: relative;
+  }
+  .device {
+    background: var(--brand-cream);
+    color: var(--brand-charcoal);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(253,245,230,0.06);
+    overflow: hidden;
+    transition: all 380ms var(--spring);
+    width: 100%;
+    max-width: 920px;
+    height: 100%;
+    position: relative;
+  }
+  .device.mobile {
+    max-width: 380px;
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 8px #0a0a09, 0 0 0 9px rgba(253,245,230,0.08);
+  }
+  .quote-scroll {
+    height: 100%;
+    overflow-y: auto;
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+  }
+  .quote-scroll::-webkit-scrollbar { width: 0; }
+
+  .q-panel {
+    min-height: 100%;
+    scroll-snap-align: start;
+    padding: 64px 56px;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 24px;
+    position: relative;
+  }
+  .device.mobile .q-panel { padding: 44px 28px; }
+
+  .q-eyebrow {
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2.6px; text-transform: uppercase;
+    color: var(--brand-red);
+  }
+  .q-headline {
+    font-family: "Black Han Sans"; font-size: 54px; line-height: 1.02;
+    color: var(--brand-charcoal); letter-spacing: -1px;
+  }
+  .device.mobile .q-headline { font-size: 34px; }
+  .q-body {
+    font-size: 17px; line-height: 1.65; color: #3A3A35;
+    max-width: 540px;
+  }
+  .q-body em {
+    font-style: normal;
+    background: linear-gradient(180deg, transparent 62%, rgba(244,160,176,0.4) 62%);
+    padding: 0 2px;
+  }
+  .q-dry {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 15px; color: var(--brand-red); opacity: 0.8;
+    max-width: 460px; line-height: 1.5;
+  }
+
+  .q-masthead {
+    position: absolute; top: 24px; left: 56px;
+    font-family: "Pacifico"; font-size: 22px; color: var(--brand-red);
+  }
+  .device.mobile .q-masthead { left: 28px; top: 20px; font-size: 20px; }
+
+  .q-stepper {
+    position: absolute; right: 28px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 20px;
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--brand-charcoal); opacity: 0.55;
+  }
+  .device.mobile .q-stepper { display: none; }
+  .q-stepper a {
+    display: flex; align-items: center; gap: 10px;
+    color: inherit; text-decoration: none;
+    transition: opacity 200ms var(--spring), color 200ms var(--spring);
+  }
+  .q-stepper a:hover { opacity: 1; }
+  .q-stepper a .s-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    border: 1.5px solid var(--brand-charcoal);
+    transition: all 200ms var(--spring);
+  }
+  .q-stepper a.on .s-dot { background: var(--brand-red); border-color: var(--brand-red); box-shadow: 0 0 0 3px rgba(178,40,72,0.2); }
+  .q-stepper a.on { opacity: 1; color: var(--brand-red); }
+
+  /* §2 what we'll do */
+  .q-deliverables { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+  .q-del-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 24px;
+    padding: 14px 0;
+    border-top: 1px solid rgba(26,26,24,0.12);
+    align-items: baseline;
+  }
+  .q-del-row:last-child { border-bottom: 1px solid rgba(26,26,24,0.12); }
+  .q-del-row .t { font-size: 16px; color: var(--brand-charcoal); font-weight: 500; }
+  .q-del-row .c { color: #5a5a52; font-size: 13px; margin-top: 4px; }
+  .q-del-row .qty {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.4px;
+    color: #5a5a52; text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* §3 price panel */
+  .q-price-big {
+    font-family: "Black Han Sans"; font-size: 96px; line-height: 0.95;
+    color: var(--brand-charcoal); letter-spacing: -2.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .device.mobile .q-price-big { font-size: 64px; }
+  .q-price-cycle {
+    font-family: "DM Sans"; font-size: 16px; color: #5a5a52; margin-top: 8px;
+  }
+  .q-price-cycle em { font-style: normal; color: var(--brand-red); font-weight: 600; }
+  .q-price-terms {
+    display: flex; gap: 14px; margin-top: 18px; flex-wrap: wrap;
+  }
+  .q-price-terms .chip {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 999px;
+    border: 1px solid rgba(26,26,24,0.15);
+    color: var(--brand-charcoal);
+  }
+  .q-price-terms .chip.honour { background: rgba(178,40,72,0.08); border-color: rgba(178,40,72,0.2); color: var(--brand-red); }
+
+  /* §5 accept */
+  .q-accept-wrap { display: flex; flex-direction: column; gap: 20px; max-width: 460px; }
+  .q-tickbox {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px;
+    background: rgba(26,26,24,0.04);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 200ms var(--spring);
+  }
+  .q-tickbox:hover { background: rgba(26,26,24,0.07); }
+  .q-tickbox .box {
+    width: 20px; height: 20px; border-radius: 4px;
+    border: 1.5px solid var(--brand-charcoal);
+    flex-shrink: 0; margin-top: 2px;
+    display: grid; place-items: center;
+    transition: all 200ms var(--spring);
+  }
+  .q-tickbox.on .box { background: var(--brand-red); border-color: var(--brand-red); }
+  .q-tickbox.on .box::after {
+    content: "✓"; color: var(--brand-cream); font-size: 13px; font-weight: 700;
+  }
+  .q-tickbox .txt { font-size: 14px; color: var(--brand-charcoal); line-height: 1.5; }
+  .q-tickbox .txt a { color: var(--brand-red); }
+
+  .q-accept-btn {
+    font-family: "Black Han Sans";
+    font-size: 22px; letter-spacing: 0.5px;
+    background: var(--brand-red); color: var(--brand-cream);
+    border: 0; border-radius: 12px;
+    padding: 18px 28px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    transition: all 260ms var(--spring);
+    box-shadow: 0 8px 24px rgba(178,40,72,0.35);
+    opacity: 0.5; pointer-events: none;
+  }
+  .q-accept-btn.ready { opacity: 1; pointer-events: auto; }
+  .q-accept-btn.ready:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(178,40,72,0.45); }
+
+  .q-term-note {
+    font-family: "Playfair Display"; font-style: italic; font-size: 13px;
+    color: var(--brand-charcoal); opacity: 0.6; max-width: 420px; line-height: 1.55;
+  }
+
+  /* ---------- status bar ---------- */
+  .status-bar {
+    position: fixed; bottom: 0; left: 220px; right: 0;
+    height: 32px;
+    display: flex; align-items: center;
+    padding: 0 24px; gap: 16px;
+    background: var(--surface-1);
+    border-top: 1px solid rgba(253,245,230,0.05);
+    font-size: 11px; color: var(--neutral-500);
+    z-index: 5;
+  }
+  .status-bar .item { display: flex; align-items: center; gap: 6px; }
+  .status-bar .item .led { width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+  .status-bar .mutter {
+    margin-left: auto;
+    font-style: italic; color: var(--brand-pink); opacity: 0.7;
+  }
+
+  /* ---------- send modal ---------- */
+  .scrim {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(10,10,9,0.72); backdrop-filter: blur(4px);
+    display: grid; place-items: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 240ms var(--spring);
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    width: min(960px, 92vw); max-height: 86vh;
+    background: var(--surface-0);
+    border: 1px solid rgba(253,245,230,0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    display: grid; grid-template-rows: auto 1fr auto;
+    transform: translateY(12px) scale(0.98);
+    transition: transform 340ms var(--spring);
+  }
+  .scrim.open .modal { transform: none; }
+  .modal-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(253,245,230,0.05);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .modal-head h2 {
+    font-family: "Black Han Sans"; font-size: 22px; color: var(--brand-cream);
+    letter-spacing: 0.3px;
+  }
+  .modal-head .close {
+    margin-left: auto; background: transparent; border: 0; cursor: pointer;
+    color: var(--neutral-500); font-size: 22px; line-height: 1;
+    padding: 4px 10px; border-radius: 6px;
+    transition: all 160ms var(--spring);
+  }
+  .modal-head .close:hover { color: var(--brand-cream); background: rgba(253,245,230,0.05); }
+  .modal-body {
+    display: grid; grid-template-columns: 1fr 1fr;
+    min-height: 0; overflow: hidden;
+  }
+  .modal-form {
+    padding: 22px; display: flex; flex-direction: column; gap: 14px;
+    overflow-y: auto; border-right: 1px solid rgba(253,245,230,0.05);
+  }
+  .modal-form label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--neutral-500); margin-bottom: 2px;
+  }
+  .char-count { text-align: right; font-size: 10px; color: var(--neutral-500); margin-top: -6px; }
+  .quiet-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: rgba(123,174,126,0.08);
+    border: 1px solid rgba(123,174,126,0.2);
+    border-radius: 8px;
+    font-size: 12px; color: var(--neutral-300);
+  }
+  .quiet-row .led { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .modal-preview {
+    padding: 22px; overflow-y: auto;
+    background: var(--neutral-950);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .email-card {
+    background: var(--brand-cream); color: var(--brand-charcoal);
+    border-radius: 12px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .email-card .from {
+    font-size: 11px; color: #5a5a52;
+  }
+  .email-card .subj { font-family: "Black Han Sans"; font-size: 22px; color: var(--brand-charcoal); line-height: 1.2; }
+  .email-card .para { font-size: 14px; line-height: 1.6; }
+  .email-card .cta-btn {
+    align-self: flex-start;
+    font-family: "Black Han Sans"; font-size: 15px;
+    background: var(--brand-red); color: var(--brand-cream);
+    padding: 12px 20px; border-radius: 8px; text-decoration: none;
+    margin-top: 4px;
+  }
+  .email-card .sign {
+    font-family: "Playfair Display"; font-style: italic; color: var(--brand-red);
+    font-size: 14px; margin-top: 6px;
+  }
+  .modal-foot {
+    padding: 16px 22px; border-top: 1px solid rgba(253,245,230,0.05);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-foot .recipient {
+    font-size: 12px; color: var(--neutral-400); flex: 1;
+  }
+  .modal-foot .recipient strong { color: var(--brand-cream); font-weight: 500; }
+
+  /* ---------- small ui ---------- */
+  .callout-soft {
+    padding: 8px 12px; border-radius: 6px;
+    background: rgba(242,140,82,0.08);
+    border-left: 2px solid var(--brand-orange);
+    font-size: 11px; color: var(--neutral-300); font-style: italic;
+  }
+
+  /* hide scrollbars in preview except where hover */
+  .preview-wrap .preview { overflow: hidden; }
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="nav">
+    <div class="logo">SuperBad<span class="lite">Lite</span></div>
+
+    <nav>
+      <div class="eyebrow">Today</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Cockpit</a></li>
+        <li><a href="#"><span class="dot"></span>Inbox</a></li>
+        <li><a href="#"><span class="dot"></span>Approvals</a></li>
+      </ul>
+
+      <div class="eyebrow">Clients</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Pipeline</a></li>
+        <li><a href="#"><span class="dot"></span>Clients</a></li>
+        <li><a href="#" class="active"><span class="dot"></span>Quotes</a></li>
+        <li><a href="#"><span class="dot"></span>Invoices</a></li>
+      </ul>
+
+      <div class="eyebrow">Growth</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Outreach</a></li>
+        <li><a href="#"><span class="dot"></span>Content</a></li>
+        <li><a href="#"><span class="dot"></span>Products</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section class="workspace">
+
+    <header class="topbar">
+      <div class="crumbs">
+        <span>Deals</span><span class="sep">›</span>
+        <span>Mercer Advisory</span><span class="sep">›</span>
+        <span class="current">New quote</span>
+      </div>
+      <span class="quote-number">SB-2026-0043</span>
+      <span class="status-chip">Draft</span>
+      <span class="drift" id="drift">
+        <span class="led"></span><span id="drift-text">voice · on-brand</span>
+      </span>
+
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" title="Save as template">Save as template</button>
+        <button class="btn btn-secondary">Save draft</button>
+        <button class="btn btn-primary" id="send-btn">Send quote <span class="chev">→</span></button>
+      </div>
+    </header>
+
+    <div class="split">
+
+      <!-- ============ LEFT: EDITOR ============ -->
+      <div class="editor">
+
+        <div class="deal-card">
+          <div class="avatar">MA</div>
+          <div class="meta">
+            <div class="company">Mercer Advisory</div>
+            <div class="sub">Stage: <strong style="color: var(--brand-cream)">Negotiating</strong> · primary <span class="contact">Priya Mercer</span> · 2nd meeting Friday</div>
+          </div>
+          <span class="billing-badge">Stripe-billed</span>
+        </div>
+
+        <div class="structure-tabs">
+          <button data-s="retainer" class="active">Retainer</button>
+          <button data-s="project">Project</button>
+          <button data-s="mixed">Mixed</button>
+        </div>
+
+        <!-- Section 1: What you told us -->
+        <div class="section">
+          <div class="section-head">
+            <span class="section-num">§1</span>
+            <h3>What you told us</h3>
+            <span class="helper">Claude-drafted · from intake + calls</span>
+          </div>
+          <div class="section-body">
+            <textarea id="s1-text">You've been in advisory for eleven years, and until now the marketing was whatever happened to fall out of a conversation. Priya's been running it alongside client work, which is why LinkedIn is consistent and everything else isn't. Mercer isn't missing a marketing agency. It's missing the room where someone else is holding the line while you do the work you actually opened the firm to do.</textarea>
+
+            <div class="rank-hint">
+              <span class="rank-dot r1"></span>
+              <span>Pyramid rank: <strong>R1 synthesis</strong> · sources: <strong>intake (2026-03-28)</strong>, <strong>2nd-call transcript</strong>, Brand DNA</span>
+              <div class="actions">
+                <span class="mini">Redraft ↻</span>
+                <span class="mini">Sources</span>
+              </div>
+            </div>
+            <div class="confidence">
+              <span class="led" style="width:5px;height:5px;background:var(--success);border-radius:50%;box-shadow:0 0 6px rgba(123,174,126,0.6)"></span>
+              high confidence · content-hash locked on send
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: What we'll do -->
+        <div class="section">
+          <div class="section-head">
+            <span class="section-num">§2</span>
+            <h3>What we'll do</h3>
+            <span class="helper">Line items from catalogue</span>
+          </div>
+          <div class="section-body">
+            <div class="catalogue-picker">
+              <span style="opacity:0.5">🔍</span>
+              <input type="text" placeholder="Search catalogue — brand dna, shoots, retainers…" />
+              <span class="add">+ Add</span>
+            </div>
+
+            <div class="line-items" id="items">
+              <div class="line-item">
+                <div class="name">
+                  <span class="title">Full-service retainer — Tier 2</span>
+                  <span class="cat">Retainer · monthly · tier 2 of 3</span>
+                </div>
+                <input class="qty" value="1" />
+                <input class="price" value="$4,950.00" />
+                <button class="rm">✕</button>
+              </div>
+              <div class="line-item">
+                <div class="name">
+                  <span class="title">Quarterly portfolio shoot</span>
+                  <span class="cat">Bundle · 60 min on-site</span>
+                </div>
+                <input class="qty" value="4" />
+                <input class="price" value="$0.00" />
+                <button class="rm">✕</button>
+              </div>
+              <div class="line-item">
+                <div class="name">
+                  <span class="title">Brand DNA Assessment</span>
+                  <span class="cat">One-off · included first month</span>
+                </div>
+                <input class="qty" value="1" />
+                <input class="price" value="$0.00" />
+                <button class="rm">✕</button>
+              </div>
+            </div>
+
+            <textarea placeholder="Free-text prose (optional, appears under line items)">Cadence is four shoots across the twelve months — one per quarter, planned against whatever's moving in the firm. The first one lands in month two, once the Brand DNA's locked and we know what we're actually pointing the camera at.</textarea>
+
+            <div class="callout-soft">catalogue updated 4 days ago — Tier 2 retainer rose from $4,800 to $4,950. <span style="color:var(--brand-orange);text-decoration:underline;cursor:pointer">refresh price?</span></div>
+          </div>
+        </div>
+
+        <!-- Section 3: Price -->
+        <div class="section">
+          <div class="section-head">
+            <span class="section-num">§3</span>
+            <h3>Price</h3>
+            <span class="helper">derived · GST inclusive</span>
+          </div>
+          <div class="section-body">
+            <div class="price-summary">
+              <div class="price-row">
+                <span class="label">Retainer (monthly)</span>
+                <span class="val">$4,950.00</span>
+              </div>
+              <div class="price-row">
+                <span class="label">One-off</span>
+                <span class="val">$0.00</span>
+              </div>
+              <div class="price-row total">
+                <span class="label">Monthly total</span>
+                <span class="val">$4,950</span>
+              </div>
+              <div class="gst-note">All amounts include 10% GST · ABN 64 847 291 663</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Terms -->
+        <div class="section">
+          <div class="section-head">
+            <span class="section-num">§4</span>
+            <h3>Terms</h3>
+            <span class="helper">template + overrides</span>
+          </div>
+          <div class="section-body">
+            <div class="knobs">
+              <div class="knob">
+                <label>Template</label>
+                <select>
+                  <option>Retainer v1.3 — standard</option>
+                  <option>Retainer v1.3 — enterprise</option>
+                  <option>Project scope v1.1</option>
+                </select>
+              </div>
+              <div class="knob">
+                <label>Tickbox version</label>
+                <select>
+                  <option>e2e-tos-v1 (current)</option>
+                </select>
+              </div>
+            </div>
+            <textarea placeholder="Per-quote overrides (optional)" style="min-height:60px"></textarea>
+          </div>
+        </div>
+
+        <!-- Knobs -->
+        <div class="section">
+          <div class="section-head">
+            <span class="section-num">⚙</span>
+            <h3>Send controls</h3>
+          </div>
+          <div class="knobs">
+            <div class="knob">
+              <label>Term length</label>
+              <select>
+                <option>3 months</option>
+                <option selected>6 months</option>
+                <option>12 months</option>
+              </select>
+            </div>
+            <div class="knob">
+              <label>Expires in</label>
+              <select>
+                <option>7 days</option>
+                <option selected>14 days (default)</option>
+                <option>21 days</option>
+                <option>30 days</option>
+              </select>
+            </div>
+            <div class="knob">
+              <label>Buyout %</label>
+              <select>
+                <option selected>50% (standard)</option>
+              </select>
+            </div>
+            <div class="knob">
+              <label>Billing mode</label>
+              <select>
+                <option selected>Stripe (card on accept)</option>
+                <option>Manual (invoice monthly)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.editor -->
+
+      <!-- ============ RIGHT: PREVIEW ============ -->
+      <div class="preview-wrap">
+        <div class="preview-bar">
+          <span class="preview-label">Live preview <span class="live">updating</span></span>
+          <div class="stepper-mini" id="stepper-mini">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+
+          <div class="device-toggle">
+            <button class="active" data-d="desktop">Desktop</button>
+            <button data-d="mobile">Mobile</button>
+          </div>
+        </div>
+
+        <div class="preview">
+          <div class="device" id="device">
+
+            <div class="quote-scroll" id="scroll">
+
+              <!-- §1 What you told us -->
+              <section class="q-panel" id="p1">
+                <div class="q-masthead">SuperBad</div>
+                <nav class="q-stepper">
+                  <a href="#p1" class="on" data-p="0"><span class="s-dot"></span>01 · You</a>
+                  <a href="#p2" data-p="1"><span class="s-dot"></span>02 · Us</a>
+                  <a href="#p3" data-p="2"><span class="s-dot"></span>03 · Price</a>
+                  <a href="#p4" data-p="3"><span class="s-dot"></span>04 · Terms</a>
+                  <a href="#p5" data-p="4"><span class="s-dot"></span>05 · Accept</a>
+                </nav>
+
+                <div class="q-eyebrow">For Priya at Mercer Advisory</div>
+                <h1 class="q-headline">What you told us.</h1>
+                <p class="q-body" id="p1-body">You've been in advisory for <em>eleven years</em>, and until now the marketing was whatever happened to fall out of a conversation. Priya's been running it alongside client work, which is why LinkedIn is consistent and everything else isn't. Mercer isn't missing a marketing agency. It's missing the room where <em>someone else is holding the line</em> while you do the work you actually opened the firm to do.</p>
+                <p class="q-dry">if any of that sounds wrong, it probably is. tell us.</p>
+              </section>
+
+              <!-- §2 What we'll do -->
+              <section class="q-panel" id="p2">
+                <div class="q-masthead">SuperBad</div>
+                <nav class="q-stepper">
+                  <a href="#p1" data-p="0"><span class="s-dot"></span>01 · You</a>
+                  <a href="#p2" class="on" data-p="1"><span class="s-dot"></span>02 · Us</a>
+                  <a href="#p3" data-p="2"><span class="s-dot"></span>03 · Price</a>
+                  <a href="#p4" data-p="3"><span class="s-dot"></span>04 · Terms</a>
+                  <a href="#p5" data-p="4"><span class="s-dot"></span>05 · Accept</a>
+                </nav>
+
+                <div class="q-eyebrow">What we'll do</div>
+                <h1 class="q-headline">Hold the line.<br/>Four shoots deep.</h1>
+
+                <div class="q-deliverables">
+                  <div class="q-del-row">
+                    <div>
+                      <div class="t">Full-service retainer</div>
+                      <div class="c">Content pipeline, reply intelligence, monthly plan, weekly cadence check. Priya gets her Friday back.</div>
+                    </div>
+                    <div class="qty">12 × monthly</div>
+                  </div>
+                  <div class="q-del-row">
+                    <div>
+                      <div class="t">Quarterly portfolio shoot</div>
+                      <div class="c">60 minutes on-site, once a quarter. First one lands in month two, once we know what we're pointing at.</div>
+                    </div>
+                    <div class="qty">4 × shoots</div>
+                  </div>
+                  <div class="q-del-row">
+                    <div>
+                      <div class="t">Brand DNA Assessment</div>
+                      <div class="c">Done in the first month. It's the thing that makes every piece of content after it sound like Mercer and not like an agency pretending.</div>
+                    </div>
+                    <div class="qty">included</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- §3 Price -->
+              <section class="q-panel" id="p3">
+                <div class="q-masthead">SuperBad</div>
+                <nav class="q-stepper">
+                  <a href="#p1" data-p="0"><span class="s-dot"></span>01 · You</a>
+                  <a href="#p2" data-p="1"><span class="s-dot"></span>02 · Us</a>
+                  <a href="#p3" class="on" data-p="2"><span class="s-dot"></span>03 · Price</a>
+                  <a href="#p4" data-p="3"><span class="s-dot"></span>04 · Terms</a>
+                  <a href="#p5" data-p="4"><span class="s-dot"></span>05 · Accept</a>
+                </nav>
+
+                <div class="q-eyebrow">Price</div>
+                <div class="q-price-big">$4,950</div>
+                <div class="q-price-cycle">per month · <em>all in</em>, including GST</div>
+
+                <div class="q-price-terms">
+                  <span class="chip">6-month retainer</span>
+                  <span class="chip honour">honour-based commitment · cancel any time from your account</span>
+                  <span class="chip">no setup fee</span>
+                </div>
+
+                <p class="q-dry" style="margin-top:20px">first invoice on the day you accept. everything after that, same day of the month.</p>
+              </section>
+
+              <!-- §4 Terms -->
+              <section class="q-panel" id="p4">
+                <div class="q-masthead">SuperBad</div>
+                <nav class="q-stepper">
+                  <a href="#p1" data-p="0"><span class="s-dot"></span>01 · You</a>
+                  <a href="#p2" data-p="1"><span class="s-dot"></span>02 · Us</a>
+                  <a href="#p3" data-p="2"><span class="s-dot"></span>03 · Price</a>
+                  <a href="#p4" class="on" data-p="3"><span class="s-dot"></span>04 · Terms</a>
+                  <a href="#p5" data-p="4"><span class="s-dot"></span>05 · Accept</a>
+                </nav>
+
+                <div class="q-eyebrow">Terms — the short version</div>
+                <h1 class="q-headline" style="font-size:38px">Five things,<br/>plain English.</h1>
+
+                <div class="q-deliverables" style="max-width:620px">
+                  <div class="q-del-row"><div><div class="t">01 · You own what we make</div><div class="c">Photos, writing, assets — yours, full transfer on payment.</div></div></div>
+                  <div class="q-del-row"><div><div class="t">02 · Cancel any time, honour-based</div><div class="c">One click in your portal. The commitment is a handshake; the portal respects it.</div></div></div>
+                  <div class="q-del-row"><div><div class="t">03 · Payment</div><div class="c">Monthly, via the card you'll add next. Failed charge = we'll email, not lock you out.</div></div></div>
+                  <div class="q-del-row"><div><div class="t">04 · Confidentiality</div><div class="c">Everything you tell us stays between us.</div></div></div>
+                  <div class="q-del-row"><div><div class="t">05 · The full version</div><div class="c">lives at <a style="color:var(--brand-red)" href="#">superbadmedia.com.au/lite/legal/terms</a> — it's the only long version.</div></div></div>
+                </div>
+              </section>
+
+              <!-- §5 Accept -->
+              <section class="q-panel" id="p5">
+                <div class="q-masthead">SuperBad</div>
+                <nav class="q-stepper">
+                  <a href="#p1" data-p="0"><span class="s-dot"></span>01 · You</a>
+                  <a href="#p2" data-p="1"><span class="s-dot"></span>02 · Us</a>
+                  <a href="#p3" data-p="2"><span class="s-dot"></span>03 · Price</a>
+                  <a href="#p4" data-p="3"><span class="s-dot"></span>04 · Terms</a>
+                  <a href="#p5" class="on" data-p="4"><span class="s-dot"></span>05 · Accept</a>
+                </nav>
+
+                <div class="q-eyebrow">Accept</div>
+                <h1 class="q-headline">When you're ready.</h1>
+
+                <div class="q-accept-wrap">
+                  <div class="q-tickbox" id="tick">
+                    <div class="box"></div>
+                    <div class="txt">I'm Priya Mercer, and I agree to the <a href="#">terms</a> on behalf of Mercer Advisory.</div>
+                  </div>
+
+                  <button class="q-accept-btn" id="accept-btn">
+                    Accept + add card <span>→</span>
+                  </button>
+
+                  <p class="q-term-note">On accept, you'll add a card through Stripe. The first $4,950 charges today. The next charge is <strong style="color:var(--brand-red)">15 May 2026</strong>.</p>
+                </div>
+              </section>
+
+            </div><!-- /.quote-scroll -->
+
+          </div><!-- /.device -->
+        </div>
+      </div>
+
+    </div><!-- /.split -->
+  </section><!-- /.workspace -->
+
+  <!-- bottom status bar -->
+  <div class="status-bar">
+    <span class="item"><span class="led"></span>Autosaved 4s ago</span>
+    <span class="item" style="color:var(--neutral-400)">Next expiry · 28 Apr 18:00</span>
+    <span class="item" style="color:var(--neutral-400)">Worker · heartbeat 11s</span>
+    <span class="mutter">the bartender's watching.</span>
+  </div>
+
+</div>
+
+<!-- ====== SEND MODAL ====== -->
+<div class="scrim" id="scrim">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Send to Priya</h2>
+      <span class="drift"><span class="led"></span>voice · on-brand</span>
+      <button class="close" id="scrim-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-form">
+        <div>
+          <label>Subject line</label>
+          <input type="text" value="the room where someone else holds the line" />
+          <div class="char-count">48 / 60</div>
+        </div>
+        <div>
+          <label>Opening paragraph</label>
+          <textarea>Priya — wrote this one up. Reads quick, ten minutes tops. The numbers are on page three; everything else is just the frame around them.</textarea>
+        </div>
+        <div>
+          <label>Sign-off</label>
+          <textarea style="min-height:60px">if the Friday call didn't quite land what you wanted, say so. I'd rather redraw this than have you squint at it.
+
+— andy</textarea>
+        </div>
+        <div class="quiet-row">
+          <span class="led"></span>
+          Inside quiet window · sends now (Mon–Fri 08:00–18:00 Melbourne)
+        </div>
+      </div>
+      <div class="modal-preview">
+        <div style="font-family:'Righteous';font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--neutral-500);padding:4px 2px">client sees</div>
+        <div class="email-card">
+          <div class="from">andy@superbadmedia.com.au → priya@merceradvisory.com.au</div>
+          <div class="subj">the room where someone else holds the line</div>
+          <div class="para">Priya — wrote this one up. Reads quick, ten minutes tops. The numbers are on page three; everything else is just the frame around them.</div>
+          <a class="cta-btn">Read your quote →</a>
+          <div class="sign">if the Friday call didn't quite land what you wanted, say so. I'd rather redraw this than have you squint at it.<br/><br/>— andy</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="recipient">To <strong>Priya Mercer</strong> · priya@merceradvisory.com.au · <a href="#" style="color:var(--brand-pink)">change primary contact</a></div>
+      <button class="btn btn-secondary" id="cancel-send">Cancel</button>
+      <button class="btn btn-primary">Send quote →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== structure tabs =====
+  document.querySelectorAll('.structure-tabs button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.structure-tabs button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  // ===== line item remove =====
+  document.getElementById('items').addEventListener('click', (e) => {
+    if (e.target.classList.contains('rm')) {
+      const row = e.target.closest('.line-item');
+      row.style.transition = 'all 260ms cubic-bezier(0.16, 1, 0.3, 1)';
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(-8px)';
+      row.style.maxHeight = '0';
+      setTimeout(() => row.remove(), 260);
+    }
+  });
+
+  // ===== device toggle =====
+  document.querySelectorAll('.device-toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.device-toggle button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      const device = document.getElementById('device');
+      if (b.dataset.d === 'mobile') device.classList.add('mobile');
+      else device.classList.remove('mobile');
+    });
+  });
+
+  // ===== preview → editor: scroll sync stepper =====
+  const scroll = document.getElementById('scroll');
+  const panels = ['p1','p2','p3','p4','p5'].map(id => document.getElementById(id));
+  const miniDots = document.querySelectorAll('#stepper-mini .dot');
+
+  function syncStep() {
+    const top = scroll.scrollTop;
+    const h = scroll.clientHeight;
+    let active = 0;
+    panels.forEach((p, i) => {
+      if (p.offsetTop <= top + h * 0.4) active = i;
+    });
+    miniDots.forEach((d, i) => d.classList.toggle('active', i === active));
+    document.querySelectorAll('.q-stepper a').forEach(a => {
+      a.classList.toggle('on', parseInt(a.dataset.p) === active);
+    });
+  }
+  scroll.addEventListener('scroll', syncStep);
+
+  document.querySelectorAll('.q-stepper a').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const i = parseInt(a.dataset.p);
+      panels[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // ===== tickbox + accept button state =====
+  const tick = document.getElementById('tick');
+  const acceptBtn = document.getElementById('accept-btn');
+  tick.addEventListener('click', () => {
+    tick.classList.toggle('on');
+    acceptBtn.classList.toggle('ready', tick.classList.contains('on'));
+  });
+  acceptBtn.addEventListener('click', () => {
+    if (!acceptBtn.classList.contains('ready')) return;
+    acceptBtn.innerHTML = 'Mounting payment…';
+    acceptBtn.style.opacity = '0.6';
+    setTimeout(() => {
+      acceptBtn.innerHTML = 'Accept + add card <span>→</span>';
+      acceptBtn.style.opacity = '1';
+    }, 1600);
+  });
+
+  // ===== s1 textarea → preview live update =====
+  const s1Text = document.getElementById('s1-text');
+  const p1Body = document.getElementById('p1-body');
+  let debounce;
+  s1Text.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      p1Body.style.transition = 'opacity 180ms ease-out';
+      p1Body.style.opacity = '0.4';
+      setTimeout(() => {
+        const txt = s1Text.value.trim() || '—';
+        p1Body.textContent = txt;
+        p1Body.style.opacity = '1';
+      }, 180);
+    }, 300);
+  });
+
+  // ===== drift toggle demo: typing a banned word flips amber =====
+  const drift = document.getElementById('drift');
+  const driftText = document.getElementById('drift-text');
+  const banned = ['synergy','leverage','solutions','utilize','ecosystem'];
+  s1Text.addEventListener('input', () => {
+    const txt = s1Text.value.toLowerCase();
+    const hit = banned.find(w => txt.includes(w));
+    if (hit) {
+      drift.classList.add('amber');
+      driftText.textContent = `drift · "${hit}" flagged`;
+    } else {
+      drift.classList.remove('amber');
+      driftText.textContent = 'voice · on-brand';
+    }
+  });
+
+  // ===== send modal =====
+  const scrim = document.getElementById('scrim');
+  document.getElementById('send-btn').addEventListener('click', () => scrim.classList.add('open'));
+  document.getElementById('scrim-close').addEventListener('click', () => scrim.classList.remove('open'));
+  document.getElementById('cancel-send').addEventListener('click', () => scrim.classList.remove('open'));
+  scrim.addEventListener('click', (e) => { if (e.target === scrim) scrim.classList.remove('open'); });
+
+  // kick
+  syncStep();
+</script>
+</body>
+</html>

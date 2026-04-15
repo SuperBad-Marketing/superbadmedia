@@ -36,12 +36,9 @@
 
 ## Next session
 
-**Judgement call per G11.b.** Two candidates, both valid:
+**Correction (2026-04-15):** this section originally framed SB-3 as "subscription lifecycle admin" vs SB-6 as "customer subscribe flow." That was a misread of `BUILD_PLAN.md:286` — the canonical SB-3 is the **public pricing page `/get-started/pricing`**, and SB-6 is Stripe subscription creation. No dedicated "lifecycle admin" session is named in the plan; those surfaces fold into SB-8 / SB-9.
 
-1. **SB-3** — subscription lifecycle admin (paused / cancelled / past_due surfaces). Builds on the new product detail page with per-subscriber drill-down. Ordering fits if Andy wants to keep the SaaS arm's admin complete before exposing customer-facing flows.
-2. **SB-6** — customer subscribe flow (the first consumer of `listActiveSaasProducts()`). Externalises the work to the trial users/prospects side. Ordering fits if Andy wants to start collecting real signups.
-
-**Recommendation: SB-3.** Admin side should be complete before the first customer subscribes — otherwise a failure mode in lifecycle handling lands with live data rather than dry-run. Brief for SB-3 not compiled this session (judgement intentionally deferred per G11.b allowance); the next session should pick one + compile fresh.
+**Locked: SB-3** per BUILD_PLAN ordering. Brief compiled at `sessions/sb-3-brief.md`. Pricing page ships first so the grid can drive the remaining SaaS customer-facing waves. Run in a fresh `/deep` conversation per `feedback_no_loop_for_phase5_sessions`.
 
 ## What the next agent should know
 
