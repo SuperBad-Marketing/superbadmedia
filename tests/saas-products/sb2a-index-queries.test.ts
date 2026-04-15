@@ -122,20 +122,10 @@ describe("SB-2a index queries", () => {
     }
   });
 
-  it("getSaasProductSummaryCounts returns zeros (SB-2a stub)", async () => {
-    const { getSaasProductSummaryCounts } = await import(
-      "@/lib/saas-products/queries"
-    );
-    const s = await getSaasProductSummaryCounts();
-    expect(s).toEqual({
-      activeSubscribers: 0,
-      mrrCents: 0,
-      newThisMonth: 0,
-      churnThisMonth: 0,
-    });
-  });
+  // SB-10 replaced the `getSaasProductSummaryCounts` stub with
+  // `getSaasHeadlineSignals` (tests/saas-products/sb10-headline-signals.test.ts).
 
-  it("findSaasProductBySlug resolves hits and misses", async () => {
+it("findSaasProductBySlug resolves hits and misses", async () => {
     seedProduct({
       id: "p_hit",
       name: "Hit",

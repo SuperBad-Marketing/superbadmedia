@@ -10,6 +10,9 @@ import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
 import { loadSaasProductDetail } from "@/lib/saas-products/queries";
+import { getSaasHeadlineSignalsForProduct } from "@/lib/saas-products/headline-signals";
+import { killSwitches } from "@/lib/kill-switches";
+import { HeadlineStrip } from "@/components/lite/saas-admin/headline-strip";
 import type { SaasProductStatus } from "@/lib/db/schema/saas-products";
 import { StatusPillClient } from "./clients/status-pill-client";
 import { ArchiveButtonClient } from "./clients/archive-button-client";
@@ -53,6 +56,11 @@ export default async function ProductDetailPage({
 
   const detail = await loadSaasProductDetail(id);
   if (!detail) notFound();
+
+  const headlinesEnabled = killSwitches.saas_headlines_enabled;
+  const signals = headlinesEnabled
+    ? await getSaasHeadlineSignalsForProduct(id)
+    : null;
 
   const { row, dimensions, tiers } = detail;
   const status: SaasProductStatus = row.status;
@@ -129,6 +137,8 @@ export default async function ProductDetailPage({
           to the current active Prices.
         </div>
       ) : null}
+
+      {signals ? <HeadlineStrip signals={signals} scoped /> : null}
 
       <section aria-labelledby="dimensions-heading" className="px-4 pb-6">
         <h2

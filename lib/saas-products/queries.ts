@@ -36,13 +36,6 @@ export type SaasProductIndexRow = {
   mrrCents: number; // SB-7/SB-8 will fill
 };
 
-export type SaasProductSummaryCounts = {
-  activeSubscribers: number;
-  mrrCents: number;
-  newThisMonth: number;
-  churnThisMonth: number;
-};
-
 const DEFAULT_INDEX_STATUSES: SaasProductStatus[] = ["draft", "active"];
 
 export async function listSaasProducts(options?: {
@@ -92,15 +85,6 @@ export async function listActiveSaasProducts(): Promise<SaasProductRow[]> {
     .from(saas_products)
     .where(eq(saas_products.status, "active"))
     .orderBy(asc(saas_products.display_order), asc(saas_products.created_at_ms));
-}
-
-export async function getSaasProductSummaryCounts(): Promise<SaasProductSummaryCounts> {
-  return {
-    activeSubscribers: 0,
-    mrrCents: 0,
-    newThisMonth: 0,
-    churnThisMonth: 0,
-  };
 }
 
 export async function findSaasProductBySlug(

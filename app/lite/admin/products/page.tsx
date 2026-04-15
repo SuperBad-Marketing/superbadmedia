@@ -13,10 +13,10 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
-import {
-  listSaasProducts,
-  getSaasProductSummaryCounts,
-} from "@/lib/saas-products/queries";
+import { listSaasProducts } from "@/lib/saas-products/queries";
+import { getSaasHeadlineSignals } from "@/lib/saas-products/headline-signals";
+import { killSwitches } from "@/lib/kill-switches";
+import { HeadlineStrip } from "@/components/lite/saas-admin/headline-strip";
 import type { SaasProductStatus } from "@/lib/db/schema/saas-products";
 
 export const metadata: Metadata = {
@@ -57,9 +57,10 @@ export default async function ProductsAdminPage({
   const { archived } = await searchParams;
   const includeArchived = archived === "1";
 
-  const [products, summary] = await Promise.all([
+  const headlinesEnabled = killSwitches.saas_headlines_enabled;
+  const [products, signals] = await Promise.all([
     listSaasProducts({ includeArchived }),
-    getSaasProductSummaryCounts(),
+    headlinesEnabled ? getSaasHeadlineSignals() : Promise.resolve(null),
   ]);
 
   return (
@@ -82,15 +83,19 @@ export default async function ProductsAdminPage({
         </Link>
       </div>
 
-      <section
-        aria-label="Product summary"
-        className="grid grid-cols-1 gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        <SummaryCard label="Active subscribers" value={String(summary.activeSubscribers)} />
-        <SummaryCard label="Total MRR" value={formatCents(summary.mrrCents)} />
-        <SummaryCard label="New this month" value={String(summary.newThisMonth)} />
-        <SummaryCard label="Churn this month" value={String(summary.churnThisMonth)} />
-      </section>
+      {signals ? (
+        <HeadlineStrip signals={signals} />
+      ) : (
+        <section
+          aria-label="Product summary"
+          className="px-4 pb-4"
+          data-testid="headlines-paused"
+        >
+          <p className="rounded-md border border-dashed border-border bg-card/40 px-4 py-3 text-xs uppercase tracking-wide text-muted-foreground">
+            Headlines paused.
+          </p>
+        </section>
+      )}
 
       <div className="flex items-center justify-end px-4 pb-3 text-xs">
         <Link
@@ -182,15 +187,6 @@ export default async function ProductsAdminPage({
         )}
       </section>
     </main>
-  );
-}
-
-function SummaryCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-1 font-heading text-2xl font-semibold">{value}</dd>
-    </div>
   );
 }
 

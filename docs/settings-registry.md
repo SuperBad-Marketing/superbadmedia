@@ -175,6 +175,8 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | Key | Default | Type | Description |
 |---|---|---|---|
 | `billing.saas.monthly_setup_fee_cents` | `0` | integer | Default one-off setup fee (cents, inc-GST) pre-populated per tier in the SaaS product publish wizard. Per-tier override allowed. Source: spec §4.5. |
+| `saas.headline_window_days` | `30` | integer | Rolling window (days) used by the SaaS admin headlines strip for new signups / churn / MRR-delta. Source: spec §8.1 + §8.3. Consumed by `lib/saas-products/headline-signals.ts`. |
+| `saas.near_cap_threshold` | `0.8` | decimal | Fractional threshold (0–1) at which a subscriber dimension is counted as near-cap on the admin headlines strip. Source: spec §8.1. Consumed by `lib/saas-products/headline-signals.ts`. |
 
 ---
 

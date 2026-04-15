@@ -153,6 +153,8 @@ const registry = {
   "billing.saas.monthly_setup_fee_cents": integer,
   "saas.usage_warn_threshold_percent": integer,
   "saas.data_loss_warning_days": integer,
+  "saas.headline_window_days": integer,
+  "saas.near_cap_threshold": decimal,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

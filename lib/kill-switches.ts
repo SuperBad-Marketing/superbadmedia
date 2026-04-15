@@ -24,7 +24,8 @@ export type KillSwitchKey =
   | "invoicing_manual_cycle_enqueue_enabled"
   | "saas_usage_enforcement_enabled"
   | "saas_tier_change_enabled"
-  | "saas_payment_recovery_enabled";
+  | "saas_payment_recovery_enabled"
+  | "saas_headlines_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -59,6 +60,13 @@ const defaults: KillSwitchRegistry = {
   // to the SB-6b Stripe Billing Portal link; counter increment + 7-day
   // data-loss warning scheduling still run (safe side-effects).
   saas_payment_recovery_enabled: true,
+  // SB-10: gates the admin cockpit SaaS headlines strip + the
+  // `getSaasHealthBanners()` emission. When OFF, admin surfaces fall back
+  // to a zero-state eyebrow ("Headlines paused") and the Daily Cockpit
+  // banner source returns `[]`. The primitive query itself is NOT gated —
+  // debug routes and future cost observability can still read numbers
+  // while the public strip is hidden.
+  saas_headlines_enabled: true,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch
