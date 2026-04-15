@@ -21,7 +21,8 @@ export type KillSwitchKey =
   | "brand_dna_assessment_enabled"
   | "setup_wizards_enabled"
   | "wizards_nudges_enabled"
-  | "invoicing_manual_cycle_enqueue_enabled";
+  | "invoicing_manual_cycle_enqueue_enabled"
+  | "saas_usage_enforcement_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -41,6 +42,11 @@ const defaults: KillSwitchRegistry = {
   // Admin compose/edit + Stripe Payment Element land in BI-2; they do
   // not depend on this flag.
   invoicing_manual_cycle_enqueue_enabled: true,
+  // SB-7: when false, `checkUsageLimit()` returns `allowed: true`
+  // unconditionally (caps surface on the sticky bar but do not block
+  // actions). Flipped ON in Phase 6 once the first product goes live
+  // under real traffic.
+  saas_usage_enforcement_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

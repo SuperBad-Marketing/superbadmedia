@@ -1,23 +1,31 @@
 "use client";
 
 /**
- * SB-6b — authed SaaS subscriber dashboard.
+ * SB-6b / SB-7 — authed SaaS subscriber dashboard.
  *
- * Three status variants driven by `subscriptionState`:
- *   - `active`                 → full dashboard + Brand DNA CTA hero
+ * Status variants driven by `subscriptionState` + usage posture:
+ *   - `at_cap`                 → full-page takeover with upgrade CTA
+ *                                (SB-7; promoted above `active` when any
+ *                                dimension is at/over its tier limit)
+ *   - `active`                 → Brand DNA CTA hero + sticky usage bar
  *   - `past_due`               → "Payment didn't land" + billing portal link
  *   - anything else (null,
  *     incomplete, paused, …)   → "We're still waiting on Stripe" + portal link
  *
- * Billing-portal link POSTs to `/api/stripe/billing-portal`, which creates a
- * short-TTL session and 302s to Stripe. A plain anchor with a form works
- * without JS — house spring adds polish on hover/tap when JS is live.
+ * The sticky usage bar (SB-7) is ambient awareness per spec §5.2 —
+ * calm when comfortable, dry observation when approaching cap. Hard cap
+ * promotes the whole page to `at_cap` takeover per brief §Reconcile.
  */
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { houseSpring } from "@/lib/design-tokens";
 import type { SubscriberSummary } from "@/lib/saas-products/subscriber-summary";
+import type {
+  DashboardUsageSnapshot,
+  DimensionSnapshot,
+  NextTierInfo,
+} from "@/lib/saas-products/usage";
 
 function cadenceLabel(c: string | null): string {
   if (c === "annual_upfront") return "Annual — paid upfront";
@@ -28,18 +36,23 @@ function cadenceLabel(c: string | null): string {
 
 type Props = {
   summary: SubscriberSummary;
+  usage?: DashboardUsageSnapshot | null;
 };
 
-type Variant = "active" | "past_due" | "waiting";
+type Variant = "at_cap" | "active" | "past_due" | "waiting";
 
-function resolveVariant(state: string | null): Variant {
+function resolveVariant(
+  state: string | null,
+  usage: DashboardUsageSnapshot | null | undefined,
+): Variant {
+  if (state === "active" && usage?.anyAtCap) return "at_cap";
   if (state === "active") return "active";
   if (state === "past_due") return "past_due";
   return "waiting";
 }
 
-export function OnboardingDashboardClient({ summary }: Props) {
-  const variant = resolveVariant(summary.subscriptionState);
+export function OnboardingDashboardClient({ summary, usage }: Props) {
+  const variant = resolveVariant(summary.subscriptionState, usage);
 
   return (
     <main
@@ -58,7 +71,7 @@ export function OnboardingDashboardClient({ summary }: Props) {
         >
           <header className="flex flex-col gap-3">
             <p className="text-foreground/50 text-xs uppercase tracking-[0.22em]">
-              {variant === "active" ? "You're in" : "One loose end"}
+              {headerEyebrow(variant)}
             </p>
             <h1 className="font-heading text-3xl font-semibold md:text-4xl">
               {headline(variant)}
@@ -86,11 +99,19 @@ export function OnboardingDashboardClient({ summary }: Props) {
             </div>
           </motion.section>
 
-          {variant === "active" ? (
+          {variant === "at_cap" && usage ? (
+            <AtCapHero usage={usage} productName={summary.productName} />
+          ) : variant === "active" ? (
             <BrandDnaHero />
+          ) : variant === "past_due" ? (
+            <BillingPortalHero variant="past_due" />
           ) : (
-            <BillingPortalHero variant={variant} />
+            <BillingPortalHero variant="waiting" />
           )}
+
+          {variant === "active" && usage && usage.dimensions.length > 0 ? (
+            <UsageStickyBar usage={usage} />
+          ) : null}
 
           {variant === "active" ? (
             <p
@@ -106,8 +127,15 @@ export function OnboardingDashboardClient({ summary }: Props) {
   );
 }
 
+function headerEyebrow(v: Variant): string {
+  if (v === "active") return "You're in";
+  if (v === "at_cap") return "Hit the ceiling";
+  return "One loose end";
+}
+
 function headline(v: Variant): string {
   if (v === "active") return "Welcome to SuperBad.";
+  if (v === "at_cap") return "You've maxed the tier.";
   if (v === "past_due") return "Payment didn't land.";
   return "Still warming up.";
 }
@@ -168,5 +196,164 @@ function BillingPortalHero({ variant }: { variant: "past_due" | "waiting" }) {
         </motion.button>
       </form>
     </div>
+  );
+}
+
+function AtCapHero({
+  usage,
+  productName,
+}: {
+  usage: DashboardUsageSnapshot;
+  productName: string;
+}) {
+  const atCapDim = usage.dimensions.find((d) => d.status === "at_cap");
+  const resetIso = atCapDim
+    ? new Date(atCapDim.resetsAtMs).toISOString().slice(0, 10)
+    : null;
+  return (
+    <div className="flex flex-col gap-5" data-testid="at-cap-hero">
+      <p className="text-foreground/80 text-base leading-relaxed">
+        {atCapDim
+          ? `You've used every ${atCapDim.displayName.toLowerCase()} this cycle. `
+          : `You've maxed this tier. `}
+        Two honest options:
+      </p>
+      <div className="flex flex-col gap-3">
+        {usage.nextTier ? (
+          <UpgradeCard
+            productName={productName}
+            currentTierName={usage.tierName}
+            nextTier={usage.nextTier}
+          />
+        ) : (
+          <div
+            className="border-foreground/10 rounded-md border px-5 py-4 text-sm"
+            data-testid="top-tier-notice"
+          >
+            <div className="font-semibold">You're already on the top tier.</div>
+            <div className="text-foreground/70 mt-1">
+              Have a word with us and we'll sort something custom.
+            </div>
+          </div>
+        )}
+        {resetIso ? (
+          <div
+            className="border-foreground/10 text-foreground/70 rounded-md border px-5 py-4 text-sm"
+            data-testid="wait-for-reset"
+          >
+            Or wait it out — your cap resets on{" "}
+            <span className="text-foreground font-semibold">{resetIso}</span>.
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function UpgradeCard({
+  productName,
+  currentTierName,
+  nextTier,
+}: {
+  productName: string;
+  currentTierName: string | null;
+  nextTier: NextTierInfo;
+}) {
+  const priceAud = (nextTier.monthlyPriceCentsIncGst / 100).toFixed(0);
+  return (
+    <motion.div
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={houseSpring}
+      data-testid="upgrade-cta"
+    >
+      <Link
+        href="/lite/portal/subscription"
+        className="bg-foreground text-background hover:bg-foreground/90 flex w-full flex-col gap-2 rounded-md px-6 py-6 no-underline transition-colors"
+      >
+        <span className="text-xs uppercase tracking-[0.22em] opacity-60">
+          Upgrade {currentTierName ? `from ${currentTierName}` : ""}
+        </span>
+        <span className="font-heading text-xl font-semibold md:text-2xl">
+          {productName} · {nextTier.name}
+        </span>
+        <span className="text-sm opacity-80">
+          ${priceAud}/mo inc. GST · takes effect immediately
+        </span>
+      </Link>
+    </motion.div>
+  );
+}
+
+function UsageStickyBar({ usage }: { usage: DashboardUsageSnapshot }) {
+  return (
+    <section
+      className="border-foreground/10 flex flex-col gap-3 rounded-md border px-5 py-4 text-sm"
+      data-testid="usage-sticky-bar"
+    >
+      <div className="text-foreground/60 text-xs uppercase tracking-[0.18em]">
+        This cycle
+      </div>
+      <ul className="flex flex-col gap-3">
+        {usage.dimensions.map((d) => (
+          <UsagePill key={d.dimensionKey} dimension={d} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function UsagePill({ dimension }: { dimension: DimensionSnapshot }) {
+  const copy =
+    dimension.limit === null
+      ? `${dimension.used.toLocaleString()} ${dimension.displayName.toLowerCase()}`
+      : `${dimension.used.toLocaleString()} / ${dimension.limit.toLocaleString()} ${dimension.displayName.toLowerCase()}`;
+
+  const voice =
+    dimension.status === "warn"
+      ? "Making sure the juice is worth the squeeze."
+      : dimension.status === "at_cap"
+        ? "Full tank."
+        : null;
+
+  const barPct = dimension.percent === null ? 0 : Math.min(dimension.percent, 100);
+  const barColor =
+    dimension.status === "at_cap"
+      ? "bg-foreground"
+      : dimension.status === "warn"
+        ? "bg-foreground/70"
+        : "bg-foreground/40";
+
+  return (
+    <li
+      className="flex flex-col gap-1.5"
+      data-testid={`usage-pill-${dimension.dimensionKey}`}
+      data-status={dimension.status}
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-foreground text-sm">{copy}</span>
+        {voice ? (
+          <span
+            className="text-foreground/50 text-xs italic"
+            data-testid={`usage-voice-${dimension.dimensionKey}`}
+          >
+            {voice}
+          </span>
+        ) : null}
+      </div>
+      {dimension.limit !== null ? (
+        <div
+          className="bg-foreground/10 h-1 w-full overflow-hidden rounded-full"
+          aria-hidden
+        >
+          <motion.div
+            className={`${barColor} h-full`}
+            initial={{ width: 0 }}
+            animate={{ width: `${barPct}%` }}
+            transition={houseSpring}
+          />
+        </div>
+      ) : null}
+    </li>
   );
 }

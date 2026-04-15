@@ -47,11 +47,11 @@ describe("settings registry + seed migration", () => {
     }
   });
 
-  it("seeds 91 keys total (88 pre-BI-1 + 2 BI-1 + 1 SB-2b — billing.saas.monthly_setup_fee_cents)", () => {
+  it("seeds 93 keys total (88 pre-BI-1 + 2 BI-1 + 1 SB-2b + 1 SB-6a + 1 SB-7 — saas.usage_warn_threshold_percent)", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(92);
+    expect(count.n).toBe(93);
   });
 
   it("stores portal.magic_link_ttl_hours = 168", () => {
@@ -87,7 +87,7 @@ describe("settings registry + seed migration", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(92);
+    expect(count.n).toBe(93);
   });
 
   it("every SETTINGS_KEYS entry is a string matching the feature.rule shape", () => {

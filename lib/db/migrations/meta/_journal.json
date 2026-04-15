@@ -127,6 +127,13 @@
       "when": 1776270000000,
       "tag": "0021_sb1_saas_subscription_billing",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1776290000000,
+      "tag": "0025_sb7_usage_idempotency_and_amount",
+      "breakpoints": true
     }
   ]
 }

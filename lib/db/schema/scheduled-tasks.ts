@@ -39,10 +39,11 @@ export const SCHEDULED_TASK_TYPES = [
   "inbox_morning_digest",
   "inbox_graph_subscription_renew",
   "inbox_initial_import",
-  // --- SaaS Subscription Billing (3) ---
+  // --- SaaS Subscription Billing (4) ---
   "saas_data_loss_warning",
   "saas_annual_renewal_reminder",
   "saas_card_expiry_warning",
+  "saas_subscription_usage_reset",
   // --- Cost & Usage Observatory (5) ---
   "cost_anomaly_detector_hard",
   "cost_anomaly_detector_rate",

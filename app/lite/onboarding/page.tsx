@@ -14,7 +14,11 @@
 import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
+import { contacts } from "@/lib/db/schema/contacts";
+import { db } from "@/lib/db";
+import { eq } from "drizzle-orm";
 import { loadSubscriberSummary } from "@/lib/saas-products/subscriber-summary";
+import { loadDashboardUsage } from "@/lib/saas-products/usage";
 import { OnboardingDashboardClient } from "./clients/onboarding-dashboard-client";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +35,16 @@ export default async function OnboardingPage() {
   if (role === "client" && session?.user?.email) {
     const summary = await loadSubscriberSummary(session.user.email);
     if (summary) {
-      return <OnboardingDashboardClient summary={summary} />;
+      const emailNorm = session.user.email.trim().toLowerCase();
+      const contact = await db
+        .select({ id: contacts.id })
+        .from(contacts)
+        .where(eq(contacts.email_normalised, emailNorm))
+        .get();
+      const usage = contact
+        ? await loadDashboardUsage(contact.id, summary.productId)
+        : null;
+      return <OnboardingDashboardClient summary={summary} usage={usage} />;
     }
     // Client session but no SaaS deal on file — rare race window between
     // promotion + deal row hydration. Fall through to the admin placeholder

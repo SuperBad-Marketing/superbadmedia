@@ -149,8 +149,9 @@ const registry = {
   "invoice.review_window_days": integer,
   "invoice.overdue_reminder_days": integer,
 
-  // SaaS Subscription Billing (1 — SB-2b)
+  // SaaS Subscription Billing (2 — SB-2b, SB-7)
   "billing.saas.monthly_setup_fee_cents": integer,
+  "saas.usage_warn_threshold_percent": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

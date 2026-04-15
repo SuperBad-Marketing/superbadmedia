@@ -1,6 +1,7 @@
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
 import { QUOTE_BUILDER_HANDLERS } from "./quote-builder";
 import { INVOICING_HANDLERS } from "@/lib/invoicing/handlers";
+import { SAAS_SUBSCRIPTION_HANDLERS } from "./saas-subscription-usage-reset";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -16,4 +17,5 @@ import { INVOICING_HANDLERS } from "@/lib/invoicing/handlers";
 export const HANDLER_REGISTRY: HandlerMap = {
   ...QUOTE_BUILDER_HANDLERS,
   ...INVOICING_HANDLERS,
+  ...SAAS_SUBSCRIPTION_HANDLERS,
 };
