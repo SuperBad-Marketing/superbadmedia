@@ -103,12 +103,22 @@ Session-specific additions (all apply to the **Overview tab** content — see §
 - **May add** `components/lite/admin/companies/company-status-badge.tsx` if a company status chip doesn't already exist — grep first. If adding, mirror `InvoiceStatusBadge` pattern verbatim (TONE map + 1×1 dot + Righteous 10px / 1.5px).
 - **May add** a shared `components/lite/admin/linked-panel.tsx` **only if** the three panels share ≥3 chrome concerns (surface-2 card + header row + §7 table + §8 empty state) and inlining would triple-duplicate. Default is inline three panels; lift only if duplication is load-bearing. (Polish-session threshold: lift when the third consumer arrives.)
 
+**Reachability carve-out — Pipeline → Company drill-through (added 2026-04-16):** the companies detail page is currently unreachable from anywhere in the UI. Without this patch, polish-4 rebuilds an invisible page and G10 eyeball verification isn't possible. Scope additions:
+
+- `components/lite/sales-pipeline/deal-card.tsx` — `edit` — add optional `company_id: string` to the `DealCardData` type and wrap `{deal.company_name}` (line ~116) in a `<Link href={`/lite/admin/companies/${deal.company_id}`}>` with `className="hover:text-foreground underline-offset-4 hover:underline transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]"` (rule 09). No visual rebuild of the card — this is a behavioural-only one-line wrap.
+- `components/lite/sales-pipeline/pipeline-board.tsx` (or the pipeline page query if `DealCardData` is shaped there) — `edit` — add `company_id` to the select so deal cards receive it.
+- `app/lite/admin/pipeline/page.tsx` — `edit` only if it's where the deal rows are shaped for cards. Grep for the assembly point before editing.
+- **Not a full polish pass on pipeline** — pipeline visual chrome was locked in `admin-polish-1`; do not re-polish. Only the drill-through wiring.
+- Companies **list index** (`/lite/admin/companies/page.tsx`) remains out of scope — parked in `PATCHES_OWED.md` § v1.1 per 2026-04-16.
+
 **Explicitly not touched:**
 
 - `app/lite/admin/companies/[id]/actions.ts` — Server Actions, no chrome.
 - `app/lite/admin/companies/page.tsx` (list view) — **out of scope per tracker.** If the list is entangled with the detail view (shared client component, shared helper), surface as a one-line question — don't absorb silently (polish-2 precedent with the `clients/` route).
 - `components/lite/invoices/**` — polish-3 output; reuse `InvoiceStatusBadge`, don't mutate. If `InvoiceIndexClient` is the natural fit for the linked-invoices panel, **consume it with `hideSummary hideFilters`** (API preserved in polish-3) — don't reimplement the table.
-- `components/lite/sales-pipeline/**`, `app/lite/admin/products/**`, `app/lite/admin/invoices/**`, `app/lite/admin/errors/**`, `app/lite/admin/pipeline/**` — previous sessions' outputs; reference, do not mutate.
+- `components/lite/sales-pipeline/**` — previous session's output; reference, do not mutate **except** for the drill-through carve-out above (`deal-card.tsx` company-name `<Link>` wrap + `pipeline-board.tsx` `company_id` select addition).
+- `app/lite/admin/products/**`, `app/lite/admin/invoices/**`, `app/lite/admin/errors/**` — previous sessions' outputs; reference, do not mutate.
+- `app/lite/admin/pipeline/**` — previous session's output; reference, do not mutate **except** if the deal-row assembly lives here (then only add `company_id` to the select).
 - `lib/**` — no behavioural change.
 - All tests unless a behavioural regression surfaces.
 
@@ -137,6 +147,7 @@ Session-specific additions (all apply to the **Overview tab** content — see §
 
 - [ ] `/lite/admin/companies/[id]` (Overview tab — new default) renders §3 entity-detail header (crumbs + BHS name + status chip + voiced deck + meta row) + polished tab strip (Overview · Trial Shoot · Billing, `layoutId` active-underline on `houseSpring`) + conditional §11 archived/overdue banners + §6 hero summary card + §6 linked-deals panel (§7 rows + §8 voiced empty) + §6 linked-invoices panel (§7 rows + §8 voiced empty) + §6 linked-contacts panel (§7 rows + §8 voiced empty).
 - [ ] `?tab=trial-shoot` still renders `TrialShootPanel` unchanged; `?tab=billing` still renders `BillingTab` unchanged. No functional regression on either existing tab (manual browser check — open both, confirm render + interactions).
+- [ ] **Reachability** — clicking a deal's company name on `/lite/admin/pipeline` navigates to `/lite/admin/companies/{id}` and lands on the Overview tab. Verified in-browser during G10. (Companies list index deferred to v1.1 per `PATCHES_OWED.md`.)
 - [ ] Every status / stage surfaces as a §5 chip (Righteous, ≥1.5px tracking, tinted).
 - [ ] One earned §9 BHS moment on the hero card (rule 05) — LTV or Deal-Won count.
 - [ ] All interactive surfaces use rule-09 `duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]` or `houseSpring` — **zero plain `transition` classes on hover affordances.**
