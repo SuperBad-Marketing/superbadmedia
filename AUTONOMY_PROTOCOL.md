@@ -29,6 +29,7 @@ Every Phase 5 session runs these in order. The handoff note is only written afte
 - Read the last 2 handoff notes from `sessions/`.
 - Read the spec(s) named in the brief. Do **not** read all 21 specs.
 - **If the brief's Type is `UI`:** read every file listed in §2a "Visual references" of the brief. Specs describe *what*; mockups encode *feel*. A UI session that skips the mockup will ship generic styling and fail G10. If §2a is missing from a `UI` brief, stop — patch the brief with the correct mockup reference(s) before proceeding. This is a hard gate, not an optional polish step.
+- **Admin-interior surfaces (added 2026-04-15):** any `UI` session touching a `/lite/admin/**` route *interior* (not just `AdminShell` chrome) must cite `mockup-admin-interior.html` in brief §2a as a binding reference. If the surface introduces a new admin primitive not yet covered by the shared reference, cut a surface-specific `mockup-admin-<surface>.html` *first* and cite both. Admin-interior sessions that cite only brand-guidelines + `/lite/design` tokens will ship generic styling — documented failure mode: Wave 5 SP-3/4/6/9 + Wave 6/7 admin surfaces, caught 2026-04-15 in Andy's post-`admin-chrome-1` walkthrough. The reference mockup is cut in session `admin-polish-0`; until that session closes, any admin-interior UI session must block at G1 until the reference exists.
 - Load only the skills named in the brief's skill whitelist.
 - Confirm the session's model tier matches the current Claude Code model (`/quick` / `/normal` / `/deep`). Mismatch = reset before starting.
 
