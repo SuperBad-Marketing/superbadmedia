@@ -91,7 +91,7 @@ export default async function EditQuotePage({
     emptyQuoteContent(defaultExpiryDays);
 
   return (
-    <main className="mx-auto min-h-screen max-w-[1400px] bg-background px-4 py-4">
+    <div className="mx-auto min-h-screen max-w-[1400px] bg-background px-4 py-4">
       <nav className="mb-4 flex items-center justify-between text-xs text-muted-foreground">
         <Link
           href="/lite/admin/pipeline"
@@ -128,6 +128,6 @@ export default async function EditQuotePage({
         defaultExpiryDays={defaultExpiryDays}
         templates={templates}
       />
-    </main>
+    </div>
   );
 }

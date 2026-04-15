@@ -64,7 +64,7 @@ export default async function ProductsAdminPage({
   ]);
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <div className="flex items-start justify-between gap-4 px-4 pt-6 pb-3">
         <div>
           <h1 className="font-heading text-2xl font-semibold">Products</h1>
@@ -186,7 +186,7 @@ export default async function ProductsAdminPage({
           </ul>
         )}
       </section>
-    </main>
+    </div>
   );
 }
 

@@ -94,7 +94,7 @@ export default async function CompanyAdminPage({
   ];
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl bg-background px-4 py-6">
+    <div className="mx-auto min-h-screen max-w-3xl bg-background px-4 py-6">
       <div className="mb-6 space-y-2">
         <Link
           href="/lite/admin/pipeline"
@@ -164,6 +164,6 @@ export default async function CompanyAdminPage({
           focusedDetail={focusedDetail}
         />
       )}
-    </main>
+    </div>
   );
 }

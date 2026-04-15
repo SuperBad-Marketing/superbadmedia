@@ -42,7 +42,7 @@ export default async function ErrorsPage() {
     .orderBy(desc(support_tickets.created_at_ms));
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-semibold">Error triage</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -87,6 +87,6 @@ export default async function ErrorsPage() {
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
 }

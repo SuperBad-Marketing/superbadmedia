@@ -93,7 +93,7 @@ export default async function InvoicesAdminPage({
     : null;
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <div className="px-4 pt-6 pb-3">
         <h1 className="font-heading text-2xl font-semibold">Invoices</h1>
         <p className="text-sm text-muted-foreground">
@@ -108,6 +108,6 @@ export default async function InvoicesAdminPage({
         initialFocusedId={focusedInvoiceId}
         initialDetail={focusedDetail}
       />
-    </main>
+    </div>
   );
 }

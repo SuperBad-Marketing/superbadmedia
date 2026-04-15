@@ -66,7 +66,7 @@ export default async function ProductDetailPage({
   const status: SaasProductStatus = row.status;
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <div className="px-4 pt-6 pb-3">
         <Link
           href="/lite/admin/products"
@@ -285,7 +285,7 @@ export default async function ProductDetailPage({
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }
 
