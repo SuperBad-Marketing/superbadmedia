@@ -42,6 +42,7 @@ import { MetaAdsClient } from "./clients/meta-ads-client";
 import { GoogleAdsClient } from "./clients/google-ads-client";
 import { TwilioClient } from "./clients/twilio-client";
 import { ApiKeyClient } from "./clients/api-key-client";
+import { SaasProductSetupClient } from "./clients/saas-product-setup-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -82,6 +83,7 @@ const CLIENT_MAP: Record<string, ClientRenderer> = {
     />
   ),
   twilio: ({ common }) => <TwilioClient {...common} />,
+  "saas-product-setup": ({ common }) => <SaasProductSetupClient {...common} />,
   "api-key": ({ common, searchParams }) => {
     const raw =
       typeof searchParams.vendor === "string" ? searchParams.vendor : "";
