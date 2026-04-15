@@ -93,6 +93,9 @@ export const deals = sqliteTable(
     billing_cadence: text("billing_cadence", { enum: DEAL_BILLING_CADENCES }),
     stripe_subscription_id: text("stripe_subscription_id"),
     stripe_customer_id: text("stripe_customer_id"),
+    // SaaS linkage (SB-1) — null for retainer/project deals.
+    saas_product_id: text("saas_product_id"),
+    saas_tier_id: text("saas_tier_id"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },

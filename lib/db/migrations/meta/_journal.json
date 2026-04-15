@@ -120,6 +120,13 @@
       "when": 1776260000000,
       "tag": "0020_bi1_branded_invoicing",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1776270000000,
+      "tag": "0021_sb1_saas_subscription_billing",
+      "breakpoints": true
     }
   ]
 }
