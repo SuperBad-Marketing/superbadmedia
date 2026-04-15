@@ -31,6 +31,12 @@ export type QuoteSendEmailInput = {
   quoteUrl: string;
   /** Optional thread anchor — last meaningful note from the discovery call. */
   contextSnippet: string | null;
+  /**
+   * Quote number being replaced, if this send is a supersede-fork
+   * (spec §Q20). When set, the email must acknowledge the replacement:
+   * dry, factual, no apology loop. Null for fresh sends.
+   */
+  supersedesQuoteNumber: string | null;
 };
 
 /** Build the user-facing instruction prompt. */
@@ -44,7 +50,15 @@ export function buildDraftSendEmailPrompt(input: QuoteSendEmailInput): string {
     scopeSummary,
     quoteUrl,
     contextSnippet,
+    supersedesQuoteNumber,
   } = input;
+
+  const supersedeBlock = supersedesQuoteNumber
+    ? `
+
+REPLACEMENT
+This quote replaces ${supersedesQuoteNumber}. Name that in the first paragraph — dry and factual. No apology loop, no "as discussed", no explanation of why. The old one is gone, this one is the quote now.`
+    : "";
 
   return `You're drafting a short email from Andy Robinson (SuperBad Marketing) to a client whose quote is ready to read.
 
@@ -54,7 +68,7 @@ CLIENT
 - Quote shape: ${structure}${termLine ? ` (${termLine})` : ""}
 - Headline: ${totalDisplay}
 - Scope in one line: ${scopeSummary}
-${contextSnippet ? `- Last meaningful note from the discovery call: ${contextSnippet}` : ""}
+${contextSnippet ? `- Last meaningful note from the discovery call: ${contextSnippet}` : ""}${supersedeBlock}
 
 LINK
 ${quoteUrl}

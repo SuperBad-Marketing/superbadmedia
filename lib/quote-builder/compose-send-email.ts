@@ -89,6 +89,15 @@ function fallbackDraft(input: QuoteSendEmailInput): {
   subject: string;
   bodyParagraphs: string[];
 } {
+  if (input.supersedesQuoteNumber) {
+    const subject = `${input.companyName} — updated quote`;
+    const lines = [
+      `${input.recipientName}, the updated version — this replaces ${input.supersedesQuoteNumber}.`,
+      `Headline: ${input.totalDisplay}${input.termLine ? `, ${input.termLine}` : ""}.`,
+      `Read it, sit with it, accept it or come back with questions.`,
+    ];
+    return { subject, bodyParagraphs: lines };
+  }
   const subject = `${input.companyName} — quote ready`;
   const lines = [
     `${input.recipientName}, the quote's ready when you are.`,
@@ -157,6 +166,18 @@ export async function composeQuoteSendEmail(
   const content = (quote.content_json ?? null) as QuoteContent | null;
   if (!content) throw new Error(`compose: quote ${input.quote_id} has no content_json`);
 
+  // Supersede-fork: surface the superseded quote number so the prompt
+  // can acknowledge the replacement (spec §Q20). Silent when not set.
+  let supersedesQuoteNumber: string | null = null;
+  if (quote.supersedes_quote_id) {
+    const source = await database
+      .select({ quote_number: quotes.quote_number })
+      .from(quotes)
+      .where(eq(quotes.id, quote.supersedes_quote_id))
+      .get();
+    supersedesQuoteNumber = source?.quote_number ?? null;
+  }
+
   const baseUrl =
     input.appUrlOverride ??
     process.env.NEXT_PUBLIC_APP_URL ??
@@ -172,6 +193,7 @@ export async function composeQuoteSendEmail(
     scopeSummary: deriveScopeSummary(content),
     quoteUrl,
     contextSnippet: content.sections.whatYouToldUs.prose?.slice(0, 200) || null,
+    supersedesQuoteNumber,
   };
 
   if (!killSwitches.llm_calls_enabled) {
