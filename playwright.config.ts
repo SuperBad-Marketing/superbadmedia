@@ -85,7 +85,7 @@ export default defineConfig({
       EMAIL_FROM: "andy@superbadmedia.com.au",
       EMAIL_FROM_NAME: "Andy Robinson — SuperBad",
       ANTHROPIC_API_KEY: "",
-      BRAND_DNA_GATE_BYPASS: "",
+      BRAND_DNA_GATE_BYPASS: "true",
       CREDENTIAL_VAULT_KEY,
       KILL_SWITCHES_ON: "setup_wizards_enabled",
     },
