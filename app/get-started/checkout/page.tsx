@@ -69,6 +69,46 @@ async function authedSubscriberHasExistingSaas(
   return existing.length > 0;
 }
 
+/**
+ * Cross-product revisit guard — returns true when the authed subscriber
+ * already has a live subscription (active / past_due / paused) for
+ * `productId`. Redirect → /lite/onboarding so they manage the existing
+ * subscription rather than double-subscribing. Different product is
+ * still allowed.
+ *
+ * SB-6b.
+ */
+async function authedSubscriberHasLiveSubscriptionFor(
+  userEmail: string | null | undefined,
+  productId: string,
+): Promise<boolean> {
+  if (!userEmail) return false;
+  const emailNorm = userEmail.trim().toLowerCase();
+  const [contact] = await db
+    .select({ id: contactsTable.id })
+    .from(contactsTable)
+    .where(eq(contactsTable.email_normalised, emailNorm))
+    .limit(1);
+  if (!contact) return false;
+  const rows = await db
+    .select({
+      id: deals.id,
+      subscription_state: deals.subscription_state,
+    })
+    .from(deals)
+    .where(
+      and(
+        eq(deals.primary_contact_id, contact.id),
+        eq(deals.saas_product_id, productId),
+      ),
+    );
+  return rows.some((r) =>
+    r.subscription_state === "active" ||
+    r.subscription_state === "past_due" ||
+    r.subscription_state === "paused",
+  );
+}
+
 export default async function CheckoutPage({
   searchParams,
 }: {
@@ -88,6 +128,20 @@ export default async function CheckoutPage({
   }
 
   const session = await auth();
+
+  // SB-6b cross-product revisit guard — authed client already subscribed to
+  // this exact product (live state) goes to their dashboard instead of
+  // double-subscribing. Different product falls through to the nudge below.
+  if (session?.user?.role === "client" && session.user.email) {
+    const alreadySubscribed = await authedSubscriberHasLiveSubscriptionFor(
+      session.user.email,
+      load.product.id,
+    );
+    if (alreadySubscribed) {
+      redirect("/lite/onboarding");
+    }
+  }
+
   const showFullSuiteNudge =
     session?.user?.role === "client" &&
     load.product.slug !== "full-suite" &&
