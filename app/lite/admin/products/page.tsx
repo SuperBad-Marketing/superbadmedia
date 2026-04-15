@@ -2,11 +2,8 @@
  * /lite/admin/products — SaaS product admin index.
  * Spec: docs/specs/saas-subscription-billing.md §8.1, §8.3.
  * Brief: sessions/sb-2-brief.md (SB-2a) + sessions/sb-2c-brief.md (SB-2c).
+ * Visual rebuild: sessions/admin-polish-2-brief.md against mockup-admin-interior.html.
  * Admin-only; non-admins redirect to sign-in.
- *
- * Summary cards + product list + "New product" CTA → saas-product-setup
- * wizard. Archived products hidden by default; `?archived=1` query flag
- * toggles them on (SB-2c AC5). Rows link to `/lite/admin/products/[id]`.
  */
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -38,12 +35,6 @@ const STATUS_LABEL: Record<SaasProductStatus, string> = {
   archived: "Archived",
 };
 
-const STATUS_CLASSES: Record<SaasProductStatus, string> = {
-  draft: "bg-muted text-muted-foreground",
-  active: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-  archived: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-};
-
 export default async function ProductsAdminPage({
   searchParams,
 }: {
@@ -63,25 +54,82 @@ export default async function ProductsAdminPage({
     headlinesEnabled ? getSaasHeadlineSignals() : Promise.resolve(null),
   ]);
 
+  const activeCount = products.filter((p) => p.row.status === "active").length;
+  const isEmpty = products.length === 0;
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex items-start justify-between gap-4 px-4 pt-6 pb-3">
-        <div>
-          <h1 className="font-heading text-2xl font-semibold">Products</h1>
-          <p className="text-sm text-muted-foreground">
-            {products.length} product{products.length === 1 ? "" : "s"} · SaaS
-            catalogue
-            {includeArchived ? " · including archived" : ""}.
-          </p>
-        </div>
-        <Link
-          href="/lite/setup/admin/saas-product-setup"
-          data-testid="products-new-cta"
-          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+    <div>
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
         >
-          New product
-        </Link>
-      </div>
+          Admin · Products
+        </div>
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <h1
+            className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.4px" }}
+          >
+            Products
+          </h1>
+          <Link
+            href="/lite/setup/admin/saas-product-setup"
+            data-testid="products-new-cta"
+            className="inline-flex h-10 items-center rounded-md px-4 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-95"
+            style={{
+              letterSpacing: "1.8px",
+              background: "var(--color-brand-red)",
+              boxShadow:
+                "var(--surface-highlight), 0 0 0 1px rgba(178,40,72,0.35), 0 6px 20px -10px rgba(178,40,72,0.6)",
+            }}
+          >
+            New product
+          </Link>
+        </div>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+          What the customer picker sees.
+          {isEmpty ? null : (
+            <>
+              {" "}
+              <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+                {activeCount > 0
+                  ? "the machine's humming."
+                  : "still heating up."}
+              </em>
+            </>
+          )}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {products.length}
+          </span>
+          <span>product{products.length === 1 ? "" : "s"}</span>
+          <span aria-hidden className="text-[color:var(--color-neutral-700)]">
+            ·
+          </span>
+          <span>SaaS catalogue</span>
+          {includeArchived ? (
+            <>
+              <span
+                aria-hidden
+                className="text-[color:var(--color-neutral-700)]"
+              >
+                ·
+              </span>
+              <span
+                className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-500)]"
+                style={{ letterSpacing: "1.5px" }}
+              >
+                incl. archived
+              </span>
+            </>
+          ) : null}
+        </div>
+      </header>
 
       {signals ? (
         <HeadlineStrip signals={signals} />
@@ -91,13 +139,20 @@ export default async function ProductsAdminPage({
           className="px-4 pb-4"
           data-testid="headlines-paused"
         >
-          <p className="rounded-md border border-dashed border-border bg-card/40 px-4 py-3 text-xs uppercase tracking-wide text-muted-foreground">
+          <p
+            className="rounded-[10px] px-4 py-3 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+            style={{
+              letterSpacing: "1.5px",
+              background: "rgba(15, 15, 14, 0.45)",
+              border: "1px solid rgba(253, 245, 230, 0.05)",
+            }}
+          >
             Headlines paused.
           </p>
         </section>
       )}
 
-      <div className="flex items-center justify-end px-4 pb-3 text-xs">
+      <div className="flex items-center justify-end px-4 pb-3">
         <Link
           href={
             includeArchived
@@ -105,84 +160,96 @@ export default async function ProductsAdminPage({
               : "/lite/admin/products?archived=1"
           }
           data-testid="products-archived-toggle"
-          className="text-muted-foreground underline-offset-2 transition hover:text-foreground hover:underline"
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] transition duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "1.8px" }}
         >
           {includeArchived ? "Hide archived" : "Show archived"}
         </Link>
       </div>
 
       <section aria-label="Product list" className="px-4 pb-10">
-        {products.length === 0 ? (
+        {isEmpty ? (
           <EmptyProducts />
         ) : (
           <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            {products.map(({ row, tierCount, subscriberCount, mrrCents }) => (
-              <li
-                key={row.id}
-                className="rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-primary/40"
-                data-product-id={row.id}
-              >
-                <Link
-                  href={`/lite/admin/products/${row.id}`}
-                  className="block"
+            {products.map(
+              ({ row, tierCount, subscriberCount, mrrCents }) => (
+                <li
+                  key={row.id}
+                  data-slot="product-card"
+                  data-product-id={row.id}
+                  className="group relative flex flex-col gap-3 rounded-[12px] px-5 py-[18px] transition-[transform,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px hover:border-[color:rgba(244,160,176,0.18)]"
+                  style={{
+                    background: "var(--color-surface-2)",
+                    border: "1px solid transparent",
+                    boxShadow: "var(--surface-highlight)",
+                  }}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h2 className="font-heading text-lg font-semibold">
-                        {row.name}
-                      </h2>
-                      {row.description ? (
-                        <p className="text-sm text-muted-foreground">
-                          {row.description}
-                        </p>
-                      ) : null}
+                  <Link
+                    href={`/lite/admin/products/${row.id}`}
+                    className="flex flex-col gap-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-[family-name:var(--font-body)] text-[16px] font-medium leading-[1.3] text-[color:var(--color-brand-cream)]">
+                          {row.name}
+                        </div>
+                        {row.description ? (
+                          <div className="mt-1 line-clamp-1 text-[12px] text-[color:var(--color-neutral-500)]">
+                            {row.description}
+                          </div>
+                        ) : null}
+                      </div>
+                      <StatusChip status={row.status} />
                     </div>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[row.status]}`}
+
+                    <div
+                      className="grid grid-cols-3 gap-3 border-t pt-[10px]"
+                      style={{ borderColor: "rgba(253, 245, 230, 0.04)" }}
                     >
-                      {STATUS_LABEL[row.status]}
-                    </span>
-                  </div>
+                      <MetricCell
+                        label="Subscribers"
+                        value={String(subscriberCount)}
+                      />
+                      <MetricCell label="MRR" value={formatCents(mrrCents)} />
+                      <MetricCell label="Tiers" value={String(tierCount)} />
+                    </div>
 
-                  <dl className="mt-3 grid grid-cols-3 gap-3 text-xs text-muted-foreground">
                     <div>
-                      <dt>Subscribers</dt>
-                      <dd className="text-sm text-foreground">{subscriberCount}</dd>
+                      {tierCount === 0 ? (
+                        <div
+                          className="flex h-[6px] items-center rounded-full pl-2 font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)]"
+                          style={{
+                            letterSpacing: "1.2px",
+                            background: "rgba(253, 245, 230, 0.04)",
+                          }}
+                          role="img"
+                          aria-label="No tiers yet"
+                        >
+                          No tiers yet
+                        </div>
+                      ) : (
+                        <div
+                          className="flex h-[6px] gap-0.5 overflow-hidden rounded-full"
+                          style={{ background: "rgba(253, 245, 230, 0.04)" }}
+                        >
+                          {Array.from({ length: tierCount }).map((_, i) => (
+                            <span
+                              key={i}
+                              className="flex-1"
+                              style={{
+                                background: "rgba(244, 160, 176, 0.45)",
+                              }}
+                              aria-hidden
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <dt>MRR</dt>
-                      <dd className="text-sm text-foreground">{formatCents(mrrCents)}</dd>
-                    </div>
-                    <div>
-                      <dt>Tiers</dt>
-                      <dd className="text-sm text-foreground">{tierCount}</dd>
-                    </div>
-                  </dl>
-
-                  <div className="mt-3">
-                    {tierCount === 0 ? (
-                      <div
-                        role="img"
-                        aria-label="No tiers yet"
-                        className="flex h-2 items-center rounded-full bg-muted text-[10px] text-muted-foreground"
-                      >
-                        <span className="pl-2">No tiers yet</span>
-                      </div>
-                    ) : (
-                      <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-muted">
-                        {Array.from({ length: tierCount }).map((_, i) => (
-                          <span
-                            key={i}
-                            className="flex-1 bg-primary/60"
-                            aria-hidden="true"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              ),
+            )}
           </ul>
         )}
       </section>
@@ -190,16 +257,83 @@ export default async function ProductsAdminPage({
   );
 }
 
+function StatusChip({ status }: { status: SaasProductStatus }) {
+  const tone =
+    status === "active"
+      ? {
+          background: "rgba(123, 174, 126, 0.14)",
+          color: "var(--color-success)",
+        }
+      : status === "archived"
+        ? {
+            background: "rgba(128, 127, 115, 0.15)",
+            color: "var(--color-neutral-500)",
+          }
+        : {
+            background: "rgba(244, 160, 176, 0.10)",
+            color: "var(--color-brand-pink)",
+          };
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-[3px] font-[family-name:var(--font-label)] text-[10px] uppercase leading-none"
+      style={{ letterSpacing: "1.5px", ...tone }}
+    >
+      <span
+        aria-hidden
+        className="h-1 w-1 rounded-full"
+        style={{ background: "currentColor", opacity: 0.85 }}
+      />
+      {STATUS_LABEL[status]}
+    </span>
+  );
+}
+
+function MetricCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <dt
+        className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "1.5px" }}
+      >
+        {label}
+      </dt>
+      <dd
+        className="font-[family-name:var(--font-label)] text-[14px] tabular-nums text-[color:var(--color-neutral-300)]"
+        style={{ letterSpacing: "0.5px" }}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 function EmptyProducts() {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-card/40 p-10 text-center">
-      <p className="font-heading text-lg">No products yet.</p>
-      <p className="mt-1 text-sm text-muted-foreground">
-        The popcorn machine is off.
+    <div
+      className="rounded-[12px] px-8 py-10 text-center"
+      style={{
+        background: "var(--color-surface-2)",
+        boxShadow: "var(--surface-highlight)",
+      }}
+    >
+      <p
+        className="font-[family-name:var(--font-display)] text-[28px] leading-none text-[color:var(--color-brand-cream)]"
+        style={{ letterSpacing: "-0.2px" }}
+      >
+        No products yet.
+      </p>
+      <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
+        the popcorn machine's cold.
       </p>
       <Link
         href="/lite/setup/admin/saas-product-setup"
-        className="mt-4 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+        className="mt-6 inline-flex h-10 items-center rounded-md px-4 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition hover:opacity-95"
+        style={{
+          letterSpacing: "1.8px",
+          background: "var(--color-brand-red)",
+          boxShadow:
+            "var(--surface-highlight), 0 0 0 1px rgba(178,40,72,0.35), 0 6px 20px -10px rgba(178,40,72,0.6)",
+        }}
       >
         New product
       </Link>

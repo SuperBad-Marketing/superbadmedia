@@ -3,7 +3,7 @@
 /**
  * SB-2c — archive / un-archive controls for a published SaaS product.
  * Muted, not primary — this is a destructive-adjacent action per
- * `feedback_primary_action_focus`.
+ * `feedback_primary_action_focus`. Visual chrome polished in admin-polish-2.
  */
 import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -56,7 +56,8 @@ export function ArchiveButtonClient({
         type="button"
         onClick={() => setOpen(true)}
         data-testid={`product-${mode}-button`}
-        className="inline-flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm text-muted-foreground transition hover:bg-muted"
+        className="inline-flex h-9 items-center rounded-md border border-[color:var(--color-neutral-600)]/60 bg-transparent px-3 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-neutral-300)] transition duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[color:rgba(253,245,230,0.04)] hover:text-[color:var(--color-brand-cream)]"
+        style={{ letterSpacing: "1.5px" }}
       >
         {label}
       </button>
@@ -65,7 +66,8 @@ export function ArchiveButtonClient({
         {open ? (
           <motion.div
             key="backdrop"
-            className="fixed inset-0 z-40 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-40 flex items-center justify-center p-4 backdrop-blur-sm"
+            style={{ background: "rgba(15, 15, 14, 0.8)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -76,7 +78,12 @@ export function ArchiveButtonClient({
               role="dialog"
               aria-modal="true"
               aria-labelledby={`${mode}-modal-title`}
-              className="w-full max-w-md rounded-lg border border-border bg-card p-5 shadow-lg"
+              className="w-full max-w-md rounded-[12px] p-6"
+              style={{
+                background: "var(--color-surface-2)",
+                boxShadow:
+                  "var(--surface-highlight), 0 20px 60px -20px rgba(0,0,0,0.6)",
+              }}
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.99 }}
@@ -84,27 +91,36 @@ export function ArchiveButtonClient({
             >
               <h2
                 id={`${mode}-modal-title`}
-                className="font-heading text-lg font-semibold"
+                className="font-[family-name:var(--font-display)] text-[22px] leading-none text-[color:var(--color-brand-cream)]"
+                style={{ letterSpacing: "-0.2px" }}
               >
                 {title}
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+              <p className="mt-3 text-[14px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+                {body}
+              </p>
 
               {error ? (
                 <p
                   role="alert"
-                  className="mt-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  className="mt-4 rounded-[8px] px-3 py-2 text-[13px]"
+                  style={{
+                    background: "rgba(178, 40, 72, 0.12)",
+                    color: "var(--color-brand-pink)",
+                    border: "1px solid rgba(178, 40, 72, 0.25)",
+                  }}
                 >
                   {error}
                 </p>
               ) : null}
 
-              <div className="mt-5 flex justify-end gap-2">
+              <div className="mt-6 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
                   disabled={pending}
-                  className="inline-flex h-9 items-center rounded-md px-3 text-sm text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+                  className="inline-flex h-9 items-center rounded-md px-3 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-neutral-500)] transition duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)] disabled:opacity-50"
+                  style={{ letterSpacing: "1.5px" }}
                 >
                   Cancel
                 </button>
@@ -113,7 +129,13 @@ export function ArchiveButtonClient({
                   onClick={submit}
                   disabled={pending}
                   data-testid={`product-${mode}-confirm`}
-                  className="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background transition hover:opacity-90 disabled:opacity-50"
+                  className="inline-flex h-9 items-center rounded-md px-4 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-95 disabled:opacity-50"
+                  style={{
+                    letterSpacing: "1.5px",
+                    background: "var(--color-brand-red)",
+                    boxShadow:
+                      "var(--surface-highlight), 0 0 0 1px rgba(178,40,72,0.35)",
+                  }}
                 >
                   {pending ? "Working…" : label}
                 </button>

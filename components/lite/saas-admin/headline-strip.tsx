@@ -8,6 +8,11 @@
  * renders five signal tiles (active subscribers / MRR / new / churn /
  * near-cap) plus a second row carrying past-due + MRR delta. Fade-in on
  * mount on `houseSpring` per `feedback_motion_is_universal`.
+ *
+ * Visual chrome rebuilt in admin-polish-2 against mockup-admin-interior.html
+ * §6 summary cards — Righteous eyebrows (rule 02), BHS values (mockup §6
+ * "big numbers are Black Han Sans"), surface-2 + --surface-highlight (rule
+ * 03), brand tones for warn/watch (rule 04 / rule 05 adjacent).
  */
 
 import { motion } from "framer-motion";
@@ -35,10 +40,10 @@ function formatPct(pct: number | null): string {
   return `${sign}${Math.abs(pct * 100).toFixed(1)}%`;
 }
 
-function deltaTone(delta: number): string {
-  if (delta > 0) return "text-emerald-700 dark:text-emerald-400";
-  if (delta < 0) return "text-rose-700 dark:text-rose-400";
-  return "text-muted-foreground";
+function deltaToneColor(delta: number): string | undefined {
+  if (delta > 0) return "var(--color-success)";
+  if (delta < 0) return "var(--color-brand-pink)";
+  return undefined;
 }
 
 export interface HeadlineStripProps {
@@ -100,7 +105,7 @@ export function HeadlineStrip({ signals, scoped }: HeadlineStripProps) {
           label={`MRR delta ${windowLabel}`}
           value={formatSignedCents(mrrDeltaCents)}
           hint={formatPct(mrrDeltaPct)}
-          valueClassName={deltaTone(mrrDeltaCents)}
+          valueColor={deltaToneColor(mrrDeltaCents)}
         />
       </div>
     </motion.section>
@@ -112,36 +117,66 @@ function Tile({
   value,
   hint,
   tone,
-  valueClassName,
+  valueColor,
 }: {
   label: string;
   value: string;
   hint?: string;
   tone?: "warn" | "watch";
-  valueClassName?: string;
+  valueColor?: string;
 }) {
-  const borderClass =
+  const toneStyle =
     tone === "warn"
-      ? "border-rose-500/30 bg-rose-500/5"
+      ? {
+          background:
+            "linear-gradient(135deg, rgba(178,40,72,0.12), rgba(242,140,82,0.06))",
+          border: "1px solid rgba(178, 40, 72, 0.25)",
+          boxShadow: "var(--surface-highlight)",
+        }
       : tone === "watch"
-        ? "border-amber-500/30 bg-amber-500/5"
-        : "border-border bg-card";
+        ? {
+            background: "rgba(228, 176, 98, 0.08)",
+            border: "1px solid rgba(228, 176, 98, 0.25)",
+            boxShadow: "var(--surface-highlight)",
+          }
+        : {
+            background: "var(--color-surface-2)",
+            border: "1px solid transparent",
+            boxShadow: "var(--surface-highlight)",
+          };
+  const labelColor =
+    tone === "warn"
+      ? "var(--color-brand-orange)"
+      : tone === "watch"
+        ? "var(--color-warning)"
+        : "var(--color-neutral-500)";
   return (
     <div
-      className={`rounded-lg border ${borderClass} p-4 shadow-sm`}
+      className="flex flex-col gap-1 rounded-[12px] px-5 py-[18px]"
+      style={toneStyle}
     >
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+      <dt
+        className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none"
+        style={{ letterSpacing: "1.5px", color: labelColor }}
+      >
         {label}
       </dt>
       <dd
-        className={`mt-1 font-heading text-2xl font-semibold ${
-          valueClassName ?? ""
-        }`}
+        className="mt-2 font-[family-name:var(--font-display)] text-[28px] leading-none tabular-nums"
+        style={{
+          letterSpacing: "-0.2px",
+          color: valueColor ?? "var(--color-brand-cream)",
+        }}
       >
         {value}
       </dd>
       {hint ? (
-        <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+        <p
+          className="mt-1 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "1.2px" }}
+        >
+          {hint}
+        </p>
       ) : null}
     </div>
   );
