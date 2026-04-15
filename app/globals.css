@@ -308,6 +308,20 @@
   }
 }
 
+/* Stale halo — dormant pulse on cards that haven't moved since their
+   stage's threshold. Rule 04 of mockup-admin-interior.html §13: stale
+   is dashed + muted + slow-pulsing, never coloured. 3.2s / spring
+   ease matches mockup §10 verbatim. */
+@keyframes stale-halo {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(128, 127, 115, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(128, 127, 115, 0);
+  }
+}
+
 /* Text-size-large user preference — consumed by the Settings → Display
    panel (lands post-A8). Opt-in via `[data-text-size="large"]` on <html>. */
 [data-text-size="large"] {

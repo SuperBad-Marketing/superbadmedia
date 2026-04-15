@@ -69,45 +69,103 @@ export function DealCard({
     [],
   );
 
+  const isStale = deal.is_stale;
+  const valueLabel = formatValue(deal.value_cents, deal.value_estimated);
+
   return (
     <div
       data-slot="pipeline-card"
-      data-stale={deal.is_stale ? "true" : undefined}
+      data-stale={isStale ? "true" : undefined}
       onMouseEnter={startHover}
       onMouseLeave={endHover}
       className={cn(
-        "relative rounded-[var(--radius-default)] border border-border/50 bg-card p-3 shadow-sm",
-        deal.is_stale &&
-          "[box-shadow:0_0_0_2px_color-mix(in_oklab,var(--color-warning)_30%,transparent)]",
+        "group relative flex flex-col gap-3 rounded-[12px] px-5 py-[18px]",
+        "transition-[transform,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
+        !isStale && "hover:-translate-y-px hover:border-[color:rgba(244,160,176,0.18)]",
         isDragging && "opacity-40",
       )}
+      style={{
+        background: isStale ? "rgba(34, 34, 31, 0.5)" : "var(--color-surface-2)",
+        border: isStale
+          ? "1px dashed rgba(128, 127, 115, 0.35)"
+          : "1px solid transparent",
+        boxShadow: isStale ? "none" : "var(--surface-highlight)",
+      }}
     >
-      {deal.stage === "won" && deal.won_outcome ? (
-        <div className="absolute right-2 top-2">
-          <WonBadge outcome={deal.won_outcome} />
-        </div>
+      {isStale ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-[12px]"
+          style={{
+            animation:
+              "stale-halo 3.2s cubic-bezier(0.16, 1, 0.3, 1) infinite",
+          }}
+        />
       ) : null}
 
-      <div className="pr-14">
-        <div className="font-heading text-sm font-semibold leading-tight">
-          {deal.company_name}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div
+            className={cn(
+              "font-[family-name:var(--font-body)] text-[16px] font-medium leading-[1.3] truncate",
+              isStale
+                ? "text-[color:var(--color-neutral-300)]"
+                : "text-[color:var(--color-brand-cream)]",
+            )}
+          >
+            {deal.company_name}
+          </div>
+          <div
+            className={cn(
+              "mt-1 text-[12px] italic line-clamp-1",
+              isStale
+                ? "text-[color:var(--color-neutral-500)]"
+                : "text-[color:var(--color-brand-pink)]",
+            )}
+          >
+            {deal.title}
+          </div>
         </div>
-        <div className="mt-0.5 truncate text-xs text-muted-foreground">
-          {deal.title}
-        </div>
+        {deal.stage === "won" && deal.won_outcome ? (
+          <WonBadge outcome={deal.won_outcome} />
+        ) : null}
       </div>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <span
-          className={cn(
-            "font-mono text-xs",
-            !deal.value_estimated && deal.value_cents != null && "font-semibold",
-          )}
-        >
-          {formatValue(deal.value_cents, deal.value_estimated)}
+
+      <div
+        className="flex items-center justify-between gap-3 border-t pt-[10px] text-[12px] text-[color:var(--color-neutral-500)]"
+        style={{ borderColor: "rgba(253, 245, 230, 0.04)" }}
+      >
+        <span className="min-w-0 flex-1 truncate">
+          <span
+            className={cn(
+              "font-[family-name:var(--font-body)] tabular-nums",
+              !deal.value_estimated &&
+                deal.value_cents != null &&
+                "font-medium text-[color:var(--color-neutral-300)]",
+            )}
+          >
+            {valueLabel}
+          </span>
+          {deal.next_action_text ? (
+            <>
+              <span
+                aria-hidden
+                className="mx-2 text-[color:var(--color-neutral-600)]"
+              >
+                ·
+              </span>
+              <span className="text-[color:var(--color-neutral-500)]">
+                {deal.next_action_text}
+              </span>
+            </>
+          ) : null}
         </span>
-        {deal.next_action_text ? (
-          <span className="font-serif text-[11px] italic text-muted-foreground line-clamp-1">
-            {deal.next_action_text}
+        {deal.last_activity_label ? (
+          <span
+            className="shrink-0 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+            style={{ letterSpacing: "1px" }}
+          >
+            {deal.last_activity_label}
           </span>
         ) : null}
       </div>
@@ -119,27 +177,25 @@ export function DealCard({
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0, transition: HOUSE_SPRING }}
             exit={{ opacity: 0, y: 2, transition: { duration: 0.12 } }}
-            className="mt-3 border-t border-border/40 pt-2 text-[11px]"
+            className="border-t pt-[10px] text-[11px]"
+            style={{ borderColor: "rgba(253, 245, 230, 0.04)" }}
           >
             {deal.contact_name ? (
-              <div className="text-foreground">
+              <div className="text-[color:var(--color-neutral-300)]">
                 <span className="font-medium">{deal.contact_name}</span>
                 {deal.contact_role ? (
-                  <span className="text-muted-foreground">
+                  <span className="text-[color:var(--color-neutral-500)]">
                     {" · "}
                     {deal.contact_role}
                   </span>
                 ) : null}
               </div>
             ) : (
-              <div className="italic text-muted-foreground">No primary contact.</div>
-            )}
-            {deal.last_activity_label ? (
-              <div className="mt-0.5 text-muted-foreground">
-                Last activity {deal.last_activity_label}
+              <div className="text-[color:var(--color-neutral-500)] italic">
+                No primary contact yet.
               </div>
-            ) : null}
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            )}
+            <div className="mt-3 flex flex-wrap gap-1.5">
               <QuickAction
                 onClick={() => onQuickAction("nudge", deal.id)}
                 label="Send nudge"
@@ -176,7 +232,8 @@ function QuickAction({
         onClick();
       }}
       onPointerDown={(e) => e.stopPropagation()}
-      className="rounded-sm border border-border/50 bg-background px-2 py-0.5 text-[10px] text-foreground/80 transition-colors hover:bg-muted"
+      className="rounded-sm border border-[color:var(--color-neutral-600)]/60 bg-transparent px-2 py-0.5 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-300)] transition-colors hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-brand-cream)]"
+      style={{ letterSpacing: "1.5px" }}
     >
       {label}
     </button>

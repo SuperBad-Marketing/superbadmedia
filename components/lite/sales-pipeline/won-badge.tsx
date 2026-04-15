@@ -1,22 +1,25 @@
 import type { DealWonOutcome } from "@/lib/db/schema/deals";
 
 /**
- * Won-card outcome badge (sales-pipeline §5.4). Black Han Sans caption
- * appearance. RETAINER = pink bg / cream text; SAAS = orange bg / charcoal.
- * PROJECT renders no badge (spec only names the two).
+ * Won-card outcome badge (sales-pipeline §5.4).
  *
- * Flagged in PATCHES_OWED: this is a 9th BHS location and the design-system
- * baseline §6 closed list is locked at 8. Baseline spec update owed.
+ * Rule 02 of mockup-admin-interior.html §13 — eyebrows and chips are
+ * Righteous, all-caps, tracked ≥1.5px. Previously Black Han Sans; swapped
+ * in admin-polish-1.
+ *
+ * RETAINER = pink bg / charcoal text; SAAS = orange bg / charcoal text.
+ * PROJECT renders no badge (spec only names the two).
  */
 export function WonBadge({ outcome }: { outcome: DealWonOutcome | null }) {
   if (outcome === "retainer") {
     return (
       <span
         data-slot="won-badge"
-        className="font-[family-name:var(--font-black-han-sans)] rounded-sm px-1.5 py-0.5 text-[10px] tracking-wider"
+        className="rounded-sm px-2 py-0.5 font-[family-name:var(--font-label)] text-[10px] uppercase"
         style={{
-          background: "var(--brand-pink)",
-          color: "var(--color-cream, oklch(0.96 0.02 85))",
+          background: "var(--color-brand-pink)",
+          color: "var(--color-brand-charcoal)",
+          letterSpacing: "1.8px",
         }}
       >
         RETAINER
@@ -27,10 +30,11 @@ export function WonBadge({ outcome }: { outcome: DealWonOutcome | null }) {
     return (
       <span
         data-slot="won-badge"
-        className="font-[family-name:var(--font-black-han-sans)] rounded-sm px-1.5 py-0.5 text-[10px] tracking-wider"
+        className="rounded-sm px-2 py-0.5 font-[family-name:var(--font-label)] text-[10px] uppercase"
         style={{
-          background: "var(--brand-orange)",
-          color: "var(--color-charcoal, oklch(0.22 0.01 70))",
+          background: "var(--color-brand-orange)",
+          color: "var(--color-brand-charcoal)",
+          letterSpacing: "1.8px",
         }}
       >
         SAAS

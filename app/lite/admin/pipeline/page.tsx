@@ -150,14 +150,61 @@ export default async function PipelinePage() {
     };
   });
 
+  const staleCount = cards.filter((c) => c.is_stale).length;
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="px-4 pt-6 pb-3">
-        <h1 className="font-heading text-2xl font-semibold">Sales Pipeline</h1>
-        <p className="text-sm text-muted-foreground">
-          {cards.length} deal{cards.length === 1 ? "" : "s"} across 8 stages.
+    <div>
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          Admin · Pipeline
+        </div>
+        <h1
+          className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "-0.4px" }}
+        >
+          Sales Pipeline
+        </h1>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+          Every deal, every stage, every stall.{" "}
+          <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+            {staleCount > 0
+              ? "a few of them are waiting on you."
+              : "momentum's your job."}
+          </em>
         </p>
-      </div>
+        <div className="mt-4 flex items-center gap-4 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {cards.length}
+          </span>
+          <span>deal{cards.length === 1 ? "" : "s"}</span>
+          <span aria-hidden className="text-[color:var(--color-neutral-700)]">
+            ·
+          </span>
+          <span>8 stages</span>
+          {staleCount > 0 ? (
+            <>
+              <span
+                aria-hidden
+                className="text-[color:var(--color-neutral-700)]"
+              >
+                ·
+              </span>
+              <span
+                className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-500)]"
+                style={{ letterSpacing: "1.5px" }}
+              >
+                {staleCount} stale
+              </span>
+            </>
+          ) : null}
+        </div>
+      </header>
       <PipelineBoard deals={cards} snoozeDefaultDays={snoozeDefaultDays} />
     </div>
   );

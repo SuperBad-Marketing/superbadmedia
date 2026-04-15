@@ -191,17 +191,45 @@ export function PipelineBoard({
         canDrop={canDrop}
         onDrop={onDrop}
         columnClassName={(col) => ""}
-        renderColumnHeader={(column, count) => (
-          <div
-            className="flex items-center justify-between rounded-sm px-2 py-1"
-            style={{ background: column.tintVar }}
-          >
-            <span className="font-heading text-sm font-semibold">{column.label}</span>
-            <span className="font-mono text-[11px] text-muted-foreground">
-              {count}
-            </span>
-          </div>
-        )}
+        renderColumnHeader={(column, count) => {
+          const isWon = column.id === "won";
+          const isLost = column.id === "lost";
+          return (
+            <div
+              className="flex items-center justify-between rounded-[10px] px-3 py-2"
+              style={{
+                background: isWon
+                  ? "linear-gradient(135deg, rgba(178,40,72,0.22), rgba(242,140,82,0.08) 60%, rgba(34,34,31,0) 95%)"
+                  : column.tintVar,
+                border: isWon
+                  ? "1px solid rgba(178,40,72,0.3)"
+                  : "1px solid transparent",
+                boxShadow: "var(--surface-highlight)",
+                color: isWon
+                  ? "var(--color-brand-cream)"
+                  : isLost
+                    ? "var(--color-neutral-500)"
+                    : "var(--color-brand-charcoal)",
+              }}
+            >
+              <span
+                className="font-[family-name:var(--font-label)] text-[11px] uppercase"
+                style={{ letterSpacing: "1.8px" }}
+              >
+                {column.label}
+              </span>
+              <span
+                className="font-[family-name:var(--font-label)] text-[11px] tabular-nums"
+                style={{
+                  letterSpacing: "1.5px",
+                  opacity: 0.75,
+                }}
+              >
+                {count}
+              </span>
+            </div>
+          );
+        }}
         renderColumnEmpty={(column) => {
           const copy = getStageEmptyState(column);
           return <EmptyState hero={copy.hero} message={copy.message} />;
