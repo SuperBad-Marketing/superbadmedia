@@ -1,7 +1,7 @@
 /**
  * /lite/admin/invoices — invoice admin index.
  * Spec: docs/specs/branded-invoicing.md §4.1 + §4.3.
- * Brief: sessions/bi-2a-brief.md.
+ * Visual rebuild: sessions/admin-polish-3-brief.md against mockup-admin-interior.html.
  * Admin-only; non-admins redirect to sign-in.
  */
 import { redirect } from "next/navigation";
@@ -39,6 +39,13 @@ function parseFilter(raw: string | undefined): InvoiceIndexFilter {
   if (!raw) return "all";
   const lower = raw.toLowerCase() as InvoiceIndexFilter;
   return FILTERS.includes(lower) ? lower : "all";
+}
+
+function formatCentsCompact(cents: number): string {
+  return `$${(cents / 100).toLocaleString("en-AU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })}`;
 }
 
 export default async function InvoicesAdminPage({
@@ -83,24 +90,110 @@ export default async function InvoicesAdminPage({
     company_name: r.company_name,
   }));
 
-  const summary: InvoiceIndexSummary = computeInvoiceSummary(
-    indexRows,
-    Date.now(),
-  );
+  const now = Date.now();
+  const summary: InvoiceIndexSummary = computeInvoiceSummary(indexRows, now);
+  const overdueCount = indexRows.filter((r) => r.status === "overdue").length;
+  const isEmpty = indexRows.length === 0;
 
   const focusedDetail = focusedInvoiceId
     ? await loadInvoiceDetail(focusedInvoiceId)
     : null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="px-4 pt-6 pb-3">
-        <h1 className="font-heading text-2xl font-semibold">Invoices</h1>
-        <p className="text-sm text-muted-foreground">
-          {indexRows.length} invoice{indexRows.length === 1 ? "" : "s"} · current
-          and historical.
+    <div>
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          Admin · Invoices
+        </div>
+        <div className="mt-3">
+          <h1
+            className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.4px" }}
+          >
+            Invoices
+          </h1>
+        </div>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+          Current and historical.
+          {isEmpty ? null : (
+            <>
+              {" "}
+              <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+                {summary.outstanding_cents > 0
+                  ? "the float's running dry."
+                  : "books are breathing."}
+              </em>
+            </>
+          )}
         </p>
-      </div>
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {indexRows.length}
+          </span>
+          <span>invoice{indexRows.length === 1 ? "" : "s"}</span>
+          <span aria-hidden className="text-[color:var(--color-neutral-700)]">
+            ·
+          </span>
+          <span>AUD · incl. GST</span>
+          {overdueCount > 0 ? (
+            <>
+              <span
+                aria-hidden
+                className="text-[color:var(--color-neutral-700)]"
+              >
+                ·
+              </span>
+              <span
+                className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-brand-orange)]"
+                style={{ letterSpacing: "1.5px" }}
+              >
+                {overdueCount} overdue
+              </span>
+            </>
+          ) : null}
+        </div>
+      </header>
+
+      {overdueCount > 0 ? (
+        <section aria-label="Overdue alert" className="px-4 pb-4">
+          <div
+            role="status"
+            className="flex flex-col gap-1 rounded-[10px] px-4 py-[14px]"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(178,40,72,0.12), rgba(242,140,82,0.06))",
+              border: "1px solid rgba(178, 40, 72, 0.25)",
+            }}
+          >
+            <div
+              className="font-[family-name:var(--font-label)] uppercase text-[10px] text-[color:var(--color-brand-orange)]"
+              style={{ letterSpacing: "1.5px" }}
+            >
+              Overdue · attention
+            </div>
+            <div className="text-[14px] text-[color:var(--color-neutral-300)]">
+              {overdueCount} invoice{overdueCount === 1 ? "" : "s"} past due —{" "}
+              <span
+                className="font-[family-name:var(--font-label)] tabular-nums text-[color:var(--color-brand-cream)]"
+                style={{ letterSpacing: "0.5px" }}
+              >
+                {formatCentsCompact(summary.overdue_cents)}
+              </span>{" "}
+              outstanding.
+            </div>
+            <div className="text-[12px] italic text-[color:var(--color-brand-pink)]">
+              reminders ride on cron — you don&apos;t need to chase manually.
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <InvoiceIndexClient
         rows={indexRows}
         summary={summary}

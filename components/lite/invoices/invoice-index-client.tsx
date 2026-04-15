@@ -4,9 +4,6 @@ import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import type { InvoiceStatus } from "@/lib/db/schema/invoices";
 import { InvoiceStatusBadge } from "./invoice-status-badge";
 import { InvoiceDetailDrawer } from "./invoice-detail-drawer";
@@ -41,7 +38,7 @@ interface Props {
   initialFilter: InvoiceIndexFilter;
   initialFocusedId: string | null;
   initialDetail: InvoiceDetail | null;
-  /** When rendered inside the company billing tab, suppress summary cards. */
+  /** When rendered inside the company billing tab, suppress tfoot totals. */
   hideSummary?: boolean;
   /** Filter tab bar visibility (off on company tab per spec §4.2). */
   hideFilters?: boolean;
@@ -56,10 +53,21 @@ const TABS: { id: InvoiceIndexFilter; label: string }[] = [
   { id: "void", label: "Void" },
 ];
 
+/** An overdue invoice past this many days of its due date is "dormant overdue" (§10 stale affordance). */
+const STALE_DAYS = 14;
+const STALE_MS = STALE_DAYS * 24 * 60 * 60 * 1000;
+
 function formatCents(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-AU", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatCentsCompact(cents: number): string {
+  return `$${(cents / 100).toLocaleString("en-AU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   })}`;
 }
 
@@ -129,128 +137,368 @@ export function InvoiceIndexClient(props: Props) {
     });
   }, [rows, filter, search]);
 
+  const isEmpty = rows.length === 0;
+
   return (
     <div className="space-y-5 px-4 pb-10">
-      {!hideSummary && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <SummaryCard label="Outstanding" cents={summary.outstanding_cents} />
-          <SummaryCard
-            label="Overdue"
-            cents={summary.overdue_cents}
-            tone={summary.overdue_cents > 0 ? "alert" : undefined}
-          />
-          <SummaryCard
-            label="Paid this month"
-            cents={summary.paid_this_month_cents}
-          />
-          <SummaryCard label="Paid this FY" cents={summary.paid_this_fy_cents} />
-        </div>
-      )}
-
       {!hideFilters && (
-        <div
-          role="tablist"
-          aria-label="Filter invoices by status"
-          className="flex flex-wrap gap-1 rounded-md border border-border bg-muted/30 p-1"
-        >
-          {TABS.map((tab) => {
-            const active = filter === tab.id;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={active}
-                aria-controls="invoice-list"
-                type="button"
-                onClick={() => updateFilter(tab.id)}
-                data-testid={`invoice-filter-${tab.id}`}
-                className={cn(
-                  "relative rounded-sm px-3 py-1.5 text-xs font-medium transition-colors",
-                  active
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {active && (
-                  <motion.span
-                    layoutId="invoice-filter-active"
-                    className="absolute inset-0 rounded-sm bg-background shadow-sm"
-                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                  />
-                )}
-                <span className="relative">{tab.label}</span>
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div
+            role="tablist"
+            aria-label="Filter invoices by status"
+            className="inline-flex items-center gap-1 rounded-[10px] p-1"
+            style={{
+              background: "rgba(15, 15, 14, 0.45)",
+              boxShadow: "var(--surface-highlight)",
+            }}
+          >
+            {TABS.map((tab) => {
+              const active = filter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={active}
+                  aria-controls="invoice-list"
+                  type="button"
+                  onClick={() => updateFilter(tab.id)}
+                  data-testid={`invoice-filter-${tab.id}`}
+                  className="relative rounded-md px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase leading-none transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={{
+                    letterSpacing: "1.5px",
+                    color: active
+                      ? "var(--color-brand-cream)"
+                      : "var(--color-neutral-500)",
+                  }}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="invoice-filter-active"
+                      className="absolute inset-0 rounded-md"
+                      style={{
+                        background: "var(--color-surface-2)",
+                        boxShadow: "var(--surface-highlight)",
+                      }}
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by client or number"
+              aria-label="Search invoices"
+              className="h-9 w-64 rounded-md bg-transparent px-3 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-500)] transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] focus:outline-none focus:border-[color:rgba(244,160,176,0.35)]"
+              style={{
+                border: "1px solid rgba(253, 245, 230, 0.05)",
+                background: "rgba(15, 15, 14, 0.45)",
+              }}
+            />
+            <span
+              className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] tabular-nums"
+              style={{ letterSpacing: "1.5px" }}
+            >
+              {visible.length} / {rows.length}
+            </span>
+          </div>
         </div>
       )}
 
-      <div className="flex items-center gap-3">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by client or invoice number"
-          className="max-w-sm"
-          aria-label="Search invoices"
-        />
-        <span className="text-xs text-muted-foreground">
-          {visible.length} of {rows.length}
-        </span>
-      </div>
-
-      <div id="invoice-list" className="overflow-hidden rounded-md border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">Invoice</th>
-              <th className="px-3 py-2">Client</th>
-              <th className="px-3 py-2 text-right">Total inc-GST</th>
-              <th className="px-3 py-2">Issued</th>
-              <th className="px-3 py-2">Due</th>
-              <th className="px-3 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.length === 0 && (
+      {isEmpty ? (
+        <EmptyInvoices />
+      ) : (
+        <div
+          id="invoice-list"
+          className="overflow-hidden rounded-[12px]"
+          style={{
+            background: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight)",
+          }}
+        >
+          <table className="w-full text-left">
+            <thead>
               <tr>
-                <td colSpan={6} className="px-3 py-10 text-center text-sm text-muted-foreground">
-                  No invoices match.
-                </td>
+                {[
+                  { label: "Invoice", align: "left" as const },
+                  { label: "Client", align: "left" as const },
+                  { label: "Total", align: "right" as const },
+                  { label: "Issued", align: "left" as const },
+                  { label: "Due", align: "left" as const },
+                  { label: "Status", align: "left" as const },
+                ].map((h) => (
+                  <th
+                    key={h.label}
+                    className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                    style={{
+                      letterSpacing: "2px",
+                      padding: "12px 14px",
+                      borderBottom: "1px solid rgba(253, 245, 230, 0.05)",
+                      textAlign: h.align,
+                    }}
+                  >
+                    {h.label}
+                  </th>
+                ))}
               </tr>
+            </thead>
+            <tbody>
+              {visible.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-10 text-center font-[family-name:var(--font-body)] text-[13px] italic text-[color:var(--color-neutral-500)]"
+                  >
+                    Nothing matches that filter.
+                  </td>
+                </tr>
+              )}
+              <AnimatePresence initial={false}>
+                {visible.map((r) => {
+                  const isStale =
+                    r.status === "overdue" &&
+                    Date.now() - r.due_at_ms > STALE_MS;
+                  return (
+                    <motion.tr
+                      key={r.id}
+                      layout="position"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => openInvoice(r.id)}
+                      className="group cursor-pointer transition-colors duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      style={{
+                        background: "transparent",
+                      }}
+                      whileHover={{
+                        backgroundColor: "rgba(253, 245, 230, 0.025)",
+                      }}
+                    >
+                      <td
+                        className="font-[family-name:var(--font-label)] text-[11px] tabular-nums"
+                        style={{
+                          padding: "14px",
+                          borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                          color: isStale
+                            ? "var(--color-neutral-500)"
+                            : "var(--color-brand-cream)",
+                          letterSpacing: "1px",
+                          borderLeft: isStale
+                            ? "1px dashed rgba(244, 160, 176, 0.35)"
+                            : "1px solid transparent",
+                        }}
+                      >
+                        {r.invoice_number}
+                      </td>
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[13px]"
+                        style={{
+                          padding: "14px",
+                          borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                          color: isStale
+                            ? "var(--color-neutral-500)"
+                            : "var(--color-brand-cream)",
+                          fontWeight: isStale ? 400 : 500,
+                        }}
+                      >
+                        {isStale ? (
+                          <span>
+                            <span
+                              aria-hidden
+                              style={{
+                                color: "var(--color-brand-pink)",
+                                marginRight: 6,
+                              }}
+                            >
+                              ·
+                            </span>
+                            {r.company_name}
+                          </span>
+                        ) : (
+                          r.company_name
+                        )}
+                      </td>
+                      <td
+                        className="font-[family-name:var(--font-label)] tabular-nums"
+                        style={{
+                          padding: "14px",
+                          borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                          color:
+                            r.status === "paid"
+                              ? "var(--color-success)"
+                              : isStale
+                                ? "var(--color-neutral-500)"
+                                : "var(--color-brand-cream)",
+                          letterSpacing: "1px",
+                          textAlign: "right",
+                          fontSize: "13px",
+                        }}
+                      >
+                        {formatCents(r.total_cents_inc_gst)}
+                      </td>
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[12px] italic"
+                        style={{
+                          padding: "14px",
+                          borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                          color: "var(--color-neutral-500)",
+                        }}
+                      >
+                        {formatDate(r.issue_date_ms)}
+                      </td>
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[12px] italic"
+                        style={{
+                          padding: "14px",
+                          borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                          color: "var(--color-neutral-500)",
+                        }}
+                      >
+                        {isStale
+                          ? `dormant · ${formatDate(r.due_at_ms)}`
+                          : formatDate(r.due_at_ms)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "14px",
+                          borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                        }}
+                      >
+                        <InvoiceStatusBadge status={r.status} />
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </AnimatePresence>
+            </tbody>
+            {!hideSummary && (
+              <tfoot>
+                <tr>
+                  <td
+                    colSpan={2}
+                    className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                    style={{
+                      letterSpacing: "1.8px",
+                      padding: "18px 14px",
+                      borderTop: "1px solid rgba(253, 245, 230, 0.06)",
+                    }}
+                  >
+                    Outstanding
+                  </td>
+                  <td
+                    className="font-[family-name:var(--font-label)] tabular-nums text-[color:var(--color-brand-cream)]"
+                    style={{
+                      letterSpacing: "1px",
+                      padding: "18px 14px",
+                      borderTop: "1px solid rgba(253, 245, 230, 0.06)",
+                      textAlign: "right",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {formatCentsCompact(summary.outstanding_cents)}
+                  </td>
+                  <td
+                    colSpan={3}
+                    className="font-[family-name:var(--font-body)] text-[12px] italic text-[color:var(--color-neutral-500)]"
+                    style={{
+                      padding: "18px 14px",
+                      borderTop: "1px solid rgba(253, 245, 230, 0.06)",
+                    }}
+                  >
+                    sent + overdue, GST-inclusive
+                  </td>
+                </tr>
+                <tr>
+                  <td
+                    colSpan={2}
+                    className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-orange)]"
+                    style={{
+                      letterSpacing: "1.8px",
+                      padding: "14px",
+                    }}
+                  >
+                    Overdue
+                  </td>
+                  <td
+                    className="font-[family-name:var(--font-label)] tabular-nums text-[color:var(--color-brand-orange)]"
+                    style={{
+                      letterSpacing: "1px",
+                      padding: "14px",
+                      textAlign: "right",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {formatCentsCompact(summary.overdue_cents)}
+                  </td>
+                  <td
+                    colSpan={3}
+                    className="font-[family-name:var(--font-body)] text-[12px] italic text-[color:var(--color-neutral-500)]"
+                    style={{ padding: "14px" }}
+                  >
+                    past due
+                  </td>
+                </tr>
+                <tr>
+                  <td
+                    colSpan={2}
+                    style={{
+                      padding: "20px 14px",
+                      background:
+                        "linear-gradient(135deg, rgba(123, 174, 126, 0.18), rgba(244, 160, 176, 0.05) 60%, rgba(34, 34, 31, 0) 95%)",
+                      borderTop: "1px solid rgba(123, 174, 126, 0.25)",
+                    }}
+                  >
+                    <div
+                      className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-success)]"
+                      style={{ letterSpacing: "2px" }}
+                    >
+                      Paid · FY
+                    </div>
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px 14px 18px",
+                      textAlign: "right",
+                      background:
+                        "linear-gradient(135deg, rgba(123, 174, 126, 0.18), rgba(244, 160, 176, 0.05) 60%, rgba(34, 34, 31, 0) 95%)",
+                      borderTop: "1px solid rgba(123, 174, 126, 0.25)",
+                    }}
+                  >
+                    <div
+                      className="font-[family-name:var(--font-display)] tabular-nums text-[color:var(--color-brand-cream)]"
+                      style={{
+                        fontSize: "32px",
+                        lineHeight: 1,
+                        letterSpacing: "-0.3px",
+                      }}
+                    >
+                      {formatCentsCompact(summary.paid_this_fy_cents)}
+                    </div>
+                  </td>
+                  <td
+                    colSpan={3}
+                    className="font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-brand-pink)]"
+                    style={{
+                      padding: "14px",
+                      background:
+                        "linear-gradient(135deg, rgba(123, 174, 126, 0.18), rgba(244, 160, 176, 0.05) 60%, rgba(34, 34, 31, 0) 95%)",
+                      borderTop: "1px solid rgba(123, 174, 126, 0.25)",
+                    }}
+                  >
+                    {formatCentsCompact(summary.paid_this_month_cents)} this month.
+                  </td>
+                </tr>
+              </tfoot>
             )}
-            <AnimatePresence initial={false}>
-              {visible.map((r) => (
-                <motion.tr
-                  key={r.id}
-                  layout="position"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => openInvoice(r.id)}
-                  className="cursor-pointer border-t border-border hover:bg-muted/30"
-                >
-                  <td className="px-3 py-2 font-mono text-xs">
-                    {r.invoice_number}
-                  </td>
-                  <td className="px-3 py-2">{r.company_name}</td>
-                  <td className="px-3 py-2 text-right font-medium">
-                    {formatCents(r.total_cents_inc_gst)}
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground">
-                    {formatDate(r.issue_date_ms)}
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground">
-                    {formatDate(r.due_at_ms)}
-                  </td>
-                  <td className="px-3 py-2">
-                    <InvoiceStatusBadge status={r.status} />
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
-      </div>
+          </table>
+        </div>
+      )}
 
       <InvoiceDetailDrawer
         open={drawerOpen}
@@ -261,28 +509,24 @@ export function InvoiceIndexClient(props: Props) {
   );
 }
 
-function SummaryCard({
-  label,
-  cents,
-  tone,
-}: {
-  label: string;
-  cents: number;
-  tone?: "alert";
-}) {
+function EmptyInvoices() {
   return (
-    <Card className="p-4">
-      <div className="text-xs uppercase tracking-wider text-muted-foreground">
-        {label}
-      </div>
-      <div
-        className={cn(
-          "mt-1 font-heading text-2xl font-semibold",
-          tone === "alert" && "text-[#c1202d]",
-        )}
+    <div
+      className="rounded-[12px] px-8 py-10 text-center"
+      style={{
+        background: "var(--color-surface-2)",
+        boxShadow: "var(--surface-highlight)",
+      }}
+    >
+      <p
+        className="font-[family-name:var(--font-display)] text-[28px] leading-none text-[color:var(--color-brand-cream)]"
+        style={{ letterSpacing: "-0.2px" }}
       >
-        {formatCents(cents)}
-      </div>
-    </Card>
+        No invoices yet.
+      </p>
+      <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
+        clean slate — or you haven&apos;t sent one.
+      </p>
+    </div>
   );
 }
