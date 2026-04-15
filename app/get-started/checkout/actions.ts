@@ -5,10 +5,10 @@
  *
  * Single action: `createSaasSubscriptionAction`. Creates Stripe
  * Customer + Subscription (default_incomplete, monthly setup fee via
- * `add_invoice_items`) and writes the local user + company + contact +
- * deal rows inside one transaction. Returns the `clientSecret` so the
- * browser Payment Element can confirm the first invoice's Payment
- * Intent.
+ * `buildMonthlySetupFeeInvoiceItems`) and writes the local user +
+ * company + contact + deal rows inside one transaction. Returns the
+ * `clientSecret` so the browser Payment Element can confirm the first
+ * invoice's Payment Intent.
  *
  * Spec: docs/specs/saas-subscription-billing.md §3.3, §4.2, §4.5.
  * Predecessor: SB-3 shipped `/get-started/pricing` with live
@@ -31,6 +31,7 @@ import { saas_products } from "@/lib/db/schema/saas-products";
 import { saas_tiers } from "@/lib/db/schema/saas-tiers";
 import { getStripe } from "@/lib/stripe/client";
 import { ensureStripeCustomer } from "@/lib/stripe/customer";
+import { buildMonthlySetupFeeInvoiceItems } from "@/lib/billing/setup-fee";
 import type { CommitmentCadence } from "@/lib/content/checkout-page";
 
 const CADENCES = ["monthly", "annual_monthly", "annual_upfront"] as const;
@@ -245,18 +246,12 @@ export async function createSaasSubscriptionAction(
         },
       };
 
-    if (input.cadence === "monthly" && tier.setup_fee_cents_inc_gst > 0) {
-      subscriptionParams.add_invoice_items = [
-        {
-          price_data: {
-            currency: "aud",
-            product: product.stripe_product_id,
-            unit_amount: tier.setup_fee_cents_inc_gst,
-          },
-          quantity: 1,
-        },
-      ];
-    }
+    const setupFeeExtra = buildMonthlySetupFeeInvoiceItems({
+      cadence: input.cadence,
+      stripeProductId: product.stripe_product_id,
+      setupFeeCentsIncGst: tier.setup_fee_cents_inc_gst,
+    });
+    if (setupFeeExtra) Object.assign(subscriptionParams, setupFeeExtra);
 
     const sub = await stripe.subscriptions.create(subscriptionParams);
     subscriptionId = sub.id;
