@@ -19,12 +19,10 @@
  *      billing cadence — the only price column on the tier row and already
  *      monthly-normalised inc-GST. Brief named `stripe_*_price_amount_cents`
  *      columns that don't exist; no divide-by-12 needed.
- *   2. `saas_subscription_cancelled` activity-log kind isn't registered.
- *      Churn falls back to counting `deals` where `subscription_state`
- *      entered a terminal state (`cancelled_paid_remainder`,
- *      `cancelled_buyout`, `cancelled_post_term`, `ended_gracefully`)
- *      within the window, using `updated_at_ms` as a proxy for cancel
- *      time. Precision upgrade tracked in PATCHES_OWED.
+ *   2. Churn reads the `saas_subscription_cancelled` activity-log kind
+ *      (emitted from every terminal branch of the SB-11 cancel flow).
+ *      Earlier SB-10 ship used `deals.updated_at_ms` as a proxy; SB-11
+ *      upgraded this to the activity kind — closes the precision debt.
  *   3. HealthBanner severity reads `'warning' | 'critical'` per the
  *      canonical Daily Cockpit spec shape; brief said amber/red.
  *   4. MRR delta flat-band dropped — binary up/down colouring only.
@@ -122,7 +120,10 @@ async function loadSaasDeals(
 }
 
 async function countActivityKindSince(
-  kind: "saas_payment_failed_lockout" | "saas_data_loss_warning_sent",
+  kind:
+    | "saas_payment_failed_lockout"
+    | "saas_data_loss_warning_sent"
+    | "saas_subscription_cancelled",
   sinceMs: number,
   productId: string | null,
 ): Promise<number> {
@@ -244,7 +245,6 @@ async function computeSignals(
 
   let activeSubscribers = 0;
   let newThisWindow = 0;
-  let churnThisWindow = 0;
   let pastDueCount = 0;
 
   for (const r of rows) {
@@ -254,14 +254,16 @@ async function computeSignals(
     if (state !== null && r.created_at_ms >= windowStartMs) {
       newThisWindow += 1;
     }
-    if (
-      state !== null &&
-      CANCELLED_STATES.includes(state) &&
-      r.updated_at_ms >= windowStartMs
-    ) {
-      churnThisWindow += 1;
-    }
   }
+
+  // SB-11: churn reads the unified `saas_subscription_cancelled` activity
+  // kind (emitted from every terminal branch of the cancel flow). Replaces
+  // the SB-10 `updated_at_ms` proxy — closes `sb10_churn_precision_upgrade`.
+  const churnThisWindow = await countActivityKindSince(
+    "saas_subscription_cancelled",
+    windowStartMs,
+    productId,
+  );
 
   const mrrCents = computeMrr(rows);
   const priorMrr = computePriorMrr(rows, windowStartMs);

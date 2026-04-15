@@ -25,7 +25,8 @@ export type KillSwitchKey =
   | "saas_usage_enforcement_enabled"
   | "saas_tier_change_enabled"
   | "saas_payment_recovery_enabled"
-  | "saas_headlines_enabled";
+  | "saas_headlines_enabled"
+  | "saas_cancel_flow_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -67,6 +68,12 @@ const defaults: KillSwitchRegistry = {
   // debug routes and future cost observability can still read numbers
   // while the public strip is hidden.
   saas_headlines_enabled: true,
+  // SB-11: gates the `/lite/portal/subscription` cancel surface. When OFF,
+  // the route 404s (with a bartender-stub "Talk to us" link); the Stripe
+  // cancel primitive itself is NOT gated, so an admin-driven cancel path
+  // (future) can still run while the subscriber-facing surface is paused
+  // — matches SB-10's surface-vs-primitive gating pattern.
+  saas_cancel_flow_enabled: true,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

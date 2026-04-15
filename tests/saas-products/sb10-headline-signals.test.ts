@@ -317,7 +317,7 @@ describe("SB-10 getSaasHeadlineSignals — new / churn windows", () => {
   });
 
   it("churnThisWindow counts cancellations inside window; doesn't double-count re-subscribe", async () => {
-    // Cancelled inside window.
+    // Cancelled inside window — SB-11 reads activity_log kind.
     seedDeal({
       id: "d_churn",
       productId: PRODUCT_A,
@@ -326,6 +326,7 @@ describe("SB-10 getSaasHeadlineSignals — new / churn windows", () => {
       createdAtMs: NOW - 180 * DAY,
       updatedAtMs: NOW - 10 * DAY,
     });
+    seedActivity("d_churn", "saas_subscription_cancelled", NOW - 10 * DAY);
     // Cancelled outside window.
     seedDeal({
       id: "d_old_churn",
@@ -335,6 +336,11 @@ describe("SB-10 getSaasHeadlineSignals — new / churn windows", () => {
       createdAtMs: NOW - 400 * DAY,
       updatedAtMs: NOW - 90 * DAY,
     });
+    seedActivity(
+      "d_old_churn",
+      "saas_subscription_cancelled",
+      NOW - 90 * DAY,
+    );
     // Re-subscribe: a new deal in active state created inside window.
     seedDeal({
       id: "d_resub",

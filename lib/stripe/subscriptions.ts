@@ -17,7 +17,38 @@ export interface StripeLike {
   subscriptions: {
     update: Stripe["subscriptions"]["update"];
     retrieve: Stripe["subscriptions"]["retrieve"];
+    cancel?: Stripe["subscriptions"]["cancel"];
   };
+}
+
+/**
+ * Schedule an end-of-commitment cancel. `cancelAtMs` is converted to
+ * Stripe's unix-seconds shape. Used by SB-11 pay-remainder — the
+ * subscription keeps billing through `committed_until_date_ms` and
+ * then cancels cleanly at that boundary.
+ */
+export async function scheduleSubscriptionCancel(
+  subscriptionId: string,
+  cancelAtMs: number,
+  stripeClient?: StripeLike,
+): Promise<Stripe.Subscription> {
+  const stripe = (stripeClient ?? getStripe()) as Stripe;
+  return stripe.subscriptions.update(subscriptionId, {
+    cancel_at: Math.floor(cancelAtMs / 1000),
+  });
+}
+
+/**
+ * Cancel a subscription immediately. Used by SB-11 buyout + post-term
+ * cancel branches. Thin wrapper; exists to keep Stripe calls out of
+ * feature modules (boundary convention).
+ */
+export async function cancelSubscriptionImmediately(
+  subscriptionId: string,
+  stripeClient?: StripeLike,
+): Promise<Stripe.Subscription> {
+  const stripe = (stripeClient ?? getStripe()) as Stripe;
+  return stripe.subscriptions.cancel(subscriptionId);
 }
 
 export interface SwapPriceOpts {

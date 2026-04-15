@@ -207,6 +207,15 @@ export const ACTIVITY_LOG_KINDS = [
   "saas_usage_limit_reached",
   "saas_usage_period_rollover",
   "saas_tier_downgrade_scheduled",
+  // --- SaaS cancel flow (SB-11) ---
+  // Unified terminal-cancel kind for SaaS. Emitted on all three SaaS
+  // terminal transitions (`cancelled_paid_remainder`, `cancelled_buyout`,
+  // `cancelled_post_term`) alongside the existing retainer-flavoured
+  // `subscription_early_cancel_*` / `subscription_cancelled_post_term`
+  // kinds. Carries `meta.branch` so downstream consumers (churn signals,
+  // retention reporting) can slice by exit path without pattern-matching
+  // against three separate kinds. Closes `sb10_churn_precision_upgrade`.
+  "saas_subscription_cancelled",
   // --- Setup Wizards (6) ---
   "wizard_started",
   "wizard_step_completed",
