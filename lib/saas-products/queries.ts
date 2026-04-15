@@ -125,6 +125,102 @@ export type SaasProductDetail = {
   tiers: SaasProductDetailTier[];
 };
 
+/**
+ * Single-pass query for the public pricing grid at `/get-started/pricing`.
+ *
+ * Returns every `status="active"` product with its dimensions and tiers
+ * (including limits + parsed feature flags) in four DB calls — one per
+ * table, no per-product N+1. Ordered by `display_order` then
+ * `created_at_ms` ascending so the admin's publish order drives the
+ * grid column order.
+ *
+ * Dimension rows are keyed by `dimension_key` for fast join in the
+ * consumer; `limit_value === null` surfaces as unlimited.
+ *
+ * Owner: SB-3. Consumers: `/get-started/pricing` server page (via
+ * `buildPricingPageViewModel`), public API (future).
+ */
+export type PricingTier = {
+  row: SaasTierRow;
+  limitsByDimensionId: Map<string, SaasTierLimitRow>;
+  featureFlags: Record<string, boolean>;
+};
+
+export type PricingProduct = {
+  row: SaasProductRow;
+  dimensions: SaasUsageDimensionRow[];
+  tiers: PricingTier[];
+};
+
+export async function listActivePricingProducts(): Promise<PricingProduct[]> {
+  const products = await db
+    .select()
+    .from(saas_products)
+    .where(eq(saas_products.status, "active"))
+    .orderBy(asc(saas_products.display_order), asc(saas_products.created_at_ms));
+
+  if (products.length === 0) return [];
+
+  const productIds = products.map((p) => p.id);
+
+  const dimensionRows = await db
+    .select()
+    .from(saas_usage_dimensions)
+    .where(inArray(saas_usage_dimensions.product_id, productIds))
+    .orderBy(
+      asc(saas_usage_dimensions.display_order),
+      asc(saas_usage_dimensions.created_at_ms),
+    );
+
+  const tierRows = await db
+    .select()
+    .from(saas_tiers)
+    .where(inArray(saas_tiers.product_id, productIds))
+    .orderBy(asc(saas_tiers.tier_rank));
+
+  const tierIds = tierRows.map((t) => t.id);
+  const limitRows = tierIds.length
+    ? await db
+        .select()
+        .from(saas_tier_limits)
+        .where(inArray(saas_tier_limits.tier_id, tierIds))
+    : [];
+
+  const dimensionsByProduct = new Map<string, SaasUsageDimensionRow[]>();
+  for (const d of dimensionRows) {
+    const list = dimensionsByProduct.get(d.product_id) ?? [];
+    list.push(d);
+    dimensionsByProduct.set(d.product_id, list);
+  }
+
+  const limitsByTier = new Map<string, Map<string, SaasTierLimitRow>>();
+  for (const l of limitRows) {
+    let inner = limitsByTier.get(l.tier_id);
+    if (!inner) {
+      inner = new Map();
+      limitsByTier.set(l.tier_id, inner);
+    }
+    inner.set(l.dimension_id, l);
+  }
+
+  const tiersByProduct = new Map<string, PricingTier[]>();
+  for (const t of tierRows) {
+    const list = tiersByProduct.get(t.product_id) ?? [];
+    list.push({
+      row: t,
+      limitsByDimensionId: limitsByTier.get(t.id) ?? new Map(),
+      featureFlags: (t.feature_flags ?? {}) as Record<string, boolean>,
+    });
+    tiersByProduct.set(t.product_id, list);
+  }
+
+  return products.map((p) => ({
+    row: p,
+    dimensions: dimensionsByProduct.get(p.id) ?? [],
+    tiers: tiersByProduct.get(p.id) ?? [],
+  }));
+}
+
 export async function loadSaasProductDetail(
   productId: string,
 ): Promise<SaasProductDetail | null> {
