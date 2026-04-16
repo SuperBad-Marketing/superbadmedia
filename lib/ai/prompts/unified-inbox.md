@@ -1,12 +1,12 @@
 ---
 spec: docs/specs/unified-inbox.md
 status: populated
-populated-by: UI-2 (router — DONE), UI-3 (notifier — DONE), UI-4 (signal/noise — DONE), UI-5 (draft-reply — DONE), UI-6 (compose-draft + compose-subject — DONE)
+populated-by: UI-2 (router — DONE), UI-3 (notifier — DONE), UI-4 (signal/noise — DONE), UI-5 (draft-reply — DONE), UI-6 (compose-draft + compose-subject — DONE), UI-7 (draft-refine — DONE)
 ---
 
 # Unified Inbox prompts
 
-Three Haiku classifiers run in parallel for every inbound message (cost negligible, latency sub-2-second). Classifications stored on the message row; corrections feed back as learning signal. A fourth prompt — `inbox-draft-reply` — is Opus and runs **asynchronously** via a scheduled task, only for client-facing inbound routed to signal/push/urgent, and only writes a cached draft to the thread row. Two more prompts land in UI-6 on the outbound side: `inbox-compose-draft` (Opus, Andy-intent → full body) and `inbox-compose-subject` (Haiku, body → ≤60-char subject when Andy leaves it blank).
+Three Haiku classifiers run in parallel for every inbound message (cost negligible, latency sub-2-second). Classifications stored on the message row; corrections feed back as learning signal. A fourth prompt — `inbox-draft-reply` — is Opus and runs **asynchronously** via a scheduled task, only for client-facing inbound routed to signal/push/urgent, and only writes a cached draft to the thread row. Two more prompts land in UI-6 on the outbound side: `inbox-compose-draft` (Opus, Andy-intent → full body) and `inbox-compose-subject` (Haiku, body → ≤60-char subject when Andy leaves it blank). UI-7 adds the third member of the Opus draft family: `inbox-draft-refine` (Opus, instruction-based rewrite of an existing draft in the refine sidecar — ephemeral per spec §7.4, turn history passed in on each call).
 
 ## `inbox-classify-inbound-route`
 **Intent:** contact resolution + sender-type classification (known / new-lead / non-client / spam).
@@ -77,3 +77,16 @@ Three Haiku classifiers run in parallel for every inbound message (cost negligib
 **Effects:** returned to the caller, which sets `messages.subject` on insert. No separate DB write.
 **Fallback:** on LLM/parse failure, first-10-words heuristic from the body. Never blocks the send.
 **Kill switches:** skipped unless `llm_calls_enabled` is on — falls through to the first-10-words heuristic when the switch is off, so Andy can still send during an LLM outage.
+
+## `inbox-draft-refine`
+**Intent:** Andy opens the refine sidecar on a thread that already has a draft (cached reply from UI-5 OR compose-intent from UI-6), types an instruction ("shorter, less formal", "push the meeting to next week", "drop the price reference"), and Opus rewrites the draft in place. Iterable — each turn layers on the previous ones until Andy is happy, then he sends via UI-6's `sendCompose`.
+**Spec:** §7.4 (refine-chat paragraph — "his instructions in, new draft out, iterate") + §4.4 (Compose action row includes refine when a draft is present) + §6.2 (mobile: simplified single-line instruction input, no sidecar panel — same server contract, narrower UI).
+**Implementation:** `lib/graph/refine-draft.ts` (generator) + `refineDraft` server action in `app/lite/inbox/compose/actions.ts`.
+**Model:** Opus via `modelFor("inbox-draft-refine")`.
+**Fired from:** server-action call on each refine-chat send. Synchronous — Andy is waiting for the rewrite.
+**Input context:** the prior draft body (the one being refined), Andy's new instruction (≤500 chars), prior refine turns on this session (`Array<{ instruction, result_body }>` capped at 6 — older turns truncate head-first), Brand DNA profile (system), Client Context Engine snapshot for the recipient contact (user — same CCE-stub fallback as UI-5/UI-6), optional thread history if refining a reply draft on an existing thread (≤20 messages).
+**Two-perpetual-contexts:** identical split to `inbox-draft-reply` + `inbox-compose-draft` — Brand DNA in system (reuses `buildDraftReplySystemPrompt` verbatim), CCE in user. Missing either = regression.
+**Output:** JSON `{ draft_body, low_confidence_flags }` — same Zod schema as UI-5/UI-6 (`DraftReplyOutputSchema`). Reused intentionally: refine produces the same artefact shape, only the input context differs.
+**Effects:** none at generator level — returns `{ draft_body, low_confidence_flags }` to the server action, which hands it to the client. No DB write. The turn history lives in React state client-side (spec §7.4 "ephemeral in-memory session, no persistence"). Activity log: `inbox_draft_refined` on successful rewrite with meta `{ contact_id, thread_id, turn_count, instruction_length, flag_count }`.
+**Fallback asymmetry (discipline #63):** on LLM/parse failure the generator returns `{ outcome: "fallback_error", draft_body: priorDraft, low_confidence_flags: [] }` + logs. The refine turn is a no-op from the user's perspective — **the prior draft is preserved**, never overwritten with empty or garbled text. Distinct conservative side: UI-5 no-writes to cache, UI-6 returns empty body (user knows to retry), UI-7 preserves prior draft (user keeps typing without losing work).
+**Kill switches:** skipped unless `llm_calls_enabled` is on — when off, returns `{ outcome: "skipped_kill_switch", draft_body: priorDraft }`. Does *not* depend on `inbox_sync_enabled` — refine is pure LLM, never talks to Graph.

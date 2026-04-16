@@ -35,10 +35,17 @@ import {
   sendComposeMessage,
   saveComposeDraftRow,
 } from "@/lib/graph/compose-send";
+import {
+  generateRefinedDraft,
+  MAX_REFINE_INSTRUCTION_CHARS,
+  MAX_REFINE_TURNS,
+  type RefineDraftResult,
+} from "@/lib/graph/refine-draft";
 import { createGraphClient, getActiveGraphState } from "@/lib/graph/client";
 import { db } from "@/lib/db";
 import { compose_drafts } from "@/lib/db/schema/compose-drafts";
 import { and, eq } from "drizzle-orm";
+import { logActivity } from "@/lib/activity-log";
 
 // ── Shared auth helper ───────────────────────────────────────────────
 
@@ -220,6 +227,65 @@ export async function saveComposeDraft(
       error: err instanceof Error ? err.message : "Save failed.",
     };
   }
+}
+
+// ── refineDraft (UI-7) ───────────────────────────────────────────────
+
+const RefineTurnSchema = z.object({
+  instruction: z.string().min(1).max(MAX_REFINE_INSTRUCTION_CHARS),
+  result_body: z.string(),
+});
+
+const RefineDraftInputSchema = z.object({
+  priorDraft: z.string(),
+  instruction: z.string().min(1).max(MAX_REFINE_INSTRUCTION_CHARS),
+  priorTurns: z.array(RefineTurnSchema).max(MAX_REFINE_TURNS * 4).optional(),
+  contactId: z.string().nullable().optional(),
+  threadId: z.string().nullable().optional(),
+  sendingAddress: z.string().min(1),
+});
+
+export type RefineDraftActionResult =
+  | { ok: true; draft: RefineDraftResult }
+  | { ok: false; error: string };
+
+export async function refineDraft(
+  input: z.infer<typeof RefineDraftInputSchema>,
+): Promise<RefineDraftActionResult> {
+  const actor = await requireAdminActor();
+  if (!actor) return { ok: false, error: "Not authorised." };
+
+  const parsed = RefineDraftInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const result = await generateRefinedDraft({
+    priorDraft: parsed.data.priorDraft,
+    instruction: parsed.data.instruction,
+    priorTurns: parsed.data.priorTurns,
+    contactId: parsed.data.contactId ?? null,
+    threadId: parsed.data.threadId ?? null,
+    sendingAddress: parsed.data.sendingAddress,
+  });
+
+  if (result.outcome === "generated") {
+    await logActivity({
+      companyId: null,
+      contactId: parsed.data.contactId ?? null,
+      kind: "inbox_draft_refined",
+      body: `Refine turn applied (${(parsed.data.priorTurns?.length ?? 0) + 1} of session, ${result.low_confidence_flags.length} flags).`,
+      meta: {
+        thread_id: parsed.data.threadId ?? null,
+        turn_count: (parsed.data.priorTurns?.length ?? 0) + 1,
+        instruction_length: parsed.data.instruction.length,
+        flag_count: result.low_confidence_flags.length,
+      },
+      createdBy: actor.actorTag,
+    });
+  }
+
+  return { ok: true, draft: result };
 }
 
 // ── discardComposeDraft ──────────────────────────────────────────────

@@ -92,6 +92,16 @@ export {
   type SendComposeResult,
   type SaveComposeDraftInput,
 } from "./compose-send";
+export {
+  generateRefinedDraft,
+  buildRefineUserPrompt,
+  MAX_REFINE_INSTRUCTION_CHARS,
+  MAX_REFINE_TURNS,
+  type RefineTurn,
+  type GenerateRefinedDraftInput,
+  type RefineDraftOutcome,
+  type RefineDraftResult,
+} from "./refine-draft";
 export type {
   GraphCredentials,
   GraphMessage,
