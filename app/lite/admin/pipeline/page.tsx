@@ -139,6 +139,7 @@ export default async function PipelinePage() {
       won_outcome: r.deal.won_outcome,
       next_action_text: r.deal.next_action_text,
       is_stale: stale,
+      company_id: r.company.id,
       company_name: r.company.name,
       billing_mode: r.company.billing_mode,
       contact_name: contact?.name ?? null,

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ export interface PipelineCardDeal {
   won_outcome: DealWonOutcome | null;
   next_action_text: string | null;
   is_stale: boolean;
+  company_id: string;
   company_name: string;
   billing_mode: CompanyBillingMode;
   contact_name: string | null;
@@ -105,16 +107,19 @@ export function DealCard({
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div
+          <Link
+            href={`/lite/admin/companies/${deal.company_id}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             className={cn(
-              "font-[family-name:var(--font-body)] text-[16px] font-medium leading-[1.3] truncate",
+              "block font-[family-name:var(--font-body)] text-[16px] font-medium leading-[1.3] truncate underline-offset-4 hover:underline transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
               isStale
-                ? "text-[color:var(--color-neutral-300)]"
+                ? "text-[color:var(--color-neutral-300)] hover:text-[color:var(--color-brand-cream)]"
                 : "text-[color:var(--color-brand-cream)]",
             )}
           >
             {deal.company_name}
-          </div>
+          </Link>
           <div
             className={cn(
               "mt-1 text-[12px] italic line-clamp-1",
