@@ -19,6 +19,18 @@ export {
   type RouterResult,
 } from "./router";
 export { buildRouterPrompt, loadRouterPromptContext } from "./router-prompt";
+export {
+  classifyNotificationPriority,
+  NotifierOutputSchema,
+  type NotifierOutput,
+  type NotifierResult,
+} from "./notifier";
+export {
+  buildNotifierPrompt,
+  loadNotifierPromptContext,
+  type NotifierPromptContext,
+  type NotifierThreadContext,
+} from "./notifier-prompt";
 export type {
   GraphCredentials,
   GraphMessage,

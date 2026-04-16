@@ -8,6 +8,7 @@ import { GraphDeltaResponseSchema, GraphMessageSchema } from "./types";
 import { normalizeGraphMessage } from "./normalize";
 import { resolveThread, updateThreadTimestamps } from "./thread";
 import { classifyAndRouteInbound } from "./router";
+import { classifyNotificationPriority } from "./notifier";
 
 const MESSAGES_DELTA_URL =
   "/me/mailFolders('Inbox')/messages/delta?$select=id,internetMessageId,subject,bodyPreview,body,from,toRecipients,ccRecipients,bccRecipients,sentDateTime,receivedDateTime,internetMessageHeaders,hasAttachments,isRead,isDraft,conversationId";
@@ -112,13 +113,23 @@ export async function runDeltaSync(
           normalized.received_at_ms ?? Date.now(),
         );
 
-        // Route inbound messages through the Q5 classifier (spec §7.1)
+        // Run the inbound classifiers in parallel per discipline #52
+        // (spec §§7.1 router + 7.2 notifier). Each is non-fatal —
+        // classifier failure never blocks message insertion. UI-4 will
+        // extend this to 3-way (signal/noise).
         if (direction === "inbound") {
-          try {
-            await classifyAndRouteInbound(normalized, normalized.id, threadId);
-          } catch (routerErr) {
-            // Router failure is non-fatal — message is still inserted
-            console.error(`[graph-sync] Router failed for ${gm.id}:`, routerErr);
+          const results = await Promise.allSettled([
+            classifyAndRouteInbound(normalized, normalized.id, threadId),
+            classifyNotificationPriority(normalized, normalized.id, threadId),
+          ]);
+          for (const [idx, result] of results.entries()) {
+            if (result.status === "rejected") {
+              const which = idx === 0 ? "router" : "notifier";
+              console.error(
+                `[graph-sync] ${which} failed for ${gm.id}:`,
+                result.reason,
+              );
+            }
           }
         }
 

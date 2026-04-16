@@ -585,3 +585,8 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 - **`ui_1_webhook_client_state_verification`** · `app/api/webhooks/graph/route.ts` does not verify `clientState` from Graph notifications against stored value. Low risk (handler is idempotent — duplicate messages prevented by `graph_message_id` check) but should be hardened before Phase 6 launch. · G10.5 reviewer note · 2026-04-16 · **gate: Phase 6 launch prep**
 - **`ui_1_sync_send_integration_tests`** · `tests/graph-sync.test.ts` and `tests/graph-send.test.ts` test Zod schemas and kill-switch state but not actual sync/send logic with mocked DB/client. Acceptable while `inbox_sync_enabled` ships disabled; integration tests should be added before the switch flips on. · G10.5 reviewer note · 2026-04-16 · **gate: before `inbox_sync_enabled` flip**
 - **`ui_1_settings_registry_total_drift`** · `docs/settings-registry.md` totals section says 92 but TypeScript registry has 99 keys. Pre-existing drift, not caused by UI-1. · G10.5 reviewer note · 2026-04-16 · **gate: opportunistic**
+
+
+### Phase 5 Wave 10 UI-3 (2026-04-16)
+
+- **`ui_3_fired_transport_spec_reconciliation`** · `docs/specs/unified-inbox.md` §5.1 describes `notifications.fired_transport` as required, but UI-3 implemented it nullable to represent the three-state lifecycle (`'none'` = silent, `NULL` = queued for wave-E dispatcher, real values = fired). Wave E (dispatcher + web/pwa push transports) either (a) accepts the nullable contract or (b) requires a default value + UI-3 adjusts forward. Not blocking UI-4. · UI-3 handoff · 2026-04-16 · **gate: wave E dispatcher session**

@@ -33,3 +33,4 @@ export * from "./usage-records";
 export * from "./subscriber-magic-link-tokens";
 export * from "./graph-api-state";
 export * from "./classification-corrections";
+export * from "./notifications";
