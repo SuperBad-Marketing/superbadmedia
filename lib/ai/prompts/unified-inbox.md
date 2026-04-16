@@ -1,12 +1,12 @@
 ---
 spec: docs/specs/unified-inbox.md
 status: populated
-populated-by: UI-2 (router — DONE), UI-3 (notifier — DONE), UI-4 (signal/noise — DONE), UI-5 (draft-reply — DONE)
+populated-by: UI-2 (router — DONE), UI-3 (notifier — DONE), UI-4 (signal/noise — DONE), UI-5 (draft-reply — DONE), UI-6 (compose-draft + compose-subject — DONE)
 ---
 
 # Unified Inbox prompts
 
-Three Haiku classifiers run in parallel for every inbound message (cost negligible, latency sub-2-second). Classifications stored on the message row; corrections feed back as learning signal. A fourth prompt — `inbox-draft-reply` — is Opus and runs **asynchronously** via a scheduled task, only for client-facing inbound routed to signal/push/urgent, and only writes a cached draft to the thread row.
+Three Haiku classifiers run in parallel for every inbound message (cost negligible, latency sub-2-second). Classifications stored on the message row; corrections feed back as learning signal. A fourth prompt — `inbox-draft-reply` — is Opus and runs **asynchronously** via a scheduled task, only for client-facing inbound routed to signal/push/urgent, and only writes a cached draft to the thread row. Two more prompts land in UI-6 on the outbound side: `inbox-compose-draft` (Opus, Andy-intent → full body) and `inbox-compose-subject` (Haiku, body → ≤60-char subject when Andy leaves it blank).
 
 ## `inbox-classify-inbound-route`
 **Intent:** contact resolution + sender-type classification (known / new-lead / non-client / spam).
@@ -52,3 +52,28 @@ Three Haiku classifiers run in parallel for every inbound message (cost negligib
 **Fallback asymmetry (discipline #63):** on LLM/parse failure the handler logs the error and **does nothing** — no write to the thread row. Rationale: a missing draft is an inconvenience Andy can absorb; a subtly-wrong cached draft that Andy trusts and sends is a burned client. The prior cached draft (if any) remains until the next inbound retriggers.
 **Kill switches:** skipped (no enqueue, no generation) unless both `inbox_sync_enabled` and `llm_calls_enabled` are on.
 **CCE-1 stub:** Wave 16 delivers the real Client Context Engine. Until then, `loadClientContextOrStub(contactId)` dynamically imports the future module via try/catch and falls back to a minimal shape. When Wave 16 lands, the stub path becomes unreachable and can be deleted cleanly.
+
+## `inbox-compose-draft`
+**Intent:** Andy types a one-line intent ("follow up with Sarah re trial shoot — push to next week") and the drafter returns a full email body in his voice. Same voice + fallback discipline as `inbox-draft-reply` but a different trigger: user-initiated, in the Compose-new surface, not reactive to an inbound.
+**Spec:** §4.4 (Compose-new "Draft this for me" button) + §7.4 Q9 (same Opus drafter, intent input).
+**Implementation:** `lib/graph/compose-draft.ts` (generator) + server action in the compose path.
+**Model:** Opus via `modelFor("inbox-compose-draft")`.
+**Fired from:** server-action click on the "Draft this for me" button. Synchronous — Andy is waiting for it.
+**Input context:** intent line (≤500 chars), Brand DNA profile (system), Client Context Engine snapshot for the recipient contact (user — same stub fallback as UI-5), optional thread history if composing a reply to an existing thread (≤20 messages, same `MAX_THREAD_MESSAGES` convention), otherwise up to 10 recent Andy-sent outbound messages to this contact as few-shot voice anchor.
+**Two-perpetual-contexts:** identical split to `inbox-draft-reply` — Brand DNA in system, CCE in user. Reuses `buildDraftReplySystemPrompt` verbatim (same voice rules), with a distinct user-prompt builder that leads with "TASK: Andy wants to draft an email. His one-line intent is: …" instead of "TASK: draft Andy's reply to the incoming message."
+**Output:** JSON `{ draft_body, low_confidence_flags }` — same Zod schema as UI-5 (`DraftReplyOutputSchema`). Reused intentionally: the output contract is identical, only the input context differs.
+**Effects:** none at generator level — returns `{ draft_body, low_confidence_flags }` to the server action, which hands it to the client. No DB write unless Andy clicks "Save to drafts" (→ `compose_drafts` row) or "Send" (→ `messages` row via `sendViaGraph`). Activity log: `inbox_draft_composed` on successful generation with meta `{ intent_length, contact_id, thread_id, flag_count }`.
+**Fallback asymmetry (discipline #63):** on LLM/parse failure the generator returns `{ draft_body: "", low_confidence_flags: [] }` + logs the error. The UI surfaces "Drafting failed — try again" rather than silently pre-filling a bad draft. Same conservative-side discipline as UI-5, applied to a different trigger.
+**Kill switches:** skipped unless `llm_calls_enabled` is on. Does *not* depend on `inbox_sync_enabled` — compose-draft is a pure LLM call that never talks to Graph until the user hits Send.
+
+## `inbox-compose-subject`
+**Intent:** When Andy leaves the subject blank, derive a short subject line from the composed body so the outbound email isn't `(no subject)`. Cheap, templated, Haiku.
+**Spec:** §4.4 ("Subject: optional — auto-generates at send time from body if blank").
+**Implementation:** `lib/graph/compose-draft.ts` (`generateComposeSubject()` helper).
+**Model:** Haiku via `modelFor("inbox-compose-subject")`.
+**Fired from:** `sendCompose` server action, only when the Andy-supplied subject is blank/whitespace-only.
+**Input context:** the outbound body text (first 2000 chars, same truncation convention as UI-5).
+**Output:** JSON `{ subject }` — a ≤60-char plain string. Zod validated; strings over the cap are sliced + ellipsis-stripped to the cap.
+**Effects:** returned to the caller, which sets `messages.subject` on insert. No separate DB write.
+**Fallback:** on LLM/parse failure, first-10-words heuristic from the body. Never blocks the send.
+**Kill switches:** skipped unless `llm_calls_enabled` is on — falls through to the first-10-words heuristic when the switch is off, so Andy can still send during an LLM outage.

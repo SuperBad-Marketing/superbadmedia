@@ -87,11 +87,13 @@ export const MODELS = {
   "client-mgmt-escalation-summary": "haiku",
   // task-manager (1)
   "task-manager-parse-braindump": "haiku",
-  // unified-inbox (4)
+  // unified-inbox (6)
   "inbox-classify-inbound-route": "haiku",
   "inbox-classify-notification-priority": "haiku",
   "inbox-classify-signal-noise": "haiku",
   "inbox-draft-reply": "opus",
+  "inbox-compose-draft": "opus",
+  "inbox-compose-subject": "haiku",
   // email-adapter / drift-check (1) — A7
   "drift-check-grader": "haiku",
 } as const satisfies Record<string, ModelTier>;

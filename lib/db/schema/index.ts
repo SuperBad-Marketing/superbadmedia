@@ -34,3 +34,4 @@ export * from "./subscriber-magic-link-tokens";
 export * from "./graph-api-state";
 export * from "./classification-corrections";
 export * from "./notifications";
+export * from "./compose-drafts";

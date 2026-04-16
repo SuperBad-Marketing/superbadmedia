@@ -67,6 +67,31 @@ export {
   type FewShotExample,
   type ThreadMessageSnapshot,
 } from "./draft-reply-prompt";
+export {
+  generateComposeDraft,
+  generateComposeSubject,
+  buildComposeUserPrompt,
+  ComposeSubjectOutputSchema,
+  COMPOSE_SUBJECT_MAX_LEN,
+  type ComposeDraftOutcome,
+  type ComposeDraftResult,
+  type ComposeSubjectOutcome,
+  type ComposeSubjectResult,
+  type GenerateComposeDraftInput,
+  type GenerateComposeSubjectInput,
+} from "./compose-draft";
+export {
+  resolveRecipientContact,
+  ensureThreadForCompose,
+  sendComposeMessage,
+  saveComposeDraftRow,
+  textToSimpleHtml,
+  type ResolveRecipientResult,
+  type EnsureThreadInput,
+  type SendComposeInput,
+  type SendComposeResult,
+  type SaveComposeDraftInput,
+} from "./compose-send";
 export type {
   GraphCredentials,
   GraphMessage,

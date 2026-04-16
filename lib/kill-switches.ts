@@ -27,7 +27,8 @@ export type KillSwitchKey =
   | "saas_payment_recovery_enabled"
   | "saas_headlines_enabled"
   | "saas_cancel_flow_enabled"
-  | "inbox_sync_enabled";
+  | "inbox_sync_enabled"
+  | "inbox_send_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -80,6 +81,12 @@ const defaults: KillSwitchRegistry = {
   // return early, webhook route returns 200 without processing, sendViaGraph
   // throws. Flip ON in Phase 6 after Graph connection is verified live.
   inbox_sync_enabled: false,
+  // UI-6: gates the outbound compose-send path specifically. When OFF,
+  // `sendCompose` throws before touching Graph so Andy can disable sends
+  // while debugging the inbound pipeline without also disabling delta sync.
+  // `inbox_sync_enabled` still gates the Graph HTTP call itself (belt and
+  // braces — turning either OFF is a hard stop on outbound mail).
+  inbox_send_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

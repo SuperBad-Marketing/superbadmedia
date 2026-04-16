@@ -183,6 +183,13 @@
       "when": 1776390000000,
       "tag": "0035_ui5_cached_draft_flags",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1776400000000,
+      "tag": "0036_ui6_compose_drafts",
+      "breakpoints": true
     }
   ]
 }

@@ -223,7 +223,7 @@ export const ACTIVITY_LOG_KINDS = [
   "wizard_abandoned",
   "wizard_resumed",
   "integration_registered",
-  // --- Unified Inbox (18) ---
+  // --- Unified Inbox (19) ---
   "inbox_thread_created",
   "inbox_message_received",
   "inbox_message_sent",
@@ -232,6 +232,7 @@ export const ACTIVITY_LOG_KINDS = [
   "inbox_notification_fired",
   "inbox_notification_corrected",
   "inbox_draft_generated",
+  "inbox_draft_composed",
   "inbox_draft_refined",
   "inbox_draft_sent",
   "inbox_draft_discarded",
