@@ -17,14 +17,13 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
-import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { messages, threads } from "@/lib/db/schema/messages";
 import { notifications } from "@/lib/db/schema/notifications";
 import { user } from "@/lib/db/schema/user";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
-import { modelFor } from "@/lib/ai/models";
+import { invokeLlmText } from "@/lib/ai/invoke";
 import type { NormalizedMessage } from "./normalize";
 import {
   loadNotifierPromptContext,
@@ -46,8 +45,6 @@ export interface NotifierResult {
   skipped: boolean;
 }
 
-const CLIENT_SINGLETON = new Anthropic();
-
 // ── Main entry point ─────────────────────────────────────────────────
 
 export async function classifyNotificationPriority(
@@ -65,18 +62,14 @@ export async function classifyNotificationPriority(
 
   const ctx = await loadNotifierPromptContext(msg, threadId);
   const prompt = buildNotifierPrompt(ctx);
-  const modelId = modelFor("inbox-classify-notification-priority");
 
   let parsed: NotifierOutput;
   try {
-    const response = await CLIENT_SINGLETON.messages.create({
-      model: modelId,
-      max_tokens: 128,
-      messages: [{ role: "user", content: prompt }],
+    const text = await invokeLlmText({
+      job: "inbox-classify-notification-priority",
+      prompt,
+      maxTokens: 128,
     });
-
-    const text =
-      response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
     const json = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
     parsed = NotifierOutputSchema.parse(JSON.parse(json));
   } catch (err) {

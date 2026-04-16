@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { and, desc, eq, gte, inArray } from "drizzle-orm";
 
 import { db as defaultDb } from "@/lib/db";
@@ -7,7 +6,7 @@ import { companies } from "@/lib/db/schema/companies";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { killSwitches } from "@/lib/kill-switches";
-import { modelFor } from "@/lib/ai/models";
+import { invokeLlmText } from "@/lib/ai/invoke";
 import { checkBrandVoiceDrift, type DriftCheckResult } from "@/lib/ai/drift-check";
 import { getSuperbadBrandProfile } from "./superbad-brand-profile";
 import {
@@ -39,7 +38,6 @@ export interface ComposeIntroParagraphInput {
   freeformInstruction?: string | null;
 }
 
-const CLIENT_SINGLETON = new Anthropic();
 const MAX_OUTPUT_TOKENS = 700;
 
 /** rank-3 activity-log kinds that carry client voice or factual context. */
@@ -215,19 +213,17 @@ export async function composeIntroParagraph(
     };
   }
 
-  const modelId = modelFor("quote-builder-draft-intro-paragraph");
   const promptText = buildDraftIntroParagraphPrompt({
     companyName: company.name,
     sources,
     freeformInstruction: input.freeformInstruction ?? null,
   });
 
-  const response = await CLIENT_SINGLETON.messages.create({
-    model: modelId,
-    max_tokens: MAX_OUTPUT_TOKENS,
-    messages: [{ role: "user", content: promptText }],
+  const raw = await invokeLlmText({
+    job: "quote-builder-draft-intro-paragraph",
+    prompt: promptText,
+    maxTokens: MAX_OUTPUT_TOKENS,
   });
-  const raw = response.content.find((b) => b.type === "text")?.text ?? "";
   const parsed = parseLlmOutput(raw);
 
   if (!parsed || !parsed.paragraph_text) {

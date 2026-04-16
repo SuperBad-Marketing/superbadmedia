@@ -24,12 +24,11 @@
  */
 import { z } from "zod";
 import { and, eq, isNull, max } from "drizzle-orm";
-import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { messages, threads } from "@/lib/db/schema/messages";
 import { contacts } from "@/lib/db/schema/contacts";
 import { killSwitches } from "@/lib/kill-switches";
-import { modelFor } from "@/lib/ai/models";
+import { invokeLlmText } from "@/lib/ai/invoke";
 import type { NormalizedMessage } from "./normalize";
 import {
   loadSignalNoisePromptContext,
@@ -64,8 +63,6 @@ export interface SignalNoiseResult {
   skipped: boolean;
 }
 
-const CLIENT_SINGLETON = new Anthropic();
-
 // ── Main entry point ─────────────────────────────────────────────────
 
 export async function classifySignalNoise(
@@ -84,18 +81,14 @@ export async function classifySignalNoise(
 
   const ctx = await loadSignalNoisePromptContext(msg, threadId);
   const prompt = buildSignalNoisePrompt(ctx);
-  const modelId = modelFor("inbox-classify-signal-noise");
 
   let parsed: SignalNoiseOutput;
   try {
-    const response = await CLIENT_SINGLETON.messages.create({
-      model: modelId,
-      max_tokens: 160,
-      messages: [{ role: "user", content: prompt }],
+    const text = await invokeLlmText({
+      job: "inbox-classify-signal-noise",
+      prompt,
+      maxTokens: 160,
     });
-
-    const text =
-      response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
     const json = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
     parsed = SignalNoiseOutputSchema.parse(JSON.parse(json));
   } catch (err) {

@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
 import { invoices, type InvoiceRow } from "@/lib/db/schema/invoices";
@@ -6,7 +5,7 @@ import { companies, type CompanyRow } from "@/lib/db/schema/companies";
 import { contacts, type ContactRow } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import { killSwitches } from "@/lib/kill-switches";
-import { modelFor } from "@/lib/ai/models";
+import { invokeLlmText } from "@/lib/ai/invoke";
 import {
   buildDraftSupersedeNotificationPrompt,
   type InvoiceSupersedeInput,
@@ -27,7 +26,6 @@ export interface ComposedInvoiceSupersedeEmail {
   fallbackUsed: boolean;
 }
 
-const CLIENT_SINGLETON = new Anthropic();
 const MAX_OUTPUT_TOKENS = 300;
 
 function formatCents(cents: number): string {
@@ -135,18 +133,16 @@ export async function composeInvoiceSupersedeEmailAI(
     newInvoiceUrl,
   };
 
-  const modelId = modelFor("invoice-draft-supersede-notification");
   const promptText = buildDraftSupersedeNotificationPrompt(promptInput);
 
   let subject = "";
   let bodyParagraphs: string[] = [];
   try {
-    const response = await CLIENT_SINGLETON.messages.create({
-      model: modelId,
-      max_tokens: MAX_OUTPUT_TOKENS,
-      messages: [{ role: "user", content: promptText }],
+    const raw = await invokeLlmText({
+      job: "invoice-draft-supersede-notification",
+      prompt: promptText,
+      maxTokens: MAX_OUTPUT_TOKENS,
     });
-    const raw = response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
     const stripped = raw.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
     const parsed = JSON.parse(stripped) as {
       subject?: unknown;

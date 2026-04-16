@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { and, eq, ne } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
 import { invoices, type InvoiceRow } from "@/lib/db/schema/invoices";
@@ -6,7 +5,7 @@ import { companies, type CompanyRow } from "@/lib/db/schema/companies";
 import { contacts, type ContactRow } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import { killSwitches } from "@/lib/kill-switches";
-import { modelFor } from "@/lib/ai/models";
+import { invokeLlmText } from "@/lib/ai/invoke";
 import { checkBrandVoiceDrift, type DriftCheckResult } from "@/lib/ai/drift-check";
 import { getSuperbadBrandProfile } from "@/lib/quote-builder/superbad-brand-profile";
 import {
@@ -31,7 +30,6 @@ export interface ComposedInvoiceReminder {
   fallbackUsed: boolean;
 }
 
-const CLIENT_SINGLETON = new Anthropic();
 const MAX_OUTPUT_TOKENS = 500;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -177,18 +175,16 @@ export async function composeInvoiceReminderEmailAI(
     );
   }
 
-  const modelId = modelFor("invoice-draft-reminder");
   const promptText = buildDraftReminderPrompt(promptInput);
 
   let subject = "";
   let bodyParagraphs: string[] = [];
   try {
-    const response = await CLIENT_SINGLETON.messages.create({
-      model: modelId,
-      max_tokens: MAX_OUTPUT_TOKENS,
-      messages: [{ role: "user", content: promptText }],
+    const raw = await invokeLlmText({
+      job: "invoice-draft-reminder",
+      prompt: promptText,
+      maxTokens: MAX_OUTPUT_TOKENS,
     });
-    const raw = response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
     const stripped = raw.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
     const parsed = JSON.parse(stripped) as {
       subject?: unknown;

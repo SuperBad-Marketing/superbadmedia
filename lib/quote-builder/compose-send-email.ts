@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
 import { quotes, type QuoteRow } from "@/lib/db/schema/quotes";
@@ -6,7 +5,7 @@ import { companies, type CompanyRow } from "@/lib/db/schema/companies";
 import { contacts, type ContactRow } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import { killSwitches } from "@/lib/kill-switches";
-import { modelFor } from "@/lib/ai/models";
+import { invokeLlmText } from "@/lib/ai/invoke";
 import { checkBrandVoiceDrift, type DriftCheckResult } from "@/lib/ai/drift-check";
 import {
   buildDraftSendEmailPrompt,
@@ -29,7 +28,6 @@ export interface ComposedQuoteEmail {
   fallbackUsed: boolean;
 }
 
-const CLIENT_SINGLETON = new Anthropic();
 const MAX_OUTPUT_TOKENS = 800;
 
 function formatTotal(content: QuoteContent, quote: QuoteRow): string {
@@ -209,15 +207,13 @@ export async function composeQuoteSendEmail(
     };
   }
 
-  const modelId = modelFor("quote-builder-draft-send-email");
   const promptText = buildDraftSendEmailPrompt(promptInput);
 
-  const response = await CLIENT_SINGLETON.messages.create({
-    model: modelId,
-    max_tokens: MAX_OUTPUT_TOKENS,
-    messages: [{ role: "user", content: promptText }],
+  const raw = await invokeLlmText({
+    job: "quote-builder-draft-send-email",
+    prompt: promptText,
+    maxTokens: MAX_OUTPUT_TOKENS,
   });
-  const raw = response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
   const stripped = raw.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
 
   let subject = "";

@@ -11,7 +11,6 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
-import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { messages } from "@/lib/db/schema/messages";
 import { threads } from "@/lib/db/schema/messages";
@@ -19,7 +18,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { companies, type CompanyInsert } from "@/lib/db/schema/companies";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
-import { modelFor } from "@/lib/ai/models";
+import { invokeLlmText } from "@/lib/ai/invoke";
 import { normaliseEmail, normaliseCompanyName } from "@/lib/crm/normalise";
 import type { NormalizedMessage } from "./normalize";
 import { loadRouterPromptContext, buildRouterPrompt } from "./router-prompt";
@@ -56,7 +55,6 @@ export interface RouterResult {
 }
 
 const SPAM_KEEP_DAYS = 7;
-const CLIENT_SINGLETON = new Anthropic();
 
 // ── Main entry point ─────────────────────────────────────────────────
 
@@ -76,18 +74,14 @@ export async function classifyAndRouteInbound(
 
   const ctx = await loadRouterPromptContext(msg);
   const prompt = buildRouterPrompt(ctx);
-  const modelId = modelFor("inbox-classify-inbound-route");
 
   let parsed: RouterOutput;
   try {
-    const response = await CLIENT_SINGLETON.messages.create({
-      model: modelId,
-      max_tokens: 256,
-      messages: [{ role: "user", content: prompt }],
+    const text = await invokeLlmText({
+      job: "inbox-classify-inbound-route",
+      prompt,
+      maxTokens: 256,
     });
-
-    const text =
-      response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
     const json = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
     parsed = RouterOutputSchema.parse(JSON.parse(json));
   } catch (err) {
