@@ -1,8 +1,10 @@
 /**
  * /lite/admin/deals/[id]/quotes/[quote_id]/edit — two-pane draft editor.
- * Spec: docs/specs/quote-builder.md §4.1. QB-2a ships left pane + static
- * preview; full motion/debounced preview + Templates/Catalogue CRUD
- * land in QB-2b.
+ * Spec: docs/specs/quote-builder.md §4.1.
+ *
+ * admin-polish-5 (Wave 9): §3 entity-detail header + conditional §11
+ * banners (expired/superseded/accepted) + strip `min-h-screen bg-background`
+ * (admin-chrome-1 owns root). Editor chrome is owned by `QuoteEditor`.
  */
 import { redirect, notFound } from "next/navigation";
 import { and, eq, isNull, asc } from "drizzle-orm";
@@ -14,10 +16,11 @@ import { db } from "@/lib/db";
 import { deals } from "@/lib/db/schema/deals";
 import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
-import { quotes } from "@/lib/db/schema/quotes";
+import { quotes, type QuoteStatus } from "@/lib/db/schema/quotes";
 import { catalogue_items } from "@/lib/db/schema/catalogue-items";
 import { quote_templates } from "@/lib/db/schema/quote-templates";
 import { QuoteEditor } from "@/components/lite/quote-builder/quote-editor";
+import { QuoteStatusBadge } from "@/components/lite/quote-builder/quote-status-badge";
 import {
   emptyQuoteContent,
   type QuoteContent,
@@ -30,6 +33,24 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+
+const STATUS_MUTTER: Record<QuoteStatus, string | null> = {
+  draft: null,
+  sent: "sent · waiting for a read.",
+  viewed: "they're reading it.",
+  accepted: "signed, sealed.",
+  expired: "dormant · the window closed.",
+  withdrawn: "pulled · nothing more to see.",
+  superseded: "there's a newer version now.",
+};
+
+function formatDate(ms: number): string {
+  return new Date(ms).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default async function EditQuotePage({
   params,
@@ -86,30 +107,175 @@ export default async function EditQuotePage({
     .where(isNull(quote_templates.deleted_at_ms))
     .orderBy(asc(quote_templates.structure), asc(quote_templates.name));
 
+  const replacingQuote =
+    quote.status === "superseded" && quote.superseded_by_quote_id
+      ? await db
+          .select({
+            id: quotes.id,
+            quote_number: quotes.quote_number,
+            deal_id: quotes.deal_id,
+          })
+          .from(quotes)
+          .where(eq(quotes.id, quote.superseded_by_quote_id))
+          .get()
+      : null;
+
   const content: QuoteContent =
     (quote.content_json as QuoteContent | null) ??
     emptyQuoteContent(defaultExpiryDays);
 
+  const mutter = STATUS_MUTTER[quote.status];
+  const lastEditMs =
+    quote.sent_at_ms ??
+    quote.viewed_at_ms ??
+    quote.accepted_at_ms ??
+    quote.created_at_ms;
+
   return (
-    <div className="mx-auto min-h-screen max-w-[1400px] bg-background px-4 py-4">
-      <nav className="mb-4 flex items-center justify-between text-xs text-muted-foreground">
+    <div className="mx-auto max-w-[1400px] px-4 pt-6 pb-10">
+      {/* ——— §3 entity-detail header ——— */}
+      <div className="pb-3">
         <Link
-          href="/lite/admin/pipeline"
-          className="hover:text-foreground"
+          href={`/lite/admin/pipeline`}
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "1.8px" }}
         >
           ← Pipeline
         </Link>
-        <div>
-          {quote.quote_number} · {quote.status}
+      </div>
+
+      <header className="pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          <span>Admin</span>{" "}
+          <span className="text-[color:var(--color-neutral-600)]">·</span>{" "}
+          <span>Deals</span>{" "}
+          <span className="text-[color:var(--color-neutral-600)]">·</span>{" "}
+          <span>{deal.title}</span>{" "}
+          <span className="text-[color:var(--color-neutral-600)]">·</span>{" "}
+          <span className="text-[color:var(--color-brand-pink)]">Quote</span>
         </div>
-      </nav>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <h1
+            className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.4px" }}
+          >
+            {quote.quote_number}
+          </h1>
+          <QuoteStatusBadge status={quote.status} />
+        </div>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[15px] leading-[1.55] text-[color:var(--color-neutral-400)]">
+          {deal.title}
+          {primaryContact ? ` · ${primaryContact.name}` : ""}
+          {mutter ? (
+            <>
+              {" "}
+              <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+                {mutter}
+              </em>
+            </>
+          ) : null}
+        </p>
+        <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-[color:var(--color-neutral-500)]">
+          <MetaItem label="Company" value={company.name} />
+          <MetaItem
+            label="Billing"
+            value={
+              company.billing_mode === "manual" ? "Manual" : "Stripe"
+            }
+          />
+          {quote.expires_at_ms ? (
+            <MetaItem
+              label={quote.status === "expired" ? "Expired" : "Expires"}
+              value={formatDate(quote.expires_at_ms)}
+            />
+          ) : null}
+          <MetaItem label="Last edit" value={formatDate(lastEditMs)} />
+        </dl>
+      </header>
+
+      {/* ——— §11 status banners ——— */}
+      {quote.status === "expired" ? (
+        <AlertBanner tone="warm">
+          <div
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-orange)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            Expired
+          </div>
+          <p className="mt-1 text-[14px] text-[color:var(--color-neutral-300)]">
+            The window closed on{" "}
+            {quote.expires_at_ms ? formatDate(quote.expires_at_ms) : "this quote"}.
+            Supersede with a fresh draft if it's still live.
+          </p>
+          <p className="mt-1 font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-brand-pink)]">
+            dormant · dates don't negotiate.
+          </p>
+        </AlertBanner>
+      ) : null}
+
+      {quote.status === "superseded" ? (
+        <AlertBanner tone="cool">
+          <div
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-400)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            Superseded
+          </div>
+          <p className="mt-1 text-[14px] text-[color:var(--color-neutral-300)]">
+            This quote was replaced
+            {quote.superseded_at_ms ? ` on ${formatDate(quote.superseded_at_ms)}` : ""}.
+            {replacingQuote ? (
+              <>
+                {" "}
+                <Link
+                  href={`/lite/admin/deals/${replacingQuote.deal_id}/quotes/${replacingQuote.id}/edit`}
+                  className="underline underline-offset-4 transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+                >
+                  Open {replacingQuote.quote_number} →
+                </Link>
+              </>
+            ) : null}
+          </p>
+          <p className="mt-1 font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-neutral-500)]">
+            the newer one is the one that matters.
+          </p>
+        </AlertBanner>
+      ) : null}
+
+      {quote.status === "accepted" ? (
+        <AlertBanner tone="good">
+          <div
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-success)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            Accepted
+          </div>
+          <p className="mt-1 text-[14px] text-[color:var(--color-neutral-300)]">
+            Signed
+            {quote.accepted_at_ms ? ` on ${formatDate(quote.accepted_at_ms)}` : ""}.
+            Editing is locked.
+          </p>
+          <p className="mt-1 font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-brand-pink)]">
+            one in the bank.
+          </p>
+        </AlertBanner>
+      ) : null}
+
       <QuoteEditor
         dealId={deal.id}
         quoteId={quote.id}
         quoteNumber={quote.quote_number}
+        quoteStatus={quote.status}
         billingMode={company.billing_mode ?? "stripe"}
         dealStage={deal.stage}
-        company={{ id: company.id, name: company.name, gst_applicable: company.gst_applicable }}
+        company={{
+          id: company.id,
+          name: company.name,
+          gst_applicable: company.gst_applicable,
+        }}
         primaryContact={
           primaryContact
             ? { id: primaryContact.id, name: primaryContact.name }
@@ -128,6 +294,51 @@ export default async function EditQuotePage({
         defaultExpiryDays={defaultExpiryDays}
         templates={templates}
       />
+    </div>
+  );
+}
+
+function MetaItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <dt
+        className="font-[family-name:var(--font-label)] text-[9px] uppercase leading-none text-[color:var(--color-neutral-600)]"
+        style={{ letterSpacing: "1.5px" }}
+      >
+        {label}
+      </dt>
+      <dd className="text-[color:var(--color-neutral-300)]">{value}</dd>
+    </div>
+  );
+}
+
+function AlertBanner({
+  tone,
+  children,
+}: {
+  tone: "warm" | "cool" | "good";
+  children: React.ReactNode;
+}) {
+  const style =
+    tone === "warm"
+      ? {
+          background:
+            "linear-gradient(135deg, rgba(178,40,72,0.12), rgba(242,140,82,0.06))",
+          border: "1px solid rgba(178, 40, 72, 0.25)",
+        }
+      : tone === "good"
+      ? {
+          background:
+            "linear-gradient(135deg, rgba(123,174,126,0.18), rgba(244,160,176,0.05))",
+          border: "1px solid rgba(123, 174, 126, 0.30)",
+        }
+      : {
+          background: "rgba(15, 15, 14, 0.45)",
+          border: "1px solid rgba(253, 245, 230, 0.05)",
+        };
+  return (
+    <div className="mb-5 rounded-[10px] p-4" style={style}>
+      {children}
     </div>
   );
 }
