@@ -141,6 +141,8 @@ export const messages = sqliteTable(
       .notNull()
       .default(false),
     graph_message_id: text("graph_message_id"),
+    keep_until_ms: integer("keep_until_ms"),
+    deleted_at_ms: integer("deleted_at_ms"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },
@@ -148,6 +150,11 @@ export const messages = sqliteTable(
     by_thread: index("messages_thread_idx").on(t.thread_id, t.created_at_ms),
     by_message_id_header: index("messages_mid_header_idx").on(t.message_id_header),
     by_in_reply_to: index("messages_in_reply_to_idx").on(t.in_reply_to_header),
+    by_keep_until: index("messages_keep_until_idx").on(
+      t.keep_until_ms,
+      t.deleted_at_ms,
+    ),
+    by_deleted_at: index("messages_deleted_at_idx").on(t.deleted_at_ms),
   }),
 );
 

@@ -31,6 +31,21 @@ export {
   type NotifierPromptContext,
   type NotifierThreadContext,
 } from "./notifier-prompt";
+export {
+  classifySignalNoise,
+  recomputeThreadKeepUntil,
+  computeMessageKeepUntilMs,
+  SignalNoiseOutputSchema,
+  type SignalNoiseOutput,
+  type SignalNoiseResult,
+  type ThreadKeepOverrides,
+} from "./signal-noise";
+export {
+  buildSignalNoisePrompt,
+  loadSignalNoisePromptContext,
+  type SignalNoisePromptContext,
+  type SignalNoiseThreadContext,
+} from "./signal-noise-prompt";
 export type {
   GraphCredentials,
   GraphMessage,
