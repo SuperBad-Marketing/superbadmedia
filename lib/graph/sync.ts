@@ -7,6 +7,7 @@ import type { GraphClient } from "./client";
 import { GraphDeltaResponseSchema, GraphMessageSchema } from "./types";
 import { normalizeGraphMessage } from "./normalize";
 import { resolveThread, updateThreadTimestamps } from "./thread";
+import { classifyAndRouteInbound } from "./router";
 
 const MESSAGES_DELTA_URL =
   "/me/mailFolders('Inbox')/messages/delta?$select=id,internetMessageId,subject,bodyPreview,body,from,toRecipients,ccRecipients,bccRecipients,sentDateTime,receivedDateTime,internetMessageHeaders,hasAttachments,isRead,isDraft,conversationId";
@@ -110,6 +111,17 @@ export async function runDeltaSync(
           direction,
           normalized.received_at_ms ?? Date.now(),
         );
+
+        // Route inbound messages through the Q5 classifier (spec §7.1)
+        if (direction === "inbound") {
+          try {
+            await classifyAndRouteInbound(normalized, normalized.id, threadId);
+          } catch (routerErr) {
+            // Router failure is non-fatal — message is still inserted
+            console.error(`[graph-sync] Router failed for ${gm.id}:`, routerErr);
+          }
+        }
+
         inserted++;
       } catch (err) {
         console.error(`[graph-sync] Failed to process message ${gm.id}:`, err);

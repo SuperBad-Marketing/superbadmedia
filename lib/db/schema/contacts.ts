@@ -7,6 +7,17 @@ import { companies } from "./companies";
  * on first payment via `ensureStripeCustomer(contactId)` (FOUNDATIONS
  * §11.7). `deals.stripe_customer_id` is a denormalised mirror.
  */
+export const CONTACT_RELATIONSHIP_TYPES = [
+  "lead",
+  "client",
+  "past_client",
+  "non_client",
+  "supplier",
+  "personal",
+] as const;
+export type ContactRelationshipType =
+  (typeof CONTACT_RELATIONSHIP_TYPES)[number];
+
 export const CONTACT_EMAIL_STATUSES = [
   "unknown",
   "valid",
@@ -37,6 +48,20 @@ export const contacts = sqliteTable(
       .default(false),
     notes: text("notes"),
     stripe_customer_id: text("stripe_customer_id").unique(),
+    /** Populated by Q5 router or manually. */
+    relationship_type: text("relationship_type", {
+      enum: CONTACT_RELATIONSHIP_TYPES,
+    }),
+    /** Secondary email addresses detected by LLM matching. JSON string[] */
+    inbox_alt_emails: text("inbox_alt_emails", { mode: "json" })
+      .$type<string[]>()
+      .default([]),
+    /** Adjusted by ambient corrections. High positive = always push. */
+    notification_weight: integer("notification_weight").notNull().default(0),
+    /** From "keep from this sender" action. */
+    always_keep_noise: integer("always_keep_noise", { mode: "boolean" })
+      .notNull()
+      .default(false),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },
