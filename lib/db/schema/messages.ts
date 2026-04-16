@@ -79,6 +79,9 @@ export const threads = sqliteTable(
     cached_draft_stale: integer("cached_draft_stale", { mode: "boolean" })
       .notNull()
       .default(false),
+    cached_draft_low_confidence_flags: text("cached_draft_low_confidence_flags", {
+      mode: "json",
+    }),
     snoozed_until_ms: integer("snoozed_until_ms"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),

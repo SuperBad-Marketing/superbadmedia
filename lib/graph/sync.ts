@@ -1,15 +1,26 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { messages } from "@/lib/db/schema/messages";
+import { messages, threads } from "@/lib/db/schema/messages";
+import { contacts } from "@/lib/db/schema/contacts";
 import { graph_api_state } from "@/lib/db/schema/graph-api-state";
 import { killSwitches } from "@/lib/kill-switches";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import type { GraphClient } from "./client";
 import { GraphDeltaResponseSchema, GraphMessageSchema } from "./types";
 import { normalizeGraphMessage } from "./normalize";
 import { resolveThread, updateThreadTimestamps } from "./thread";
-import { classifyAndRouteInbound } from "./router";
+import { classifyAndRouteInbound, type RouterResult } from "./router";
 import { classifyNotificationPriority } from "./notifier";
-import { classifySignalNoise } from "./signal-noise";
+import { classifySignalNoise, type SignalNoiseResult } from "./signal-noise";
+
+// Debounce window: coalesce multiple inbound messages on the same
+// thread into a single draft-generate run if they arrive within 60s.
+// Spec §6.2 + brief §A.7.
+const DRAFT_DEBOUNCE_MS = 60 * 1000;
+
+// Relationship types that warrant a cached reply draft (spec §7.4,
+// brief §A.3). Supplier / personal / null relationships skip generation.
+const DRAFTABLE_RELATIONSHIPS = new Set(["client", "past_client", "lead"]);
 
 const MESSAGES_DELTA_URL =
   "/me/mailFolders('Inbox')/messages/delta?$select=id,internetMessageId,subject,bodyPreview,body,from,toRecipients,ccRecipients,bccRecipients,sentDateTime,receivedDateTime,internetMessageHeaders,hasAttachments,isRead,isDraft,conversationId";
@@ -132,6 +143,20 @@ export async function runDeltaSync(
               );
             }
           }
+
+          const routerResult =
+            results[0].status === "fulfilled"
+              ? (results[0].value as RouterResult)
+              : null;
+          const signalNoiseResult =
+            results[2].status === "fulfilled"
+              ? (results[2].value as SignalNoiseResult)
+              : null;
+          await maybeEnqueueDraftGeneration(
+            threadId,
+            routerResult,
+            signalNoiseResult,
+          );
         }
 
         inserted++;
@@ -211,4 +236,79 @@ export async function syncSentItems(
   }
 
   return { inserted, skipped };
+}
+
+/**
+ * Decide whether the inbound message just inserted warrants an
+ * Opus-drafted cached reply, and if so:
+ *   1. Mark the thread's existing cached draft stale so the UI shows
+ *      a "refreshing…" state instead of an out-of-date draft.
+ *   2. Enqueue `inbox_draft_generate` with a 60s debounce via an
+ *      idempotency key keyed to the 60s run-time bucket, so a burst
+ *      of inbounds on the same thread produces one draft run.
+ *
+ * Gates (brief §A.3):
+ *  - kill switches `inbox_sync_enabled` + `llm_calls_enabled` both on
+ *  - router classification != 'spam'
+ *  - signal/noise priority_class != 'spam'
+ *  - contact relationship_type ∈ {client, past_client, lead}
+ *
+ * Either classifier may be null (rejected), in which case we apply the
+ * spam check to whichever side survived and proceed if the other gate
+ * passes — a missing side shouldn't wedge drafting for real clients.
+ */
+export async function maybeEnqueueDraftGeneration(
+  threadId: string,
+  routerResult: RouterResult | null,
+  signalNoiseResult: SignalNoiseResult | null,
+): Promise<boolean> {
+  if (!killSwitches.inbox_sync_enabled || !killSwitches.llm_calls_enabled) {
+    return false;
+  }
+  if (routerResult?.classification === "spam") return false;
+  if (signalNoiseResult?.priority_class === "spam") return false;
+
+  const contactId = routerResult?.contactId ?? (await lookupThreadContactId(threadId));
+  if (!contactId) return false;
+
+  const contact = await db
+    .select({ relationship_type: contacts.relationship_type })
+    .from(contacts)
+    .where(eq(contacts.id, contactId))
+    .get();
+  const relationship = contact?.relationship_type ?? null;
+  if (!relationship || !DRAFTABLE_RELATIONSHIPS.has(relationship)) {
+    return false;
+  }
+
+  // Stale-flag the existing cached draft immediately so the UI can
+  // render a "refreshing…" indicator until the new one lands. Doing it
+  // before the enqueue guarantees invalidation even if enqueue throws.
+  const nowMs = Date.now();
+  await db
+    .update(threads)
+    .set({ cached_draft_stale: true, updated_at_ms: nowMs })
+    .where(eq(threads.id, threadId));
+
+  const runAtMs = nowMs + DRAFT_DEBOUNCE_MS;
+  const bucket = Math.floor(runAtMs / DRAFT_DEBOUNCE_MS);
+  const idempotencyKey = `inbox-draft-generate:${threadId}:${bucket}`;
+  await enqueueTask({
+    task_type: "inbox_draft_generate",
+    runAt: runAtMs,
+    payload: { thread_id: threadId },
+    idempotencyKey,
+  });
+  return true;
+}
+
+async function lookupThreadContactId(
+  threadId: string,
+): Promise<string | null> {
+  const row = await db
+    .select({ contact_id: threads.contact_id })
+    .from(threads)
+    .where(eq(threads.id, threadId))
+    .get();
+  return row?.contact_id ?? null;
 }

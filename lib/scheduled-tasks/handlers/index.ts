@@ -6,6 +6,7 @@ import { SAAS_TIER_CHANGE_HANDLERS } from "./saas-subscription-tier-downgrade-ap
 import { SAAS_DATA_LOSS_HANDLERS } from "./saas-data-loss-warning";
 import { INBOX_SUBSCRIPTION_RENEW_HANDLERS } from "./inbox-graph-subscription-renew";
 import { INBOX_HYGIENE_HANDLERS } from "./inbox-hygiene-purge";
+import { INBOX_DRAFT_HANDLERS } from "./inbox-draft-generate";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -26,4 +27,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...SAAS_DATA_LOSS_HANDLERS,
   ...INBOX_SUBSCRIPTION_RENEW_HANDLERS,
   ...INBOX_HYGIENE_HANDLERS,
+  ...INBOX_DRAFT_HANDLERS,
 };

@@ -33,8 +33,9 @@ export const SCHEDULED_TASK_TYPES = [
   "intro_funnel_portal_migration",
   // --- Daily Cockpit (1) ---
   "cockpit_brief_regenerate",
-  // --- Unified Inbox (5) ---
+  // --- Unified Inbox (6) ---
   "inbox_draft_reply",
+  "inbox_draft_generate",
   "inbox_hygiene_purge",
   "inbox_morning_digest",
   "inbox_graph_subscription_renew",
