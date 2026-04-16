@@ -24,11 +24,16 @@ import {
   type InboxView,
 } from "./_queries/list-threads";
 import { readThread } from "./_queries/read-thread";
+import { listConversation } from "./_queries/list-conversation";
 import { InboxShell } from "./_components/inbox-shell";
 import {
   ThreadDetail,
   ThreadDetailEmpty,
 } from "./_components/thread-detail";
+import {
+  ConversationView,
+  ConversationViewUnknownContact,
+} from "./_components/conversation-view";
 
 export const metadata: Metadata = {
   title: "SuperBad — Inbox",
@@ -65,6 +70,7 @@ export default async function InboxPage({
     sort?: string;
     thread?: string;
     draft?: string;
+    conversationWith?: string;
   }>;
 }) {
   const session = await auth();
@@ -78,6 +84,7 @@ export default async function InboxPage({
   const sort = parseSort(sp.sort);
   const selectedThreadId = sp.thread ?? null;
   const selectedDraftId = sp.draft ?? null;
+  const conversationContactId = sp.conversationWith ?? null;
 
   const listResult = await listThreads({
     view,
@@ -90,9 +97,58 @@ export default async function InboxPage({
     ? await readThread(selectedThreadId)
     : null;
 
+  const conversation = conversationContactId
+    ? await listConversation(conversationContactId)
+    : null;
+
+  const conversationActive = conversationContactId !== null;
+
   const sendEnabled = killSwitches.inbox_send_enabled;
   const llmEnabled = killSwitches.llm_calls_enabled;
   const now = Date.now();
+
+  const threadDetailNode = detail ? (
+    <ThreadDetail
+      thread={detail.thread}
+      messages={detail.messages}
+      contact={detail.contact}
+      company={detail.company}
+      sendEnabled={sendEnabled}
+      llmEnabled={llmEnabled}
+      view={view}
+      address={address}
+      sort={sort}
+    />
+  ) : (
+    <ThreadDetailEmpty />
+  );
+
+  const conversationNode = conversationActive ? (
+    conversation ? (
+      <ConversationView
+        data={conversation}
+        view={view}
+        address={address}
+        sort={sort}
+        returnThreadId={selectedThreadId}
+      />
+    ) : (
+      <ConversationViewUnknownContact />
+    )
+  ) : null;
+
+  const detailSlot = (
+    <>
+      <div className={conversationActive ? "hidden" : "h-full"}>
+        {threadDetailNode}
+      </div>
+      {conversationNode && (
+        <div className={conversationActive ? "h-full" : "hidden"}>
+          {conversationNode}
+        </div>
+      )}
+    </>
+  );
 
   return (
     <InboxShell
@@ -106,20 +162,7 @@ export default async function InboxPage({
       now={now}
       sendEnabled={sendEnabled}
       llmEnabled={llmEnabled}
-      detail={
-        detail ? (
-          <ThreadDetail
-            thread={detail.thread}
-            messages={detail.messages}
-            contact={detail.contact}
-            company={detail.company}
-            sendEnabled={sendEnabled}
-            llmEnabled={llmEnabled}
-          />
-        ) : (
-          <ThreadDetailEmpty />
-        )
-      }
+      detail={detailSlot}
     />
   );
 }

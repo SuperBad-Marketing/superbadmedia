@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Bookmark, BookmarkX, ExternalLink, Info } from "lucide-react";
 
@@ -9,8 +10,29 @@ import type { ThreadRow, MessageRow } from "@/lib/db/schema/messages";
 import type { ContactRow } from "@/lib/db/schema/contacts";
 import type { CompanyRow } from "@/lib/db/schema/companies";
 import type { DraftReplyLowConfidenceFlag } from "@/lib/graph/draft-reply";
+import type {
+  InboxAddressFilter,
+  InboxSortOrder,
+  InboxView,
+} from "../_queries/list-threads";
 import { ConversationStream } from "./conversation-stream";
 import { ReplyComposer } from "./reply-composer";
+
+function buildConversationHref(
+  view: InboxView,
+  address: InboxAddressFilter,
+  sort: InboxSortOrder,
+  threadId: string,
+  contactId: string,
+): string {
+  const params = new URLSearchParams();
+  params.set("view", view);
+  if (address !== "all") params.set("address", address);
+  if (sort !== "recent") params.set("sort", sort);
+  params.set("thread", threadId);
+  params.set("conversationWith", contactId);
+  return `/lite/inbox?${params.toString()}`;
+}
 
 export function ThreadDetail({
   thread,
@@ -19,6 +41,9 @@ export function ThreadDetail({
   company,
   sendEnabled,
   llmEnabled,
+  view,
+  address,
+  sort,
 }: {
   thread: ThreadRow;
   messages: MessageRow[];
@@ -26,6 +51,9 @@ export function ThreadDetail({
   company: CompanyRow | null;
   sendEnabled: boolean;
   llmEnabled: boolean;
+  view: InboxView;
+  address: InboxAddressFilter;
+  sort: InboxSortOrder;
 }) {
   const flags: DraftReplyLowConfidenceFlag[] = Array.isArray(
     thread.cached_draft_low_confidence_flags,
@@ -60,18 +88,40 @@ export function ThreadDetail({
             {thread.subject ?? "(no subject)"}
           </h1>
           <div className="mt-1 flex flex-wrap items-center gap-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)]">
-            <span
-              aria-disabled="true"
-              title="Conversation view ships in UI-9."
-              className={cn(
-                "inline-flex items-center gap-1 rounded-sm px-2 py-0.5",
-                "bg-[color:var(--color-surface-2)] text-[color:var(--color-neutral-300)]",
-                "cursor-not-allowed",
-              )}
-            >
-              {contact?.name ?? "Unknown contact"}
-              <ExternalLink size={10} strokeWidth={1.5} aria-hidden />
-            </span>
+            {contact ? (
+              <Link
+                href={buildConversationHref(
+                  view,
+                  address,
+                  sort,
+                  thread.id,
+                  contact.id,
+                )}
+                title={`Open every thread with ${contact.name}`}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-sm px-2 py-0.5 outline-none",
+                  "bg-[color:var(--color-surface-2)] text-[color:var(--color-neutral-300)]",
+                  "transition-colors hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-neutral-100)]",
+                  "focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)]",
+                )}
+              >
+                {contact.name}
+                <ExternalLink size={10} strokeWidth={1.5} aria-hidden />
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                title="Walk-in thread — no linked contact yet."
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-sm px-2 py-0.5",
+                  "bg-[color:var(--color-surface-2)] text-[color:var(--color-neutral-500)]",
+                  "cursor-not-allowed",
+                )}
+              >
+                Unknown contact
+                <ExternalLink size={10} strokeWidth={1.5} aria-hidden />
+              </span>
+            )}
             {company && (
               <span className="text-[color:var(--color-neutral-500)]">
                 · {company.name}
