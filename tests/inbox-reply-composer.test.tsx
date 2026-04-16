@@ -33,6 +33,16 @@ vi.mock("@/app/lite/inbox/compose/actions", () => ({
   regenerateCachedDraft: vi.fn(async () => ({ ok: true, enqueued: true })),
 }));
 
+vi.mock("@/app/lite/inbox/ticket/actions", () => ({
+  setTicketTypeAction: vi.fn(async () => ({ ok: false, error: "test-stub" })),
+  setTicketStatusAction: vi.fn(async () => ({ ok: false, error: "test-stub" })),
+  closeTicketAction: vi.fn(async () => ({ ok: false, error: "test-stub" })),
+  respondToCalendarInviteAction: vi.fn(async () => ({
+    ok: false,
+    error: "test-stub",
+  })),
+}));
+
 const { ReplyComposer } = await import(
   "@/app/lite/inbox/_components/reply-composer"
 );

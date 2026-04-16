@@ -87,10 +87,11 @@ export const MODELS = {
   "client-mgmt-escalation-summary": "haiku",
   // task-manager (1)
   "task-manager-parse-braindump": "haiku",
-  // unified-inbox (7)
+  // unified-inbox (8)
   "inbox-classify-inbound-route": "haiku",
   "inbox-classify-notification-priority": "haiku",
   "inbox-classify-signal-noise": "haiku",
+  "inbox-classify-support-ticket-type": "haiku",
   "inbox-draft-reply": "opus",
   "inbox-compose-draft": "opus",
   "inbox-compose-subject": "haiku",

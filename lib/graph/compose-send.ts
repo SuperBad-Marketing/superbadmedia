@@ -134,6 +134,15 @@ export interface SendComposeInput {
   createdBy: string | null;
   /** If this send drained a `compose_drafts` row, supply the id so it's deleted. */
   composeDraftId?: string | null;
+  /** Optional file attachments. Small-attachment path only (≤3 MB each). */
+  attachments?: SendComposeAttachmentInput[];
+}
+
+export interface SendComposeAttachmentInput {
+  name: string;
+  contentType: string;
+  contentBase64: string;
+  sizeBytes: number;
 }
 
 export interface SendComposeResult {
@@ -189,6 +198,7 @@ export async function sendComposeMessage(
     subject: finalSubject,
     bodyHtml: textToSimpleHtml(input.bodyText),
     bodyText: input.bodyText,
+    attachments: input.attachments,
   });
 
   // UI-5 export: clears low-confidence-flags column + logs

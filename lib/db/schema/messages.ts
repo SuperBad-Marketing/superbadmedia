@@ -28,6 +28,20 @@ export const TICKET_STATUSES = [
   "waiting_on_customer",
   "resolved",
 ] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+export const SUPPORT_TICKET_TYPES = [
+  "billing",
+  "bug",
+  "question",
+  "feedback",
+  "refund",
+  "other",
+] as const;
+export type SupportTicketType = (typeof SUPPORT_TICKET_TYPES)[number];
+
+export const TICKET_TYPE_ASSIGNED_BY = ["claude", "andy"] as const;
+export type TicketTypeAssignedBy = (typeof TICKET_TYPE_ASSIGNED_BY)[number];
 
 export const PRIORITY_CLASSES = ["signal", "noise", "spam"] as const;
 export type PriorityClass = (typeof PRIORITY_CLASSES)[number];
@@ -62,7 +76,11 @@ export const threads = sqliteTable(
     sending_address: text("sending_address"),
     subject: text("subject"),
     ticket_status: text("ticket_status", { enum: TICKET_STATUSES }),
-    ticket_type: text("ticket_type"),
+    ticket_type: text("ticket_type", { enum: SUPPORT_TICKET_TYPES }),
+    ticket_type_assigned_by: text("ticket_type_assigned_by", {
+      enum: TICKET_TYPE_ASSIGNED_BY,
+    }),
+    ticket_resolved_at_ms: integer("ticket_resolved_at_ms"),
     priority_class: text("priority_class", { enum: PRIORITY_CLASSES })
       .notNull()
       .default("signal"),

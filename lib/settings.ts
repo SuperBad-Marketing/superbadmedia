@@ -160,6 +160,9 @@ const registry = {
   "inbox.graph_sync_interval_seconds": integer,
   "inbox.graph_subscription_ttl_hours": integer,
   "inbox.graph_subscription_renew_buffer_hours": integer,
+
+  // Unified Inbox — support ticket auto-resolve (1 — UI-10)
+  "inbox.ticket_auto_resolve_idle_days": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

@@ -6,6 +6,15 @@ import { updateThreadTimestamps } from "./thread";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 
+export interface SendViaGraphAttachment {
+  name: string;
+  contentType: string;
+  /** Base-64 encoded file body. Small-attachment path only (≤3 MB each). */
+  contentBase64: string;
+  /** Decoded size in bytes — callers report this when validating. */
+  sizeBytes: number;
+}
+
 export type SendViaGraphInput = {
   threadId: string;
   from: string;
@@ -15,6 +24,7 @@ export type SendViaGraphInput = {
   subject: string;
   bodyHtml: string;
   bodyText: string;
+  attachments?: SendViaGraphAttachment[];
 };
 
 export type SendViaGraphResult = {
@@ -44,6 +54,13 @@ export async function sendViaGraph(
     ? `/users/${input.from}/sendMail`
     : "/me/sendMail";
 
+  const graphAttachments = (input.attachments ?? []).map((a) => ({
+    "@odata.type": "#microsoft.graph.fileAttachment",
+    name: a.name,
+    contentType: a.contentType,
+    contentBytes: a.contentBase64,
+  }));
+
   const res = await client.fetch(sendPath, {
     method: "POST",
     body: JSON.stringify({
@@ -53,6 +70,9 @@ export async function sendViaGraph(
         toRecipients,
         ccRecipients,
         bccRecipients,
+        ...(graphAttachments.length > 0
+          ? { attachments: graphAttachments }
+          : {}),
       },
       saveToSentItems: true,
     }),
@@ -92,7 +112,7 @@ export async function sendViaGraph(
     is_engaged: true,
     engagement_signals: [{ type: "sent", at: now }],
     import_source: "live",
-    has_attachments: false,
+    has_attachments: (input.attachments?.length ?? 0) > 0,
     has_calendar_invite: false,
     graph_message_id: null,
     created_at_ms: now,

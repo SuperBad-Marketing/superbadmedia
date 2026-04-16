@@ -3,20 +3,23 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Bookmark, BookmarkX, ExternalLink, Info } from "lucide-react";
+import { Bookmark, BookmarkX, ExternalLink } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { ThreadRow, MessageRow } from "@/lib/db/schema/messages";
 import type { ContactRow } from "@/lib/db/schema/contacts";
 import type { CompanyRow } from "@/lib/db/schema/companies";
 import type { DraftReplyLowConfidenceFlag } from "@/lib/graph/draft-reply";
+import type { SupportCustomerContext } from "../_queries/load-support-customer-context";
 import type {
   InboxAddressFilter,
   InboxSortOrder,
   InboxView,
 } from "../_queries/list-threads";
 import { ConversationStream } from "./conversation-stream";
+import { CustomerContextPanel } from "./customer-context-panel";
 import { ReplyComposer } from "./reply-composer";
+import { TicketOverlay } from "./ticket-overlay";
 
 function buildConversationHref(
   view: InboxView,
@@ -39,6 +42,7 @@ export function ThreadDetail({
   messages,
   contact,
   company,
+  customerContext,
   sendEnabled,
   llmEnabled,
   view,
@@ -49,6 +53,7 @@ export function ThreadDetail({
   messages: MessageRow[];
   contact: ContactRow | null;
   company: CompanyRow | null;
+  customerContext: SupportCustomerContext | null;
   sendEnabled: boolean;
   llmEnabled: boolean;
   view: InboxView;
@@ -127,15 +132,6 @@ export function ThreadDetail({
                 · {company.name}
               </span>
             )}
-            {thread.sending_address === "support@" && (
-              <span
-                className="inline-flex items-center gap-1 rounded-sm bg-[color:var(--color-surface-2)] px-2 py-0.5 text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]"
-                title="Ticket UI lands in UI-10."
-              >
-                <Info size={10} strokeWidth={1.75} aria-hidden />
-                support — ticket UI in UI-10
-              </span>
-            )}
           </div>
         </div>
 
@@ -144,23 +140,46 @@ export function ThreadDetail({
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-6 py-5">
-        <ConversationStream messages={messages} />
-      </div>
+      {thread.sending_address === "support@" && (
+        <TicketOverlay
+          threadId={thread.id}
+          ticketType={thread.ticket_type}
+          ticketStatus={thread.ticket_status ?? "open"}
+          ticketTypeAssignedBy={thread.ticket_type_assigned_by}
+        />
+      )}
 
-      <ReplyComposer
-        threadId={thread.id}
-        contactId={thread.contact_id}
-        companyId={thread.company_id}
-        toAddresses={toAddresses}
-        sendingAddress={thread.sending_address ?? "andy@"}
-        subject={thread.subject}
-        cachedDraftBody={thread.cached_draft_body}
-        cachedDraftStale={thread.cached_draft_stale}
-        lowConfidenceFlags={flags}
-        sendEnabled={sendEnabled}
-        llmEnabled={llmEnabled}
-      />
+      <div className="flex min-h-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex-1 overflow-y-auto px-6 py-5">
+            <ConversationStream messages={messages} sendEnabled={sendEnabled} />
+          </div>
+
+          <ReplyComposer
+            threadId={thread.id}
+            contactId={thread.contact_id}
+            companyId={thread.company_id}
+            toAddresses={toAddresses}
+            sendingAddress={thread.sending_address ?? "andy@"}
+            subject={thread.subject}
+            cachedDraftBody={thread.cached_draft_body}
+            cachedDraftStale={thread.cached_draft_stale}
+            lowConfidenceFlags={flags}
+            ticketStatus={thread.ticket_status ?? null}
+            sendEnabled={sendEnabled}
+            llmEnabled={llmEnabled}
+          />
+        </div>
+
+        {thread.sending_address === "support@" && customerContext && (
+          <div className="w-[320px] shrink-0">
+            <CustomerContextPanel
+              contactName={contact?.name ?? null}
+              context={customerContext}
+            />
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }

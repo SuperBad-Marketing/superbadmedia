@@ -12,6 +12,8 @@ import { resolveThread, updateThreadTimestamps } from "./thread";
 import { classifyAndRouteInbound, type RouterResult } from "./router";
 import { classifyNotificationPriority } from "./notifier";
 import { classifySignalNoise, type SignalNoiseResult } from "./signal-noise";
+import { classifySupportTicketType } from "./classify-support-ticket-type";
+import { scheduleTicketAutoResolveIdle } from "./ticket-auto-resolve";
 
 // Debounce window: coalesce multiple inbound messages on the same
 // thread into a single draft-generate run if they arrive within 60s.
@@ -157,6 +159,24 @@ export async function runDeltaSync(
             routerResult,
             signalNoiseResult,
           );
+
+          // Support@ ticket classification (spec §4.6). Runs only for
+          // inbounds on support@-routed threads whose ticket_type is
+          // still NULL. Non-fatal: a failure here never blocks the
+          // message insert and falls back to `other` inside the
+          // classifier. Scheduling the 48h idle auto-resolve is
+          // best-effort and gated on kill switches downstream.
+          if (sendingAddress === "support@") {
+            try {
+              await classifySupportTicketType(normalized, threadId);
+              await scheduleTicketAutoResolveIdle(threadId);
+            } catch (err) {
+              console.error(
+                `[graph-sync] support-ticket classify/schedule failed for ${gm.id}:`,
+                err,
+              );
+            }
+          }
         }
 
         inserted++;

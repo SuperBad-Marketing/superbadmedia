@@ -12,6 +12,11 @@ import {
   discardComposeDraft,
 } from "@/app/lite/inbox/compose/actions";
 import { searchContacts } from "../_queries/search-contacts";
+import {
+  AttachmentUpload,
+  type AttachmentUploadFile,
+} from "./attachment-upload";
+import { encodeAttachmentsForUpload } from "./attachment-encode";
 import { ContactPicker, type ContactSuggestion } from "./contact-picker";
 import { RefineSidecar } from "./refine-sidecar";
 import type { DraftReplyLowConfidenceFlag } from "@/lib/graph/draft-reply";
@@ -59,6 +64,8 @@ export function ComposeModal({
   const [sidecarOpen, setSidecarOpen] = React.useState(false);
   const [intent, setIntent] = React.useState("");
   const [intentVisible, setIntentVisible] = React.useState(false);
+  const [attachments, setAttachments] = React.useState<AttachmentUploadFile[]>([]);
+  const [attachOpen, setAttachOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -76,6 +83,8 @@ export function ComposeModal({
     setError(null);
     setIntent("");
     setIntentVisible(false);
+    setAttachments([]);
+    setAttachOpen(false);
   }
 
   async function handleDraftIntent() {
@@ -117,6 +126,10 @@ export function ComposeModal({
     setBusy("send");
     setError(null);
     try {
+      const encoded =
+        attachments.length > 0
+          ? await encodeAttachmentsForUpload(attachments)
+          : undefined;
       const result = await sendCompose({
         threadId: null,
         contactId: recipient.contactId,
@@ -128,6 +141,7 @@ export function ComposeModal({
         bodyText: body,
         sendingAddress,
         composeDraftId: draftId ?? null,
+        attachments: encoded,
       });
       if (!result.ok) {
         setError(result.error);
@@ -135,6 +149,12 @@ export function ComposeModal({
       }
       resetAll();
       onClose();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "That file didn't want to go. Try again or drop a different one.",
+      );
     } finally {
       setBusy("idle");
     }
@@ -327,6 +347,15 @@ export function ComposeModal({
                   className="min-h-[14rem] resize-y rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
                 />
 
+                {(attachOpen || attachments.length > 0) && (
+                  <AttachmentUpload
+                    files={attachments}
+                    onChange={setAttachments}
+                    onError={(text) => setError(text)}
+                    disabled={busy !== "idle"}
+                  />
+                )}
+
                 {error && (
                   <p
                     role="alert"
@@ -351,17 +380,26 @@ export function ComposeModal({
               </button>
               <button
                 type="button"
-                disabled
-                title="Attachments — UI-10"
-                className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)] opacity-50"
+                onClick={() => setAttachOpen((v) => !v)}
+                title={
+                  attachments.length > 0
+                    ? `${attachments.length} attached — click to manage`
+                    : "Drop files into the reply"
+                }
+                className={cn(
+                  "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)]",
+                  attachments.length > 0
+                    ? "text-[color:var(--color-accent-cta)]"
+                    : "text-[color:var(--color-neutral-300)] hover:text-[color:var(--color-neutral-100)]",
+                )}
               >
                 <Paperclip size={12} strokeWidth={1.75} aria-hidden />
-                Attach
+                {attachments.length > 0 ? `Attach · ${attachments.length}` : "Attach"}
               </button>
               <button
                 type="button"
                 disabled
-                title="Calendar — UI-10"
+                title="Sending new invites from Lite — coming later."
                 className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)] opacity-50"
               >
                 <CalendarDays size={12} strokeWidth={1.75} aria-hidden />

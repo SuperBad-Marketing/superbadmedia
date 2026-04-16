@@ -25,6 +25,7 @@ import {
 } from "./_queries/list-threads";
 import { readThread } from "./_queries/read-thread";
 import { listConversation } from "./_queries/list-conversation";
+import { loadSupportCustomerContext } from "./_queries/load-support-customer-context";
 import { InboxShell } from "./_components/inbox-shell";
 import {
   ThreadDetail,
@@ -103,6 +104,13 @@ export default async function InboxPage({
 
   const conversationActive = conversationContactId !== null;
 
+  const customerContext =
+    detail &&
+    detail.thread.sending_address === "support@" &&
+    detail.thread.contact_id
+      ? await loadSupportCustomerContext(detail.thread.contact_id)
+      : null;
+
   const sendEnabled = killSwitches.inbox_send_enabled;
   const llmEnabled = killSwitches.llm_calls_enabled;
   const now = Date.now();
@@ -113,6 +121,7 @@ export default async function InboxPage({
       messages={detail.messages}
       contact={detail.contact}
       company={detail.company}
+      customerContext={customerContext}
       sendEnabled={sendEnabled}
       llmEnabled={llmEnabled}
       view={view}

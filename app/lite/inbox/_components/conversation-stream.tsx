@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, Paperclip } from "lucide-react";
+import { Paperclip } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { MessageRow } from "@/lib/db/schema/messages";
+import { CalendarRsvpButtons } from "./calendar-rsvp-buttons";
 import { ChannelIconOnly } from "./thread-list-row";
 
 function formatFullTime(ms: number): string {
@@ -22,10 +23,10 @@ function formatFullTime(ms: number): string {
 
 export function ConversationStream({
   messages,
-  onStubCalendarRsvp,
+  sendEnabled = true,
 }: {
   messages: MessageRow[];
-  onStubCalendarRsvp?: (messageId: string, kind: "accept" | "decline" | "tentative") => void;
+  sendEnabled?: boolean;
 }) {
   return (
     <ul role="list" className="flex flex-col gap-4">
@@ -72,34 +73,17 @@ export function ConversationStream({
                 {m.has_attachments && (
                   <span
                     className="flex items-center gap-1 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)]"
-                    title="Attachments — download lands in UI-10"
+                    title="This message has attachments."
                   >
                     <Paperclip size={12} strokeWidth={1.5} aria-hidden />
-                    Attachments — download lands in UI-10
+                    Attachments
                   </span>
                 )}
                 {m.has_calendar_invite && (
-                  <div className="flex items-center gap-1 rounded-sm bg-[color:var(--color-surface-2)] px-2 py-1">
-                    <CalendarDays
-                      size={12}
-                      strokeWidth={1.5}
-                      aria-hidden
-                      className="text-[color:var(--color-brand-pink)]"
-                    />
-                    <span className="font-[family-name:var(--font-righteous)] text-[length:var(--text-micro)] uppercase tracking-wider text-[color:var(--color-neutral-300)]">
-                      Invite
-                    </span>
-                    {(["accept", "tentative", "decline"] as const).map((kind) => (
-                      <button
-                        key={kind}
-                        type="button"
-                        onClick={() => onStubCalendarRsvp?.(m.id, kind)}
-                        className="rounded-sm px-1.5 py-0.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-neutral-100)]"
-                      >
-                        {kind}
-                      </button>
-                    ))}
-                  </div>
+                  <CalendarRsvpButtons
+                    messageId={m.id}
+                    sendEnabled={sendEnabled}
+                  />
                 )}
               </footer>
             )}

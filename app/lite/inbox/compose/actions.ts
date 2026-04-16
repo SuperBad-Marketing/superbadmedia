@@ -99,6 +99,15 @@ export async function draftComposeIntent(
 
 // ── sendCompose ──────────────────────────────────────────────────────
 
+const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024;
+
+const ComposeAttachmentSchema = z.object({
+  name: z.string().min(1).max(512),
+  contentType: z.string().min(1).max(255),
+  contentBase64: z.string().min(1),
+  sizeBytes: z.number().int().nonnegative().max(MAX_ATTACHMENT_BYTES),
+});
+
 const SendComposeInputSchema = z.object({
   threadId: z.string().nullable().optional(),
   /**
@@ -114,6 +123,7 @@ const SendComposeInputSchema = z.object({
   bodyText: z.string().min(1),
   sendingAddress: z.string().min(1),
   composeDraftId: z.string().nullable().optional(),
+  attachments: z.array(ComposeAttachmentSchema).max(10).optional(),
 });
 
 export type SendComposeActionResult =
@@ -168,7 +178,26 @@ export async function sendCompose(
       bodyText: parsed.data.bodyText,
       createdBy: actor.actorTag,
       composeDraftId: parsed.data.composeDraftId ?? null,
+      attachments: parsed.data.attachments,
     });
+    if ((parsed.data.attachments?.length ?? 0) > 0) {
+      await logActivity({
+        companyId,
+        contactId,
+        kind: "inbox_attachment_uploaded",
+        body: `${parsed.data.attachments!.length} attachment(s) sent with reply.`,
+        meta: {
+          thread_id: result.threadId,
+          message_id: result.messageId,
+          attachment_count: parsed.data.attachments!.length,
+          total_bytes: parsed.data.attachments!.reduce(
+            (acc, a) => acc + a.sizeBytes,
+            0,
+          ),
+        },
+        createdBy: actor.actorTag,
+      });
+    }
     revalidatePath("/lite/inbox");
     return { ok: true, ...result };
   } catch (err) {

@@ -1,7 +1,7 @@
 ---
 spec: docs/specs/unified-inbox.md
 status: populated
-populated-by: UI-2 (router — DONE), UI-3 (notifier — DONE), UI-4 (signal/noise — DONE), UI-5 (draft-reply — DONE), UI-6 (compose-draft + compose-subject — DONE), UI-7 (draft-refine — DONE)
+populated-by: UI-2 (router — DONE), UI-3 (notifier — DONE), UI-4 (signal/noise — DONE), UI-5 (draft-reply — DONE), UI-6 (compose-draft + compose-subject — DONE), UI-7 (draft-refine — DONE), UI-10 (support-ticket-type — DONE)
 ---
 
 # Unified Inbox prompts
@@ -90,3 +90,15 @@ Three Haiku classifiers run in parallel for every inbound message (cost negligib
 **Effects:** none at generator level — returns `{ draft_body, low_confidence_flags }` to the server action, which hands it to the client. No DB write. The turn history lives in React state client-side (spec §7.4 "ephemeral in-memory session, no persistence"). Activity log: `inbox_draft_refined` on successful rewrite with meta `{ contact_id, thread_id, turn_count, instruction_length, flag_count }`.
 **Fallback asymmetry (discipline #63):** on LLM/parse failure the generator returns `{ outcome: "fallback_error", draft_body: priorDraft, low_confidence_flags: [] }` + logs. The refine turn is a no-op from the user's perspective — **the prior draft is preserved**, never overwritten with empty or garbled text. Distinct conservative side: UI-5 no-writes to cache, UI-6 returns empty body (user knows to retry), UI-7 preserves prior draft (user keeps typing without losing work).
 **Kill switches:** skipped unless `llm_calls_enabled` is on — when off, returns `{ outcome: "skipped_kill_switch", draft_body: priorDraft }`. Does *not* depend on `inbox_sync_enabled` — refine is pure LLM, never talks to Graph.
+
+## `inbox-classify-support-ticket-type`
+**Intent:** classify the first inbound on a `support@` thread into one of billing / bug / question / feedback / refund / other so the ticket overlay can surface the right Customer Context chips and auto-assign a type chip Andy can override.
+**Spec:** §4.6 (support@ ticket overlay) + §7.3.
+**Implementation:** `lib/graph/classify-support-ticket-type.ts` (prompt builder + classifier) fired inline by `lib/graph/sync.ts` when a new inbound lands on a `sending_address = 'support@'` thread that does not yet have a `ticket_type` set.
+**Model:** Haiku via `modelFor("inbox-classify-support-ticket-type")`.
+**Input context:** first inbound message body/subject/from (body trimmed to 2000 chars), sender's `relationship_type`, whether the sender is a live SaaS subscriber (via `deals.subscription_state`).
+**Output:** JSON `{ type, reason }` where `type ∈ SUPPORT_TICKET_TYPES`. Parsed via `SupportTicketTypeOutputSchema` (Zod).
+**Effects:** writes `threads.ticket_type`, `threads.ticket_type_assigned_by = 'claude'`, ensures `threads.ticket_status = 'open'` if unset. Logs `inbox_ticket_type_assigned` in `activity_log` with meta `{ type, reason, thread_id }`.
+**Fallback asymmetry (discipline #63):** on LLM/parse failure the classifier writes `ticket_type = 'other'` with `ticket_type_assigned_by = 'claude'` and logs. Conservative: "other" tells Andy Claude wasn't sure, instead of mis-categorising into a specific bucket and routing him to the wrong context.
+**Override:** Andy can re-pick the type chip in the ticket overlay; `setTicketType` server action flips `ticket_type_assigned_by = 'andy'` and logs `inbox_ticket_type_changed`.
+**Kill switches:** skipped unless both `inbox_sync_enabled` and `llm_calls_enabled` are on. When skipped, `ticket_type` stays `NULL` and the overlay shows an "unclassified" chip until Andy picks manually.

@@ -13,12 +13,27 @@
  *  - unread thread expanded by default (messages in markup)
  *  - all-read contact shows the "All caught up" footer text
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { ConversationView } from "@/app/lite/inbox/_components/conversation-view";
 import type { ConversationPayload } from "@/app/lite/inbox/_queries/list-conversation";
+
+// Server actions referenced by the client component — stub so the import
+// graph resolves without pulling auth/db/next-cache into the test env.
+vi.mock("@/app/lite/inbox/ticket/actions", () => ({
+  setTicketTypeAction: vi.fn(async () => ({ ok: false, error: "test-stub" })),
+  setTicketStatusAction: vi.fn(async () => ({ ok: false, error: "test-stub" })),
+  closeTicketAction: vi.fn(async () => ({ ok: false, error: "test-stub" })),
+  respondToCalendarInviteAction: vi.fn(async () => ({
+    ok: false,
+    error: "test-stub",
+  })),
+}));
+
+const { ConversationView } = await import(
+  "@/app/lite/inbox/_components/conversation-view"
+);
 
 const NOW = 1_700_000_000_000;
 
@@ -88,6 +103,8 @@ function thread(
     subject: "Lock it in",
     ticket_status: null,
     ticket_type: null,
+    ticket_type_assigned_by: null,
+    ticket_resolved_at_ms: null,
     priority_class: "signal",
     keep_until_ms: null,
     keep_pinned: false,

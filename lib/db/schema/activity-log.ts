@@ -242,6 +242,12 @@ export const ACTIVITY_LOG_KINDS = [
   "inbox_import_completed",
   "inbox_import_backfilled",
   "inbox_ticket_status_changed",
+  "inbox_ticket_type_assigned",
+  "inbox_ticket_type_changed",
+  "inbox_ticket_resolved",
+  "inbox_ticket_auto_resolved",
+  "inbox_calendar_rsvp_sent",
+  "inbox_attachment_uploaded",
   "inbox_thread_merged",
   // --- Six-Week Plan Generator (17) ---
   "six_week_plan_generation_started",

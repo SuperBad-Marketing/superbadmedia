@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, RefreshCw, Save, Send, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, RefreshCw, Save, Send, Sparkles, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { DraftReplyLowConfidenceFlag } from "@/lib/graph/draft-reply";
+import type { TicketStatus } from "@/lib/db/schema/messages";
 import {
   sendCompose,
   saveComposeDraft,
@@ -13,6 +14,12 @@ import {
   pollCachedDraft,
   regenerateCachedDraft,
 } from "@/app/lite/inbox/compose/actions";
+import { closeTicketAction, setTicketStatusAction } from "@/app/lite/inbox/ticket/actions";
+import {
+  AttachmentUpload,
+  type AttachmentUploadFile,
+} from "./attachment-upload";
+import { encodeAttachmentsForUpload } from "./attachment-encode";
 import { LowConfidenceFlags } from "./low-confidence-flags";
 import { RefineSidecar } from "./refine-sidecar";
 
@@ -28,6 +35,7 @@ export type ReplyComposerProps = {
   cachedDraftBody: string | null;
   cachedDraftStale: boolean;
   lowConfidenceFlags: DraftReplyLowConfidenceFlag[];
+  ticketStatus?: TicketStatus | null;
   sendEnabled: boolean;
   llmEnabled: boolean;
 };
@@ -54,6 +62,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
   const dirtyRef = React.useRef(false);
   const bodyRef = React.useRef(props.cachedDraftBody ?? "");
   const [regenBusy, setRegenBusy] = React.useState(false);
+  const [attachments, setAttachments] = React.useState<AttachmentUploadFile[]>([]);
 
   // Mirror state into refs so the polling tick can read current values
   // without re-subscribing the interval on every keystroke.
@@ -77,6 +86,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
     setDirty(false);
     setSidecarOpen(false);
     setDraftId(null);
+    setAttachments([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.threadId]);
 
@@ -105,6 +115,10 @@ export function ReplyComposer(props: ReplyComposerProps) {
     setSending(true);
     setToast({ kind: "idle" });
     try {
+      const encoded =
+        attachments.length > 0
+          ? await encodeAttachmentsForUpload(attachments)
+          : undefined;
       const result = await sendCompose({
         threadId: props.threadId,
         contactId: props.contactId,
@@ -114,6 +128,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
         bodyText: body,
         sendingAddress: props.sendingAddress,
         composeDraftId: draftId ?? null,
+        attachments: encoded,
       });
       if (result.ok) {
         setToast({ kind: "ok", text: "Sent." });
@@ -121,9 +136,76 @@ export function ReplyComposer(props: ReplyComposerProps) {
         setFlags([]);
         setDirty(false);
         setDraftId(null);
+        setAttachments([]);
+        if (
+          props.sendingAddress === "support@" &&
+          props.ticketStatus === "open"
+        ) {
+          try {
+            await setTicketStatusAction({
+              threadId: props.threadId,
+              status: "waiting_on_customer",
+            });
+          } catch (err) {
+            console.error("[reply-composer] auto-transition failed:", err);
+          }
+        }
       } else {
         setToast({ kind: "error", text: result.error });
       }
+    } catch (err) {
+      setToast({
+        kind: "error",
+        text:
+          err instanceof Error
+            ? err.message
+            : "That file didn't want to go. Try again or drop a different one.",
+      });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleCloseTicket() {
+    setSending(true);
+    setToast({ kind: "idle" });
+    try {
+      const encoded =
+        attachments.length > 0
+          ? await encodeAttachmentsForUpload(attachments)
+          : undefined;
+      const result = await closeTicketAction({
+        threadId: props.threadId,
+        contactId: props.contactId,
+        companyId: props.companyId,
+        to: props.toAddresses,
+        subject: props.subject,
+        bodyText: body,
+        sendingAddress: props.sendingAddress,
+        composeDraftId: draftId ?? null,
+        attachments: encoded,
+      });
+      if (result.ok) {
+        setToast({
+          kind: "ok",
+          text: "Closed. They'll hear back when they need to.",
+        });
+        setBody("");
+        setFlags([]);
+        setDirty(false);
+        setDraftId(null);
+        setAttachments([]);
+      } else {
+        setToast({ kind: "error", text: result.error });
+      }
+    } catch (err) {
+      setToast({
+        kind: "error",
+        text:
+          err instanceof Error
+            ? err.message
+            : "That file didn't want to go. Try again or drop a different one.",
+      });
     } finally {
       setSending(false);
     }
@@ -269,6 +351,13 @@ export function ReplyComposer(props: ReplyComposerProps) {
         placeholder="Your reply…"
       />
 
+      <AttachmentUpload
+        files={attachments}
+        onChange={setAttachments}
+        onError={(text) => setToast({ kind: "error", text })}
+        disabled={sending}
+      />
+
       {toast.kind !== "idle" && (
         <p
           role="status"
@@ -335,6 +424,30 @@ export function ReplyComposer(props: ReplyComposerProps) {
             <Save size={12} strokeWidth={1.75} aria-hidden />
             {saving ? "Saving…" : "Save"}
           </button>
+          {props.sendingAddress === "support@" &&
+            props.ticketStatus !== "resolved" && (
+              <button
+                type="button"
+                onClick={handleCloseTicket}
+                disabled={sendDisabled}
+                title={
+                  !props.sendEnabled
+                    ? "Sending's paused — try again in a minute."
+                    : body.trim().length === 0
+                      ? "Write a reply first."
+                      : "Send reply + mark ticket resolved"
+                }
+                className={cn(
+                  "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5",
+                  "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)]",
+                  "outline-none transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)]",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                )}
+              >
+                <CheckCircle size={12} strokeWidth={1.75} aria-hidden />
+                Close ticket
+              </button>
+            )}
           <button
             type="button"
             onClick={handleSend}
