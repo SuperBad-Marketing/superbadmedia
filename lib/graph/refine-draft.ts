@@ -47,22 +47,16 @@ import { DraftReplyOutputSchema, type DraftReplyOutput } from "./draft-reply";
 
 // ── Constants ────────────────────────────────────────────────────────
 
-/** Andy's per-turn instruction cap. Same convention as UI-6's intent cap. */
-export const MAX_REFINE_INSTRUCTION_CHARS = 500;
-/** How many prior refine turns to replay in the prompt. Older turns truncate head-first. */
-export const MAX_REFINE_TURNS = 6;
+import {
+  MAX_REFINE_INSTRUCTION_CHARS,
+  MAX_REFINE_TURNS,
+  type RefineTurn,
+} from "./refine-draft-limits";
+export { MAX_REFINE_INSTRUCTION_CHARS, MAX_REFINE_TURNS, type RefineTurn };
+
 const MAX_THREAD_MESSAGES = 20;
 const MAX_BODY_CHARS = 2000;
 const REFINE_MAX_OUTPUT_TOKENS = 1500;
-
-// ── Public shapes ────────────────────────────────────────────────────
-
-export interface RefineTurn {
-  /** The instruction Andy typed on that turn. */
-  instruction: string;
-  /** The draft body the generator produced for that turn. */
-  result_body: string;
-}
 
 export interface GenerateRefinedDraftInput {
   /** The draft being refined — from UI-5 cache, UI-6 intent, or a prior UI-7 turn. */

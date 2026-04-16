@@ -41,9 +41,12 @@ import {
   MAX_REFINE_TURNS,
   type RefineDraftResult,
 } from "@/lib/graph/refine-draft";
+import type { DraftReplyLowConfidenceFlag } from "@/lib/graph/draft-reply";
 import { createGraphClient, getActiveGraphState } from "@/lib/graph/client";
 import { db } from "@/lib/db";
 import { compose_drafts } from "@/lib/db/schema/compose-drafts";
+import { threads } from "@/lib/db/schema/messages";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { and, eq } from "drizzle-orm";
 import { logActivity } from "@/lib/activity-log";
 
@@ -286,6 +289,89 @@ export async function refineDraft(
   }
 
   return { ok: true, draft: result };
+}
+
+// ── pollCachedDraft ──────────────────────────────────────────────────
+//
+// The reply composer polls this every `POLL_STALE_MS` (30s) so that a
+// freshly-regenerated draft lands in the UI without a full page reload
+// and so stale-flag flips from other tabs / the sync worker become
+// visible. Returns only the three fields the composer actually reads;
+// the rehydrate-vs-preserve-edit decision lives client-side (§16 #60).
+
+export type PollCachedDraftResult =
+  | {
+      ok: true;
+      body: string | null;
+      stale: boolean;
+      flags: DraftReplyLowConfidenceFlag[];
+    }
+  | { ok: false; error: string };
+
+export async function pollCachedDraft(
+  threadId: string,
+): Promise<PollCachedDraftResult> {
+  const actor = await requireAdminActor();
+  if (!actor) return { ok: false, error: "Not authorised." };
+  if (typeof threadId !== "string" || threadId.length === 0) {
+    return { ok: false, error: "Invalid thread id." };
+  }
+
+  const row = await db
+    .select({
+      body: threads.cached_draft_body,
+      stale: threads.cached_draft_stale,
+      flags: threads.cached_draft_low_confidence_flags,
+    })
+    .from(threads)
+    .where(eq(threads.id, threadId))
+    .get();
+
+  if (!row) return { ok: false, error: "Thread not found." };
+  return {
+    ok: true,
+    body: row.body ?? null,
+    stale: Boolean(row.stale),
+    flags: (row.flags as DraftReplyLowConfidenceFlag[] | null) ?? [],
+  };
+}
+
+// ── regenerateCachedDraft ────────────────────────────────────────────
+//
+// Wired to the stale-banner "Regenerate" button. Stale-flags the row so
+// the UI can render a refreshing hint, then enqueues an
+// `inbox_draft_generate` task. Idempotency key buckets manual triggers
+// into a 60s window so frantic clicking doesn't pile up the queue.
+
+export type RegenerateCachedDraftResult =
+  | { ok: true; enqueued: boolean }
+  | { ok: false; error: string };
+
+const REGENERATE_DEBOUNCE_MS = 60_000;
+
+export async function regenerateCachedDraft(
+  threadId: string,
+): Promise<RegenerateCachedDraftResult> {
+  const actor = await requireAdminActor();
+  if (!actor) return { ok: false, error: "Not authorised." };
+  if (typeof threadId !== "string" || threadId.length === 0) {
+    return { ok: false, error: "Invalid thread id." };
+  }
+
+  const nowMs = Date.now();
+  await db
+    .update(threads)
+    .set({ cached_draft_stale: true, updated_at_ms: nowMs })
+    .where(eq(threads.id, threadId));
+
+  const bucket = Math.floor(nowMs / REGENERATE_DEBOUNCE_MS);
+  const inserted = await enqueueTask({
+    task_type: "inbox_draft_generate",
+    runAt: nowMs,
+    payload: { thread_id: threadId, trigger: "manual_regenerate" },
+    idempotencyKey: `inbox-draft-generate:${threadId}:manual:${bucket}`,
+  });
+  return { ok: true, enqueued: inserted !== null };
 }
 
 // ── discardComposeDraft ──────────────────────────────────────────────

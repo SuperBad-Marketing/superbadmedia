@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `ui-8` — Desktop three-column inbox UI + compose sheet + refine sidecar
-**Brief:** `sessions/ui-8-brief.md` (pre-compiled at UI-7 G12)
+**Next session:** `ui-9` — Per-contact Conversation view (cross-thread flattened history)
+**Brief:** `sessions/ui-9-brief.md` (pre-compiled at UI-8 G12)
 **Model tier:** `/deep`
-**Last closed:** UI-7 (2026-04-16) — see `sessions/ui-7-handoff.md`
-**Wave status:** Wave 10 in progress — ui-7 CLOSED, ui-8 next.
+**Last closed:** UI-8 (2026-04-16) — see `sessions/ui-8-handoff.md`
+**Wave status:** Wave 10 in progress — ui-8 CLOSED, ui-9 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
