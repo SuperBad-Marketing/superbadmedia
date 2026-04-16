@@ -22,8 +22,11 @@ import {
 import { encodeAttachmentsForUpload } from "./attachment-encode";
 import { LowConfidenceFlags } from "./low-confidence-flags";
 import { RefineSidecar } from "./refine-sidecar";
+import { MobileRefineInline } from "./mobile-refine-inline";
 
 export const POLL_STALE_MS = 30_000;
+
+export type ReplyComposerVariant = "desktop" | "mobile";
 
 export type ReplyComposerProps = {
   threadId: string;
@@ -38,6 +41,7 @@ export type ReplyComposerProps = {
   ticketStatus?: TicketStatus | null;
   sendEnabled: boolean;
   llmEnabled: boolean;
+  variant?: ReplyComposerVariant;
 };
 
 type ToastState =
@@ -46,6 +50,7 @@ type ToastState =
   | { kind: "error"; text: string };
 
 export function ReplyComposer(props: ReplyComposerProps) {
+  const variant: ReplyComposerVariant = props.variant ?? "desktop";
   const [body, setBody] = React.useState<string>(props.cachedDraftBody ?? "");
   const [flags, setFlags] = React.useState<DraftReplyLowConfidenceFlag[]>(
     props.lowConfidenceFlags,
@@ -55,6 +60,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
   const [sending, setSending] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [sidecarOpen, setSidecarOpen] = React.useState(false);
+  const [refineInlineOpen, setRefineInlineOpen] = React.useState(false);
   const [toast, setToast] = React.useState<ToastState>({ kind: "idle" });
   const [draftId, setDraftId] = React.useState<string | null>(null);
 
@@ -85,6 +91,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
     setStale(props.cachedDraftStale);
     setDirty(false);
     setSidecarOpen(false);
+    setRefineInlineOpen(false);
     setDraftId(null);
     setAttachments([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -375,7 +382,11 @@ export function ReplyComposer(props: ReplyComposerProps) {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => setSidecarOpen(true)}
+          onClick={() =>
+            variant === "mobile"
+              ? setRefineInlineOpen((v) => !v)
+              : setSidecarOpen(true)
+          }
           disabled={llmDisabled || body.trim().length === 0}
           title={
             llmDisabled
@@ -384,6 +395,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
                 ? "Write something first."
                 : "Refine this draft"
           }
+          aria-expanded={variant === "mobile" ? refineInlineOpen : undefined}
           className={cn(
             "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5",
             "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)]",
@@ -473,8 +485,22 @@ export function ReplyComposer(props: ReplyComposerProps) {
         </div>
       </div>
 
+      {variant === "mobile" && (
+        <MobileRefineInline
+          visible={refineInlineOpen}
+          priorDraft={body}
+          contactId={props.contactId}
+          threadId={props.threadId}
+          sendingAddress={props.sendingAddress}
+          llmEnabled={props.llmEnabled}
+          onAccept={(newBody, newFlags) => {
+            handleAcceptRefined(newBody, newFlags);
+          }}
+        />
+      )}
+
       <AnimatePresence>
-        {sidecarOpen && (
+        {variant === "desktop" && sidecarOpen && (
           <RefineSidecar
             priorDraft={body}
             contactId={props.contactId}

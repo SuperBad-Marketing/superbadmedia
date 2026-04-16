@@ -12,7 +12,7 @@ import type {
 import { ViewFilterTabs } from "./view-filter-tabs";
 import { ThreadList } from "./thread-list";
 import { ComposeModal } from "./compose-modal";
-import { MobileHolding } from "./mobile-holding";
+import { MobileInbox } from "./mobile-inbox";
 
 const MIN_DESKTOP_VIEWPORT = 900;
 
@@ -28,6 +28,8 @@ export function InboxShell({
   sendEnabled,
   llmEnabled,
   detail,
+  mobileDetail,
+  mobileTab,
 }: {
   view: InboxView;
   address: InboxAddressFilter;
@@ -40,6 +42,8 @@ export function InboxShell({
   sendEnabled: boolean;
   llmEnabled: boolean;
   detail: React.ReactNode;
+  mobileDetail: React.ReactNode;
+  mobileTab: string | null;
 }) {
   const [composeOpen, setComposeOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
@@ -54,7 +58,20 @@ export function InboxShell({
   }, []);
 
   if (isMobile) {
-    return <MobileHolding />;
+    return (
+      <MobileInbox
+        view={view}
+        address={address}
+        sort={sort}
+        selectedThreadId={selectedThreadId}
+        rows={rows}
+        now={now}
+        sendEnabled={sendEnabled}
+        llmEnabled={llmEnabled}
+        detail={mobileDetail}
+        tab={mobileTab}
+      />
+    );
   }
 
   return (

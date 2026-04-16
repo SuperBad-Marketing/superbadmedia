@@ -40,16 +40,20 @@ async function runSearch(q: string): Promise<ContactSuggestion[]> {
   }));
 }
 
+export type ComposeModalVariant = "modal" | "fullscreen";
+
 export function ComposeModal({
   open,
   onClose,
   sendEnabled,
   llmEnabled,
+  variant = "modal",
 }: {
   open: boolean;
   onClose: () => void;
   sendEnabled: boolean;
   llmEnabled: boolean;
+  variant?: ComposeModalVariant;
 }) {
   const [recipient, setRecipient] = React.useState<Recipient | null>(null);
   const [showCcBcc, setShowCcBcc] = React.useState(false);
@@ -203,30 +207,54 @@ export function ComposeModal({
     setBody(newBody);
   }
 
+  const isFullscreen = variant === "fullscreen";
+
   return (
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
-            key="compose-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-30 bg-black/50"
-            onClick={onClose}
-          />
+          {!isFullscreen && (
+            <motion.div
+              key="compose-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-30 bg-black/50"
+              onClick={onClose}
+            />
+          )}
           <motion.div
             key="compose-modal"
             role="dialog"
             aria-label="Compose new message"
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            initial={
+              isFullscreen
+                ? { opacity: 0, y: "100%" }
+                : { opacity: 0, y: 12, scale: 0.98 }
+            }
+            animate={
+              isFullscreen
+                ? { opacity: 1, y: 0 }
+                : { opacity: 1, y: 0, scale: 1 }
+            }
+            exit={
+              isFullscreen
+                ? { opacity: 0, y: "100%" }
+                : { opacity: 0, y: 8, scale: 0.98 }
+            }
             className={cn(
-              "fixed left-1/2 top-1/2 z-40 flex w-[min(92vw,45rem)] -translate-x-1/2 -translate-y-1/2 flex-col",
-              "max-h-[85vh] overflow-hidden rounded-md border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] shadow-2xl",
+              isFullscreen
+                ? "fixed inset-0 z-40 flex flex-col bg-[color:var(--color-surface-1)]"
+                : cn(
+                    "fixed left-1/2 top-1/2 z-40 flex w-[min(92vw,45rem)] -translate-x-1/2 -translate-y-1/2 flex-col",
+                    "max-h-[85vh] overflow-hidden rounded-md border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] shadow-2xl",
+                  ),
             )}
-            style={{ maxWidth: `${COMPOSE_MODAL_MAX_WIDTH_PX}px` }}
+            style={
+              isFullscreen
+                ? undefined
+                : { maxWidth: `${COMPOSE_MODAL_MAX_WIDTH_PX}px` }
+            }
           >
             <header className="flex items-center justify-between border-b border-[color:var(--color-neutral-700)] px-5 py-4">
               <div className="flex flex-col">

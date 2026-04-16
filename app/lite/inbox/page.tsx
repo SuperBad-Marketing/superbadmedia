@@ -35,6 +35,7 @@ import {
   ConversationView,
   ConversationViewUnknownContact,
 } from "./_components/conversation-view";
+import { MobileThreadDetail } from "./_components/mobile-thread-detail";
 
 export const metadata: Metadata = {
   title: "SuperBad — Inbox",
@@ -72,6 +73,7 @@ export default async function InboxPage({
     thread?: string;
     draft?: string;
     conversationWith?: string;
+    tab?: string;
   }>;
 }) {
   const session = await auth();
@@ -86,6 +88,7 @@ export default async function InboxPage({
   const selectedThreadId = sp.thread ?? null;
   const selectedDraftId = sp.draft ?? null;
   const conversationContactId = sp.conversationWith ?? null;
+  const mobileTab = sp.tab ?? null;
 
   const listResult = await listThreads({
     view,
@@ -132,6 +135,22 @@ export default async function InboxPage({
     <ThreadDetailEmpty />
   );
 
+  const mobileDetailNode = detail ? (
+    <MobileThreadDetail
+      thread={detail.thread}
+      messages={detail.messages}
+      contact={detail.contact}
+      company={detail.company}
+      customerContext={customerContext}
+      sendEnabled={sendEnabled}
+      llmEnabled={llmEnabled}
+      view={view}
+      address={address}
+      sort={sort}
+      tab={mobileTab ?? "focus"}
+    />
+  ) : null;
+
   const conversationNode = conversationActive ? (
     conversation ? (
       <ConversationView
@@ -172,6 +191,8 @@ export default async function InboxPage({
       sendEnabled={sendEnabled}
       llmEnabled={llmEnabled}
       detail={detailSlot}
+      mobileDetail={mobileDetailNode}
+      mobileTab={mobileTab}
     />
   );
 }
