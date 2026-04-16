@@ -26,7 +26,8 @@ export type KillSwitchKey =
   | "saas_tier_change_enabled"
   | "saas_payment_recovery_enabled"
   | "saas_headlines_enabled"
-  | "saas_cancel_flow_enabled";
+  | "saas_cancel_flow_enabled"
+  | "inbox_sync_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -74,6 +75,11 @@ const defaults: KillSwitchRegistry = {
   // (future) can still run while the subscriber-facing surface is paused
   // — matches SB-10's surface-vs-primitive gating pattern.
   saas_cancel_flow_enabled: true,
+  // UI-1: gates all Microsoft Graph API calls (delta sync, webhook-triggered
+  // sync, outbound send, subscription management). When OFF, sync handlers
+  // return early, webhook route returns 200 without processing, sendViaGraph
+  // throws. Flip ON in Phase 6 after Graph connection is verified live.
+  inbox_sync_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

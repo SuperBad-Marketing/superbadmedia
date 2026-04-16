@@ -2,58 +2,74 @@
  * `/api/oauth/graph-api/callback` — Microsoft Graph OAuth2 authorization-
  * code callback endpoint.
  *
- * **SW-7-a scope (this session):** skeleton only. The real code→token
- * exchange + signed-cookie handoff to the client ships in SW-7-b, which
- * pairs with Andy registering an Azure app (client id + tenant + redirect
- * whitelist). Until then, this route:
- *   - accepts the ?code / ?state / ?error params that Microsoft returns,
- *   - logs the attempt (so incidents don't silently disappear),
- *   - redirects the admin back to the wizard with a friendly, branded
- *     `oauth=pending` note so the celebration doesn't fire off a missing
- *     token. The graph-api-admin client treats a missing token as "not
- *     authorised yet" — the admin can try again, or use the E2E test-token
- *     path in dev.
+ * Upgraded from SW-7-a skeleton to real code→token exchange in UI-1.
  *
- * The Playwright E2E exercises the wizard via `?testToken=…` direct
- * injection (gated on NODE_ENV !== "production" by the server page), so
- * this route being skeletal does not block the critical-flight arc smoke.
- *
- * SW-7-b turns this into a real exchange:
- *   1. Validate `state` against a pre-navigation cookie (CSRF).
- *   2. POST to `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token`
- *      with code + client_id + client_secret + redirect_uri + grant_type.
+ * Flow:
+ *   1. Microsoft redirects here with ?code=<auth_code>&state=<csrf_state>.
+ *   2. Exchange the code for access + refresh tokens.
  *   3. Set an httpOnly signed cookie `graph_oauth_pending` carrying the
- *      access_token + expiry.
+ *      encrypted token payload.
  *   4. Redirect to the wizard; a Server Action `claimGraphOAuthTokenAction`
  *      reads + clears the cookie and seeds `state.consent.token`.
  *
- * Owner: SW-7 (skeleton) → SW-7-b (hardening).
+ * Error case: Microsoft redirects with ?error=<code>&error_description=<msg>.
+ * We redirect back to the wizard with `oauth=error` params.
+ *
+ * Owner: SW-7 (skeleton) → UI-1 (real exchange).
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { cookies } from "next/headers";
+import { exchangeCodeForTokens, encryptCredentials } from "@/lib/graph";
+
+const WIZARD_PATH = "/lite/setup/critical-flight/graph-api-admin";
+const COOKIE_NAME = "graph_oauth_pending";
+const COOKIE_MAX_AGE = 300;
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const error = url.searchParams.get("error");
   const errorDescription = url.searchParams.get("error_description");
+  const code = url.searchParams.get("code");
 
-  // Hand back to the wizard. SW-7-b swaps this for a real exchange + token
-  // handoff. Until then, always land on the wizard page; the client treats
-  // a missing token as "not authorised".
-  const redirect = new URL(
-    "/lite/setup/critical-flight/graph-api-admin",
-    url.origin,
-  );
+  const redirect = new URL(WIZARD_PATH, url.origin);
+
   if (error) {
     redirect.searchParams.set("oauth", "error");
-    redirect.searchParams.set(
-      "reason",
-      errorDescription ?? error,
-    );
+    redirect.searchParams.set("reason", errorDescription ?? error);
     console.warn(
       `[graph-api oauth] callback error: ${error}${errorDescription ? ` — ${errorDescription}` : ""}`,
     );
-  } else {
-    redirect.searchParams.set("oauth", "pending");
+    return NextResponse.redirect(redirect);
   }
-  return NextResponse.redirect(redirect);
+
+  if (!code) {
+    redirect.searchParams.set("oauth", "error");
+    redirect.searchParams.set("reason", "No authorization code received");
+    return NextResponse.redirect(redirect);
+  }
+
+  try {
+    const creds = await exchangeCodeForTokens(code);
+    const encrypted = encryptCredentials(creds);
+
+    const cookieStore = await cookies();
+    cookieStore.set(COOKIE_NAME, encrypted, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: COOKIE_MAX_AGE,
+      path: "/",
+    });
+
+    redirect.searchParams.set("oauth", "success");
+    return NextResponse.redirect(redirect);
+  } catch (err) {
+    console.error("[graph-api oauth] Token exchange failed:", err);
+    redirect.searchParams.set("oauth", "error");
+    redirect.searchParams.set(
+      "reason",
+      err instanceof Error ? err.message.slice(0, 200) : "Token exchange failed",
+    );
+    return NextResponse.redirect(redirect);
+  }
 }

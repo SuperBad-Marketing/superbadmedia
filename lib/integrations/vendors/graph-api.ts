@@ -42,6 +42,8 @@ export const graphApiManifest: VendorManifest = {
 export const GRAPH_OAUTH_SCOPES = [
   "offline_access",
   "User.Read",
+  "Mail.ReadWrite",
   "Mail.Send",
+  "MailboxSettings.Read",
   "Calendars.Read",
 ];

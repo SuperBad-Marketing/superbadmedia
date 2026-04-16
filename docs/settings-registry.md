@@ -180,6 +180,16 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 ---
 
+## Unified Inbox — Graph API sync (owner: `docs/specs/unified-inbox.md` §6; consumer: UI-1 lib/graph/)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `inbox.graph_sync_interval_seconds` | `300` | integer | Polling interval (seconds) for delta sync fallback when webhook misses. Source: BUILD_PLAN cron table `inbox_graph_sync` every 5 min. |
+| `inbox.graph_subscription_ttl_hours` | `48` | integer | Requested TTL (hours) for Graph webhook subscriptions. Graph max is ~70.5h (4230 min). Source: spec §16 discipline 51. |
+| `inbox.graph_subscription_renew_buffer_hours` | `6` | integer | Renew subscriptions this many hours before expiry. Source: spec §16 discipline 51. |
+
+---
+
 ## Totals
 
 - Finance: 11
@@ -194,6 +204,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Sales Pipeline: 10 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1; SP-9 added 1 — `sd_three_wons_last_fired_ms`)
 - Quote Builder: 4 (QB-1 seeded 2; QB-4b added 2 — `quote.reminder_days`, `quote.intro_paragraph_redraft_hourly_cap`)
 - SaaS Subscription Billing: 1 (SB-2b seeded 1 — `billing.saas.monthly_setup_fee_cents`)
-- **Total: 89 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1, 86 pre-QB-4b, 88 pre-SB-2b)
+- Unified Inbox: 3 (UI-1 seeded 3 — `inbox.graph_sync_interval_seconds`, `inbox.graph_subscription_ttl_hours`, `inbox.graph_subscription_renew_buffer_hours`)
+- **Total: 92 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1, 86 pre-QB-4b, 88 pre-SB-2b, 89 pre-UI-1)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

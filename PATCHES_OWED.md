@@ -578,3 +578,10 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 - **`admin_polish_6_manual_browser_verify`** · Andy to walk `/lite/admin/settings/catalogue` + `/lite/admin/settings/quote-templates` in browser — §3 header, §7 table with row-hover, §5 category/structure chips, §8 voiced empty, §6 dialog chrome, brand-red CTAs. Non-blocking; standard admin-auth-seed friction. · admin-polish-6 handoff · 2026-04-16 · **gate: Andy has local dev time**
 - **`admin_polish_6_g105_rereview`** · G10.5 gave PASS_WITH_NOTES. One non-blocking cosmetic note (row `transition-colors` 160ms vs 180ms — consistent with polish-3 invoice-index-client anchor). Optional re-review. · admin-polish-6 handoff · 2026-04-16 · **gate: opportunistic**
 
+
+### Phase 5 Wave 9 UI-1 (2026-04-16)
+
+- **`ui_1_brief_missing`** · UI-1 brief was not pre-compiled by admin-polish-6 (wave closer). Self-written per G11.b mop-up rule. No action needed — resolved in-session. · UI-1 handoff · 2026-04-16 · **gate: resolved**
+- **`ui_1_webhook_client_state_verification`** · `app/api/webhooks/graph/route.ts` does not verify `clientState` from Graph notifications against stored value. Low risk (handler is idempotent — duplicate messages prevented by `graph_message_id` check) but should be hardened before Phase 6 launch. · G10.5 reviewer note · 2026-04-16 · **gate: Phase 6 launch prep**
+- **`ui_1_sync_send_integration_tests`** · `tests/graph-sync.test.ts` and `tests/graph-send.test.ts` test Zod schemas and kill-switch state but not actual sync/send logic with mocked DB/client. Acceptable while `inbox_sync_enabled` ships disabled; integration tests should be added before the switch flips on. · G10.5 reviewer note · 2026-04-16 · **gate: before `inbox_sync_enabled` flip**
+- **`ui_1_settings_registry_total_drift`** · `docs/settings-registry.md` totals section says 92 but TypeScript registry has 99 keys. Pre-existing drift, not caused by UI-1. · G10.5 reviewer note · 2026-04-16 · **gate: opportunistic**

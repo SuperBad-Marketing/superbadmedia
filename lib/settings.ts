@@ -155,6 +155,11 @@ const registry = {
   "saas.data_loss_warning_days": integer,
   "saas.headline_window_days": integer,
   "saas.near_cap_threshold": decimal,
+
+  // Unified Inbox — Graph API sync (3 — UI-1)
+  "inbox.graph_sync_interval_seconds": integer,
+  "inbox.graph_subscription_ttl_hours": integer,
+  "inbox.graph_subscription_renew_buffer_hours": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;
