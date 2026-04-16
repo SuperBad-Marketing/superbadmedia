@@ -53,12 +53,14 @@ Thumbs.db
 superbad-lite-vision.html
 
 # SQLite dev DB
-dev.db
-dev.db-shm
-dev.db-wal
-tests/.test-*.db
-tests/.test-*.db-shm
-tests/.test-*.db-wal
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite-journal
 
 # Playwright (E2E)
 test-results/
