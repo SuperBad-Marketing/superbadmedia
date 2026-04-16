@@ -564,3 +564,17 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 - **`admin_polish_4_g105_rereview`** · G10.5 external reviewer self-assessment `PASS_WITH_NOTES` with two non-blocking notes (manual browser screenshots owed; linked-panel row-hover intentionally absent — both logged above). No in-session fixes required — every binding rule holds, memory anchors align, zero plain `transition` classes, zero `min-h-screen bg-background` regressions, inherit rules 1–9 satisfied. Re-review optional; a second PASS run would close the gate cleanly for audit. · admin-polish-4 handoff · 2026-04-16 · **gate: opportunistic; not blocking admin-polish-5**
 - **`admin_polish_4_drill_through_deal_card_pointer_stop`** · The drill-through `<Link>` on `components/lite/sales-pipeline/deal-card.tsx` adds `onPointerDown` + `onClick` `stopPropagation` so drag-to-stage still initiates from the card body while the company name navigates. This was silent-added beyond the brief's one-line wrap (brief specified `<Link>` only). Silent call per `feedback_technical_decisions_claude_calls` — without the stop, mouse-down on the company name would start a drag *and* navigate, a UX collision. If dnd-kit is swapped for a library that handles this via activation constraint, the handlers become redundant and should be removed. · admin-polish-4 session · 2026-04-16 · **gate: opportunistic; tied to dnd-kit rewrites**
 
+### Phase 5 Wave 9 admin-polish-5 (2026-04-16)
+
+- **`admin_polish_5_manual_browser_verify`** · Andy to walk `/lite/admin/deals/[id]/quotes/[quote_id]/edit` editor chrome in browser; non-blocking. · admin-polish-5 handoff · 2026-04-16 · **gate: Andy has local dev time**
+- **`admin_polish_5_g10_screenshots`** · Parity screenshots vs mockup §3/§6/§7/§11; non-blocking. · admin-polish-5 handoff · 2026-04-16 · **gate: opportunistic**
+- **`admin_polish_5_g105_rereview`** · Re-run G10.5 once screenshots addressed; non-blocking. · admin-polish-5 handoff · 2026-04-16 · **gate: opportunistic**
+- **`admin_polish_5_send_button_layoutid_absent`** · Admin-side Send button does not share a `layoutId` with the Send modal. Brief claimed it did; grep showed `layoutId="quote-primary-action"` lives only on the public `quote-accept-block.tsx`. Optional admin-side morph. · admin-polish-5 handoff · 2026-04-16 · **gate: opportunistic**
+- **`admin_polish_5_quote_status_badge_export`** · `QuoteStatusBadge` is admin-owned in `components/lite/quote-builder/`. Lift to shared barrel if portal/PDF/email want the same chip. · admin-polish-5 handoff · 2026-04-16 · **gate: next consumer**
+- **`admin_polish_5_template_select_reset`** · `applyQuoteTemplateAction` success toast doesn't reset the template Select; trigger keeps showing the picked name briefly. Cosmetic. · admin-polish-5 handoff · 2026-04-16 · **gate: opportunistic**
+
+### Phase 5 Wave 9 admin-polish-6 (2026-04-16)
+
+- **`admin_polish_6_manual_browser_verify`** · Andy to walk `/lite/admin/settings/catalogue` + `/lite/admin/settings/quote-templates` in browser — §3 header, §7 table with row-hover, §5 category/structure chips, §8 voiced empty, §6 dialog chrome, brand-red CTAs. Non-blocking; standard admin-auth-seed friction. · admin-polish-6 handoff · 2026-04-16 · **gate: Andy has local dev time**
+- **`admin_polish_6_g105_rereview`** · G10.5 gave PASS_WITH_NOTES. One non-blocking cosmetic note (row `transition-colors` 160ms vs 180ms — consistent with polish-3 invoice-index-client anchor). Optional re-review. · admin-polish-6 handoff · 2026-04-16 · **gate: opportunistic**
+

@@ -4,10 +4,8 @@ import * as React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -50,11 +48,50 @@ const HOUSE_SPRING = {
 
 const TERM_LENGTH_CHOICES = [3, 6, 9, 12] as const;
 
+const STRUCTURE_TONE: Record<
+  QuoteTemplateStructure,
+  { bg: string; color: string }
+> = {
+  retainer: {
+    bg: "rgba(244, 160, 176, 0.10)",
+    color: "var(--color-brand-pink)",
+  },
+  project: {
+    bg: "rgba(242, 140, 82, 0.12)",
+    color: "var(--color-brand-orange)",
+  },
+  mixed: {
+    bg: "rgba(228, 176, 98, 0.12)",
+    color: "var(--color-warning)",
+  },
+};
+
+function StructureChip({ structure }: { structure: QuoteTemplateStructure }) {
+  const tone = STRUCTURE_TONE[structure];
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-[3px] font-[family-name:var(--font-label)] text-[10px] uppercase leading-none"
+      style={{
+        letterSpacing: "1.5px",
+        background: tone.bg,
+        color: tone.color,
+      }}
+    >
+      <span
+        aria-hidden
+        className="h-1 w-1 rounded-full"
+        style={{ background: "currentColor", opacity: 0.85 }}
+      />
+      {structure}
+    </span>
+  );
+}
+
 type Draft = {
   id: string | null;
   name: string;
   structure: QuoteTemplateStructure;
-  term_length_months: string; // "none" | "3" | ...
+  term_length_months: string;
   sections: TemplateDefaultSections;
   line_items: TemplateDefaultLineItem[];
 };
@@ -71,7 +108,8 @@ function newDraft(): Draft {
 }
 
 function rowToDraft(row: QuoteTemplateRow): Draft {
-  const sections = (row.default_sections_json as TemplateDefaultSections) ?? {};
+  const sections =
+    (row.default_sections_json as TemplateDefaultSections) ?? {};
   const items =
     (row.default_line_items_json as TemplateDefaultLineItem[]) ?? [];
   return {
@@ -84,6 +122,14 @@ function rowToDraft(row: QuoteTemplateRow): Draft {
     line_items: items,
   };
 }
+
+const COLUMNS = [
+  { label: "Name", align: "left" as const },
+  { label: "Structure", align: "left" as const },
+  { label: "Term", align: "left" as const },
+  { label: "Usage", align: "right" as const },
+  { label: "", align: "right" as const },
+];
 
 export function TemplatesAdmin({
   initialTemplates,
@@ -172,9 +218,16 @@ export function TemplatesAdmin({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
-        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+    <div className="space-y-4 px-4 pb-6">
+      {/* Toolbar */}
+      <div
+        className="flex items-center gap-3 rounded-[10px] px-[14px] py-3"
+        style={{
+          background: "var(--color-surface-2)",
+          boxShadow: "var(--surface-highlight)",
+        }}
+      >
+        <label className="flex items-center gap-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
           <input
             type="checkbox"
             checked={showDeleted}
@@ -182,80 +235,232 @@ export function TemplatesAdmin({
           />
           Show deleted
         </label>
-        <Button className="ml-auto" size="sm" onClick={() => setDraft(newDraft())}>
-          + New template
-        </Button>
+        <div className="flex-1" />
+        <button
+          onClick={() => setDraft(newDraft())}
+          className="cursor-pointer rounded-[8px] border-none px-4 py-2 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] duration-[200ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px"
+          style={{
+            letterSpacing: "1.8px",
+            background: "var(--color-brand-red)",
+            boxShadow:
+              "inset 0 1px 0 rgba(253, 245, 230, 0.04), 0 4px 12px rgba(178, 40, 72, 0.25)",
+          }}
+        >
+          New template
+        </button>
       </div>
 
-      <div className="rounded-lg border border-border bg-card">
-        {filtered.length === 0 ? (
-          <p className="p-6 text-sm italic text-muted-foreground">
-            No templates yet. Save a structural scaffold from any quote and it
-            lands here.
+      {/* Table or empty */}
+      {filtered.length === 0 ? (
+        <div
+          className="flex flex-col items-start gap-2.5 rounded-[12px] px-8 py-10"
+          style={{
+            border: "1px dashed rgba(253, 245, 230, 0.07)",
+            background: "rgba(15, 15, 14, 0.3)",
+          }}
+        >
+          <div
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-orange)]"
+            style={{ letterSpacing: "2px" }}
+          >
+            Empty
+          </div>
+          <h4
+            className="font-[family-name:var(--font-display)] text-[24px] leading-[1.1] text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.2px" }}
+          >
+            No templates yet.
+          </h4>
+          <p className="max-w-[440px] font-[family-name:var(--font-body)] text-[14px] leading-[1.55] text-[color:var(--color-neutral-400)]">
+            Save a structural scaffold — default line items, sections, term
+            length — and the next quote starts from a blueprint instead of a
+            blank page.
           </p>
-        ) : (
-          <ul>
-            <AnimatePresence initial={false}>
-              {filtered.map((t) => (
-                <motion.li
-                  key={t.id}
-                  layout
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={listTransition}
-                  className={cn(
-                    "grid grid-cols-[1fr_140px_100px_auto] items-center gap-3 border-b border-border/60 px-3 py-2 text-sm last:border-b-0",
-                    t.deleted_at_ms != null && "opacity-50",
-                  )}
-                >
-                  <span className="font-medium">{t.name}</span>
-                  <Badge variant="outline" className="justify-self-start text-[10px]">
-                    {t.structure}
-                    {t.term_length_months != null
-                      ? ` · ${t.term_length_months}m`
-                      : ""}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    used {t.usage_count}×
-                  </span>
-                  <div className="flex gap-1">
-                    {t.deleted_at_ms == null ? (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setDraft(rowToDraft(t))}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onDelete(t)}
-                          disabled={isPending}
-                        >
-                          Delete
-                        </Button>
-                      </>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">deleted</span>
+          <div className="mt-1.5 font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-brand-pink)]">
+            each quote is built from scratch until one isn&apos;t.
+          </div>
+        </div>
+      ) : (
+        <div
+          className="overflow-hidden rounded-[12px]"
+          style={{
+            background: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight)",
+          }}
+        >
+          <table className="w-full text-left">
+            <thead>
+              <tr>
+                {COLUMNS.map((h) => (
+                  <th
+                    key={h.label || "actions"}
+                    className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                    style={{
+                      letterSpacing: "2px",
+                      padding: "12px 14px",
+                      borderBottom: "1px solid rgba(253, 245, 230, 0.05)",
+                      textAlign: h.align,
+                      fontWeight: "normal",
+                    }}
+                  >
+                    {h.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence initial={false}>
+                {filtered.map((t) => (
+                  <motion.tr
+                    key={t.id}
+                    layout="position"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={listTransition}
+                    onClick={
+                      t.deleted_at_ms == null
+                        ? () => setDraft(rowToDraft(t))
+                        : undefined
+                    }
+                    className={cn(
+                      "cursor-pointer transition-colors duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+                      t.deleted_at_ms != null &&
+                        "cursor-default opacity-50",
                     )}
-                  </div>
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </ul>
-        )}
-      </div>
+                    whileHover={
+                      t.deleted_at_ms == null
+                        ? {
+                            backgroundColor: "rgba(253, 245, 230, 0.025)",
+                          }
+                        : undefined
+                    }
+                  >
+                    <td
+                      className="font-[family-name:var(--font-body)] text-[13px] font-medium"
+                      style={{
+                        padding: "14px",
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                        color: "var(--color-brand-cream)",
+                      }}
+                    >
+                      {t.name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "14px",
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                      }}
+                    >
+                      <StructureChip structure={t.structure} />
+                      {t.term_length_months != null && (
+                        <span
+                          className="ml-2 font-[family-name:var(--font-label)] text-[10px] text-[color:var(--color-neutral-500)]"
+                          style={{ letterSpacing: "1px" }}
+                        >
+                          {t.term_length_months}m
+                        </span>
+                      )}
+                    </td>
+                    <td
+                      className="font-[family-name:var(--font-label)] text-[11px] text-[color:var(--color-neutral-500)]"
+                      style={{
+                        padding: "14px",
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                        letterSpacing: "1px",
+                      }}
+                    >
+                      {t.term_length_months != null
+                        ? `${t.term_length_months} months`
+                        : "—"}
+                    </td>
+                    <td
+                      className="font-[family-name:var(--font-label)] text-[11px] tabular-nums text-[color:var(--color-neutral-400)]"
+                      style={{
+                        padding: "14px",
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                        textAlign: "right",
+                        letterSpacing: "1px",
+                      }}
+                    >
+                      {t.usage_count}×
+                    </td>
+                    <td
+                      style={{
+                        padding: "14px",
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.03)",
+                        textAlign: "right",
+                      }}
+                    >
+                      <div
+                        className="flex items-center justify-end gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {t.deleted_at_ms == null ? (
+                          <>
+                            <button
+                              onClick={() => setDraft(rowToDraft(t))}
+                              className="rounded-[6px] px-2.5 py-1 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-300)] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+                              style={{
+                                letterSpacing: "1.5px",
+                                background: "transparent",
+                                border:
+                                  "1px solid rgba(253, 245, 230, 0.08)",
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => onDelete(t)}
+                              disabled={isPending}
+                              className="rounded-[6px] px-2.5 py-1 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)] disabled:opacity-50"
+                              style={{
+                                letterSpacing: "1.5px",
+                                background: "transparent",
+                                border:
+                                  "1px solid rgba(253, 245, 230, 0.05)",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        ) : (
+                          <span className="font-[family-name:var(--font-label)] text-[10px] italic text-[color:var(--color-neutral-500)]">
+                            deleted
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <Dialog open={draft != null} onOpenChange={(open) => !open && setDraft(null)}>
-        <DialogContent className="sm:max-w-xl">
+      {/* Edit / New dialog */}
+      <Dialog
+        open={draft != null}
+        onOpenChange={(open) => !open && setDraft(null)}
+      >
+        <DialogContent
+          className="sm:max-w-xl"
+          style={{
+            background: "var(--color-surface-2)",
+            borderRadius: "12px",
+            border: "1px solid rgba(253, 245, 230, 0.06)",
+            boxShadow: "var(--surface-highlight)",
+          }}
+        >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle
+              className="font-[family-name:var(--font-display)] text-[22px] leading-none text-[color:var(--color-brand-cream)]"
+              style={{ letterSpacing: "-0.2px" }}
+            >
               {draft?.id ? "Edit template" : "New template"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
               Structure, default items, default terms. Client-specific prose is
               never saved here.
             </DialogDescription>
@@ -265,7 +470,9 @@ export function TemplatesAdmin({
               <Field label="Name">
                 <Input
                   value={draft.name}
-                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                  onChange={(e) =>
+                    setDraft({ ...draft, name: e.target.value })
+                  }
                 />
               </Field>
               <div className="grid grid-cols-2 gap-3">
@@ -295,7 +502,10 @@ export function TemplatesAdmin({
                   <Select
                     value={draft.term_length_months}
                     onValueChange={(v) =>
-                      setDraft({ ...draft, term_length_months: v ?? "none" })
+                      setDraft({
+                        ...draft,
+                        term_length_months: v ?? "none",
+                      })
                     }
                   >
                     <SelectTrigger>
@@ -346,35 +556,56 @@ export function TemplatesAdmin({
               </Field>
 
               <div className="space-y-2">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                <div
+                  className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                  style={{ letterSpacing: "1.5px" }}
+                >
                   Default line items
                 </div>
                 {draft.line_items.length === 0 && (
-                  <p className="text-xs italic text-muted-foreground">
+                  <p className="font-[family-name:var(--font-body)] text-[12px] italic text-[color:var(--color-neutral-500)]">
                     None. Add from the catalogue below.
                   </p>
                 )}
                 {draft.line_items.map((li, i) => {
-                  const cat = catalogue.find((c) => c.id === li.catalogue_item_id);
+                  const cat = catalogue.find(
+                    (c) => c.id === li.catalogue_item_id,
+                  );
                   return (
                     <div
                       key={`${li.catalogue_item_id}-${i}`}
-                      className="flex items-center gap-2 rounded-md border border-border/60 p-2 text-xs"
+                      className="flex items-center gap-2 rounded-[8px] p-2 text-[12px]"
+                      style={{
+                        border: "1px solid rgba(253, 245, 230, 0.04)",
+                        background: "rgba(15, 15, 14, 0.3)",
+                      }}
                     >
-                      <span className="flex-1">
-                        {cat?.name ?? <em>{li.catalogue_item_id}</em>}
+                      <span className="flex-1 font-[family-name:var(--font-body)] text-[color:var(--color-neutral-300)]">
+                        {cat?.name ?? (
+                          <em className="text-[color:var(--color-neutral-500)]">
+                            {li.catalogue_item_id}
+                          </em>
+                        )}
                       </span>
-                      <span className="text-muted-foreground">× {li.qty}</span>
-                      <Badge variant="outline" className="text-[9px]">
+                      <span className="font-[family-name:var(--font-label)] text-[10px] tabular-nums text-[color:var(--color-neutral-500)]">
+                        × {li.qty}
+                      </span>
+                      <span
+                        className="inline-flex items-center rounded-full px-2 py-[2px] font-[family-name:var(--font-label)] text-[9px] uppercase leading-none text-[color:var(--color-neutral-400)]"
+                        style={{
+                          letterSpacing: "1px",
+                          background: "rgba(253, 245, 230, 0.05)",
+                        }}
+                      >
                         {li.kind}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      </span>
+                      <button
                         onClick={() => removeLine(i)}
+                        className="rounded px-1.5 py-0.5 text-[12px] text-[color:var(--color-neutral-500)] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+                        style={{ background: "transparent", border: "none" }}
                       >
                         ×
-                      </Button>
+                      </button>
                     </div>
                   );
                 })}
@@ -383,16 +614,31 @@ export function TemplatesAdmin({
             </div>
           )}
           <DialogFooter>
-            <Button
-              variant="ghost"
+            <button
               onClick={() => setDraft(null)}
               disabled={isPending}
+              className="rounded-[8px] px-4 py-2 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-neutral-300)] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)] disabled:opacity-50"
+              style={{
+                letterSpacing: "1.5px",
+                background: "transparent",
+                border: "1px solid rgba(253, 245, 230, 0.1)",
+              }}
             >
               Cancel
-            </Button>
-            <Button onClick={onSave} disabled={isPending}>
+            </button>
+            <button
+              onClick={onSave}
+              disabled={isPending}
+              className="rounded-[8px] px-4 py-2 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] duration-[200ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px disabled:opacity-50"
+              style={{
+                letterSpacing: "1.8px",
+                background: "var(--color-brand-red)",
+                boxShadow:
+                  "inset 0 1px 0 rgba(253, 245, 230, 0.04), 0 4px 12px rgba(178, 40, 72, 0.25)",
+              }}
+            >
               {isPending ? "Saving…" : "Save"}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -410,7 +656,7 @@ function CataloguePickRow({
   const [value, setValue] = React.useState<string>("");
   if (catalogue.length === 0) {
     return (
-      <p className="text-xs italic text-muted-foreground">
+      <p className="font-[family-name:var(--font-body)] text-[12px] italic text-[color:var(--color-neutral-500)]">
         Catalogue is empty — add items at /lite/admin/settings/catalogue.
       </p>
     );
@@ -452,7 +698,10 @@ function Field({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs uppercase tracking-wider text-muted-foreground">
+      <span
+        className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "1.5px" }}
+      >
         {label}
       </span>
       {children}
