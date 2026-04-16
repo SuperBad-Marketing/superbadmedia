@@ -1,5 +1,5 @@
 ---
-status: DRAFT — awaiting Andy sign-off per AUTONOMY_PROTOCOL §4
+status: LANDED 2026-04-17 in commit 8da4cc8 (plus grandfather-clause follow-up). Retained for audit per §4 revision rules.
 author: claude
 date: 2026-04-17
 applies to: AUTONOMY_PROTOCOL.md (locked 2026-04-13)

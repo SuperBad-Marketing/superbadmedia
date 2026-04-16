@@ -1,6 +1,6 @@
 # AUTONOMY_PROTOCOL.md
 
-**Status:** locked 2026-04-13 (Phase 4)
+**Status:** locked 2026-04-13 (Phase 4); amended 2026-04-17 (context compaction discipline — G0.5, brief excerpts, G10.5 UI-only, handoff cap)
 **Consumed by:** every Phase 5 build session
 **Paired with:** `BUILD_PLAN.md` (session inventory), `LAUNCH_READY.md` (Phase 6 gate)
 
@@ -44,6 +44,8 @@ Before starting work, the session reports an estimated token cost for its fixed 
 
 Rationale: leaves ≥150k tokens for code + tool output + G10.5 + handoff. Under this budget, mid-session compaction becomes rare rather than guaranteed. If a session still hits compaction despite passing G0.5, that is a named failure mode — record it in the handoff so the budget can be tightened.
 
+**Grandfather clause for pre-2026-04-17 briefs:** briefs pre-compiled before 2026-04-17 under the earlier "spec pointers + full-file reads" convention remain legal to run. Sessions running such briefs should substitute the brief-reading step for a minimal excerpt read (the brief's §3 acceptance criteria + the named spec sections only — not full spec files) to approximate the amended budget. If the session compacts despite this workaround, close the session and flag the brief for re-compilation under the amended template before re-attempt. New briefs authored on or after 2026-04-17 must follow the amended template (`sessions/_brief-template.md`).
+
 ### G1 — Preflight precondition verification
 
 Before touching any code, verify every precondition named in the brief exists in the repo:
@@ -63,6 +65,8 @@ If a precondition is missing: stop. Do not build on a claim a prior handoff made
 - One concern per commit. If the session accidentally produces two concerns, split into two commits.
 
 ### G3 — Mid-session context budget checkpoint (70%)
+
+This is the *runtime* counterpart to G0.5 (fixed-input budget at session start). G0.5 prevents the session from starting too heavy; G3 catches the session that started within budget but grew past 70% during work (usually from tool output, debugging trails, or unplanned file reads).
 
 At approximately 70% of the context window:
 
@@ -352,6 +356,8 @@ If a session introduces a new third-party call and doesn't log to `external_call
 
 - Aggressive Haiku downgrade for feature work. Rework costs more than saves.
 - Mid-session compact during hard debugging. Finish-and-handoff is safer.
+- Skipping the G0.5 fixed-input estimate. Sessions that start >35k have one-shot compaction baked in — the amendment exists because the first 93 sessions did this silently.
+- Reading a full spec file at G0 when the brief has inline excerpts. The excerpt IS the spec for that session; reading the full file re-inflates the input budget that G0.5 is designed to cap.
 - Over-tight scope (sub-feature-slice sessions). More session boundaries = more cache misses = net loss.
 - Skipping E2E "because unit tests pass". Unit ≠ feature.
 - Bundling unrelated concerns into one commit to "save time". Future rollback becomes impossible.
