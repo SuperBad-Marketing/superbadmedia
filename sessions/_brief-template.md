@@ -1,8 +1,9 @@
 # `<id>` — `<short title>` — Session Brief
 
-> **Pre-compiled per AUTONOMY_PROTOCOL.md §"Pre-compiled session briefs" + §G0.**
-> Read this file at the start of the session. Do **not** read all 21 specs.
+> **Pre-compiled per AUTONOMY_PROTOCOL.md §"Pre-compiled session briefs" + §G0 + §G0.5.**
+> Read this file at the start of the session. **Do not read full spec files** — the excerpts inlined in §2 are the spec for this session (amended 2026-04-17).
 > If a precondition below is missing from the repo, **stop** (G1) — do not build on a claim a prior handoff made that the repo doesn't back up.
+> If §1's G0.5 input budget estimate exceeds 35k tokens, **stop** — split the session or trim references before proceeding.
 
 ---
 
@@ -14,12 +15,31 @@
 - **Model tier:** `/quick` (Haiku) · `/normal` (Sonnet) · `/deep` (Opus) — set this command at session start (per §"Model tiering").
 - **Sonnet-safe:** `yes` / `no` — if `yes`, the session may continue on Sonnet during an Opus → Sonnet plan-level fallback. Default `no` (per §"Plan-level fallback").
 - **Estimated context:** `small` / `medium` / `large` — informs G3 70% checkpoint discipline.
+- **G0.5 input budget estimate (added 2026-04-17):** `<k tokens>` for fixed inputs (this brief + spec excerpts in §2 + mockups in §2a + skills in §4 + last 2 handoffs). Target ≤35k; hard ceiling 50k. If the brief-writer's estimate is >35k, split the session or trim references before this brief locks.
 
-## 2. Spec references
+## 2. Spec excerpts (amended 2026-04-17)
 
-Bullet each spec the session implements, by file path **and** section heading. The brief is the only spec read at G0 — these refs scope what the session is allowed to consult later.
+Inline the 5–50 lines of spec prose the session actually needs, **verbatim**. The session does **not** read the full spec files at G0 — the excerpt IS the spec for this session. If the excerpt proves insufficient mid-build, read the named section (not the whole file), patch the excerpt below, and continue. Rationale: the 2026-04-17 amendment to AUTONOMY_PROTOCOL.md §"Pre-compiled session briefs" makes excerpts mandatory to keep G0.5 input budget under 35k tokens.
 
-- `docs/specs/<spec>.md` §`<heading>` — `<one-line why>`
+### Excerpt 1 — `<topic>`
+
+Source: `docs/specs/<spec>.md` §`<heading>`
+
+```
+<verbatim 5–50 lines from the spec>
+```
+
+### Excerpt 2 — `<topic>` (repeat as needed)
+
+Source: `docs/specs/<spec>.md` §`<heading>`
+
+```
+<verbatim 5–50 lines from the spec>
+```
+
+**Audit footer (full spec paths for traceability; not read at G0):**
+
+- `docs/specs/<spec>.md` §`<heading>` — `<one-line why relevant>`
 - ...
 
 ## 2a. Visual references (required for `UI` type)
@@ -95,7 +115,7 @@ Concrete, verifiable list. Each item must be confirmable via grep / curl / typec
 - [ ] `npm run build` → clean.
 - [ ] (UI work) dev server boots on `:3001`, `<route>` returns 200.
 - [ ] (UI work) G10 mockup parity check complete — side-by-side screenshots of built route vs each §2a mockup in the handoff.
-- [ ] **G10.5 external-reviewer gate** — sub-agent verdict is `PASS` or `PASS_WITH_NOTES`; verdict attached verbatim to handoff; any notes logged to `PATCHES_OWED.md`. FAIL = session closes as FAILED handoff.
+- [ ] **G10.5 fidelity gate (amended 2026-04-17)** — UI briefs: external reviewer sub-agent verdict is `PASS` or `PASS_WITH_NOTES`; verdict attached verbatim to handoff. Non-UI briefs (`INFRA` / `FEATURE` / `E2E` / `AUDIT`): in-context fidelity grep — acceptance-criterion keywords present in diff, no file-whitelist violations, no memory-alignment violations — returns zero hits. FAIL in either path = session closes as FAILED handoff. Notes logged to `PATCHES_OWED.md`.
 - [ ] **Memory-alignment declaration** — handoff lists every applied memory with a one-line "how applied" per G11.
 - [ ] G-gates run end-to-end (G0 → G12) with a clean handoff written.
 

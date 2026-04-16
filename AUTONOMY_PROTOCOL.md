@@ -33,6 +33,17 @@ Every Phase 5 session runs these in order. The handoff note is only written afte
 - Load only the skills named in the brief's skill whitelist.
 - Confirm the session's model tier matches the current Claude Code model (`/quick` / `/normal` / `/deep`). Mismatch = reset before starting.
 
+### G0.5 — Context input budget
+
+**Added 2026-04-17.** Named failure mode: every Phase 5 session across Waves 1–10 auto-compacted at least once mid-session, so the second half of each session ran on lossily-compressed memory of the first half. Mechanical gates passed because they grade internal consistency, not spec fidelity.
+
+Before starting work, the session reports an estimated token cost for its fixed inputs (brief + spec excerpts + mockups + skills + last 2 handoffs). **Target: ≤35k tokens of fixed input. Hard ceiling: 50k.**
+
+- If the estimate exceeds 35k: the brief is too large. Either (a) split the session, (b) replace full spec reads with brief-inline excerpts (per §2 "Pre-compiled session briefs"), or (c) trim the mockup / skill whitelist.
+- If the estimate exceeds 50k: the session cannot start. Escalate as a blocker handoff — Andy redesigns the brief before the session is re-attempted.
+
+Rationale: leaves ≥150k tokens for code + tool output + G10.5 + handoff. Under this budget, mid-session compaction becomes rare rather than guaranteed. If a session still hits compaction despite passing G0.5, that is a named failure mode — record it in the handoff so the budget can be tightened.
+
 ### G1 — Preflight precondition verification
 
 Before touching any code, verify every precondition named in the brief exists in the repo:
@@ -142,7 +153,7 @@ Type checks verify code; browser verifies feature; mockup verifies feel. All thr
 
 **Added 2026-04-14.** The G0–G10 checks are all self-verified by the same agent that wrote the feature. The agent writes the code, writes the tests, and writes the handoff claiming the tests validate the feature — a closed loop. Mechanical checks (types / tests / lint / build) pass because the agent is internally consistent, not because the implementation matches the spec. The Brand DNA flagship drift (2026-04-14) — built cleanly per the spec's words while missing every visual cue the mockup encoded — is a type specimen of this failure mode.
 
-**The gate:** before writing the handoff, the session spawns a sub-agent (via the `Agent` tool, subagent_type `general-purpose`) with a clean context and hands it **only**:
+**The gate (UI briefs only — amended 2026-04-17):** before writing the handoff, UI-type sessions spawn a sub-agent (via the `Agent` tool, subagent_type `general-purpose`) with a clean context and hand it **only**:
 
 1. The relevant `docs/specs/<spec>.md` sections the brief named.
 2. Every `mockup-*.html` / brand-guidelines HTML the brief's §2a named.
@@ -160,6 +171,14 @@ The sub-agent's sole task is to grade alignment between spec-intent and built-re
 - **Scope discipline:** are there additions outside the brief's file whitelist? Is any feature silently narrowed or widened?
 
 The sub-agent returns a structured verdict: `PASS` / `PASS_WITH_NOTES` / `FAIL`, with a short rationale per axis and a numbered list of specific defects if present.
+
+**Non-UI fidelity grep (added 2026-04-17):** `INFRA` / `FEATURE` / `E2E` / `AUDIT` sessions do **not** spawn a reviewer sub-agent. Instead, the closing session runs a grep-based fidelity check in main context before handoff:
+
+- Grep the session's diff for every acceptance-criterion keyword named in the brief's §3. Missing criterion with no justification = FAIL.
+- Grep the diff for any path outside the brief's §5 file whitelist. Hit = FAIL.
+- Read the brief's `## 10` memory-alignment list and scan the diff for silent violations of any memory named there. Hit = FAIL.
+
+Mechanical checks, run in main context. Cheap in tokens (≤2k). Catches the same class of drift the sub-agent reviewer catches for UI, minus the visual-fidelity axis that non-UI sessions don't own. If this grep check flags anything: treat as G10.5 FAIL — fix in-session or close as FAILED handoff.
 
 **Outcomes:**
 
@@ -184,7 +203,8 @@ Write `sessions/<id>-handoff.md`. Must cover:
 - Open threads for the next session.
 - Any new rows added to `PATCHES_OWED.md`.
 - **Memory-alignment declaration** (added 2026-04-14): list every memory from `MEMORY.md` that applied to this session, and in one line each state *how* the diff honoured it. Format: `- <memory-filename> — <one-line how applied>`. If a memory's guidance was knowingly not applied, state that and why. Silent memory violations are a G10.5 fail; declaring a conflict is not. This section forces the building agent to confront memory conflicts rather than ignoring them.
-- **G10.5 reviewer verdict**: attach the sub-agent's PASS / PASS_WITH_NOTES / FAIL verdict and its per-axis rationale verbatim. Do not paraphrase.
+- **G10.5 reviewer verdict**: for UI briefs, attach the sub-agent's PASS / PASS_WITH_NOTES / FAIL verdict and its per-axis rationale verbatim. For non-UI briefs, record the result of the fidelity grep: `PASS` (no hits) or list the hits that were addressed.
+- **Length cap (added 2026-04-17):** 40 lines or fewer. The `SESSION_TRACKER.md` row is the primary handoff artefact; this note is the audit detail. If the session genuinely needs more than 40 lines to hand off, it probably did too much in one session — flag as over-scope in `PATCHES_OWED.md` and carry forward. The G10.5 reviewer verdict attachment (UI) or fidelity-grep summary (non-UI) does **not** count toward the 40-line cap.
 
 Handoff is the contract with the next session. Treat it as authoritative.
 
@@ -275,7 +295,7 @@ Don't pick 300s sleeps for pacing — either <270s (cache warm) or >1200s (commi
 
 Every Phase 5 session has a `sessions/<id>-brief.md` written by Phase 4 (or generated from the brief template on-demand). Contains:
 
-- Spec pointer(s) — by file path + section.
+- Spec excerpts (amended 2026-04-17) — the 5–50 lines of spec prose the session actually needs, inlined into the brief. File path + section kept as an audit footer so the full spec is findable, but the session does **not** read the spec file itself at G0. If the session discovers mid-build that the excerpt is insufficient, it reads the named section (not the full file), patches the brief's excerpt for the next time the brief is consulted, and continues. Rationale: specs run 400–2000 lines; inlining excerpts cuts typical brief+spec token cost by ~80%.
 - Acceptance criteria — the spec's own "success criteria" block, verbatim.
 - File whitelist — paths the session is allowed to touch.
 - Skill whitelist — 2–5 skills, named.
