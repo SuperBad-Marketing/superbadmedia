@@ -726,3 +726,8 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 
 - **`lg_8_remove_bypasses_lib_helpers`** · `removeDncEmailById` and `removeDncDomainById` do a direct `db.delete(...).where(eq(...id...))` rather than calling `removeDncEmail(email)` / `removeDncDomain(domain)`. Spec AC5 says "calls `removeDncEmail()`". Deviation is safe (§12.J permits management surface direct queries; direct-by-ID avoids a superfluous lookup). If the lib helpers ever add audit-log side-effects, those won't fire via this path. Document before LG-9 adds more helper side-effects. · LG-8 G10.5 reviewer · 2026-04-17 · **gate: opportunistic — before helpers gain side-effects**
 - **`lg_8_entry_count_position`** · Spec §12.4 says "Entry count at the top". Built entry count appears inside the search bar row (`{n} blocked`). Functionally equivalent, but differs from the literal spec position. Minor UX polish — fix if Andy notices it during review. · LG-8 G10.5 reviewer · 2026-04-17 · **gate: wave-boundary review**
+
+
+## Phase 5 Wave 13 LG-9 (2026-04-17)
+
+- **`lg_9_model_registry_slug_tier`** · `"lead-gen-outreach-draft"` slug in `lib/ai/models.ts` maps to `"opus"` but spec §8 explicitly prescribes Haiku-tier for cost discipline on bulk first_touch drafts. Fix: update `lib/ai/models.ts` entry from `"opus"` to `"haiku"`. Deferred because `lib/ai/models.ts` is outside LG-9 file whitelist. · LG-9 handoff · 2026-04-17 · **gate: next session that touches lib/ai/models.ts**

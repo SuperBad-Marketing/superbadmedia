@@ -3,13 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `LG-9` — Lead Gen draft pipeline (Hunter.io discovery + generateDraft() + orchestrator wiring)
-**Brief:** `sessions/lg-9-brief.md`
+**Next session:** `LG-10` — Lead Gen approval queue UI + autonomy state machine
+**Brief:** `sessions/lg-10-brief.md`
 **Model tier:** Sonnet (standard build session)
-**Last closed:** LG-8 (2026-04-17) — see `sessions/lg-8-handoff.md`
-**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 complete (schema). LG-2 complete (3 source adapters + types). LG-3 complete (6 enrichers + mergeProfiles). LG-4 complete (orchestrator + cron handler + dedup + warmup stub). LG-5 complete (scoring engine — real qualification floors, track assignment). LG-6 complete (warmup ramp — real enforceWarmupCap reading resend_warmup_state). LG-7 complete (admin UI — runs log + manual trigger). LG-8 complete (DNC management surface — Settings → Lead Generation → Do Not Contact). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
-
-> **[AUTONOMY] Stale lock reclaimed** — LG-8 lock dated 2026-04-17T00:00:00Z (~20h old) reclaimed at 2026-04-17T19:55:46Z. Re-executing LG-8.
+**Last closed:** LG-9 (2026-04-17) — see `sessions/lg-9-handoff.md`
+**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 complete (schema). LG-2 complete (3 source adapters + types). LG-3 complete (6 enrichers + mergeProfiles). LG-4 complete (orchestrator + cron handler + dedup + warmup stub). LG-5 complete (scoring engine — real qualification floors, track assignment). LG-6 complete (warmup ramp — real enforceWarmupCap reading resend_warmup_state). LG-7 complete (admin UI — runs log + manual trigger). LG-8 complete (DNC management surface — Settings → Lead Generation → Do Not Contact). LG-9 complete (Hunter.io contact discovery + generateDraft() + orchestrator steps 8–10). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

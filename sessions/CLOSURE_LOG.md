@@ -5,6 +5,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
 ---
+## LG-9 (2026-04-17) — Lead Gen contact discovery + draft generator
+
+Hunter.io contact email discovery (`discoverContactEmail`): role-preference sort (founder/ceo/owner/marketing-*), high-confidence verified path, pattern-inference fallback (firstname@domain), null if no contact. `generateDraft()`: Anthropic REST API via fetch() (ESLint carve-out workaround), reads outreach-system.md prompt, logs to external_call_log, gated lead_gen_enabled + llm_calls_enabled. Orchestrator steps 8–10 wired: insert lead_candidates, discover contact (skip if null), generate draft + insert outreach_drafts + update pending_draft_id. HUNTER_IO_API_KEY added to .env.example. 178 tests green, 1514 passed. Rollback: feature-flag-gated (lead_gen_enabled). PATCHES_OWED: model registry slug "lead-gen-outreach-draft" should be haiku not opus. See `sessions/lg-9-handoff.md`.
+
 ## LG-8 (2026-04-17) — Lead Gen DNC management surface
 
 Three-tab DNC management UI at /lite/admin/settings/lead-gen. Companies tab (read-only, fetches companies.do_not_contact=true, ordered by name). Emails tab (search + single-add + bulk-add + Remove, source chip, relative time, §12.K normalisation). Domains tab (same pattern). Server actions: addDncEmails/removeDncEmailById/addDncDomains/removeDncDomainById, all auth-gated + revalidate. houseSpring tab switcher + AnimatePresence list transitions. useReducedMotion parity. Voiced empty states. 176 tests green.

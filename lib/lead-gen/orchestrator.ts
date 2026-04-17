@@ -1,17 +1,17 @@
 /**
- * Lead Generation daily run orchestrator — steps 1–7 + step 12.
+ * Lead Generation daily run orchestrator — steps 1–10 + step 12.
  *
- * Steps 8–12 (Hunter.io contact discovery, Claude draft, drift check,
- * approval queue) are implemented in LG-8 as an extension of this pipeline.
+ * Steps 8–10 (candidate insertion, Hunter.io contact discovery, Claude draft)
+ * added in LG-9. Steps 11–12 (drift check, approval queue) are LG-10+.
  *
- * Scoring (step 6) is stubbed — LG-5 will replace with real qualification
- * floors and score rubric.
- *
- * Owner: LG-4. Consumers: cron handler, admin "Run now" action.
+ * Owner: LG-4. Extended: LG-9. Consumers: cron handler, admin "Run now" action.
  */
 
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { leadRuns } from "@/lib/db/schema/lead-runs";
+import { leadCandidates } from "@/lib/db/schema/lead-candidates";
+import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
 import { killSwitches } from "@/lib/kill-switches";
 import settings from "@/lib/settings";
 import { getCredential } from "@/lib/integrations/getCredential";
@@ -29,6 +29,8 @@ import { enforceWarmupCap } from "./warmup";
 import { deduplicateCandidates } from "./dedup";
 import type { DiscoveryCandidate, DiscoveryResult, DiscoverySearchInput, ViabilityProfile } from "./types";
 import { scoreForSaasTrack, scoreForRetainerTrack } from "./scoring";
+import { discoverContactEmail } from "./email-discovery";
+import { generateDraft } from "./draft-generator";
 
 // ── Run summary ───────────────────────────────────────────────────────────────
 
@@ -64,6 +66,7 @@ export async function runLeadGenDaily(
       foundCount: 0,
       dncFilteredCount: 0,
       qualifiedCount: 0,
+      draftedCount: 0,
       warmupCap: 0,
       effectiveCap: 0,
       cappedReason: "kill_switch_disabled",
@@ -85,6 +88,7 @@ export async function runLeadGenDaily(
       foundCount: 0,
       dncFilteredCount: 0,
       qualifiedCount: 0,
+      draftedCount: 0,
       warmupCap: warmup.cap,
       effectiveCap: 0,
       cappedReason: "warmup_cap_exhausted",
@@ -215,6 +219,91 @@ export async function runLeadGenDaily(
   qualifiedCandidates.sort((a, b) => b.winningScore - a.winningScore);
   const topCandidates = qualifiedCandidates.slice(0, target);
 
+  // Step 8, 9, 10: Insert candidates, discover contacts, generate drafts
+  let draftedCount = 0;
+  const standingBrief = await settings.get("lead_generation.standing_brief");
+
+  for (const sc of topCandidates) {
+    const candidateId = crypto.randomUUID();
+
+    // Step 8: Insert lead_candidates row
+    await db.insert(leadCandidates).values({
+      id: candidateId,
+      company_name: sc.candidate.businessName,
+      domain: sc.candidate.domain ?? undefined,
+      viability_profile_json: sc.profile,
+      saas_score: sc.saasResult.score,
+      retainer_score: sc.retainerResult.score,
+      qualified_track: sc.winningTrack,
+      scoring_debug_json: { saas: sc.saasResult, retainer: sc.retainerResult },
+      lead_run_id: runId,
+      sourced_from: sc.candidate.source,
+    });
+
+    // Step 9: Discover contact email
+    const domain = sc.candidate.domain;
+    if (!domain) {
+      await db.update(leadCandidates)
+        .set({ skipped_at: new Date(), skipped_reason: "no_domain" })
+        .where(eq(leadCandidates.id, candidateId));
+      continue;
+    }
+
+    const discovery = await discoverContactEmail(domain);
+
+    if (!discovery) {
+      await db.update(leadCandidates)
+        .set({ skipped_at: new Date(), skipped_reason: "no_contact_email" })
+        .where(eq(leadCandidates.id, candidateId));
+      continue;
+    }
+
+    await db.update(leadCandidates)
+      .set({
+        contact_email: discovery.email,
+        contact_name: discovery.name,
+        contact_role: discovery.role,
+        email_confidence: discovery.email_confidence,
+      })
+      .where(eq(leadCandidates.id, candidateId));
+
+    // Step 10: Generate outreach draft
+    const draft = await generateDraft({
+      track: sc.winningTrack,
+      touchKind: "first_touch",
+      touchIndex: 0,
+      viabilityProfile: sc.profile as ViabilityProfile,
+      standingBrief,
+      priorTouches: [],
+      recentBlogPosts: [],
+      contactInfo: {
+        name: discovery.name,
+        email: discovery.email,
+        role: discovery.role,
+        company: sc.candidate.businessName,
+      },
+    });
+
+    const draftId = crypto.randomUUID();
+    await db.insert(outreachDrafts).values({
+      id: draftId,
+      candidate_id: candidateId,
+      touch_kind: "first_touch",
+      touch_index: 0,
+      subject: draft.subject,
+      body_markdown: draft.bodyMarkdown,
+      model_used: draft.modelUsed,
+      prompt_version: draft.promptVersion,
+      generation_ms: draft.generationMs,
+    });
+
+    await db.update(leadCandidates)
+      .set({ pending_draft_id: draftId })
+      .where(eq(leadCandidates.id, candidateId));
+
+    draftedCount++;
+  }
+
   // Step 12: Insert lead_run summary row
   return persistRun({
     id: runId,
@@ -223,6 +312,7 @@ export async function runLeadGenDaily(
     foundCount,
     dncFilteredCount,
     qualifiedCount: topCandidates.length,
+    draftedCount,
     warmupCap: warmup.cap,
     effectiveCap: target,
     cappedReason: null,
@@ -240,6 +330,7 @@ interface PersistArgs {
   foundCount: number;
   dncFilteredCount: number;
   qualifiedCount: number;
+  draftedCount: number;
   warmupCap: number;
   effectiveCap: number;
   cappedReason: string | null;
@@ -258,7 +349,7 @@ async function persistRun(args: PersistArgs): Promise<LeadRunSummary> {
     found_count: args.foundCount,
     dnc_filtered_count: args.dncFilteredCount,
     qualified_count: args.qualifiedCount,
-    drafted_count: 0,
+    drafted_count: args.draftedCount,
     warmup_cap_at_run: args.warmupCap,
     effective_cap_at_run: args.effectiveCap,
     capped_reason: args.cappedReason,
