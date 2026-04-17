@@ -47,11 +47,11 @@ describe("settings registry + seed migration", () => {
     }
   });
 
-  it("seeds 118 keys total (104 pre-OS-2 + 14 OS-2 onboarding keys)", () => {
+  it("seeds 123 keys total (118 pre-CE-1 + 5 CE-1 content engine keys)", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(118);
+    expect(count.n).toBe(123);
   });
 
   it("stores portal.magic_link_ttl_hours = 168", () => {
@@ -87,7 +87,7 @@ describe("settings registry + seed migration", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(118);
+    expect(count.n).toBe(123);
   });
 
   it("every SETTINGS_KEYS entry is a string matching the feature.rule shape", () => {

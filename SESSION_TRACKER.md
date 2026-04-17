@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CE-1` — Content Engine data model + schema + helpers
-**Brief:** needs pre-compilation (OS-3 did not write a CE-1 brief)
-**Model tier:** Sonnet (medium feature build — Content Engine foundation)
-**Last closed:** OS-3 (2026-04-17) — see `sessions/os-3-handoff.md`
-**Wave status:** Wave 11 COMPLETE. Wave 12 (Content Engine) next.
+**Next session:** `CE-2` — Keyword research pipeline + rankability scoring + topic queue
+**Brief:** needs pre-compilation (CE-1 did not write a CE-2 brief)
+**Model tier:** Sonnet (medium feature build — SerpAPI + Haiku scoring)
+**Last closed:** CE-1 (2026-04-17) — see `sessions/ce-1-handoff.md`
+**Wave status:** Wave 12 in progress. CE-1 complete (data model).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -86,6 +86,7 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 | 2026-04-17 | 5 | Build (OS-1) | Wave 11 OS-1 — Company auto-creation + onboarding state + welcome screens (**Wave 11 opener**). `createCompanyFromSignup()` (transactional, injectable db, solo-operator fallback). `getOnboardingState()` derived orchestrator (Brand DNA + Rev Seg + wizards + credentials). `generateWelcomeEmail()` Opus + drift-checked (retainer + SaaS variants). `generateWelcomeSummary()` Opus "what we already know" paragraph. Welcome screen at `/lite/portal/welcome` with entry-path branch (trial-shoot grads bypass), Framer fade-up stagger, token-styled. Migration 0040: 8 companies columns + 1 contacts column. 2 new LLM slugs. 15 new tests; 1066/1 green; 0 TS errors; build clean; lint 35 baseline. | [os-1-handoff.md](sessions/os-1-handoff.md) |
 | 2026-04-17 | 5 | Build (OS-2) | Wave 11 OS-2 — Revenue Segmentation UI + practical setup steps + upsell layer. Rev Seg questionnaire at `/lite/portal/onboarding/segmentation` (5 MC questions, card-per-question, progress bar, houseSpring). `submitRevenueSegmentation()` server action (Zod-validated, idempotent). `evaluateUpsellTier()` two-tier model (Warm/Hot) with location gate + revenue + engagement + goal signals. 3 practical setup wizard definitions (contact-details, ad-accounts, content-archive). 2 nudge email handlers (onboarding + practical setup reminders, escalating cadence, self-re-enqueuing). Migration 0041: 14 onboarding settings keys. 42 new tests; 1108/1 green; 0 TS errors; build clean; lint 58 warnings (baseline drift noted). | [os-2-handoff.md](sessions/os-2-handoff.md) |
 | 2026-04-17 | 5 | Build (OS-3) | Wave 11 OS-3 — Token portal auth + credential creation + non-start nudge cadence (**Wave 11 COMPLETE**). `createOnboardingCredentials()` (user record + subscriber magic link + transactional email). `scheduleOnboardingNudges()` + `schedulePracticalSetupReminders()` (kill-switch-gated, idempotent, exported for future callers). `onboarding_nudges_enabled` kill switch. Credential creation page at `/lite/portal/onboarding/credentials` (pre-filled email, confirm button, Framer fade-up). `redeemSubscriberMagicLink` now sets `emailVerified`. Portal token redeem routes first-timers to welcome. No migration. 18 new tests; 1126/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [os-3-handoff.md](sessions/os-3-handoff.md) |
+| 2026-04-17 | 5 | Build (CE-1) | Wave 12 CE-1 — Content Engine data model + schema + helpers (**Wave 12 opener**). 8 new tables (`content_topics` + Hiring Pipeline claimable columns, `blog_posts`, `blog_post_feedback`, `social_drafts`, `newsletter_subscribers`, `newsletter_sends`, `ranking_snapshots`, `content_engine_config`). 3 kill switches (`content_automations_enabled`, `content_newsletter_enabled`, `content_outreach_enabled`). 5 settings keys (123 total). Migration 0042. 22 new tests; 1148/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [ce-1-handoff.md](sessions/ce-1-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 

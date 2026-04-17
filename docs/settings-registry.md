@@ -190,6 +190,18 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 ---
 
+## Content Engine (owner: `docs/specs/content-engine.md` §3; consumers: CE-2..CE-13)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `content.tier` | `small` | string | Default Content Engine SaaS tier for new subscribers. Governs posts/month + subscriber cap. Source: spec §3.1. |
+| `content.send_window_day` | `tuesday` | string | Default newsletter send day of week. Per-owner override in `content_engine_config`. Source: spec §3.3. |
+| `content.send_window_hour` | `10` | integer | Default newsletter send hour (24h, local tz). Source: spec §3.3. |
+| `content.max_posts_per_month` | `4` | integer | Default max posts per billing cycle (small tier). Source: spec §3.1. |
+| `content.max_subscribers_per_tier` | `{"small":500,"medium":2500,"large":10000}` | string (JSON) | Newsletter subscriber cap per tier. Source: spec §3.1. |
+
+---
+
 ## Totals
 
 - Finance: 11
@@ -205,6 +217,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Quote Builder: 4 (QB-1 seeded 2; QB-4b added 2 — `quote.reminder_days`, `quote.intro_paragraph_redraft_hourly_cap`)
 - SaaS Subscription Billing: 1 (SB-2b seeded 1 — `billing.saas.monthly_setup_fee_cents`)
 - Unified Inbox: 3 (UI-1 seeded 3 — `inbox.graph_sync_interval_seconds`, `inbox.graph_subscription_ttl_hours`, `inbox.graph_subscription_renew_buffer_hours`)
-- **Total: 92 keys at v1.0 seed** (was 74 pre-SP-3, 81 pre-SP-7, 82 pre-SP-8, 83 pre-SP-9, 84 pre-QB-1, 86 pre-QB-4b, 88 pre-SB-2b, 89 pre-UI-1)
+- Content Engine: 5 (CE-1 seeded 5 — `content.tier`, `content.send_window_day`, `content.send_window_hour`, `content.max_posts_per_month`, `content.max_subscribers_per_tier`)
+- **Total: 97 keys at v1.0 seed** (was 92 pre-CE-1)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

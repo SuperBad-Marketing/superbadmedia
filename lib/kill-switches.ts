@@ -30,7 +30,10 @@ export type KillSwitchKey =
   | "inbox_sync_enabled"
   | "inbox_send_enabled"
   | "inbox_digest_enabled"
-  | "onboarding_nudges_enabled";
+  | "onboarding_nudges_enabled"
+  | "content_automations_enabled"
+  | "content_newsletter_enabled"
+  | "content_outreach_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -98,6 +101,17 @@ const defaults: KillSwitchRegistry = {
   // re-enqueue — scheduleOnboardingNudges() is the entry point when
   // the switch flips back on.
   onboarding_nudges_enabled: false,
+  // CE-1: gates all Content Engine automated pipelines (keyword research,
+  // draft generation, fan-out, ranking snapshots). When OFF, all cron
+  // handlers exit early. Flip ON in Phase 6 after initial content config.
+  content_automations_enabled: false,
+  // CE-1: gates newsletter sending specifically. When OFF, newsletter
+  // send handler exits without sending. Separate from automations so
+  // content generation can run without sending newsletters.
+  content_newsletter_enabled: false,
+  // CE-1: gates content-to-outreach matching pipeline. When OFF, publish
+  // does not queue content-match prospecting emails. SuperBad-only.
+  content_outreach_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

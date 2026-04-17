@@ -688,3 +688,7 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 - **`os_1_product_config_wizard_key`** · `getOnboardingState()` product_config step always returns false. Each SaaS product spec must register its wizard key for the orchestrator to detect completion. · OS-1 handoff · 2026-04-17 · **gate: SaaS product build sessions**
 - **`os_1_welcome_redirect_wiring`** · Magic-link redeem endpoint at `/lite/portal/r/[token]` redirects to `/lite/portal`. Should check `onboarding_welcome_seen_at_ms` and redirect first-timers to `/lite/portal/welcome`. · OS-1 handoff · 2026-04-17 · **gate: OS-3 or portal auth session**
 - **`os_1_manual_browser_verify_owed`** · G10 interactive verification requires a live portal session. Next interactive dev session should test the welcome screen end-to-end with a real magic-link flow. · OS-1 handoff · 2026-04-17 · **gate: interactive dev session with portal session**
+
+## Phase 5 Wave 12 CE-1 (2026-04-17)
+
+- **`ce_1_settings_registry_doc_drift`** · `docs/settings-registry.md` totals section shows 97 keys but `lib/settings.ts` has 123. The doc hasn't been updated for UI-10 (1 key), UI-12 (1 key), UI-13 (3 keys), OS-2 (14 keys) additions. Not blocking — the typed registry in `lib/settings.ts` is the runtime source of truth. The doc totals should be reconciled to 123 when next touched. · CE-1 handoff · 2026-04-17 · **gate: opportunistic — next settings-registry.md touch**

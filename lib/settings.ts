@@ -187,6 +187,13 @@ const registry = {
   "onboarding.upsell_engagement_feature_window_days": integer,
   "onboarding.upsell_location_gate": str,
   "onboarding.brand_dna_retake_nudge_months": integer,
+
+  // Content Engine (5 — CE-1)
+  "content.tier": str,
+  "content.send_window_day": str,
+  "content.send_window_hour": integer,
+  "content.max_posts_per_month": integer,
+  "content.max_subscribers_per_tier": str,
 } as const;
 
 export type SettingsKey = keyof typeof registry;
