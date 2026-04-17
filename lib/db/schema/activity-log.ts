@@ -249,6 +249,9 @@ export const ACTIVITY_LOG_KINDS = [
   "inbox_calendar_rsvp_sent",
   "inbox_attachment_uploaded",
   "inbox_thread_merged",
+  "inbox_history_import_started",
+  "inbox_contact_rerouted",
+  "inbox_noise_cleanup",
   // --- Six-Week Plan Generator (17) ---
   "six_week_plan_generation_started",
   "six_week_plan_strategy_ready_for_review",

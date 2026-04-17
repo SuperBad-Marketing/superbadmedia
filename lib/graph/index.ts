@@ -102,6 +102,12 @@ export {
   type RefineDraftOutcome,
   type RefineDraftResult,
 } from "./refine-draft";
+export {
+  processImportBatch,
+  getImportProgress,
+  getGraphStateForImport,
+  type ImportProgress,
+} from "./history-import";
 export type {
   GraphCredentials,
   GraphMessage,

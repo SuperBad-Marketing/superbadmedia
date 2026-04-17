@@ -163,6 +163,9 @@ const registry = {
 
   // Unified Inbox — support ticket auto-resolve (1 — UI-10)
   "inbox.ticket_auto_resolve_idle_days": integer,
+
+  // Unified Inbox — history import (1 — UI-12)
+  "inbox.history_import_months": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

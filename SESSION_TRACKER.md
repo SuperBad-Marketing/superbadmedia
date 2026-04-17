@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `ui-12` — History import wizard + 12-month backfill + progress tracking
-**Brief:** `sessions/ui-12-brief.md` (pre-compiled at UI-11 G11.b)
-**Model tier:** Sonnet (medium feature build — data import pipeline + wizard UI, no gesture/mobile complexity)
-**Last closed:** UI-11 (2026-04-17) — see `sessions/ui-11-handoff.md`
-**Wave status:** Wave 10 in progress — ui-11 CLOSED, ui-12 next.
+**Next session:** `ui-13` — Daily 08:00 digest email + voice
+**Brief:** `sessions/ui-13-brief.md` (pre-compiled at UI-12 G11.b)
+**Model tier:** Sonnet (medium feature build — email digest + voice copy, no mobile/architectural complexity)
+**Last closed:** UI-12 (2026-04-17) — see `sessions/ui-12-handoff.md`
+**Wave status:** Wave 10 in progress — ui-12 CLOSED, ui-13 next (final Wave 10 session).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -81,6 +81,7 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 
 
 | 2026-04-17 | 5 | Build (UI-11) | Wave 10 UI-11 — Mobile inbox (bottom-tab layout, swipe gestures, offline cache). Replaces `<MobileHolding>` with real mobile surface: 4 tabs, swipe-to-keep/archive, full-screen thread detail, mobile refine inline, compose nudge sheet → fullscreen compose, ticket overlay + Customer Context bottom sheet, offline banner + IndexedDB cache (50-thread LRU + FIFO queue + flush-on-reconnect). 7 new components + 1 library + 1 server action module + 8 tests. Recovery session (prior hung ~8h on typecheck). G10.5 PASS_WITH_NOTES. 1037 tests, 0 TS errors, lint baseline. | [ui-11-handoff.md](sessions/ui-11-handoff.md) |
+| 2026-04-17 | 5 | Build (UI-12) | Wave 10 UI-12 — History import wizard + 12-month backfill + progress tracking. Graph API paginated history fetch (`$filter=receivedDateTime ge`, 50/page), `inbox_initial_import` scheduled-task handler (self-re-enqueuing with 1s delay), progress stored on `graph_api_state.initial_import_progress_json`, 3-way classifier pipeline on each batch. Four-phase wizard at `/lite/setup/inbox-history`: import progress bar (3s poll) → contact routing review (re-route pills) → noise cleanup (soft-delete >30d) → done. `inbox.history_import_months=12` settings key seeded. 3 new activity_log kinds. 4 new tests; 1041/1 green; 0 TS errors; lint 35 baseline. | [ui-12-handoff.md](sessions/ui-12-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 
