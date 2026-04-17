@@ -130,6 +130,17 @@ export type {
   CsvImportResult,
 } from "./subscriber-list";
 
+// Onboarding (CE-12)
+export {
+  deriveSeedKeywords,
+  ensureContentEngineConfig,
+  completeContentEngineOnboarding,
+} from "./onboarding";
+export type {
+  DerivedSeedKeywords,
+  OnboardingCompletionPayload,
+} from "./onboarding";
+
 // Fleet overview (CE-11)
 export { getFleetSummary, getFleetList } from "./fleet-overview";
 export type {
