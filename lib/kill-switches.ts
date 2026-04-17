@@ -29,7 +29,8 @@ export type KillSwitchKey =
   | "saas_cancel_flow_enabled"
   | "inbox_sync_enabled"
   | "inbox_send_enabled"
-  | "inbox_digest_enabled";
+  | "inbox_digest_enabled"
+  | "onboarding_nudges_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -92,6 +93,11 @@ const defaults: KillSwitchRegistry = {
   // handler exits without sending and does NOT re-enqueue — the
   // bootstrap helper is the entry point when the switch flips back on.
   inbox_digest_enabled: false,
+  // OS-3: gates onboarding nudge emails (non-start nudge + practical setup
+  // reminders). When OFF, handlers exit without sending and do NOT
+  // re-enqueue — scheduleOnboardingNudges() is the entry point when
+  // the switch flips back on.
+  onboarding_nudges_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

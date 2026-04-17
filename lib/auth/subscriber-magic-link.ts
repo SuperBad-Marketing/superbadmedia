@@ -130,6 +130,13 @@ export async function redeemSubscriberMagicLink(
     // unreachable; eslint guard
   }
 
+  // Mark email verified — clicking a magic link proves the email is valid.
+  // Only set once (idempotent on repeated redeems for the same user).
+  await database
+    .update(userTable)
+    .set({ emailVerified: now })
+    .where(and(eq(userTable.id, row.user_id), isNull(userTable.emailVerified)));
+
   await database.insert(activity_log).values({
     id: randomUUID(),
     kind: "note",

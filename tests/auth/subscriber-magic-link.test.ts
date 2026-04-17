@@ -203,4 +203,41 @@ describe("redeemSubscriberMagicLink", () => {
     if (outcome.ok) return;
     expect(outcome.reason).toBe("not_found");
   });
+
+  it("sets emailVerified on successful redeem (OS-3)", async () => {
+    const uid = seedUser({ role: "prospect" });
+    const { rawToken } = await issueSubscriberMagicLink({ userId: uid }, testDb);
+    const outcome = await redeemSubscriberMagicLink(rawToken, testDb);
+    expect(outcome.ok).toBe(true);
+
+    const u = testDb
+      .select({ emailVerified: user.emailVerified })
+      .from(user)
+      .where(eq(user.id, uid))
+      .get() as { emailVerified: number | null };
+    expect(u.emailVerified).not.toBeNull();
+    expect(typeof u.emailVerified).toBe("number");
+  });
+
+  it("does not overwrite emailVerified on re-login (OS-3)", async () => {
+    // Create a client with emailVerified already set
+    const uid = seedUser({ role: "client" });
+    const earlyTimestamp = 1_600_000_000_000;
+    testDb
+      .update(user)
+      .set({ emailVerified: earlyTimestamp })
+      .where(eq(user.id, uid))
+      .run();
+
+    const { rawToken } = await issueSubscriberMagicLink({ userId: uid }, testDb);
+    await redeemSubscriberMagicLink(rawToken, testDb);
+
+    const u = testDb
+      .select({ emailVerified: user.emailVerified })
+      .from(user)
+      .where(eq(user.id, uid))
+      .get() as { emailVerified: number | null };
+    // Should NOT have been overwritten — the WHERE clause includes isNull(emailVerified)
+    expect(u.emailVerified).toBe(earlyTimestamp);
+  });
 });

@@ -21,13 +21,21 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // Allow callers to specify a post-login redirect (e.g. credential creation
+  // → /lite/portal). Validated to start with /lite/ to prevent open redirect.
+  const redirectParam = req.nextUrl.searchParams.get("redirect");
+  const redirectTo =
+    redirectParam && redirectParam.startsWith("/lite/")
+      ? redirectParam
+      : "/lite/onboarding";
+
   try {
     await signIn("credentials", {
       subscriberLoginToken: token,
-      redirectTo: "/lite/onboarding",
+      redirectTo,
     });
     // Unreachable — signIn throws NEXT_REDIRECT on success.
-    return NextResponse.redirect(new URL("/lite/onboarding", req.url));
+    return NextResponse.redirect(new URL(redirectTo, req.url));
   } catch (err) {
     // Auth.js throws a typed redirect error that Next.js handles natively
     // when it reaches the framework boundary. Let it bubble.

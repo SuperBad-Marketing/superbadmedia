@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `os-3` — Token portal auth + credential creation + non-start nudge cadence
-**Brief:** needs pre-compilation (OS-2 did not write an OS-3 brief)
-**Model tier:** Sonnet (medium feature build — portal auth + credentials + nudge wiring)
-**Last closed:** OS-2 (2026-04-17) — see `sessions/os-2-handoff.md`
-**Wave status:** Wave 11 in progress. OS-1 + OS-2 complete, OS-3 next.
+**Next session:** `CE-1` — Content Engine data model + schema + helpers
+**Brief:** needs pre-compilation (OS-3 did not write a CE-1 brief)
+**Model tier:** Sonnet (medium feature build — Content Engine foundation)
+**Last closed:** OS-3 (2026-04-17) — see `sessions/os-3-handoff.md`
+**Wave status:** Wave 11 COMPLETE. Wave 12 (Content Engine) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -85,6 +85,7 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 | 2026-04-17 | 5 | Build (UI-13) | Wave 10 UI-13 — Daily 08:00 digest email + voice (**final Wave 10 session — Wave 10 COMPLETE**). `buildDigestContent()` queries silent notifications, groups by category (noise → counts, non-noise → previews). `sendDigestEmail()` via Resend (transactional) to ADMIN_EMAIL. Self-perpetuating handler via DST-safe `next8amMelbourneMs()`. `inbox_digest_enabled` kill switch (default OFF). Migration 0039 seeds 3 digest settings keys (104 total). Voice-treated subject+body. 9 new tests; 1050/1 green; 0 TS errors; build clean; lint 35 baseline. | [ui-13-handoff.md](sessions/ui-13-handoff.md) |
 | 2026-04-17 | 5 | Build (OS-1) | Wave 11 OS-1 — Company auto-creation + onboarding state + welcome screens (**Wave 11 opener**). `createCompanyFromSignup()` (transactional, injectable db, solo-operator fallback). `getOnboardingState()` derived orchestrator (Brand DNA + Rev Seg + wizards + credentials). `generateWelcomeEmail()` Opus + drift-checked (retainer + SaaS variants). `generateWelcomeSummary()` Opus "what we already know" paragraph. Welcome screen at `/lite/portal/welcome` with entry-path branch (trial-shoot grads bypass), Framer fade-up stagger, token-styled. Migration 0040: 8 companies columns + 1 contacts column. 2 new LLM slugs. 15 new tests; 1066/1 green; 0 TS errors; build clean; lint 35 baseline. | [os-1-handoff.md](sessions/os-1-handoff.md) |
 | 2026-04-17 | 5 | Build (OS-2) | Wave 11 OS-2 — Revenue Segmentation UI + practical setup steps + upsell layer. Rev Seg questionnaire at `/lite/portal/onboarding/segmentation` (5 MC questions, card-per-question, progress bar, houseSpring). `submitRevenueSegmentation()` server action (Zod-validated, idempotent). `evaluateUpsellTier()` two-tier model (Warm/Hot) with location gate + revenue + engagement + goal signals. 3 practical setup wizard definitions (contact-details, ad-accounts, content-archive). 2 nudge email handlers (onboarding + practical setup reminders, escalating cadence, self-re-enqueuing). Migration 0041: 14 onboarding settings keys. 42 new tests; 1108/1 green; 0 TS errors; build clean; lint 58 warnings (baseline drift noted). | [os-2-handoff.md](sessions/os-2-handoff.md) |
+| 2026-04-17 | 5 | Build (OS-3) | Wave 11 OS-3 — Token portal auth + credential creation + non-start nudge cadence (**Wave 11 COMPLETE**). `createOnboardingCredentials()` (user record + subscriber magic link + transactional email). `scheduleOnboardingNudges()` + `schedulePracticalSetupReminders()` (kill-switch-gated, idempotent, exported for future callers). `onboarding_nudges_enabled` kill switch. Credential creation page at `/lite/portal/onboarding/credentials` (pre-filled email, confirm button, Framer fade-up). `redeemSubscriberMagicLink` now sets `emailVerified`. Portal token redeem routes first-timers to welcome. No migration. 18 new tests; 1126/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [os-3-handoff.md](sessions/os-3-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 

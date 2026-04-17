@@ -18,6 +18,9 @@
  * Owner: A8.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { contacts } from "@/lib/db/schema/contacts";
 import { redeemMagicLink } from "@/lib/portal/redeem-magic-link";
 import {
   encodePortalSession,
@@ -61,10 +64,24 @@ export async function GET(
     },
   });
 
-  // Determine redirect destination — default to portal root
+  // Determine redirect destination.
+  // First-time visitors who haven't seen the welcome screen go to /welcome.
+  // PATCHES_OWED: os_1_welcome_redirect_wiring — closed by OS-3.
   const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
-  const destination =
-    callbackUrl && callbackUrl.startsWith("/lite/") ? callbackUrl : "/lite/portal";
+  let destination: string;
+  if (callbackUrl && callbackUrl.startsWith("/lite/")) {
+    destination = callbackUrl;
+  } else {
+    const contact = db
+      .select({ onboarding_welcome_seen_at_ms: contacts.onboarding_welcome_seen_at_ms })
+      .from(contacts)
+      .where(eq(contacts.id, session.contactId))
+      .get();
+    destination =
+      contact?.onboarding_welcome_seen_at_ms == null
+        ? "/lite/portal/welcome"
+        : "/lite/portal";
+  }
 
   const response = NextResponse.redirect(new URL(destination, request.url));
 

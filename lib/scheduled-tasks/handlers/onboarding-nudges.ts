@@ -25,6 +25,7 @@ import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { sendEmail } from "@/lib/channels/email/send";
 import { logActivity } from "@/lib/activity-log";
 import settingsRegistry from "@/lib/settings";
+import { killSwitches } from "@/lib/kill-switches";
 
 // ── Payload types ─────────────────────────────────────────────────────
 
@@ -130,6 +131,8 @@ const STEP_LABELS: Record<string, string> = {
 // ── onboarding_nudge_email handler ────────────────────────────────────
 
 async function handleOnboardingNudge(task: ScheduledTaskRow): Promise<void> {
+  if (!killSwitches.onboarding_nudges_enabled) return;
+
   const payload = parseOnboardingNudge(task);
   if (!payload) return;
 
@@ -211,6 +214,8 @@ async function handleOnboardingNudge(task: ScheduledTaskRow): Promise<void> {
 // ── practical_setup_reminder_email handler ─────────────────────────────
 
 async function handlePracticalSetupReminder(task: ScheduledTaskRow): Promise<void> {
+  if (!killSwitches.onboarding_nudges_enabled) return;
+
   const payload = parsePracticalSetup(task);
   if (!payload) return;
 
