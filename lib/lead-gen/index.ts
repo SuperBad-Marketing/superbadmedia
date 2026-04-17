@@ -4,6 +4,7 @@
  * Owner: Lead Generation spec.
  * LG-1: data model + DNC enforcement + sender identity.
  * LG-2: types + discovery source adapters.
+ * LG-3: enrichment adapters + mergeProfiles.
  */
 
 export {
@@ -28,3 +29,13 @@ export {
   searchGoogleMaps,
   searchGoogleAdsTransparency,
 } from "./sources";
+
+export {
+  enrichPageSpeed,
+  enrichDomainAge,
+  enrichInstagram,
+  enrichYouTube,
+  enrichWebsiteScrape,
+  enrichMapsPhotos,
+  mergeProfiles,
+} from "./enrichment";
