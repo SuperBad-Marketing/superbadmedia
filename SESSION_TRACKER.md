@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CE-9` — Ranking snapshot handler (weekly SerpAPI re-queries per published post)
-**Brief:** `content_ranking_snapshot` scheduled-task handler. Reuses CE-2's `fetchSerpResults()`. Writes to `ranking_snapshots` table. Self-perpetuating weekly cadence. Kill-switch-gated on `content_automations_enabled`.
-**Model tier:** Sonnet (medium — handler session)
-**Last closed:** CE-8 (2026-04-17) — see `sessions/ce-8-handoff.md`
-**Wave status:** Wave 12 in progress. CE-1 (data model) + CE-2 (research pipeline) + CE-3 (generation + review + publish) + CE-4 (draft generation handler) + CE-5 (visual generation pipeline) + CE-6 (fan-out handler) + CE-7 (newsletter send handler) + CE-8 (social tab admin surface) complete.
+**Next session:** `CE-10` — Metrics tab + Topics tab admin surfaces
+**Brief:** `/lite/content/metrics` (ranking trends, post count, newsletter stats) + `/lite/content/topics` (passive topic queue, veto, seed keyword management). Two lightweight admin surfaces using existing data from CE-1→CE-9. Reuses `getPostRankingTrend()`, `listQueuedTopics()`, `vetoTopic()`. Extend `ContentTabs` with new active tabs.
+**Model tier:** Sonnet (medium — UI session)
+**Last closed:** CE-9 (2026-04-17) — see `sessions/ce-9-handoff.md`
+**Wave status:** Wave 12 in progress. CE-1 (data model) + CE-2 (research pipeline) + CE-3 (generation + review + publish) + CE-4 (draft generation handler) + CE-5 (visual generation pipeline) + CE-6 (fan-out handler) + CE-7 (newsletter send handler) + CE-8 (social tab admin surface) + CE-9 (ranking snapshot handler) complete.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -94,6 +94,7 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 | 2026-04-17 | 5 | Build (CE-6) | Wave 12 CE-6 — Fan-out scheduled-task handler (social drafts + newsletter rewrite on blog approval). `content_fan_out` handler: best-effort orchestration of `publishBlogPost()` → `generateSocialDrafts()` + `generateVisualAssets()` → `rewriteForNewsletter()`. `rewriteForNewsletter(postId, companyId)` Haiku newsletter rewrite (standalone or digest hybrid). `computeNextSendWindow()` DST-safe send window scheduler. Creates `newsletter_sends` row for CE-7 to deliver. No migration. 15 new tests; 1256/1 green; 0 TS errors; build clean; lint 61 warnings (0 from CE-6). | [ce-6-handoff.md](sessions/ce-6-handoff.md) |
 | 2026-04-17 | 5 | Build (CE-7) | Wave 12 CE-7 — Newsletter send handler (actual email delivery at scheduled window). `content_newsletter_send` handler: hourly self-perpetuating check for due `newsletter_sends` rows, per-recipient delivery via `sendEmail()` with `List-Unsubscribe` + `List-Unsubscribe-Post` headers, `{{READ_MORE_LINK}}` resolution from published blog post URLs, unsubscribe footer injection. Unsubscribe endpoint at `/api/newsletter/unsubscribe` (GET for browser + POST for RFC 8058 one-click). `sendEmail()` extended with optional `headers` param. `ensureNewsletterSendEnqueued()` bootstrap export. No migration. 17 new tests; 1273/1 green; 0 TS errors; build clean; lint 61 warnings (0 from CE-7). | [ce-7-handoff.md](sessions/ce-7-handoff.md) |
 | 2026-04-17 | 5 | Build (CE-8) | Wave 12 CE-8 — Social tab admin surface (publish + download + carousel preview). `markSocialDraftPublished()` library primitive (ready→published + activity log). Social tab at `/lite/content/social` with drafts grouped by blog post, platform badges, status badges, v1 Publish (clipboard + platform compose URL), Download link, carousel preview for Instagram multi-slide. Shared `ContentTabs` component replaces inline tab bar. `publishSocialDraftAction` server action. No migration. 6 new tests; 1279/1 green; 0 TS errors; build clean; lint 65 warnings (0 from CE-8). | [ce-8-handoff.md](sessions/ce-8-handoff.md) |
+| 2026-04-17 | 5 | Build (CE-9) | Wave 12 CE-9 — Ranking snapshot handler (weekly SerpAPI re-queries per published post). `takeRankingSnapshots(companyId)` pipeline: published posts × SerpAPI → domain matching → `ranking_snapshots` row per post. `getPostRankingTrend(blogPostId)` derives entry/current/peak/direction from history. Self-perpetuating weekly handler + `ensureRankingSnapshotEnqueued()` bootstrap. `content_ranking_snapshot_taken` activity kind. No migration. 22 new tests; 1301/1 green; 0 TS errors; build clean; lint 65 warnings (0 from CE-9). | [ce-9-handoff.md](sessions/ce-9-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 

@@ -153,6 +153,7 @@ export const ACTIVITY_LOG_KINDS = [
   "content_outreach_matched",
   "content_seed_keyword_added",
   "content_seed_keyword_removed",
+  "content_ranking_snapshot_taken",
   // --- Client Context Engine — non-active_strategy (11) ---
   "context_summary_regenerated",
   "action_item_extracted",

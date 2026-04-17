@@ -99,5 +99,12 @@ export { ensureNewsletterSendEnqueued } from "@/lib/scheduled-tasks/handlers/con
 export { markSocialDraftPublished } from "./social-publish";
 export type { MarkPublishedResult } from "./social-publish";
 
+// Ranking snapshots (CE-9)
+export { takeRankingSnapshots, getPostRankingTrend } from "./ranking-snapshot";
+export type { RankingSnapshotResult, PostRankingTrend } from "./ranking-snapshot";
+
+// Ranking snapshot bootstrap (CE-9)
+export { ensureRankingSnapshotEnqueued } from "@/lib/scheduled-tasks/handlers/content-ranking-snapshot";
+
 // Asset storage (CE-5)
 export { storeContentAsset, readContentAsset } from "./asset-storage";
