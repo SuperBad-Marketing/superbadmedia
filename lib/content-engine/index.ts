@@ -115,3 +115,25 @@ export type { ContentMetrics } from "./metrics";
 
 // Asset storage (CE-5)
 export { storeContentAsset, readContentAsset } from "./asset-storage";
+
+// Subscriber list management (CE-11)
+export {
+  listSubscribers,
+  getListHealth,
+  importSubscribersFromCsv,
+  exportSubscribersCsv,
+  generateEmbedCode,
+} from "./subscriber-list";
+export type {
+  SubscriberListItem,
+  ListHealthStats,
+  CsvImportResult,
+} from "./subscriber-list";
+
+// Fleet overview (CE-11)
+export { getFleetSummary, getFleetList } from "./fleet-overview";
+export type {
+  FleetSummary,
+  FleetSubscriberRow,
+  EngineStatus,
+} from "./fleet-overview";

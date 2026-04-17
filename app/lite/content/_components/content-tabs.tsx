@@ -11,7 +11,7 @@ const TABS = [
   { label: "Social", href: "/lite/content/social", active: true },
   { label: "Metrics", href: "/lite/content/metrics", active: true },
   { label: "Topics", href: "/lite/content/topics", active: true },
-  { label: "List", href: null, active: false },
+  { label: "List", href: "/lite/content/list", active: true },
 ] as const;
 
 interface ContentTabsProps {
