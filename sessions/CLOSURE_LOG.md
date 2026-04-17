@@ -4,6 +4,13 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## LG-4 (2026-04-17) — Lead Gen orchestrator (daily run handler, dedup, warmup stub)
+
+**Phase:** 5 — Build Execution. **Wave 13 LG-4 CLOSED 2026-04-17** — Orchestrator + cron handler. `enforceWarmupCap()` stub (cap=10, remaining=10, LG-6 replaces with real ramp). `deduplicateCandidates()` (3-layer: lead_candidates domain within window, companies+deals join, isBlockedFromOutreach DNC). `runLeadGenDaily(trigger)` steps 1–7 + 12: kill-switch → warmup cap → settings → parallel source adapters (Promise.allSettled) → dedup → parallel per-candidate enrichment → stub scoring (both tracks return qualifies=false, LG-5 replaces) → top-N selection → lead_run insert. POST `/api/cron/lead-gen-daily` with CRON_SECRET guard. CRON_SECRET added to .env.example (G1 gap patched in-session). 18 new tests; 174 test files green; 0 TS errors; build + lint clean. Rollback: git-revertable. 2 PATCHES_OWED. See `sessions/lg-4-handoff.md`.
+**Protocol:** `START_HERE.md` § Phase 5 + `AUTONOMY_PROTOCOL.md` §1 (G0–G12).
+
+---
+
 ## LG-3 (2026-04-17) — Enrichment pipeline part 2 (6 remaining signal sources)
 
 **Phase:** 5 — Build Execution. **Wave 13 LG-3 CLOSED 2026-04-17** — 6 enrichment adapters + mergeProfiles. `pagespeed.ts`: Google PageSpeed Insights API v5, populates `website.pagespeed_performance_score`, logs `pagespeed:runPagespeed`. `domain-age.ts`: RDAP public API via rdap.org (no key required), populates `website.domain_age_years`, logs `whois:domain_lookup`. `instagram.ts`: cheerio homepage scrape for username + Meta Graph API, populates `instagram.*`, logs `meta:instagram_business_discovery` (`posts_last_30d` always null — PATCHES_OWED). `youtube.ts`: YouTube Data API v3 (search + stats + playlist), populates `youtube.*` incl. `uploads_last_90d`. `website-scrape.ts`: cheerio scrape of 4 pages, populates `has_about_page`, `has_pricing_page`, `team_size_signal`, `stated_pricing_tier` (no external_call_log — free fetch). `maps-photos.ts`: SerpAPI google_maps, populates `maps.photo_count` + `maps.last_photo_date` with empty defaults so mergeProfiles preserves LG-2 Maps data. `enrichment/index.ts`: barrel + `mergeProfiles()` — deep field-level merge with meaningful-wins semantics (null/0/"unknown"/"" don't overwrite). Pre-existing build fix: removed invalid `export { computeSaasExitMath }` from subscription page (PATCHES_OWED closed). 42 tests. G8: 0 TS errors, 1463 tests / 1 skipped (173 files), build clean, lint 0 errors. Rollback: git-revertable. See `sessions/lg-3-handoff.md`.

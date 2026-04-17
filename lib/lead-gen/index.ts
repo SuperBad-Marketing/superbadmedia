@@ -39,3 +39,11 @@ export {
   enrichMapsPhotos,
   mergeProfiles,
 } from "./enrichment";
+
+export { enforceWarmupCap } from "./warmup";
+export type { WarmupCapResult } from "./warmup";
+
+export { deduplicateCandidates } from "./dedup";
+
+export { runLeadGenDaily } from "./orchestrator";
+export type { LeadRunSummary } from "./orchestrator";
