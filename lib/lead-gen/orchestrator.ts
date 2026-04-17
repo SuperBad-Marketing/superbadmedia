@@ -28,25 +28,7 @@ import {
 import { enforceWarmupCap } from "./warmup";
 import { deduplicateCandidates } from "./dedup";
 import type { DiscoveryCandidate, DiscoveryResult, DiscoverySearchInput, ViabilityProfile } from "./types";
-
-// ── Scoring stubs ─────────────────────────────────────────────────────────────
-// TODO: LG-5 will replace these with the real qualification floor + scoring rubric.
-
-interface ScoreResult {
-  score: number;
-  breakdown: Record<string, number>;
-  qualifies: boolean;
-}
-
-function scoreForSaasTrack(_profile: Partial<ViabilityProfile>): ScoreResult {
-  // TODO: LG-5 replaces this stub
-  return { score: 0, breakdown: {}, qualifies: false };
-}
-
-function scoreForRetainerTrack(_profile: Partial<ViabilityProfile>): ScoreResult {
-  // TODO: LG-5 replaces this stub
-  return { score: 0, breakdown: {}, qualifies: false };
-}
+import { scoreForSaasTrack, scoreForRetainerTrack } from "./scoring";
 
 // ── Run summary ───────────────────────────────────────────────────────────────
 
@@ -209,8 +191,8 @@ export async function runLeadGenDaily(
     profile: Partial<ViabilityProfile>;
     winningScore: number;
     winningTrack: "saas" | "retainer";
-    saasResult: ScoreResult;
-    retainerResult: ScoreResult;
+    saasResult: ReturnType<typeof scoreForSaasTrack>;
+    retainerResult: ReturnType<typeof scoreForRetainerTrack>;
   }
 
   const qualifiedCandidates: ScoredCandidate[] = [];

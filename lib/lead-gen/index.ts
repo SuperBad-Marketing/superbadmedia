@@ -47,3 +47,12 @@ export { deduplicateCandidates } from "./dedup";
 
 export { runLeadGenDaily } from "./orchestrator";
 export type { LeadRunSummary } from "./orchestrator";
+
+export {
+  scoreForSaasTrack,
+  scoreForRetainerTrack,
+  assignTrack,
+  SAAS_QUALIFICATION_FLOOR,
+  RETAINER_QUALIFICATION_FLOOR,
+} from "./scoring";
+export type { ScoringBreakdown } from "./scoring";

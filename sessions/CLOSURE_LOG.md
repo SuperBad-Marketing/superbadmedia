@@ -4,6 +4,13 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## LG-5 (2026-04-17) — Lead Gen scoring engine
+
+**Phase:** 5 — Build Execution. **Wave 13 LG-5 CLOSED 2026-04-17** — Pure scoring engine. `scoreForSaasTrack()`: 5 signals, max 100 (team_size:30, low_ad_spend:25, domain_age:20, pagespeed×0.15:15, has_about_page:10). `scoreForRetainerTrack()`: 10 signals, max 100 (meta_ad_spend:25, instagram_followers:15, google_ads:10, youtube_subscribers:10, domain_age:10, maps_review_count:8, maps_rating:5, pagespeed×0.07:7, has_pricing_page:5, team_size:5). `assignTrack()`: winner-takes-all per spec §6.3. `SAAS_QUALIFICATION_FLOOR=40`, `RETAINER_QUALIFICATION_FLOOR=55`. All three functions pure (no I/O). `softAdjustment` clamped via `clamp(raw+adj, 0, 100)`. Missing signals degrade to 0. Orchestrator stubs removed; scoring imported from `./scoring`. Pre-existing TS cast errors in lg4-orchestrator.test.ts fixed (as unknown as). 11 new tests; 175 test files green; 1486 passed; 0 TS errors; build + lint clean. Rollback: git-revertable. See `sessions/lg-5-handoff.md`.
+**Protocol:** `START_HERE.md` § Phase 5 + `AUTONOMY_PROTOCOL.md` §1 (G0–G12).
+
+---
+
 ## LG-4 (2026-04-17) — Lead Gen orchestrator (daily run handler, dedup, warmup stub)
 
 **Phase:** 5 — Build Execution. **Wave 13 LG-4 CLOSED 2026-04-17** — Orchestrator + cron handler. `enforceWarmupCap()` stub (cap=10, remaining=10, LG-6 replaces with real ramp). `deduplicateCandidates()` (3-layer: lead_candidates domain within window, companies+deals join, isBlockedFromOutreach DNC). `runLeadGenDaily(trigger)` steps 1–7 + 12: kill-switch → warmup cap → settings → parallel source adapters (Promise.allSettled) → dedup → parallel per-candidate enrichment → stub scoring (both tracks return qualifies=false, LG-5 replaces) → top-N selection → lead_run insert. POST `/api/cron/lead-gen-daily` with CRON_SECRET guard. CRON_SECRET added to .env.example (G1 gap patched in-session). 18 new tests; 174 test files green; 0 TS errors; build + lint clean. Rollback: git-revertable. 2 PATCHES_OWED. See `sessions/lg-4-handoff.md`.

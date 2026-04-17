@@ -148,7 +148,7 @@ describe("deduplicateCandidates", () => {
         where: vi.fn().mockResolvedValue([]),
         innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
       })),
-    } as ReturnType<typeof db.select>);
+    } as unknown as ReturnType<typeof db.select>);
   });
 
   it("returns all candidates when no existing domains and no DNC blocks", async () => {
@@ -172,13 +172,13 @@ describe("deduplicateCandidates", () => {
           where: vi.fn().mockResolvedValue([{ domain: "acme.com.au" }]),
           innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
         })),
-      } as ReturnType<typeof db.select>)
+      } as unknown as ReturnType<typeof db.select>)
       .mockReturnValueOnce({
         from: vi.fn(() => ({
           where: vi.fn().mockResolvedValue([]),
           innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
         })),
-      } as ReturnType<typeof db.select>);
+      } as unknown as ReturnType<typeof db.select>);
 
     const candidates = [makeCandidate("acme.com.au"), makeCandidate("beta.com.au")];
     const result = await deduplicateCandidates(candidates, 30);
@@ -193,7 +193,7 @@ describe("deduplicateCandidates", () => {
           where: vi.fn().mockResolvedValue([]),
           innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
         })),
-      } as ReturnType<typeof db.select>)
+      } as unknown as ReturnType<typeof db.select>)
       .mockReturnValueOnce({
         from: vi.fn(() => ({
           where: vi.fn().mockResolvedValue([]),
@@ -201,7 +201,7 @@ describe("deduplicateCandidates", () => {
             where: vi.fn().mockResolvedValue([{ domain: "acme.com.au" }]),
           })),
         })),
-      } as ReturnType<typeof db.select>);
+      } as unknown as ReturnType<typeof db.select>);
 
     const candidates = [makeCandidate("acme.com.au"), makeCandidate("beta.com.au")];
     const result = await deduplicateCandidates(candidates, 30);
@@ -266,13 +266,13 @@ describe("runLeadGenDaily", () => {
     // Reset DB mocks
     vi.mocked(db.insert).mockReturnValue({
       values: vi.fn().mockResolvedValue(undefined),
-    } as ReturnType<typeof db.insert>);
+    } as unknown as ReturnType<typeof db.insert>);
     vi.mocked(db.select).mockReturnValue({
       from: vi.fn(() => ({
         where: vi.fn().mockResolvedValue([]),
         innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
       })),
-    } as ReturnType<typeof db.select>);
+    } as unknown as ReturnType<typeof db.select>);
 
     // Reset DNC
     vi.mocked(isBlockedFromOutreach).mockResolvedValue({ blocked: false, reason: null });
