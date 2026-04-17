@@ -13,6 +13,9 @@ const CLIENT_SINGLETON = new Anthropic();
 export interface InvokeLlmTextOptions {
   job: ModelJobSlug;
   prompt: string;
+  /** Optional system message — used when Brand DNA or other context must be
+   *  separated from the user prompt (discipline #44). */
+  system?: string;
   maxTokens: number;
 }
 
@@ -25,11 +28,13 @@ export interface InvokeLlmTextOptions {
 export async function invokeLlmText({
   job,
   prompt,
+  system,
   maxTokens,
 }: InvokeLlmTextOptions): Promise<string> {
   const response = await CLIENT_SINGLETON.messages.create({
     model: modelFor(job),
     max_tokens: maxTokens,
+    ...(system ? { system } : {}),
     messages: [{ role: "user", content: prompt }],
   });
   return response.content.find((b) => b.type === "text")?.text?.trim() ?? "";

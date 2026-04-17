@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CE-2` — Keyword research pipeline + rankability scoring + topic queue
-**Brief:** needs pre-compilation (CE-1 did not write a CE-2 brief)
-**Model tier:** Sonnet (medium feature build — SerpAPI + Haiku scoring)
-**Last closed:** CE-1 (2026-04-17) — see `sessions/ce-1-handoff.md`
-**Wave status:** Wave 12 in progress. CE-1 complete (data model).
+**Next session:** `CE-4` — Draft generation scheduled-task handler (tier-paced automatic generation)
+**Brief:** needs pre-compilation (CE-3 did not write a CE-4 brief)
+**Model tier:** Sonnet (medium — scheduled-task handler wiring, consumes CE-3's `generateBlogPost()`)
+**Last closed:** CE-3 (2026-04-17) — see `sessions/ce-3-handoff.md`
+**Wave status:** Wave 12 in progress. CE-1 (data model) + CE-2 (research pipeline) + CE-3 (generation + review + publish) complete.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -87,6 +87,8 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 | 2026-04-17 | 5 | Build (OS-2) | Wave 11 OS-2 — Revenue Segmentation UI + practical setup steps + upsell layer. Rev Seg questionnaire at `/lite/portal/onboarding/segmentation` (5 MC questions, card-per-question, progress bar, houseSpring). `submitRevenueSegmentation()` server action (Zod-validated, idempotent). `evaluateUpsellTier()` two-tier model (Warm/Hot) with location gate + revenue + engagement + goal signals. 3 practical setup wizard definitions (contact-details, ad-accounts, content-archive). 2 nudge email handlers (onboarding + practical setup reminders, escalating cadence, self-re-enqueuing). Migration 0041: 14 onboarding settings keys. 42 new tests; 1108/1 green; 0 TS errors; build clean; lint 58 warnings (baseline drift noted). | [os-2-handoff.md](sessions/os-2-handoff.md) |
 | 2026-04-17 | 5 | Build (OS-3) | Wave 11 OS-3 — Token portal auth + credential creation + non-start nudge cadence (**Wave 11 COMPLETE**). `createOnboardingCredentials()` (user record + subscriber magic link + transactional email). `scheduleOnboardingNudges()` + `schedulePracticalSetupReminders()` (kill-switch-gated, idempotent, exported for future callers). `onboarding_nudges_enabled` kill switch. Credential creation page at `/lite/portal/onboarding/credentials` (pre-filled email, confirm button, Framer fade-up). `redeemSubscriberMagicLink` now sets `emailVerified`. Portal token redeem routes first-timers to welcome. No migration. 18 new tests; 1126/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [os-3-handoff.md](sessions/os-3-handoff.md) |
 | 2026-04-17 | 5 | Build (CE-1) | Wave 12 CE-1 — Content Engine data model + schema + helpers (**Wave 12 opener**). 8 new tables (`content_topics` + Hiring Pipeline claimable columns, `blog_posts`, `blog_post_feedback`, `social_drafts`, `newsletter_subscribers`, `newsletter_sends`, `ranking_snapshots`, `content_engine_config`). 3 kill switches (`content_automations_enabled`, `content_newsletter_enabled`, `content_outreach_enabled`). 5 settings keys (123 total). Migration 0042. 22 new tests; 1148/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [ce-1-handoff.md](sessions/ce-1-handoff.md) |
+| 2026-04-17 | 5 | Build (CE-2) | Wave 12 CE-2 — Keyword research pipeline + rankability scoring + topic queue. Recovery session (prior session crashed mid-build). `runKeywordResearch()` full pipeline (seed keywords → SerpAPI → rankability → Haiku outline → topic queue). `scoreKeywordRankability()` 0–100 composite (authority heuristic + content gap bonus). `analyseContentGaps()` fetch+cheerio+Haiku. `generateTopicOutline()` Haiku with Brand DNA tags. `listQueuedTopics()` / `vetoTopic()` / `pickNextTopic()` queue management. `getCredential()` shared vault-backed credential helper. `content_keyword_research` scheduled-task handler. 433-entry high-authority domains dataset. cheerio installed. 27 new tests; 1175/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [ce-2-handoff.md](sessions/ce-2-handoff.md) |
+| 2026-04-17 | 5 | Build (CE-3) | Wave 12 CE-3 — Blog generation (Opus) + split-pane review surface + rejection chat + publishing. `generateBlogPost()` Opus pipeline with Brand DNA as system context (discipline #44), drift check + auto-regen. `approveBlogPost()` + `rejectAndRegenerate()` + feedback chat. `publishBlogPost()` with domain resolution + URL assignment + internal links. Public blog route `/blog/[slug]` with full SEO package (meta, OG, JSON-LD, canonical). Admin review surface `/lite/content` + `/lite/content/review/[postId]` split-pane. `invokeLlmText` system-message support (owed patch closed). Content nav item added. No migration. 29 new tests; 1204/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [ce-3-handoff.md](sessions/ce-3-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 

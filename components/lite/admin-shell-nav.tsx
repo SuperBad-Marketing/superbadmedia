@@ -5,6 +5,7 @@ import {
   Inbox,
   LayoutGrid,
   type LucideIcon,
+  Newspaper,
   Package,
   Settings,
   TriangleAlert,
@@ -68,6 +69,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Building2,
     status: "soon",
     matchPrefix: null,
+  },
+  {
+    id: "content",
+    label: "Content",
+    href: "/lite/content",
+    icon: Newspaper,
+    status: "live",
+    matchPrefix: "/lite/content",
   },
   {
     id: "products",
