@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `LG-7` — Lead Gen admin UI (runs log + manual trigger)
-**Brief:** `sessions/lg-7-brief.md`
+**Next session:** `LG-8` — Lead Gen DNC management surface (Settings → Lead Generation → Do Not Contact)
+**Brief:** `sessions/lg-8-brief.md`
 **Model tier:** Sonnet (standard build session)
-**Last closed:** LG-6 (2026-04-17) — see `sessions/lg-6-handoff.md`
-**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 complete (schema). LG-2 complete (3 source adapters + types). LG-3 complete (6 enrichers + mergeProfiles). LG-4 complete (orchestrator + cron handler + dedup + warmup stub). LG-5 complete (scoring engine — real qualification floors, track assignment). LG-6 complete (warmup ramp — real enforceWarmupCap reading resend_warmup_state). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
+**Last closed:** LG-7 (2026-04-17) — see `sessions/lg-7-handoff.md`
+**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 complete (schema). LG-2 complete (3 source adapters + types). LG-3 complete (6 enrichers + mergeProfiles). LG-4 complete (orchestrator + cron handler + dedup + warmup stub). LG-5 complete (scoring engine — real qualification floors, track assignment). LG-6 complete (warmup ramp — real enforceWarmupCap reading resend_warmup_state). LG-7 complete (admin UI — runs log + manual trigger). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
