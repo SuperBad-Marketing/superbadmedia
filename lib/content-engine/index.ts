@@ -41,6 +41,9 @@ export {
 } from "./review";
 export type { FeedbackMessage, ApproveResult, RejectResult } from "./review";
 
+// Scheduled generation bootstrap (CE-4)
+export { ensureContentGenerationEnqueued } from "@/lib/scheduled-tasks/handlers/content-generate-draft";
+
 // Publishing (CE-3)
 export {
   publishBlogPost,
