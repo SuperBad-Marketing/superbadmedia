@@ -243,9 +243,9 @@ function AtCapHero({
             className="border-foreground/10 rounded-md border px-5 py-4 text-sm"
             data-testid="top-tier-notice"
           >
-            <div className="font-semibold">You're already on the top tier.</div>
+            <div className="font-semibold">You&apos;re already on the top tier.</div>
             <div className="text-foreground/70 mt-1">
-              Have a word with us and we'll sort something custom.
+              Have a word with us and we&apos;ll sort something custom.
             </div>
           </div>
         )}
@@ -294,7 +294,7 @@ function UpgradeCard({
           Done
         </span>
         <span className="font-heading text-2xl font-semibold md:text-3xl">
-          New tier's live.
+          New tier&apos;s live.
         </span>
         <span className="text-sm opacity-80">
           {productName} · {state.tierName}. The next invoice will pick up the

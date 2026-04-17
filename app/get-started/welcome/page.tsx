@@ -54,7 +54,7 @@ export default async function WelcomePage({
       data-testid="welcome-page"
     >
       <p className="text-foreground/50 mb-2 text-xs uppercase tracking-[0.22em]">
-        We're in
+        We&apos;re in
       </p>
       <h1 className="font-heading mb-4 text-3xl font-semibold md:text-4xl">
         Payment received.

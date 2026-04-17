@@ -252,6 +252,7 @@ export default async function CompanyAdminPage({
         .get(),
     ]);
 
+  // eslint-disable-next-line react-hooks/purity -- server component, runs once
   const nowMs = Date.now();
   const wonCount = dealRows.filter((d) => d.stage === "won").length;
   const openDealCount = dealRows.filter(

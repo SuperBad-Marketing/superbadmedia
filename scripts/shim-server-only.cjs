@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- CJS shim, require() is intentional */
 // Dev-only shim: satisfies the `server-only` import for tsx scripts
 // (seed, debug). Next.js replaces server-only at bundle time; tsx has
 // no bundler, so the package's unconditional `throw` blows up any

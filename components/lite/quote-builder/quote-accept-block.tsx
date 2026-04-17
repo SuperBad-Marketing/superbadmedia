@@ -246,7 +246,7 @@ function ConfirmationScreen(props: {
         className="mt-4 text-base italic"
         style={{ fontFamily: "var(--font-narrative)" }}
       >
-        That's the hard bit done.
+        That&apos;s the hard bit done.
       </p>
       <p className="mt-6 text-base">
         {props.paymentMode === "stripe"

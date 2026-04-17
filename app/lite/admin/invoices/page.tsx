@@ -90,6 +90,7 @@ export default async function InvoicesAdminPage({
     company_name: r.company_name,
   }));
 
+  // eslint-disable-next-line react-hooks/purity -- server component, runs once
   const now = Date.now();
   const summary: InvoiceIndexSummary = computeInvoiceSummary(indexRows, now);
   const overdueCount = indexRows.filter((r) => r.status === "overdue").length;

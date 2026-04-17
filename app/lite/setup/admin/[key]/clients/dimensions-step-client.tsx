@@ -78,7 +78,7 @@ export function DimensionsStepClient({
       <div className="space-y-1">
         <p className="text-sm text-muted-foreground">
           A dimension is whatever you meter on — API calls, active campaigns,
-          stored clips. Pick 1–3. You'll set per-tier limits next.
+          stored clips. Pick 1–3. You&apos;ll set per-tier limits next.
         </p>
       </div>
 

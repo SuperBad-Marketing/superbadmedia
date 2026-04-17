@@ -89,6 +89,7 @@ export default async function SubscriptionCancelPage() {
     );
   }
 
+  // eslint-disable-next-line react-hooks/purity -- server component, runs once
   const nowMs = Date.now();
   const isPaused = deal.subscription_state === "paused";
   const preTerm =

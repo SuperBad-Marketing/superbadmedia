@@ -116,6 +116,7 @@ export default async function InboxPage({
 
   const sendEnabled = killSwitches.inbox_send_enabled;
   const llmEnabled = killSwitches.llm_calls_enabled;
+  // eslint-disable-next-line react-hooks/purity -- server component, runs once
   const now = Date.now();
 
   const threadDetailNode = detail ? (

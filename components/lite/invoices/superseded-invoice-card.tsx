@@ -46,7 +46,7 @@ export function SupersededInvoiceCard(props: {
               className="mt-4 italic"
               style={{ fontFamily: "var(--font-narrative, serif)" }}
             >
-              Andy's sent a fresh one.
+              Andy&apos;s sent a fresh one.
             </p>
             <Link
               href={`/lite/invoices/${props.replacementToken}`}

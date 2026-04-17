@@ -60,6 +60,7 @@ export default async function PipelinePage() {
     redirect("/api/auth/signin");
   }
 
+  // eslint-disable-next-line react-hooks/purity -- server component, runs once
   const nowMs = Date.now();
   const thresholds = await loadThresholds();
   const snoozeDefaultDays = await settingsRegistry.get(

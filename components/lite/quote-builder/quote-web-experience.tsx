@@ -166,7 +166,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
               className="text-lg italic"
               style={{ color: "color-mix(in srgb, var(--brand-charcoal) 50%, transparent)" }}
             >
-              We'll fill this in once we've talked.
+              We&apos;ll fill this in once we&apos;ve talked.
             </p>
           )}
         </Section>

@@ -79,8 +79,8 @@ export function PastDueCardUpdateClient(props: { productName: string }) {
   return (
     <div className="flex flex-col gap-4" data-testid="past-due-card-update">
       <p className="text-foreground/80 text-base leading-relaxed">
-        Stripe couldn't charge your card for {props.productName}. Pop a new one on file and
-        Stripe'll retry within the hour.
+        Stripe couldn&apos;t charge your card for {props.productName}. Pop a new one on file and
+        Stripe&apos;ll retry within the hour.
       </p>
       <AnimatePresence mode="wait" initial={false}>
         {phase === "loading" && (
@@ -150,7 +150,7 @@ export function PastDueCardUpdateClient(props: { productName: string }) {
             data-testid="past-due-done"
           >
             <p className="text-foreground text-base font-semibold">
-              Card's on file. Stripe'll retry within the hour.
+              Card&apos;s on file. Stripe&apos;ll retry within the hour.
             </p>
             <p className="text-foreground/60 text-sm">
               This page refreshes in a minute.

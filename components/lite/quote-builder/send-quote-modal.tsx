@@ -242,7 +242,7 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
                 />
               ))}
               <div className="text-xs text-muted-foreground">
-                Sign-off "Andy" + a "Read your quote →" button are appended automatically.
+                Sign-off &quot;Andy&quot; + a &quot;Read your quote →&quot; button are appended automatically.
               </div>
             </div>
 

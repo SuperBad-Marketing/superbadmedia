@@ -203,9 +203,8 @@ async function finaliseTerminal(
  * `<task_type>:<deal_id>[:<suffix>]` (e.g.
  * `subscription_pause_resume:<deal_id>`). Runs inside the caller's tx.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function cancelPendingDealTasks(
-  txDb: any,
+  txDb: any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Drizzle tx type is opaque
   dealId: string,
   nowMs: number,
 ): void {

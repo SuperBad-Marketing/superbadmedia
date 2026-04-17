@@ -89,7 +89,7 @@ export function PaymentElementHost(props: PaymentElementHostProps) {
         className="text-sm italic"
         style={{ color: "var(--brand-red)", fontFamily: "var(--font-narrative)" }}
       >
-        Couldn't set up payment — {error}. Reach Andy at andy@superbadmedia.com.au.
+        Couldn&apos;t set up payment — {error}. Reach Andy at andy@superbadmedia.com.au.
       </p>
     );
   }

@@ -60,6 +60,7 @@ export default async function PublicQuotePage({
   const isStaleExpired =
     (quote.status === "sent" || quote.status === "viewed") &&
     quote.expires_at_ms != null &&
+    // eslint-disable-next-line react-hooks/purity -- server component, runs once
     quote.expires_at_ms < Date.now();
 
   if (isStaleExpired) {

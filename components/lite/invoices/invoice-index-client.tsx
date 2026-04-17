@@ -94,6 +94,7 @@ export function InvoiceIndexClient(props: Props) {
   const searchParams = useSearchParams();
   const [filter, setFilter] = React.useState<InvoiceIndexFilter>(initialFilter);
   const [search, setSearch] = React.useState("");
+  const [now] = React.useState(() => Date.now());
   const drawerOpen = initialFocusedId !== null;
 
   React.useEffect(() => {
@@ -263,7 +264,7 @@ export function InvoiceIndexClient(props: Props) {
                 {visible.map((r) => {
                   const isStale =
                     r.status === "overdue" &&
-                    Date.now() - r.due_at_ms > STALE_MS;
+                    now - r.due_at_ms > STALE_MS;
                   return (
                     <motion.tr
                       key={r.id}

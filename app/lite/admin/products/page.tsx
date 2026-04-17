@@ -323,7 +323,7 @@ function EmptyProducts() {
         No products yet.
       </p>
       <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
-        the popcorn machine's cold.
+        the popcorn machine&apos;s cold.
       </p>
       <Link
         href="/lite/setup/admin/saas-product-setup"

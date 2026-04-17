@@ -100,9 +100,8 @@ export async function withdrawQuote(
  * `quote_pdf_render:<id>`, `quote_settle_email:<id>`, etc.). Runs
  * inside a caller-supplied transaction.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function cancelPendingQuoteTasks(
-  txDb: any,
+  txDb: any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Drizzle tx type is opaque
   quoteId: string,
   nowMs: number,
 ): void {

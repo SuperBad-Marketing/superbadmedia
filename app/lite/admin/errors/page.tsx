@@ -78,6 +78,7 @@ export default async function ErrorsPage() {
     redirect("/api/auth/signin");
   }
 
+  // eslint-disable-next-line react-hooks/purity -- server component, runs once
   const windowStartMs = Date.now() - RESOLVED_WINDOW_MS;
   const tickets = await db
     .select()

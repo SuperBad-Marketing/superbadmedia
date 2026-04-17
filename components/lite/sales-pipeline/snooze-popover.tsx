@@ -83,6 +83,7 @@ export function SnoozePopover({
   );
 
   const commitPreset = (days: number) => {
+    // eslint-disable-next-line react-hooks/purity -- called on click, not during render
     commit(addDays(Date.now(), days));
   };
 
@@ -153,6 +154,7 @@ export function SnoozePopover({
           <input
             type="date"
             value={customDate}
+            // eslint-disable-next-line react-hooks/purity -- stable within a single render
             min={toDateInputValue(addDays(Date.now(), 1))}
             onChange={(e) => setCustomDate(e.target.value)}
             disabled={pending}

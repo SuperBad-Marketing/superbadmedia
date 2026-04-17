@@ -208,10 +208,10 @@ export default async function EditQuotePage({
           <p className="mt-1 text-[14px] text-[color:var(--color-neutral-300)]">
             The window closed on{" "}
             {quote.expires_at_ms ? formatDate(quote.expires_at_ms) : "this quote"}.
-            Supersede with a fresh draft if it's still live.
+            Supersede with a fresh draft if it&apos;s still live.
           </p>
           <p className="mt-1 font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-brand-pink)]">
-            dormant · dates don't negotiate.
+            dormant · dates don&apos;t negotiate.
           </p>
         </AlertBanner>
       ) : null}
