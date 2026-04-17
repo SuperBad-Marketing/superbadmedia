@@ -52,6 +52,10 @@ Thumbs.db
 # Local vision / pitch artefacts (kept on disk, not repo)
 superbad-lite-vision.html
 
+# Session screenshots + generated PDFs (re-renderable, don't bloat repo)
+/*.png
+/*.pdf
+
 # SQLite dev DB
 *.db
 *.db-shm
