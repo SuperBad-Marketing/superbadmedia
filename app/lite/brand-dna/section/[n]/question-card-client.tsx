@@ -27,6 +27,7 @@ import { motion } from "framer-motion";
 
 import { houseSpring } from "@/lib/design-tokens";
 import type { Question } from "@/lib/brand-dna/question-bank";
+import { resolveQuestionText } from "@/lib/brand-dna/question-bank";
 
 import { OptionCard } from "@/components/lite/brand-dna/option-card";
 
@@ -50,6 +51,7 @@ export function QuestionCardClient({
   questionIndex,
   totalInSection,
   sectionTitle,
+  track,
   submitAction,
 }: QuestionCardClientProps) {
   const [selected, setSelected] = React.useState<string | null>(null);
@@ -138,7 +140,7 @@ export function QuestionCardClient({
             margin: 0,
           }}
         >
-          {question.text}
+          {resolveQuestionText(question, (track === "business" ? "business" : "founder") as "founder" | "business")}
         </h2>
 
         <div

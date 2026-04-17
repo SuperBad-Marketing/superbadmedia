@@ -122,13 +122,14 @@ const { killSwitches, resetKillSwitchesToDefaults } = await import(
 // ── QUESTION_BANK structure ───────────────────────────────────────────────────
 
 describe("QUESTION_BANK structure", () => {
-  it("exports exactly 15 questions (3 per section × 5 sections)", () => {
-    expect(QUESTION_BANK).toHaveLength(15);
+  it("exports 98 core questions across 5 sections", () => {
+    expect(QUESTION_BANK).toHaveLength(98);
   });
 
-  it("has exactly 3 questions in each section", () => {
+  it("has 19–20 questions per section", () => {
+    const expected: Record<number, number> = { 1: 19, 2: 20, 3: 20, 4: 19, 5: 20 };
     for (const s of [1, 2, 3, 4, 5] as const) {
-      expect(getQuestionsForSection(s)).toHaveLength(3);
+      expect(getQuestionsForSection(s)).toHaveLength(expected[s]);
     }
   });
 
@@ -359,10 +360,10 @@ describe("submitAnswer", () => {
 
     const fd = new FormData();
     fd.set("profileId", answerProfileId);
-    fd.set("questionId", "s3_001");
+    fd.set("questionId", "s3_q01");
     fd.set("section", "3");
     fd.set("selectedOption", "a");
-    fd.set("tagsAwarded", JSON.stringify(["authority", "results"]));
+    fd.set("tagsAwarded", JSON.stringify(["gut_first", "risk_appetite", "independence"]));
 
     await expectAnyRedirect(() => submitAnswer(fd));
 
@@ -372,7 +373,7 @@ describe("submitAnswer", () => {
       .where(
         and(
           eq(brand_dna_answers.profile_id, answerProfileId),
-          eq(brand_dna_answers.question_id, "s3_001"),
+          eq(brand_dna_answers.question_id, "s3_q01"),
         ),
       );
     expect(rows).toHaveLength(1);
@@ -385,10 +386,10 @@ describe("submitAnswer", () => {
 
     const fd = new FormData();
     fd.set("profileId", answerProfileId);
-    fd.set("questionId", "s3_002");
+    fd.set("questionId", "s3_q02");
     fd.set("section", "3");
     fd.set("selectedOption", "c");
-    fd.set("tagsAwarded", JSON.stringify(["honest", "accountable"]));
+    fd.set("tagsAwarded", JSON.stringify(["thick_skin", "resilience", "pragmatism"]));
 
     await expectAnyRedirect(() => submitAnswer(fd));
 
@@ -399,20 +400,36 @@ describe("submitAnswer", () => {
       .limit(1);
 
     const tags = JSON.parse(rows[0].signal_tags!) as Record<string, number>;
-    expect(tags["honest"]).toBeGreaterThanOrEqual(1);
-    expect(tags["accountable"]).toBeGreaterThanOrEqual(1);
+    expect(tags["thick_skin"]).toBeGreaterThanOrEqual(1);
+    expect(tags["resilience"]).toBeGreaterThanOrEqual(1);
   });
 
   it("redirects to insight page once section 3 is fully answered", async () => {
     const { submitAnswer } = await import("@/app/lite/brand-dna/actions");
 
-    // Submit the 3rd question in section 3 (s3_003)
+    // Pre-insert answers for s3_q03 through s3_q20 (18 more, giving 20 total
+    // with the 2 already inserted above). Then submit the last to trigger section complete.
+    const now = Date.now();
+    for (let i = 3; i <= 19; i++) {
+      const qid = `s3_q${String(i).padStart(2, "0")}`;
+      await testDb.insert(brand_dna_answers).values({
+        id: randomUUID(),
+        profile_id: answerProfileId,
+        question_id: qid,
+        section: 3,
+        selected_option: "a",
+        tags_awarded: JSON.stringify(["filler"]),
+        answered_at_ms: now,
+      });
+    }
+
+    // Submit the 20th question in section 3 (s3_q20)
     const fd = new FormData();
     fd.set("profileId", answerProfileId);
-    fd.set("questionId", "s3_003");
+    fd.set("questionId", "s3_q20");
     fd.set("section", "3");
     fd.set("selectedOption", "b");
-    fd.set("tagsAwarded", JSON.stringify(["expertise"]));
+    fd.set("tagsAwarded", JSON.stringify(["resilience"]));
 
     await expectRedirectTo(
       () => submitAnswer(fd),
@@ -432,28 +449,29 @@ describe("submitAnswer", () => {
       updated_at_ms: now,
     });
 
-    // Pre-insert 2 of 3 section-5 answers
-    for (const qid of ["s5_001", "s5_002"]) {
+    // Pre-insert 19 of 20 section-5 answers (s5_q01 through s5_q19)
+    for (let i = 1; i <= 19; i++) {
+      const qid = `s5_q${String(i).padStart(2, "0")}`;
       await testDb.insert(brand_dna_answers).values({
         id: randomUUID(),
         profile_id: sec5ProfileId,
         question_id: qid,
         section: 5,
         selected_option: "a",
-        tags_awarded: JSON.stringify(["exceed"]),
+        tags_awarded: JSON.stringify(["filler"]),
         answered_at_ms: now,
       });
     }
 
     const { submitAnswer } = await import("@/app/lite/brand-dna/actions");
 
-    // Submit 3rd question → section 5 complete → reflection
+    // Submit 20th question → section 5 complete → reflection
     const fd = new FormData();
     fd.set("profileId", sec5ProfileId);
-    fd.set("questionId", "s5_003");
+    fd.set("questionId", "s5_q20");
     fd.set("section", "5");
     fd.set("selectedOption", "a");
-    fd.set("tagsAwarded", JSON.stringify(["authority"]));
+    fd.set("tagsAwarded", JSON.stringify(["conviction"]));
 
     await expectRedirectTo(
       () => submitAnswer(fd),
@@ -478,10 +496,10 @@ describe("submitAnswer", () => {
     const fd = () => {
       const f = new FormData();
       f.set("profileId", idemProfileId);
-      f.set("questionId", "s4_001");
+      f.set("questionId", "s4_q01");
       f.set("section", "4");
       f.set("selectedOption", "a");
-      f.set("tagsAwarded", JSON.stringify(["integrity"]));
+      f.set("tagsAwarded", JSON.stringify(["admires_craft", "conscientiousness", "tactile_craft"]));
       return f;
     };
 
@@ -494,7 +512,7 @@ describe("submitAnswer", () => {
       .where(
         and(
           eq(brand_dna_answers.profile_id, idemProfileId),
-          eq(brand_dna_answers.question_id, "s4_001"),
+          eq(brand_dna_answers.question_id, "s4_q01"),
         ),
       );
     expect(rows).toHaveLength(1); // still only one row

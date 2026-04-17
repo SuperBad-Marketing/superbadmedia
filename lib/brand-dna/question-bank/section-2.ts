@@ -1,0 +1,126 @@
+/** Section 2 — Communication DNA. Source: docs/content/brand-dna/section-2-communication-dna.md */
+import { q, type Question } from "./types";
+
+export const SECTION_2: Question[] = [
+  q("s2_q01", 2, "shared",
+    { founder: "You're writing an email to someone you've never met. What's the default tone?", business: "The brand is writing to someone for the first time. What's the default tone?" },
+    ["Warm but professional. First impressions have a shelf life.", ["formality", "conscientiousness", "prudence"]],
+    ["Casual. If the tone doesn't sound like you, what's the point?", ["warmth_in_voice", "authenticity", "directness"]],
+    ["Short. Say what you need to say, then stop.", ["brevity", "directness"]],
+    ["Considered. You'll spend ten minutes on a three-sentence email.", ["conscientiousness", "perfectionism", "tonal_awareness"]]),
+
+  q("s2_q02", 2, "shared", "You have to tell a client something they don't want to hear. How do you do it?",
+    ["Straight. Say it clearly, explain why, offer the path forward.", ["directness", "confrontation_comfort", "resilience"]],
+    ["Carefully. Frame it so they understand you're on their side first.", ["tonal_awareness", "agreeableness", "warmth_in_voice"]],
+    ["With the solution already in hand. Don't bring a problem without an answer.", ["pragmatism", "head_first", "control_need"]],
+    ["Honestly, you put it off longer than you should. Then you say it all at once.", ["conflict_avoidant", "neuroticism", "selective_vulnerability"]]),
+
+  q("s2_q03", 2, "shared", "Someone cuts you off mid-sentence in a meeting. What happens inside you?",
+    ["Irritation. You wait, then finish your point like they didn't.", ["conviction", "confrontation_comfort", "thick_skin"]],
+    ["You let it go. It probably wasn't that important.", ["agreeableness", "conflict_avoidant"]],
+    ["You notice it. You file it. You don't forget.", ["high_sensitivity", "introversion", "tonal_awareness"]],
+    ["You redirect the conversation back when there's a natural gap.", ["listen_first", "patience", "tonal_awareness"]]),
+
+  q("s2_q04", 2, "shared", "How do you end a conversation you're done with?",
+    ["Directly. \u201cI've got to go\u201d \u2014 no performance.", ["directness", "brevity"]],
+    ["A warm wrap-up. You make sure they feel good about the conversation before you leave.", ["warmth_in_voice", "agreeableness", "tonal_awareness"]],
+    ["You let it fade naturally. You don't end things sharply.", ["patience", "conflict_avoidant", "introversion"]],
+    ["With something memorable. A line, a joke, a callback. You want the last thing to land.", ["dry_humour", "storytelling", "extraversion"]]),
+
+  q("s2_q05", 2, "shared", "What kind of feedback actually lands with you?",
+    ["Specific and direct. Don't wrap it in a compliment sandwich.", ["directness", "thick_skin", "confrontation_comfort"]],
+    ["Honest but kind. How it's delivered matters as much as what's said.", ["high_sensitivity", "tonal_awareness", "agreeableness"]],
+    ["From someone who's done the thing. Credentials matter.", ["admires_craft", "head_first", "independence"]],
+    ["The kind you didn't ask for. The observation you didn't see coming.", ["openness", "curiosity", "gut_first"]]),
+
+  q("s2_q06", 2, "shared",
+    { founder: "You're in a meeting and you disagree with the direction. What do you do?", business: "There's a disagreement on direction in a key meeting. How does the brand handle it?" },
+    ["Say it. Directly. Disagreement is how you get to the right answer.", ["confrontation_comfort", "directness", "provocation"]],
+    ["Ask questions until the other person sees the gap themselves.", ["listen_first", "tonal_awareness", "patience"]],
+    ["Pick your battles. Not everything is worth the friction.", ["conflict_avoidant", "prudence", "pragmatism"]],
+    ["Wait until after the meeting. Some things are better said one-on-one.", ["introversion", "tonal_awareness", "selective_vulnerability"]]),
+
+  q("s2_q07", 2, "shared", "How do you feel about small talk?",
+    ["It's a skill. You can do it, but you don't enjoy it.", ["introversion", "tonal_awareness"]],
+    ["You're good at it. It's how you find the real conversation.", ["extraversion", "warmth_in_voice", "curiosity"]],
+    ["You skip it. Life's too short for weather observations.", ["directness", "brevity"]],
+    ["It depends on the person. Some people make it feel real.", ["high_sensitivity", "tonal_awareness", "selective_vulnerability"]]),
+
+  q("s2_q08", 2, "shared", "You've rewritten the same email three times. Why?",
+    ["The tone isn't right. It's saying the right thing the wrong way.", ["tonal_awareness", "perfectionism", "conscientiousness"]],
+    ["It's too long. You're trying to get it shorter.", ["brevity", "admires_restraint", "curation_instinct"]],
+    ["You're not sure how honest to be.", ["selective_vulnerability", "conflict_avoidant", "neuroticism"]],
+    ["You haven't rewritten an email three times. Send it and move on.", ["pragmatism", "thick_skin", "risk_appetite"]]),
+
+  q("s2_q09", 2, "shared", "How do people usually describe you after meeting you for the first time?",
+    ["\u201cQuiet, but when they talk, you listen.\u201d", ["introversion", "listen_first", "brevity"]],
+    ["\u201cWarm. Easy to be around.\u201d", ["warmth_in_voice", "extraversion", "agreeableness"]],
+    ["\u201cSharp. They don't miss much.\u201d", ["directness", "high_sensitivity", "tonal_awareness"]],
+    ["\u201cFunny. Not what I expected.\u201d", ["dry_humour", "openness", "anti_polish"]]),
+
+  q("s2_q10", 2, "shared", "A client sends a frustrated email. Your first instinct:",
+    ["Call them. Text is the wrong medium for this.", ["confrontation_comfort", "extraversion", "warmth_in_voice"]],
+    ["Read it twice. Respond when the emotion has settled \u2014 theirs and yours.", ["patience", "head_first", "tonal_awareness"]],
+    ["Apologise first, figure out fault later. The relationship matters more.", ["agreeableness", "loyalty", "conflict_avoidant"]],
+    ["Reply with facts. Emotion responds to clarity.", ["directness", "head_first", "thick_skin"]]),
+
+  q("s2_q11", 2, "founder", "When you're explaining something you care about, what happens to your voice?",
+    ["It slows down. You want every word to land.", ["brevity", "patience", "introversion"]],
+    ["It speeds up. The energy carries the idea.", ["extraversion", "storytelling", "gut_first"]],
+    ["It gets quieter. The important things don't need volume.", ["introversion", "quiet_confidence", "admires_restraint"]],
+    ["It doesn't change. You sound the same whether it matters or not.", ["thick_skin", "directness", "formality"]]),
+
+  q("s2_q12", 2, "shared", "You realise you were wrong about something \u2014 publicly. What happens?",
+    ["You say so. Immediately. Owning it is faster than hiding it.", ["transparency", "confrontation_comfort", "resilience"]],
+    ["You correct course quietly. No need to make a show of it.", ["introversion", "prudence", "thick_skin"]],
+    ["It sits with you longer than it should. You replay the moment.", ["neuroticism", "high_sensitivity", "perfectionism"]],
+    ["You're already thinking about why you were wrong \u2014 that's the interesting part.", ["curiosity", "head_first", "openness"]]),
+
+  q("s2_q13", 2, "shared", "There's a silence in a conversation. What's your relationship to it?",
+    ["Comfortable. Silence is where thinking happens.", ["introversion", "patience", "listen_first"]],
+    ["You fill it. Not because you're nervous \u2014 because you have more to say.", ["extraversion", "storytelling"]],
+    ["You use it. A well-placed silence says more than another sentence.", ["tonal_awareness", "brevity", "admires_restraint"]],
+    ["Depends on who's in the room. Some silences feel productive, others feel tense.", ["high_sensitivity", "tonal_awareness"]]),
+
+  q("s2_q14", 2, "shared", "How much of yourself do you show in a professional context?",
+    ["Enough to be real. Not so much that it becomes about you.", ["selective_vulnerability", "tonal_awareness"]],
+    ["All of it. If they can't handle the real version, they're not the right fit.", ["authenticity", "extraversion", "risk_appetite"]],
+    ["Very little. You keep a clear line between personal and professional.", ["formality", "introversion", "prudence"]],
+    ["It depends on trust. You earn the right to see more of you.", ["selective_vulnerability", "loyalty", "patience"]]),
+
+  q("s2_q15", 2, "shared", "You just landed something big. What happens next?",
+    ["You call someone you trust and tell them.", ["extraversion", "affiliation", "warmth_in_voice"]],
+    ["You sit with it for a minute. Let it land before you share it.", ["introversion", "patience"]],
+    ["You're already thinking about the next one.", ["ambition", "achievement_orientation", "pragmatism"]],
+    ["You write something down \u2014 capture the feeling before it fades.", ["storytelling", "sensory_memory", "head_first"]]),
+
+  q("s2_q16", 2, "founder", "You're at a party where you don't know anyone. What do you do?",
+    ["Find one person and have a real conversation. That's your party.", ["introversion", "listen_first", "curiosity"]],
+    ["Work the room. By the end of the night, you've met everyone.", ["extraversion", "warmth_in_voice", "affiliation"]],
+    ["Observe. You learn more watching than talking.", ["introversion", "high_sensitivity", "tonal_awareness"]],
+    ["Leave early. You came, you showed your face, that's enough.", ["introversion", "independence", "prudence"]]),
+
+  q("s2_q17", 2, "shared", "You need to write something important and the deadline is in an hour. What happens?",
+    ["You get sharper. Pressure strips the decoration. What's left is the truth.", ["directness", "brevity", "resilience"]],
+    ["You start with the feeling, not the structure. The right opening pulls everything else.", ["gut_first", "storytelling", "improviser"]],
+    ["You outline first. Even under pressure, structure saves you.", ["conscientiousness", "head_first", "prudence"]],
+    ["You freeze for ten minutes. Then it comes out whole.", ["neuroticism", "perfectionism", "introversion"]]),
+
+  q("s2_q18", 2, "shared", "What makes you trust what someone says?",
+    ["They don't over-explain. Confidence is quiet.", ["brevity", "quiet_confidence", "admires_restraint"]],
+    ["They say the hard thing when it would have been easier not to.", ["confrontation_comfort", "authenticity", "transparency"]],
+    ["Their words match what they do. Consistency, over time.", ["conscientiousness", "loyalty", "patience"]],
+    ["You can hear the thinking behind it. They didn't rehearse \u2014 they meant it.", ["gut_first", "authenticity", "warmth_in_voice"]]),
+
+  q("s2_q19", 2, "business", "When multiple people communicate on behalf of the brand, how important is it that they all sound the same?",
+    ["Essential. The brand has one voice, regardless of who's speaking.", ["formality", "conscientiousness", "curation_instinct"]],
+    ["Important, but some variation is natural. People aren't scripts.", ["warmth_in_voice", "pragmatism", "agreeableness"]],
+    ["Not very. The brand is the people, not a single register.", ["personality_forward", "extraversion", "authenticity"]],
+    ["The principles stay the same. The tone flexes for the context.", ["tonal_awareness", "genre_fluency", "selective_vulnerability"]]),
+
+  q("s2_q20", 2, "business", "The brand puts out something it's proud of. Silence. No response. What happens?",
+    ["You trust it. Good work doesn't always get immediate feedback.", ["patience", "quiet_confidence", "resilience"]],
+    ["You adjust. If it didn't land, figure out why.", ["pragmatism", "curiosity", "head_first"]],
+    ["You feel it. Even if you know it shouldn't matter, the silence stings.", ["neuroticism", "high_sensitivity", "reputation_weight"]],
+    ["You move on. The next thing is already in progress.", ["thick_skin", "ambition", "pragmatism"]]),
+];

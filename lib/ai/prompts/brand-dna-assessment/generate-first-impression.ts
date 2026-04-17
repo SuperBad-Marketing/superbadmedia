@@ -43,9 +43,19 @@ export function buildFirstImpressionPrompt(input: FirstImpressionInput): string 
 
   const topTags = Object.entries(tagFrequencyMap)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 12)
+    .slice(0, 15)
     .map(([tag, freq]) => `${tag} (×${freq})`)
     .join(", ");
+
+  // Surface the most interesting tensions — tags that appear together but
+  // don't usually coexist (e.g. risk_appetite + perfectionism)
+  const tensionPairs = findTensionPairs(tagFrequencyMap);
+  const tensionBlock = tensionPairs.length
+    ? `Notable tensions in their signals (tags that don't usually coexist):\n${tensionPairs.map(t => `- ${t}`).join("\n")}`
+    : "";
+
+  // Group tags by domain for richer context
+  const domainSummary = buildDomainSummary(tagFrequencyMap);
 
   const insightsBlock = sectionInsights.length
     ? sectionInsights
@@ -54,31 +64,102 @@ export function buildFirstImpressionPrompt(input: FirstImpressionInput): string 
     : "(no between-section insights captured)";
 
   const reflectionBlock = reflectionText
-    ? `Their reflection: "${reflectionText}"`
+    ? `Their own words (free-form reflection at the end): "${reflectionText}"\nPay attention to what they chose to say — and what they didn't. The gap between the structured answers and this reflection is a signal.`
     : "(no free-form reflection provided)";
 
   const shapeLine = shape ? `Shape: ${shape}.` : "";
 
-  return `You're writing the opening two or three sentences of a Brand DNA reveal for ${subjectName}.
+  const trackNote = track === "business"
+    ? "They answered in business mode — 'the brand', not 'I'. Write about the brand."
+    : "They answered as a founder. Write about the person.";
+
+  return `You're writing the first impression for ${subjectName}'s Brand DNA reveal.
+
+This is the emotional peak. It fades in alone on screen — 2–3 sentences, nothing else visible. It must feel like a punch of recognition: "how do they know that about me?"
 
 Track: ${track}. ${shapeLine}
-Strongest signal tags across the whole assessment: ${topTags || "(no tags)"}.
+${trackNote}
 
-Between-section observations captured during the assessment:
+Strongest signals across the full assessment:
+${topTags || "(no tags)"}
+
+${domainSummary}
+
+${tensionBlock}
+
+Between-section insights (you wrote these during the assessment):
 ${insightsBlock}
 
 ${reflectionBlock}
 
-Write the first impression. Two or three sentences. The sharpest thing you
-could say if you had one breath — the irreducible insight, not a summary.
+Write the first impression. Two or three sentences. Not a summary — the irreducible insight. The one thing that's true about this ${track === "business" ? "brand" : "person"} that everything else orbits.
 
-Voice constraints:
-- Flat delivery. Perceptive, slightly warm, never performative.
-- Never start with "You" — vary the subject.
-- No hedging ("seems like", "might be", "it appears").
-- No self-reference ("I notice", "what stands out is", "it's interesting").
-- No marketing speak. No "synergy", "leverage", "solutions".
-- Write as if naming something the person already knew but hadn't articulated yet.
+Look for:
+- The through-line that connects seemingly unrelated signals across domains
+- The central tension that defines them (most people have one)
+- What the reflection reveals that the structured answers tried to hide
+- What's conspicuously absent from their signals
 
-Return only the two or three sentences. No preamble, no header, no quotes.`;
+Voice — non-negotiable:
+- Flat delivery. Perceptive. Slightly warm. Like a sharp friend, not a fortune teller.
+- Never start with "You". Vary the subject.
+- No hedging ("seems like", "might be", "arguably", "perhaps").
+- No self-reference ("I notice", "what stands out", "it's interesting").
+- No marketing speak. No "synergy", "leverage", "solutions", "journey".
+- Short sentences. Let the observation land. Don't over-explain.
+- Name things precisely — not "you value quality" but the specific quality of their quality.
+
+Return only the 2–3 sentences. No preamble, no header, no quotes.`;
+}
+
+/** Known tension pairs — tags that signal contradictory pulls. */
+const TENSION_PAIRS: [string, string][] = [
+  ["risk_appetite", "perfectionism"],
+  ["risk_appetite", "risk_caution"],
+  ["introversion", "extraversion"],
+  ["patience", "ambition"],
+  ["independence", "affiliation"],
+  ["minimalism", "maximalism"],
+  ["directness", "conflict_avoidant"],
+  ["gut_first", "head_first"],
+  ["admires_restraint", "admires_boldness"],
+  ["warmth_in_voice", "formality"],
+  ["innovation_pull", "nostalgia_pull"],
+  ["conviction", "agreeableness"],
+  ["control_need", "loyalty"],
+  ["pragmatism", "perfectionism"],
+  ["quiet_confidence", "proving_ground"],
+];
+
+function findTensionPairs(tagFrequencyMap: Record<string, number>): string[] {
+  const results: string[] = [];
+  for (const [a, b] of TENSION_PAIRS) {
+    if (tagFrequencyMap[a] && tagFrequencyMap[b]) {
+      results.push(`${a} (×${tagFrequencyMap[a]}) vs ${b} (×${tagFrequencyMap[b]})`);
+    }
+  }
+  return results;
+}
+
+function buildDomainSummary(tagFrequencyMap: Record<string, number>): string {
+  const domainPrefixes: Record<string, string[]> = {
+    aesthetic: ["warmth", "minimalism", "maximalism", "organic_forms", "geometric_precision", "analogue_texture", "high_contrast", "muted_palette", "cinematic_eye", "tactile_craft", "sensory_memory", "curation_instinct"],
+    communication: ["directness", "dry_humour", "brevity", "warmth_in_voice", "storytelling", "formality", "confrontation_comfort", "metaphor_use", "listen_first", "provocation", "selective_vulnerability", "tonal_awareness", "introversion", "extraversion", "conflict_avoidant", "agreeableness"],
+    values: ["authenticity", "risk_appetite", "risk_caution", "patience", "perfectionism", "pragmatism", "independence", "loyalty", "transparency", "conviction", "control_need", "legacy_drive", "gut_first", "head_first", "high_sensitivity", "thick_skin", "openness", "conscientiousness", "neuroticism", "resilience", "curiosity", "prudence", "ambition"],
+    creative: ["admires_restraint", "admires_boldness", "admires_craft", "rejects_trend", "genre_fluency", "nostalgia_pull", "innovation_pull", "emotional_resonance", "intellectual_depth", "visual_storytelling", "taste_as_identity", "anti_polish", "improviser"],
+    aspiration: ["premium_positioning", "underdog_energy", "quiet_confidence", "category_creation", "personality_forward", "community_building", "thought_leadership", "proving_ground", "reputation_weight", "global_ambition", "local_roots", "achievement_orientation", "affiliation", "power_drive", "independence"],
+  };
+
+  const lines: string[] = [];
+  for (const [domain, tags] of Object.entries(domainPrefixes)) {
+    const domainTags = tags
+      .filter(t => tagFrequencyMap[t])
+      .sort((a, b) => (tagFrequencyMap[b] ?? 0) - (tagFrequencyMap[a] ?? 0))
+      .slice(0, 4)
+      .map(t => `${t} (×${tagFrequencyMap[t]})`);
+    if (domainTags.length) {
+      lines.push(`${domain}: ${domainTags.join(", ")}`);
+    }
+  }
+  return lines.length ? `Top signals by domain:\n${lines.join("\n")}` : "";
 }

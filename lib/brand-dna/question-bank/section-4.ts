@@ -1,0 +1,121 @@
+/** Section 4 — Creative Compass. Source: docs/content/brand-dna/section-4-creative-compass.md */
+import { q, type Question } from "./types";
+
+export const SECTION_4: Question[] = [
+  q("s4_q01", 4, "shared", "Think of a piece of marketing or advertising that actually impressed you. What was it about?",
+    ["The craft. Someone sweated every detail and it showed.", ["admires_craft", "conscientiousness", "tactile_craft"]],
+    ["The honesty. It didn't pretend to be something it wasn't.", ["authenticity", "anti_polish", "admires_restraint"]],
+    ["The surprise. It did something you didn't expect from that category.", ["admires_boldness", "innovation_pull", "openness"]],
+    ["The feeling. You couldn't explain why it worked \u2014 it just did.", ["emotional_resonance", "gut_first", "sensory_memory"]]),
+
+  q("s4_q02", 4, "shared", "What takes more creative courage?",
+    ["Restraint. Saying less when you could say more.", ["admires_restraint", "brevity", "patience"]],
+    ["Boldness. Doing the thing that might not land.", ["admires_boldness", "risk_appetite", "conviction"]],
+    ["Honesty. Showing the real thing, not the polished version.", ["anti_polish", "authenticity", "transparency"]],
+    ["Patience. Letting something develop instead of rushing it to market.", ["patience", "admires_craft", "perfectionism"]]),
+
+  q("s4_q03", 4, "shared", "Which kind of film stays with you longest?",
+    ["The one where nothing seems to happen \u2014 but everything does.", ["admires_restraint", "patience", "intellectual_depth"]],
+    ["The one that shook you. You felt wrong-footed the entire time.", ["admires_boldness", "emotional_resonance", "risk_appetite"]],
+    ["The one that looked like nothing else. Every frame was a photograph.", ["cinematic_eye", "visual_storytelling", "admires_craft"]],
+    ["The one you've seen four times and you still catch something new.", ["intellectual_depth", "nostalgia_pull", "curiosity"]]),
+
+  q("s4_q04", 4, "shared", "Which of these images pulls you in?",
+    ["A single object on a clean surface. Perfectly lit. Nothing else.", ["minimalism", "admires_restraint", "geometric_precision"]],
+    ["A crowded wall of overlapping posters, textures, handwriting.", ["maximalism", "anti_polish", "organic_forms"]],
+    ["A landscape with one person, small in the frame. Cinematic scale.", ["cinematic_eye", "visual_storytelling", "admires_restraint"]],
+    ["Close-up of hands making something. Dust, tools, material visible.", ["tactile_craft", "admires_craft", "analogue_texture"]],
+    true),
+
+  q("s4_q05", 4, "shared", "What's your creative weakness?",
+    ["You overthink. By the time you're happy with it, the moment's gone.", ["perfectionism", "neuroticism", "head_first"]],
+    ["You rush. The idea excites you more than the execution.", ["improviser", "risk_appetite", "ambition"]],
+    ["You play it safe. You know what works and you keep going back to it.", ["risk_caution", "nostalgia_pull", "conscientiousness"]],
+    ["You can't let go of what could have been. Every choice means a road not taken.", ["neuroticism", "high_sensitivity", "curiosity"]]),
+
+  q("s4_q06", 4, "shared", "A visual trend takes over your industry. Everyone is doing it. What do you feel?",
+    ["Nothing. Trends are information, not instructions.", ["rejects_trend", "independence", "thick_skin"]],
+    ["Curiosity. You want to understand why it's resonating, even if you won't follow it.", ["curiosity", "openness", "intellectual_depth"]],
+    ["Urgency to do the opposite. If everyone's going one way, the space is the other way.", ["rejects_trend", "underdog_energy", "innovation_pull"]],
+    ["Temptation, briefly. Then you remember who you are.", ["taste_as_identity", "conviction", "curation_instinct"]]),
+
+  q("s4_q07", 4, "shared", "Can you work in a style that isn't yours?",
+    ["Yes, and it's good practice. Flexibility is a skill.", ["genre_fluency", "openness", "pragmatism"]],
+    ["Yes, but it's uncomfortable. Your instincts keep pulling you back.", ["taste_as_identity", "conviction", "gut_first"]],
+    ["No. If it's not authentic, it's not worth doing.", ["authenticity", "rejects_trend", "independence"]],
+    ["You've never tried. There's always been room to do it your way.", ["independence", "quiet_confidence", "improviser"]]),
+
+  q("s4_q08", 4, "shared", "What separates good creative work from great?",
+    ["Taste. Someone with real taste made every choice.", ["curation_instinct", "taste_as_identity", "admires_craft"]],
+    ["Feeling. Great work makes you feel something you didn't expect.", ["emotional_resonance", "gut_first", "admires_boldness"]],
+    ["Craft. The details that nobody notices \u2014 until they're missing.", ["admires_craft", "conscientiousness", "patience"]],
+    ["Nerve. Great work went further than it was safe to go.", ["admires_boldness", "risk_appetite", "proving_ground"]]),
+
+  q("s4_q09", 4, "shared", "Which of these appeals to you more?",
+    ["A vintage album cover from the 1970s \u2014 type, illustration, colour, warmth.", ["nostalgia_pull", "analogue_texture", "warmth", "admires_craft"]],
+    ["A brutalist web interface \u2014 monospace, minimal, raw function over decoration.", ["anti_polish", "innovation_pull", "geometric_precision"]],
+    ["A hand-bound artist's book \u2014 stitched, printed, one of a kind.", ["tactile_craft", "admires_craft", "organic_forms"]],
+    ["A motion graphic that's never still \u2014 fluid, generative, always moving.", ["innovation_pull", "visual_storytelling", "genre_fluency"]],
+    true),
+
+  q("s4_q10", 4, "shared", "Where does your best creative work happen?",
+    ["Alone. You need silence and space to hear the idea.", ["introversion", "independence", "admires_restraint"]],
+    ["In conversation. Other people's ideas are the flint.", ["extraversion", "affiliation", "genre_fluency"]],
+    ["After a long walk, shower, or drive. Somewhere between thinking and not-thinking.", ["gut_first", "improviser", "openness"]],
+    ["Under a deadline. The constraint is what makes it sharp.", ["resilience", "pragmatism", "directness"]]),
+
+  q("s4_q11", 4, "founder", "Where does your creative taste come from?",
+    ["A specific person. Parent, teacher, mentor, friend. You can name them.", ["sensory_memory", "loyalty", "affiliation"]],
+    ["The things you consumed growing up. Films, music, books, places.", ["nostalgia_pull", "sensory_memory", "taste_as_identity"]],
+    ["Rejection. You figured out what you hated first, then worked backwards.", ["curation_instinct", "rejects_trend", "independence"]],
+    ["You don't know. It just is. You trust it, but you can't source it.", ["gut_first", "taste_as_identity", "improviser"]]),
+
+  q("s4_q12", 4, "shared", "What creative work would you refuse to produce, even if it paid well?",
+    ["Anything derivative. If it already exists, why make it again?", ["rejects_trend", "innovation_pull", "independence"]],
+    ["Anything dishonest. If it doesn't represent the truth, it shouldn't exist.", ["authenticity", "conviction", "transparency"]],
+    ["Anything lazy. If the effort didn't match the ambition, it shows.", ["admires_craft", "conscientiousness", "perfectionism"]],
+    ["Anything cruel. Clever at someone else's expense isn't clever.", ["agreeableness", "warmth_in_voice", "loyalty"]]),
+
+  q("s4_q13", 4, "shared", "You're building a playlist for work. What goes on first?",
+    ["Something you've listened to a hundred times. Familiarity clears the mind.", ["nostalgia_pull", "conscientiousness", "patience"]],
+    ["Something new. You don't know what it sounds like yet \u2014 that's the point.", ["innovation_pull", "openness", "curiosity"]],
+    ["Something with no lyrics. The work needs your language, not someone else's.", ["introversion", "admires_restraint", "head_first"]],
+    ["Whatever matches the energy of the task. You don't have a default.", ["improviser", "tonal_awareness", "genre_fluency"]]),
+
+  q("s4_q14", 4, "shared", "Which creative figure would you most want to learn from?",
+    ["A master craftsperson \u2014 decades of practice, visible in every detail.", ["admires_craft", "patience", "legacy_drive"]],
+    ["A provocateur \u2014 breaks rules, makes people uncomfortable, starts conversations.", ["admires_boldness", "provocation", "risk_appetite"]],
+    ["A quiet obsessive \u2014 invisible to most, revered by those who notice.", ["admires_restraint", "quiet_confidence", "intellectual_depth"]],
+    ["A genre-breaker \u2014 crosses every boundary, refuses to be categorised.", ["genre_fluency", "openness", "innovation_pull"]],
+    true),
+
+  q("s4_q15", 4, "shared", "How do you prefer a creative process to feel?",
+    ["Controlled. Know where you're going before you start.", ["conscientiousness", "head_first", "control_need"]],
+    ["Messy. The good stuff lives in the chaos.", ["improviser", "anti_polish", "gut_first"]],
+    ["Iterative. Start rough, refine, repeat. The first version is never the final one.", ["admires_craft", "patience", "pragmatism"]],
+    ["Instinctive. Feel it, make it, decide later whether it worked.", ["gut_first", "risk_appetite", "improviser"]]),
+
+  q("s4_q16", 4, "shared", "Think of something creative that aged better than it had any right to. Why?",
+    ["Because it wasn't chasing anything. It just was.", ["rejects_trend", "quiet_confidence", "authenticity"]],
+    ["Because the craft was so good that fashion couldn't touch it.", ["admires_craft", "tactile_craft", "patience"]],
+    ["Because it was ahead. What seemed strange then makes sense now.", ["innovation_pull", "risk_appetite", "intellectual_depth"]],
+    ["Because it captured a feeling that doesn't expire.", ["emotional_resonance", "sensory_memory", "visual_storytelling"]]),
+
+  q("s4_q17", 4, "business", "A client asks for something that directly contradicts your creative instinct. What do you do?",
+    ["Push back. You were hired for your judgment, not just your hands.", ["conviction", "confrontation_comfort", "independence"]],
+    ["Listen. They know something you don't \u2014 find out what it is.", ["listen_first", "curiosity", "agreeableness"]],
+    ["Find a third option. Something that honours both their need and your instinct.", ["pragmatism", "genre_fluency", "tonal_awareness"]],
+    ["Do what they ask. Then show them what you would have done. Let them choose.", ["admires_craft", "patience", "selective_vulnerability"]]),
+
+  q("s4_q18", 4, "shared", "If people remember one thing about your creative work, what should it be?",
+    ["That it looked like nothing else. You could always tell it was yours.", ["taste_as_identity", "curation_instinct", "independence"]],
+    ["That it moved people. Not just good \u2014 it made them feel something.", ["emotional_resonance", "warmth", "storytelling"]],
+    ["That it lasted. It didn't rely on the moment it was made in.", ["admires_craft", "rejects_trend", "legacy_drive"]],
+    ["That it was honest. No tricks, no shortcuts, no pretending.", ["authenticity", "anti_polish", "transparency"]]),
+
+  q("s4_q19", 4, "business", "When the brand creates something, how much does the audience's likely reaction shape the work?",
+    ["A lot. If it doesn't land with the audience, what's the point?", ["pragmatism", "agreeableness", "achievement_orientation"]],
+    ["Some. You consider them, but you don't let them lead.", ["independence", "conviction", "tonal_awareness"]],
+    ["Very little. Build the best thing you can. The right audience will find it.", ["quiet_confidence", "rejects_trend", "admires_craft"]],
+    ["It depends on the project. Some things are for the audience. Some things are for you.", ["genre_fluency", "curation_instinct", "selective_vulnerability"]]),
+];

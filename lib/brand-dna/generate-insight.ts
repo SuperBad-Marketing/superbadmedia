@@ -102,6 +102,17 @@ export async function generateSectionInsight(
     SECTION_TITLES[section as 1 | 2 | 3 | 4 | 5] ?? `Section ${section}`;
   const subjectName = profile.subject_display_name ?? "this brand";
 
+  // ── Gather prior insights for context continuity ────────────────────────
+  const priorInsights: string[] = [];
+  if (profile.section_insights) {
+    const cached = JSON.parse(profile.section_insights) as string[];
+    for (let i = 0; i < section - 1; i++) {
+      if (cached[i] && cached[i].trim().length > 0) {
+        priorInsights.push(cached[i]);
+      }
+    }
+  }
+
   // ── Opus call ─────────────────────────────────────────────────────────────
   const modelId = modelFor("brand-dna-generate-section-insight");
   const response = await CLIENT_SINGLETON.messages.create({
@@ -112,8 +123,11 @@ export async function generateSectionInsight(
         role: "user",
         content: buildSectionInsightPrompt({
           subjectName,
+          sectionNumber: section as 1 | 2 | 3 | 4,
           sectionTitle,
           topTags,
+          priorInsights,
+          track: profile.track ?? "founder",
         }),
       },
     ],

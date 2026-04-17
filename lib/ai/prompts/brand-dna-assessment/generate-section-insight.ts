@@ -17,8 +17,22 @@
 
 export type SectionInsightInput = {
   subjectName: string;
+  sectionNumber: 1 | 2 | 3 | 4;
   sectionTitle: string;
   topTags: string;
+  priorInsights: string[];
+  track: string;
+};
+
+/**
+ * Section domain context — tells Opus what each section was actually measuring
+ * so the insight is grounded in the right lens.
+ */
+const SECTION_CONTEXT: Record<number, string> = {
+  1: "Aesthetic Identity — visual taste, sensory world, relationship to beauty, what they can't stop looking at and what they'd never wear.",
+  2: "Communication DNA — how they write, speak, handle conflict, exist in a room. How they land when nobody's watching versus when everyone is.",
+  3: "Values & Instincts — what drives decisions, what frustrates, risk appetite, gut reactions, the version of themselves nobody else sees. The deepest section.",
+  4: "Creative Compass — taste in others' creative work, what they admire versus what they'd never make, their creative process and weaknesses.",
 };
 
 /**
@@ -28,14 +42,38 @@ export type SectionInsightInput = {
  * which reads `brand_dna_answers` and `brand_dna_profiles` before calling this.
  */
 export function buildSectionInsightPrompt(input: SectionInsightInput): string {
-  const { subjectName, sectionTitle, topTags } = input;
+  const { subjectName, sectionNumber, sectionTitle, topTags, priorInsights, track } = input;
 
-  return `You're helping reveal the brand DNA of ${subjectName}.
-They just completed the "${sectionTitle}" section of their Brand DNA Assessment.
+  const context = SECTION_CONTEXT[sectionNumber] ?? sectionTitle;
+
+  const priorBlock = priorInsights.length
+    ? `You've already said this about them in prior sections:\n${priorInsights.map((t, i) => `- After Section ${i + 1}: "${t}"`).join("\n")}\nDon't repeat yourself. Build on what's come before — or contradict it if the new signals warrant it.`
+    : "This is the first section. You have nothing on them yet — make it count.";
+
+  const trackNote = track === "business"
+    ? `They're answering in business mode — "the brand", not "I". Address the brand, not the person.`
+    : `They're answering as a founder. Address them personally.`;
+
+  return `You're revealing the brand DNA of ${subjectName}.
+
+They just completed "${sectionTitle}" — ${context}
+
+${trackNote}
+
 Their strongest signal tags from this section: ${topTags || "no tags yet"}.
 
-Write 2–3 sentences. Sharp, perceptive, slightly warm. No marketing speak.
-No hedging phrases like "it seems like" or "you might be". Write as if you're
-naming something the person already knew but hadn't articulated yet. Don't
-start with "You" — vary the sentence structure.`;
+${priorBlock}
+
+Write 2–3 sentences. This appears as a transition card between sections — a small, specific observation that names something the person already knew but hadn't articulated.
+
+Voice — non-negotiable:
+- Flat delivery. Perceptive, slightly warm. Like a sharp friend, not a therapist.
+- Never "I notice", "it seems like", "what stands out", "it's interesting that".
+- Never start with "You". Vary sentence structure.
+- No hedging. No qualifiers. No marketing speak.
+- Short sentences welcome. One observation per sentence.
+- Name the tension if there is one ("precision and warmth don't usually share a room — but here they do").
+- Name what's absent if the absence is revealing ("not a single answer reached for safety").
+
+Return only the 2–3 sentences. No preamble, no quotes, no header.`;
 }
