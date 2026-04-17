@@ -231,6 +231,3 @@ export default async function SubscriptionCancelPage() {
     </main>
   );
 }
-
-// Re-export for tests — pure helpers owe no server-only wrapper.
-export { computeSaasExitMath };

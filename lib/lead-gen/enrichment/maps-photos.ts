@@ -1,11 +1,7 @@
 /**
- * Google Maps photo enrichment adapter (via SerpAPI).
- *
- * Queries SerpAPI google_maps engine for a specific business to retrieve
- * photo_count and last_photo_date. Merges into existing maps profile
- * without overwriting category/rating/review_count.
- * Logs to external_call_log (job: "serpapi:maps_photos").
- *
+ * Google Maps photo enrichment — SerpAPI google_maps engine.
+ * Populates maps.photo_count + maps.last_photo_date.
+ * Merges into existing maps profile — does not overwrite category/rating/review_count.
  * Owner: LG-3. Consumer: LG-4 orchestrator.
  */
 import { randomUUID } from "node:crypto";
@@ -14,120 +10,83 @@ import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { SERPAPI_API_BASE } from "@/lib/integrations/vendors/serpapi";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
-interface SerpApiMapsResult {
+interface SerpApiMapsPhotoResult {
   title?: string;
   photos_count?: number;
-  user_reviews?: { rating?: number; date?: string }[];
+  user_reviews?: { date?: string }[];
 }
 
-interface SerpApiMapsResponse {
-  local_results?: SerpApiMapsResult[];
-  error?: string;
-}
-
-function findBestMatch(
-  results: SerpApiMapsResult[],
-  businessName: string,
-): SerpApiMapsResult | undefined {
-  const lower = businessName.toLowerCase();
-  return (
-    results.find((r) => r.title?.toLowerCase().includes(lower)) ??
-    results[0]
-  );
-}
-
-function inferLastPhotoDate(result: SerpApiMapsResult): string | null {
-  const withDate = (result.user_reviews ?? [])
-    .map((r) => r.date)
-    .filter(Boolean) as string[];
-  return withDate[0] ?? null;
-}
-
-/**
- * Enrich a candidate with Google Maps photo signals (count + recency).
- *
- * @param businessName - Business name for the SerpAPI query.
- * @param location - Location string (e.g. "Melbourne, Australia").
- * @param apiKey - SerpAPI key from getCredential('serpapi').
- */
 export async function enrichMapsPhotos(
   businessName: string,
   location: string,
   apiKey: string,
 ): Promise<Partial<ViabilityProfile>> {
-  if (!apiKey) return {};
+  if (!apiKey || !businessName) return {};
 
   const startMs = Date.now();
-  let fetchErrorMsg: string | undefined;
-  let photoCount = 0;
+  const query = [businessName, location].filter(Boolean).join(" ");
+  const params = new URLSearchParams({
+    engine: "google_maps",
+    q: query,
+    api_key: apiKey,
+    type: "search",
+    num: "1",
+  });
+
+  let photoCount: number | undefined;
   let lastPhotoDate: string | null = null;
-  let found = false;
+  let fetchError: string | undefined;
 
   try {
-    const params = new URLSearchParams({
-      engine: "google_maps",
-      q: `${businessName} ${location}`,
-      api_key: apiKey,
-      type: "search",
-      num: "5",
-    });
-
-    const response = await fetch(
-      `${SERPAPI_API_BASE}/search.json?${params.toString()}`,
-    );
-
+    const response = await fetch(`${SERPAPI_API_BASE}/search.json?${params}`);
     if (!response.ok) {
       const body = await response.text().catch(() => "");
-      fetchErrorMsg = `SerpAPI maps photos HTTP ${response.status}: ${body.slice(0, 200)}`;
+      fetchError = `SerpAPI Maps Photos HTTP ${response.status}: ${body.slice(0, 200)}`;
     } else {
-      const data = (await response.json()) as SerpApiMapsResponse;
-
+      const data = (await response.json()) as {
+        local_results?: SerpApiMapsPhotoResult[];
+        error?: string;
+      };
       if (data.error) {
-        fetchErrorMsg = `SerpAPI maps photos error: ${data.error}`;
+        fetchError = `SerpAPI Maps Photos error: ${data.error}`;
       } else {
-        const results = data.local_results ?? [];
-        const match = findBestMatch(results, businessName);
-
-        if (match) {
-          found = true;
-          photoCount = match.photos_count ?? 0;
-          lastPhotoDate = inferLastPhotoDate(match);
+        const place = data.local_results?.[0];
+        if (place) {
+          photoCount = place.photos_count ?? 0;
+          lastPhotoDate = inferLastPhotoDate(place);
         }
       }
     }
   } catch (err) {
-    fetchErrorMsg = `SerpAPI maps photos fetch failed: ${err instanceof Error ? err.message : String(err)}`;
+    fetchError = `SerpAPI Maps Photos fetch failed: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   await db.insert(external_call_log).values({
     id: randomUUID(),
     job: "serpapi:maps_photos",
     actor_type: "internal",
-    units: JSON.stringify({
-      businessName,
-      found,
-      duration_ms: Date.now() - startMs,
-      ...(fetchErrorMsg ? { error: fetchErrorMsg } : {}),
-    }),
+    units: JSON.stringify({ businessName, location, duration_ms: Date.now() - startMs }),
     estimated_cost_aud: 0,
     created_at_ms: Date.now(),
   });
 
-  if (fetchErrorMsg) {
-    return { fetch_errors: { maps_photos: fetchErrorMsg } };
-  }
-  if (!found) return {};
+  if (fetchError) return { fetch_errors: { maps_photos: fetchError } };
+  if (photoCount === undefined) return {};
 
-  // Return only photo fields — mergeProfiles will deep-merge with the
-  // existing maps profile (category/rating/review_count set by LG-2).
   return {
     maps: {
-      photo_count: photoCount,
-      last_photo_date: lastPhotoDate,
-      // Defaults for required fields — overridden by existing maps data via mergeProfiles
+      // Empty defaults — mergeProfiles will prefer non-empty values from prior enrichment
       category: "",
       rating: null,
       review_count: 0,
+      photo_count: photoCount,
+      last_photo_date: lastPhotoDate,
     },
   };
+}
+
+function inferLastPhotoDate(place: SerpApiMapsPhotoResult): string | null {
+  const reviews = place.user_reviews ?? [];
+  const dates = reviews.map((r) => r.date).filter((d): d is string => !!d);
+  return dates[0] ?? null;
 }

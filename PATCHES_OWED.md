@@ -702,3 +702,9 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 
 - **`lg_1_dnc_management_surface`** · DNC management UI (Settings → Lead Generation → Do Not Contact) not built. BUILD_PLAN spec §20 #1 bundles it with schema, but it's a UI surface. Deferring to LG-7 (UI session) or a dedicated mini-session. · LG-1 handoff · 2026-04-18 · **gate: LG-7 or dedicated UI session**
 - **`lg_1_settings_registry_doc_update`** · `docs/settings-registry.md` needs 14 new rows (9 `lead_generation.*` + 5 `warmup.*`). Total now 137. Extends `ce_1_settings_registry_doc_drift` above. · LG-1 handoff · 2026-04-18 · **gate: opportunistic — next settings-registry.md touch**
+
+## Phase 5 Wave 13 LG-3 (2026-04-17)
+
+- **`lg_3_subscription_page_build_export`** · `app/lite/portal/subscription/page.tsx` had `export { computeSaasExitMath }` at the bottom — invalid Next.js page export causing build failure. Fixed in LG-3 as a pre-existing build blocker (tests import directly from `lib/saas-products/cancel-math`). · LG-3 handoff · 2026-04-17 · **gate: closed — fixed in LG-3**
+- **`lg_3_instagram_posts_last_30d_null`** · `enrichInstagram` always returns `posts_last_30d: null` because counting posts in the last 30d requires additional paginated Graph API calls. LG-4 orchestrator or a dedicated pass can implement if the signal is needed for scoring. · LG-3 handoff · 2026-04-17 · **gate: LG-5 scoring review**
+- **`lg_3_domain_age_subdomain_logic`** · `stripSubdomain()` heuristic in domain-age.ts is approximate for complex ccTLD patterns (e.g. `sub.acme.co.uk`). Covers AU and major TLDs well. Refine if whois lookups return 404 for AU clients at rate. · LG-3 handoff · 2026-04-17 · **gate: opportunistic**

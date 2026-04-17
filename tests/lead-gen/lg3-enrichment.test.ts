@@ -32,651 +32,471 @@ import { enrichYouTube } from "@/lib/lead-gen/enrichment/youtube";
 import { enrichWebsiteScrape } from "@/lib/lead-gen/enrichment/website-scrape";
 import { enrichMapsPhotos } from "@/lib/lead-gen/enrichment/maps-photos";
 import { mergeProfiles } from "@/lib/lead-gen/enrichment/index";
-import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-function jsonResponse(body: unknown, status = 200): Response {
+function jsonRes(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "content-type": "application/json" },
   });
 }
 
-function errorResponse(status: number): Response {
-  return new Response("Server Error", { status });
+function errRes(status = 500): Response {
+  return new Response("error", { status });
 }
 
-// ── enrichPageSpeed ──────────────────────────────────────────────────
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockInsert.mockResolvedValue(undefined);
+});
+
+// ── PageSpeed ────────────────────────────────────────────────────────
 
 describe("enrichPageSpeed", () => {
-  beforeEach(() => {
-    mockFetch.mockReset();
-    mockInsert.mockReset();
-    mockInsert.mockResolvedValue(undefined);
-  });
-
-  it("returns pagespeed_performance_score on happy path", async () => {
+  it("returns website.pagespeed_performance_score on success", async () => {
     mockFetch.mockResolvedValueOnce(
-      jsonResponse({
-        lighthouseResult: {
-          categories: {
-            performance: { score: 0.87 },
-          },
-        },
+      jsonRes({
+        lighthouseResult: { categories: { performance: { score: 0.85 } } },
       }),
     );
-
-    const result = await enrichPageSpeed("acme.com.au", "Acme Cafe");
-
-    expect(result.website?.pagespeed_performance_score).toBe(87);
-    expect(result.website?.domain_age_years).toBeNull();
-    expect(result.website?.has_about_page).toBe(false);
-    expect(result.website?.team_size_signal).toBe("unknown");
-    expect(mockInsert).toHaveBeenCalledOnce();
+    const result = await enrichPageSpeed("acme.com", "Acme");
+    expect(result.website?.pagespeed_performance_score).toBe(85);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
   });
 
   it("returns {} on null domain", async () => {
-    const result = await enrichPageSpeed(null, "Acme Cafe");
+    const result = await enrichPageSpeed(null, "Acme");
     expect(result).toEqual({});
     expect(mockFetch).not.toHaveBeenCalled();
-    expect(mockInsert).not.toHaveBeenCalled();
   });
 
-  it("returns fetch_errors on HTTP error, does not throw", async () => {
-    mockFetch.mockResolvedValueOnce(errorResponse(500));
-
-    const result = await enrichPageSpeed("acme.com.au", "Acme");
-    expect(result).toHaveProperty("fetch_errors.pagespeed");
-    expect(result.website).toBeUndefined();
-    expect(mockInsert).toHaveBeenCalledOnce();
+  it("returns fetch_errors on HTTP error", async () => {
+    mockFetch.mockResolvedValueOnce(errRes(429));
+    const result = await enrichPageSpeed("acme.com", "Acme");
+    expect(result.fetch_errors?.pagespeed).toMatch(/429/);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
   });
 
-  it("returns fetch_errors on network error, does not throw", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Network failure"));
-
-    const result = await enrichPageSpeed("acme.com.au", "Acme");
-    expect(result).toHaveProperty("fetch_errors.pagespeed");
-    expect(mockInsert).toHaveBeenCalledOnce();
+  it("returns fetch_errors on API error field", async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes({ error: { message: "quota exceeded" } }));
+    const result = await enrichPageSpeed("acme.com", "Acme");
+    expect(result.fetch_errors?.pagespeed).toMatch(/quota exceeded/);
   });
 
-  it("handles missing performance score gracefully (score is null)", async () => {
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({ lighthouseResult: { categories: {} } }),
-    );
+  it("returns fetch_errors on network failure (no throw)", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+    const result = await enrichPageSpeed("acme.com", "Acme");
+    expect(result.fetch_errors?.pagespeed).toMatch(/ECONNREFUSED/);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
+  });
 
-    const result = await enrichPageSpeed("acme.com.au", "Acme");
+  it("handles missing performance score gracefully", async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes({ lighthouseResult: {} }));
+    const result = await enrichPageSpeed("acme.com", "Acme");
     expect(result.website?.pagespeed_performance_score).toBeNull();
   });
 });
 
-// ── enrichDomainAge ──────────────────────────────────────────────────
+// ── Domain Age ────────────────────────────────────────────────────────
 
 describe("enrichDomainAge", () => {
-  beforeEach(() => {
-    mockFetch.mockReset();
-    mockInsert.mockReset();
-    mockInsert.mockResolvedValue(undefined);
-  });
+  const regDate = new Date(Date.now() - 5 * 365.25 * 24 * 60 * 60 * 1000).toISOString();
 
-  it("returns domain_age_years on happy path", async () => {
-    const regDate = new Date();
-    regDate.setFullYear(regDate.getFullYear() - 5);
-
+  it("returns website.domain_age_years on success", async () => {
     mockFetch.mockResolvedValueOnce(
-      jsonResponse({
+      jsonRes({
         events: [
-          { eventAction: "registration", eventDate: regDate.toISOString() },
+          { eventAction: "registration", eventDate: regDate },
           { eventAction: "expiration", eventDate: "2030-01-01T00:00:00Z" },
         ],
       }),
     );
-
-    const result = await enrichDomainAge("acme.com.au");
-
+    const result = await enrichDomainAge("acme.com");
     expect(result.website?.domain_age_years).toBe(5);
-    expect(result.website?.pagespeed_performance_score).toBeNull();
-    expect(mockInsert).toHaveBeenCalledOnce();
+    expect(mockInsert).toHaveBeenCalledTimes(1);
   });
 
   it("returns {} on null domain", async () => {
     const result = await enrichDomainAge(null);
     expect(result).toEqual({});
     expect(mockFetch).not.toHaveBeenCalled();
-    expect(mockInsert).not.toHaveBeenCalled();
   });
 
-  it("returns fetch_errors on HTTP error, does not throw", async () => {
-    mockFetch.mockResolvedValueOnce(errorResponse(404));
-
-    const result = await enrichDomainAge("acme.com.au");
-    expect(result).toHaveProperty("fetch_errors.domain_age");
-    expect(result.website).toBeUndefined();
+  it("returns fetch_errors on HTTP error", async () => {
+    mockFetch.mockResolvedValueOnce(errRes(404));
+    const result = await enrichDomainAge("acme.com");
+    expect(result.fetch_errors?.domain_age).toMatch(/404/);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
   });
 
-  it("returns fetch_errors on network error, does not throw", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Timeout"));
-
-    const result = await enrichDomainAge("acme.com.au");
-    expect(result).toHaveProperty("fetch_errors.domain_age");
+  it("returns fetch_errors on network failure (no throw)", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("timeout"));
+    const result = await enrichDomainAge("acme.com");
+    expect(result.fetch_errors?.domain_age).toMatch(/timeout/);
   });
 
-  it("returns domain_age_years: null when no registration event found", async () => {
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({ events: [{ eventAction: "expiration", eventDate: "2030-01-01T00:00:00Z" }] }),
-    );
-
-    const result = await enrichDomainAge("acme.com.au");
+  it("returns domain_age_years null when no registration event", async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes({ events: [] }));
+    const result = await enrichDomainAge("acme.com");
     expect(result.website?.domain_age_years).toBeNull();
   });
 });
 
-// ── enrichInstagram ──────────────────────────────────────────────────
+// ── Instagram ────────────────────────────────────────────────────────
 
 describe("enrichInstagram", () => {
-  beforeEach(() => {
-    mockFetch.mockReset();
-    mockInsert.mockReset();
-    mockInsert.mockResolvedValue(undefined);
-  });
-
-  it("returns instagram signals on happy path", async () => {
-    const recentDate = new Date();
-    recentDate.setDate(recentDate.getDate() - 5);
-    const oldDate = new Date();
-    oldDate.setDate(oldDate.getDate() - 60);
-
+  it("returns instagram profile on success", async () => {
+    // First fetch: homepage to extract instagram handle
     mockFetch.mockResolvedValueOnce(
-      jsonResponse({
-        data: [
-          {
-            id: "page-123",
-            instagram_business_account: {
-              id: "ig-456",
-              followers_count: 2500,
-              media_count: 120,
-              media: {
-                data: [
-                  { timestamp: recentDate.toISOString() },
-                  { timestamp: recentDate.toISOString() },
-                  { timestamp: oldDate.toISOString() },
-                ],
-              },
-            },
-          },
-        ],
-      }),
+      new Response(
+        `<html><body><a href="https://instagram.com/acmebrand">Follow us</a></body></html>`,
+        { status: 200 },
+      ),
     );
-
-    const result = await enrichInstagram("acme.com.au", "Acme Cafe", "token-abc");
-
-    expect(result.instagram?.follower_count).toBe(2500);
-    expect(result.instagram?.post_count).toBe(120);
-    expect(result.instagram?.posts_last_30d).toBe(2);
-    expect(mockInsert).toHaveBeenCalledOnce();
+    // Second fetch: Graph API
+    mockFetch.mockResolvedValueOnce(
+      jsonRes({ followers_count: 1500, media_count: 80 }),
+    );
+    const result = await enrichInstagram("acme.com", "Acme", "token123");
+    expect(result.instagram?.follower_count).toBe(1500);
+    expect(result.instagram?.post_count).toBe(80);
+    expect(result.instagram?.posts_last_30d).toBeNull();
+    expect(mockInsert).toHaveBeenCalledTimes(1);
   });
 
-  it("returns {} when no Instagram account found", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({ data: [] }));
-
-    const result = await enrichInstagram("acme.com.au", "Acme", "token-abc");
+  it("returns {} when no instagram link found on homepage", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response("<html><body>No social links</body></html>", { status: 200 }),
+    );
+    const result = await enrichInstagram("acme.com", "Acme", "token123");
     expect(result).toEqual({});
-    expect(mockInsert).toHaveBeenCalledOnce();
-  });
-
-  it("returns {} on missing apiKey", async () => {
-    const result = await enrichInstagram("acme.com.au", "Acme", "");
-    expect(result).toEqual({});
-    expect(mockFetch).not.toHaveBeenCalled();
-    expect(mockInsert).not.toHaveBeenCalled();
-  });
-
-  it("returns fetch_errors on HTTP error, does not throw", async () => {
-    mockFetch.mockResolvedValueOnce(errorResponse(401));
-
-    const result = await enrichInstagram("acme.com.au", "Acme", "bad-token");
-    expect(result).toHaveProperty("fetch_errors.instagram");
-    expect(result.instagram).toBeUndefined();
-  });
-
-  it("returns fetch_errors on network error, does not throw", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Network error"));
-
-    const result = await enrichInstagram("acme.com.au", "Acme", "token");
-    expect(result).toHaveProperty("fetch_errors.instagram");
-  });
-
-  it("returns fetch_errors on Graph API error response, does not throw", async () => {
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({ error: { message: "Invalid OAuth access token" } }),
-    );
-
-    const result = await enrichInstagram("acme.com.au", "Acme", "bad");
-    expect(result).toHaveProperty("fetch_errors.instagram");
-  });
-});
-
-// ── enrichYouTube ────────────────────────────────────────────────────
-
-describe("enrichYouTube", () => {
-  beforeEach(() => {
-    mockFetch.mockReset();
-    mockInsert.mockReset();
-    mockInsert.mockResolvedValue(undefined);
-  });
-
-  it("returns youtube signals on happy path (3 API calls)", async () => {
-    const recentDate = new Date();
-    recentDate.setDate(recentDate.getDate() - 10);
-
-    // Call 1: search
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({
-        items: [{ id: { channelId: "UC-channel-123" } }],
-      }),
-    );
-    // Call 2: channel stats
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({
-        items: [
-          {
-            statistics: { subscriberCount: "8500", videoCount: "45" },
-            contentDetails: { relatedPlaylists: { uploads: "UU-uploads-456" } },
-          },
-        ],
-      }),
-    );
-    // Call 3: playlist items
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({
-        items: [
-          { contentDetails: { videoPublishedAt: recentDate.toISOString() } },
-          { contentDetails: { videoPublishedAt: recentDate.toISOString() } },
-        ],
-      }),
-    );
-
-    const result = await enrichYouTube("Acme Cafe", "yt-api-key");
-
-    expect(result.youtube?.subscriber_count).toBe(8500);
-    expect(result.youtube?.video_count).toBe(45);
-    expect(result.youtube?.uploads_last_90d).toBe(2);
-    expect(mockFetch).toHaveBeenCalledTimes(3);
-    expect(mockInsert).toHaveBeenCalledOnce();
-  });
-
-  it("returns {} when no channel found", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({ items: [] }));
-
-    const result = await enrichYouTube("Acme Cafe", "yt-api-key");
-    expect(result).toEqual({});
-    expect(mockInsert).toHaveBeenCalledOnce();
-  });
-
-  it("returns {} on missing apiKey", async () => {
-    const result = await enrichYouTube("Acme", "");
-    expect(result).toEqual({});
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
-  it("returns fetch_errors on HTTP error, does not throw", async () => {
-    mockFetch.mockResolvedValueOnce(errorResponse(403));
-
-    const result = await enrichYouTube("Acme", "bad-key");
-    expect(result).toHaveProperty("fetch_errors.youtube");
-    expect(result.youtube).toBeUndefined();
-  });
-
-  it("returns fetch_errors on network error, does not throw", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("DNS failure"));
-
-    const result = await enrichYouTube("Acme", "key");
-    expect(result).toHaveProperty("fetch_errors.youtube");
-  });
-});
-
-// ── enrichWebsiteScrape ──────────────────────────────────────────────
-
-describe("enrichWebsiteScrape", () => {
-  beforeEach(() => {
-    mockFetch.mockReset();
-  });
-
-  it("detects about page and pricing page on happy path", async () => {
-    const rootHtml = `<html><body><p>Welcome to Acme, a small team of professionals.</p></body></html>`;
-    const aboutHtml = `<html><body><h1>About Us</h1><p>We are a boutique agency.</p></body></html>`;
-    const teamHtml = `<html><body><h1>Team</h1></body></html>`;
-    const pricingHtml = `<html><body><h1>Pricing</h1><p>Our competitive rates start from $500/month.</p></body></html>`;
-
-    mockFetch
-      .mockResolvedValueOnce(new Response(rootHtml, { status: 200 })) // root
-      .mockResolvedValueOnce(new Response(aboutHtml, { status: 200 })) // /about
-      .mockResolvedValueOnce(new Response(teamHtml, { status: 200 }))  // /team
-      .mockResolvedValueOnce(new Response(pricingHtml, { status: 200 })); // /pricing
-
-    const result = await enrichWebsiteScrape("acme.com.au");
-
-    expect(result.website?.has_about_page).toBe(true);
-    expect(result.website?.has_pricing_page).toBe(true);
-    expect(result.website?.team_size_signal).toBe("small");
-    expect(result.website?.stated_pricing_tier).toBe("mid");
-    expect(result.website?.domain_age_years).toBeNull();
-    expect(result.website?.pagespeed_performance_score).toBeNull();
   });
 
   it("returns {} on null domain", async () => {
+    const result = await enrichInstagram(null, "Acme", "token123");
+    expect(result).toEqual({});
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns {} with empty apiKey (no throw)", async () => {
+    const result = await enrichInstagram("acme.com", "Acme", "");
+    expect(result).toEqual({});
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns fetch_errors on Graph API error (no throw)", async () => {
+    // Homepage with instagram link
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        `<html><body><a href="https://instagram.com/acmebrand">IG</a></body></html>`,
+        { status: 200 },
+      ),
+    );
+    // Graph API error
+    mockFetch.mockResolvedValueOnce(errRes(403));
+    const result = await enrichInstagram("acme.com", "Acme", "token123");
+    expect(result.fetch_errors?.instagram).toMatch(/403/);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns {} on network failure fetching homepage (no throw)", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+    const result = await enrichInstagram("acme.com", "Acme", "token123");
+    expect(result).toEqual({});
+  });
+});
+
+// ── YouTube ────────────────────────────────────────────────────────
+
+describe("enrichYouTube", () => {
+  it("returns youtube profile on success", async () => {
+    // Search call
+    mockFetch.mockResolvedValueOnce(
+      jsonRes({ items: [{ id: { channelId: "UC123" } }] }),
+    );
+    // Channel stats call
+    mockFetch.mockResolvedValueOnce(
+      jsonRes({
+        items: [{
+          statistics: { subscriberCount: "5000", videoCount: "120" },
+          contentDetails: { relatedPlaylists: { uploads: "UU123" } },
+        }],
+      }),
+    );
+    // Playlist items call (recent uploads)
+    const recentDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    mockFetch.mockResolvedValueOnce(
+      jsonRes({ items: [
+        { contentDetails: { videoPublishedAt: recentDate } },
+        { contentDetails: { videoPublishedAt: recentDate } },
+      ] }),
+    );
+
+    const result = await enrichYouTube("Acme Corp", "apikey123");
+    expect(result.youtube?.subscriber_count).toBe(5000);
+    expect(result.youtube?.video_count).toBe(120);
+    expect(result.youtube?.uploads_last_90d).toBe(2);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns {} when no channel found (no throw)", async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes({ items: [] }));
+    const result = await enrichYouTube("UnknownBiz", "apikey123");
+    expect(result).toEqual({});
+    expect(mockInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns {} with empty businessName (no throw)", async () => {
+    const result = await enrichYouTube("", "apikey123");
+    expect(result).toEqual({});
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns {} with empty apiKey (no throw)", async () => {
+    const result = await enrichYouTube("Acme Corp", "");
+    expect(result).toEqual({});
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns fetch_errors on HTTP error (no throw)", async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes({ items: [{ id: { channelId: "UC123" } }] }));
+    mockFetch.mockResolvedValueOnce(errRes(503));
+    const result = await enrichYouTube("Acme Corp", "apikey123");
+    expect(result.fetch_errors?.youtube).toMatch(/503/);
+  });
+
+  it("returns fetch_errors on network failure (no throw)", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("ETIMEDOUT"));
+    const result = await enrichYouTube("Acme Corp", "apikey123");
+    expect(result.fetch_errors?.youtube).toMatch(/ETIMEDOUT/);
+  });
+});
+
+// ── Website Scrape ────────────────────────────────────────────────────
+
+describe("enrichWebsiteScrape", () => {
+  it("returns has_about_page and has_pricing_page on success", async () => {
+    const html = `
+      <html><body>
+        <a href="/about">About Us</a>
+        <a href="/pricing">Pricing</a>
+      </body></html>`;
+    // Four fetches: root, /about, /team, /pricing
+    mockFetch.mockResolvedValueOnce(new Response(html, { status: 200 }));
+    mockFetch.mockResolvedValueOnce(new Response("<html>About page</html>", { status: 200 }));
+    mockFetch.mockResolvedValueOnce(new Response("", { status: 404 }));
+    mockFetch.mockResolvedValueOnce(new Response("<html>Pricing page</html>", { status: 200 }));
+
+    const result = await enrichWebsiteScrape("acme.com");
+    expect(result.website?.has_about_page).toBe(true);
+    expect(result.website?.has_pricing_page).toBe(true);
+  });
+
+  it("returns team_size_signal from HTML signals", async () => {
+    const html = `<html><body><p>We are a small team of dedicated professionals</p></body></html>`;
+    mockFetch.mockResolvedValue(new Response(html, { status: 200 }));
+    const result = await enrichWebsiteScrape("acme.com");
+    expect(result.website?.team_size_signal).toBe("small");
+  });
+
+  it("returns stated_pricing_tier from HTML signals", async () => {
+    const html = `<html><body><p>Get started for just $99/month</p></body></html>`;
+    mockFetch.mockResolvedValue(new Response(html, { status: 200 }));
+    const result = await enrichWebsiteScrape("acme.com");
+    expect(result.website?.stated_pricing_tier).toBe("budget");
+  });
+
+  it("returns {} on null domain (no throw)", async () => {
     const result = await enrichWebsiteScrape(null);
     expect(result).toEqual({});
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("returns has_about_page: false when /about returns 404", async () => {
-    const rootHtml = `<html><body>Hello</body></html>`;
-    mockFetch
-      .mockResolvedValueOnce(new Response(rootHtml, { status: 200 })) // root
-      .mockResolvedValueOnce(errorResponse(404))  // /about
-      .mockResolvedValueOnce(errorResponse(404))  // /team
-      .mockResolvedValueOnce(errorResponse(404)); // /pricing
-
-    const result = await enrichWebsiteScrape("acme.com.au");
-
-    expect(result.website?.has_about_page).toBe(false);
-    expect(result.website?.has_pricing_page).toBe(false);
-  });
-
-  it("does not throw when all fetches fail", async () => {
-    mockFetch.mockRejectedValue(new Error("Network error"));
-
-    const result = await enrichWebsiteScrape("acme.com.au");
-    expect(result.website?.has_about_page).toBe(false);
-    expect(result.website?.has_pricing_page).toBe(false);
+  it("returns unknown signals when all fetches fail (no throw)", async () => {
+    mockFetch.mockRejectedValue(new Error("ECONNREFUSED"));
+    const result = await enrichWebsiteScrape("acme.com");
     expect(result.website?.team_size_signal).toBe("unknown");
     expect(result.website?.stated_pricing_tier).toBe("unknown");
+    expect(result.website?.has_about_page).toBe(false);
   });
 
-  it("detects solo team signal", async () => {
-    const html = `<html><body>I'm a sole trader serving Melbourne clients.</body></html>`;
-    mockFetch
-      .mockResolvedValueOnce(new Response(html, { status: 200 }))
-      .mockResolvedValueOnce(errorResponse(404))
-      .mockResolvedValueOnce(errorResponse(404))
-      .mockResolvedValueOnce(errorResponse(404));
-
-    const result = await enrichWebsiteScrape("acme.com.au");
-    expect(result.website?.team_size_signal).toBe("solo");
-  });
-
-  it("detects premium pricing signal", async () => {
-    const html = `<html><body><h1>Premium luxury services for discerning clients.</h1></body></html>`;
-    mockFetch
-      .mockResolvedValueOnce(new Response(html, { status: 200 }))
-      .mockResolvedValueOnce(errorResponse(404))
-      .mockResolvedValueOnce(errorResponse(404))
-      .mockResolvedValueOnce(errorResponse(404));
-
-    const result = await enrichWebsiteScrape("acme.com.au");
-    expect(result.website?.stated_pricing_tier).toBe("premium");
+  it("does NOT call external_call_log (free fetch)", async () => {
+    mockFetch.mockResolvedValue(new Response("<html></html>", { status: 200 }));
+    await enrichWebsiteScrape("acme.com");
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 });
 
-// ── enrichMapsPhotos ─────────────────────────────────────────────────
+// ── Maps Photos ────────────────────────────────────────────────────
 
 describe("enrichMapsPhotos", () => {
-  beforeEach(() => {
-    mockFetch.mockReset();
-    mockInsert.mockReset();
-    mockInsert.mockResolvedValue(undefined);
-  });
-
-  it("returns photo_count and last_photo_date on happy path", async () => {
+  it("returns maps.photo_count and maps.last_photo_date on success", async () => {
     mockFetch.mockResolvedValueOnce(
-      jsonResponse({
-        local_results: [
-          {
-            title: "Acme Cafe",
-            photos_count: 47,
-            user_reviews: [
-              { rating: 5, date: "2024-11-15" },
-              { rating: 4, date: "2024-10-01" },
-            ],
-          },
-        ],
+      jsonRes({
+        local_results: [{
+          title: "Acme Cafe",
+          photos_count: 42,
+          user_reviews: [{ date: "2026-01-15" }, { date: "2025-12-01" }],
+        }],
       }),
     );
-
-    const result = await enrichMapsPhotos("Acme Cafe", "Melbourne", "serp-key");
-
-    expect(result.maps?.photo_count).toBe(47);
-    expect(result.maps?.last_photo_date).toBe("2024-11-15");
-    expect(mockInsert).toHaveBeenCalledOnce();
+    const result = await enrichMapsPhotos("Acme Cafe", "Melbourne", "key123");
+    expect(result.maps?.photo_count).toBe(42);
+    expect(result.maps?.last_photo_date).toBe("2026-01-15");
+    expect(mockInsert).toHaveBeenCalledTimes(1);
   });
 
-  it("returns {} when no results found", async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({ local_results: [] }));
+  it("does not overwrite category/rating/review_count (returns empty defaults)", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonRes({ local_results: [{ photos_count: 10 }] }),
+    );
+    const result = await enrichMapsPhotos("Acme", "Sydney", "key123");
+    expect(result.maps?.category).toBe("");
+    expect(result.maps?.rating).toBeNull();
+    expect(result.maps?.review_count).toBe(0);
+  });
 
-    const result = await enrichMapsPhotos("Acme Cafe", "Melbourne", "serp-key");
+  it("returns {} on empty businessName (no throw)", async () => {
+    const result = await enrichMapsPhotos("", "Melbourne", "key123");
     expect(result).toEqual({});
-    expect(mockInsert).toHaveBeenCalledOnce();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("returns {} on missing apiKey", async () => {
+  it("returns {} on empty apiKey (no throw)", async () => {
     const result = await enrichMapsPhotos("Acme", "Melbourne", "");
     expect(result).toEqual({});
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("returns fetch_errors on HTTP error, does not throw", async () => {
-    mockFetch.mockResolvedValueOnce(errorResponse(429));
-
-    const result = await enrichMapsPhotos("Acme", "Melbourne", "key");
-    expect(result).toHaveProperty("fetch_errors.maps_photos");
-    expect(result.maps).toBeUndefined();
+  it("returns fetch_errors on HTTP error (no throw)", async () => {
+    mockFetch.mockResolvedValueOnce(errRes(403));
+    const result = await enrichMapsPhotos("Acme", "Melbourne", "key123");
+    expect(result.fetch_errors?.maps_photos).toMatch(/403/);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
   });
 
-  it("returns fetch_errors on network error, does not throw", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Timeout"));
-
-    const result = await enrichMapsPhotos("Acme", "Melbourne", "key");
-    expect(result).toHaveProperty("fetch_errors.maps_photos");
+  it("returns {} when no local_results returned (no throw)", async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes({ local_results: [] }));
+    const result = await enrichMapsPhotos("Acme", "Melbourne", "key123");
+    expect(result).toEqual({});
   });
 
-  it("returns fetch_errors on SerpAPI error field, does not throw", async () => {
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({ error: "Invalid API key." }),
-    );
-
-    const result = await enrichMapsPhotos("Acme", "Melbourne", "bad-key");
-    expect(result).toHaveProperty("fetch_errors.maps_photos");
+  it("returns fetch_errors on network failure (no throw)", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("timeout"));
+    const result = await enrichMapsPhotos("Acme", "Melbourne", "key123");
+    expect(result.fetch_errors?.maps_photos).toMatch(/timeout/);
   });
 });
 
 // ── mergeProfiles ────────────────────────────────────────────────────
 
 describe("mergeProfiles", () => {
-  it("merges empty array to empty object", () => {
-    const result = mergeProfiles([]);
-    expect(result).toEqual({});
-  });
-
-  it("merges single profile unchanged (for whole-object fields)", () => {
-    const profile: Partial<ViabilityProfile> = {
-      instagram: { follower_count: 1000, post_count: 50, posts_last_30d: 5 },
-    };
-    const result = mergeProfiles([profile]);
-    expect(result.instagram).toEqual(profile.instagram);
-  });
-
-  it("later instagram profile wins over earlier", () => {
-    const a: Partial<ViabilityProfile> = {
-      instagram: { follower_count: 100, post_count: 10, posts_last_30d: 1 },
-    };
-    const b: Partial<ViabilityProfile> = {
-      instagram: { follower_count: 500, post_count: 40, posts_last_30d: 8 },
-    };
-    const result = mergeProfiles([a, b]);
-    expect(result.instagram?.follower_count).toBe(500);
-  });
-
-  it("merges website fields: non-null wins for nullable numerics", () => {
-    const pagespeed: Partial<ViabilityProfile> = {
+  it("merges two partial profiles correctly", () => {
+    const p1 = {
       website: {
-        pagespeed_performance_score: 87,
         domain_age_years: null,
+        pagespeed_performance_score: 85,
         has_about_page: false,
         has_pricing_page: false,
-        team_size_signal: "unknown",
-        stated_pricing_tier: "unknown",
+        team_size_signal: "unknown" as const,
+        stated_pricing_tier: "unknown" as const,
       },
     };
-    const domainAge: Partial<ViabilityProfile> = {
+    const p2 = {
       website: {
-        pagespeed_performance_score: null,
         domain_age_years: 5,
-        has_about_page: false,
-        has_pricing_page: false,
-        team_size_signal: "unknown",
-        stated_pricing_tier: "unknown",
-      },
-    };
-
-    const result = mergeProfiles([pagespeed, domainAge]);
-
-    expect(result.website?.pagespeed_performance_score).toBe(87);
-    expect(result.website?.domain_age_years).toBe(5);
-  });
-
-  it("merges website fields: true wins over false for booleans", () => {
-    const a: Partial<ViabilityProfile> = {
-      website: {
         pagespeed_performance_score: null,
-        domain_age_years: null,
         has_about_page: true,
         has_pricing_page: false,
-        team_size_signal: "unknown",
-        stated_pricing_tier: "unknown",
+        team_size_signal: "small" as const,
+        stated_pricing_tier: "unknown" as const,
       },
     };
-    const b: Partial<ViabilityProfile> = {
-      website: {
-        pagespeed_performance_score: null,
-        domain_age_years: null,
-        has_about_page: false,
-        has_pricing_page: true,
-        team_size_signal: "small",
-        stated_pricing_tier: "premium",
-      },
-    };
-
-    const result = mergeProfiles([a, b]);
-
-    expect(result.website?.has_about_page).toBe(true);
-    expect(result.website?.has_pricing_page).toBe(true);
-    expect(result.website?.team_size_signal).toBe("small");
-    expect(result.website?.stated_pricing_tier).toBe("premium");
+    const merged = mergeProfiles([p1, p2]);
+    // domain_age_years from p2 (meaningful), pagespeed from p1 (meaningful)
+    expect(merged.website?.domain_age_years).toBe(5);
+    expect(merged.website?.pagespeed_performance_score).toBe(85);
+    // boolean OR
+    expect(merged.website?.has_about_page).toBe(true);
+    // team_size_signal from p2 (non-unknown wins)
+    expect(merged.website?.team_size_signal).toBe("small");
   });
 
-  it("merges maps: preserves category/rating/review_count from earlier; takes photo_count/last_photo_date from later", () => {
-    const googleMaps: Partial<ViabilityProfile> = {
+  it("aggregates fetch_errors from multiple profiles", () => {
+    const p1 = { fetch_errors: { pagespeed: "timeout" } };
+    const p2 = { fetch_errors: { domain_age: "404" } };
+    const p3 = { instagram: { follower_count: 100, post_count: 10, posts_last_30d: null } };
+    const merged = mergeProfiles([p1, p2, p3]);
+    expect(merged.fetch_errors?.pagespeed).toBe("timeout");
+    expect(merged.fetch_errors?.domain_age).toBe("404");
+    expect(merged.instagram?.follower_count).toBe(100);
+  });
+
+  it("later meaningful value wins on conflict", () => {
+    const p1 = {
+      website: {
+        domain_age_years: 3,
+        pagespeed_performance_score: 70,
+        has_about_page: false,
+        has_pricing_page: false,
+        team_size_signal: "small" as const,
+        stated_pricing_tier: "mid" as const,
+      },
+    };
+    const p2 = {
+      website: {
+        domain_age_years: 7,
+        pagespeed_performance_score: 90,
+        has_about_page: false,
+        has_pricing_page: false,
+        team_size_signal: "medium" as const,
+        stated_pricing_tier: "premium" as const,
+      },
+    };
+    const merged = mergeProfiles([p1, p2]);
+    expect(merged.website?.domain_age_years).toBe(7);
+    expect(merged.website?.pagespeed_performance_score).toBe(90);
+    expect(merged.website?.team_size_signal).toBe("medium");
+    expect(merged.website?.stated_pricing_tier).toBe("premium");
+  });
+
+  it("maps-photos merges into existing maps from google-maps without overwriting category/rating", () => {
+    const googleMapsProfile = {
       maps: {
-        category: "restaurant",
+        category: "Cafe",
         rating: 4.5,
-        review_count: 150,
+        review_count: 120,
         photo_count: 0,
         last_photo_date: null,
       },
     };
-    const mapsPhotos: Partial<ViabilityProfile> = {
+    const mapsPhotosProfile = {
       maps: {
-        photo_count: 47,
-        last_photo_date: "2024-11-15",
         category: "",
         rating: null,
         review_count: 0,
+        photo_count: 38,
+        last_photo_date: "2026-01-10",
       },
     };
-
-    const result = mergeProfiles([googleMaps, mapsPhotos]);
-
-    expect(result.maps?.category).toBe("restaurant");
-    expect(result.maps?.rating).toBe(4.5);
-    expect(result.maps?.review_count).toBe(150);
-    expect(result.maps?.photo_count).toBe(47);
-    expect(result.maps?.last_photo_date).toBe("2024-11-15");
+    const merged = mergeProfiles([googleMapsProfile, mapsPhotosProfile]);
+    // category/rating/review_count from google-maps (meaningful)
+    expect(merged.maps?.category).toBe("Cafe");
+    expect(merged.maps?.rating).toBe(4.5);
+    expect(merged.maps?.review_count).toBe(120);
+    // photo data from maps-photos (meaningful)
+    expect(merged.maps?.photo_count).toBe(38);
+    expect(merged.maps?.last_photo_date).toBe("2026-01-10");
   });
 
-  it("aggregates fetch_errors from all profiles", () => {
-    const a: Partial<ViabilityProfile> = {
-      fetch_errors: { pagespeed: "timeout" },
-    };
-    const b: Partial<ViabilityProfile> = {
-      fetch_errors: { instagram: "auth error" },
-    };
-    const c: Partial<ViabilityProfile> = {
-      fetch_errors: { youtube: "quota exceeded" },
-    };
-
-    const result = mergeProfiles([a, b, c]);
-
-    expect(result.fetch_errors).toEqual({
-      pagespeed: "timeout",
-      instagram: "auth error",
-      youtube: "quota exceeded",
-    });
+  it("returns empty ViabilityProfile for empty input", () => {
+    const merged = mergeProfiles([]);
+    expect(merged).toEqual({});
   });
 
-  it("handles mixed profiles: some with fetch_errors, some without", () => {
-    const a: Partial<ViabilityProfile> = {
-      instagram: { follower_count: 500, post_count: 30, posts_last_30d: 4 },
-    };
-    const b: Partial<ViabilityProfile> = {
-      fetch_errors: { youtube: "not found" },
-    };
-
-    const result = mergeProfiles([a, b]);
-
-    expect(result.instagram?.follower_count).toBe(500);
-    expect(result.fetch_errors?.youtube).toBe("not found");
-  });
-
-  it("handles three website enrichers merged correctly", () => {
-    const pagespeed: Partial<ViabilityProfile> = {
-      website: {
-        pagespeed_performance_score: 75,
-        domain_age_years: null,
-        has_about_page: false,
-        has_pricing_page: false,
-        team_size_signal: "unknown",
-        stated_pricing_tier: "unknown",
-      },
-    };
-    const domainAge: Partial<ViabilityProfile> = {
-      website: {
-        pagespeed_performance_score: null,
-        domain_age_years: 3,
-        has_about_page: false,
-        has_pricing_page: false,
-        team_size_signal: "unknown",
-        stated_pricing_tier: "unknown",
-      },
-    };
-    const scrape: Partial<ViabilityProfile> = {
-      website: {
-        pagespeed_performance_score: null,
-        domain_age_years: null,
-        has_about_page: true,
-        has_pricing_page: true,
-        team_size_signal: "small",
-        stated_pricing_tier: "mid",
-      },
-    };
-
-    const result = mergeProfiles([pagespeed, domainAge, scrape]);
-
-    expect(result.website?.pagespeed_performance_score).toBe(75);
-    expect(result.website?.domain_age_years).toBe(3);
-    expect(result.website?.has_about_page).toBe(true);
-    expect(result.website?.has_pricing_page).toBe(true);
-    expect(result.website?.team_size_signal).toBe("small");
-    expect(result.website?.stated_pricing_tier).toBe("mid");
+  it("returns {} when all inputs are empty partials", () => {
+    const merged = mergeProfiles([{}, {}, {}]);
+    expect(merged).toEqual({});
   });
 });

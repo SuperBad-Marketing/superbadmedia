@@ -1,10 +1,7 @@
 /**
- * Google PageSpeed Insights enrichment adapter.
- *
- * Fetches the mobile performance score for a domain via the free
- * PageSpeed Insights API (no key required for basic calls).
- * Logs to external_call_log (job: "pagespeed:runPagespeed").
- *
+ * PageSpeed enrichment — Google PageSpeed Insights API v5.
+ * Populates website.pagespeed_performance_score.
+ * No API key required (unauthenticated = lower quota; pass key for higher quota).
  * Owner: LG-3. Consumer: LG-4 orchestrator.
  */
 import { randomUUID } from "node:crypto";
@@ -12,80 +9,60 @@ import { db } from "@/lib/db";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
-const PAGESPEED_API =
-  "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
+const PAGESPEED_BASE = "https://www.googleapis.com/pagespeedonline/v5";
 
-interface PageSpeedResponse {
-  lighthouseResult?: {
-    categories?: {
-      performance?: { score?: number };
-    };
-  };
-  error?: { message?: string };
-}
-
-/**
- * Enrich a candidate with PageSpeed Insights performance score.
- *
- * @param domain - Normalised domain (e.g. "acme.com.au"). Null returns {}.
- * @param businessName - Business name — unused in API call, kept for consistent enricher signature.
- */
 export async function enrichPageSpeed(
   domain: string | null,
-  businessName: string,
+  _businessName: string,
 ): Promise<Partial<ViabilityProfile>> {
-  void businessName;
   if (!domain) return {};
 
   const startMs = Date.now();
+  const params = new URLSearchParams({
+    url: `https://${domain}`,
+    strategy: "mobile",
+    category: "performance",
+  });
+
   let score: number | null = null;
-  let fetchErrorMsg: string | undefined;
+  let fetchError: string | undefined;
 
   try {
-    const params = new URLSearchParams({
-      url: `https://${domain}`,
-      strategy: "mobile",
-      category: "performance",
-    });
-
-    const response = await fetch(`${PAGESPEED_API}?${params.toString()}`);
-
+    const response = await fetch(`${PAGESPEED_BASE}/runPagespeed?${params}`);
     if (!response.ok) {
-      fetchErrorMsg = `PageSpeed HTTP ${response.status}`;
+      const body = await response.text().catch(() => "");
+      fetchError = `PageSpeed HTTP ${response.status}: ${body.slice(0, 200)}`;
     } else {
-      const data = (await response.json()) as PageSpeedResponse;
+      const data = (await response.json()) as {
+        lighthouseResult?: { categories?: { performance?: { score?: number } } };
+        error?: { message?: string };
+      };
       if (data.error?.message) {
-        fetchErrorMsg = `PageSpeed error: ${data.error.message}`;
+        fetchError = `PageSpeed API error: ${data.error.message}`;
       } else {
         const raw = data.lighthouseResult?.categories?.performance?.score;
         score = typeof raw === "number" ? Math.round(raw * 100) : null;
       }
     }
   } catch (err) {
-    fetchErrorMsg = `PageSpeed fetch failed: ${err instanceof Error ? err.message : String(err)}`;
+    fetchError = `PageSpeed fetch failed: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   await db.insert(external_call_log).values({
     id: randomUUID(),
     job: "pagespeed:runPagespeed",
     actor_type: "internal",
-    units: JSON.stringify({
-      domain,
-      duration_ms: Date.now() - startMs,
-      ...(fetchErrorMsg ? { error: fetchErrorMsg } : {}),
-    }),
+    units: JSON.stringify({ domain, duration_ms: Date.now() - startMs }),
     estimated_cost_aud: 0,
     created_at_ms: Date.now(),
   });
 
-  if (fetchErrorMsg) {
-    return { fetch_errors: { pagespeed: fetchErrorMsg } };
-  }
+  if (fetchError) return { fetch_errors: { pagespeed: fetchError } };
 
   return {
     website: {
-      pagespeed_performance_score: score,
       domain_age_years: null,
+      pagespeed_performance_score: score,
       has_about_page: false,
       has_pricing_page: false,
       team_size_signal: "unknown",
