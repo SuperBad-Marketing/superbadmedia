@@ -65,7 +65,7 @@ Research → Topic Queue → Generation → Review → Publish → Fan-out
 
 **Stage 3 — Generation.** Engine picks the top un-vetoed topic from the queue. Two-pass:
 1. Haiku outline (already generated in Stage 2 and visible in queue).
-2. Opus draft: full blog post from outline + Brand DNA full profile + SERP data + content gap analysis. Outputs: title, body (markdown), meta description, suggested slug, structured data (JSON-LD Article), internal linking suggestions, featured snippet target section (where applicable).
+2. Opus draft: full blog post from outline + Brand DNA full profile + SERP data + content gap analysis. Outputs: title, body (markdown), meta description, suggested slug, structured data (JSON-LD Article), internal linking suggestions, featured snippet target section (where applicable). **AI search citation tuning:** generation prompt must instruct the model to lead each post (and each major section) with a direct, factual answer to the target question before expanding — "X is Y because Z" structure in the opening paragraph. This pattern maximises citation by AI search engines (Perplexity, ChatGPT search, Google AI Overviews) which extract concise answer fragments.
 
 The engine won't generate a new draft until the current one is reviewed (approved or rejected). This is the throttle that prevents unreviewed drafts piling up.
 

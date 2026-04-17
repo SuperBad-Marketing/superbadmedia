@@ -99,6 +99,8 @@ export const MODELS = {
   // onboarding (2) — OS-1
   "onboarding-welcome-email": "opus",
   "onboarding-welcome-summary": "opus",
+  // setup-wizards (1) — CMS-2
+  "admin-setup-assistant": "opus",
   // email-adapter / drift-check (1) — A7
   "drift-check-grader": "haiku",
 } as const satisfies Record<string, ModelTier>;
