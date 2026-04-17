@@ -141,6 +141,22 @@ export type {
   OnboardingCompletionPayload,
 } from "./onboarding";
 
+// Content-to-outreach matching (CE-13)
+export { matchContentToProspects, RELEVANCE_THRESHOLD } from "./outreach-match";
+export type {
+  MatchResult,
+  ContentMatch,
+  ContentOutreachDraft,
+} from "./outreach-match";
+
+// Claimable content items (CE-13)
+export {
+  listClaimableContentItems,
+  claimInternalContentItem,
+  releaseContentItem,
+} from "./claimable-items";
+export type { ContentBacklogItem, ClaimResult } from "./claimable-items";
+
 // Fleet overview (CE-11)
 export { getFleetSummary, getFleetList } from "./fleet-overview";
 export type {

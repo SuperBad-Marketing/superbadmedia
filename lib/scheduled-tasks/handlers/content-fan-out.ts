@@ -29,6 +29,7 @@ import { publishBlogPost } from "@/lib/content-engine/publish";
 import { generateSocialDrafts } from "@/lib/content-engine/social-drafts";
 import { generateVisualAssets } from "@/lib/content-engine/visual-assets";
 import { rewriteForNewsletter } from "@/lib/content-engine/newsletter-rewrite";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import type { HandlerMap, TaskHandler } from "@/lib/scheduled-tasks/worker";
 
 // ── Payload ─────────────────────────────────────────────────────────
@@ -88,6 +89,22 @@ export const handleContentFanOut: TaskHandler = async (task) => {
       body: `Fan-out: social pipeline error — ${err instanceof Error ? err.message : "unknown"}`,
       meta: { post_id, error: true },
     });
+  }
+
+  // Step 3.5: Enqueue content-to-outreach matching (best-effort, async).
+  // Only fires for SuperBad's own posts — the library gates on company_id.
+  // CE-13: enqueued immediately; handler checks `content_outreach_enabled`.
+  if (publishResult.ok) {
+    try {
+      await enqueueTask({
+        task_type: "content_outreach_match",
+        runAt: Date.now(),
+        payload: { post_id, company_id },
+        idempotencyKey: `content_outreach_match:${post_id}`,
+      });
+    } catch {
+      // Enqueue failure doesn't block the rest of fan-out
+    }
   }
 
   // Step 4: Newsletter rewrite (best-effort, independent of social)
