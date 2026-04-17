@@ -56,6 +56,9 @@ export const contacts = sqliteTable(
     inbox_alt_emails: text("inbox_alt_emails", { mode: "json" })
       .$type<string[]>()
       .default([]),
+    /** Set on first render of the direct/referral retainer welcome screen.
+     *  Null for trial-shoot graduates (bypass) and contacts not yet onboarded. */
+    onboarding_welcome_seen_at_ms: integer("onboarding_welcome_seen_at_ms"),
     /** Adjusted by ambient corrections. High positive = always push. */
     notification_weight: integer("notification_weight").notNull().default(0),
     /** From "keep from this sender" action. */

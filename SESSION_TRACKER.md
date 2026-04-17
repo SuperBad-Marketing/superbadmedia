@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `os-1` — Company auto-creation + onboarding state + welcome screens
-**Brief:** needs pre-compilation (UI-13 is the final Wave 10 session; no G11.b brief was written for the Wave 11 opener)
-**Model tier:** Sonnet (medium feature build — onboarding + segmentation foundation)
-**Last closed:** UI-13 (2026-04-17) — see `sessions/ui-13-handoff.md`
-**Wave status:** Wave 10 COMPLETE. Wave 11 (Onboarding + Segmentation) next — os-1 is the opener.
+**Next session:** `os-2` — Revenue Segmentation UI + practical setup steps + upsell layer
+**Brief:** needs pre-compilation (OS-1 did not write an OS-2 brief)
+**Model tier:** Sonnet (medium feature build — Rev Seg questionnaire + upsell targeting)
+**Last closed:** OS-1 (2026-04-17) — see `sessions/os-1-handoff.md`
+**Wave status:** Wave 11 in progress. OS-1 complete, OS-2 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -83,6 +83,7 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 | 2026-04-17 | 5 | Build (UI-11) | Wave 10 UI-11 — Mobile inbox (bottom-tab layout, swipe gestures, offline cache). Replaces `<MobileHolding>` with real mobile surface: 4 tabs, swipe-to-keep/archive, full-screen thread detail, mobile refine inline, compose nudge sheet → fullscreen compose, ticket overlay + Customer Context bottom sheet, offline banner + IndexedDB cache (50-thread LRU + FIFO queue + flush-on-reconnect). 7 new components + 1 library + 1 server action module + 8 tests. Recovery session (prior hung ~8h on typecheck). G10.5 PASS_WITH_NOTES. 1037 tests, 0 TS errors, lint baseline. | [ui-11-handoff.md](sessions/ui-11-handoff.md) |
 | 2026-04-17 | 5 | Build (UI-12) | Wave 10 UI-12 — History import wizard + 12-month backfill + progress tracking. Graph API paginated history fetch (`$filter=receivedDateTime ge`, 50/page), `inbox_initial_import` scheduled-task handler (self-re-enqueuing with 1s delay), progress stored on `graph_api_state.initial_import_progress_json`, 3-way classifier pipeline on each batch. Four-phase wizard at `/lite/setup/inbox-history`: import progress bar (3s poll) → contact routing review (re-route pills) → noise cleanup (soft-delete >30d) → done. `inbox.history_import_months=12` settings key seeded. 3 new activity_log kinds. 4 new tests; 1041/1 green; 0 TS errors; lint 35 baseline. | [ui-12-handoff.md](sessions/ui-12-handoff.md) |
 | 2026-04-17 | 5 | Build (UI-13) | Wave 10 UI-13 — Daily 08:00 digest email + voice (**final Wave 10 session — Wave 10 COMPLETE**). `buildDigestContent()` queries silent notifications, groups by category (noise → counts, non-noise → previews). `sendDigestEmail()` via Resend (transactional) to ADMIN_EMAIL. Self-perpetuating handler via DST-safe `next8amMelbourneMs()`. `inbox_digest_enabled` kill switch (default OFF). Migration 0039 seeds 3 digest settings keys (104 total). Voice-treated subject+body. 9 new tests; 1050/1 green; 0 TS errors; build clean; lint 35 baseline. | [ui-13-handoff.md](sessions/ui-13-handoff.md) |
+| 2026-04-17 | 5 | Build (OS-1) | Wave 11 OS-1 — Company auto-creation + onboarding state + welcome screens (**Wave 11 opener**). `createCompanyFromSignup()` (transactional, injectable db, solo-operator fallback). `getOnboardingState()` derived orchestrator (Brand DNA + Rev Seg + wizards + credentials). `generateWelcomeEmail()` Opus + drift-checked (retainer + SaaS variants). `generateWelcomeSummary()` Opus "what we already know" paragraph. Welcome screen at `/lite/portal/welcome` with entry-path branch (trial-shoot grads bypass), Framer fade-up stagger, token-styled. Migration 0040: 8 companies columns + 1 contacts column. 2 new LLM slugs. 15 new tests; 1066/1 green; 0 TS errors; build clean; lint 35 baseline. | [os-1-handoff.md](sessions/os-1-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 

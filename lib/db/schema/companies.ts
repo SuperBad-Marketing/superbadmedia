@@ -18,6 +18,56 @@ export type CompanySizeBand = (typeof COMPANY_SIZE_BANDS)[number];
 export const COMPANY_BILLING_MODES = ["stripe", "manual"] as const;
 export type CompanyBillingMode = (typeof COMPANY_BILLING_MODES)[number];
 
+// ── Revenue Segmentation enums (OS-1) ────────────────────────────────────
+export const REVENUE_RANGES = [
+  "under_250k",
+  "250k_500k",
+  "500k_1m",
+  "1m_3m",
+  "3m_plus",
+] as const;
+export type RevenueRange = (typeof REVENUE_RANGES)[number];
+
+export const TEAM_SIZES = [
+  "solo",
+  "2_5",
+  "6_15",
+  "16_50",
+  "50_plus",
+] as const;
+export type TeamSize = (typeof TEAM_SIZES)[number];
+
+export const BIGGEST_CONSTRAINTS = [
+  "not_enough_right_customers",
+  "no_time_marketing",
+  "dont_know_whats_working",
+  "brand_doesnt_reflect",
+  "burned_before",
+  "growing_not_kept_up",
+] as const;
+export type BiggestConstraint = (typeof BIGGEST_CONSTRAINTS)[number];
+
+export const TWELVE_MONTH_GOALS = [
+  "steady",
+  "grow",
+  "scale",
+  "launch_new",
+  "figure_out",
+] as const;
+export type TwelveMonthGoal = (typeof TWELVE_MONTH_GOALS)[number];
+
+export const INDUSTRY_VERTICALS = [
+  "health_wellness",
+  "professional_services",
+  "trades_construction",
+  "hospitality_food",
+  "education",
+  "retail",
+  "creative_media",
+  "other",
+] as const;
+export type IndustryVertical = (typeof INDUSTRY_VERTICALS)[number];
+
 export const TRIAL_SHOOT_STATUSES = [
   "none",
   "booked",
@@ -61,6 +111,26 @@ export const companies = sqliteTable(
     // Branded Invoicing — default payment terms inherited by every invoice
     // issued to this company (spec Q4). BI-1.
     payment_terms_days: integer("payment_terms_days").notNull().default(14),
+    // ── Revenue Segmentation (SaaS-only, nullable for retainer) — OS-1 ──
+    revenue_range: text("revenue_range", { enum: REVENUE_RANGES }),
+    team_size: text("team_size", { enum: TEAM_SIZES }),
+    biggest_constraint: text("biggest_constraint", {
+      enum: BIGGEST_CONSTRAINTS,
+    }),
+    twelve_month_goal: text("twelve_month_goal", {
+      enum: TWELVE_MONTH_GOALS,
+    }),
+    industry_vertical: text("industry_vertical", {
+      enum: INDUSTRY_VERTICALS,
+    }),
+    /** Free-text qualifier when industry_vertical = 'other'. */
+    industry_vertical_other: text("industry_vertical_other"),
+    /** Geography — captured at SaaS signup or from pipeline for retainer. */
+    location: text("location"),
+    /** When the customer finished Revenue Segmentation. */
+    revenue_segmentation_completed_at_ms: integer(
+      "revenue_segmentation_completed_at_ms",
+    ),
     first_seen_at_ms: integer("first_seen_at_ms").notNull(),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),

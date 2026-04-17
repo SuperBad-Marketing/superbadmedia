@@ -211,6 +211,13 @@
       "when": 1776430000000,
       "tag": "0039_ui13_digest_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "6",
+      "when": 1776440000000,
+      "tag": "0040_os1_onboarding_columns",
+      "breakpoints": true
     }
   ]
 }

@@ -96,6 +96,9 @@ export const MODELS = {
   "inbox-compose-draft": "opus",
   "inbox-compose-subject": "haiku",
   "inbox-draft-refine": "opus",
+  // onboarding (2) — OS-1
+  "onboarding-welcome-email": "opus",
+  "onboarding-welcome-summary": "opus",
   // email-adapter / drift-check (1) — A7
   "drift-check-grader": "haiku",
 } as const satisfies Record<string, ModelTier>;
