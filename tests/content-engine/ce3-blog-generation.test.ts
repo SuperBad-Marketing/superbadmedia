@@ -76,7 +76,9 @@ vi.mock("@/lib/scheduled-tasks/enqueue", () => ({
   enqueueTask: vi.fn(() => ({ id: "task-id" })),
 }));
 
-vi.mock("@/lib/channels/email/send");
+vi.mock("@/lib/channels/email/send", () => ({
+  sendEmail: vi.fn(() => ({ sent: true })),
+}));
 
 // ── Import after mocks ──────────────────────────────────────────────────────
 

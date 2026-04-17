@@ -82,5 +82,18 @@ export { generateAiImage } from "./ai-image";
 export { rewriteForNewsletter, computeNextSendWindow } from "./newsletter-rewrite";
 export type { NewsletterRewriteResult } from "./newsletter-rewrite";
 
+// Newsletter send (CE-7)
+export {
+  getDueNewsletterSends,
+  sendNewsletter,
+  resolveReadMoreLinks,
+  buildUnsubscribeUrl,
+  injectUnsubscribeFooter,
+} from "./newsletter-send";
+export type { NewsletterSendResult } from "./newsletter-send";
+
+// Newsletter send bootstrap (CE-7)
+export { ensureNewsletterSendEnqueued } from "@/lib/scheduled-tasks/handlers/content-newsletter-send";
+
 // Asset storage (CE-5)
 export { storeContentAsset, readContentAsset } from "./asset-storage";

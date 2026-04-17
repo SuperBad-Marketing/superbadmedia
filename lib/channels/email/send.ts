@@ -48,6 +48,8 @@ export interface SendEmailParams {
   replyTo?: string;
   /** Optional Resend tags for analytics */
   tags?: Array<{ name: string; value: string }>;
+  /** Optional extra headers (e.g. List-Unsubscribe for newsletter compliance) */
+  headers?: Record<string, string>;
 }
 
 export interface SendEmailResult {
@@ -65,7 +67,7 @@ export interface SendEmailResult {
  * when gated — callers handle the skipped case explicitly.
  */
 export async function sendEmail(params: SendEmailParams): Promise<SendEmailResult> {
-  const { to, subject, body, classification, purpose, replyTo, tags } = params;
+  const { to, subject, body, classification, purpose, replyTo, tags, headers } = params;
   const recipients = Array.isArray(to) ? to : [to];
   const transactional = isTransactional(classification);
 
@@ -110,6 +112,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     html: body,
     replyTo: replyTo ?? process.env.EMAIL_FROM,
     tags,
+    ...(headers ? { headers } : {}),
   });
 
   if (error) {

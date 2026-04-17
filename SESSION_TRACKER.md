@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CE-7` — Newsletter send handler (actual email delivery at scheduled window)
-**Brief:** needs pre-compilation (CE-6 did not write a CE-7 brief)
-**Model tier:** Sonnet (medium — scheduled-task handler, Resend bulk send, Spam Act compliance)
-**Last closed:** CE-6 (2026-04-17) — see `sessions/ce-6-handoff.md`
-**Wave status:** Wave 12 in progress. CE-1 (data model) + CE-2 (research pipeline) + CE-3 (generation + review + publish) + CE-4 (draft generation handler) + CE-5 (visual generation pipeline) + CE-6 (fan-out handler) complete.
+**Next session:** `CE-8` — Social draft admin surface or subscriber management (needs pre-compilation — BUILD_PLAN does not detail CE-8; CE-5 handoff suggests social draft review/publish UI; CE-9 owns ranking snapshot per cron table)
+**Brief:** needs pre-compilation
+**Model tier:** Sonnet (medium — likely UI surface)
+**Last closed:** CE-7 (2026-04-17) — see `sessions/ce-7-handoff.md`
+**Wave status:** Wave 12 in progress. CE-1 (data model) + CE-2 (research pipeline) + CE-3 (generation + review + publish) + CE-4 (draft generation handler) + CE-5 (visual generation pipeline) + CE-6 (fan-out handler) + CE-7 (newsletter send handler) complete.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -92,6 +92,7 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 | 2026-04-17 | 5 | Build (CE-4) | Wave 12 CE-4 — Draft generation scheduled-task handler (tier-paced automatic generation). `content_generate_draft` handler: kill-switch gate → monthly cap check (rolling 30-day window, counts in_review+approved+publishing+published) → `generateBlogPost(companyId)` → self-re-enqueue at tier-paced interval (30 days / max_posts_per_month, floored at 12h). Cap-reached → 30-day delay. `ensureContentGenerationEnqueued()` bootstrap export (1h initial delay). Uses `content.max_posts_per_month` settings key (per-company tier lookup deferred to SaaS billing wave). No migration. 13 new tests; 1217/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [ce-4-handoff.md](sessions/ce-4-handoff.md) |
 | 2026-04-17 | 5 | Build (CE-5) | Wave 12 CE-5 — Visual generation pipeline (social templates + Puppeteer + OpenAI Images). `generateSocialDrafts(blogPostId)` Haiku per-platform text + format decision for Instagram/LinkedIn/X/Facebook. 4 HTML template builders (quote-card, stat-highlight, listicle-card, branded-hero) + carousel renderer. `renderSocialImage()` Puppeteer screenshot (2x DPI). `generateAiImage()` three-step: Haiku prompt → DALL-E 3 → Haiku quality gate. `generateVisualAssets()` orchestrator: template selection (Haiku) → render or AI gen → store → update drafts to `ready`. Local asset storage with API route at `/api/content-assets/`. Video/Remotion deferred. No migration. 24 new tests; 1241/1 green; 0 TS errors; build clean; lint 58 warnings (baseline). | [ce-5-handoff.md](sessions/ce-5-handoff.md) |
 | 2026-04-17 | 5 | Build (CE-6) | Wave 12 CE-6 — Fan-out scheduled-task handler (social drafts + newsletter rewrite on blog approval). `content_fan_out` handler: best-effort orchestration of `publishBlogPost()` → `generateSocialDrafts()` + `generateVisualAssets()` → `rewriteForNewsletter()`. `rewriteForNewsletter(postId, companyId)` Haiku newsletter rewrite (standalone or digest hybrid). `computeNextSendWindow()` DST-safe send window scheduler. Creates `newsletter_sends` row for CE-7 to deliver. No migration. 15 new tests; 1256/1 green; 0 TS errors; build clean; lint 61 warnings (0 from CE-6). | [ce-6-handoff.md](sessions/ce-6-handoff.md) |
+| 2026-04-17 | 5 | Build (CE-7) | Wave 12 CE-7 — Newsletter send handler (actual email delivery at scheduled window). `content_newsletter_send` handler: hourly self-perpetuating check for due `newsletter_sends` rows, per-recipient delivery via `sendEmail()` with `List-Unsubscribe` + `List-Unsubscribe-Post` headers, `{{READ_MORE_LINK}}` resolution from published blog post URLs, unsubscribe footer injection. Unsubscribe endpoint at `/api/newsletter/unsubscribe` (GET for browser + POST for RFC 8058 one-click). `sendEmail()` extended with optional `headers` param. `ensureNewsletterSendEnqueued()` bootstrap export. No migration. 17 new tests; 1273/1 green; 0 TS errors; build clean; lint 61 warnings (0 from CE-7). | [ce-7-handoff.md](sessions/ce-7-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 
