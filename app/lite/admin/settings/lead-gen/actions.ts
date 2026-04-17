@@ -6,31 +6,29 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { dncEmails, dncDomains } from "@/lib/db/schema/dnc";
-import { addDncEmail, addDncDomain } from "@/lib/lead-gen/dnc";
+import {
+  addDncEmail,
+  addDncDomain,
+  removeDncEmail,
+  removeDncDomain,
+} from "@/lib/lead-gen/dnc";
 
-export type AddResult = {
+async function requireAdmin(): Promise<string | null> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") return null;
+  return session.user.id;
+}
+
+export type BulkAddResult = {
   ok: boolean;
   added: number;
   skipped: number;
   errors: string[];
 };
-export type RemoveResult = { ok: boolean };
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") return null;
-  return session.user;
-}
-
-function revalidate() {
-  revalidatePath("/lite/admin/settings/lead-gen");
-}
-
-export async function addDncEmails(emails: string[]): Promise<AddResult> {
-  const user = await requireAdmin();
-  if (!user) {
-    return { ok: false, added: 0, skipped: 0, errors: ["Not authorised."] };
-  }
+export async function addDncEmails(emails: string[]): Promise<BulkAddResult> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false, added: 0, skipped: 0, errors: ["Unauthorised"] };
 
   let added = 0;
   let skipped = 0;
@@ -39,67 +37,87 @@ export async function addDncEmails(emails: string[]): Promise<AddResult> {
   for (const raw of emails) {
     const email = raw.toLowerCase().trim();
     if (!email) continue;
-    if (!email.includes("@") || email.indexOf("@") === 0) {
-      errors.push(`"${raw}": invalid email`);
+    if (!email.includes("@")) {
+      errors.push(`"${raw}" is not a valid email`);
       continue;
     }
     try {
-      const ok = await addDncEmail(email, "manual", { addedBy: user.id });
-      if (ok) added++;
-      else skipped++;
+      const inserted = await addDncEmail(email, "manual", { addedBy: userId });
+      if (inserted) {
+        added++;
+      } else {
+        skipped++;
+      }
     } catch {
-      errors.push(`"${raw}": failed to add`);
+      errors.push(`Failed to add "${email}"`);
     }
   }
 
-  revalidate();
+  revalidatePath("/lite/admin/settings/lead-gen");
   return { ok: true, added, skipped, errors };
 }
 
-export async function removeDncEmailById(id: string): Promise<RemoveResult> {
-  const user = await requireAdmin();
-  if (!user) return { ok: false };
+export async function removeDncEmailById(id: string): Promise<{ ok: boolean }> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false };
 
-  await db.delete(dncEmails).where(eq(dncEmails.id, id));
-  revalidate();
+  const row = await db
+    .select({ email: dncEmails.email })
+    .from(dncEmails)
+    .where(eq(dncEmails.id, id))
+    .get();
+
+  if (!row) return { ok: false };
+
+  await removeDncEmail(row.email);
+  revalidatePath("/lite/admin/settings/lead-gen");
   return { ok: true };
 }
 
-export async function addDncDomains(domains: string[]): Promise<AddResult> {
-  const user = await requireAdmin();
-  if (!user) {
-    return { ok: false, added: 0, skipped: 0, errors: ["Not authorised."] };
-  }
+export async function addDncDomains(domains: string[]): Promise<BulkAddResult> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false, added: 0, skipped: 0, errors: ["Unauthorised"] };
 
   let added = 0;
   let skipped = 0;
   const errors: string[] = [];
 
   for (const raw of domains) {
-    const domain = raw.toLowerCase().trim().replace(/^@/, "").replace(/^https?:\/\//, "").split("/")[0];
+    const domain = raw.toLowerCase().trim().replace(/^@/, "");
     if (!domain) continue;
     if (!domain.includes(".")) {
-      errors.push(`"${raw}": invalid domain`);
+      errors.push(`"${raw}" doesn't look like a domain`);
       continue;
     }
     try {
-      const ok = await addDncDomain(domain, user.id, {});
-      if (ok) added++;
-      else skipped++;
+      const inserted = await addDncDomain(domain, userId);
+      if (inserted) {
+        added++;
+      } else {
+        skipped++;
+      }
     } catch {
-      errors.push(`"${raw}": failed to add`);
+      errors.push(`Failed to add "${domain}"`);
     }
   }
 
-  revalidate();
+  revalidatePath("/lite/admin/settings/lead-gen");
   return { ok: true, added, skipped, errors };
 }
 
-export async function removeDncDomainById(id: string): Promise<RemoveResult> {
-  const user = await requireAdmin();
-  if (!user) return { ok: false };
+export async function removeDncDomainById(id: string): Promise<{ ok: boolean }> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false };
 
-  await db.delete(dncDomains).where(eq(dncDomains.id, id));
-  revalidate();
+  const row = await db
+    .select({ domain: dncDomains.domain })
+    .from(dncDomains)
+    .where(eq(dncDomains.id, id))
+    .get();
+
+  if (!row) return { ok: false };
+
+  await removeDncDomain(row.domain);
+  revalidatePath("/lite/admin/settings/lead-gen");
   return { ok: true };
 }
