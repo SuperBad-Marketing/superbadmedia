@@ -9,6 +9,8 @@
 **Last closed:** LG-2 (2026-04-17) — see `sessions/lg-2-handoff.md`
 **Wave status:** Wave 13 (Lead Generation) in progress. LG-1 complete (schema). LG-2 complete (3 primary source adapters + types). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
 
+> [AUTONOMY] Stale lock reclaimed — LG-3 lock (started_at: 2026-04-17T00:00:00Z, ~17h old) was from a prior failed session. No enrichment artifacts found. Re-running LG-3 clean.
+
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
 ---
