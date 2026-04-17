@@ -10,6 +10,7 @@ import { INBOX_DRAFT_HANDLERS } from "./inbox-draft-generate";
 import { INBOX_TICKET_AUTO_RESOLVE_HANDLERS } from "./inbox-ticket-auto-resolve";
 import { INBOX_DIGEST_HANDLERS } from "./inbox-digest";
 import { ONBOARDING_NUDGE_HANDLERS } from "./onboarding-nudges";
+import { CONTENT_KEYWORD_RESEARCH_HANDLERS } from "./content-keyword-research";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -34,4 +35,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...INBOX_TICKET_AUTO_RESOLVE_HANDLERS,
   ...INBOX_DIGEST_HANDLERS,
   ...ONBOARDING_NUDGE_HANDLERS,
+  ...CONTENT_KEYWORD_RESEARCH_HANDLERS,
 };
