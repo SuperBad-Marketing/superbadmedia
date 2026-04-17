@@ -95,5 +95,9 @@ export type { NewsletterSendResult } from "./newsletter-send";
 // Newsletter send bootstrap (CE-7)
 export { ensureNewsletterSendEnqueued } from "@/lib/scheduled-tasks/handlers/content-newsletter-send";
 
+// Social publish (CE-8)
+export { markSocialDraftPublished } from "./social-publish";
+export type { MarkPublishedResult } from "./social-publish";
+
 // Asset storage (CE-5)
 export { storeContentAsset, readContentAsset } from "./asset-storage";

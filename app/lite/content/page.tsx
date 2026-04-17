@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
+import { ContentTabs } from "./_components/content-tabs";
 
 // SuperBad's own company ID — in production this comes from settings or config.
 // For now, list all companies' posts since this is an admin view.
@@ -50,24 +51,7 @@ export default async function ContentPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      {/* Tab navigation — Review is the only active tab in CE-3 */}
-      <div className="mb-8 flex items-center gap-6 border-b border-border">
-        <button className="border-b-2 border-foreground pb-2 text-sm font-medium">
-          Review
-        </button>
-        <span className="pb-2 text-sm text-muted-foreground cursor-not-allowed">
-          Social
-        </span>
-        <span className="pb-2 text-sm text-muted-foreground cursor-not-allowed">
-          Metrics
-        </span>
-        <span className="pb-2 text-sm text-muted-foreground cursor-not-allowed">
-          Topics
-        </span>
-        <span className="pb-2 text-sm text-muted-foreground cursor-not-allowed">
-          List
-        </span>
-      </div>
+      <ContentTabs currentPath="/lite/content" />
 
       {/* Posts awaiting review */}
       <section className="mb-12">

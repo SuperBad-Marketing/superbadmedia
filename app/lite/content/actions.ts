@@ -14,6 +14,7 @@ import {
   rejectAndRegenerate,
 } from "@/lib/content-engine/review";
 import { publishBlogPost } from "@/lib/content-engine/publish";
+import { markSocialDraftPublished } from "@/lib/content-engine/social-publish";
 
 // ── Approve ──────────────────────────────────────────────────────────────────
 
@@ -70,6 +71,25 @@ export async function rejectPostAction(postId: string, feedback: string) {
 
   revalidatePath(`/lite/content/review/${parsed.data.postId}`);
   revalidatePath("/lite/content");
+
+  return { ok: true as const };
+}
+
+// ── Publish Social Draft (CE-8) ─────────────────────────────────────────────
+
+export async function publishSocialDraftAction(draftId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = z.string().uuid().safeParse(draftId);
+  if (!parsed.success) return { ok: false as const, error: "invalid_id" };
+
+  const result = await markSocialDraftPublished(parsed.data);
+  if (!result.ok) return { ok: false as const, error: result.reason };
+
+  revalidatePath("/lite/content/social");
 
   return { ok: true as const };
 }
