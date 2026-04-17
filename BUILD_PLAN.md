@@ -373,7 +373,7 @@ Sessions CE-1..CE-13 per group 3 breakdown. Depends on: SW-5 (domain-verify wiza
 
 ## Wave 13 — Lead Generation
 
-Sessions LG-1..LG-10 per group 3. Depends on SW-5 (integration wizards for SerpAPI/Apollo/etc.), A7 (warmup ramp in email adapter), A8 for DNC enforcement surface, Wave 5 SP-1 for `createDealFromLead()`, BDA-4 for drafts that read Brand DNA.
+Sessions LG-1..LG-10 per group 3. Depends on SW-5 (integration wizards for SerpAPI/Hunter.io/etc.), A7 (warmup ramp in email adapter), A8 for DNC enforcement surface, Wave 5 SP-1 for `createDealFromLead()`, BDA-4 for drafts that read Brand DNA.
 
 **Settings keys:** `lead_generation.daily_search_enabled`, `lead_generation.daily_max_per_day`, `lead_generation.dedup_window`, `lead_generation.location_radius`, `lead_generation.category`, `lead_generation.standing_brief`, `lead_generation.run_time`, plus `warmup.daily_cap_week_N` series.
 **Crons:** `lead_gen_daily_search` (03:00 daily), `sequence_scheduler`, `engagement_tier_evaluator`, Resend webhook handlers (bounce, complaint, opens, clicks).

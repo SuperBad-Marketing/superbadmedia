@@ -73,8 +73,9 @@ describe("SP-1 enum shape", () => {
     expect(TRIAL_SHOOT_STATUSES).toHaveLength(6);
   });
 
-  it("contacts.email_status is the 5-tuple", () => {
-    expect(CONTACT_EMAIL_STATUSES).toHaveLength(5);
+  it("contacts.email_status is the 6-tuple (LG-1 added 'unsubscribed')", () => {
+    expect(CONTACT_EMAIL_STATUSES).toHaveLength(6);
+    expect(CONTACT_EMAIL_STATUSES).toContain("unsubscribed");
   });
 
   it("webhook_events.provider is stripe | resend", () => {

@@ -60,6 +60,11 @@ export const SCHEDULED_TASK_TYPES = [
   // --- Onboarding + Segmentation (2) ---
   "onboarding_nudge_email",
   "practical_setup_reminder_email",
+  // --- Lead Generation (4) ---
+  "lead_gen_daily_search",
+  "sequence_scheduler",
+  "engagement_tier_evaluator",
+  "auto_send_execute",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",

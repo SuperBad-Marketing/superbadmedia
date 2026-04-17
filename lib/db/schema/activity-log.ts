@@ -137,6 +137,11 @@ export const ACTIVITY_LOG_KINDS = [
   "sequence_stopped_manual",
   "autonomy_graduated",
   "autonomy_demoted",
+  // --- Lead Generation — reactive scoring (§16.7, 4) ---
+  "candidate_rescored",
+  "candidate_track_changed",
+  "candidate_track_change_suppressed",
+  "candidate_below_floor",
   // --- Content Engine (15) ---
   "content_topic_researched",
   "content_topic_vetoed",

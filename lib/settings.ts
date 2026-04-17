@@ -194,6 +194,24 @@ const registry = {
   "content.send_window_hour": integer,
   "content.max_posts_per_month": integer,
   "content.max_subscribers_per_tier": str,
+
+  // Lead Generation (9 — LG-1)
+  "lead_generation.daily_search_enabled": boolean,
+  "lead_generation.daily_max_per_day": integer,
+  "lead_generation.dedup_window_days": integer,
+  "lead_generation.location_radius_km": integer,
+  "lead_generation.location_centre": str,
+  "lead_generation.category": str,
+  "lead_generation.standing_brief": str,
+  "lead_generation.run_time": str,
+  "lead_generation.auto_send_delay_minutes": integer,
+
+  // Warmup ramp (5 — LG-1)
+  "warmup.week_one_cap": integer,
+  "warmup.week_two_cap": integer,
+  "warmup.week_three_cap": integer,
+  "warmup.week_four_cap": integer,
+  "warmup.graduated_cap": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

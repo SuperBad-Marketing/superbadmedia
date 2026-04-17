@@ -100,7 +100,9 @@ describe("matchContentToProspects", () => {
     (db.select as ReturnType<typeof vi.fn>).mockReturnValue(chain);
 
     const result = await matchContentToProspects("post-1", "co-sb");
-    expect(result).toEqual({ ok: false, reason: "lead_gen_not_available" });
+    // LG-1 flipped isLeadGenAvailable() to true — gate passes, but
+    // scoreProspects() stub returns [] → no_candidates
+    expect(result).toEqual({ ok: false, reason: "no_candidates" });
   });
 
   it("returns post_not_found when post doesn't exist", async () => {

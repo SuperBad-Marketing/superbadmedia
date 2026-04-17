@@ -33,7 +33,8 @@ export type KillSwitchKey =
   | "onboarding_nudges_enabled"
   | "content_automations_enabled"
   | "content_newsletter_enabled"
-  | "content_outreach_enabled";
+  | "content_outreach_enabled"
+  | "lead_gen_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -112,6 +113,11 @@ const defaults: KillSwitchRegistry = {
   // CE-1: gates content-to-outreach matching pipeline. When OFF, publish
   // does not queue content-match prospecting emails. SuperBad-only.
   content_outreach_enabled: false,
+  // LG-1: gates the entire Lead Generation pipeline (daily search, draft
+  // generation, sequence scheduling, engagement evaluation). When OFF, all
+  // Lead Gen cron handlers exit early. Flip ON in Phase 6 after warmup
+  // DNS is verified and Hunter.io key is configured.
+  lead_gen_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

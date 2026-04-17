@@ -44,6 +44,8 @@ Prospects live as **candidates** in a `lead_candidates` table until the first ou
 | Q11 | **Three-tab surface: Queue / Runs log / Metrics** | Queue is primary. Metrics has a closed list of 4 panels (funnel, approval rate sparkline, autonomy streak, warmup progress). |
 | Q12 | **Three-tier DNC with single enforcement function** | Company + email + domain. `isBlockedFromOutreach()` is the only read path. Unsubscribe handler, complaint handler, manual CRUD are the only writers. |
 | Q13 | **Single fixed sender: Andy Robinson <hi@contact.superbadmedia.com.au>** | One identity, one warmup, one reply pipe. Multi-sender retrofits cheaply in v1.1 if ever needed. |
+| Q14 | **Reactive ICP scoring — rules-only, post-send, track-change-capable** | Engagement + reply + file-note signals feed `rescoreCandidate()`. Deterministic rules, bounded [−20, +25]. Track can change once mid-sequence. Added 2026-04-18. |
+| Q15 | **No Apollo.io — enrichment via public APIs only** | Meta Ad Library + Google Maps + Google Ads Transparency + Hunter.io + 6 enrichment signals. No purchased contact databases. Confirmed 2026-04-18. |
 
 ---
 
@@ -1029,10 +1031,206 @@ All disciplines from the spec, gathered here for the Phase 5 checklist:
 - **§12.R** — `logActivity()` called at the end of every Lead Gen mutation in the same transaction (inherits Foundations §12.13).
 - **§12.S** — `checkBrandVoiceDrift()` called on every Lead Gen draft before display or send (inherits Foundations §12.17).
 - **§12.T** — Automated outreach respects the quiet window (inherits Foundations §12.16). First-touch manual approvals exempt.
+- **§12.U** — `rescoreCandidate()` lives in `scoring.ts` alongside pre-send scorers. No rescore logic anywhere else.
+- **§12.V** — Every rescore writes to `activity_log` via `logActivity()`.
+- **§12.W** — Track changes write to `activity_log` and are capped at one per candidate.
+- **§12.X** — Reactive adjustment bounds (`[−20, +25]`) are constants in `scoring.ts`, not config.
 
 ---
 
-## 16. Open questions deferred to Phase 5
+## 16. Reactive ICP scoring (post-send score adjustment)
+
+**Added 2026-04-18. Extends Q4/Q5 locks with a v1 reactive scoring layer.**
+
+### 16.1 Motivation
+
+Pre-send scoring (§6) is a snapshot — it uses only enrichment signals available before any contact has happened. Once outreach begins, the prospect's behaviour generates new signal: engagement tiers, reply classifications, sequence progression, and Andy's file notes. Reactive scoring closes the loop — the ICP score becomes a living number that tracks what we're actually learning, not just what we guessed on day one.
+
+### 16.2 Trigger events
+
+A rescore fires on any of these events:
+
+| Event | Source | What it signals |
+|---|---|---|
+| Engagement tier computed/updated | LG-9 engagement evaluator (Resend webhooks) | Click = high interest. Full open = moderate. Sub-60s = noise. None = cold. |
+| Reply classified | Reply-intelligence classifier (§13.0) | Positive = strong. Objection/question = engaged but hesitant. Negative = disqualify. |
+| Sequence touch sent | Sequence scheduler | Responsiveness pattern (replied-to-touch-2 vs ghosted-after-touch-4). |
+| File note added | Pipeline activity (manual Andy note on the Deal) | Andy's gut reads — qualitative signal the rules can't capture. |
+| Bounce (hard) | Resend webhook | Contact info was wrong — degrade confidence, don't disqualify outright. |
+
+### 16.3 The rescore function
+
+Lives in `scoring.ts` alongside the pre-send scorers. Same pure-function discipline (§12.B).
+
+```ts
+// lib/lead-gen/scoring.ts
+export function rescoreCandidate(args: {
+  currentSaasScore: number
+  currentRetainerScore: number
+  currentTrack: 'saas' | 'retainer'
+  viabilityProfile: ViabilityProfile
+  engagementHistory: EngagementEvent[]
+  replyClassifications: ReplyClassification[]
+  touchesSent: number
+  fileNotes: FileNote[]
+  hardBounced: boolean
+}): {
+  saasScore: number
+  retainerScore: number
+  qualifiedTrack: 'saas' | 'retainer' | null
+  trackChanged: boolean
+  rescoreBreakdown: RescoreBreakdown
+}
+```
+
+**Inputs:**
+- Original viability profile (unchanged — pre-send enrichment is not re-fetched)
+- Full engagement history for this candidate's sequence
+- All reply classifications from the reply-intelligence primitive
+- Touch count (sequence depth)
+- File notes on the associated Deal (text content, not structured)
+- Bounce status
+
+**Output:**
+- Updated scores for both tracks (not deltas — full recomputed scores)
+- Updated qualified track (winner-takes-all, same logic as §6.3)
+- `trackChanged` flag for downstream consumers
+- Full breakdown for auditability (stored in `scoring_debug_json`)
+
+### 16.4 Score adjustment rules (deterministic, no LLM)
+
+Reactive scoring is **rules-only** in v1. No LLM call. Adjustments are additive to the base enrichment score.
+
+```
+Engagement adjustments (cumulative across all sends):
+  click on any touch               → +5 per unique click event (cap +15)
+  full open (tier 2)               → +2 per event (cap +6)
+  sub-60s open (tier 3)            → +0 (noise — no adjustment)
+  no engagement (tier 4)           → −2 per event (cap −8)
+
+Reply adjustments:
+  positive reply                   → +12 (one-time, not per reply)
+  objection or question            → +5 (engaged enough to object/ask)
+  negative reply                   → −15 (strong disqualify signal)
+  auto_responder                   → +0 (no signal)
+
+Responsiveness pattern:
+  replied within 24h of any touch  → +4
+  replied within 72h               → +2
+  no reply after 3+ touches        → −3
+
+File note adjustment:
+  any file note exists on Deal     → +3 (Andy cared enough to annotate)
+
+Hard bounce:
+  hard bounce on any touch         → −10 (contact info unreliable)
+
+All adjustments are bounded: total reactive adjustment ∈ [−20, +25].
+Final score = clamp(base_enrichment_score + reactive_adjustment, 0, 100).
+```
+
+**Floor re-check:** after rescore, if the updated score drops below the track's qualification floor (SaaS 40, Retainer 55), the candidate is **not auto-discarded** — the sequence is already in flight. Instead, the candidate is flagged with `below_floor_after_rescore = true` for visibility in the queue UI. Andy can manually stop the sequence if warranted.
+
+### 16.5 Track changes mid-sequence
+
+A rescore **can change the qualified track**. When `trackChanged = true`:
+
+1. The `outreach_sequences.track` column is updated to the new track.
+2. The **next** draft generated for this sequence uses the new track's tone/positioning (retainer vs SaaS pitch angle).
+3. Prior sends are not retroactively reclassified — they stay tagged with the original track for accurate historical metrics.
+4. An `activity_log` row is written: `kind: 'candidate_track_changed'`, with old/new track and the rescore breakdown.
+5. The autonomy state machine reads from `outreach_sequences.track`, so the new track's autonomy rules apply from the next touch onward.
+
+**Guard rail:** a track can only change **once** per candidate. If a rescore would flip it a second time, the flip is suppressed and logged as `track_change_suppressed` in the activity log. This prevents ping-pong between tracks on noisy signals.
+
+### 16.6 Schema additions
+
+```ts
+// Additions to lead_candidates (§4.1)
+reactive_adjustment: integer('reactive_adjustment').notNull().default(0),
+reactive_adjustment_json: text('reactive_adjustment_json', { mode: 'json' }),
+rescored_at: integer('rescored_at', { mode: 'timestamp_ms' }),
+rescore_count: integer('rescore_count').notNull().default(0),
+below_floor_after_rescore: integer('below_floor_after_rescore', { mode: 'boolean' }).notNull().default(false),
+track_change_used: integer('track_change_used', { mode: 'boolean' }).notNull().default(false),
+previous_track: text('previous_track', { enum: ['saas', 'retainer'] }),
+track_changed_at: integer('track_changed_at', { mode: 'timestamp_ms' }),
+```
+
+No new tables. No new crons. Columns are all nullable or defaulted — zero impact on existing candidate creation flow.
+
+### 16.7 Activity log kinds
+
+New `activity_log.kind` values:
+- `candidate_rescored` — fired on every rescore, includes old/new scores
+- `candidate_track_changed` — fired when track flips, includes old/new track + breakdown
+- `candidate_track_change_suppressed` — fired when a second flip is blocked
+- `candidate_below_floor` — fired when rescore drops a candidate below their track floor
+
+### 16.8 Where rescoring is called
+
+Two call sites only:
+
+1. **LG-9 engagement tier evaluator** — after computing/updating an engagement tier or processing a reply classification, calls `rescoreCandidate()` and updates the candidate row.
+2. **Pipeline activity handler** — when a file note is added to a Deal that has a `promoted_from_candidate_id`, calls `rescoreCandidate()` on the original candidate.
+
+No other code path triggers a rescore. Same discipline as the pre-send scoring chokepoint (§12.B).
+
+### 16.9 Build-time disciplines
+
+- **§12.U** — `rescoreCandidate()` lives in `scoring.ts` alongside pre-send scorers. No rescore logic anywhere else.
+- **§12.V** — Every rescore writes to `activity_log` via `logActivity()`.
+- **§12.W** — Track changes write to `activity_log` and are capped at one per candidate.
+- **§12.X** — Reactive adjustment bounds (`[−20, +25]`) are constants in `scoring.ts`, not config.
+
+### 16.10 UI impact
+
+Minimal. The queue row (§9.1) gains:
+
+- A small `rescored` tag when `rescore_count > 0`, showing current score vs original (e.g. `score 78 → 84`)
+- A `track changed` tag when `track_change_used = true` (e.g. `SaaS → Retainer`)
+- A `below floor` amber warning when `below_floor_after_rescore = true`
+
+These are display-only additions to existing queue rows. No new surfaces, no new tabs.
+
+### 16.11 Metrics panel impact
+
+The existing funnel panel (§14.2 panel 1) is unchanged — it counts candidates at each stage regardless of rescoring. A fifth metrics panel is **not** added; instead, the Runs log detail view (click-to-expand per §14.1) shows the score trajectory when `rescore_count > 0`:
+
+```
+Acme Co — Retainer · score 78 → 84 (rescored 3×)
+  Touch 1: sent, tier 2 (full open) → +2
+  Touch 2: sent, tier 1 (click) → +5, positive reply → +12, replied <24h → +4
+  Track: SaaS → Retainer (after touch 2)
+```
+
+### 16.12 Session impact
+
+Reactive scoring adds work to two existing sessions:
+
+- **LG-4** (scoring engine): add `rescoreCandidate()` function + unit tests for all adjustment rules + bounds. ~half session additional.
+- **LG-9** (engagement tier evaluator + sequence scheduler): wire rescore calls after engagement tier updates and reply classifications. Wire the file-note trigger from Pipeline activity. ~half session additional.
+
+Wave 13 stays at 10 sessions. No session splits required.
+
+---
+
+## 17. Sourcing strategy — no Apollo (confirmed 2026-04-18)
+
+SCOPE.md originally listed Apollo.io as a potential paid data source. **Apollo is explicitly excluded.** The sourcing and enrichment strategy is:
+
+- **Discovery:** Meta Ad Library API, Google Maps (via SerpAPI), Google Ads Transparency Center (via SerpAPI)
+- **Enrichment:** PageSpeed Insights, whois, Instagram Business Discovery, YouTube Data API, Google Maps photos, website scrape (fetch + cheerio)
+- **Contact discovery:** Hunter.io (domain search) + pattern inference fallback
+- **Scoring context:** all nine enrichment signals above, plus reactive post-send signals (§16)
+
+This mix builds comprehensive business profiles without Apollo. The enrichment signal set (§3.2) was designed to degrade gracefully — any single source can fail or return nothing without breaking the pipeline. The combination of advertising signals (Meta + Google), web signals (PageSpeed + whois + scrape), social signals (Instagram + YouTube), and local signals (Maps) covers the same ground Apollo would, using publicly available APIs with clear terms of service.
+
+**References cleaned up:** SCOPE.md §1, SCOPE.md §non-goals, FOUNDATIONS.md §reality-check, BUILD_PLAN.md Wave 13 dependency line.
+
+---
+
+## 18. Open questions deferred to Phase 5
 
 1. **Sub-60s open classification threshold** — 60 seconds is the starting point. Real-world data may warrant 30s or 90s. Tune in v1.1.
 2. **Cadence values** — 4 / 7 / 10 days is the starting point. Tune with real engagement data in v1.1.
@@ -1056,7 +1254,7 @@ All disciplines from the spec, gathered here for the Phase 5 checklist:
 
 ---
 
-## 18. Cross-spec changes flagged
+## 19. Cross-spec changes flagged
 
 ### `docs/specs/sales-pipeline.md`
 - **`contacts.email_status` enum** gains `'unsubscribed'`. Non-breaking (new value). Spec update + migration needed when Pipeline is next edited.
@@ -1066,7 +1264,7 @@ All disciplines from the spec, gathered here for the Phase 5 checklist:
 - No new BHS locations required by this spec. The existing 8-location list (plus the RETAINER/SAAS Won badge added by Pipeline) covers Lead Gen's surface.
 
 ### `SCOPE.md`
-- SCOPE §1 "Lead generation" is consistent with this spec in principle. Where SCOPE mentions "Apollo.io" as a potential paid data source, this spec supersedes with the Meta Ad Library + Google Maps + Google Ads Transparency Center + Hunter.io mix. No SCOPE edit required (SCOPE was always allowed to be slightly superseded by specs).
+- Apollo.io references replaced with the actual sourcing stack (Meta Ad Library + Google Maps + Google Ads Transparency Center + Hunter.io) as of 2026-04-18. SCOPE now matches spec.
 
 ### `FOUNDATIONS.md`
 - No changes. Lead Gen composes §11.1–§11.5 as designed.
@@ -1085,7 +1283,7 @@ All disciplines from the spec, gathered here for the Phase 5 checklist:
 
 ---
 
-## 19. What Phase 5 sessions this spec implies
+## 20. What Phase 5 sessions this spec implies
 
 Rough session breakdown for the Phase 4 build plan:
 
@@ -1104,7 +1302,7 @@ Sessions 2–3 may split further if any single source turns out harder than expe
 
 ---
 
-## 20. Success criteria
+## 21. Success criteria
 
 Lead Generation is "done" for v1 when:
 - [ ] Daily 3am run produces qualified drafts end-to-end with zero manual steps
@@ -1119,3 +1317,10 @@ Lead Generation is "done" for v1 when:
 - [ ] Candidate → Deal promotion happens exactly once per first send
 - [ ] Settings → Daily Search wizard walks through all required config
 - [ ] One real prospect has received one real cold email through the full pipeline and Andy has approved it with no edits
+- [ ] Reactive scoring fires on engagement tier update and adjusts candidate score correctly
+- [ ] Reactive scoring fires on reply classification and adjusts candidate score correctly
+- [ ] Track change mid-sequence works end-to-end: score flips track, next draft uses new track positioning, activity logged
+- [ ] Track change is capped at one per candidate — second flip is suppressed and logged
+- [ ] Below-floor-after-rescore flag surfaces correctly in the queue UI
+- [ ] Reactive adjustment bounds (−20 to +25) are enforced — no score escapes the clamp
+- [ ] No Apollo.io dependency anywhere in the codebase — enrichment uses only the nine-signal set from §3.2

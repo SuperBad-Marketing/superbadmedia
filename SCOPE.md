@@ -49,7 +49,7 @@ DNS, routing, and exactly how these URLs resolve is a Phase 2 Foundations decisi
 - Follow-up tracking: if no reply in X days, Lite suggests a follow-up draft
 
 **Discovery + scoring** (optional pipeline filler):
-- SerpAPI + Meta Ad Library API + a paid data source (e.g. Apollo.io) find and score qualified prospects
+- SerpAPI + Meta Ad Library API + Google Ads Transparency Center + Hunter.io find and score qualified prospects
 - Lite auto-creates prospect profiles from discovery, with scores surfaced in the admin
 
 **Outreach metrics tracked in v1:**
@@ -179,7 +179,7 @@ Any integration or configuration task that admins, clients, or SaaS customers ne
 **Principle:** wherever setup friction exists, a wizard exists. No one — admin, client, or customer — should ever be stuck wondering "what do I do now?" during setup.
 
 **Audiences and v1 scope:**
-- **Admin setup (Andy, one-time):** Stripe, Resend + domain verification, Claude/Anthropic API, SerpAPI, Apollo (or equivalent), Meta Ad Library, DNS records for the cold-email subdomain
+- **Admin setup (Andy, one-time):** Stripe, Resend + domain verification, Claude/Anthropic API, SerpAPI, Hunter.io, Meta Ad Library, DNS records for the cold-email subdomain
 - **Retainer client onboarding:** brand kit, contacts, Meta/Google Ad account access grants (when SuperBad manages ads), content archive links
 - **SaaS customer onboarding:** profile, payment, and whatever integrations each specific SaaS product requires (per-product in Phase 3)
 
@@ -610,7 +610,7 @@ These four features had full Phase 3 specs but were never promoted to first-clas
 - **Not a general-purpose email marketing platform.** Outreach is one-to-one with manual approval. Lite does not act as a campaign manager for third-party entities, does not send to purchased lists, and does not offer broadcast-campaign tools for external use. *(Updated 2026-04-11 mini-brainstorm: SuperBad's own owned-audience newsletter — derived from Content Engine blog posts and sent to explicitly opted-in subscribers — is now in scope as part of the Content Engine feature. See §"Additional v1 features".)*
 - **Not an SMS marketing platform.** SMS deferred to post-launch entirely.
 - **Not a Meta-integrated app (yet).** No Instagram/Facebook channels in v1 — deferred to Phase 3.
-- **Not a LinkedIn scraping tool.** Discovery uses legitimate paid data providers (Apollo or similar) — no scraping.
+- **Not a LinkedIn scraping tool.** Discovery uses publicly available APIs (Meta Ad Library, Google Maps, Google Ads Transparency Center, Hunter.io) — no scraping, no purchased contact databases.
 - **Not a multi-stakeholder approval workflow.** No multi-sig quote flow. Edge cases go to email.
 - **Not a published rate card.** Retainer pricing is built per-client in Lite. No fixed public tiers.
 - **Not a no-code automation builder.** Triggers are hardcoded with editable email templates. Zapier-style configurable triggers deferred.

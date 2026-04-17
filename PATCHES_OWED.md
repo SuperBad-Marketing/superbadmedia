@@ -697,3 +697,8 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 ## Phase 5 Wave 12 CE-1 (2026-04-17)
 
 - **`ce_1_settings_registry_doc_drift`** · `docs/settings-registry.md` totals section shows 97 keys but `lib/settings.ts` has 123. The doc hasn't been updated for UI-10 (1 key), UI-12 (1 key), UI-13 (3 keys), OS-2 (14 keys) additions. Not blocking — the typed registry in `lib/settings.ts` is the runtime source of truth. The doc totals should be reconciled to 123 when next touched. · CE-1 handoff · 2026-04-17 · **gate: opportunistic — next settings-registry.md touch**
+
+## Phase 5 Wave 13 LG-1 (2026-04-18)
+
+- **`lg_1_dnc_management_surface`** · DNC management UI (Settings → Lead Generation → Do Not Contact) not built. BUILD_PLAN spec §20 #1 bundles it with schema, but it's a UI surface. Deferring to LG-7 (UI session) or a dedicated mini-session. · LG-1 handoff · 2026-04-18 · **gate: LG-7 or dedicated UI session**
+- **`lg_1_settings_registry_doc_update`** · `docs/settings-registry.md` needs 14 new rows (9 `lead_generation.*` + 5 `warmup.*`). Total now 137. Extends `ce_1_settings_registry_doc_drift` above. · LG-1 handoff · 2026-04-18 · **gate: opportunistic — next settings-registry.md touch**

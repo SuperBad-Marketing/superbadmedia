@@ -24,6 +24,7 @@ export const CONTACT_EMAIL_STATUSES = [
   "soft_bounce",
   "invalid",
   "complained",
+  "unsubscribed",
 ] as const;
 export type ContactEmailStatus = (typeof CONTACT_EMAIL_STATUSES)[number];
 
