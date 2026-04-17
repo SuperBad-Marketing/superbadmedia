@@ -204,6 +204,13 @@
       "when": 1776420000000,
       "tag": "0038_ui12_history_import_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "6",
+      "when": 1776430000000,
+      "tag": "0039_ui13_digest_settings",
+      "breakpoints": true
     }
   ]
 }

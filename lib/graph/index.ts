@@ -108,6 +108,10 @@ export {
   getGraphStateForImport,
   type ImportProgress,
 } from "./history-import";
+// NOTE: digest.ts is intentionally NOT barrel-exported here.
+// It imports sendEmail → Resend SDK, which causes build failures
+// when transitively pulled into the Graph API callback route.
+// Import directly from "@/lib/graph/digest" when needed.
 export type {
   GraphCredentials,
   GraphMessage,

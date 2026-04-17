@@ -28,7 +28,8 @@ export type KillSwitchKey =
   | "saas_headlines_enabled"
   | "saas_cancel_flow_enabled"
   | "inbox_sync_enabled"
-  | "inbox_send_enabled";
+  | "inbox_send_enabled"
+  | "inbox_digest_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
@@ -87,6 +88,10 @@ const defaults: KillSwitchRegistry = {
   // `inbox_sync_enabled` still gates the Graph HTTP call itself (belt and
   // braces — turning either OFF is a hard stop on outbound mail).
   inbox_send_enabled: false,
+  // UI-13: gates the daily 08:00 morning digest email. When OFF, the
+  // handler exits without sending and does NOT re-enqueue — the
+  // bootstrap helper is the entry point when the switch flips back on.
+  inbox_digest_enabled: false,
 };
 
 // Runtime overrides sit in a writable proxy so tests and Phase 6 launch

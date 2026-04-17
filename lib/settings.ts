@@ -166,6 +166,11 @@ const registry = {
 
   // Unified Inbox — history import (1 — UI-12)
   "inbox.history_import_months": integer,
+
+  // Unified Inbox — morning digest (3 — UI-13)
+  "inbox.digest_hour": integer,
+  "inbox.digest_silent_window_hours": integer,
+  "inbox.digest_no_send_on_zero": boolean,
 } as const;
 
 export type SettingsKey = keyof typeof registry;
