@@ -89,18 +89,12 @@ async function isSuperBadCompany(
 // ── Lead Gen availability check ────────────────────────────────────
 
 /**
- * Check if the Lead Gen module is available (Wave 13). Returns false
- * until `lead_candidates` table exists. This avoids a hard import
- * dependency on a module that doesn't exist yet.
+ * Check if the Lead Gen module is available.
+ * Flipped to `true` by LG-1 (Wave 13) — `lead_candidates` table
+ * and the `lib/lead-gen` module now exist.
  */
 function isLeadGenAvailable(): boolean {
-  try {
-    // Dynamic check — the table/module won't exist until Wave 13.
-    // We use a simple flag that Wave 13's LG-1 session will flip.
-    return false;
-  } catch {
-    return false;
-  }
+  return true;
 }
 
 // ── Core pipeline ──────────────────────────────────────────────────
