@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * Content Engine review server actions (CE-3).
+ * Content Engine server actions (CE-3 + CE-8 + CE-10).
  *
  * Admin-role-gated. Zod-validated input where needed.
  * Discriminated union returns: `{ ok: true, ... } | { ok: false, error }`.
@@ -15,6 +15,11 @@ import {
 } from "@/lib/content-engine/review";
 import { publishBlogPost } from "@/lib/content-engine/publish";
 import { markSocialDraftPublished } from "@/lib/content-engine/social-publish";
+import { vetoTopic } from "@/lib/content-engine/topic-queue";
+import {
+  addSeedKeyword,
+  removeSeedKeyword,
+} from "@/lib/content-engine/seed-keywords";
 
 // ── Approve ──────────────────────────────────────────────────────────────────
 
@@ -90,6 +95,84 @@ export async function publishSocialDraftAction(draftId: string) {
   if (!result.ok) return { ok: false as const, error: result.reason };
 
   revalidatePath("/lite/content/social");
+
+  return { ok: true as const };
+}
+
+// ── Veto Topic (CE-10) ─────────────────────────────────────────────────────
+
+export async function vetoTopicAction(topicId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = z.string().uuid().safeParse(topicId);
+  if (!parsed.success) return { ok: false as const, error: "invalid_id" };
+
+  const result = await vetoTopic(parsed.data);
+  if (!result) return { ok: false as const, error: "not_found_or_already_vetoed" };
+
+  revalidatePath("/lite/content/topics");
+
+  return { ok: true as const };
+}
+
+// ── Add Seed Keyword (CE-10) ───────────────────────────────────────────────
+
+const seedKeywordSchema = z.string().min(1).max(200).trim();
+
+export async function addSeedKeywordAction(
+  companyId: string,
+  keyword: string,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsedCompany = z.string().uuid().safeParse(companyId);
+  if (!parsedCompany.success)
+    return { ok: false as const, error: "invalid_company_id" };
+
+  const parsedKeyword = seedKeywordSchema.safeParse(keyword);
+  if (!parsedKeyword.success)
+    return { ok: false as const, error: "invalid_keyword" };
+
+  const result = await addSeedKeyword(parsedCompany.data, parsedKeyword.data);
+  if (!result.ok) return { ok: false as const, error: result.reason };
+
+  revalidatePath("/lite/content/topics");
+
+  return { ok: true as const };
+}
+
+// ── Remove Seed Keyword (CE-10) ────────────────────────────────────────────
+
+export async function removeSeedKeywordAction(
+  companyId: string,
+  keyword: string,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsedCompany = z.string().uuid().safeParse(companyId);
+  if (!parsedCompany.success)
+    return { ok: false as const, error: "invalid_company_id" };
+
+  const parsedKeyword = seedKeywordSchema.safeParse(keyword);
+  if (!parsedKeyword.success)
+    return { ok: false as const, error: "invalid_keyword" };
+
+  const result = await removeSeedKeyword(
+    parsedCompany.data,
+    parsedKeyword.data,
+  );
+  if (!result.ok) return { ok: false as const, error: result.reason };
+
+  revalidatePath("/lite/content/topics");
 
   return { ok: true as const };
 }

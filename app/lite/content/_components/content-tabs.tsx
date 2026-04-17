@@ -9,8 +9,8 @@ import Link from "next/link";
 const TABS = [
   { label: "Review", href: "/lite/content", active: true },
   { label: "Social", href: "/lite/content/social", active: true },
-  { label: "Metrics", href: null, active: false },
-  { label: "Topics", href: null, active: false },
+  { label: "Metrics", href: "/lite/content/metrics", active: true },
+  { label: "Topics", href: "/lite/content/topics", active: true },
   { label: "List", href: null, active: false },
 ] as const;
 

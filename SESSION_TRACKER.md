@@ -2,12 +2,12 @@
 
 ## 🧭 Next Action
 
-**Phase:** 5 — Build Execution
-**Next session:** `CE-10` — Metrics tab + Topics tab admin surfaces
-**Brief:** `/lite/content/metrics` (ranking trends, post count, newsletter stats) + `/lite/content/topics` (passive topic queue, veto, seed keyword management). Two lightweight admin surfaces using existing data from CE-1→CE-9. Reuses `getPostRankingTrend()`, `listQueuedTopics()`, `vetoTopic()`. Extend `ContentTabs` with new active tabs.
-**Model tier:** Sonnet (medium — UI session)
-**Last closed:** CE-9 (2026-04-17) — see `sessions/ce-9-handoff.md`
-**Wave status:** Wave 12 in progress. CE-1 (data model) + CE-2 (research pipeline) + CE-3 (generation + review + publish) + CE-4 (draft generation handler) + CE-5 (visual generation pipeline) + CE-6 (fan-out handler) + CE-7 (newsletter send handler) + CE-8 (social tab admin surface) + CE-9 (ranking snapshot handler) complete.
+**Phase:** 5 — Build Execution (content mini-session interlude)
+**Next session:** `CMS-1` — Brand DNA Assessment content mini-session
+**Brief:** Largest creative session in the project. Produces: 31 question banks (5 sections × 3 shapes × 2 framings + 1 supplement), 40–60 signal tags + tag-to-option mappings, alignment gate wording, visual assets for ~20–30% visual questions, between-section insight prompt calibration, free-form reflection prompt, section visual art direction. Replaces the stub question bank at `lib/brand-dna/question-bank.ts`. Load skills: `superbad-brand-voice`, `superbad-visual-identity`, `superbad-business-context`. Andy reviews and approves outputs. See spec: `docs/specs/brand-dna-assessment.md` §4, §5, §14, §15.
+**Model tier:** Opus (creative — flagship experience, highest-stakes content in the project)
+**Last closed:** CE-10 (2026-04-17) — see `sessions/ce-10-handoff.md`
+**Wave status:** Wave 12 in progress. CE-1→CE-10 complete. Content mini-session Batch A interlude (CMS-1, CMS-2) before resuming remaining Wave 12 sessions. See "Content mini-sessions schedule" section below for full plan.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -25,6 +25,33 @@
 - [ ] **Phase 6** — Launch → `superbadmedia.com.au/lite` live
 
 Phase 0 stays unchecked in this tracker because the session that did it (HQ) doesn't count as a Lite session — this tracker begins with Phase 1.
+
+---
+
+## Content mini-sessions schedule
+
+Creative sessions producing copy, question banks, templates, and voice treatment. Not code sessions — require `superbad-brand-voice` + `superbad-visual-identity` + `superbad-business-context` skills loaded. Andy reviews and approves outputs. Scheduled 2026-04-17.
+
+### Batch A — run next (before more build waves advance)
+
+| Session | Feature | Size | Produces | Hard deadline |
+|---|---|---|---|---|
+| CMS-1 | **Brand DNA Assessment** | Largest | 31 question banks (5 sections × 3 shapes × 2 framings + 1 supplement), 40–60 signal tags + tag-to-option mappings, alignment gate wording, visual assets (~20–30% visual questions), between-section insight prompt calibration, free-form reflection prompt, section art direction | Before BDA-3 (reveal needs real questions) |
+| CMS-2 | **Quote Builder + Setup Wizards** | Medium | QB: catalogue content, client-facing copy, email templates, cancel flow copy, PDF cover line, terms page. SW: wizard step copy, help escalation copy | Before QB-3 (Wave 5) |
+
+### Batch B — run when Wave 12 Content Engine wraps
+
+| Session | Feature | Size | Produces | Hard deadline |
+|---|---|---|---|---|
+| CMS-3 | **Content Engine** | Large | ~15 social visual templates (HTML/CSS), newsletter email template (standalone + digest), demo landing page copy, inline blog CTA copy, embeddable opt-in form design, system email subject line voice treatment, OG image template + dry line pool, empty/loading/notification/fleet-overview copy, Remotion motion template art direction | Before engine goes live with real subscribers |
+| CMS-4 | **SaaS Subscription Billing** | Large | 12 voice-treated surfaces, 9 email templates, demo landing pages, cancel flow copy, cold outreach meta-demonstration copy | Before SB-1 (Wave 7) |
+
+### Batch C — run before their respective waves start
+
+| Session | Feature | Size | Produces | Hard deadline |
+|---|---|---|---|---|
+| CMS-5 | **Intro Funnel + Six-Week Plan** | Large | IF: landing page copy, 9 self-persuasion question banks (3 shapes × 4 sections — not the Brand DNA banks), reflection text, email templates. SWP: 2 Opus prompt calibration, self-review checklist, portal copy, PDF design, emails | Before IF-1 (Wave 14) |
+| CMS-6 | **Cost & Usage Observatory + Surprise & Delight** | Medium | CUO: banner copy (3 severity tiers), diagnosis card copy, weekly digest email. S&D: ambient copy pools (6 surface categories), egg trigger content, riddle content, admin egg catalogue (3–5 more owed from Phase 3) | Before CUO-1 (Wave 21) |
 
 ---
 
@@ -95,6 +122,7 @@ Phase 0 stays unchecked in this tracker because the session that did it (HQ) doe
 | 2026-04-17 | 5 | Build (CE-7) | Wave 12 CE-7 — Newsletter send handler (actual email delivery at scheduled window). `content_newsletter_send` handler: hourly self-perpetuating check for due `newsletter_sends` rows, per-recipient delivery via `sendEmail()` with `List-Unsubscribe` + `List-Unsubscribe-Post` headers, `{{READ_MORE_LINK}}` resolution from published blog post URLs, unsubscribe footer injection. Unsubscribe endpoint at `/api/newsletter/unsubscribe` (GET for browser + POST for RFC 8058 one-click). `sendEmail()` extended with optional `headers` param. `ensureNewsletterSendEnqueued()` bootstrap export. No migration. 17 new tests; 1273/1 green; 0 TS errors; build clean; lint 61 warnings (0 from CE-7). | [ce-7-handoff.md](sessions/ce-7-handoff.md) |
 | 2026-04-17 | 5 | Build (CE-8) | Wave 12 CE-8 — Social tab admin surface (publish + download + carousel preview). `markSocialDraftPublished()` library primitive (ready→published + activity log). Social tab at `/lite/content/social` with drafts grouped by blog post, platform badges, status badges, v1 Publish (clipboard + platform compose URL), Download link, carousel preview for Instagram multi-slide. Shared `ContentTabs` component replaces inline tab bar. `publishSocialDraftAction` server action. No migration. 6 new tests; 1279/1 green; 0 TS errors; build clean; lint 65 warnings (0 from CE-8). | [ce-8-handoff.md](sessions/ce-8-handoff.md) |
 | 2026-04-17 | 5 | Build (CE-9) | Wave 12 CE-9 — Ranking snapshot handler (weekly SerpAPI re-queries per published post). `takeRankingSnapshots(companyId)` pipeline: published posts × SerpAPI → domain matching → `ranking_snapshots` row per post. `getPostRankingTrend(blogPostId)` derives entry/current/peak/direction from history. Self-perpetuating weekly handler + `ensureRankingSnapshotEnqueued()` bootstrap. `content_ranking_snapshot_taken` activity kind. No migration. 22 new tests; 1301/1 green; 0 TS errors; build clean; lint 65 warnings (0 from CE-9). | [ce-9-handoff.md](sessions/ce-9-handoff.md) |
+| 2026-04-17 | 5 | Build (CE-10) | Wave 12 CE-10 — Metrics tab + Topics tab admin surfaces. `/lite/content/metrics` (post counts, ranking trends, newsletter stats, subscriber health, social counts). `/lite/content/topics` (passive topic queue with expandable outlines + veto, seed keyword management). `getContentMetrics()` aggregator. `getSeedKeywords()` / `addSeedKeyword()` / `removeSeedKeyword()` with activity logging. 3 server actions (veto, add/remove keyword). ContentTabs activated for Metrics + Topics. No migration. 11 new tests; 1312/1 green; 0 TS errors; build clean; lint 65 warnings (0 from CE-10). | [ce-10-handoff.md](sessions/ce-10-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 

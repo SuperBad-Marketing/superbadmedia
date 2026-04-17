@@ -106,5 +106,12 @@ export type { RankingSnapshotResult, PostRankingTrend } from "./ranking-snapshot
 // Ranking snapshot bootstrap (CE-9)
 export { ensureRankingSnapshotEnqueued } from "@/lib/scheduled-tasks/handlers/content-ranking-snapshot";
 
+// Seed keyword management (CE-10)
+export { getSeedKeywords, addSeedKeyword, removeSeedKeyword } from "./seed-keywords";
+
+// Metrics (CE-10)
+export { getContentMetrics } from "./metrics";
+export type { ContentMetrics } from "./metrics";
+
 // Asset storage (CE-5)
 export { storeContentAsset, readContentAsset } from "./asset-storage";
