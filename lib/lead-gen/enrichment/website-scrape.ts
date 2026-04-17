@@ -1,119 +1,134 @@
-/**
- * Website scrape enrichment — cheerio-based HTML parsing.
- * Populates website.has_about_page, has_pricing_page, team_size_signal, stated_pricing_tier.
- * Does NOT log to external_call_log (free fetch, no cost tracking needed).
- * Owner: LG-3. Consumer: LG-4 orchestrator.
- */
 import * as cheerio from "cheerio";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
-const FETCH_TIMEOUT_MS = 10_000;
+type TeamSizeSignal = ViabilityProfile["website"] extends
+  | { team_size_signal: infer T }
+  | undefined
+  ? T
+  : never;
+type PricingTier = ViabilityProfile["website"] extends
+  | { stated_pricing_tier: infer T }
+  | undefined
+  ? T
+  : never;
 
-type TeamSizeSignal = NonNullable<ViabilityProfile["website"]>["team_size_signal"];
-type PricingTier = NonNullable<ViabilityProfile["website"]>["stated_pricing_tier"];
+const TEAM_KEYWORDS: Record<string, TeamSizeSignal> = {
+  "founder": "solo",
+  "solo": "solo",
+  "freelance": "solo",
+  "team of 2": "small",
+  "team of 3": "small",
+  "team of 4": "small",
+  "team of 5": "small",
+  "small team": "small",
+  "boutique": "small",
+  "team of 1": "solo",
+  "staff of": "medium",
+  "employees": "medium",
+  "our team": "medium",
+  "meet the team": "small",
+};
 
+const PRICING_KEYWORDS: Record<string, PricingTier> = {
+  "$": "budget",
+  "affordable": "budget",
+  "cheap": "budget",
+  "low cost": "budget",
+  "competitive pricing": "budget",
+  "premium": "premium",
+  "enterprise": "premium",
+  "custom quote": "premium",
+  "bespoke": "premium",
+  "luxury": "premium",
+  "mid-tier": "mid",
+  "mid tier": "mid",
+  "packages from": "mid",
+  "starting from": "mid",
+};
+
+async function tryFetch(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "SuperBadBot/1.0 (+https://superbadmedia.com.au)",
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
+}
+
+function detectTeamSize(html: string, text: string): TeamSizeSignal {
+  const lower = (html + " " + text).toLowerCase();
+  for (const [keyword, signal] of Object.entries(TEAM_KEYWORDS)) {
+    if (lower.includes(keyword)) return signal;
+  }
+  return "unknown";
+}
+
+function detectPricingTier(html: string, text: string): PricingTier {
+  const lower = (html + " " + text).toLowerCase();
+  for (const [keyword, tier] of Object.entries(PRICING_KEYWORDS)) {
+    if (lower.includes(keyword)) return tier;
+  }
+  return "unknown";
+}
+
+/**
+ * Enrich with website signals by scraping root, /about, /team, /pricing pages.
+ * Uses cheerio to parse content. No external_call_log (free fetch, no cost tracking).
+ *
+ * @param domain - Normalised domain (e.g. "acme.com.au"). Null → returns {}.
+ */
 export async function enrichWebsiteScrape(
   domain: string | null,
 ): Promise<Partial<ViabilityProfile>> {
   if (!domain) return {};
 
   const base = `https://${domain}`;
+  const pages = [
+    { path: "/", name: "root" },
+    { path: "/about", name: "about" },
+    { path: "/about-us", name: "about" },
+    { path: "/team", name: "team" },
+    { path: "/our-team", name: "team" },
+    { path: "/pricing", name: "pricing" },
+    { path: "/prices", name: "pricing" },
+  ] as const;
 
-  const [root, about, team, pricing] = await Promise.allSettled([
-    fetchPage(base),
-    fetchPage(`${base}/about`),
-    fetchPage(`${base}/team`),
-    fetchPage(`${base}/pricing`),
-  ]);
+  const fetched: Record<string, string> = {};
 
-  const rootHtml = root.status === "fulfilled" ? root.value : null;
-  const aboutHtml = about.status === "fulfilled" ? about.value : null;
-  const teamHtml = team.status === "fulfilled" ? team.value : null;
-  const pricingHtml = pricing.status === "fulfilled" ? pricing.value : null;
+  await Promise.all(
+    pages.map(async ({ path, name }) => {
+      if (fetched[name]) return;
+      const html = await tryFetch(`${base}${path}`);
+      if (html) fetched[name] = html;
+    }),
+  );
 
-  const hasAboutPage = !!aboutHtml || hasAboutLink(rootHtml);
-  const hasPricingPage = !!pricingHtml || hasPricingLink(rootHtml);
+  const hasAboutPage = Boolean(fetched["about"]);
+  const hasPricingPage = Boolean(fetched["pricing"]);
 
-  const allHtml = [rootHtml, aboutHtml, teamHtml].filter(Boolean).join(" ");
-  const teamSize = inferTeamSize(allHtml);
-  const pricingTier = inferPricingTier([rootHtml, pricingHtml].filter(Boolean).join(" "));
+  const teamHtml = fetched["team"] ?? fetched["about"] ?? fetched["root"] ?? "";
+  const teamText = teamHtml ? cheerio.load(teamHtml).text() : "";
+
+  const pricingHtml = fetched["pricing"] ?? fetched["root"] ?? "";
+  const pricingText = pricingHtml ? cheerio.load(pricingHtml).text() : "";
+
+  const team_size_signal = detectTeamSize(teamHtml, teamText);
+  const stated_pricing_tier = detectPricingTier(pricingHtml, pricingText);
 
   return {
     website: {
-      domain_age_years: null,
-      pagespeed_performance_score: null,
       has_about_page: hasAboutPage,
       has_pricing_page: hasPricingPage,
-      team_size_signal: teamSize,
-      stated_pricing_tier: pricingTier,
+      team_size_signal,
+      stated_pricing_tier,
+      domain_age_years: null,
+      pagespeed_performance_score: null,
     },
   };
-}
-
-async function fetchPage(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url, {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; enrichment-bot/1.0)" },
-    });
-    if (!response.ok) return null;
-    return response.text();
-  } catch {
-    return null;
-  }
-}
-
-function hasAboutLink(html: string | null): boolean {
-  if (!html) return false;
-  const $ = cheerio.load(html);
-  return $("a[href*='/about']").length > 0 || $("a[href*='about-us']").length > 0;
-}
-
-function hasPricingLink(html: string | null): boolean {
-  if (!html) return false;
-  const $ = cheerio.load(html);
-  return $("a[href*='/pricing']").length > 0 || $("a[href*='plans']").length > 0;
-}
-
-function inferTeamSize(html: string): TeamSizeSignal {
-  if (!html) return "unknown";
-  const lower = html.toLowerCase();
-  // Look for explicit team size signals in text
-  const soloSignals = ["founder", "solo", "freelance", "just me", "i am", "i'm a"];
-  const smallSignals = ["small team", "our team of", "team of 2", "team of 3", "team of 4", "team of 5"];
-  const mediumSignals = ["team of 6", "team of 7", "team of 8", "team of 9", "team of 10",
-    "10 people", "12 people", "15 people", "20 staff", "25 staff"];
-  const largeSignals = ["50 staff", "100 staff", "200 employees", "enterprise", "global team"];
-
-  if (largeSignals.some((s) => lower.includes(s))) return "large";
-  if (mediumSignals.some((s) => lower.includes(s))) return "medium";
-  if (smallSignals.some((s) => lower.includes(s))) return "small";
-  if (soloSignals.some((s) => lower.includes(s))) return "solo";
-
-  // Count headings in team/about pages as a proxy
-  const $ = cheerio.load(html);
-  const teamCards = $(".team, .staff, .people, .crew, .members").find("h2, h3, li").length;
-  if (teamCards >= 20) return "large";
-  if (teamCards >= 8) return "medium";
-  if (teamCards >= 2) return "small";
-  if (teamCards === 1) return "solo";
-
-  return "unknown";
-}
-
-function inferPricingTier(html: string): PricingTier {
-  if (!html) return "unknown";
-  const lower = html.toLowerCase();
-
-  // Currency signals — look for explicit price mentions
-  const budgetSignals = ["$49", "$99", "$199", "affordable", "budget", "cheap", "low cost", "from $"];
-  const premiumSignals = ["$2,000", "$3,000", "$5,000", "$10,000", "premium", "enterprise", "bespoke",
-    "custom quote", "contact us for pricing", "let's talk"];
-  const midSignals = ["$500", "$1,000", "$1,500", "$800", "$600", "professional", "standard plan"];
-
-  if (premiumSignals.some((s) => lower.includes(s))) return "premium";
-  if (midSignals.some((s) => lower.includes(s))) return "mid";
-  if (budgetSignals.some((s) => lower.includes(s))) return "budget";
-
-  return "unknown";
 }

@@ -1,16 +1,28 @@
-/**
- * PageSpeed enrichment — Google PageSpeed Insights API v5.
- * Populates website.pagespeed_performance_score.
- * No API key required (unauthenticated = lower quota; pass key for higher quota).
- * Owner: LG-3. Consumer: LG-4 orchestrator.
- */
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
-const PAGESPEED_BASE = "https://www.googleapis.com/pagespeedonline/v5";
+const PAGESPEED_API_BASE =
+  "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
 
+interface PageSpeedApiResponse {
+  lighthouseResult?: {
+    categories?: {
+      performance?: { score?: number };
+    };
+  };
+  error?: { message?: string };
+}
+
+/**
+ * Enrich with Google PageSpeed Insights performance score (mobile).
+ * No API key required — uses the public endpoint.
+ * Logs to external_call_log (job: "pagespeed:runPagespeed").
+ *
+ * @param domain - Normalised domain (e.g. "acme.com.au"). Null → returns {}.
+ * @param _businessName - Unused; present for uniform enricher signature.
+ */
 export async function enrichPageSpeed(
   domain: string | null,
   _businessName: string,
@@ -18,30 +30,27 @@ export async function enrichPageSpeed(
   if (!domain) return {};
 
   const startMs = Date.now();
-  const params = new URLSearchParams({
-    url: `https://${domain}`,
-    strategy: "mobile",
-    category: "performance",
-  });
-
   let score: number | null = null;
   let fetchError: string | undefined;
 
   try {
-    const response = await fetch(`${PAGESPEED_BASE}/runPagespeed?${params}`);
+    const params = new URLSearchParams({
+      url: `https://${domain}`,
+      strategy: "mobile",
+      category: "PERFORMANCE",
+    });
+    const response = await fetch(`${PAGESPEED_API_BASE}?${params.toString()}`);
+
     if (!response.ok) {
       const body = await response.text().catch(() => "");
       fetchError = `PageSpeed HTTP ${response.status}: ${body.slice(0, 200)}`;
     } else {
-      const data = (await response.json()) as {
-        lighthouseResult?: { categories?: { performance?: { score?: number } } };
-        error?: { message?: string };
-      };
-      if (data.error?.message) {
-        fetchError = `PageSpeed API error: ${data.error.message}`;
+      const data = (await response.json()) as PageSpeedApiResponse;
+      if (data.error) {
+        fetchError = `PageSpeed API error: ${data.error.message ?? "unknown"}`;
       } else {
         const raw = data.lighthouseResult?.categories?.performance?.score;
-        score = typeof raw === "number" ? Math.round(raw * 100) : null;
+        score = raw != null ? Math.round(raw * 100) : null;
       }
     }
   } catch (err) {
@@ -57,12 +66,14 @@ export async function enrichPageSpeed(
     created_at_ms: Date.now(),
   });
 
-  if (fetchError) return { fetch_errors: { pagespeed: fetchError } };
+  if (fetchError) {
+    return { fetch_errors: { pagespeed: fetchError } };
+  }
 
   return {
     website: {
-      domain_age_years: null,
       pagespeed_performance_score: score,
+      domain_age_years: null,
       has_about_page: false,
       has_pricing_page: false,
       team_size_signal: "unknown",
