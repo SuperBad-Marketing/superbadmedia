@@ -8,7 +8,11 @@ vi.mock("@/lib/db", () => ({
     insert: vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) })),
     select: vi.fn(() => ({
       from: vi.fn(() => ({
-        where: vi.fn().mockResolvedValue([]),
+        where: vi.fn(() =>
+          Object.assign(Promise.resolve([]), {
+            limit: () => Promise.resolve([]),
+          }),
+        ),
         innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
       })),
     })),
@@ -120,13 +124,13 @@ function sourceResult(
 
 // ── enforceWarmupCap ──────────────────────────────────────────────────────────
 
-describe("enforceWarmupCap (stub)", () => {
-  it("returns correct shape with all required fields", async () => {
+describe("enforceWarmupCap (real — no DB row → day-1 defaults)", () => {
+  it("returns day-1 defaults when no warmup row exists", async () => {
     const result = await enforceWarmupCap();
-    expect(result).toEqual({ cap: 10, used: 0, remaining: 10, can_send: true });
+    expect(result).toEqual({ cap: 5, used: 0, remaining: 5, can_send: true });
   });
 
-  it("can_send is always true", async () => {
+  it("can_send is true when remaining > 0", async () => {
     const result = await enforceWarmupCap();
     expect(result.can_send).toBe(true);
   });
@@ -269,7 +273,11 @@ describe("runLeadGenDaily", () => {
     } as unknown as ReturnType<typeof db.insert>);
     vi.mocked(db.select).mockReturnValue({
       from: vi.fn(() => ({
-        where: vi.fn().mockResolvedValue([]),
+        where: vi.fn(() =>
+          Object.assign(Promise.resolve([]), {
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+        ),
         innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
       })),
     } as unknown as ReturnType<typeof db.select>);
