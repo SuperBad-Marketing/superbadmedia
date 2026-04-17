@@ -52,3 +52,31 @@ export {
   listPublishedPosts,
 } from "./publish";
 export type { PublishResult } from "./publish";
+
+// Social draft generation (CE-5)
+export {
+  generateSocialDrafts,
+  listSocialDrafts,
+} from "./social-drafts";
+export type { SocialDraftOutput, CarouselSlide, GenerateSocialResult } from "./social-drafts";
+
+// Visual asset pipeline (CE-5)
+export { generateVisualAssets, loadBrandVisualTokens } from "./visual-assets";
+export type { VisualResult } from "./visual-assets";
+
+// Social templates (CE-5)
+export {
+  renderTemplate,
+  renderCarouselTemplate,
+  PLATFORM_DIMENSIONS,
+} from "./social-templates";
+export type { BrandVisualTokens, TemplateInput, TemplateId, ImageDimensions } from "./social-templates";
+
+// Image rendering (CE-5)
+export { renderSocialImage, renderSocialImageBatch } from "./render-social-image";
+
+// AI image generation (CE-5)
+export { generateAiImage } from "./ai-image";
+
+// Asset storage (CE-5)
+export { storeContentAsset, readContentAsset } from "./asset-storage";

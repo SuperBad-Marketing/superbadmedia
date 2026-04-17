@@ -66,6 +66,9 @@ superbad-lite-vision.html
 *.sqlite-wal
 *.sqlite-journal
 
+# Content Engine visual assets (generated images, served via API route)
+data/content-assets/
+
 # Playwright (E2E)
 test-results/
 playwright-report/
