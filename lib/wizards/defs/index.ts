@@ -21,3 +21,4 @@ import "./google-ads";
 import "./twilio";
 import "./api-key";
 import "./saas-product-setup";
+import "./practical-setup";

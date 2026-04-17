@@ -171,6 +171,22 @@ const registry = {
   "inbox.digest_hour": integer,
   "inbox.digest_silent_window_hours": integer,
   "inbox.digest_no_send_on_zero": boolean,
+
+  // Onboarding + Segmentation (14 — OS-2)
+  "onboarding.retainer_non_start_nudge_hours": integer,
+  "onboarding.saas_nudge_first_hours": integer,
+  "onboarding.saas_nudge_second_hours": integer,
+  "onboarding.saas_nudge_weekly_hours": integer,
+  "onboarding.practical_nudge_first_hours": integer,
+  "onboarding.practical_nudge_second_hours": integer,
+  "onboarding.practical_nudge_weekly_hours": integer,
+  "onboarding.upsell_revenue_floor": str,
+  "onboarding.upsell_engagement_login_days": integer,
+  "onboarding.upsell_engagement_login_window_days": integer,
+  "onboarding.upsell_engagement_feature_count": integer,
+  "onboarding.upsell_engagement_feature_window_days": integer,
+  "onboarding.upsell_location_gate": str,
+  "onboarding.brand_dna_retake_nudge_months": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

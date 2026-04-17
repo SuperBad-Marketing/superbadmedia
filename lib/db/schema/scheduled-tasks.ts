@@ -57,6 +57,9 @@ export const SCHEDULED_TASK_TYPES = [
   "wizard_resume_nudge",
   "wizard_expiry_warn",
   "wizard_expire",
+  // --- Onboarding + Segmentation (2) ---
+  "onboarding_nudge_email",
+  "practical_setup_reminder_email",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",

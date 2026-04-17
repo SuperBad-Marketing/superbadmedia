@@ -218,6 +218,13 @@
       "when": 1776440000000,
       "tag": "0040_os1_onboarding_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "6",
+      "when": 1776450000000,
+      "tag": "0041_os2_onboarding_settings",
+      "breakpoints": true
     }
   ]
 }

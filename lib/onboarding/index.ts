@@ -18,3 +18,8 @@ export {
   generateWelcomeSummary,
   type GenerateWelcomeSummaryInput,
 } from "./generate-welcome-summary";
+export {
+  evaluateUpsellTier,
+  type UpsellTier,
+  type UpsellEvaluation,
+} from "./upsell-targeting";

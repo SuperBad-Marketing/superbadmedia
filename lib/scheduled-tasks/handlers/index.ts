@@ -9,6 +9,7 @@ import { INBOX_HYGIENE_HANDLERS } from "./inbox-hygiene-purge";
 import { INBOX_DRAFT_HANDLERS } from "./inbox-draft-generate";
 import { INBOX_TICKET_AUTO_RESOLVE_HANDLERS } from "./inbox-ticket-auto-resolve";
 import { INBOX_DIGEST_HANDLERS } from "./inbox-digest";
+import { ONBOARDING_NUDGE_HANDLERS } from "./onboarding-nudges";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -32,4 +33,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...INBOX_DRAFT_HANDLERS,
   ...INBOX_TICKET_AUTO_RESOLVE_HANDLERS,
   ...INBOX_DIGEST_HANDLERS,
+  ...ONBOARDING_NUDGE_HANDLERS,
 };

@@ -1,0 +1,15 @@
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES
+  ('onboarding.retainer_non_start_nudge_hours', '24', 'integer', 'Hours before first retainer non-start nudge email fires', 0),
+  ('onboarding.saas_nudge_first_hours', '24', 'integer', 'Hours before first SaaS non-start nudge email', 0),
+  ('onboarding.saas_nudge_second_hours', '72', 'integer', 'Hours before second SaaS non-start nudge email', 0),
+  ('onboarding.saas_nudge_weekly_hours', '168', 'integer', 'Hours between subsequent weekly SaaS nudge emails', 0),
+  ('onboarding.practical_nudge_first_hours', '24', 'integer', 'Hours before first practical setup reminder email', 0),
+  ('onboarding.practical_nudge_second_hours', '72', 'integer', 'Hours before second practical setup reminder email', 0),
+  ('onboarding.practical_nudge_weekly_hours', '168', 'integer', 'Hours between subsequent weekly practical setup reminders', 0),
+  ('onboarding.upsell_revenue_floor', '500k_1m', 'string', 'Minimum revenue_range enum value for upsell revenue qualification', 0),
+  ('onboarding.upsell_engagement_login_days', '10', 'integer', 'Minimum distinct login days within window for engagement qualification', 0),
+  ('onboarding.upsell_engagement_login_window_days', '14', 'integer', 'Rolling window in days for login frequency measurement', 0),
+  ('onboarding.upsell_engagement_feature_count', '3', 'integer', 'Minimum distinct feature areas used within window for broad engagement', 0),
+  ('onboarding.upsell_engagement_feature_window_days', '7', 'integer', 'Rolling window in days for feature breadth measurement', 0),
+  ('onboarding.upsell_location_gate', 'Victoria, Australia', 'string', 'Location substring that must match companies.location for upsell qualification', 0),
+  ('onboarding.brand_dna_retake_nudge_months', '12', 'integer', 'Months since last Brand DNA completion before retake nudge card appears', 0);
