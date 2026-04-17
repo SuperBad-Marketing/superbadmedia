@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `LG-2` — Enrichment pipeline part 1 (Meta Ad Library + Google Maps + Google Ads Transparency Center)
-**Brief:** Three primary discovery sources for the daily Lead Gen search run. LG-1 provides all 8 tables, DNC enforcement, sender identity, kill switch, 14 settings keys, seeded autonomy state. See BUILD_PLAN Wave 13 for specifics.
+**Next session:** `LG-3` — Enrichment pipeline part 2 (6 remaining signal sources: PageSpeed, whois/domain-age, Instagram, YouTube, website scrape, Maps photos)
+**Brief:** `sessions/lg-3-brief.md`
 **Model tier:** Sonnet (standard build session)
-**Last closed:** LG-1 (2026-04-18) — see `sessions/lg-1-handoff.md`
-**Wave status:** Wave 13 (Lead Generation) started. LG-1 complete (data model + schema). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
+**Last closed:** LG-2 (2026-04-17) — see `sessions/lg-2-handoff.md`
+**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 complete (schema). LG-2 complete (3 primary source adapters + types). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
