@@ -78,5 +78,9 @@ export { renderSocialImage, renderSocialImageBatch } from "./render-social-image
 // AI image generation (CE-5)
 export { generateAiImage } from "./ai-image";
 
+// Newsletter rewrite (CE-6)
+export { rewriteForNewsletter, computeNextSendWindow } from "./newsletter-rewrite";
+export type { NewsletterRewriteResult } from "./newsletter-rewrite";
+
 // Asset storage (CE-5)
 export { storeContentAsset, readContentAsset } from "./asset-storage";

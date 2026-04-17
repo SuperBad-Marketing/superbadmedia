@@ -12,6 +12,7 @@ import { INBOX_DIGEST_HANDLERS } from "./inbox-digest";
 import { ONBOARDING_NUDGE_HANDLERS } from "./onboarding-nudges";
 import { CONTENT_KEYWORD_RESEARCH_HANDLERS } from "./content-keyword-research";
 import { CONTENT_GENERATE_DRAFT_HANDLERS } from "./content-generate-draft";
+import { CONTENT_FAN_OUT_HANDLERS } from "./content-fan-out";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -38,4 +39,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...ONBOARDING_NUDGE_HANDLERS,
   ...CONTENT_KEYWORD_RESEARCH_HANDLERS,
   ...CONTENT_GENERATE_DRAFT_HANDLERS,
+  ...CONTENT_FAN_OUT_HANDLERS,
 };
