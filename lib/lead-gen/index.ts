@@ -32,3 +32,19 @@ export { searchGoogleAdsTransparency } from "./sources/google-ads-transparency";
 // LG-2: Discovery orchestrator
 export { runDiscovery } from "./discovery";
 export type { DiscoveryRunResult } from "./discovery";
+
+// LG-3: Enrichment pipeline
+export { enrichCandidate } from "./enrich";
+export type { EnrichmentResult } from "./enrich";
+export {
+  fetchPageSpeed,
+  fetchWhois,
+  fetchInstagram,
+  fetchYouTube,
+  scrapeWebsite,
+  fetchMapsExtras,
+  guessInstagramHandle,
+  inferTeamSize,
+  inferPricingTier,
+  parseRelativeDate,
+} from "./enrich";
