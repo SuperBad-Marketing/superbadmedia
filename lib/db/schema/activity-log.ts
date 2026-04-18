@@ -299,6 +299,9 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Brand DNA invite flow BDA-1 (2) ---
   "brand_dna_invite_sent",
   "brand_dna_invite_redeemed",
+  // --- Client Management CM-1 (2 — 8 others already in Client Management block above) ---
+  "retainer_mode_brand_dna_gate_entered",
+  "retainer_kickoff_bartender_message_sent",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

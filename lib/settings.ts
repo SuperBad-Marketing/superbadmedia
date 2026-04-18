@@ -64,10 +64,11 @@ const registry = {
   "plan.expiry_email_days_before_archive": integer,
   "plan.refresh_review_block_escalation_hours": integer,
 
-  // Portal (5)
+  // Portal (6)
   "portal.non_converter_archive_days": integer,
   "portal.chat_calls_per_day_pre_retainer": integer,
   "portal.chat_calls_per_day_retainer": integer,
+  "portal.data_export_zip_ttl_days": integer,
   "portal.magic_link_ttl_hours": integer,
   "portal.session_cookie_ttl_days": integer,
 

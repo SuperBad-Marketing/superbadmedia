@@ -66,6 +66,12 @@ export const contacts = sqliteTable(
     always_keep_noise: integer("always_keep_noise", { mode: "boolean" })
       .notNull()
       .default(false),
+    /** When the client last viewed the portal chat. Used for "new messages" indicators. */
+    portal_chat_last_seen_at_ms: integer("portal_chat_last_seen_at_ms"),
+    /** When the client last visited any portal page. Used for "new deliverables" badge logic. */
+    portal_last_visited_at_ms: integer("portal_last_visited_at_ms"),
+    /** When the retainer-kickoff bartender opener fired for this contact. Null = not yet fired. */
+    retainer_kickoff_bartender_said_at_ms: integer("retainer_kickoff_bartender_said_at_ms"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },

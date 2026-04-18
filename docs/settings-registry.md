@@ -70,6 +70,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 | `portal.non_converter_archive_days` | `60` | integer | Days post-shoot-completion before non-converter portal archives |
 | `portal.chat_calls_per_day_pre_retainer` | `5` | integer | Daily Opus chat call cap in pre-retainer rendering mode |
 | `portal.chat_calls_per_day_retainer` | `25` | integer | Daily Opus chat call cap for retainer clients |
+| `portal.data_export_zip_ttl_days` | `7` | integer | Days before a client data export ZIP expires |
 | `portal.magic_link_ttl_hours` | `168` | integer | TTL for magic-link OTTs embedded in journey-beat emails + recovery-form sends; 7 days default, per F1.a (2026-04-13) |
 | `portal.session_cookie_ttl_days` | `90` | integer | Rolling TTL for the portal-guard session cookie, per F1.a (2026-04-13) |
 

@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-1 (2026-04-18) — Client Management INFRA: portal_chat_messages + portal auth wiring
+
+**Phase:** 5 — Build Execution (INFRA, small). Wave 10 kickoff. New table: `portal_chat_messages` (autoincrement PK, contact_id FK, role enum client/assistant, content, escalated_to_inbox, tool_action, created_at_ms). 3 new nullable columns on `contacts`: portal_chat_last_seen_at_ms, portal_last_visited_at_ms, retainer_kickoff_bartender_said_at_ms. 2 new activity_log kinds (8 others already pre-registered). 1 new settings key: portal.data_export_zip_ttl_days. New `requirePortalSession()` helper for portal page auth. 4 new test files (schema, contacts columns, activity kinds, require-session). G8: 0 TS errors, 1659 tests / 1 skipped. See `sessions/cm-1-handoff.md`.
+
 ## CMS-4 (2026-04-18) — SaaS Subscription Billing content mini-session
 
 **Phase:** 5 — Build Execution (Content mini-session, Batch B item 2 of 2). 5 new content docs: usage-bar.md (personality progression across 5 usage levels), cap-and-lockout.md (usage cap + payment failed lockout), cancel-flow.md (motivational reality check + pre/post-term branches + pause status), emails.md (9 lifecycle email templates), copy.md (upgrade confirmation, first-login bartender lines, admin empty states, browser tabs, demo frame, cockpit headlines, account management labels). Pre-existing checkout.md + pricing-page.md untouched. Prompt-free spec — no calibration needed. G8: 0 TS errors, 1637 tests / 1 skipped. See `sessions/cms-4-handoff.md`.

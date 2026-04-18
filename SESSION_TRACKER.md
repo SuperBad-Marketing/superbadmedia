@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CM-1` — Client Management: data model + company/contact CRUD + portal auth
-**Brief:** Wave 10 kickoff. Build the Client Management foundation: schema (companies, contacts, portal_sessions), admin CRUD at `/lite/clients`, portal magic-link auth, portal layout shell. Spec: `docs/specs/client-management.md`. Requires `drizzle-orm` + `nextauth` skills.
+**Next session:** `CM-2` — Admin company profile (7 tabs: Overview / Deliverables / Billing / Brand DNA / Comms / Portal Chat / Activity)
+**Brief:** Wave 10 continues. Build the admin company profile page at `/lite/companies/[id]` with all 7 tabs wired to existing data sources. Large UI session. Spec: `docs/specs/client-management.md` §2. Requires `drizzle-orm` + `tailwind-v4` + `react-19` skills.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CMS-4 (2026-04-18) — see `sessions/cms-4-handoff.md`
-**Wave status:** Batch B content mini-sessions COMPLETE (CMS-3 + CMS-4 closed). Wave 10 catchup next: CM-1 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E2E.
+**Last closed:** CM-1 (2026-04-18) — see `sessions/cm-1-handoff.md`
+**Wave status:** Wave 10 in progress. CM-1 DONE. Next: CM-2 → CM-3 → CM-4 → CM-5 → CM-6 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E2E.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

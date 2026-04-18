@@ -7,6 +7,7 @@ export * from "./messages";
 export * from "./legal-doc-versions";
 export * from "./email-suppressions";
 export * from "./portal-magic-links";
+export * from "./portal-chat-messages";
 export * from "./brand-dna-profiles";
 export * from "./brand-dna-answers";
 export * from "./brand-dna-blends";
