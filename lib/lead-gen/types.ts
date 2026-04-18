@@ -1,0 +1,116 @@
+/**
+ * Lead Generation — shared types.
+ *
+ * Owner: Lead Generation spec §5 (ViabilityProfile) + §3.1 (discovery).
+ * Consumers: scoring, enrichment, discovery, daily search runner.
+ */
+
+// ── Viability Profile (spec §5) ─────────────────────────────────────────
+
+/**
+ * Structured JSON payload stored at `lead_candidates.viability_profile_json`.
+ * Every field is optional — scorers tolerate missing values gracefully.
+ */
+export interface ViabilityProfile {
+  // Advertising signals
+  meta_ads?: {
+    active_ad_count: number;
+    estimated_spend_bracket: "unknown" | "low" | "medium" | "high";
+    has_active_creatives: boolean;
+  };
+  google_ads?: {
+    active_creative_count: number;
+    has_active_campaigns: boolean;
+  };
+
+  // Web signals
+  website?: {
+    domain_age_years: number | null;
+    pagespeed_performance_score: number | null; // 0..100
+    has_about_page: boolean;
+    has_pricing_page: boolean;
+    team_size_signal: "solo" | "small" | "medium" | "large" | "unknown";
+    stated_pricing_tier: "unknown" | "budget" | "mid" | "premium";
+  };
+
+  // Social signals
+  instagram?: {
+    follower_count: number;
+    post_count: number;
+    posts_last_30d: number | null;
+  };
+  youtube?: {
+    subscriber_count: number;
+    video_count: number;
+    uploads_last_90d: number | null;
+  };
+
+  // Google Maps signals
+  maps?: {
+    category: string;
+    rating: number | null;
+    review_count: number;
+    photo_count: number;
+    last_photo_date: string | null; // ISO date
+  };
+
+  // Per-source fetch status
+  fetch_errors?: Record<string, string>;
+}
+
+// ── Discovery types ─────────────────────────────────────────────────────
+
+/**
+ * Raw candidate discovered by a source before enrichment or scoring.
+ * The three discovery sources (Meta Ad Library, Google Maps, Google Ads
+ * Transparency) all produce this shape.
+ */
+export interface DiscoveredCandidate {
+  /** Business name as returned by the source. */
+  company_name: string;
+
+  /** Website domain (nullable — some Maps-sourced candidates have none). */
+  domain: string | null;
+
+  /** Which discovery source found this candidate. */
+  source: "meta_ad_library" | "google_maps" | "google_ads_transparency";
+
+  /**
+   * Partial viability profile seeded by the discovery source.
+   * Enrichment pipeline (LG-3) fills the remaining fields.
+   */
+  partial_profile: Partial<ViabilityProfile>;
+
+  /** Source-specific raw data for debugging / audit. */
+  raw_source_data?: Record<string, unknown>;
+}
+
+/**
+ * Search parameters derived from Settings → Lead Generation → Daily Search.
+ */
+export interface DiscoverySearchParams {
+  /** Free-text category (e.g. "cafes", "dental clinics"). */
+  category: string;
+
+  /** Location string (e.g. "Melbourne, Australia"). */
+  location: string;
+
+  /** Search radius in km (e.g. 25). */
+  radius_km: number;
+
+  /** Standing brief or manual brief override text. */
+  brief: string;
+
+  /** Maximum candidates to return across all sources. */
+  max_candidates: number;
+}
+
+/**
+ * Per-source result from a discovery run.
+ */
+export interface SourceResult {
+  source: DiscoveredCandidate["source"];
+  candidates: DiscoveredCandidate[];
+  error?: string;
+  duration_ms: number;
+}

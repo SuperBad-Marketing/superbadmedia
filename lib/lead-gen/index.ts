@@ -3,6 +3,7 @@
  *
  * Owner: Lead Generation spec.
  * LG-1: data model + DNC enforcement + sender identity.
+ * LG-2: discovery sources + orchestrator + types.
  */
 
 export {
@@ -14,3 +15,20 @@ export {
 } from "./dnc";
 
 export { SUPERBAD_SENDER, SUPERBAD_FROM_STRING } from "./sender";
+
+// LG-2: Types
+export type {
+  ViabilityProfile,
+  DiscoveredCandidate,
+  DiscoverySearchParams,
+  SourceResult,
+} from "./types";
+
+// LG-2: Discovery sources
+export { searchMetaAdLibrary } from "./sources/meta-ad-library";
+export { searchGoogleMaps } from "./sources/google-maps";
+export { searchGoogleAdsTransparency } from "./sources/google-ads-transparency";
+
+// LG-2: Discovery orchestrator
+export { runDiscovery } from "./discovery";
+export type { DiscoveryRunResult } from "./discovery";
