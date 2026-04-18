@@ -24,7 +24,7 @@ Four memory-derived patches to a spec locked 2026-04-12:
 
 **P1 — Trial shoot facts (`project_trial_shoot_facts`).** The trial shoot is **60 minutes on-site only** (no studio variant in v1). **A bespoke 6-week marketing plan is included as a deliverable** alongside the photo/video output (see Six-Week Plan Generator spec). **Reschedule is free up to 48h before**; inside 48h the booking is lost with extenuating-circumstances handled case-by-case at Andy's discretion (the cockpit surfaces a case-by-case review card). Q16's "48h refund window, 2 reschedules max" already encodes the cancellation cutoff; this patch just pins the duration + location + deliverable facts the spec originally left ambiguous. Affects §2 journey copy, §17 notifications, §11 payment-flow "what you're getting" block, §12 calendar slot length.
 
-**P2 — Non-converter portal 60-day lifecycle (`project_non_converter_portal_lifecycle`).** Replace every "portal stays dormant indefinitely" with **60 days post-shoot-completion, then archive** for non-converters. At archive: portal goes offline, the 6-week plan PDF is emailed one last time ("keep this"), deliverables gallery link retained while Pixieset hosts it. A scheduled task `portal_archive_non_converter` fires 60 days after `shoots.slot_end_at` for portals where `deals.stage != 'won'`. Settings key: `portal.non_converter_archive_days` (default 60). Converted clients unaffected — they migrate to full retainer-mode portal.
+**P2 — Non-converter portal 60-day lifecycle (`project_non_converter_portal_lifecycle`).** Replace every "portal stays dormant indefinitely" with **60 days post-shoot-completion, then archive** for non-converters. At archive: portal goes offline, the 6-week plan PDF is emailed one last time ("keep this"), Cloudinary gallery folder retained (media persists in Cloudinary storage). A scheduled task `portal_archive_non_converter` fires 60 days after `shoots.slot_end_at` for portals where `deals.stage != 'won'`. Settings key: `portal.non_converter_archive_days` (default 60). Converted clients unaffected — they migrate to full retainer-mode portal.
 
 **P3 — Questionnaire extension for plan generation.** The 8-screen reflection questionnaire (§9) must capture enough practical info to feed the Six-Week Plan Generator: marketing infrastructure status, current channels, current budget sense, concrete business goals. Either adds a new "practical section" before the shape-branched reflection banks or folds these prompts into the existing shape-branched banks — decision deferred to Intro Funnel content mini-session. Output persisted to `questionnaire_responses` with a taxonomy tag `practical_signal` for downstream Plan-Generator consumption.
 
@@ -44,7 +44,7 @@ The Intro Funnel is a **branded experience that happens to convert**, not a conv
 - The post-shoot reflection is a commitment-and-consistency arc, not a feedback form.
 - The deliverables reveal is a Tier-2 motion moment, not a file download.
 
-It is also the first feature to put a real customer on a paid surface inside Lite. This makes it the canary for the Foundations cross-cutting primitives and for Stripe + Resend + Twilio + Pixieset wired end-to-end. Any gap in §11.1–§11.5 becomes visible here first.
+It is also the first feature to put a real customer on a paid surface inside Lite. This makes it the canary for the Foundations cross-cutting primitives and for Stripe + Resend + Twilio + Cloudinary wired end-to-end. Any gap in §11.1–§11.5 becomes visible here first.
 
 Prospects enter via multiple possible paths:
 
@@ -77,7 +77,7 @@ The 8-screen reflection questionnaire (§9) renders through the `WizardDefinitio
 | Q10 | **Post-shoot reflection is a self-persuasion instrument** | 8 questions, one per screen, premium card UI. Q1 is a safety-valve negative-escape. Q2–Q7 walk experience→value→working-with-Andy→future-casting→commitment. Final screen is Claude synthesis reveal (candidate Tier-2 moment #2). |
 | Q11 | **Abandon cadence: 15m SMS → 24h SMS+email → 3d email → demote** | Aggressive. Twilio integration for SMS. "Inactivity" resets on any portal activity. After demotion, Deal → Lost, contact re-enters cold pool with context flag. |
 | Q12 | **Cold re-engagement reads funnel history as context** | Single drafting path in Lead Gen. `funnel_history` becomes one more context field for `generateDraft()`. No special "returning prospect" template. |
-| Q13 | **Deliverables via Pixieset API + native branded gallery** | Pixieset hosts files (30+ day retention). We fetch via API and render in our gallery component. Gallery URL fallback if API insufficient. Candidate Tier-2 moment #3. |
+| Q13 | **Deliverables via Cloudinary + native portal gallery** | Andy uploads to Cloudinary via admin UI. Portal renders a native responsive gallery at `/portal/[token]/gallery` via Cloudinary SDK (CLD-2). Candidate Tier-2 moment #3. |
 | Q14 | **Landing page: on-brand editorial, platform-agnostic URL** | `/trial-shoot` route, Lite pre-cutover, marketing site post-cutover. Not a high-conversion funnel page — branded experience with delight + value upfront. |
 | Q15 | **Notification policy: loud on money + human touchpoints** | Urgent sound + top cockpit slot: payment, SMS reply, negative feedback, booking cancellation. Surfaced quietly: starts, sections, recommendations, deliverables views, reflection completion. Silent: automation events. |
 | Q16 | **Cancel/reschedule: D + SuperBad-side always-refundable** | Customer: 48h refund window, 2 reschedules max, auto-Lost on 3rd attempt. SuperBad: always refundable regardless of timing. |
@@ -105,11 +105,11 @@ Narrated once so every subsequent section has the shared mental model.
 
 5. **Portal — questionnaire-complete state.** Now the "Pay now & book your shoot" card activates. Cinematic reveal motion (Tier-2 candidate #1): card expands, payment surface reveals inline. Payment Element (§11) mounted with the dynamic amount from Settings. Prospect pays.
 
-6. **Portal — paid state.** Calendar opens immediately after payment confirmation (§12). Prospect picks a slot that satisfies the 5-business-day advance notice + 3-per-week cap. Confirmation screen + email + calendar invite (`.ics` attachment). Portal transitions through the 5 post-payment sub-states time-based via hourly cron: `freshly_booked` → `approaching` (48h out) → `morning_of` → `completed_awaiting_deliverables` → `deliverables_ready` (when Andy pastes the Pixieset gallery URL).
+6. **Portal — paid state.** Calendar opens immediately after payment confirmation (§12). Prospect picks a slot that satisfies the 5-business-day advance notice + 3-per-week cap. Confirmation screen + email + calendar invite (`.ics` attachment). Portal transitions through the 5 post-payment sub-states time-based via hourly cron: `freshly_booked` → `approaching` (48h out) → `morning_of` → `completed_awaiting_deliverables` → `deliverables_ready` (when Andy publishes the Cloudinary gallery).
 
 7. **The shoot itself.** Happens in meatspace. Andy runs it. Nothing inside Lite until he's back and uploads deliverables.
 
-8. **Deliverables reveal — bundled (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2).** Two parallel pre-conditions must both be met before the portal flips to `deliverables_ready`: (i) Andy pastes the Pixieset gallery URL into the Trial Shoot panel on the Deal profile (Pipeline integration); and (ii) Andy approves the Six-Week Plan in the review queue (Six-Week Plan Generator §2.5). Whichever lands second fires the bundled transition (see §15.1 for the gate logic). One announcement email goes out covering both artefacts. Next time the prospect opens the portal, the gallery component (Pixieset, Tier-2 reveal candidate #3) and the Six-Week Plan section (S6WPG §6) are both live. `activity_log` entries: `gallery_attached`, `six_week_plan_approved`, then the bundled `deliverables_ready`. On first views: `deliverables_viewed`, `six_week_plan_viewed`. **Customer-perceived timeframe is signposted upfront** in landing/payment/booking copy (~7 days post-shoot) so the bundled wait reads as expected, not as a delay — see §24 content mini-session.
+8. **Deliverables reveal — bundled (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2).** Two parallel pre-conditions must both be met before the portal flips to `deliverables_ready`: (i) Andy uploads photos/video to Cloudinary and clicks "Publish gallery" on the Trial Shoot panel (§15.1); and (ii) Andy approves the Six-Week Plan in the review queue (Six-Week Plan Generator §2.5). Whichever lands second fires the bundled transition (see §15.1 for the gate logic). One announcement email goes out covering both artefacts. Next time the prospect opens the portal, the bundled first-visit hub (CM-7) surfaces with Gallery + Plan tiles — Gallery routes to the native Cloudinary gallery at `/portal/[token]/gallery` (CLD-2, Tier-2 reveal candidate #3) and the Six-Week Plan section (S6WPG §6) is live. `activity_log` entries: `gallery_attached`, `six_week_plan_approved`, then the bundled `deliverables_ready`. On first views: `deliverables_viewed`, `six_week_plan_viewed`. **Customer-perceived timeframe is signposted upfront** in landing/payment/booking copy (~7 days post-shoot) so the bundled wait reads as expected, not as a delay — see §24 content mini-session.
 
 9. **Reflection questionnaire.** A day or so after deliverables go live (configurable delay, starting at 24h), the portal surfaces the post-shoot reflection (§13). 8 questions, linear arc with safety valve at Q1. Prospect completes.
 
@@ -124,7 +124,7 @@ Narrated once so every subsequent section has the shared mental model.
 
 13. **Fork at Won.** When the Deal transitions to Won (via Pipeline), the prospect's Intro Funnel portal data (deliverables reference, questionnaire answers, Brand DNA signals) migrates to the real client portal (Client Management spec, backlog #8) via a background job. Intro Funnel portal is archived with status `archived_migrated`. Magic link still works but now redirects to the new client portal.
 
-14. **Non-conversion + dormant (amended 2026-04-13 Phase 3.5 per P2).** If they never convert, the portal stays live in dormant state for **60 days post-shoot-completion**, then archives. At archive: portal route returns a minimal "we're offline, your plan stays yours" page, a final email sends with the 6-week plan PDF re-attached, deliverables gallery link retained while Pixieset hosts it. Andy can still reopen conversation via a cockpit action that restores the portal. Scheduled task: `portal_archive_non_converter` (Phase 3.5 patch). Settings key: `portal.non_converter_archive_days` (default 60).
+14. **Non-conversion + dormant (amended 2026-04-13 Phase 3.5 per P2).** If they never convert, the portal stays live in dormant state for **60 days post-shoot-completion**, then archives. At archive: portal route returns a minimal "we're offline, your plan stays yours" page, a final email sends with the 6-week plan PDF re-attached, Cloudinary gallery folder retained (media persists in Cloudinary storage). Andy can still reopen conversation via a cockpit action that restores the portal. Scheduled task: `portal_archive_non_converter` (Phase 3.5 patch). Settings key: `portal.non_converter_archive_days` (default 60).
 
 ---
 
@@ -414,8 +414,7 @@ Non-breaking. See §19 cross-spec flags for coordination with Pipeline spec.
 funnel_submission_id: text('funnel_submission_id').references(() => introFunnelSubmissions.id),
 funnel_state: text('funnel_state'), // mirrors intro_funnel_submissions.funnel_state for quick Pipeline queries
 post_trial_signal: text('post_trial_signal'), // the recommendation_type from retainer_fit
-pixieset_gallery_id: text('pixieset_gallery_id'),
-pixieset_gallery_url: text('pixieset_gallery_url'),
+cloudinary_gallery_folder: text('cloudinary_gallery_folder'),
 reschedule_count: integer('reschedule_count').notNull().default(0),
 ```
 
@@ -496,7 +495,7 @@ shoot_approaching           ← (48h before slot_start_at)
 shoot_morning_of            ← (day of slot_start_at at 6am local)
   ↓ (time-based)
 shoot_completed_awaiting_deliverables  ← (1h after slot_end_at)
-  ↓ (triggered by bundle gate per §15.1: BOTH gallery URL pasted AND Six-Week Plan approved)
+  ↓ (triggered by bundle gate per §15.1: BOTH Cloudinary upload confirmed AND Six-Week Plan approved)
 deliverables_ready
   ↓ (reflection completed)
 reflection_complete
@@ -557,7 +556,7 @@ POST /api/intro-funnel/[token]/book       Book a slot
 GET  /lite/intro/[token]/manage-booking   Reschedule/cancel surface
 POST /api/intro-funnel/[token]/reschedule Reschedule action
 POST /api/intro-funnel/[token]/cancel     Cancel action
-GET  /lite/intro/[token]/deliverables     Native gallery (Pixieset API-backed)
+GET  /lite/intro/[token]/deliverables     Redirect → `/portal/[token]/gallery` (native Cloudinary gallery, CLD-2)
 GET  /lite/intro/[token]/reflect          Reflection questionnaire
 POST /api/intro-funnel/[token]/reflection/answer    Save reflection answer
 POST /api/intro-funnel/[token]/reflection/complete  Finalise reflection, trigger synthesis
@@ -590,7 +589,7 @@ POST /api/settings/intro-funnel/config     Update config
 GET  /lite/settings/calendar               Calendar config (business hours, advance notice, per-week cap)
 POST /api/settings/calendar                Update calendar config
 GET  /lite/deals/[id]/intro-funnel         (Panel inside existing deal profile — see §7.3)
-POST /api/deals/[id]/pixieset-gallery      Paste Pixieset URL → triggers deliverables_ready transition
+POST /api/deals/[id]/gallery-ready          Confirm Cloudinary gallery upload → fires bundle gate check
 POST /api/deals/[id]/cancel-from-our-end   SuperBad-initiated cancellation
 POST /api/deals/[id]/reschedule-from-our-end  SuperBad-initiated reschedule
 ```
@@ -609,9 +608,9 @@ Follows the Q2 state machine. Each state renders a distinct surface, all inside 
 - **paid** — calendar booking surface.
 - **shoot_booked** through **shoot_morning_of** — progressive portal with booking details, what-to-bring notes, optional reschedule/cancel button (subject to rules).
 - **shoot_completed_awaiting_deliverables** — "shoot done, photos coming" placeholder screen.
-- **deliverables_ready** — launch CTA for gallery, then inline native gallery component (Tier-2 candidate #3 on first view).
+- **deliverables_ready** — bundled hub with Gallery + Plan tiles (CM-7); Gallery tile routes to native Cloudinary gallery at `/portal/[token]/gallery` (CLD-2). Tier-2 candidate #3 on first gallery view.
 - **reflection_complete** — synthesis reveal screen (Tier-2 candidate #2), decision CTA pair, then transitions to dormant or conversion path.
-- **portal_dormant** — minimal surface, "we're here when you're ready", gallery still accessible, reopen conversation affordance.
+- **portal_dormant** — minimal surface, "we're here when you're ready", Cloudinary gallery still accessible, reopen conversation affordance.
 - **portal_archived_migrated** — redirect to real client portal (Client Management spec).
 
 ### 7.2 Landing page (`/trial-shoot`)
@@ -638,7 +637,7 @@ The existing Trial Shoot panel on the Company/Deal profile (from Pipeline spec �
 - **Signal tags display** — chips showing extracted tags.
 - **Reflection answers viewer** — read-only, with the synthesis text shown.
 - **Retainer-fit recommendation card** — prominent display of `recommendation_type`, `confidence`, `reasoning_text`, and `flags_json` bullets. Primary action area.
-- **Pixieset gallery URL input** — paste field; on submit, triggers deliverables_ready transition.
+- **Gallery upload** — Cloudinary upload zone (CLD-1 SDK); "Publish gallery" button on upload completion fires bundle gate check via `POST /api/deals/[id]/gallery-ready`.
 - **"Cancel from our end" button** — with sub-actions (refund and close / reschedule on the house).
 - **"Reschedule from our end" button** — opens calendar picker.
 - **Abandon sequence state display** — which of 15m/24h/3d fired, when.
@@ -662,9 +661,9 @@ Wizard-wrapped per the `feedback_setup_is_hand_held` memory (all config is step-
 - **Step 5** — Intro Funnel per-week cap (number input, defaults to 3)
 - **Step 6** — Review + save
 
-### 7.6 Settings → Integrations → Pixieset / Twilio
+### 7.6 Settings → Integrations → Cloudinary / Twilio
 
-Wizard-wrapped. Pixieset step is small — API credentials + account verification. Twilio step is larger — account SID, auth token, phone number provisioning, webhook URL setup.
+Wizard-wrapped. Cloudinary step is handled by CLD-1 (API key + cloud name + test upload verification). Twilio step is larger — account SID, auth token, phone number provisioning, webhook URL setup.
 
 ---
 
@@ -918,7 +917,7 @@ Standard RFC 5545 ICS file, attached to the confirmation email. Includes shoot t
 
 Reflection surface becomes available `intro_funnel_config.reflection_delay_hours_after_deliverables` hours after `deliverables_ready` fires (default 24h — registered as `intro_funnel.reflection_delay_hours_after_deliverables` in `docs/settings-registry.md`). Hourly cron checks and transitions the portal to surface the reflection CTA.
 
-**Note (F2.a, 2026-04-13).** `deliverables_ready` is the bundled state per §15.1 — fires only when **both** the Pixieset gallery URL is pasted and the Six-Week Plan is approved. The 24h reflection clock runs from that single bundled transition. The prospect therefore always has both artefacts in hand for at least 24h before being asked to reflect.
+**Note (F2.a, 2026-04-13).** `deliverables_ready` is the bundled state per §15.1 — fires only when **both** the Cloudinary gallery is published and the Six-Week Plan is approved. The 24h reflection clock runs from that single bundled transition. The prospect therefore always has both artefacts in hand for at least 24h before being asked to reflect.
 
 ### 13.2 Reflection question arc (8 questions, one per screen)
 
@@ -1023,19 +1022,24 @@ Once demoted, the contact flows back to the cold outreach pool. Lead Gen's `gene
 
 ---
 
-## 15. Deliverables spec (Pixieset integration)
+## 15. Deliverables spec (Cloudinary integration)
+
+> **⚠ REWRITTEN 2026-04-18 (SPEC-PATCH-IF-CLD).** Pixieset replaced by Cloudinary. See `sessions/p0-pixieset-spike-handoff.md` for the original Pixieset spike and `project_media_delivery_cloudinary` memory for the decision rationale. Cloudinary has a full public API — the gallery renders natively inside the portal, not as a link-out.
 
 ### 15.1 Flow
 
-**Bundled release rule (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2).** `deliverables_ready` is a unified state that fires only when **both** the Pixieset gallery URL has been pasted **and** the Six-Week Plan has been approved by Andy. Whichever step lands second is the trigger. One announcement email goes out covering both. Reflection clock starts from this single transition (see §13.1). Rationale: clean single reveal moment ("here's your shoot, here's what to do with it"); avoids two separate reveal beats; matches Six-Week Plan §2.6. The trade-off — that one artefact may have to wait briefly for the other — is mitigated by upfront timeframe signposting in landing/payment/booking copy (see §24 content mini-session).
+**Bundled release rule (F2.a, 2026-04-13 Phase 3.5 Step 11 Stage 2).** `deliverables_ready` is a unified state that fires only when **both** the Cloudinary gallery upload has been confirmed **and** the Six-Week Plan has been approved by Andy. Whichever step lands second is the trigger. One announcement email goes out covering both. Reflection clock starts from this single transition (see §13.1). Rationale: clean single reveal moment ("here's your shoot, here's what to do with it"); avoids two separate reveal beats; matches Six-Week Plan §2.6. The trade-off — that one artefact may have to wait briefly for the other — is mitigated by upfront timeframe signposting in landing/payment/booking copy (see §24 content mini-session).
 
 ```
 Shoot happens (meatspace)
   ↓
 [parallel pre-conditions, in any order]
-  ├─ Andy processes photos → creates Pixieset gallery → pastes URL
-  │     POST /api/deals/[id]/pixieset-gallery { url }
-  │     Server parses URL, stores pixieset_gallery_id + pixieset_gallery_url on deals + intro_funnel_submissions
+  ├─ Andy processes photos/video → uploads to Cloudinary via admin UI
+  │     Admin Trial Shoot panel: upload zone (CLD-1 Cloudinary SDK)
+  │     Files upload to a deal-keyed folder in Cloudinary
+  │     Andy clicks "Publish gallery" when uploads complete
+  │     POST /api/deals/[id]/gallery-ready
+  │     Server stores cloudinary_gallery_folder on deals + intro_funnel_submissions
   │     Sets intro_funnel_submissions.gallery_ready_at = NOW
   │     activity_log entry: gallery_attached (silent)
   │
@@ -1053,37 +1057,39 @@ Server sends single bundled announcement email to prospect (classification: deli
 Six-Week Plan releases to prospect portal per S6WPG §2.6
 ```
 
-**First-visit-after-bundle hub (F3.a, 2026-04-13 Phase 3.5 Step 11 Stage 3).** The bundled email's CTA lands on `/portal/[token]` as normal. Client Management §10.2.1 detects `intro_funnel_submissions.deliverables_ready_at` is non-null AND `bundled_hub_seen_at` is null, and renders a one-shot deliverables hub — two equal tiles (gallery, plan) with a Tier-2 `motion:bundle_reveal` moment — before handing off to chat-home. Hub suppresses the generic 3-step first-visit tour for bundled-release portals; hub + bartender first-visit opening line together *are* the orchestrated arrival. See Client Management §10.2.1 for hub behaviour. Hub header copy + dismiss-to-tile microcopy land in §24 content mini-session alongside the bundled announcement email.
+**First-visit-after-bundle hub (F3.a, 2026-04-13 Phase 3.5 Step 11 Stage 3).** Unchanged from original spec. The bundled email's CTA lands on `/portal/[token]` as normal. Client Management §10.2.1 detects `intro_funnel_submissions.deliverables_ready_at` is non-null AND `bundled_hub_seen_at` is null, and renders a one-shot deliverables hub — two equal tiles (gallery, plan) with a Tier-2 `motion:bundle_reveal` moment — before handing off to chat-home. Gallery tile now routes to the native Cloudinary gallery at `/portal/[token]/gallery` (CLD-2), not an external link-out. Hub suppresses the generic 3-step first-visit tour for bundled-release portals; hub + bartender first-visit opening line together *are* the orchestrated arrival. See Client Management §10.2.1 for hub behaviour. Hub header copy + dismiss-to-tile microcopy land in §24 content mini-session alongside the bundled announcement email.
 
 The bundle gate is checked twice: once on `gallery_attached`, once on `six_week_plan_approved`. Whichever handler observes both flags non-null fires the transition. Idempotency: if `funnel_state` is already `deliverables_ready`, the second handler no-ops on the transition + email.
 
-**Cockpit visibility for the waiting half.** While waiting on the slower side, Andy's cockpit shows a quiet feed entry `intro_funnel_awaiting_bundle { deal_id, prospect_name, waiting_on: 'gallery' | 'plan' }` so he knows which side is the gate. Refreshes (i.e. clears + re-emits with updated `waiting_on`) on each side completing.
+**Cockpit visibility for the waiting half.** Unchanged. While waiting on the slower side, Andy's cockpit shows a quiet feed entry `intro_funnel_awaiting_bundle { deal_id, prospect_name, waiting_on: 'gallery' | 'plan' }` so he knows which side is the gate. Refreshes (i.e. clears + re-emits with updated `waiting_on`) on each side completing.
 
-### 15.2 Portal gallery launch card
+### 15.2 Portal gallery page
 
-On portal load in `deliverables_ready` state:
-- On-brand "Your gallery is ready" launch card renders at `/lite/intro/[token]/deliverables` using the design system + house-spring motion (Tier-2 reveal candidate #3 — the reveal moment lives on this card, not inside the gallery).
-- Card is brand-forward: title, short brand-voice intro copy (drift-checked per §11.5), launch CTA.
-- CTA opens `deals.pixieset_gallery_url` in a new tab (`target="_blank" rel="noopener noreferrer"`).
-- `deliverables_viewed` activity log fires on CTA click (quiet cockpit surface).
-- No image list, no thumbnails, no Pixieset API call — Pixieset hosts and renders the gallery itself.
+The gallery is a native in-portal page at `/portal/[token]/gallery`, owned by CLD-2. It renders inside the Client Management portal shell (per P4). Cloudinary SDK powers image/video listing via `deals.cloudinary_gallery_folder`.
 
-### 15.3 Pixieset integration posture (F2.c — RESOLVED 2026-04-13, outcome B)
+- Responsive masonry layout with per-item download button + "Download all" ZIP trigger.
+- Empty state in bartender voice ("Nothing here yet — Andy's working on your shoot").
+- `deliverables_viewed` activity log fires on page mount (quiet cockpit surface).
+- The Tier-2 reveal candidate #3 lives on the bundled first-visit hub tiles (CM-7, `motion:bundle_reveal`), not on the gallery page itself — the emotional beat is the arrival at the hub, not the gallery grid loading.
 
-The pre-build feasibility spike (Phase 5 Wave 0 P0, see `sessions/p0-pixieset-spike-handoff.md`) confirmed:
+The `/lite/intro/[token]/deliverables` route (§6.2) redirects to `/portal/[token]/gallery` — no Intro-Funnel-owned gallery rendering.
 
-- Pixieset exposes **no public developer API** for private-gallery reads. The only documented "public API" is their Instatus status-page feed.
-- No webhook / push signal exists for "gallery ready".
-- Pixieset explicitly does not support iframe embedding.
-- The only read-access path is reverse-engineered internal endpoints requiring a session cookie — unsupportable and likely a ToS violation. Not an option.
+### 15.3 Cloudinary integration posture (supersedes P0 Pixieset spike, 2026-04-18)
 
-**Path locked: on-brand link-out (Path B).** No `lib/integrations/pixieset.ts` client is built for v1.0; Pixieset is not an integration in the SW-5 wizard sense either (nothing to authorise). The `gallery_ready_at` timestamp is set by Andy pasting the gallery URL in the admin UI (per §15.1) — this is the canonical trigger, not a webhook and not polling.
+The Pixieset feasibility spike (Phase 5 Wave 0 P0, see `sessions/p0-pixieset-spike-handoff.md`) confirmed that Pixieset has no public API. The decision to switch to Cloudinary (see `project_media_delivery_cloudinary` memory) unlocks the native gallery that Pixieset could not support:
 
-Mop-up brainstorm on Pixieset alternatives (Pic-Time, Cloudspot, ShootProof) was considered and declined: all three have the same closed-ecosystem posture, so switching would not unlock Path A. Revisit only if real customer feedback in v1.0 says the link-out reveal underdelivers.
+- Cloudinary exposes a full public API for upload, listing, transformation, and delivery.
+- Server-signed upload presets ensure only authenticated admin uploads reach the gallery folder.
+- Cloudinary's transformation URLs handle responsive sizing, format negotiation (WebP/AVIF), and video thumbnails without custom infrastructure.
+- `lib/cloudinary/` module (built in CLD-1) wraps the SDK and routes through the Observatory external-call registry.
+
+**No interim Dropbox delivery in v1.0.** The Cloudinary integration ships with Wave 10 (CLD-1/CLD-2), before Wave 14 (Intro Funnel). By the time trial shoots happen, the Cloudinary pipeline is live.
 
 ### 15.4 Retention
 
-30+ days is Pixieset's responsibility. Our portal link stays live indefinitely; if Andy ever expires a Pixieset gallery, the portal shows a fallback screen with a "contact Andy" affordance.
+Media persists in Cloudinary storage under Andy's account. Retention is controlled by Andy's Cloudinary plan — not a third-party gallery platform with opaque expiry. If media is deleted from Cloudinary, the gallery page renders its empty state in bartender voice. No fallback "contact Andy" screen needed — Cloudinary is an owned resource, not a consumer-facing platform that might expire galleries independently.
+
+For non-converter portal archives (P2, 60-day lifecycle), the Cloudinary folder is retained — media storage cost is negligible. The portal goes offline per P2 but the media stays in Cloudinary in case Andy reuses it for case studies or portfolio.
 
 ---
 
@@ -1190,7 +1196,7 @@ Per Q15 policy. Enumerated:
 - Abandon timers firing (15m, 24h, 3d)
 - Auto-drafted abandonment emails sending
 - Time-based funnel_state transitions (approaching, morning_of)
-- Pixieset gallery URL pasted (Andy's own action)
+- Cloudinary gallery published (Andy's own action)
 
 ### 17.4 Not built in v1
 
@@ -1225,7 +1231,7 @@ Non-breaking changes that other specs need to absorb. None are blocking for Intr
 
 ### 19.1 `docs/specs/sales-pipeline.md` updates
 
-- **`deals` table columns**: `funnel_submission_id`, `funnel_state`, `post_trial_signal`, `pixieset_gallery_id`, `pixieset_gallery_url`, `reschedule_count`. All nullable.
+- **`deals` table columns**: `funnel_submission_id`, `funnel_state`, `post_trial_signal`, `cloudinary_gallery_folder`, `reschedule_count`. All nullable.
 - **`contacts` table columns**: `phone`, `sms_opt_in`, `sms_consent_at`. All nullable.
 - **`activity_log.kind` enum**: 21 new values (§4.2 list).
 - **`deals.lost_reason` enum**: 7 new values (closed list grows 7 → 14).
@@ -1241,7 +1247,7 @@ None of these break existing Pipeline behaviour. Can be picked up in the first P
 3 new candidate Tier-2 motion moments:
 - Payment Element reveal (inline card unfolding to checkout)
 - Claude synthesis reveal (reflection final screen)
-- Deliverables gallery reveal (first view of native Pixieset gallery)
+- Deliverables gallery reveal (first view of native Cloudinary gallery)
 
 Closed list grows from 7 → 10 Tier-2 moments + 2 overlays unchanged. A brief revisit of the design system baseline spec to evaluate and absorb. Not a full session — likely 15–20 minutes.
 
@@ -1253,7 +1259,7 @@ Twilio. Non-breaking addition:
 - New SMS-specific quiet window constant (8am–9pm local)
 - Setup wizard step for Twilio credentials + phone number provisioning
 
-Pixieset is NOT a stack addition — just a URL field and an API call. No new Foundations dependency beyond the integration wrapper file.
+Cloudinary is a new stack dependency, handled by CLD-1 (vendor manifest, admin wizard, `lib/cloudinary/` module). Added to FOUNDATIONS.md as part of the Client Management wave. Integration wrapper at `lib/integrations/vendors/cloudinary.ts` routes through the Observatory external-call registry.
 
 ### 19.4 Downstream spec integration notes
 
@@ -1265,7 +1271,7 @@ Pixieset is NOT a stack addition — just a URL field and an API call. No new Fo
 - **Content Engine (backlog #10)**: no direct integration, but past work gallery on the landing page may eventually be populated from Content Engine's curated case studies.
 - **Unified Inbox (backlog #11)**: Twilio SMS thread should appear in the inbox alongside email threads once inbox ships. Until then, the thread view lives on the Trial Shoot panel.
 - **Daily Cockpit (backlog #12)**: consumes all the notification events enumerated in §17. Flag to Cockpit session.
-- **Setup Wizards (backlog #13)**: adds wizard steps for Pixieset, Twilio, calendar config, Settings → Products → Trial Shoot.
+- **Setup Wizards (backlog #13)**: adds wizard steps for Cloudinary (CLD-1), Twilio, calendar config, Settings → Products → Trial Shoot.
 - **Hiring Pipeline (backlog #14)**: no integration. Unrelated CRM.
 
 ---
@@ -1309,9 +1315,9 @@ Failures raise an alert + urgent cockpit card for Andy to handle manually.
 
 Both always run through §11.5 drift check before display/storage. Drift-check failure routes to safe fallback (synthesis) or flagged-to-Andy path (retainer fit). Tests assert drift check is called every time.
 
-### 20.6 `parsePixiesetUrl(url) → { gallery_id, canonical_url }`
+### 20.6 Gallery folder validation
 
-Pure function with strict validation. Called from the `paste Pixieset URL` handler. Invalid URLs raise a form validation error, never silently fail.
+~~`parsePixiesetUrl()` dropped (SPEC-PATCH-IF-CLD, 2026-04-18).~~ Gallery folder validation is handled by CLD-1's `lib/cloudinary/` module — the "Publish gallery" handler validates that the Cloudinary folder exists and contains at least one asset before setting `gallery_ready_at`. Empty-folder publishes raise a form validation error, never silently proceed.
 
 ### 20.7 Prompt files are version-controlled at `lib/intro-funnel/prompts/`
 
@@ -1340,7 +1346,7 @@ Captured for future reference. None block Phase 4 build planning.
 3. **Reschedule limit value** (2 is the starting point; may tune)
 4. **Refund window value** (48h is the starting point; may tune)
 5. **Per-week cap value** (3 is the starting point; may tune — editable in Settings)
-6. **Pixieset API capability** (full surface confirmation happens in the Phase 5 integration session; fallback is gallery URL link-out)
+6. ~~**Pixieset API capability**~~ — RESOLVED 2026-04-18: replaced by Cloudinary (full API, native gallery). See §15.3
 7. **Calendar slot granularity** (2h hardcoded in v1; editable in v1.1 if needed)
 8. **Reflection delay hours after deliverables** (24h default; editable in Settings)
 9. **Twilio conversational identity** (does Andy use a dedicated Twilio number or his personal mobile? — setup wizard decision, not a spec decision)
@@ -1353,14 +1359,14 @@ Captured for future reference. None block Phase 4 build planning.
 ## 22. Risks carried forward
 
 1. **Twilio integration is new-stack territory** — first time wiring SMS into Lite. Unknown unknowns around Australian carrier compliance, delivery rates, number provisioning. Mitigation: small, isolated integration; fallback is email-only abandon cadence if Twilio onboarding blocks launch.
-2. **Pixieset API capability risk** — the API may not fully support what the native gallery needs. Mitigation: documented fallback to gallery URL link-out with a still-premium launch CTA.
+2. **Cloudinary upload reliability** — large photo batches (30+ files) may hit upload timeouts or rate limits. Mitigation: CLD-1 upload module uses chunked uploads with retry; admin UI shows per-file progress; Andy can resume an interrupted upload session.
 3. **Claude synthesis is load-bearing on retention** — a bad synthesis kills the reveal moment. Mitigation: §11.5 drift check + safe fallback + dedicated prompt iteration time in Phase 5.
 4. **Self-persuasion questionnaire psychology is subtle** — a clumsy implementation can feel manipulative instead of genuine. Mitigation: content authoring is a dedicated mini-session with voice/visual skills loaded; Q1 safety valve is always the first screen; no manipulative patterns.
 5. **Payment Element amount override vulnerability** — a malicious client could theoretically intercept and tamper with the amount. Mitigation: amount is server-computed at PaymentIntent creation from `intro_funnel_config.price_cents`, never accepted from the client. Webhook re-verifies on `payment_intent.succeeded`.
 6. **Calendar race conditions** — two prospects grabbing the same slot. Mitigation: re-check availability inside the booking transaction; return 409 Conflict with fresh slots if raced.
 7. **Refund automation failure** — Stripe refund call fails mid-cancel. Mitigation: urgent cockpit card + manual resolution; `intro_funnel_payments.status` stays at `succeeded` until refund actually confirms so we never show a false refund state.
 8. **Funnel abandonment at the 15-min mark is aggressive** — customers who are genuinely mid-form will get an interruption if they click away and back quickly. Mitigation: "inactivity" is portal-activity based, not submission-time based; any click, any tab focus, resets the timer.
-9. **Deliverables retention dependency on Pixieset** — if Andy lets a gallery expire, the portal breaks. Mitigation: fallback screen + notify-Andy affordance; v1.1 could add a "Pixieset gallery expiring soon" cockpit alert.
+9. **Cloudinary storage cost at scale** — media persists indefinitely for non-converters (P2 retains folder). Mitigation: Cloudinary's free tier is generous for v1 volume; cost is tracked via Observatory; if storage grows, a cleanup cron can purge archived galleries older than N months (not built in v1).
 10. **Prospect session hijacking via magic link sharing** — magic links are long-lived; a forwarded link gives access. Mitigation: magic link expires after 90 days; sensitive actions (cancel, reschedule) are behind a re-verify step; payment is one-shot.
 
 ---
@@ -1380,14 +1386,14 @@ Rough estimate of Intro Funnel build sessions. Each is small enough to finish in
 | 7 | Native calendar engine + booking action + reschedule action + customer-side manage-booking surface |
 | 8 | Twilio integration (SMS send, webhook inbound, delivery status, DNC phone handling) |
 | 9 | Abandon cadence dispatcher (15m SMS, 24h SMS+email, 3d email, demotion) |
-| 10 | Pixieset integration + native gallery component + deliverables_ready transition |
+| 10 | Gallery upload UI (Cloudinary, consumes CLD-1) + `deliverables_ready` bundle gate wiring |
 | 11 | Reflection questionnaire + Claude synthesis prompt + synthesis reveal screen |
 | 12 | Retainer-fit recommendation prompt + cockpit surfacing |
 | 13 | SuperBad-initiated cancel/reschedule + apology email drafting |
 | 14 | Landing page content authoring + polish (follows the content mini-session output) |
 | 15 | End-to-end test harness — manufacture all the flows and corner cases |
 
-Roughly 13–15 Phase 5 sessions for Intro Funnel. Biggest unknowns are sessions 8 (Twilio) and 10 (Pixieset API) — if either integration is harder than expected, that session splits.
+Roughly 13–15 Phase 5 sessions for Intro Funnel. Biggest unknown is session 8 (Twilio) — if the integration is harder than expected, that session splits. Session 10 (Cloudinary gallery upload UI) consumes CLD-1 and should be straightforward.
 
 Prerequisite: the Pipeline spec updates from §19.1 should land before or alongside session 1. Can be absorbed into session 1 directly.
 
@@ -1415,11 +1421,10 @@ All copy committed to the codebase (no CMS). Andy reviews inline during the mini
 
 ## 25. Honest reality check
 
-**Is this spec doable?** Yes. Biggest unknowns are Twilio (new stack) and Pixieset API (unknown capability surface). Every other component — payment, calendar, questionnaire, portal — is well-trodden territory with clear patterns.
+**Is this spec doable?** Yes. Biggest unknown is Twilio (new stack). Every other component — payment, calendar, questionnaire, portal — is well-trodden territory with clear patterns.
 
 **What's genuinely hard:**
 - Twilio integration wiring (new stack, carrier compliance)
-- Pixieset API capability confirmation
 - Claude synthesis prompt quality (iteration-heavy)
 - Self-persuasion questionnaire authoring (creative load-bearing)
 - Native calendar availability engine edge cases (races, timezones, business-day math)

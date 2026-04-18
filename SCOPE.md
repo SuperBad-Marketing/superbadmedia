@@ -548,7 +548,7 @@ One operational-spine feature added to v1 scope in a fourth mini-brainstorm on 2
 
 ### 16. Cost & Usage Observatory (operator-only)
 
-**Purpose:** Andy's cost-attribution surface. Every external API/LLM call (Anthropic, Stripe, Resend, Meta/Google Ads, SerpAPI, Pixieset, Graph API, etc.) logs a cost tuple at the call site. The Observatory aggregates and visualises that data so Andy can see where tokens and API spend are going, and decide whether a background task is runaway, a feature is unexpectedly expensive, or a subscriber/client is disproportionately costly.
+**Purpose:** Andy's cost-attribution surface. Every external API/LLM call (Anthropic, Stripe, Resend, Meta/Google Ads, SerpAPI, Cloudinary, Graph API, etc.) logs a cost tuple at the call site. The Observatory aggregates and visualises that data so Andy can see where tokens and API spend are going, and decide whether a background task is runaway, a feature is unexpectedly expensive, or a subscriber/client is disproportionately costly.
 
 **Operator-only for v1.** No client-facing usage views beyond what SaaS Subscription Billing already surfaces to subscribers (their own usage against their tier cap).
 
@@ -585,7 +585,7 @@ These four features had full Phase 3 specs but were never promoted to first-clas
 
 **Purpose:** SuperBad's customer-facing acquisition surface for the paid $297 trial-shoot offer. Covers the entire journey from first landing-page visit through the trial shoot itself and on to the retainer/SaaS decision. The primary acquisition surface for Arm 1 (retainer).
 
-**Shape:** landing page → 3-section questionnaire (branched by business shape) → Stripe Checkout → booking flow → 60-minute on-site shoot → Pixieset gallery delivery → reflection questionnaire → retainer-fit recommendation → 60 days of portal access for non-converters. Drops cards directly at the Pipeline's **Trial Shoot** stage via `createDealFromLead()`. Supersedes the single "Paid intro offer" bullet under §1 Lead Generation.
+**Shape:** landing page → 3-section questionnaire (branched by business shape) → Stripe Checkout → booking flow → 60-minute on-site shoot → Cloudinary gallery delivery → reflection questionnaire → retainer-fit recommendation → 60 days of portal access for non-converters. Drops cards directly at the Pipeline's **Trial Shoot** stage via `createDealFromLead()`. Supersedes the single "Paid intro offer" bullet under §1 Lead Generation.
 
 **Delivers three artefacts per paying prospect:** 1× short-form video, 10 edited photographs, 6-week marketing plan *(see #19)*. See `docs/specs/intro-funnel.md`.
 
