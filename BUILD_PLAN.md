@@ -3,7 +3,7 @@
 **Phase:** 4 — Build Plan.
 **Locked:** 2026-04-13.
 **Ordering:** Dependency-strict producers → consumers → aggregators last (Andy's call per Phase 4 Q1).
-**Scope:** 21 locked specs + 1 legal-pages spec drafted inline in Foundation-B. Broken into ~150 atomic build sessions across 23 waves. Foundation split A/B per Phase 3.5 exit handoff.
+**Scope:** 22 locked specs + 1 legal-pages spec drafted inline in Foundation-B. Broken into ~162 atomic build sessions across 23 waves + 2 addendum waves. Foundation split A/B per Phase 3.5 exit handoff. **Patched 2026-04-18:** Free Audit Tool spec added, 3 Lead Gen spec patches (case snippets, retargeting pixel, autonomy adjustment), referral surface added to Client Management. Wave 13b + CM-E added. Patch mop-up wave (13c) added: 7 orphaned patches slotted into named sessions (Settings Display UI, design-system-baseline revisit, realtime channel, subscription state naming, invoke.ts system-role refactor, visual remediation discipline, LG queue edit/nudge buttons).
 
 AUTONOMY_PROTOCOL.md and LAUNCH_READY.md are separate artefacts in the same Phase 4 output set (produced in the next session per mid-session context-budget discipline — see §23).
 
@@ -25,6 +25,8 @@ AUTONOMY_PROTOCOL.md and LAUNCH_READY.md are separate artefacts in the same Phas
 12. Onboarding + Segmentation (Wave 11, OS-1..3)
 13. Content Engine (Wave 12, CE-1..13)
 14. Lead Generation (Wave 13, LG-1..10)
+14b. Lead Gen addendum + Free Audit Tool (Wave 13b, LG-11 + AT-1..2)
+14c. Patch mop-up (Wave 13c, PM-1..7)
 15. Intro Funnel — critical flow (Wave 14, IF-1..4 + IF-E2E)
 16. Six-Week Plan Generator (Wave 15, SWP-1..10)
 17. Client Context Engine (Wave 16, CCE-1..3)
@@ -57,7 +59,9 @@ AUTONOMY_PROTOCOL.md and LAUNCH_READY.md are separate artefacts in the same Phas
 
 **Status: CLOSED 2026-04-13 — outcome B (on-brand link-out) locked.** See `sessions/p0-pixieset-spike-handoff.md`.
 
-The Pixieset API spike (F2.c) ran as a one-session deliverable-independence check. Pixieset exposes no public developer API, no webhook, and no iframe embedding. Path A (inline native gallery) is structurally impossible; Path B (on-brand link-out + manual URL paste trigger) is v1.0. Alternatives mop-up declined (Pic-Time / Cloudspot / ShootProof share the same closed posture). IF-2 builds Path B only.
+The Pixieset API spike (F2.c) ran as a one-session deliverable-independence check. Pixieset exposes no public developer API, no webhook, and no iframe embedding. Path A (inline native gallery) is structurally impossible; Path B (on-brand link-out + manual URL paste trigger) was v1.0. Alternatives mop-up declined (Pic-Time / Cloudspot / ShootProof share the same closed posture).
+
+**⚠ SUPERSEDED 2026-04-18:** Pixieset replaced by **Cloudinary** for media delivery. Cloudinary has a full API — Path A (inline native gallery in portal) is now the path. The gallery page renders natively inside the portal via Cloudinary SDK, no link-out. Interim delivery via Dropbox until the Cloudinary pipeline is built. SW-5's Pixieset wizard (already shipped) will be replaced by a Cloudinary wizard in CLD-1. See Wave 10 addendum.
 
 | ID | Type | Context | Purpose | Status |
 |---|---|---|---|---|
@@ -188,7 +192,7 @@ Per F2.b + FOUNDATIONS §11.8, SuperBad-self slice must complete before any down
 | BDA-2 | FEATURE | medium | card UI per question + save/resume + between-section shimmer (Haiku insight calls) + visual environment per section | A3, A4, BDA-1, A7 (`checkBrandVoiceDrift`) | none | feature-flag-gated |
 | BDA-3 | FEATURE | large | Opus prose portrait + first-impression + company blend + reveal choreography (Tier 2 motion slot 1) + `sound:brand_dna_reveal` | BDA-2, A4 | none | feature-flag-gated |
 | BDA-4 | FEATURE | small | SuperBad-self completion flips gate middleware to "clear"; `hasCompletedCriticalFlight()` check continues to Setup Wizards critical flight on next admin nav | BDA-3, A8 | none | env-var bypass |
-| BDA-5 | FEATURE | medium | client-facing paths: portal gate + multi-stakeholder blends + retake comparison flow | BDA-4 | none | feature-flag-gated per client |
+| BDA-5 | FEATURE | medium | client-facing paths: portal gate + multi-stakeholder blends + retake comparison flow. **⚠ SKIPPED — not built when Wave 3 advanced past BDA-4. Scheduled for catchup after Wave 13 (LG) completes, before CM-8.** | BDA-4 | none | feature-flag-gated per client |
 
 **Critical-flow tag:** none directly (Brand DNA gates downstream critical flows indirectly).
 **E2E:** none at this wave (not a critical flow).
@@ -206,7 +210,7 @@ Must ship before IF-1. Admin critical-flight (SW-4) depends on Brand DNA complet
 | SW-2 | FEATURE | large | 10 step-types: form, oauth-consent, api-key-paste, webhook-probe, dns-verify, csv-import, async-check, content-picker, review-and-confirm, celebration | SW-1 |
 | SW-3 | FEATURE | small | vendor manifest + Observatory registration contract + completion-contract enforcement | SW-2 |
 | SW-4 | FEATURE | medium | Admin critical-flight (Stripe → Resend → Graph API → capstone) + middleware from A8 | SW-3, A8 |
-| SW-5 | FEATURE | large | Admin integration wizards (Stripe, Resend, Graph API, Pixieset, Meta Ads, Google Ads, Twilio, generic API-key+OpenAI+Anthropic+SerpAPI+Remotion) | SW-4, B2 (vault) |
+| SW-5 | FEATURE | large | Admin integration wizards (Stripe, Resend, Graph API, ~~Pixieset~~ → Cloudinary (CLD-1 replaces), Meta Ads, Google Ads, Twilio, generic API-key+OpenAI+Anthropic+SerpAPI+Remotion) | SW-4, B2 (vault) |
 | SW-6 | FEATURE | medium | `wizard_resume_nudge` (24h), `wizard_expiry_warn` (29d), `wizard_auto_expire` (30d); voice & delight treatment | SW-5, A6 (`scheduled_tasks`), A7 (`sendEmail`) |
 
 **Settings keys:** `wizards.expiry_days`, `wizards.resume_nudge_hours`, `wizards.max_resume_count`, `wizards.admin_idle_banner_days`.
@@ -337,12 +341,16 @@ UI's full stack ships here. Producer slice (tables) was pulled up to A6 so CCE-1
 | CM-4 | UI | medium | Clients index + global search (Cmd+K) — admin-only keyboard shortcut |
 | CM-5 | FEATURE | large | Portal chat home (bartender Opus) + rate-limited chat |
 | CM-6 | FEATURE | medium | Portal menu + navigation + retainer-mode gate |
-| CM-7 | UI | medium | Bundled first-visit hub (Gallery + Plan tiles) — F3.a + `motion:bundle_reveal` |
+| CLD-1 | INFRA | medium | Cloudinary integration: vendor manifest (replaces Pixieset), admin wizard (API key + cloud name), `lib/cloudinary/` module (upload, list, transform URLs), replace `pixieset_gallery_url` with `cloudinary_gallery_folder` on `deals` schema. Removes/replaces: `lib/integrations/vendors/pixieset.ts`, `lib/wizards/defs/pixieset-admin.ts`, `actions-pixieset.ts`, `pixieset-admin-client.tsx`, `tests/pixieset-admin-wizard.test.ts`. |
+| CLD-2 | UI | large | Portal gallery page at `/portal/[token]/gallery` — native Cloudinary-powered image/video grid. Pulls from `deals.cloudinary_gallery_folder` via Cloudinary SDK. Per-item download button + "Download all" ZIP trigger. Responsive masonry layout. Empty state in bartender voice. `deliverables_viewed` activity log on page mount. |
+| CM-7 | UI | medium | Bundled first-visit hub (Gallery + Plan tiles) — F3.a + `motion:bundle_reveal`. Gallery tile routes to internal `/portal/[token]/gallery` (CLD-2), not external link-out. Plan tile routes to `/portal/[token]/plan`. |
+| CM-7b | UI | small | Portal deliverables page — inline preview panel per deliverable (expand card to see content + checklist + approve/reject in place). Per-deliverable download button for delivered items. Download button on individual checklist items where applicable. |
 | CM-8 | FEATURE | small | Portal retainer-mode kickoff (Brand DNA gate + bartender kickoff variant) — F4.b |
 | CM-9 | INFRA | medium | Data export primitive (background ZIP via `scheduled_tasks`, 7d expiry) |
 | CM-10 | FEATURE | medium | Comms threading (consumes UI `messages`) + Portal Chat tab (read-only admin view + escalation flagging) |
 | CM-11 | FEATURE | small | Private notes (Visible to AI toggle) |
 | CM-12 | UI | small | Portal polish + responsive + dark-mode + S&D ambient slots |
+| CM-E | FEATURE | small | **Referral surface** (added 2026-04-18). Portal menu "Know someone?" item + 2-field form + `createDealFromLead(source:'referral')` + Opus follow-up draft referencing referrer by name + portal chat acknowledgement + contextual milestone prompt (deliverable approved / reflection submitted / 90-day mark) with 30-day suppression. `referral_from_company_id` + `referral_from_contact_id` on deals. Spec: `client-management.md §24`. |
 | CM-E2E | TEST | small | **Playwright E2E: magic link → session cookie → unlocked portal.** Mandatory. |
 
 **Settings keys:** `portal.chat_calls_per_day_pre_retainer`, `portal.chat_calls_per_day_retainer`, `portal.data_export_zip_ttl_days`, `portal.magic_link_ttl_hours`, `portal.session_cookie_ttl_days`.
@@ -380,12 +388,67 @@ Sessions LG-1..LG-10 per group 3. Depends on SW-5 (integration wizards for SerpA
 
 ---
 
+## Wave 13b — Lead Gen addendum + Free Audit Tool (added 2026-04-18)
+
+Wave 13 (LG-1..LG-10) is closed. These sessions add three spec patches to existing Lead Gen infrastructure plus the new Free Audit Tool. All dependencies are already built: LG enrichment pipeline, scoring engine, PDF renderer (QB-3), `sendEmail()` (A7), `createDealFromLead()` (LG-1), Brand DNA gate (BDA-4).
+
+| ID | Type | Context | Purpose |
+|---|---|---|---|
+| LG-11 | FEATURE | medium | **Case snippets + retargeting pixel + autonomy adjustment.** `case_snippets` table + migration. Shoot-completion trigger (handler fires on `intro_funnel_reflection_completed` activity — handler exists from day one, fires once IF is built). 90-day retainer trigger via `scheduled_tasks` (enqueued on Deal Won). 48h auto-approve handler. Outreach prompt patch: query best-matching snippet by vertical, include in §8.2 inputs. Outreach link wrapping: redirect endpoint at `/api/outreach/click` with HMAC validation + Meta/Google pixel firing + `retargeting.meta_pixel_id` / `retargeting.google_conversion_id` settings. Autonomy graduation threshold 10→5 migration. Material/minor edit classifier (`classifyEdit()` with Levenshtein + ratio heuristic). `approval_kind` enum extension (`minor_edit_manual`, `edited_manual`). Spec: `lead-generation.md §17, §18, §18b`. |
+| AT-1 | FEATURE | large | **Free Audit Tool backend.** Form handler with Turnstile + honeypot + IP rate limit + daily cap validation. Enrichment orchestration (reuses LG-2/LG-3 pipeline with social-handle overrides). Audit scoring engine (`scoreAuditCategory` × 5 categories + `scoreAuditOverall`). Per-category Haiku explanations. Deal creation via `createDealFromLead(source:'audit_tool')` + domain dedup. Opus follow-up draft referencing weakest category. PDF generation via shared `renderToPdf()`. Report delivery email. SSE endpoint for processing progress. `audit_submissions` + `audit_rate_limits` tables + migration. Lead gen cross-pollination: daily search reuses audit viability profiles within 90d + `audit.scoring_boost` (+8). Spec: `docs/specs/free-audit-tool.md`. |
+| AT-2 | UI | large | **Free Audit Tool frontend.** Form page at `/get-started/audit` with progressive disclosure for optional social handles. Cloudflare Turnstile widget. Cinematic processing reveal: SSE consumer with per-signal status lines (house spring transitions) → 1.5s beat → overall grade reveal (large type + scale-up + `score-reveal` sound) → category build-in (staggered 200ms fade-up). Results page with colour-coded grades + explanations. Graceful degradation (<3 categories = simplified results). Spec: `docs/specs/free-audit-tool.md`. |
+
+**Settings keys (new):** `audit.daily_cap`, `audit.rate_limit_per_ip`, `audit.scoring_boost`, `audit.profile_reuse_days`, `snippet.auto_approve_hours`, `retargeting.meta_pixel_id`, `retargeting.google_conversion_id`, `autonomy.graduation_threshold`, `autonomy.minor_edit_char_threshold`, `autonomy.material_edit_ratio_threshold`.
+**Crons:** `case_snippet_auto_approve` (48h after creation), `case_snippet_retainer_90d` (90 days after Deal Won).
+**Rollback:** LG-11 git-revertable (additive schema). AT-1/AT-2 feature-flag-gated via `audit.daily_cap` = 0.
+
+---
+
+## Wave 13c — Patch mop-up (added 2026-04-18)
+
+Orphaned patches identified by cross-referencing PATCHES_OWED.md against BUILD_PLAN.md. Each item references a session type that no existing wave covers. Sequenced here as a lightweight mop-up wave; sessions are independent and can run in any order. All dependencies already built.
+
+| ID | Type | Context | Purpose |
+|---|---|---|---|
+| PM-1 | UI | small | **Settings → Display UI panel.** Build `app/lite/admin/settings/display/page.tsx` — 6-control preferences panel (sounds, motion, density, text size, theme, typeface) reading/writing the `user` table columns seeded in A5. Consumes A2 tokens, A3 primitives, A8 auth. PATCHES_OWED: line 233 (`post-A8 UI session`). |
+| PM-2 | UI | medium | **Design-system-baseline revisit.** Reconcile 4 deferred patches: (a) `motion:pdf_render_overlay` Tier 1 token formalisation (PATCHES_OWED line 183); (b) `motion:bundle_reveal` Tier 2 candidate registration (line 196); (c) Won card outcome badge — 9th BHS location or swap (line 41); (d) sound registry name reconciliation `sp9_sound_registry_name_map` — map spec slots `chime-bright`/`tick-warm`/`urgent-thud` to registry entries (line 484). Update `docs/specs/design-system-baseline.md` + `lib/motion/choreographies.ts` + `lib/sounds.ts` as needed. |
+| PM-3 | INFRA | medium | **Realtime channel (SSE push layer).** Build server-sent-events infrastructure for admin surfaces. Wires 3 deferred patches: (a) `sp9_bounce_rollback_toast` — admin toast on contact bounce with `urgent-thud` sound (line 482); (b) `sp9_payment_failed_urgent_toast` — admin toast on `invoice.payment_failed` (line 483); (c) `qb4c_sound_quote_accepted_emit` — `quote-accepted` sound on public quote page confirmation (line 497). Minimal SSE: event bus + `/api/admin/events` endpoint + `useAdminEvents()` client hook + toast consumer. |
+| PM-4 | INFRA | small | **Subscription state naming reconciliation.** Rename `DEAL_SUBSCRIPTION_STATES` enum values to match FOUNDATIONS §12 canonical names: `active` → `active_current`, `pending_early_exit` → `cancel_scheduled_preterm`, plus any other drifted values. Migration + cascade through all consumers (PI-succeeded writer, cancel flow, SaaS headline signals, subscription webhooks). PATCHES_OWED: `qb_subs_subscription_state_naming_drift` (line 496). Gate said "pre-Wave 7 cleanup" — Wave 7 closed without it. |
+| PM-5 | INFRA | small | **`invoke.ts` system-role plumbing.** Add optional `system` parameter to `invokeLlmText()` in `lib/ai/invoke.ts`, route via Anthropic SDK `system` field. Migrate all callers: `draft-reply.ts`, `compose-draft.ts`, `refine-draft.ts` (and any others). Closes the composition-layer-vs-wire-layer gap logged across UI-5/6/7 (`ui_5_invoke_system_role_plumbing`, `ui_6_invoke_system_role_plumbing_still_owed`, `ui_7_invoke_system_role_plumbing_still_owed`). **Must land before CCE-1 (Wave 16)** — CCE payload will be richer and the system/user split becomes load-bearing. |
+| PM-6 | DISCIPLINE | — | **Visual remediation discipline patch.** Not a build session — a brief-writing discipline update. Extend AUTONOMY_PROTOCOL.md §G0 preconditions: every net-new portal/funnel/cockpit UI session must cite its `mockup-*.html` in §2a of the brief, or cut a surface-specific mockup first. Covers `bdapolish1_visual_remediation_backlog` (PATCHES_OWED line 490). Portal, Intro Funnel, and Cockpit surfaces are still unbuilt — their build sessions (CM-5+, IF-1+, DC-1+) will naturally pick up the discipline if this patch lands before their briefs are written. |
+| PM-7 | UI | small | **LG queue edit/nudge buttons.** Add inline draft editing + nudge-chat button to the approval queue at `/lite/admin/lead-gen`. Edit: opens draft body in editable textarea, saves via existing `updateOutreachDraftAction`. Nudge: opens nudge-chat sidecar (Opus instruction-based rewrite, same pattern as UI-7 refine). PATCHES_OWED: `lg_7_edit_nudge_buttons` (line 715). |
+
+**Sequencing:** PM-1 through PM-5 and PM-7 can run any time after Wave 13 completes and before their downstream consumers (PM-5 strictly before CCE-1). PM-6 should land before CM-5's brief is written (i.e., immediately — CM-5 is next in the queue). Recommend running PM-6 first (zero code, just a doc patch), then PM-4 and PM-5 (small infra), then PM-1/PM-2/PM-3/PM-7 (UI work) interleaved with Wave 10 sessions as context allows.
+
+**Settings keys:** none new (PM-1 reads existing user columns; PM-4 is a rename).
+**Crons:** none.
+**Rollback:** PM-1/PM-2/PM-7 git-revertable. PM-3 feature-flag-gated via kill-switch. PM-4 migration reversible. PM-5 git-revertable (additive parameter). PM-6 doc-only.
+
+---
+
+## Spec Patch — SPEC-PATCH-IF-CLD (Intro Funnel: Pixieset → Cloudinary)
+
+**Scheduled after LG-10, before Wave 14 begins.**
+
+Single session. Rewrites the intro-funnel spec to replace all Pixieset references with the Cloudinary delivery model decided in the Client Management wave (CLD-1/CLD-2). Key changes:
+
+- §15 rewritten: gallery is a native in-portal page via Cloudinary SDK, not a Pixieset link-out.
+- Data model: `pixieset_gallery_id` / `pixieset_gallery_url` → `gallery_asset_folder` (or similar Cloudinary-native key). Bundle gate trigger becomes Cloudinary upload completion, not URL paste.
+- §7.6 setup wizard: Pixieset credential step removed (Cloudinary credentials already covered by CLD-1).
+- §20.6 `parsePixiesetUrl()` utility dropped.
+- PATCHES_OWED.md: stale Pixieset entries updated or closed.
+- §21 risk register: Pixieset retention risk replaced with Cloudinary-appropriate risks.
+
+No code changes — spec-only patch to unblock Wave 14 builds against the correct integration.
+
+---
+
 ## Wave 14 — Intro Funnel (critical flow: Trial Shoot Booking)
 
 | ID | Context | Purpose |
 |---|---|---|
 | IF-1 | large | Landing + questionnaire (SW-2 step-types) + Stripe Payment Element + `createDealFromLead()` + `ensureStripeCustomer()` |
-| IF-2 | large | Calendar booking + confirmation + reminders + shoot-day portal view + reflection form + on-brand "Your gallery is ready" link-out launch card (P0 outcome B, 2026-04-13: Pixieset has no public API, no webhook, no iframe support — Path B is the only path. CTA opens `pixieset_gallery_url` in a new tab; `deliverables_viewed` fires on click. Tier-2 reveal lives on the launch card, not inside the gallery.) |
+| IF-2 | large | Calendar booking + confirmation + reminders + shoot-day portal view + reflection form + on-brand "Your gallery is ready" launch card. (P0 outcome B superseded 2026-04-18: Cloudinary replaces Pixieset. CTA routes to internal `/portal/[token]/gallery` via CLD-2. `deliverables_viewed` fires on gallery page mount. Tier-2 reveal lives on the launch card.) |
 | IF-3 | large | Retainer/SaaS offer + synthesis Opus (reads Brand DNA via BDA-4 gate) + quote recommendation + abandon tracking + drift check |
 | IF-4 | medium | Portal-guard recovery flow (consumes A8) + OTT magic-link embedding at every send point |
 | IF-E2E | small | **Playwright E2E: landing → questionnaire → booking → payment.** Mandatory. |
@@ -551,6 +614,9 @@ Every recurring job in the platform. Columns: job name · cadence · owner wave 
 | `cockpit_brief_evening` | 18:30 Mel | DC-2 | `cockpit_briefs`, Opus | `cockpit_briefs_enabled` |
 | `cockpit_brief_regenerate` | event-driven + debounced | DC-3 | `cockpit_briefs`, Opus | `cockpit_briefs_enabled` |
 
+| `case_snippet_auto_approve` | 48h post-creation | LG-11 | `case_snippets` | — |
+| `case_snippet_retainer_90d` | 90d post-Deal Won | LG-11 | `case_snippets`, Haiku | — |
+
 **Stampede check:** no two daily/sub-hourly jobs fire at the same minute. 06:00 (Finance + Cockpit morning) — both touch different tables, no contention. 08:00 (Inbox digest + Task digest) — both email paths, share `canSendTo()` rate-limit inherently.
 
 ---
@@ -588,6 +654,8 @@ Every primitive is owned by exactly one wave. Consumers import; never redefine. 
 - `cost_anomalies`, `deploy_events`, `observatory_settings` → COB
 - `cockpit_briefs` → DC
 - `lead_candidates`, `outreach_drafts`, `outreach_sends`, `outreach_sequences`, `resend_warmup_state`, `dnc_emails`, `dnc_domains` → LG
+- `case_snippets` → LG-11, consumed by LG outreach drafts (§8.2)
+- `audit_submissions`, `audit_rate_limits` → AT-1
 - `portal_chat_messages` → CM-1
 
 **Functions:**
@@ -599,7 +667,7 @@ Every primitive is owned by exactly one wave. Consumers import; never redefine. 
 - `renderToPdf(...)` → A7 (stub) + QB-3 (real impl)
 - `ensureStripeCustomer(contactId)` → A7
 - `portal-guard` → A8
-- `createDealFromLead(contact, source)` → SP-1, consumed by IF-1, LG-9
+- `createDealFromLead(contact, source)` → SP-1, consumed by IF-1, LG-9, AT-1, CM-E
 - `transitionDealStage()` → SP-2, consumed by QB-5, SB-6, BI-7
 - `validateDeal()` → SP-2
 - `assembleContext(contactId)` → CCE-1, consumed by UI-5, CM-3
@@ -615,8 +683,14 @@ Every primitive is owned by exactly one wave. Consumers import; never redefine. 
 - `approveDeliverable()` → TM-7
 - `getAvailableBenchMembers()` → HP-17, consumed by TM
 - `isBlockedFromOutreach()`, `enforceWarmupCap()` → LG-1/LG-6
+- `classifyEdit()` → LG-11, consumed by autonomy state machine
+- `scoreAuditCategory()`, `scoreAuditOverall()` → AT-1
+- `runAuditEnrichment()` → AT-1, reuses LG-2/LG-3 enrichment pipeline
+- `generateCaseSnippet()` → LG-11
 - `vault.encrypt/decrypt` → B2
 - `reportIssue(context)` → B1
+- `invokeLlmText(prompt, opts)` → A6, refactored PM-5 (adds `system` param); consumed by UI-5/6/7, CCE-1+
+- `useAdminEvents()` → PM-3 (SSE client hook); consumed by pipeline toasts, future real-time surfaces
 
 **URL prefixes:**
 - `/lite/*` (admin) → every admin spec
@@ -625,7 +699,9 @@ Every primitive is owned by exactly one wave. Consumers import; never redefine. 
 - `/lite/admin/errors` → B1
 - `/portal/[token]/*` → CM, IF, SB-10, SWP-6
 - `/bench` → HP-14
-- `/get-started/*` → SB-3, SB-4
+- `/get-started/*` → SB-3, SB-4, AT-2 (`/get-started/audit`)
+- `/api/outreach/click` → LG-11 (retargeting pixel redirect)
+- `/api/admin/events` → PM-3 (SSE endpoint for admin real-time push)
 - `/intro`, `/trial-shoot`, `/book`, `/follow-up` → IF
 - `/apply` → HP-10
 - `/say/[answer]` → SD-12
@@ -667,21 +743,26 @@ Each suite runs as part of that session's verification gate (typecheck + unit te
 
 ## Dependency-order summary (at-a-glance)
 
+Shows planned order. Actual execution order diverges — see "Execution vs plan" note below.
+
 ```
-Wave 0:  P0 (Pixieset spike)
-Wave 1:  A1 → A2 → A3 → A4 → A5 → A6 → A7 → A8           (Foundation A)
-Wave 2:  B1 → B2 → B3                                     (Foundation B)
-Wave 3:  BDA-1 → BDA-2 → BDA-3 → BDA-4 → BDA-5            (gate unblocks at BDA-4)
-Wave 4:  SW-1 → SW-2 → SW-3 → SW-4 → SW-5 → SW-6          (WizardDefinition)
-Wave 5:  SP-1 → SP-2 → ... → SP-9                         (CRM spine)
-Wave 6:  QB-1 → ... → QB-8 → QB-E2E                       (critical: quote accept)
-Wave 7:  BI-1 → ... → BI-7 → BI-E2E                       (critical: invoice pay)
-Wave 8:  SB-1 → ... → SB-12 → SB-E2E                      (critical: SaaS signup)
-Wave 9:  UI-1 → ... → UI-13                               (inbox — producer owns messages)
-Wave 10: CM-1 → ... → CM-12 → CM-E2E                      (critical: portal auth)
-Wave 11: OS-1 → OS-2 → OS-3                               (onboarding)
-Wave 12: CE-1 → ... → CE-13                               (content engine)
-Wave 13: LG-1 → ... → LG-10                               (lead generation)
+Wave 0:  P0 (Pixieset spike — CLOSED, superseded by Cloudinary 2026-04-18)
+Wave 1:  A1 → A2 → A3 → A4 → A5 → A6 → A7 → A8           (Foundation A — CLOSED)
+Wave 2:  B1 → B2 → B3                                     (Foundation B — CLOSED)
+Wave 3:  BDA-1 → BDA-2 → BDA-3 → BDA-4 → BDA-5            (gate unblocks at BDA-4 — BDA-5 OPEN ⚠)
+Wave 4:  SW-1 → ... → SW-13                               (WizardDefinition — CLOSED, expanded from 6 to 13 sessions)
+Wave 5:  SP-1 → SP-2 → ... → SP-9                         (CRM spine — CLOSED)
+Wave 6:  QB-1 → ... → QB-E2E                              (critical: quote accept — CLOSED)
+Wave 7:  BI-1a → BI-1b → BI-2a → BI-2b → BI-E2E          (critical: invoice pay — CLOSED, restructured)
+Wave 8:  SB-1 → ... → SB-12 → SB-E2E                      (critical: SaaS signup — CLOSED, SB-4 optional skip)
+—        admin-polish-0..6 + admin-chrome-1                 (unplanned interlude — CLOSED)
+Wave 9:  UI-1 → ... → UI-13                               (inbox — CLOSED)
+Wave 10: CM-1 → ... → CLD-1 → CLD-2 → CM-7 → CM-7b → ... → CM-12 → CM-E2E  (portal + Cloudinary — NOT STARTED ⚠)
+Wave 11: OS-1 → OS-2 → OS-3                               (onboarding — CLOSED)
+Wave 12: CE-1 → ... → CE-13                               (content engine — CLOSED)
+Wave 13: LG-1 → ... → LG-10                               (lead generation — IN PROGRESS, LG-7 last closed)
+Wave 13c: PM-1..PM-7                                       (patch mop-up — orphaned patches from Phase 5 audit)
+—        SPEC-PATCH-IF-CLD                                   (Pixieset→Cloudinary spec patch across intro-funnel — after LG-10, before IF-1)
 Wave 14: IF-1 → ... → IF-4 → IF-E2E                       (critical: trial booking)
 Wave 15: SWP-1 → ... → SWP-10                             (six-week plan)
 Wave 16: CCE-1 → CCE-2 → CCE-3                            (context engine)
@@ -694,7 +775,34 @@ Wave 22: DC-1 → ... → DC-8                                (daily cockpit —
 Wave 23: SAP → DRY                                        (Settings Audit + dry-run)
 ```
 
-~150 total build sessions. Approx Phase 5 duration: assume 2–3 sessions per day in autonomous mode, staged by critical-flight batches, bounded by Opus-quota windows — 2–4 months real-time, not a fixed estimate. AUTONOMY_PROTOCOL.md governs per-session discipline.
+### Execution vs plan — skipped sessions and reordering (2026-04-18 audit)
+
+**Actual execution order diverged from plan after Wave 9.** Waves 11, 12, and 13 were executed before Wave 10 (Client Management). This means all client-facing portal surfaces remain unbuilt while admin + backend waves advanced.
+
+**Corrected execution order going forward:**
+
+After Wave 13 (LG) completes, the remaining waves run in this sequence:
+
+1. **BDA-5** (Wave 3 catchup) — client-facing Brand DNA portal paths, blends, retake. Required before CM-8.
+2. **CMS-3 + CMS-4** (Batch B content mini-sessions — overdue since Wave 12 closed). Run before consuming waves advance further.
+3. **PM-6** (Wave 13c discipline patch) — AUTONOMY_PROTOCOL visual-remediation update. Zero code; must land before CM-5's brief is written.
+4. **Wave 13b: LG-11 → AT-1 → AT-2** — Lead Gen addendum + Free Audit Tool.
+5. **Wave 13c remainder: PM-4, PM-5** (small infra — subscription state rename + invoke.ts refactor). PM-5 must land before CCE-1.
+6. **Wave 10 catchup: CM-1 → CM-5 → CM-6 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E → CM-E2E** — the entire portal wave, including Cloudinary integration. Must complete before IF-2 (Wave 14), which routes to the portal gallery.
+7. **PM-1, PM-2, PM-3, PM-7** (Wave 13c UI sessions) — interleaved with Wave 10 or run as a batch after CM-E2E. PM-1 (Settings Display) and PM-7 (LG queue buttons) are independent; PM-2 (design system revisit) and PM-3 (realtime channel) are independent.
+8. **Wave 14: IF-1 → IF-4 → IF-E2E** — Intro Funnel (depends on CM portal + CLD gallery).
+9. **Waves 15–23** — as originally planned.
+
+**Intentionally skipped (no action needed):**
+- SB-4 (Wave 8) — per-product demo landing pages, marked optional in plan.
+
+**Content mini-sessions outstanding:**
+- CMS-3 (Content Engine copy) — overdue, should run before Wave 14.
+- CMS-4 (SaaS Subscription Billing copy) — overdue, should run before Wave 14.
+- CMS-5 (Intro Funnel + Six-Week Plan) — required before IF-1.
+- CMS-6 (Observatory + S&D) — required before COB-1.
+
+~162 total build sessions (including Wave 13b + 13c mop-up). Approx Phase 5 duration: assume 2–3 sessions per day in autonomous mode, staged by critical-flight batches, bounded by Opus-quota windows — 2–4 months real-time, not a fixed estimate. AUTONOMY_PROTOCOL.md governs per-session discipline.
 
 ---
 
@@ -713,5 +821,5 @@ AUTONOMY_PROTOCOL.md makes this declaration non-skippable: every session declare
 ## Closed notes
 
 - **LAUNCH_READY.md and AUTONOMY_PROTOCOL.md** are the remaining Phase 4 artefacts. Drafted in a fresh session per mid-session context-budget discipline (the same discipline AUTONOMY_PROTOCOL.md itself codifies).
-- **PATCHES_OWED.md Pending rows** are all slotted above. Every row now maps to a named session (Foundation A/B, or a Wave 3–22 session, or the final SAP).
+- **PATCHES_OWED.md Pending rows** are all slotted above. Every row now maps to a named session (Foundation A/B, Wave 3–22, Wave 13b/13c addenda, or the final SAP). **Audited 2026-04-18:** 7 orphaned patches identified and slotted into Wave 13c (PM-1..PM-7).
 - **No mop-up brainstorms spawned** during this session. Phase 4 ordering was locked by Andy's Q1 answer (A — dependency-strict); three exit-handoff decisions mechanically resolved.

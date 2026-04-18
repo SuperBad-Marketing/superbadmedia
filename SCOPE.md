@@ -37,7 +37,8 @@ DNS, routing, and exactly how these URLs resolve is a Phase 2 Foundations decisi
 - **Paid intro offer** (Stripe Checkout on marketing site) → Conversation stage (pre-qualified by having paid)
 - **Calendar booking** (embedded booking widget on marketing site) → Contacted or Conversation
 - **Manual outbound entry** in Lite admin after cold outreach → Contacted
-- **Referrals** entered manually → Contacted
+- **Referrals** via portal referral surface (§24 of client-management.md) or entered manually → Lead stage
+- **Free Audit Tool** at `/get-started/audit` (§21 below) → Lead stage, pre-enriched
 
 **Assisted outreach (Claude-generated, Andy-approved):**
 - Each prospect profile has a "Generate email" button
@@ -59,6 +60,11 @@ DNS, routing, and exactly how these URLs resolve is a Phase 2 Foundations decisi
 - Replies (via manual "They replied" button; automatic detection deferred)
 - Reply rate, conversion rate, time-to-reply
 - Per-template performance, per-vertical performance
+
+**Conversion amplifiers (added 2026-04-18):**
+- **Case snippet auto-drafting** — Claude auto-drafts anonymised proof points at trial shoot completion and 90-day retainer mark. 48h auto-approve via cockpit. Outreach drafts reference relevant snippets by vertical. See `lead-generation.md §17`.
+- **Retargeting pixel on outreach links** — Meta and Google pixels fire on outreach link clicks from day one. No audience management UI in v1.0 (fires silently, accumulates signal for v1.1). See `lead-generation.md §18`.
+- **Autonomy graduation adjustment** — clean approval streak threshold lowered from 10 to 5; minor edits (typos, small phrasing tweaks) no longer break the streak. See `lead-generation.md §18b`.
 
 **Architecture baked in from day one for future extension:**
 - **Send mode** parameter (`draft` vs `auto`) — flipping specific flows to autonomous send later is a config change, not a rewrite
@@ -603,6 +609,22 @@ These four features had full Phase 3 specs but were never promoted to first-clas
 
 ---
 
+## Additional v1 features (added 2026-04-18 brainstorm)
+
+One inbound lead-generation feature added to v1 scope in a brainstorm on 2026-04-18. Has its own Phase 3 spec (`docs/specs/free-audit-tool.md`) and slots into Wave 13 (Lead Generation) as sessions AT-1 and AT-2.
+
+### 21. Free Audit Tool (inbound lead generation)
+
+**Purpose:** a public-facing marketing health scorecard at `/get-started/audit`. A business owner enters their domain, name, email, and optional social handles, and receives an instant A–F graded scorecard across five categories (Advertising Presence, Social Presence, Website Quality, Online Reputation, Content Activity) — plus a branded PDF report emailed to them. The tool reuses the Lead Generation enrichment pipeline end-to-end.
+
+**Why it's in v1.0, not v1.1:** the enrichment APIs, scoring engine, PDF renderer, `sendEmail()`, and `createDealFromLead()` are all being built for Lead Generation anyway. The audit tool is a different front door to the same infrastructure — a form, a reveal UI, and a report template on top of proven plumbing. Near-zero marginal build cost for a warm inbound channel that complements the cold outbound system.
+
+**Shape:** form with 4 required fields (business name, website URL, name, email) + 4 optional social handles (Instagram, Facebook, YouTube, Google Maps) → cinematic progressive reveal (per-signal status updates → beat → grade reveal with motion + sound → category build-in) → branded PDF emailed → Deal created in Pipeline at Lead stage → Opus-drafted follow-up email referencing their weakest category inserted into Unified Inbox for Andy to review and send.
+
+**Key decisions:** domain dedup without score comparison (signal noise makes comparisons misleading); rate limiting via Cloudflare Turnstile + honeypot + IP cap (3/24h) + daily audit cap (default 50); audit completions inform lead gen targeting (+8 scoring boost for self-auditors, viability profile reuse within 90 days); no wizard needed (consumes already-configured enrichment APIs). See `docs/specs/free-audit-tool.md`.
+
+---
+
 ## Explicit non-goals for v1
 
 - **Not a creative production tool.** No video editing, design surfaces, or Frame.io replacement.
@@ -690,6 +712,16 @@ Added 2026-04-14. A group of outreach/sales-intelligence features that extend th
 - **Objection content sender.** Monitors lead behaviour (link clicks, page views) to infer objections, then triggers the right piece of content — ROI article, FAQ, testimonial — automatically. Passive-channel delivery only per `feedback_passive_vs_active_channels`.
 - **Pre-call prep kit.** Thirty minutes before a call, pulls everything known about a prospect into a one-page brief: gaps, goals, likely objections, recommended positioning. Earned-CTA moment per `feedback_earned_ctas_at_transition_moments`.
 - **Proposal auto-writer.** From call notes / CRM data, writes a bespoke proposal in SuperBad voice — pain points, solution, pricing, ROI case. Dual-quote strategy per `project_dual_quote_strategy`. Take-away artefact rules per `feedback_takeaway_artefacts_brand_forward`.
+
+### Inbound & conversion improvements (added 2026-04-18)
+
+Added 2026-04-18 after brainstorming improvements to the lead generation and conversion pipeline. All depend on real operational data from v1.0 to be valuable.
+
+- **Inbound content magnets beyond the audit tool.** Industry-specific tools, vertical benchmarks, "what's working in [category] right now" reports. Need real enrichment data from the first few months to be credible. The audit tool (v1.0) proves the pattern; these extend it per-vertical.
+- **Newsletter as a deliberate conversion channel.** The Content Engine newsletter (v1.0) fans out blog content. This v1.1 enhancement makes the newsletter a conscious nurture channel — tone, cadence, and content designed to convert subscribers to trial shoots or SaaS signups over 3–6 months. Needs Andy's voice established through actual sends and enough subscriber volume (200+) to justify the effort.
+- **Social proof publishing surface.** Auto-drafted case snippets (v1.0 — see case snippet auto-drafting spec patch on `lead-generation.md`) are stored internally and fed to outreach drafts. This v1.1 enhancement builds the publishing layer: portfolio/case-studies page, social proof cards, embeddable testimonials. Needs 3–4 completed retainer engagements and client permission workflows.
+- **Audience management UI for retargeting.** The retargeting pixel fires from v1.0 (see retargeting pixel spec patch on `lead-generation.md`). This v1.1 enhancement builds the UI for managing custom audiences, syncing to Meta/Google, and viewing audience size/overlap. Needs months of pixel data to make audience building worthwhile.
+- **Per-prospect-type autonomy tuning.** v1.0 earned autonomy is per-track (SaaS vs retainer). This v1.1 enhancement adds finer-grained autonomy by vertical, score band, or touch number — so drafts for high-scoring medical aesthetics prospects might auto-send while low-scoring cold prospects stay manual. Needs real approval pattern data to calibrate.
 
 ### Already-parked items (referenced from memory / earlier scope)
 

@@ -821,9 +821,84 @@ Yes. The admin profiles are pure composition — every data source already exist
 
 ---
 
-## 24. Phase 5 sizing
+## 24. Referral surface (added 2026-04-18)
 
-**4 sessions:**
+A quiet, standing referral mechanism inside the client portal. No incentive program — goodwill only. The infrastructure is trivial; the value is warm leads entering the pipeline with social proof attached.
+
+### 24.1 Portal menu item
+
+A permanent "Know someone?" item in the portal overlay menu (§7.1). Always visible, never intrusive. Tapping opens a bottom-sheet (mobile) or modal (desktop) with the referral form.
+
+### 24.2 Form fields
+
+| Field | Required | Purpose |
+|---|---|---|
+| **Their name** | Yes | Contact record + follow-up personalisation |
+| **Their email** | Yes | Deal contact + follow-up email |
+| **Anything we should know?** | No | Free-text note — context for Andy and Claude ("she just opened a second location", "we were talking about marketing last week") |
+
+Two required fields keeps friction at "favour" level. The note is where the gold is — when provided, it feeds directly into the Claude-drafted follow-up as genuine context.
+
+### 24.3 On submission
+
+1. **Domain dedup:** extract domain from email, check for existing company/Deal (same logic as audit tool §7.3). If exists, add contact to existing company; if not, create new.
+2. **Create Deal:** `createDealFromLead()` with `source: 'referral'`. Deal enters Pipeline at Lead stage.
+3. **Store referral link:** `referral_from_company_id` + `referral_from_contact_id` on the Deal record for attribution.
+4. **Auto-draft follow-up:** Opus-tier draft referencing the referrer by name: "Sarah at [Referrer's Company] thought you might find this useful." Inserted into Unified Inbox as compose draft on the Deal's thread. Andy reviews and sends. The referrer's name as social proof in the opening line is the conversion mechanism.
+5. **Acknowledge to referrer:** one-line message in the referring client's portal chat: "Thanks — we'll reach out to them." No details about outcome (privacy). Passive channel per `feedback_passive_vs_active_channels`.
+6. **Activity log:** `referral_submitted` on the referrer's company + `referral_received` on the new Deal.
+
+### 24.4 Contextual milestone prompt
+
+In addition to the standing menu item, a contextual referral prompt surfaces at natural high points:
+
+**Trigger events:**
+- Deliverable approved by client
+- Post-shoot reflection submitted (Intro Funnel feedback completion)
+- 90-day retainer mark reached
+
+**Presentation:** a non-blocking toast or inline card on the portal surface: "Things are going well. Know someone who'd get value from this?" with a single "Refer someone" button that opens the same form.
+
+**Suppression rules:**
+- Max once per 30 days per client (timestamp stored on contact record)
+- Never during mid-payment, wizard, error, or first-session (same suppression gates as Surprise & Delight §7)
+- Dismissable — "Not now" hides it and resets the 30-day timer
+
+### 24.5 Data model additions
+
+**`deals` table:**
+- `referral_from_company_id` — nullable FK to `companies.id`
+- `referral_from_contact_id` — nullable FK to `contacts.id`
+
+**`contacts` table:**
+- `last_referral_prompt_at` — nullable timestamp for 30-day suppression
+
+**`activity_log.kind`:** add `referral_submitted`, `referral_received`. Non-breaking enum extension.
+
+### 24.6 Cross-spec integration
+
+- **Daily Cockpit:** new referrals surface as a data source in the morning brief ("1 referral from [company] overnight").
+- **Lead Generation:** referral Deals are excluded from lead gen dedup (they already have a Deal; the daily search won't re-discover them as candidates).
+- **Unified Inbox:** follow-up draft follows the same compose-draft pattern as audit tool follow-ups.
+
+### 24.7 Settings keys
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `referral.milestone_prompt_cooldown_days` | `30` | `number` | Min days between contextual referral prompts per client |
+
+### 24.8 Out of scope
+
+- **Incentive/credit program** — deferred until real clients are referring people and Andy knows what motivates them.
+- **Referral tracking dashboard** — `source: 'referral'` on the Deal + `referral_from_*` columns is enough for pipeline filtering. A dedicated surface is v1.1.
+- **Referral link/URL** — no shareable link mechanism. The portal form is the only entry point.
+- **Multi-level referrals** — no "your referral referred someone" chains.
+
+---
+
+## 25. Phase 5 sizing
+
+**5 sessions:**
 
 - **Session A: Admin profiles + global search.** Create `portal_chat_messages` table + contact columns. Build company profile (7 tabs wired to existing data sources). Build contact profile (5 tabs with Context Engine embedding). Build `/lite/clients` index with summary cards, list, filters. Build global search (`Cmd+K` + header). External links CRUD. Medium-large.
 
@@ -833,4 +908,6 @@ Yes. The admin profiles are pure composition — every data source already exist
 
 - **Session D: Data export + migration + cancel flow.** One-click ZIP export via `scheduled_tasks` + Puppeteer PDF rendering + JSZip bundling. Client-triggered export (chat integration). Intro Funnel fork-at-Won migration job. `/lite/portal/subscription` pre-term and post-term cancel flow pages (consuming Quote Builder §9). Medium.
 
-**Dependencies:** A before B (admin profiles needed for Portal Chat tab). B before C (chat must exist before sections reference it). D can parallel B or C.
+- **Session E: Referral surface** (added 2026-04-18). Portal menu item + referral form + Deal creation + Opus follow-up draft + portal chat acknowledgement + contextual milestone prompt with 30-day suppression. Small — all infrastructure exists (createDealFromLead, portal chat, compose draft, activity log).
+
+**Dependencies:** A before B (admin profiles needed for Portal Chat tab). B before C (chat must exist before sections reference it). D can parallel B or C. E requires B (portal chat for acknowledgement) but can parallel C or D.

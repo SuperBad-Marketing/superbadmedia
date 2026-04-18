@@ -579,6 +579,7 @@ export async function generateDraft(args: {
 - **SuperBad business context** loaded from the `superbad-business-context` skill (pricing ranges, verticals, trial shoot offering).
 - **viabilityProfile** fed in as structured JSON so the prompt can reference specific signals.
 - **Prior touches** supply thread context for follow-ups and nudges.
+- **Case snippet** (added 2026-04-18) — if a `case_snippets` row exists matching the prospect's vertical (or any vertical as fallback), the most recent approved snippet is included. The prompt instruction: "If the snippet is relevant to this prospect's vertical, weave it in naturally as a proof point. If it's a different vertical, omit it — a forced reference is worse than none." See §17.
 
 ### 8.3 Required output discipline
 
@@ -1254,6 +1255,203 @@ This mix builds comprehensive business profiles without Apollo. The enrichment s
 
 ---
 
+## 17. Case snippet auto-drafting (added 2026-04-18)
+
+Anonymised proof points from real client engagements, auto-drafted by Claude at milestone moments and fed into outreach drafts as social proof.
+
+### 17.1 Triggers
+
+| Milestone | Trigger event | Data available to Claude |
+|---|---|---|
+| **Trial shoot completion** | `intro_funnel_reflection_completed` activity log entry | Brand DNA profile + shoot feedback + six-week plan context + vertical |
+| **90-day retainer mark** | `scheduled_tasks` handler fires 90 days after Deal Won with `won_outcome = 'retainer'` | Brand DNA profile + Client Context summary + deliverables completed + any audit scores + vertical |
+
+Each trigger calls:
+
+```ts
+generateCaseSnippet({
+  companyId: string,
+  milestoneType: 'shoot_completion' | 'retainer_90d',
+  brandDna: BrandDnaProfile,
+  context: MilestoneContext,  // shoot feedback OR client context summary
+  vertical: string,
+})
+```
+
+### 17.2 Snippet structure (Haiku-tier generation)
+
+```ts
+interface CaseSnippet {
+  headline: string          // e.g. "Medical aesthetics — Melbourne"
+  paragraph: string         // 2–3 sentences, anonymised, specific to real signals
+  metrics_line: string | null  // e.g. "Social presence: D → B+ over 90 days" — only if real data exists
+}
+```
+
+**Anonymised by default.** No company name, no individual names, no identifying details. Vertical + location + outcome. Andy can edit before approval if he wants to add specifics.
+
+### 17.3 Approval flow
+
+Snippets enter a 48-hour auto-approve window:
+
+1. Claude drafts snippet → stored with `status: 'pending'` in `case_snippets`.
+2. Cockpit surfaces a notification: "New case snippet drafted — [headline]". Andy can click through, edit, or reject.
+3. After 48 hours with no action, `case_snippet_auto_approve` scheduled task flips status to `approved`.
+4. Rejection removes the snippet permanently (no retry).
+
+Auto-approve window is `settings.get('snippet.auto_approve_hours')` (default: 48).
+
+### 17.4 Consumption by outreach drafts
+
+The outreach draft generator (§8.2) queries for the best matching snippet:
+
+```sql
+SELECT * FROM case_snippets
+WHERE status = 'approved'
+ORDER BY
+  CASE WHEN vertical = :prospect_vertical THEN 0 ELSE 1 END,
+  created_at DESC
+LIMIT 1
+```
+
+Same-vertical match preferred; any-vertical fallback. The snippet is included in the prompt inputs (§8.2) with an instruction to weave it naturally or omit if irrelevant.
+
+### 17.5 Data model
+
+```ts
+export const caseSnippets = sqliteTable('case_snippets', {
+  id: text('id').primaryKey().$defaultFn(() => ulid()),
+
+  company_id: text('company_id').notNull().references(() => companies.id),
+  milestone_type: text('milestone_type', { enum: ['shoot_completion', 'retainer_90d'] }).notNull(),
+  vertical: text('vertical').notNull(),
+  location: text('location'),
+
+  headline: text('headline').notNull(),
+  paragraph: text('paragraph').notNull(),
+  metrics_line: text('metrics_line'),
+
+  status: text('status', { enum: ['pending', 'approved', 'rejected'] }).notNull().default('pending'),
+  approved_at: integer('approved_at', { mode: 'timestamp_ms' }),
+  auto_approved: integer('auto_approved', { mode: 'boolean' }).notNull().default(false),
+
+  created_at: integer('created_at', { mode: 'timestamp_ms' }).notNull().$defaultFn(() => Date.now()),
+})
+```
+
+**Activity log kinds:** `case_snippet_drafted`, `case_snippet_approved`, `case_snippet_auto_approved`, `case_snippet_rejected`.
+
+**Scheduled task type:** `case_snippet_auto_approve` — fires 48h after snippet creation, checks status is still `pending`, flips to `approved`.
+
+**Settings keys:**
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `snippet.auto_approve_hours` | `48` | `number` | Hours before pending snippet auto-approves |
+
+---
+
+## 18. Retargeting pixel on outreach links (added 2026-04-18)
+
+Every outbound outreach email contains at least one link (unsubscribe at minimum; often the SuperBad website or a specific landing page). Clicks on these links fire Meta and Google retargeting pixels, building lookalike and retarget audience seeds from day one.
+
+### 18.1 Implementation
+
+**Link wrapping:** all outreach email links (except the unsubscribe URL) are wrapped through a redirect endpoint:
+
+```
+/api/outreach/click?id=<send_id>&url=<encoded_target>&t=<hmac_token>
+```
+
+The redirect handler:
+1. Validates HMAC token (prevents URL tampering).
+2. Records the click on `outreach_sends` (existing engagement tracking — §4.3).
+3. Returns an HTML page that fires Meta Pixel (`fbq('track', 'Lead')`) and Google Ads tag (`gtag('event', 'conversion')`) via embedded `<script>` tags, then redirects to the target URL after a 0ms `setTimeout` (pixel fires are async; redirect is immediate to the user).
+
+### 18.2 Pixel configuration
+
+- **Meta Pixel ID:** `settings.get('retargeting.meta_pixel_id')` — configured in admin Setup Wizards.
+- **Google Ads Conversion ID:** `settings.get('retargeting.google_conversion_id')` — configured in admin Setup Wizards.
+- If either is unconfigured, the redirect skips that pixel silently (no error, no delay).
+
+### 18.3 Privacy
+
+- No cookies are set by the redirect page itself. The Meta and Google scripts set their own first-party cookies per their standard behaviour.
+- The redirect page includes no visible content — it's a transparent pass-through.
+- The click is already logged as an engagement event; the pixel adds cross-platform signal without additional data collection from SuperBad's side.
+
+### 18.4 Data model
+
+No new tables. Uses existing `outreach_sends.first_clicked_at` / `click_count` fields.
+
+**Settings keys:**
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `retargeting.meta_pixel_id` | `null` | `string \| null` | Meta Pixel ID for outreach click tracking |
+| `retargeting.google_conversion_id` | `null` | `string \| null` | Google Ads conversion ID for outreach click tracking |
+
+### 18.5 v1.1 audience management
+
+v1.0 fires the pixels only. Audience creation, management, syncing to Meta/Google, and viewing overlap/size is a v1.1 UI feature. The pixel data accumulates silently in the background.
+
+---
+
+## 18b. Autonomy graduation adjustment (added 2026-04-18)
+
+Two changes to the earned autonomy state machine (§9) based on realistic usage analysis.
+
+### 18b.1 Graduation threshold: 10 → 5
+
+The `graduation_threshold` on `autonomy_state` changes from 10 to 5 clean approvals. Rationale: 10 consecutive zero-edit approvals is an unrealistically high bar — Andy will tweak phrasing on most emails even when the draft is good. 5 clean approvals is enough to demonstrate the LLM is producing trustworthy output for this track.
+
+**Migration:** update `autonomy_state.graduation_threshold` default from 10 to 5. Existing rows (if any) updated in the same migration.
+
+### 18b.2 Material vs minor edit classification
+
+The current system treats ANY edit as non-clean, resetting the streak. This conflates "the subject line needed a complete rewrite" with "I fixed a typo."
+
+**New classification:**
+
+| Edit type | Classification | Streak effect |
+|---|---|---|
+| No edits | Clean | Increments streak |
+| Typo fix (≤3 characters changed in body, subject unchanged) | Minor | **Does not break streak** |
+| Phrasing tweak (body changed, subject unchanged, sentiment preserved) | Minor | **Does not break streak** |
+| Subject line changed | Material | Resets streak |
+| Tone/intent change (body substantially rewritten) | Material | Resets streak |
+| Factual correction (body changed to fix a claim about the prospect) | Material | Resets streak |
+
+**Detection:** the approval handler computes a diff between the original draft and the submitted version:
+
+```ts
+function classifyEdit(original: Draft, submitted: Draft): 'clean' | 'minor' | 'material' {
+  if (original.subject !== submitted.subject) return 'material'
+  if (original.body_markdown === submitted.body_markdown) return 'clean'
+
+  const charDiff = levenshteinDistance(original.body_markdown, submitted.body_markdown)
+  if (charDiff <= 3) return 'minor'
+
+  // Heuristic: if >20% of body changed, it's material
+  const changeRatio = charDiff / original.body_markdown.length
+  if (changeRatio > 0.2) return 'material'
+
+  return 'minor'
+}
+```
+
+The `approval_kind` enum on `outreach_drafts` gains a new value: `'minor_edit_manual'`. Non-clean approval kinds are now: `'nudged_manual'` (always material) and `'minor_edit_manual'` (does not break streak) and `'edited_manual'` (material edit, breaks streak).
+
+**Settings keys:**
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `autonomy.graduation_threshold` | `5` | `number` | Clean approvals needed to unlock probation (was 10) |
+| `autonomy.minor_edit_char_threshold` | `3` | `number` | Max character diff to classify as minor edit |
+| `autonomy.material_edit_ratio_threshold` | `0.2` | `number` | Body change ratio above which edit is material |
+
+---
+
 ## 19. Cross-spec changes flagged
 
 ### `docs/specs/sales-pipeline.md`
@@ -1274,6 +1472,14 @@ This mix builds comprehensive business profiles without Apollo. The enrichment s
 
 ### Future spec: `docs/specs/content-engine.md`
 - Lead Gen's `recentBlogPosts` parameter is populated from Content Engine queries once it ships. Flagged §13.8.
+
+### `docs/specs/free-audit-tool.md` (added 2026-04-18)
+- Lead Gen daily search reuses audit viability profiles within 90 days (§4.6 cross-pollination). `audit.scoring_boost` (+8) applied to audit-sourced domains.
+- Audit tool consumes the same enrichment pipeline (LG-2/LG-3) and scoring functions.
+
+### `docs/specs/client-management.md` (added 2026-04-18)
+- Referral surface (§24) creates Deals with `source: 'referral'`. Referral Deals are excluded from lead gen dedup (they already have a Deal).
+- Milestone triggers (deliverable approved, reflection submitted, 90-day mark) fire case snippet generation (§17).
 
 ### Future spec: `docs/specs/unified-inbox.md`
 - Inbound reply detection currently requires a manual "They replied" button in Pipeline. When Unified Inbox lands, inbound email matching auto-transitions the sequence to `stopped_reply`. Flagged here; not a Pipeline spec change.
@@ -1297,6 +1503,7 @@ Rough session breakdown for the Phase 4 build plan:
 8. **Autonomy graduation state machine + circuit breakers** — state transitions, 15-minute delay, maintenance floor, circuit breakers.
 9. **Engagement tier evaluator + sequence scheduler** — 4-tier classification, cutoff counter, cadence scheduler.
 10. **End-to-end integration test** — manufactured candidates through the entire pipeline, including warmup clamp and DNC enforcement under load.
+11. **Case snippet auto-drafting + retargeting pixel + autonomy adjustment** (added 2026-04-18) — `case_snippets` table + milestone triggers + auto-approve handler + outreach link wrapping with pixel firing + autonomy graduation threshold change + material/minor edit classifier.
 
 Sessions 2–3 may split further if any single source turns out harder than expected.
 
@@ -1324,3 +1531,11 @@ Lead Generation is "done" for v1 when:
 - [ ] Below-floor-after-rescore flag surfaces correctly in the queue UI
 - [ ] Reactive adjustment bounds (−20 to +25) are enforced — no score escapes the clamp
 - [ ] No Apollo.io dependency anywhere in the codebase — enrichment uses only the nine-signal set from §3.2
+- [ ] Case snippets auto-draft on trial shoot completion and 90-day retainer mark
+- [ ] Case snippets auto-approve after 48h if Andy hasn't acted
+- [ ] Outreach drafts reference a relevant case snippet when one exists for the prospect's vertical
+- [ ] Retargeting pixel fires on outreach link clicks (Meta + Google, when configured)
+- [ ] Link wrapping with HMAC prevents URL tampering on redirect endpoint
+- [ ] Autonomy graduation threshold is 5 (not 10) clean approvals
+- [ ] Minor edits (≤3 chars, subject unchanged) do not break the clean approval streak
+- [ ] Material edits (subject change, >20% body change, nudge regen) correctly reset the streak
