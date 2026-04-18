@@ -7,6 +7,7 @@ import {
   type LucideIcon,
   Newspaper,
   Package,
+  Radar,
   Settings,
   TriangleAlert,
   User,
@@ -69,6 +70,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Building2,
     status: "soon",
     matchPrefix: null,
+  },
+  {
+    id: "lead-gen",
+    label: "Lead Gen",
+    href: "/lite/admin/lead-gen",
+    icon: Radar,
+    status: "live",
+    matchPrefix: "/lite/admin/lead-gen",
   },
   {
     id: "content",

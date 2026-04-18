@@ -706,5 +706,10 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 
 ## Phase 5 Wave 13 LG-1 (2026-04-18)
 
-- **`lg_1_dnc_management_surface`** · DNC management UI (Settings → Lead Generation → Do Not Contact) not built. BUILD_PLAN spec §20 #1 bundles it with schema, but it's a UI surface. Deferring to LG-7 (UI session) or a dedicated mini-session. · LG-1 handoff · 2026-04-18 · **gate: LG-7 or dedicated UI session**
+- ~~**`lg_1_dnc_management_surface`**~~ · **CLOSED by LG-7.** DNC management UI built as `/lite/admin/lead-gen/dnc` tab.
 - **`lg_1_settings_registry_doc_update`** · `docs/settings-registry.md` needs 14 new rows (9 `lead_generation.*` + 5 `warmup.*`). Total now 137. Extends `ce_1_settings_registry_doc_drift` above. · LG-1 handoff · 2026-04-18 · **gate: opportunistic — next settings-registry.md touch**
+
+## Phase 5 Wave 13 LG-7 (2026-04-18)
+
+- **`lg_7_autonomy_streak_wiring`** · Autonomy streak cards in metrics panel show placeholder text. LG-8 must wire real autonomy state data when `transitionAutonomyState()` ships. · LG-7 handoff · 2026-04-18 · **gate: LG-8**
+- **`lg_7_edit_nudge_buttons`** · Queue rows show Approve & Reject but not Edit or Nudge buttons. Edit requires inline draft editing UI. Nudge requires nudge-chat primitive. · LG-7 handoff · 2026-04-18 · **gate: LG-8 or dedicated UI session**

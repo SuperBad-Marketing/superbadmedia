@@ -81,6 +81,24 @@ export type {
 export { enforceWarmupCap, recordWarmupSend, initWarmupState } from "./warmup";
 export type { WarmupCapResult } from "./warmup";
 
+// LG-7: Query functions (pure reads per §12.M)
+export {
+  getRecentRuns,
+  getCandidatesForRun,
+  getPendingDrafts,
+  getFunnelMetrics,
+  getApprovalRateSparkline,
+  getWarmupProgress,
+  getQueueHeaderData,
+} from "./queries";
+export type {
+  QueueDraft,
+  FunnelData,
+  ApprovalSparklinePoint,
+  WarmupProgress,
+  QueueHeaderData,
+} from "./queries";
+
 // LG-3: Enrichment pipeline (re-exports)
 export {
   fetchPageSpeed,
