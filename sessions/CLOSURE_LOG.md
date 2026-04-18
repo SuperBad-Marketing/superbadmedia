@@ -4,6 +4,18 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CMS-4 (2026-04-18) — SaaS Subscription Billing content mini-session
+
+**Phase:** 5 — Build Execution (Content mini-session, Batch B item 2 of 2). 5 new content docs: usage-bar.md (personality progression across 5 usage levels), cap-and-lockout.md (usage cap + payment failed lockout), cancel-flow.md (motivational reality check + pre/post-term branches + pause status), emails.md (9 lifecycle email templates), copy.md (upgrade confirmation, first-login bartender lines, admin empty states, browser tabs, demo frame, cockpit headlines, account management labels). Pre-existing checkout.md + pricing-page.md untouched. Prompt-free spec — no calibration needed. G8: 0 TS errors, 1637 tests / 1 skipped. See `sessions/cms-4-handoff.md`.
+
+## CMS-3 (2026-04-18) — Content Engine content mini-session
+
+**Phase:** 5 — Build Execution (Content mini-session, Batch B item 1 of 2). 8 new content docs + 10 prompts calibrated (stub → calibrated). Content: copy.md (loading states, empty states, fleet overview, notifications, cockpit signals, browser tabs, topic queue), demo-landing-page.md, blog-cta.md (4 SuperBad CTA variants + opt-in form), emails.md (7 email types with subject pools), newsletter-template.md (standalone + digest), social-templates.md (12-template library + 20-line OG dry pool), embed-form.md, remotion.md (4 motion templates). Prompts: all 10 Content Engine prompts fully specified with system prompts, I/O types, scoring rubrics, voice calibration, Brand DNA injection patterns. Loading state register: dry observation for generation steps, deadpan terse for mechanical steps. G8: 0 TS errors, 1637 tests / 1 skipped. See `sessions/cms-3-handoff.md`.
+
+## BDA-5 (2026-04-18) — Client-facing Brand DNA portal paths + multi-stakeholder blends + retake comparison
+
+**Phase:** 5 — Build Execution. **Wave 3 FULLY CLOSED.** See `sessions/bda-5-handoff.md`.
+
 ## LG-9 (2026-04-18) — Sequence engine + follow-up scheduling + engagement tier evaluator
 
 **Phase:** 5 — Build Execution. **Wave 13 LG-9 CLOSED 2026-04-18** — Core `runSequenceScheduler()` orchestrator: finds active sequences due for next touch, enforces warmup/quiet-window/DNC gates, generates follow-up drafts via `generateDraft()` with prior-touch thread context, routes through autonomy (auto-send with 15-min delay for graduated/probation tracks, hold for manual otherwise). `executeSend()`: creates `outreach_sends` row, updates sequence cadence state, records warmup send, promotes candidate to deal on first send via `createDealFromLead()`, fires `probation_send_completed`/`auto_send_completed` autonomy events. `evaluateEngagementTiers()`: classifies sends past 24h cooloff into 4-tier model (click > full open > sub-60s > none), rolls cutoff counter, stops sequences at threshold, triggers reactive rescoring via `rescoreCandidate()`. `classifyEngagementTier()` pure function. Three scheduled task handlers registered: `sequence_scheduler` (30-min self-perpetuating), `engagement_tier_evaluator` (1-hour self-perpetuating), `auto_send_execute` (one-shot delayed). Cadence: 4d/7d/10d per §11.3. 2 PATCHES_OWED closed (auto-send delay, probation/auto_send completion events), 2 raised (circuit breaker webhooks, reply classification rescore). G8: 0 TS errors, 1617 tests / 1 skipped (+15 new). No migration. See `sessions/lg-9-handoff.md`.

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CMS-3` + `CMS-4` — Content mini-sessions Batch B (Content Engine + SaaS Subscription Billing)
-**Brief:** Content mini-sessions producing copy, templates, and voice treatment. Not code sessions — require `superbad-brand-voice` + `superbad-visual-identity` + `superbad-business-context` skills loaded. Andy reviews and approves outputs.
+**Next session:** `CM-1` — Client Management: data model + company/contact CRUD + portal auth
+**Brief:** Wave 10 kickoff. Build the Client Management foundation: schema (companies, contacts, portal_sessions), admin CRUD at `/lite/clients`, portal magic-link auth, portal layout shell. Spec: `docs/specs/client-management.md`. Requires `drizzle-orm` + `nextauth` skills.
 **Model tier:** Sonnet (standard session)
-**Last closed:** BDA-5 (2026-04-18) — see `sessions/bda-5-handoff.md`
-**Wave status:** Wave 3 (Brand DNA) FULLY CLOSED (BDA-1 through BDA-5 all shipped). Batch B content mini-sessions next. Execution order: CMS-3+CMS-4 → Wave 10 (CM-1 → CLD-1 → CLD-2 → ... → CM-E2E) → Wave 14.
+**Last closed:** CMS-4 (2026-04-18) — see `sessions/cms-4-handoff.md`
+**Wave status:** Batch B content mini-sessions COMPLETE (CMS-3 + CMS-4 closed). Wave 10 catchup next: CM-1 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E2E.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
