@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-5 (2026-04-18) — Portal chat home (bartender Opus) + rate-limited chat
+
+**Phase:** 5 — Build Execution (FEATURE, large). Wave 10 continues. Built `/lite/portal/[token]` — full-page portal chat home with Opus-powered bartender AI. Haiku opening line generated fresh each visit. Chat messages persisted in `portal_chat_messages`. Rate limiting via settings keys (`portal.chat_calls_per_day_pre_retainer` / `portal.chat_calls_per_day_retainer`). Escalation to Unified Inbox via `[ESCALATE]` prefix detection + Haiku summary. First-visit 3-step tour (bartender voice). Visual design matched to mockup-client-portal.html. API route at `/api/lite/portal/chat` (GET history, POST messages). `assemblePortalContext()` placeholder for CCE's `assembleContext()`. 5 new files, 1 test file (13 tests). G8: 0 TS errors, 1690 tests / 1 skipped. See `sessions/cm-5-handoff.md`.
+
 ## CM-4 (2026-04-18) — Clients index + global search
 
 **Phase:** 5 — Build Execution (UI, medium). Wave 10 continues. Built `/lite/admin/clients` with four summary cards (Active Clients, Monthly Revenue, Needing Attention, Overdue Invoices), relationship stage filter tabs (Active/Completed/Churned), health score dropdown filter, search within list, compact row table with health dots. Built global search modal (`Cmd+K` / sidebar button) with debounced API search across companies, contacts, deals, invoices, quotes — results grouped by type. Search API route at `/api/lite/search`. Flipped Clients nav item from "soon" to "live". 4 new files, 2 modified files, 1 test file (7 tests). G8: 0 TS errors, 1677 tests / 1 skipped. See `sessions/cm-4-handoff.md`.
