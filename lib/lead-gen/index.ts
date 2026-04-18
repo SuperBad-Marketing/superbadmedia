@@ -81,6 +81,19 @@ export type {
 export { enforceWarmupCap, recordWarmupSend, initWarmupState } from "./warmup";
 export type { WarmupCapResult } from "./warmup";
 
+// LG-8: Autonomy state machine (§9.2, §9.3, §9.5, §12.F)
+export {
+  transitionAutonomyState,
+  getAutonomyStates,
+  getAutonomyRow,
+  AUTO_SEND_DELAY_MS,
+} from "./autonomy";
+export type {
+  AutonomyEvent,
+  AutonomyTransitionResult,
+  AutonomyStateView,
+} from "./autonomy";
+
 // LG-7: Query functions (pure reads per §12.M)
 export {
   getRecentRuns,

@@ -12,4 +12,6 @@ export type {
   WarmupProgress,
 } from "./metrics";
 export { getQueueHeaderData } from "./header";
-export type { QueueHeaderData } from "./header";
+export type { QueueHeaderData, TrackAutonomySummary } from "./header";
+export { getAutonomyStates } from "../autonomy";
+export type { AutonomyStateView } from "../autonomy";

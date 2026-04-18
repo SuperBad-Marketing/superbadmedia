@@ -15,6 +15,7 @@ import type {
   FunnelData,
   ApprovalSparklinePoint,
   WarmupProgress,
+  AutonomyStateView,
 } from "@/lib/lead-gen/queries";
 
 interface MetricsPanelProps {
@@ -22,6 +23,7 @@ interface MetricsPanelProps {
   saasSparkline: ApprovalSparklinePoint[];
   retainerSparkline: ApprovalSparklinePoint[];
   warmup: WarmupProgress;
+  autonomyStates: AutonomyStateView[];
 }
 
 export function MetricsPanel({
@@ -29,6 +31,7 @@ export function MetricsPanel({
   saasSparkline,
   retainerSparkline,
   warmup,
+  autonomyStates,
 }: MetricsPanelProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -37,7 +40,7 @@ export function MetricsPanel({
         saas={saasSparkline}
         retainer={retainerSparkline}
       />
-      <AutonomyStreak />
+      <AutonomyStreak states={autonomyStates} />
       <WarmupCard warmup={warmup} />
     </div>
   );
@@ -152,24 +155,89 @@ function SparklineRow({
   );
 }
 
-function AutonomyStreak() {
+const MODE_LABELS: Record<string, string> = {
+  manual: "manual",
+  probation: "probation",
+  auto_send: "auto-send",
+  circuit_broken: "circuit broken",
+};
+
+function AutonomyStreak({ states }: { states: AutonomyStateView[] }) {
+  const saas = states.find((s) => s.track === "saas");
+  const retainer = states.find((s) => s.track === "retainer");
+
   return (
     <div className="rounded-lg border border-border p-4">
       <h3 className="mb-3 text-sm font-medium">Autonomy Streak (per track)</h3>
       <div className="space-y-3 font-mono text-sm">
-        <div className="rounded border border-border/50 p-3">
-          <p className="font-medium">SaaS · manual</p>
-          <p className="text-muted-foreground text-xs mt-1">
-            Autonomy state machine ships in LG-8
-          </p>
-        </div>
-        <div className="rounded border border-border/50 p-3">
-          <p className="font-medium">Retainer · manual</p>
-          <p className="text-muted-foreground text-xs mt-1">
-            Autonomy state machine ships in LG-8
-          </p>
-        </div>
+        <AutonomyTrackCard label="SaaS" state={saas} />
+        <AutonomyTrackCard label="Retainer" state={retainer} />
       </div>
+    </div>
+  );
+}
+
+function AutonomyTrackCard({
+  label,
+  state,
+}: {
+  label: string;
+  state: AutonomyStateView | undefined;
+}) {
+  if (!state) {
+    return (
+      <div className="rounded border border-border/50 p-3">
+        <p className="font-medium">{label} · not initialised</p>
+      </div>
+    );
+  }
+
+  const modeLabel = MODE_LABELS[state.mode] ?? state.mode;
+  const isCircuitBroken = state.mode === "circuit_broken";
+  const isProbation = state.mode === "probation";
+  const isAutoSend = state.mode === "auto_send";
+  const isManual = state.mode === "manual";
+
+  return (
+    <div
+      className={`rounded border p-3 ${
+        isCircuitBroken
+          ? "border-red-500/50 bg-red-500/5"
+          : isAutoSend
+            ? "border-green-500/50 bg-green-500/5"
+            : "border-border/50"
+      }`}
+    >
+      <p className="font-medium">
+        {label} · {modeLabel}
+      </p>
+
+      {isManual && (
+        <p className="text-muted-foreground text-xs mt-1">
+          {state.streak}/{state.graduationThreshold} toward graduation
+        </p>
+      )}
+
+      {isProbation && state.probationRemaining != null && (
+        <p className="text-muted-foreground text-xs mt-1">
+          {state.probationThreshold - state.probationRemaining}/
+          {state.probationThreshold} probation sends · auto-send in{" "}
+          {state.probationRemaining}
+        </p>
+      )}
+
+      {isAutoSend && (
+        <p className="text-muted-foreground text-xs mt-1">
+          Rolling {state.rollingWindowSize}-send window · floor{" "}
+          {state.maintenanceFloorPct}%
+        </p>
+      )}
+
+      {isCircuitBroken && state.circuitBrokenReason && (
+        <p className="text-red-400 text-xs mt-1">
+          Reason: {state.circuitBrokenReason.replaceAll("_", " ")}
+        </p>
+      )}
     </div>
   );
 }

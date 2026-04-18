@@ -23,6 +23,10 @@ vi.mock("@/lib/db", () => {
   };
 });
 
+vi.mock("@/lib/lead-gen/autonomy", () => ({
+  getAutonomyStates: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock("@/lib/lead-gen/warmup", () => ({
   enforceWarmupCap: vi.fn().mockResolvedValue({
     cap: 5,

@@ -139,6 +139,8 @@ export const ACTIVITY_LOG_KINDS = [
   "sequence_stopped_manual",
   "autonomy_graduated",
   "autonomy_demoted",
+  "autonomy_circuit_broken",
+  "autonomy_probation_started",
   "dnc_email_added",
   "dnc_email_removed",
   "dnc_domain_added",

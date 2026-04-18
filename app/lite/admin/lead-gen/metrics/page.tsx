@@ -5,6 +5,7 @@ import {
   getFunnelMetrics,
   getApprovalRateSparkline,
   getWarmupProgress,
+  getAutonomyStates,
 } from "@/lib/lead-gen/queries";
 import { LeadGenTabs } from "../_components/lead-gen-tabs";
 import { MetricsPanel } from "../_components/metrics-panel";
@@ -19,11 +20,12 @@ export default async function LeadGenMetricsPage() {
     redirect("/api/auth/signin");
   }
 
-  const [funnel, saasSparkline, retainerSparkline, warmup] = await Promise.all([
+  const [funnel, saasSparkline, retainerSparkline, warmup, autonomyStates] = await Promise.all([
     getFunnelMetrics(),
     getApprovalRateSparkline("saas"),
     getApprovalRateSparkline("retainer"),
     getWarmupProgress(),
+    getAutonomyStates(),
   ]);
 
   return (
@@ -34,6 +36,7 @@ export default async function LeadGenMetricsPage() {
         saasSparkline={saasSparkline}
         retainerSparkline={retainerSparkline}
         warmup={warmup}
+        autonomyStates={autonomyStates}
       />
     </div>
   );

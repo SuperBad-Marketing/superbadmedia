@@ -3,6 +3,16 @@ import { db } from "@/lib/db";
 import { leadRuns } from "@/lib/db/schema/lead-runs";
 import { desc } from "drizzle-orm";
 import { enforceWarmupCap } from "../warmup";
+import { getAutonomyStates, type AutonomyStateView } from "../autonomy";
+
+export interface TrackAutonomySummary {
+  track: "saas" | "retainer";
+  mode: string;
+  streak: number;
+  graduationThreshold: number;
+  probationRemaining: number | null;
+  probationThreshold: number;
+}
 
 export interface QueueHeaderData {
   lastRun: {
@@ -19,16 +29,28 @@ export interface QueueHeaderData {
     daysUntilNextRamp: number | null;
     isGraduated: boolean;
   };
+  tracks: TrackAutonomySummary[];
 }
 
 export async function getQueueHeaderData(): Promise<QueueHeaderData> {
-  const [lastRun] = await db
-    .select()
-    .from(leadRuns)
-    .orderBy(desc(leadRuns.run_started_at))
-    .limit(1);
+  const [[lastRun], warmupState, autonomyStates] = await Promise.all([
+    db
+      .select()
+      .from(leadRuns)
+      .orderBy(desc(leadRuns.run_started_at))
+      .limit(1),
+    enforceWarmupCap(),
+    getAutonomyStates(),
+  ]);
 
-  const warmupState = await enforceWarmupCap();
+  const toSummary = (s: AutonomyStateView): TrackAutonomySummary => ({
+    track: s.track,
+    mode: s.mode,
+    streak: s.streak,
+    graduationThreshold: s.graduationThreshold,
+    probationRemaining: s.probationRemaining,
+    probationThreshold: s.probationThreshold,
+  });
 
   return {
     lastRun: lastRun
@@ -53,5 +75,6 @@ export async function getQueueHeaderData(): Promise<QueueHeaderData> {
       daysUntilNextRamp: warmupState.days_until_next_ramp,
       isGraduated: warmupState.is_graduated,
     },
+    tracks: autonomyStates.map(toSummary),
   };
 }

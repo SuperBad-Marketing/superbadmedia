@@ -711,5 +711,11 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 
 ## Phase 5 Wave 13 LG-7 (2026-04-18)
 
-- **`lg_7_autonomy_streak_wiring`** · Autonomy streak cards in metrics panel show placeholder text. LG-8 must wire real autonomy state data when `transitionAutonomyState()` ships. · LG-7 handoff · 2026-04-18 · **gate: LG-8**
-- **`lg_7_edit_nudge_buttons`** · Queue rows show Approve & Reject but not Edit or Nudge buttons. Edit requires inline draft editing UI. Nudge requires nudge-chat primitive. · LG-7 handoff · 2026-04-18 · **gate: LG-8 or dedicated UI session**
+- ~~**`lg_7_autonomy_streak_wiring`**~~ · **CLOSED LG-8 (2026-04-18)** — Autonomy streak cards now show real data from `getAutonomyStates()`.
+- **`lg_7_edit_nudge_buttons`** · Queue rows show Approve & Reject but not Edit or Nudge buttons. Edit requires inline draft editing UI. Nudge requires nudge-chat primitive. · LG-7 handoff · 2026-04-18 · **gate: dedicated UI session**
+
+## Phase 5 Wave 13 LG-8 (2026-04-18)
+
+- **`lg_8_auto_send_delay_enforcement`** · `AUTO_SEND_DELAY_MS` is exported but 15-minute delay scheduling not wired. LG-9 sequence runner must use this constant when scheduling auto-send tasks via `scheduled_tasks`. · LG-8 handoff · 2026-04-18 · **gate: LG-9**
+- **`lg_8_circuit_breaker_webhook_wiring`** · Circuit breaker events (hard_bounce, spam_complaint, fast_unsubscribe) need to fire from Resend webhook handler when engagement signals arrive. · LG-8 handoff · 2026-04-18 · **gate: LG-10 or webhook handler session**
+- **`lg_8_auto_send_probation_send_completed`** · `probation_send_completed` and `auto_send_completed` events need to fire from send completion path. Sequence runner (LG-9) or send processor must call `transitionAutonomyState()` after successful sends. · LG-8 handoff · 2026-04-18 · **gate: LG-9**

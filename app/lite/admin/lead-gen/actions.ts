@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
+import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { dncEmails } from "@/lib/db/schema/dnc";
 import { dncDomains } from "@/lib/db/schema/dnc";
 import { eq } from "drizzle-orm";
 import { logActivity } from "@/lib/activity-log";
+import { transitionAutonomyState } from "@/lib/lead-gen/autonomy";
 import { randomUUID } from "node:crypto";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -37,13 +39,19 @@ export async function approveDraftAction(
     return { ok: false, error: "Draft is not pending approval." };
   }
 
+  const hasNudges =
+    draft.nudge_thread_json != null &&
+    Array.isArray(draft.nudge_thread_json) &&
+    (draft.nudge_thread_json as unknown[]).length > 0;
+  const approvalKind = hasNudges ? ("nudged_manual" as const) : ("manual" as const);
+
   await db
     .update(outreachDrafts)
     .set({
       status: "approved_queued",
       approved_at: new Date(),
       approved_by: by.replace("user:", ""),
-      approval_kind: "manual",
+      approval_kind: approvalKind,
     })
     .where(eq(outreachDrafts.id, draftId));
 
@@ -51,8 +59,24 @@ export async function approveDraftAction(
     kind: "outreach_draft_approved",
     body: `Approved draft ${draftId}`,
     createdBy: by,
-    meta: { draft_id: draftId, approval_kind: "manual" },
+    meta: { draft_id: draftId, approval_kind: approvalKind },
   });
+
+  if (draft.candidate_id) {
+    const [candidate] = await db
+      .select({ track: leadCandidates.qualified_track })
+      .from(leadCandidates)
+      .where(eq(leadCandidates.id, draft.candidate_id))
+      .limit(1);
+
+    if (candidate?.track === "saas" || candidate?.track === "retainer") {
+      const isClean = approvalKind === "manual";
+      await transitionAutonomyState(
+        candidate.track,
+        isClean ? { type: "clean_approval" } : { type: "non_clean_approval" },
+      );
+    }
+  }
 
   revalidatePath(LEAD_GEN_PATH);
   return { ok: true };
@@ -89,6 +113,18 @@ export async function rejectDraftAction(
     createdBy: by,
     meta: { draft_id: draftId },
   });
+
+  if (draft.candidate_id) {
+    const [candidate] = await db
+      .select({ track: leadCandidates.qualified_track })
+      .from(leadCandidates)
+      .where(eq(leadCandidates.id, draft.candidate_id))
+      .limit(1);
+
+    if (candidate?.track === "saas" || candidate?.track === "retainer") {
+      await transitionAutonomyState(candidate.track, { type: "rejection" });
+    }
+  }
 
   revalidatePath(LEAD_GEN_PATH);
   return { ok: true };
