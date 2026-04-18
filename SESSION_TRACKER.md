@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CLD-2` — Portal gallery page (native Cloudinary-powered grid)
-**Brief:** Wave 10 continues. Build the portal gallery page at `/portal/[token]/gallery` — native Cloudinary-powered image/video grid. Pulls from `deals.cloudinary_gallery_folder` via Cloudinary SDK. Per-item download + "Download all" ZIP. Responsive masonry layout. Empty state in bartender voice. `deliverables_viewed` activity log on page mount. Spec: `docs/specs/client-management.md` §10.9 Gallery. Requires `tailwind-v4` + `react-19` + `framer-motion` skills.
+**Next session:** `CM-7` — Bundled first-visit hub (Gallery + Plan tiles)
+**Brief:** Wave 10 continues. Build the bundled first-visit hub at `/portal/[token]` — F3.a + `motion:bundle_reveal`. Gallery tile routes to internal `/portal/[token]/gallery` (CLD-2), Plan tile routes to `/portal/[token]/plan`. Spec: `docs/specs/client-management.md`. Requires `tailwind-v4` + `react-19` + `framer-motion` skills.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CLD-1 (2026-04-18) — see `sessions/cld-1-handoff.md`
-**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. Next: CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
+**Last closed:** CLD-2 (2026-04-19) — see `sessions/cld-2-handoff.md`
+**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. Next: CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

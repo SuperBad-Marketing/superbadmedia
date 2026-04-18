@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CLD-2 (2026-04-19) — Portal gallery page (Cloudinary-powered grid)
+
+**Phase:** 5 — Build Execution (UI, large). Wave 10 continues. Built `/lite/portal/[token]/gallery` — native Cloudinary-powered image/video grid replacing the placeholder. Server action fetches from `deals.cloudinary_gallery_folder` via `listFolder()` + `transformUrl()`. Responsive CSS-columns masonry (2→3→4 cols). Per-item download via `fl_attachment`. "Download all" ZIP via `generateArchiveUrl()`. Full-screen lightbox with `AnimatePresence` (images at native aspect, videos auto-play). Bartender-voice empty state. `deliverables_viewed` activity logged server-side on every gallery load. `useReducedMotion` respected throughout. 3 new files, 1 edited file, 1 test file (7 tests). G8: 0 TS errors, 1712 tests / 1 skipped. See `sessions/cld-2-handoff.md`.
+
 ## CLD-1 (2026-04-18) — Cloudinary integration setup + upload helper
 
 **Phase:** 5 — Build Execution (INFRA, medium). Wave 10 continues. Replaced Pixieset with Cloudinary. Built: vendor manifest (`lib/integrations/vendors/cloudinary.ts`, 3 jobs, dedicated kill-switch `integrations.cloudinary.enabled`), Cloudinary SDK module (`lib/cloudinary/index.ts` — upload, listFolder, transformUrl, generateArchiveUrl, testConnection), wizard definition (`cloudinary`, form+review+celebration, Zod-validated credentials, verify via api.ping()), server actions + client component for admin wizard route. Added `deals.cloudinary_gallery_folder` column + migration 0045. Deleted 5 Pixieset files, updated 9 files with registry key/comment references. Added `cloudinary` npm dependency. 6 new files, 1 test file (11 tests). G8: 0 TS errors, 1705 tests / 1 skipped. See `sessions/cld-1-handoff.md`.
