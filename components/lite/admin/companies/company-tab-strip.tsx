@@ -3,12 +3,23 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-export type CompanyTab = "overview" | "trial-shoot" | "billing";
+export type CompanyTab =
+  | "overview"
+  | "deliverables"
+  | "billing"
+  | "brand-dna"
+  | "comms"
+  | "portal-chat"
+  | "activity";
 
 const TABS: { id: CompanyTab; label: string }[] = [
   { id: "overview", label: "Overview" },
-  { id: "trial-shoot", label: "Trial Shoot" },
+  { id: "deliverables", label: "Deliverables" },
   { id: "billing", label: "Billing" },
+  { id: "brand-dna", label: "Brand DNA" },
+  { id: "comms", label: "Comms" },
+  { id: "portal-chat", label: "Portal Chat" },
+  { id: "activity", label: "Activity" },
 ];
 
 const HOUSE_SPRING = { type: "spring" as const, stiffness: 380, damping: 32 };

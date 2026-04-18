@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CM-2` — Admin company profile (7 tabs: Overview / Deliverables / Billing / Brand DNA / Comms / Portal Chat / Activity)
-**Brief:** Wave 10 continues. Build the admin company profile page at `/lite/companies/[id]` with all 7 tabs wired to existing data sources. Large UI session. Spec: `docs/specs/client-management.md` §2. Requires `drizzle-orm` + `tailwind-v4` + `react-19` skills.
+**Next session:** `CM-3` — Admin contact profile (5 tabs: Overview / Comms / Brand DNA / Portal Chat / Activity)
+**Brief:** Wave 10 continues. Build the admin contact profile page at `/lite/contacts/[id]` with 5 tabs. Spec: `docs/specs/client-management.md` §3. Requires `drizzle-orm` + `tailwind-v4` + `react-19` skills.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CM-1 (2026-04-18) — see `sessions/cm-1-handoff.md`
-**Wave status:** Wave 10 in progress. CM-1 DONE. Next: CM-2 → CM-3 → CM-4 → CM-5 → CM-6 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E2E.
+**Last closed:** CM-2 (2026-04-18) — see `sessions/cm-2-handoff.md`
+**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. Next: CM-3 → CM-4 → CM-5 → CM-6 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E2E.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

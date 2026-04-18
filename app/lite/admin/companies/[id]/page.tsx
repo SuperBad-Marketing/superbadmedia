@@ -1,12 +1,10 @@
 /**
- * /lite/admin/companies/[id] — Company admin view.
- * Spec: docs/specs/client-management.md (Overview archetype),
- *       docs/specs/sales-pipeline.md §9 (Trial Shoot),
- *       docs/specs/branded-invoicing.md §4.2 (Billing).
+ * /lite/admin/companies/[id] — Company admin view (7-tab profile).
+ * Spec: docs/specs/client-management.md §2.
  * Visual rebuild: sessions/admin-polish-4-brief.md against mockup-admin-interior.html.
  */
 import { notFound, redirect } from "next/navigation";
-import { desc, eq, max } from "drizzle-orm";
+import { desc, eq, inArray, max } from "drizzle-orm";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -17,9 +15,13 @@ import { deals, type DealStage } from "@/lib/db/schema/deals";
 import { contacts } from "@/lib/db/schema/contacts";
 import { invoices, type InvoiceStatus } from "@/lib/db/schema/invoices";
 import { activity_log } from "@/lib/db/schema/activity-log";
+import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
+import { brand_dna_blends } from "@/lib/db/schema/brand-dna-blends";
+import { threads } from "@/lib/db/schema/messages";
+import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 import { loadInvoiceDetail } from "@/lib/invoicing/detail-query";
 
-import { TrialShootPanel } from "@/components/lite/company/trial-shoot-panel";
+
 import { BillingTab } from "@/components/lite/invoices/billing-tab";
 import type { InvoiceIndexRow } from "@/components/lite/invoices/invoice-index-client";
 import {
@@ -31,15 +33,23 @@ import {
   type CompanyTab,
 } from "@/components/lite/admin/companies/company-tab-strip";
 import { InvoiceStatusBadge } from "@/components/lite/invoices/invoice-status-badge";
+import { BrandDnaTab } from "@/components/lite/admin/companies/brand-dna-tab";
+import { CommsTab } from "@/components/lite/admin/companies/comms-tab";
+import { PortalChatTab } from "@/components/lite/admin/companies/portal-chat-tab";
+import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
+import { DeliverablesTab } from "@/components/lite/admin/companies/deliverables-tab";
 
 export const metadata: Metadata = {
   title: "SuperBad — Company",
   robots: { index: false, follow: false },
 };
 
+const VALID_TABS: CompanyTab[] = [
+  "overview", "deliverables", "billing", "brand-dna", "comms", "portal-chat", "activity",
+];
+
 function parseTab(raw: string | undefined): CompanyTab {
-  if (raw === "billing") return "billing";
-  if (raw === "trial-shoot") return "trial-shoot";
+  if (raw && VALID_TABS.includes(raw as CompanyTab)) return raw as CompanyTab;
   return "overview";
 }
 
@@ -218,7 +228,7 @@ export default async function CompanyAdminPage({
     .get();
   if (!company) notFound();
 
-  // Parallel loads: deals + invoices + contacts + last-activity for this company.
+  // Core loads (always needed for header + overview).
   const [dealRows, invoiceRows, contactRows, lastActivityRow] =
     await Promise.all([
       db
@@ -307,9 +317,7 @@ export default async function CompanyAdminPage({
       return null;
     })();
 
-  // Billing tab rows (InvoiceIndexClient shape) — assemble once; consumed
-  // only on the billing branch below. Keeping the shape aligned with
-  // polish-3 output means the tab renders identically to the global index.
+  // Billing tab rows.
   const billingRows: InvoiceIndexRow[] = invoiceRows.map((r) => ({
     ...r,
     status: r.status as InvoiceStatus,
@@ -319,6 +327,28 @@ export default async function CompanyAdminPage({
   if (activeTab === "billing" && sp.invoice) {
     focusedDetail = await loadInvoiceDetail(sp.invoice);
   }
+
+  // Tab-specific data loads (only fetch what the active tab needs).
+  const contactIds = contactRows.map((c) => c.id);
+
+  const brandDnaData = activeTab === "brand-dna"
+    ? await Promise.all([
+        db.select().from(brand_dna_profiles).where(eq(brand_dna_profiles.company_id, id)).orderBy(desc(brand_dna_profiles.created_at_ms)),
+        db.select().from(brand_dna_blends).where(eq(brand_dna_blends.company_id, id)).orderBy(desc(brand_dna_blends.created_at_ms)).get(),
+      ])
+    : null;
+
+  const commsData = activeTab === "comms"
+    ? await db.select().from(threads).where(eq(threads.company_id, id)).orderBy(desc(threads.last_message_at_ms))
+    : null;
+
+  const portalChatData = activeTab === "portal-chat" && contactIds.length > 0
+    ? await db.select().from(portal_chat_messages).where(inArray(portal_chat_messages.contact_id, contactIds)).orderBy(desc(portal_chat_messages.created_at_ms)).limit(200)
+    : null;
+
+  const activityData = activeTab === "activity"
+    ? await db.select().from(activity_log).where(eq(activity_log.company_id, id)).orderBy(desc(activity_log.created_at_ms)).limit(200)
+    : null;
 
   const daysSinceFirstSeen = Math.max(
     1,
@@ -416,16 +446,8 @@ export default async function CompanyAdminPage({
         />
       ) : null}
 
-      {activeTab === "trial-shoot" ? (
-        <div className="px-4 pb-10">
-          <TrialShootPanel
-            companyId={company.id}
-            initialStatus={company.trial_shoot_status}
-            initialPlan={company.trial_shoot_plan}
-            completedAtMs={company.trial_shoot_completed_at_ms}
-            feedback={company.trial_shoot_feedback}
-          />
-        </div>
+      {activeTab === "deliverables" ? (
+        <DeliverablesTab />
       ) : null}
 
       {activeTab === "billing" ? (
@@ -438,6 +460,31 @@ export default async function CompanyAdminPage({
           focusedInvoiceId={sp.invoice ?? null}
           focusedDetail={focusedDetail}
         />
+      ) : null}
+
+      {activeTab === "brand-dna" && brandDnaData ? (
+        <BrandDnaTab
+          companyId={company.id}
+          companyShape={company.shape}
+          profiles={brandDnaData[0]}
+          blend={brandDnaData[1] ?? null}
+          contacts={contactRows}
+        />
+      ) : null}
+
+      {activeTab === "comms" && commsData !== null ? (
+        <CommsTab threads={commsData} contacts={contactRows} />
+      ) : null}
+
+      {activeTab === "portal-chat" ? (
+        <PortalChatTab
+          chatMessages={portalChatData ?? []}
+          contacts={contactRows}
+        />
+      ) : null}
+
+      {activeTab === "activity" ? (
+        <ActivityTab activities={activityData ?? []} />
       ) : null}
     </div>
   );

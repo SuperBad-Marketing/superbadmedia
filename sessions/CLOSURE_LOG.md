@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-2 (2026-04-18) — Admin company profile (7 tabs)
+
+**Phase:** 5 — Build Execution (UI, large). Wave 10 continues. Expanded `/lite/companies/[id]` from 3 tabs to 7: Overview (carried forward), Deliverables (empty state — Task Manager is Wave 17), Billing (carried forward), Brand DNA (blend hero + individual profiles + divergence flags + tag clouds), Comms (threaded view with channel icons + ticket status), Portal Chat (read-only admin view grouped by contact, escalation badges), Activity (chronological timeline with kind-based colour coding). Tab-specific data loading — only fetches data for the active tab. Removed trial-shoot tab (no longer in spec). 5 new component files, 1 test file (6 tests). G8: 0 TS errors, 1665 tests / 1 skipped. See `sessions/cm-2-handoff.md`.
+
 ## CM-1 (2026-04-18) — Client Management INFRA: portal_chat_messages + portal auth wiring
 
 **Phase:** 5 — Build Execution (INFRA, small). Wave 10 kickoff. New table: `portal_chat_messages` (autoincrement PK, contact_id FK, role enum client/assistant, content, escalated_to_inbox, tool_action, created_at_ms). 3 new nullable columns on `contacts`: portal_chat_last_seen_at_ms, portal_last_visited_at_ms, retainer_kickoff_bartender_said_at_ms. 2 new activity_log kinds (8 others already pre-registered). 1 new settings key: portal.data_export_zip_ttl_days. New `requirePortalSession()` helper for portal page auth. 4 new test files (schema, contacts columns, activity kinds, require-session). G8: 0 TS errors, 1659 tests / 1 skipped. See `sessions/cm-1-handoff.md`.
