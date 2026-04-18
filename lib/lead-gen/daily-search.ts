@@ -32,6 +32,8 @@ import { enrichCandidate } from "./enrich";
 import { assignTrack } from "./scoring";
 import { isBlockedFromOutreach } from "./dnc";
 import { createCandidate } from "./candidate";
+import { discoverContact } from "./contact-discovery";
+import { generateDraft } from "./draft-generator";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "./types";
 import type { LeadRunTrigger } from "@/lib/db/schema/lead-runs";
 
@@ -167,22 +169,82 @@ export async function runDailySearch(
     scoredCandidates.sort((a, b) => b.assignment.score - a.assignment.score);
     const topCandidates = scoredCandidates.slice(0, effectiveCap);
 
-    // ── Steps 8–10: Contact discovery + draft generation (LG-5) ─────
-    // Stubbed — LG-5 wires Hunter.io + draft generator + drift check.
+    // ── Steps 8–11: Contact discovery + draft generation + insert ────
+    const standingBrief =
+      input.manualBriefText ??
+      (await settings.get("lead_generation.standing_brief"));
 
-    // ── Step 11: Insert into lead_candidates ─────────────────────────
     let candidatesCreated = 0;
+    let draftedCount = 0;
     for (const entry of topCandidates) {
-      await createCandidate(
+      // Step 8: Discover contact email via Hunter.io (§7.1)
+      const domain = entry.discovered.domain;
+      let contactResult = {
+        email: null as string | null,
+        name: null as string | null,
+        role: null as string | null,
+        confidence: "unknown" as "verified" | "inferred" | "unknown",
+      };
+
+      if (domain) {
+        const hunterResult = await discoverContact(
+          domain,
+          entry.discovered.company_name,
+        );
+        contactResult = {
+          email: hunterResult.email,
+          name: hunterResult.name,
+          role: hunterResult.role,
+          confidence: hunterResult.confidence,
+        };
+      }
+
+      // §7.1 step 5: No contact email → skip candidate
+      if (!contactResult.email) {
+        continue;
+      }
+
+      // Step 11: Insert candidate with contact info
+      const candidateResult = await createCandidate(
         {
           discovered: entry.discovered,
           enrichedProfile: entry.enrichedProfile,
           trackAssignment: entry.assignment,
           leadRunId: runId,
+          contactEmail: contactResult.email,
+          contactName: contactResult.name,
+          contactRole: contactResult.role,
+          emailConfidence: contactResult.confidence,
         },
         dbInstance,
       );
       candidatesCreated++;
+
+      // Steps 9–10: Generate draft + drift check (§8, §8.4)
+      const draftOutcome = await generateDraft(
+        {
+          track: entry.assignment.track!,
+          touchKind: "first_touch",
+          touchIndex: 1,
+          viabilityProfile: entry.enrichedProfile,
+          standingBrief,
+          manualBriefOverride: input.manualBriefText,
+          priorTouches: [],
+          recentBlogPosts: [], // v1 — Content Engine populates in v1.1
+          contactInfo: {
+            name: contactResult.name ?? undefined,
+            email: contactResult.email,
+            role: contactResult.role ?? undefined,
+            company: entry.discovered.company_name,
+          },
+          candidateId: candidateResult.candidateId,
+        },
+        dbInstance,
+      );
+
+      if (draftOutcome.ok) {
+        draftedCount++;
+      }
     }
 
     // ── Step 12: Write lead_runs summary ─────────────────────────────
@@ -199,7 +261,7 @@ export async function runDailySearch(
       foundCount,
       dncFilteredCount,
       qualifiedCount: scoredCandidates.length,
-      draftedCount: 0, // LG-5 populates
+      draftedCount,
       warmupCap,
       effectiveCap,
       cappedReason:

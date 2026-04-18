@@ -67,6 +67,16 @@ export type { CreateCandidateInput, CreateCandidateResult } from "./candidate";
 export { runDailySearch, next3amMelbourneMs } from "./daily-search";
 export type { DailySearchInput, DailySearchResult } from "./daily-search";
 
+// LG-5: Contact discovery + draft generation
+export { discoverContact } from "./contact-discovery";
+export type { ContactDiscoveryResult } from "./contact-discovery";
+export { generateDraft } from "./draft-generator";
+export type {
+  GenerateDraftInput,
+  GenerateDraftResult,
+  GenerateDraftOutcome,
+} from "./draft-generator";
+
 // LG-3: Enrichment pipeline (re-exports)
 export {
   fetchPageSpeed,

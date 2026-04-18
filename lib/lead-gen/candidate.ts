@@ -17,6 +17,10 @@ export interface CreateCandidateInput {
   enrichedProfile: ViabilityProfile;
   trackAssignment: TrackAssignment;
   leadRunId: string;
+  contactEmail?: string;
+  contactName?: string | null;
+  contactRole?: string | null;
+  emailConfidence?: "verified" | "inferred" | "unknown";
 }
 
 export interface CreateCandidateResult {
@@ -50,6 +54,10 @@ export async function createCandidate(
     id: candidateId,
     company_name: discovered.company_name,
     domain: discovered.domain ?? null,
+    contact_email: input.contactEmail ?? null,
+    contact_name: input.contactName ?? null,
+    contact_role: input.contactRole ?? null,
+    email_confidence: input.emailConfidence ?? null,
     viability_profile_json: enrichedProfile,
     saas_score: trackAssignment.saas.score,
     retainer_score: trackAssignment.retainer.score,
