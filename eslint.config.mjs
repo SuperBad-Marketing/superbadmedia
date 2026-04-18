@@ -25,10 +25,12 @@ const eslintConfig = defineConfig([
     ignores: [
       "lib/channels/**",
       "lib/ai/**",
-      // brand-dna generators are LLM callers (same boundary as lib/ai/) — BDA-2/BDA-3
+      // brand-dna generators are LLM callers (same boundary as lib/ai/) — BDA-2/BDA-3/BDA-5
       "lib/brand-dna/generate-insight.ts",
       "lib/brand-dna/generate-first-impression.ts",
       "lib/brand-dna/generate-prose-portrait.ts",
+      "lib/brand-dna/generate-company-blend.ts",
+      "lib/brand-dna/generate-retake-comparison.ts",
       "lib/stripe/**",
       "lib/pdf/**",
       "lib/crypto/vault.ts",

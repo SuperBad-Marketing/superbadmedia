@@ -28,3 +28,13 @@ export { generateSectionInsight } from "./generate-insight";
 // ── BDA-3: portrait generation + reveal ──────────────────────────────────────
 export { generateFirstImpression } from "./generate-first-impression";
 export { generateProsePortrait } from "./generate-prose-portrait";
+
+// ── BDA-5: blend + retake + client paths ─────────────────────────────────────
+export { generateCompanyBlend } from "./generate-company-blend";
+export type { CompanyBlendResult } from "./generate-company-blend";
+
+export { generateRetakeComparison } from "./generate-retake-comparison";
+export type { RetakeComparisonResult } from "./generate-retake-comparison";
+
+export { startRetake } from "./start-retake";
+export type { StartRetakeResult } from "./start-retake";
