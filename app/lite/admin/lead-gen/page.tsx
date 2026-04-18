@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { desc, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { leadRuns } from "@/lib/db/schema/lead-runs";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
+import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
+import { autonomyState } from "@/lib/db/schema/autonomy-state";
 import { RunNowButton } from "./RunNowButton";
 import {
   RunsTable,
   type RunForTable,
   type CandidateForTable,
 } from "./RunsTable";
+import { LeadGenTabs } from "./LeadGenTabs";
+import type {
+  DraftForQueue,
+  AutonomyStateForHeader,
+  LatestRunStats,
+} from "./QueueTab";
 
 export const metadata: Metadata = {
   title: "SuperBad — Lead Generation",
@@ -24,6 +32,7 @@ export default async function LeadGenPage() {
     redirect("/api/auth/signin");
   }
 
+  // ── Runs (existing) ───────────────────────────────────────────────────────
   const runs = await db
     .select({
       id: leadRuns.id,
@@ -106,6 +115,76 @@ export default async function LeadGenPage() {
     candidatesByRunId[c.lead_run_id].push(entry);
   }
 
+  // ── Approval queue ────────────────────────────────────────────────────────
+  const rawPending = await db
+    .select({
+      id: outreachDrafts.id,
+      candidate_id: outreachDrafts.candidate_id,
+      touch_kind: outreachDrafts.touch_kind,
+      subject: outreachDrafts.subject,
+      body_markdown: outreachDrafts.body_markdown,
+      drift_check_flagged: outreachDrafts.drift_check_flagged,
+      created_at: outreachDrafts.created_at,
+      company_name: leadCandidates.company_name,
+      qualified_track: leadCandidates.qualified_track,
+      saas_score: leadCandidates.saas_score,
+      retainer_score: leadCandidates.retainer_score,
+      email_confidence: leadCandidates.email_confidence,
+    })
+    .from(outreachDrafts)
+    .leftJoin(
+      leadCandidates,
+      eq(outreachDrafts.candidate_id, leadCandidates.id),
+    )
+    .where(eq(outreachDrafts.status, "pending_approval"))
+    .orderBy(desc(outreachDrafts.created_at))
+    .limit(50);
+
+  const pendingDrafts: DraftForQueue[] = rawPending.map((d) => {
+    const track = d.qualified_track ?? "saas";
+    const score =
+      track === "saas" ? (d.saas_score ?? 0) : (d.retainer_score ?? 0);
+    const bodyPreview = (d.body_markdown ?? "").slice(0, 160).replace(/\n/g, " ");
+    return {
+      id: d.id,
+      candidate_id: d.candidate_id,
+      track,
+      company_name: d.company_name ?? "Unknown company",
+      score,
+      touch_kind: d.touch_kind,
+      subject: d.subject,
+      body_preview: bodyPreview,
+      drift_check_flagged: d.drift_check_flagged,
+      email_confidence: d.email_confidence ?? null,
+      created_at_ms: d.created_at ? d.created_at.getTime() : null,
+    };
+  });
+
+  // ── Autonomy state ────────────────────────────────────────────────────────
+  const autonomyRows = await db.select().from(autonomyState);
+
+  const autonomyStates: AutonomyStateForHeader[] = autonomyRows.map((r) => ({
+    track: r.track,
+    mode: r.mode,
+    clean_approval_streak: r.clean_approval_streak,
+    graduation_threshold: r.graduation_threshold,
+    probation_sends_remaining: r.probation_sends_remaining,
+    probation_threshold: r.probation_threshold,
+  }));
+
+  // ── Latest run stats for queue header ─────────────────────────────────────
+  const latestRun = runs[0] ?? null;
+  const runStats: LatestRunStats = latestRun
+    ? {
+        run_started_at_ms: latestRun.run_started_at
+          ? latestRun.run_started_at.getTime()
+          : null,
+        found_count: latestRun.found_count,
+        qualified_count: latestRun.qualified_count,
+        drafted_count: latestRun.drafted_count,
+      }
+    : null;
+
   return (
     <div className="flex flex-col gap-8 p-8">
       {/* Page header */}
@@ -138,12 +217,16 @@ export default async function LeadGenPage() {
         <RunNowButton />
       </header>
 
-      {/* Runs table */}
-      <section aria-labelledby="runs-heading">
-        <h2 id="runs-heading" className="sr-only">
-          Runs log
-        </h2>
-        <RunsTable runs={runsForTable} candidatesByRunId={candidatesByRunId} />
+      {/* Tabbed content */}
+      <section aria-label="Lead generation content">
+        <LeadGenTabs
+          runs={runsForTable}
+          candidatesByRunId={candidatesByRunId}
+          pendingDrafts={pendingDrafts}
+          autonomyStates={autonomyStates}
+          runStats={runStats}
+          pendingCount={pendingDrafts.length}
+        />
       </section>
     </div>
   );

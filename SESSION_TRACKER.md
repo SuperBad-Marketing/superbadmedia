@@ -3,11 +3,15 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `LG-10` — Lead Gen approval queue UI + autonomy state machine
-**Brief:** `sessions/lg-10-brief.md`
-**Model tier:** Sonnet (standard build session)
-**Last closed:** LG-9 (2026-04-17) — see `sessions/lg-9-handoff.md`
-**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 complete (schema). LG-2 complete (3 source adapters + types). LG-3 complete (6 enrichers + mergeProfiles). LG-4 complete (orchestrator + cron handler + dedup + warmup stub). LG-5 complete (scoring engine — real qualification floors, track assignment). LG-6 complete (warmup ramp — real enforceWarmupCap reading resend_warmup_state). LG-7 complete (admin UI — runs log + manual trigger). LG-8 complete (DNC management surface — Settings → Lead Generation → Do Not Contact). LG-9 complete (Hunter.io contact discovery + generateDraft() + orchestrator steps 8–10). Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
+**Next session:** `IF-1` — Intro Funnel: schema + landing page + questionnaire + Stripe Payment Element
+**Brief:** `sessions/if-1-brief.md`
+**Model tier:** Opus (`/deep`) — complex schema + Stripe payment flow
+**Last closed:** LG-10 (2026-04-18) — see `sessions/lg-10-handoff.md`
+**Wave status:** Wave 13 (Lead Generation) **COMPLETE** — all 10 sessions done. Wave 14 (Intro Funnel) next.
+
+🚨 **WAVE-BOUNDARY CHECKPOINT PAUSE** — Wave 13 complete 2026-04-18T18:10:00Z. Human review required before loop resumes. Andy: walk every client-facing route added in Wave 13 in a browser, sample PATCHES_OWED rows, check G10.5 verdicts. Delete `.autonomy/PAUSED` and push to continue.
+
+> **IF-1 first action:** Write briefs for IF-2, IF-3, IF-4, IF-E2E before touching code (see `sessions/if-1-brief.md` §10).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

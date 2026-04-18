@@ -731,3 +731,10 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 ## Phase 5 Wave 13 LG-9 (2026-04-17)
 
 - **`lg_9_model_registry_slug_tier`** · `"lead-gen-outreach-draft"` slug in `lib/ai/models.ts` maps to `"opus"` but spec §8 explicitly prescribes Haiku-tier for cost discipline on bulk first_touch drafts. Fix: update `lib/ai/models.ts` entry from `"opus"` to `"haiku"`. Deferred because `lib/ai/models.ts` is outside LG-9 file whitelist. · LG-9 handoff · 2026-04-17 · **gate: next session that touches lib/ai/models.ts**
+
+
+## Phase 5 Wave 13 LG-10 (2026-04-18)
+
+- **`lg_10_approve_draft_always_clean`** · `approveDraft` always fires `transitionAutonomyState(track, 'clean_approve')`. Spec §9.2 distinguishes clean (zero edits to body/subject) vs non-clean (any edit). No edit UI exists in LG-10, so clean is the only coherent path for now. When a draft-editing UI lands, `actions.ts` must inspect whether body/subject was modified vs the original and fire `non_clean_approve` if so. · LG-10 G10.5 reviewer D1 · 2026-04-18 · **gate: draft-edit UI session**
+
+- **`lg_10_filter_chip_animation`** · QueueTab filter chips (All/SaaS/Retainer) use CSS `transition-colors` for active state rather than a Framer Motion `layoutId` shared indicator. LeadGenTabs tab bar in the same component uses the stronger `layoutId` pattern. Minor cosmetic gap — upgrade if Andy notices during wave review. · LG-10 G10.5 reviewer D2 · 2026-04-18 · **gate: wave review + polish pass**
