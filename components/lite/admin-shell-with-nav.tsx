@@ -15,6 +15,7 @@ import {
   type AdminNavItem,
   matchActiveId,
 } from "@/components/lite/admin-shell-nav"
+import { GlobalSearchTrigger } from "@/components/lite/global-search"
 
 /**
  * AdminShellWithNav — consumes `AdminShell` and hydrates the sidebar
@@ -61,6 +62,10 @@ export function AdminShellWithNav({
             items={ADMIN_NAV_PRIMARY}
             activeId={activeId}
           />
+
+          <div className="border-t border-[color:var(--color-neutral-700)]" aria-hidden />
+
+          <GlobalSearchTrigger />
 
           <div className="border-t border-[color:var(--color-neutral-700)]" aria-hidden />
 

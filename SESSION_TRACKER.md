@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CM-4` — Clients index page (/lite/clients) with summary cards, health score dots, relationship stage filtering
-**Brief:** Wave 10 continues. Build the clients index at `/lite/clients`. Spec: `docs/specs/client-management.md` §13–§14. Requires `drizzle-orm` + `tailwind-v4` + `react-19` skills.
+**Next session:** `CM-5` — Portal chat home (bartender Opus) + rate-limited chat
+**Brief:** Wave 10 continues. Build the portal chat home at `/portal/[token]`. Spec: `docs/specs/client-management.md` §10.2. Requires `drizzle-orm` + `tailwind-v4` + `react-19` + `framer-motion` skills.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CM-3 (2026-04-18) — see `sessions/cm-3-handoff.md`
-**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. Next: CM-4 → CM-5 → CM-6 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E2E.
+**Last closed:** CM-4 (2026-04-18) — see `sessions/cm-4-handoff.md`
+**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. Next: CM-5 → CM-6 → CLD-1 → CLD-2 → CM-7 → CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E2E.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -141,6 +141,7 @@ Creative sessions producing copy, question banks, templates, and voice treatment
 | 2026-04-17 | 5 | Content (CMS-2) | Quote Builder + Setup Wizards content mini-session. **QB:** 5 catalogue categories, 30 seed items (GST-inc defaults), 3 retainer tiers (Core/Production/Full Service), 3 starter templates. Section headings refined ("The price", "Say yes"). 11 email templates calibrated (send, reminder, settle ×2, expiry, supersede, withdrawal, cancel-intercept, upgrade, downgrade, pause-ending). Cancel flow copy (pre-term retainer 3 options, pre-term SaaS 3 options, post-term retention). Terms page (plain English, honour-based). 20-line PDF cover line rotation pool (rotation, not Claude-per-quote). **SW:** 30 client + 15 admin outro lines. Capstone: "SuperBad is open for business." 30 tab-title variants. Kill-switch messages (generic + 6 vendor-specific). `admin-setup-assistant` Opus prompt calibrated (7 failure scenarios). Empty states + Observatory summary. Prompt index updated (stub→calibrated, cover-line RETIRED, assistant added). `admin-setup-assistant` registered in model registry (61 total). 1312 tests green. | [cms-2-handoff.md](sessions/cms-2-handoff.md) |
 
 | 2026-04-18 | 5 | Build (CM-3) | Wave 10 CM-3 — Admin contact profile (5 tabs: Overview / Comms / Brand DNA / Portal Chat / Activity). `/lite/admin/contacts/[id]` page with tab-specific data loading, breadcrumb to parent company. Contact-specific tab components (Brand DNA with retake history, Comms filtered to single contact, Portal Chat single-contact view). Reuses `ActivityTab` from company components. Context Engine summary + private notes as voiced placeholders. 5 new files + 1 test file (5 tests). 199 test files / 1670 passed. No migration. | [cm-3-handoff.md](sessions/cm-3-handoff.md) |
+| 2026-04-18 | 3 | Brainstorm + spec | **Pipeline improvement brainstorm.** 5 v1.0 additions specced: (1) Free Audit Tool — full spec at `docs/specs/free-audit-tool.md`, 12 locks, `/get-started/audit`, reuses LG enrichment pipeline, cinematic reveal, branded PDF, Deal + auto-drafted follow-up; (2) Referral surface — spec patch on `client-management.md` §24, portal menu item + milestone prompt + Deal + follow-up + acknowledgement; (3) Case snippet auto-drafting — spec patch on `lead-generation.md` §17, shoot completion + 90d retainer triggers, 48h auto-approve, feeds outreach drafts by vertical; (4) Retargeting pixel — spec patch on `lead-generation.md` §18, fires Meta/Google pixel on outreach link clicks via redirect endpoint; (5) Autonomy graduation adjustment — spec patch on `lead-generation.md` §18b, streak 10→5, material vs minor edit classification. 5 v1.1 entries added to SCOPE.md (inbound magnets, newsletter conversion, social proof publishing, audience management UI, per-prospect autonomy tuning). SCOPE.md updated with feature #21 + lead gen conversion amplifiers section. BUILD_PLAN.md update still owed. | — |
 
 When a session completes, add a row here with a link to its handoff note.
 

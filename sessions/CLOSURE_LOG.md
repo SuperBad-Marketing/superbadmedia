@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-4 (2026-04-18) — Clients index + global search
+
+**Phase:** 5 — Build Execution (UI, medium). Wave 10 continues. Built `/lite/admin/clients` with four summary cards (Active Clients, Monthly Revenue, Needing Attention, Overdue Invoices), relationship stage filter tabs (Active/Completed/Churned), health score dropdown filter, search within list, compact row table with health dots. Built global search modal (`Cmd+K` / sidebar button) with debounced API search across companies, contacts, deals, invoices, quotes — results grouped by type. Search API route at `/api/lite/search`. Flipped Clients nav item from "soon" to "live". 4 new files, 2 modified files, 1 test file (7 tests). G8: 0 TS errors, 1677 tests / 1 skipped. See `sessions/cm-4-handoff.md`.
+
 ## CM-3 (2026-04-18) — Admin contact profile (5 tabs)
 
 **Phase:** 5 — Build Execution (UI, medium). Wave 10 continues. Built `/lite/admin/contacts/[id]` with 5 tabs: Overview (Context Engine summary placeholder + deals panel + private notes), Comms (threaded view filtered to single contact), Brand DNA (individual profile with retake history), Portal Chat (single-contact read-only admin view), Activity (reuses company ActivityTab). Contact-specific tab strip with Framer Motion layoutId underline. Breadcrumb links to parent company. Tab-specific data loading. 5 new component files, 1 test file (5 tests). G8: 0 TS errors, 1670 tests / 1 skipped. See `sessions/cm-3-handoff.md`.

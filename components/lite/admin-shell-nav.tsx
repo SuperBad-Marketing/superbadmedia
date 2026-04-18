@@ -66,10 +66,10 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
   {
     id: "clients",
     label: "Clients",
-    href: null,
+    href: "/lite/admin/clients",
     icon: Building2,
-    status: "soon",
-    matchPrefix: null,
+    status: "live",
+    matchPrefix: "/lite/admin/clients",
   },
   {
     id: "lead-gen",
