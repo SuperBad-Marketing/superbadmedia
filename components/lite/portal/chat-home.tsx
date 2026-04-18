@@ -183,7 +183,7 @@ export function ChatHome({
   ];
 
   return (
-    <div className="flex h-dvh flex-col bg-[var(--color-surface-0)]">
+    <div className="flex h-full flex-1 flex-col">
       {/* Chat thread */}
       <div
         ref={threadRef}

@@ -322,6 +322,18 @@
   }
 }
 
+@keyframes breathe {
+  0%,
+  100% {
+    box-shadow: 0 10px 30px rgba(178, 40, 72, 0.3),
+      inset 0 1px 0 rgba(253, 245, 230, 0.1);
+  }
+  50% {
+    box-shadow: 0 14px 44px rgba(178, 40, 72, 0.5),
+      inset 0 1px 0 rgba(253, 245, 230, 0.14);
+  }
+}
+
 /* Text-size-large user preference — consumed by the Settings → Display
    panel (lands post-A8). Opt-in via `[data-text-size="large"]` on <html>. */
 [data-text-size="large"] {
