@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-3 (2026-04-18) — Admin contact profile (5 tabs)
+
+**Phase:** 5 — Build Execution (UI, medium). Wave 10 continues. Built `/lite/admin/contacts/[id]` with 5 tabs: Overview (Context Engine summary placeholder + deals panel + private notes), Comms (threaded view filtered to single contact), Brand DNA (individual profile with retake history), Portal Chat (single-contact read-only admin view), Activity (reuses company ActivityTab). Contact-specific tab strip with Framer Motion layoutId underline. Breadcrumb links to parent company. Tab-specific data loading. 5 new component files, 1 test file (5 tests). G8: 0 TS errors, 1670 tests / 1 skipped. See `sessions/cm-3-handoff.md`.
+
 ## CM-2 (2026-04-18) — Admin company profile (7 tabs)
 
 **Phase:** 5 — Build Execution (UI, large). Wave 10 continues. Expanded `/lite/companies/[id]` from 3 tabs to 7: Overview (carried forward), Deliverables (empty state — Task Manager is Wave 17), Billing (carried forward), Brand DNA (blend hero + individual profiles + divergence flags + tag clouds), Comms (threaded view with channel icons + ticket status), Portal Chat (read-only admin view grouped by contact, escalation badges), Activity (chronological timeline with kind-based colour coding). Tab-specific data loading — only fetches data for the active tab. Removed trial-shoot tab (no longer in spec). 5 new component files, 1 test file (6 tests). G8: 0 TS errors, 1665 tests / 1 skipped. See `sessions/cm-2-handoff.md`.

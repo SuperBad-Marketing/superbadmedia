@@ -1,0 +1,459 @@
+/**
+ * /lite/admin/contacts/[id] — Contact admin view (5-tab profile).
+ * Spec: docs/specs/client-management.md §3.
+ */
+import { notFound, redirect } from "next/navigation";
+import { desc, eq } from "drizzle-orm";
+import Link from "next/link";
+import type { Metadata } from "next";
+
+import { auth } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { contacts } from "@/lib/db/schema/contacts";
+import { companies } from "@/lib/db/schema/companies";
+import { deals, type DealStage } from "@/lib/db/schema/deals";
+import { activity_log } from "@/lib/db/schema/activity-log";
+import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
+import { threads } from "@/lib/db/schema/messages";
+import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
+
+import {
+  ContactTabStrip,
+  type ContactTab,
+} from "@/components/lite/admin/contacts/contact-tab-strip";
+import { ContactBrandDnaTab } from "@/components/lite/admin/contacts/contact-brand-dna-tab";
+import { ContactCommsTab } from "@/components/lite/admin/contacts/contact-comms-tab";
+import { ContactPortalChatTab } from "@/components/lite/admin/contacts/contact-portal-chat-tab";
+import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
+
+export const metadata: Metadata = {
+  title: "SuperBad — Contact",
+  robots: { index: false, follow: false },
+};
+
+const VALID_TABS: ContactTab[] = [
+  "overview", "comms", "brand-dna", "portal-chat", "activity",
+];
+
+function parseTab(raw: string | undefined): ContactTab {
+  if (raw && VALID_TABS.includes(raw as ContactTab)) return raw as ContactTab;
+  return "overview";
+}
+
+function formatDate(ms: number): string {
+  return new Date(ms).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Australia/Melbourne",
+  });
+}
+
+function relativeLabel(tsMs: number, nowMs: number): string {
+  const diff = Math.max(0, nowMs - tsMs);
+  const dayMs = 24 * 60 * 60 * 1000;
+  if (diff < dayMs) return "today";
+  const days = Math.floor(diff / dayMs);
+  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} mo ago`;
+  const years = Math.floor(days / 365);
+  return `${years} yr${years === 1 ? "" : "s"} ago`;
+}
+
+function formatCentsCompact(cents: number): string {
+  return `$${(cents / 100).toLocaleString("en-AU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })}`;
+}
+
+const DEAL_STAGE_TONE: Record<
+  DealStage,
+  { label: string; bg: string; color: string; strike?: boolean }
+> = {
+  lead: { label: "Lead", bg: "rgba(128, 127, 115, 0.15)", color: "var(--color-neutral-500)" },
+  contacted: { label: "Contacted", bg: "rgba(128, 127, 115, 0.15)", color: "var(--color-neutral-300)" },
+  conversation: { label: "Conversation", bg: "rgba(244, 160, 176, 0.10)", color: "var(--color-brand-pink)" },
+  trial_shoot: { label: "Trial Shoot", bg: "rgba(244, 160, 176, 0.14)", color: "var(--color-brand-pink)" },
+  quoted: { label: "Quoted", bg: "rgba(244, 160, 176, 0.10)", color: "var(--color-brand-pink)" },
+  negotiating: { label: "Negotiating", bg: "rgba(242, 140, 82, 0.14)", color: "var(--color-brand-orange)" },
+  won: { label: "Won", bg: "rgba(123, 174, 126, 0.14)", color: "var(--color-success)" },
+  lost: { label: "Lost", bg: "rgba(128, 127, 115, 0.15)", color: "var(--color-neutral-500)", strike: true },
+};
+
+function DealStageChip({ stage }: { stage: DealStage }) {
+  const tone = DEAL_STAGE_TONE[stage];
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-[3px] font-[family-name:var(--font-label)] text-[10px] uppercase leading-none"
+      style={{
+        letterSpacing: "1.5px",
+        background: tone.bg,
+        color: tone.color,
+        textDecoration: tone.strike ? "line-through" : undefined,
+      }}
+    >
+      <span
+        aria-hidden
+        className="h-1 w-1 rounded-full"
+        style={{ background: "currentColor", opacity: 0.85 }}
+      />
+      {tone.label}
+    </span>
+  );
+}
+
+export default async function ContactAdminPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    redirect("/api/auth/signin");
+  }
+
+  const { id } = await params;
+  const sp = await searchParams;
+  const activeTab = parseTab(sp.tab);
+
+  const contact = await db
+    .select()
+    .from(contacts)
+    .where(eq(contacts.id, id))
+    .get();
+  if (!contact) notFound();
+
+  const company = await db
+    .select()
+    .from(companies)
+    .where(eq(companies.id, contact.company_id))
+    .get();
+
+  const dealRows = await db
+    .select()
+    .from(deals)
+    .where(eq(deals.company_id, contact.company_id))
+    .orderBy(desc(deals.last_stage_change_at_ms));
+
+  const nowMs = Date.now();
+  const lastTouchMs = contact.updated_at_ms;
+  const primaryDeal = dealRows[0] ?? null;
+
+  // Tab-specific data loads.
+  const brandDnaData = activeTab === "brand-dna"
+    ? await db.select().from(brand_dna_profiles).where(eq(brand_dna_profiles.contact_id, id)).orderBy(desc(brand_dna_profiles.created_at_ms))
+    : null;
+
+  const commsData = activeTab === "comms"
+    ? await db.select().from(threads).where(eq(threads.contact_id, id)).orderBy(desc(threads.last_message_at_ms))
+    : null;
+
+  const portalChatData = activeTab === "portal-chat"
+    ? await db.select().from(portal_chat_messages).where(eq(portal_chat_messages.contact_id, id)).orderBy(desc(portal_chat_messages.created_at_ms)).limit(200)
+    : null;
+
+  const activityData = activeTab === "activity"
+    ? await db.select().from(activity_log).where(eq(activity_log.contact_id, id)).orderBy(desc(activity_log.created_at_ms)).limit(200)
+    : null;
+
+  return (
+    <div className="mx-auto max-w-4xl">
+      {/* ——— breadcrumb ——— */}
+      <div className="px-4 pt-6 pb-3">
+        {company ? (
+          <Link
+            href={`/lite/admin/companies/${company.id}`}
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] transition duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "1.8px" }}
+          >
+            ← {company.name}
+          </Link>
+        ) : (
+          <Link
+            href="/lite/admin/pipeline"
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] transition duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "1.8px" }}
+          >
+            ← Pipeline
+          </Link>
+        )}
+      </div>
+
+      <header className="px-4 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          Admin · Contacts · {contact.name}
+        </div>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1
+                className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+                style={{ letterSpacing: "-0.4px" }}
+              >
+                {contact.name}
+              </h1>
+              {contact.is_primary && <PrimaryPill />}
+            </div>
+            <p className="max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+              {company ? (
+                <Link
+                  href={`/lite/admin/companies/${company.id}`}
+                  className="transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+                >
+                  {company.name}
+                </Link>
+              ) : null}
+              {company && contact.role ? " · " : null}
+              {contact.role ?? null}
+              {(company || contact.role) ? ". " : null}
+              Last touch {relativeLabel(lastTouchMs, nowMs)}.
+            </p>
+            <dl className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-[color:var(--color-neutral-500)]">
+              {contact.email ? (
+                <MetaItem label="Email" value={contact.email} />
+              ) : null}
+              {contact.phone ? (
+                <MetaItem label="Phone" value={contact.phone} />
+              ) : null}
+              {contact.relationship_type ? (
+                <MetaItem label="Type" value={contact.relationship_type.replace(/_/g, " ")} />
+              ) : null}
+              <MetaItem
+                label="First seen"
+                value={formatDate(contact.created_at_ms)}
+              />
+            </dl>
+          </div>
+        </div>
+      </header>
+
+      {/* ——— tab strip ——— */}
+      <div className="px-4 pb-5">
+        <ContactTabStrip contactId={contact.id} activeTab={activeTab} />
+      </div>
+
+      {activeTab === "overview" ? (
+        <OverviewTab
+          contact={contact}
+          company={company}
+          deals={dealRows}
+          primaryDeal={primaryDeal}
+          nowMs={nowMs}
+        />
+      ) : null}
+
+      {activeTab === "comms" && commsData !== null ? (
+        <ContactCommsTab threads={commsData} />
+      ) : null}
+
+      {activeTab === "brand-dna" && brandDnaData !== null ? (
+        <ContactBrandDnaTab profiles={brandDnaData} />
+      ) : null}
+
+      {activeTab === "portal-chat" ? (
+        <ContactPortalChatTab chatMessages={portalChatData ?? []} />
+      ) : null}
+
+      {activeTab === "activity" ? (
+        <ActivityTab activities={activityData ?? []} />
+      ) : null}
+    </div>
+  );
+}
+
+function MetaItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <dt
+        className="font-[family-name:var(--font-label)] uppercase"
+        style={{ letterSpacing: "1.5px" }}
+      >
+        {label}
+      </dt>
+      <dd className="text-[color:var(--color-neutral-300)]">{value}</dd>
+    </div>
+  );
+}
+
+function PrimaryPill() {
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-[1px] font-[family-name:var(--font-label)] text-[9px] uppercase"
+      style={{
+        letterSpacing: "1.5px",
+        background: "rgba(244, 160, 176, 0.10)",
+        color: "var(--color-brand-pink)",
+      }}
+    >
+      primary
+    </span>
+  );
+}
+
+function VoicedEmpty({ hero, mutter }: { hero: string; mutter: string }) {
+  return (
+    <div className="px-8 py-10 text-center">
+      <p
+        className="font-[family-name:var(--font-display)] leading-none text-[color:var(--color-brand-cream)]"
+        style={{ fontSize: "24px", letterSpacing: "-0.2px" }}
+      >
+        {hero}
+      </p>
+      <p className="mt-3 font-[family-name:var(--font-narrative)] text-[13px] italic text-[color:var(--color-brand-pink)]">
+        {mutter}
+      </p>
+    </div>
+  );
+}
+
+// ————————————————————————————————————————————————————————————
+// Overview tab — §3.3
+// ————————————————————————————————————————————————————————————
+
+function OverviewTab({
+  contact,
+  company,
+  deals: dealRows,
+  primaryDeal,
+  nowMs,
+}: {
+  contact: typeof contacts.$inferSelect;
+  company: typeof companies.$inferSelect | undefined;
+  deals: (typeof deals.$inferSelect)[];
+  primaryDeal: typeof deals.$inferSelect | null;
+  nowMs: number;
+}) {
+  return (
+    <div className="space-y-5 px-4 pb-10">
+      {/* Context Engine summary tile — placeholder until Context Engine builds */}
+      <section
+        aria-label="Context summary"
+        className="rounded-[12px] p-5"
+        style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
+      >
+        <p
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "1.8px" }}
+        >
+          Context summary
+        </p>
+        <p className="mt-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.65] text-[color:var(--color-neutral-300)]">
+          {contact.name}
+          {contact.role ? `, ${contact.role}` : ""}
+          {company ? ` at ${company.name}` : ""}
+          .{" "}
+          {primaryDeal ? (
+            <>
+              Current deal: <strong className="text-[color:var(--color-brand-cream)]">{primaryDeal.title}</strong>{" "}
+              at <DealStageChip stage={primaryDeal.stage} />.
+            </>
+          ) : (
+            <span className="italic text-[color:var(--color-neutral-500)]">
+              No active deals.
+            </span>
+          )}
+        </p>
+        <p className="mt-2 font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-brand-pink)]">
+          full context engine coming soon. this is the sketch.
+        </p>
+      </section>
+
+      {/* Deal snapshot */}
+      {dealRows.length > 0 ? (
+        <section
+          aria-label="Deals"
+          className="overflow-hidden rounded-[12px]"
+          style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
+        >
+          <div
+            className="flex items-baseline justify-between px-5 py-3"
+            style={{ borderBottom: "1px solid rgba(253, 245, 230, 0.05)" }}
+          >
+            <h2
+              className="font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-neutral-300)]"
+              style={{ letterSpacing: "1.8px" }}
+            >
+              Deals
+            </h2>
+            <span
+              className="font-[family-name:var(--font-label)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]"
+              style={{ letterSpacing: "1.5px" }}
+            >
+              {dealRows.length}
+            </span>
+          </div>
+          <div>
+            {dealRows.map((d) => (
+              <div
+                key={d.id}
+                className="flex items-center justify-between px-5 py-3"
+                style={{ borderBottom: "1px solid rgba(253, 245, 230, 0.03)" }}
+              >
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <p className="font-[family-name:var(--font-body)] text-[13px] font-medium text-[color:var(--color-brand-cream)]">
+                    {d.title}
+                  </p>
+                  {d.next_action_text && (
+                    <p className="text-[12px] text-[color:var(--color-neutral-500)]">
+                      {d.next_action_text}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  {d.value_cents != null && (
+                    <span className="font-[family-name:var(--font-label)] tabular-nums text-[12px] text-[color:var(--color-brand-cream)]">
+                      {d.value_estimated ? "est. " : ""}
+                      {formatCentsCompact(d.value_cents)}
+                    </span>
+                  )}
+                  <DealStageChip stage={d.stage} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section
+          aria-label="Deals"
+          className="overflow-hidden rounded-[12px]"
+          style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
+        >
+          <VoicedEmpty
+            hero="No deals yet."
+            mutter="just a name so far."
+          />
+        </section>
+      )}
+
+      {/* Private notes — placeholder */}
+      <section
+        aria-label="Private notes"
+        className="rounded-[12px] p-5"
+        style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
+      >
+        <p
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "1.8px" }}
+        >
+          Private notes
+        </p>
+        {contact.notes ? (
+          <p className="mt-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.65] text-[color:var(--color-neutral-300)]">
+            {contact.notes}
+          </p>
+        ) : (
+          <p className="mt-3 text-[13px] italic text-[color:var(--color-neutral-500)]">
+            No notes yet. The full notes feed with &ldquo;Visible to AI&rdquo; toggle lands in CM-10.
+          </p>
+        )}
+      </section>
+    </div>
+  );
+}
