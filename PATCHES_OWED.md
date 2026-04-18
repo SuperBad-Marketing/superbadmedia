@@ -717,10 +717,16 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 ## Phase 5 Wave 13 LG-8 (2026-04-18)
 
 - ~~**`lg_8_auto_send_delay_enforcement`**~~ · **CLOSED by LG-9** · `AUTO_SEND_DELAY_MS` used in `sequence-engine.ts` when scheduling auto-send tasks.
-- **`lg_8_circuit_breaker_webhook_wiring`** · Circuit breaker events (hard_bounce, spam_complaint, fast_unsubscribe) need to fire from Resend webhook handler when engagement signals arrive. · LG-8 handoff · 2026-04-18 · **gate: LG-10 or webhook handler session**
+- ~~**`lg_8_circuit_breaker_webhook_wiring`**~~ · **CLOSED by LG-10** · Circuit breaker events fired from `processOutreachBounce` and `processOutreachComplaint` in webhook dispatcher.
 - ~~**`lg_8_auto_send_probation_send_completed`**~~ · **CLOSED by LG-9** · `probation_send_completed` and `auto_send_completed` events fired from `executeSend()`.
 
 ## Phase 5 Wave 13 LG-9 (2026-04-18)
 
-- **`lg_9_circuit_breaker_from_webhooks`** · Engagement evaluator handles tier-based cutoff, but circuit breaker events still need Resend webhook handler. Inherits from `lg_8_circuit_breaker_webhook_wiring`. · LG-9 handoff · 2026-04-18 · **gate: LG-10 or webhook handler session**
+- ~~**`lg_9_circuit_breaker_from_webhooks`**~~ · **CLOSED by LG-10** · Inherited from lg_8, closed by same circuit breaker wiring.
 - **`lg_9_reply_classification_rescore`** · Reactive scoring rescores on engagement tier only. Reply-classification-triggered rescoring needs the reply-intelligence classifier (§13.0). · LG-9 handoff · 2026-04-18 · **gate: reply-intelligence build session**
+
+## Phase 5 Wave 13 LG-10 (2026-04-18)
+
+- **`lg_10_stale_window_to_settings`** · `STALE_WINDOW_DAYS = 30` is a constant; candidate for settings key `lead_generation.stale_nudge_window_days`. · LG-10 handoff · 2026-04-18 · **gate: Settings Audit Pass**
+- **`lg_10_fast_unsub_window_to_settings`** · `FAST_UNSUB_WINDOW_MS = 60_000` is a constant; candidate for settings key `lead_generation.fast_unsubscribe_window_ms`. · LG-10 handoff · 2026-04-18 · **gate: Settings Audit Pass**
+- **`lg_10_unsub_sequence_filter_by_candidate`** · Unsubscribe handler iterates all active sequences to find candidate matches (O(N)); add `candidate_id` column to `outreach_sequences` for direct filter. · LG-10 handoff · 2026-04-18 · **gate: optimise if volume grows**

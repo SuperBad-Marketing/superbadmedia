@@ -4,6 +4,12 @@ import { db as defaultDb } from "@/lib/db";
 import settings from "@/lib/settings";
 import { handleEmailBounced } from "./email-bounced";
 import { handleEmailComplained } from "./email-complained";
+import { handleEmailOpened } from "./email-opened";
+import { handleEmailClicked } from "./email-clicked";
+import {
+  processOutreachBounce,
+  processOutreachComplaint,
+} from "./outreach-engagement";
 import type { DispatchOutcome, ResendWebhookEvent } from "./types";
 
 export type { DispatchOutcome, ResendWebhookEvent } from "./types";
@@ -39,19 +45,44 @@ export async function dispatchResendEvent(
     return { result: "skipped", error: "kill_switch" };
   }
 
+  const handlerOpts = {
+    nowMs: opts.nowMs,
+    dbArg: opts.dbArg,
+    eventId: opts.eventId,
+  };
+
   switch (event.type) {
-    case "email.bounced":
-      return handleEmailBounced(event, {
-        nowMs: opts.nowMs,
-        dbArg: opts.dbArg,
-        eventId: opts.eventId,
-      });
-    case "email.complained":
-      return handleEmailComplained(event, {
-        nowMs: opts.nowMs,
-        dbArg: opts.dbArg,
-        eventId: opts.eventId,
-      });
+    case "email.bounced": {
+      const result = await handleEmailBounced(event, handlerOpts);
+      // LG-10: also update outreach_sends + fire circuit breakers
+      const msgId = event.data?.email_id;
+      if (msgId) {
+        const bounceType =
+          event.data?.bounce?.type ?? event.data?.bounce_type ?? "hard";
+        await processOutreachBounce(
+          msgId,
+          bounceType === "soft" ? "soft" : "hard",
+          { nowMs: opts.nowMs, dbArg: opts.dbArg },
+        );
+      }
+      return result;
+    }
+    case "email.complained": {
+      const result = await handleEmailComplained(event, handlerOpts);
+      // LG-10: also update outreach_sends + fire circuit breakers
+      const msgId = event.data?.email_id;
+      if (msgId) {
+        await processOutreachComplaint(msgId, {
+          nowMs: opts.nowMs,
+          dbArg: opts.dbArg,
+        });
+      }
+      return result;
+    }
+    case "email.opened":
+      return handleEmailOpened(event, handlerOpts);
+    case "email.clicked":
+      return handleEmailClicked(event, handlerOpts);
     default:
       return {
         result: "skipped",

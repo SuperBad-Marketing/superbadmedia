@@ -12,6 +12,7 @@ import type { HandlerMap, TaskHandler } from "@/lib/scheduled-tasks/worker";
 import { killSwitches } from "@/lib/kill-switches";
 import { runSequenceScheduler, executeSend } from "@/lib/lead-gen/sequence-engine";
 import { evaluateEngagementTiers } from "@/lib/lead-gen/engagement-evaluator";
+import { generateStaleNudges } from "@/lib/lead-gen/stale-nudge";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 
 const SEQUENCE_RUN_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
@@ -75,8 +76,30 @@ async function scheduleNextEngagementEval() {
   });
 }
 
+const STALE_NUDGE_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // weekly
+
+export const handleStaleNudgeGenerator: TaskHandler = async () => {
+  if (!killSwitches.outreach_send_enabled) {
+    await scheduleNextStaleNudge();
+    return;
+  }
+
+  await generateStaleNudges();
+  await scheduleNextStaleNudge();
+};
+
+async function scheduleNextStaleNudge() {
+  const nextRun = Date.now() + STALE_NUDGE_INTERVAL_MS;
+  await enqueueTask({
+    task_type: "stale_nudge_generator",
+    runAt: nextRun,
+    idempotencyKey: `stale_nudge_generator:${Math.floor(nextRun / STALE_NUDGE_INTERVAL_MS)}`,
+  });
+}
+
 export const LEAD_GEN_SEQUENCE_HANDLERS: HandlerMap = {
   sequence_scheduler: handleSequenceScheduler,
   engagement_tier_evaluator: handleEngagementTierEvaluator,
   auto_send_execute: handleAutoSendExecute,
+  stale_nudge_generator: handleStaleNudgeGenerator,
 };

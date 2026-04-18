@@ -100,6 +100,18 @@ export type { SequenceRunResult, SendDraftResult } from "./sequence-engine";
 export { evaluateEngagementTiers, classifyEngagementTier } from "./engagement-evaluator";
 export type { EvaluateEngagementResult, EngagementTier } from "./engagement-evaluator";
 
+// LG-10: Unsubscribe token
+export {
+  createUnsubscribeToken,
+  verifyUnsubscribeToken,
+  createUnsubscribeUrl,
+} from "./unsubscribe-token";
+export type { UnsubscribePayload } from "./unsubscribe-token";
+
+// LG-10: Stale nudge generator
+export { generateStaleNudges } from "./stale-nudge";
+export type { StaleNudgeResult } from "./stale-nudge";
+
 // LG-7: Query functions (pure reads per §12.M)
 export {
   getRecentRuns,

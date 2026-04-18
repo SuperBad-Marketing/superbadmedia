@@ -35,6 +35,7 @@ import { SUPERBAD_SENDER, SUPERBAD_FROM_STRING } from "./sender";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import settingsRegistry from "@/lib/settings";
+import { createUnsubscribeUrl } from "./unsubscribe-token";
 import type { ViabilityProfile } from "./types";
 
 // §11.3 — Cadence constants (tune in v1.1 based on real data)
@@ -334,15 +335,12 @@ export async function executeSend(
   // Build HTML body from markdown
   const htmlBody = markdownToHtml(draft.body_markdown);
 
-  // Generate unsubscribe URL
-  const unsubToken = Buffer.from(
-    JSON.stringify({
-      email: candidate.contact_email,
-      candidate_id: candidateId,
-      issued_at: Date.now(),
-    }),
-  ).toString("base64url");
-  const unsubUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/unsubscribe?token=${unsubToken}`;
+  // Generate HMAC-signed unsubscribe URL per §12.L
+  const unsubUrl = createUnsubscribeUrl({
+    email: candidate.contact_email,
+    candidate_id: candidateId,
+    issued_at: Date.now(),
+  });
 
   const sendResult = await sendEmail({
     to: candidate.contact_email,
