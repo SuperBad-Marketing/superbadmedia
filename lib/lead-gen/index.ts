@@ -77,6 +77,10 @@ export type {
   GenerateDraftOutcome,
 } from "./draft-generator";
 
+// LG-6: Warmup ramp enforcement
+export { enforceWarmupCap, recordWarmupSend, initWarmupState } from "./warmup";
+export type { WarmupCapResult } from "./warmup";
+
 // LG-3: Enrichment pipeline (re-exports)
 export {
   fetchPageSpeed,

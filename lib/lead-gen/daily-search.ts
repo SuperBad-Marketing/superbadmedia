@@ -34,6 +34,7 @@ import { isBlockedFromOutreach } from "./dnc";
 import { createCandidate } from "./candidate";
 import { discoverContact } from "./contact-discovery";
 import { generateDraft } from "./draft-generator";
+import { enforceWarmupCap } from "./warmup";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "./types";
 import type { LeadRunTrigger } from "@/lib/db/schema/lead-runs";
 
@@ -92,12 +93,13 @@ export async function runDailySearch(
   }
 
   try {
-    // ── Step 1: Compute today's send budget ──────────────────────────
-    // Full warmup enforcement (LG-6) is wired later; for now we use
-    // settings.max_per_day as the cap.
+    // ── Step 1: Compute today's send budget (§3.4, §12.A) ────────────
+    // effective_cap = warmup_daily_cap − scheduled_sequence_touches_today
+    // Then clamp to settings.max_per_day (user-configured upper bound).
     const maxPerDay = await settings.get("lead_generation.daily_max_per_day");
-    const warmupCap = maxPerDay; // LG-6 replaces with enforceWarmupCap()
-    const effectiveCap = warmupCap;
+    const warmupState = await enforceWarmupCap(dbInstance);
+    const warmupCap = warmupState.cap;
+    const effectiveCap = Math.min(maxPerDay, warmupState.remaining);
 
     if (effectiveCap <= 0) {
       const run = await writeRunSummary(dbInstance, {
