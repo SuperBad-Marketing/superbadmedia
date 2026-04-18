@@ -40,10 +40,10 @@ from a generic "on hold" framing.
 > attempted until we've resolved this. If you have a payment due,
 > we'll handle the timing.
 
-### Pixieset (gallery sync)
+### Cloudinary (gallery sync)
 
-> Gallery sync is on hold. Your photos are safe on Pixieset — we just
-> can't pull them right now. Should be back shortly.
+> Gallery sync is on hold. Your photos are safe in Cloudinary — we just
+> can't reach them right now. Should be back shortly.
 
 ### Meta Ads (ad management)
 

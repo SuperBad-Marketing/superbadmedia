@@ -91,7 +91,7 @@ titles, claimed by setup-wizards.
 
 - One title per wizard state, picked from the matching phase pool.
 - `{vendor}` resolves to the human-readable vendor name from the
-  `VendorManifest` (e.g. "Pixieset", "Stripe", "Meta Ads").
+  `VendorManifest` (e.g. "Cloudinary", "Stripe", "Meta Ads").
 - `{n}` resolves to the current step number (1-indexed).
 - Tab title updates on every step transition.
 - Audience determined by `WizardDefinition.audience`.

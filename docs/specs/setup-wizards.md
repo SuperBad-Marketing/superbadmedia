@@ -33,7 +33,7 @@ This spec is foundational infrastructure — same shape as `scheduled_tasks`, `s
 
 ```
 Shell (routing, save-resume, progress, cancel, audience tone)
-  └── Wizard instance (a specific wizard: Stripe, Pixieset, Brand DNA, etc.)
+  └── Wizard instance (a specific wizard: Stripe, Cloudinary, Brand DNA, etc.)
        └── Step instance (one screen in the wizard, rendered from step-type library)
             └── Step type (form | oauth-consent | api-key-paste | webhook-probe | dns-verify |
                          csv-import | async-check | content-picker | review-and-confirm |
@@ -53,7 +53,7 @@ Single shell, `audience` prop drives:
 | Dimension | `admin` | `client` |
 |---|---|---|
 | Spacing scale | Compact | Generous |
-| Copy register | Terse, function-first ("Connect Pixieset.") | Branded, company-for-the-task ("Alright — let's connect your Pixieset so we can pull your galleries automatically.") |
+| Copy register | Terse, function-first ("Connect Cloudinary.") | Branded, company-for-the-task ("Alright — let's connect your Cloudinary so we can pull your galleries automatically.") |
 | Celebration step | Quiet check + outro line + sound | Cinematic motion + sound + branded line + capstone if first-run |
 | Tab-title sprinkle | Enabled | Enabled |
 | Ambient voice surfaces | Minimal (Andy sees them too often) | Full |
@@ -80,7 +80,7 @@ Single shell, `audience` prop drives:
 ```ts
 // Every wizard exports a WizardDefinition:
 type WizardDefinition<TCompletionPayload> = {
-  key: string                               // 'stripe-admin', 'pixieset', 'brand-dna', etc.
+  key: string                               // 'stripe-admin', 'cloudinary', 'brand-dna', etc.
   audience: 'admin' | 'client'
   renderMode: 'slideover' | 'dedicated-route'
   steps: WizardStepDefinition[]
@@ -157,7 +157,7 @@ Client-audience wizards continue to live at their own per-spec routes (Brand DNA
 | `stripe-admin` | admin | slideover | Row in `integration_connections.stripe`, webhook endpoint registered + test webhook received, bands registered for `stripe.*` jobs, test API call logged. |
 | `resend` | admin | slideover | API key stored encrypted, test email sent to Andy, SPF/DKIM/DMARC records displayed, band registered. |
 | `graph-api-admin` | admin | slideover | OAuth tokens stored for admin mailbox, historical-import enqueued, webhook subscription active, band registered. |
-| `pixieset` | admin | slideover | Credentials stored, test gallery-fetch succeeds, band registered, `connection_verified_at` stamped. |
+| `cloudinary` | admin | slideover | API key + cloud name stored, test upload succeeds, band registered, `connection_verified_at` stamped. |
 | `meta-ads` | admin | slideover | OAuth tokens stored, ad account ID confirmed, test campaign fetch, band registered. |
 | `google-ads` | admin | slideover | OAuth tokens stored, customer ID confirmed, test campaign fetch, band registered. |
 | `twilio` | admin | slideover | API creds stored, SMS sending number provisioned + verified, band registered. |
@@ -227,7 +227,7 @@ Allows repeat completions (e.g. `graph-api-client` run once per mailbox; a subsc
 
 ```
 id                    text pk
-vendor_key            text not null        -- 'stripe', 'pixieset', 'graph-api', etc.
+vendor_key            text not null        -- 'stripe', 'cloudinary', 'graph-api', etc.
 owner_type            text not null        -- 'admin' | 'client'
 owner_id              text not null fk     -- null/admin row for admin integrations
 credentials           text not null        -- encrypted blob
@@ -257,16 +257,17 @@ Every integration wizard writes exactly one row here on completion. Feature code
 ### 7.1 Vendor manifest shape
 
 ```ts
-// lib/integrations/vendors/pixieset.ts
-export const pixiesetManifest: VendorManifest = {
-  vendorKey: 'pixieset',
+// lib/integrations/vendors/cloudinary.ts
+export const cloudinaryManifest: VendorManifest = {
+  vendorKey: 'cloudinary',
   jobs: [
-    { name: 'pixieset.gallery_fetch', defaultBand: { p95: 1500, p99: 3000 }, unit: 'ms' },
-    { name: 'pixieset.image_download', defaultBand: { p95: 5000, p99: 12000 }, unit: 'ms' },
+    { name: 'cloudinary.upload', defaultBand: { p95: 3000, p99: 8000 }, unit: 'ms' },
+    { name: 'cloudinary.list_folder', defaultBand: { p95: 800, p99: 2000 }, unit: 'ms' },
+    { name: 'cloudinary.generate_archive', defaultBand: { p95: 10000, p99: 25000 }, unit: 'ms' },
   ],
   actorConvention: 'internal',           // or 'external' for per-client integrations
-  killSwitchKey: 'integrations.pixieset.enabled',
-  humanDescription: 'Pixieset gallery API — pulls galleries + images on client trial-shoot delivery.',
+  killSwitchKey: 'integrations.cloudinary.enabled',
+  humanDescription: 'Cloudinary media API — upload, transform, and deliver trial-shoot galleries.',
 }
 ```
 
@@ -361,7 +362,7 @@ Opens a dedicated Claude conversation:
 
 Opens the existing portal bartender chat (primitive defined in Client Management + Unified Inbox specs):
 
-- Pre-seeded with wizard context: "Client X is stuck on step 2 of the Pixieset wizard, last error: invalid_credentials."
+- Pre-seeded with wizard context: "Client X is stuck on step 2 of the Cloudinary wizard, last error: invalid_credentials."
 - Bartender handles triage. If it can't resolve, escalates to Andy via the inbox — appears as a waiting-item on Daily Cockpit.
 - Does NOT persist in a new table — uses the existing bartender thread schema.
 
@@ -369,7 +370,7 @@ Opens the existing portal bartender chat (primitive defined in Client Management
 
 Shell checks `job_disabled_until` on wizard-open via the vendor manifest's `killSwitchKey`. If the vendor's integration is kill-switched, the wizard shows a maintenance message instead of opening:
 
-> "Pixieset connection is temporarily disabled while we look into a problem. We'll let you know when it's back. No action needed from you."
+> "Cloudinary connection is temporarily disabled while we look into a problem. We'll let you know when it's back. No action needed from you."
 
 Admin wizards show the admin variant of this message (terser, references the kill-switch key so Andy can flip it back when resolved).
 
@@ -554,7 +555,7 @@ Three sessions. Foundation session establishes shell + step library; wizards bui
 
 - **Session A — Shell + step library + data model.** `wizard_progress`, `wizard_completions`, `integration_connections` tables. `WizardShell` component. All 10 step types + custom hatch. Progress indicator, save-resume, cancel, help affordance. Audience prop. `registerIntegration()`. No actual wizards built — just the infrastructure. Observatory spec has registered the vendor-manifest convention already (this session verifies it). Medium-large.
 - **Session B — First-run admin onboarding + critical flight + capstone.** Wires up the three critical wizards (`stripe-admin`, `resend`, `graph-api-admin`), first-run detection, capstone ceremony, motion + sound slots. Requires content mini-session output. Medium.
-- **Session C — `/lite/integrations` hub + remaining admin wizards.** Hub page with card grid + status chips. Remaining admin wizards (Pixieset, Meta Ads, Google Ads, Twilio, SerpAPI/OpenAI/Anthropic/Remotion generic template, domain-verify). Medium.
+- **Session C — `/lite/integrations` hub + remaining admin wizards.** Hub page with card grid + status chips. Remaining admin wizards (Cloudinary, Meta Ads, Google Ads, Twilio, SerpAPI/OpenAI/Anthropic/Remotion generic template, domain-verify). Medium.
 
 Client-facing wizards (`brand-dna`, `content-engine-onboarding`, `graph-api-client`, `onboarding-segmentation`, `intro-funnel-questionnaire`) are built as part of their respective feature's build sessions — they consume this shell but their wizard logic belongs to their parent spec's build sessions, not here. This spec's Phase 5 scope ends at admin.
 
