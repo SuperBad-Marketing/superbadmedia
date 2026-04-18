@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CLD-1 (2026-04-18) — Cloudinary integration setup + upload helper
+
+**Phase:** 5 — Build Execution (INFRA, medium). Wave 10 continues. Replaced Pixieset with Cloudinary. Built: vendor manifest (`lib/integrations/vendors/cloudinary.ts`, 3 jobs, dedicated kill-switch `integrations.cloudinary.enabled`), Cloudinary SDK module (`lib/cloudinary/index.ts` — upload, listFolder, transformUrl, generateArchiveUrl, testConnection), wizard definition (`cloudinary`, form+review+celebration, Zod-validated credentials, verify via api.ping()), server actions + client component for admin wizard route. Added `deals.cloudinary_gallery_folder` column + migration 0045. Deleted 5 Pixieset files, updated 9 files with registry key/comment references. Added `cloudinary` npm dependency. 6 new files, 1 test file (11 tests). G8: 0 TS errors, 1705 tests / 1 skipped. See `sessions/cld-1-handoff.md`.
+
 ## CM-5 (2026-04-18) — Portal chat home (bartender Opus) + rate-limited chat
 
 **Phase:** 5 — Build Execution (FEATURE, large). Wave 10 continues. Built `/lite/portal/[token]` — full-page portal chat home with Opus-powered bartender AI. Haiku opening line generated fresh each visit. Chat messages persisted in `portal_chat_messages`. Rate limiting via settings keys (`portal.chat_calls_per_day_pre_retainer` / `portal.chat_calls_per_day_retainer`). Escalation to Unified Inbox via `[ESCALATE]` prefix detection + Haiku summary. First-visit 3-step tour (bartender voice). Visual design matched to mockup-client-portal.html. API route at `/api/lite/portal/chat` (GET history, POST messages). `assemblePortalContext()` placeholder for CCE's `assembleContext()`. 5 new files, 1 test file (13 tests). G8: 0 TS errors, 1690 tests / 1 skipped. See `sessions/cm-5-handoff.md`.

@@ -38,7 +38,7 @@ import {
   isApiKeyVendor,
   getApiKeyVendorProfile,
 } from "@/lib/wizards/defs/api-key";
-import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
+import { CloudinaryAdminClient } from "./clients/cloudinary-admin-client";
 import { MetaAdsClient } from "./clients/meta-ads-client";
 import { GoogleAdsClient } from "./clients/google-ads-client";
 import { TwilioClient } from "./clients/twilio-client";
@@ -69,7 +69,7 @@ type DispatcherArgs = {
 type ClientRenderer = (args: DispatcherArgs) => ReactNode;
 
 const CLIENT_MAP: Record<string, ClientRenderer> = {
-  "pixieset-admin": ({ common }) => <PixiesetAdminClient {...common} />,
+  cloudinary: ({ common }) => <CloudinaryAdminClient {...common} />,
   "meta-ads": ({ common, allowTestTokenInjection }) => (
     <MetaAdsClient
       {...common}

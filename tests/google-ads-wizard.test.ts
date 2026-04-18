@@ -49,7 +49,7 @@ describe("google-ads wizard", () => {
     const keys = listWizardKeys();
     expect(keys).toContain("google-ads");
     expect(keys).toContain("meta-ads");
-    expect(keys).toContain("pixieset-admin");
+    expect(keys).toContain("cloudinary");
     expect(keys).toContain("stripe-admin");
     expect(keys).toContain("resend");
     expect(keys).toContain("graph-api-admin");

@@ -1,29 +1,18 @@
 "use client";
 
-/**
- * pixieset-admin per-wizard client. Three-step arc:
- *   form (paste gallery URL) → review-and-confirm → celebration. No
- *   verify-ping — per P0 spike outcome B, Pixieset has no public API and
- *   the form step's Zod schema is the only validation.
- *
- * Owner: SW-9.
- */
 import * as React from "react";
 import { WizardShell } from "@/components/lite/wizard-shell";
 import type {
   WizardStepDefinition,
   WizardAudience,
 } from "@/lib/wizards/types";
-import { completePixiesetAction } from "../actions-pixieset";
-import {
-  type PixiesetAdminPayload,
-  extractPixiesetSlug,
-} from "@/lib/wizards/defs/pixieset-admin";
+import { completeCloudinaryAction } from "../actions-cloudinary";
+import type { CloudinaryPayload } from "@/lib/wizards/defs/cloudinary";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import { useAdminShell, type StepStates } from "./use-admin-shell";
 
-type PasteUrlState = {
-  values: { url: string };
+type CredentialsState = {
+  values: { cloudName: string; apiKey: string; apiSecret: string };
 };
 
 type ReviewState = {
@@ -31,37 +20,48 @@ type ReviewState = {
   confirmed: boolean;
 };
 
-export type PixiesetAdminClientProps = {
+export type CloudinaryAdminClientProps = {
   audience: WizardAudience;
   steps: WizardStepDefinition[];
   outroCopy: string;
   expiryDays: number;
 };
 
-function initialPixiesetStates(outroCopy: string): StepStates {
+function initialCloudinaryStates(outroCopy: string): StepStates {
   return {
-    "paste-url": { values: { url: "" } } satisfies PasteUrlState,
+    credentials: {
+      values: { cloudName: "", apiKey: "", apiSecret: "" },
+    } satisfies CredentialsState,
     review: { summary: [], confirmed: false } satisfies ReviewState,
     celebrate: { outroCopy, observatorySummary: null },
   };
 }
 
+function maskSecret(s: string): string {
+  if (s.length <= 6) return "••••••";
+  return s.slice(0, 3) + "•".repeat(s.length - 6) + s.slice(-3);
+}
+
 function buildReviewSummary(states: StepStates) {
-  const pasted = states["paste-url"] as PasteUrlState;
-  const url = pasted.values.url ?? "";
-  const slug = extractPixiesetSlug(url);
+  const creds = states.credentials as CredentialsState;
   return [
-    { label: "Gallery URL", value: url || "(not set)" },
-    { label: "Slug", value: slug || "(unknown)" },
+    { label: "Cloud name", value: creds.values.cloudName || "(not set)" },
+    { label: "API key", value: creds.values.apiKey || "(not set)" },
+    {
+      label: "API secret",
+      value: creds.values.apiSecret
+        ? maskSecret(creds.values.apiSecret)
+        : "(not set)",
+    },
   ];
 }
 
-export function PixiesetAdminClient({
+export function CloudinaryAdminClient({
   audience,
   steps,
   outroCopy,
   expiryDays,
-}: PixiesetAdminClientProps) {
+}: CloudinaryAdminClientProps) {
   const {
     index,
     step,
@@ -74,7 +74,7 @@ export function PixiesetAdminClient({
     onDone,
   } = useAdminShell({
     steps,
-    initialStates: initialPixiesetStates(outroCopy),
+    initialStates: initialCloudinaryStates(outroCopy),
   });
 
   React.useEffect(() => {
@@ -103,17 +103,19 @@ export function PixiesetAdminClient({
     });
   }, [step.type, setStates]);
 
-  const onComplete = React.useCallback(async (): Promise<CelebrationCompleteResult> => {
-    const pasted = states["paste-url"] as PasteUrlState;
-    const reviewed = states.review as ReviewState;
-    const url = pasted.values.url.trim();
-    const payload: PixiesetAdminPayload = {
-      galleryUrl: url,
-      slug: extractPixiesetSlug(url),
-      confirmedAt: reviewed.confirmed ? Date.now() : 0,
-    };
-    return completePixiesetAction(payload);
-  }, [states]);
+  const onComplete =
+    React.useCallback(async (): Promise<CelebrationCompleteResult> => {
+      const creds = states.credentials as CredentialsState;
+      const reviewed = states.review as ReviewState;
+      const payload: CloudinaryPayload = {
+        cloudName: creds.values.cloudName.trim(),
+        apiKey: creds.values.apiKey.trim(),
+        apiSecret: creds.values.apiSecret.trim(),
+        verifiedAt: Date.now(),
+        confirmedAt: reviewed.confirmed ? Date.now() : 0,
+      };
+      return completeCloudinaryAction(payload);
+    }, [states]);
 
   const configuredStep: WizardStepDefinition = React.useMemo(() => {
     if (step.type === "celebration") {
@@ -124,7 +126,7 @@ export function PixiesetAdminClient({
 
   return (
     <WizardShell
-      wizardKey="pixieset-admin"
+      wizardKey="cloudinary"
       currentStep={index}
       stepLabels={steps.map((s) => s.label)}
       audience={audience}

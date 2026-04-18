@@ -454,7 +454,7 @@ export async function publishSaasProductAction(
     };
   }
 
-  // wizard_completions — mirrors actions-pixieset pattern. Use the first
+  // wizard_completions — mirrors actions-cloudinary pattern. Use the first
   // dimension row for the dimensions completion-payload mirror.
   const dimensionsPayload = dimensionRows
     .sort((a, b) => a.display_order - b.display_order)

@@ -14,7 +14,7 @@
  *
  * Rolls back (no partial rows) on any failure.
  *
- * Owner: SW-12. Mirrors `actions-pixieset.ts` + JSON-stringified blob.
+ * Owner: SW-12. Mirrors `actions-cloudinary.ts` + JSON-stringified blob.
  */
 import { randomUUID, createHash } from "node:crypto";
 import { auth } from "@/lib/auth/auth";

@@ -1,6 +1,6 @@
 /**
  * SW-12 — `twilio` wizard definition tests.
- * Mirrors `pixieset-admin-wizard.test.ts`, with two-field Zod validation
+ * Mirrors `cloudinary-wizard.test.ts`, with two-field Zod validation
  * + a live Basic-auth ping for the verify() check.
  */
 import { describe, it, expect, beforeAll } from "vitest";
@@ -53,7 +53,7 @@ describe("twilio wizard", () => {
     expect(keys).toContain("stripe-admin");
     expect(keys).toContain("resend");
     expect(keys).toContain("graph-api-admin");
-    expect(keys).toContain("pixieset-admin");
+    expect(keys).toContain("cloudinary");
     expect(keys).toContain("meta-ads");
     expect(keys).toContain("google-ads");
   });

@@ -8,7 +8,7 @@
  * `completionContract.verify` during the celebration orchestrator, so
  * there's no separate verify step in the UI.
  *
- * Owner: SW-12. Copied from `pixieset-admin-client.tsx` with two-field
+ * Owner: SW-12. Copied from `cloudinary-admin-client.tsx` with two-field
  * form state + credential masking for the review summary.
  */
 import * as React from "react";

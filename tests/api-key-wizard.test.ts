@@ -71,7 +71,7 @@ describe("api-key wizard", () => {
       "stripe-admin",
       "resend",
       "graph-api-admin",
-      "pixieset-admin",
+      "cloudinary",
       "meta-ads",
       "google-ads",
       "twilio",

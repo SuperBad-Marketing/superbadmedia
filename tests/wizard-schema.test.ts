@@ -180,7 +180,7 @@ describe("integration_connections schema", () => {
     const now = Date.now();
     await db.insert(integration_connections).values({
       id,
-      vendor_key: "pixieset",
+      vendor_key: "cloudinary",
       owner_type: "admin",
       owner_id: "user-sw1-admin-001",
       credentials: "enc:sealed-blob",
@@ -198,6 +198,6 @@ describe("integration_connections schema", () => {
       .where(eq(integration_connections.id, id));
     expect(rows).toHaveLength(1);
     expect(rows[0].status).toBe("active");
-    expect(rows[0].vendor_key).toBe("pixieset");
+    expect(rows[0].vendor_key).toBe("cloudinary");
   });
 });

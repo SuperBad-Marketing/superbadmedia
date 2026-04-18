@@ -1,6 +1,6 @@
 /**
  * SB-2a — saas-product-setup wizard definition shape.
- * Mirrors pixieset-admin-wizard.test.ts. No DB, no mocks beyond vault key.
+ * Mirrors cloudinary-wizard.test.ts. No DB, no mocks beyond vault key.
  */
 import { describe, it, expect, beforeAll } from "vitest";
 

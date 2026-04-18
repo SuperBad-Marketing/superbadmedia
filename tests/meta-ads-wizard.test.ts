@@ -10,7 +10,7 @@ beforeAll(() => {
 });
 
 // Import via the barrel to assert the second non-critical admin wizard
-// registers alongside the critical trio + pixieset-admin from the one
+// registers alongside the critical trio + cloudinary from the one
 // entrypoint.
 await import("@/lib/wizards/defs");
 const { metaAdsWizard } = await import("@/lib/wizards/defs/meta-ads");
@@ -51,7 +51,7 @@ describe("meta-ads wizard", () => {
     expect(getWizard("meta-ads")).toBe(metaAdsWizard);
     const keys = listWizardKeys();
     expect(keys).toContain("meta-ads");
-    expect(keys).toContain("pixieset-admin");
+    expect(keys).toContain("cloudinary");
     expect(keys).toContain("stripe-admin");
     expect(keys).toContain("resend");
     expect(keys).toContain("graph-api-admin");
