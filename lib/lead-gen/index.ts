@@ -4,6 +4,8 @@
  * Owner: Lead Generation spec.
  * LG-1: data model + DNC enforcement + sender identity.
  * LG-2: discovery sources + orchestrator + types.
+ * LG-3: enrichment pipeline.
+ * LG-4: scoring engine + candidate creation + daily search runner.
  */
 
 export {
@@ -36,6 +38,36 @@ export type { DiscoveryRunResult } from "./discovery";
 // LG-3: Enrichment pipeline
 export { enrichCandidate } from "./enrich";
 export type { EnrichmentResult } from "./enrich";
+// LG-4: Scoring engine
+export {
+  scoreForSaasTrack,
+  scoreForRetainerTrack,
+  assignTrack,
+  rescoreCandidate,
+  SAAS_FLOOR,
+  RETAINER_FLOOR,
+  REACTIVE_MIN,
+  REACTIVE_MAX,
+} from "./scoring";
+export type {
+  ScoringBreakdown,
+  TrackAssignment,
+  RescoreResult,
+  RescoreBreakdown,
+  EngagementEvent,
+  ReplyClassification,
+  FileNote,
+} from "./scoring";
+
+// LG-4: Candidate creation
+export { createCandidate } from "./candidate";
+export type { CreateCandidateInput, CreateCandidateResult } from "./candidate";
+
+// LG-4: Daily search runner
+export { runDailySearch, next3amMelbourneMs } from "./daily-search";
+export type { DailySearchInput, DailySearchResult } from "./daily-search";
+
+// LG-3: Enrichment pipeline (re-exports)
 export {
   fetchPageSpeed,
   fetchWhois,
