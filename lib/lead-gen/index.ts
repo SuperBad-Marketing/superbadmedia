@@ -94,6 +94,12 @@ export type {
   AutonomyStateView,
 } from "./autonomy";
 
+// LG-9: Sequence engine + engagement evaluator
+export { runSequenceScheduler, executeSend, getNextTouchDueMs } from "./sequence-engine";
+export type { SequenceRunResult, SendDraftResult } from "./sequence-engine";
+export { evaluateEngagementTiers, classifyEngagementTier } from "./engagement-evaluator";
+export type { EvaluateEngagementResult, EngagementTier } from "./engagement-evaluator";
+
 // LG-7: Query functions (pure reads per §12.M)
 export {
   getRecentRuns,

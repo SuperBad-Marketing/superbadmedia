@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `LG-9` — Sequence engine + follow-up scheduling + engagement tier evaluator
-**Brief:** Multi-touch sequence runner per §11. `sequence_scheduler` handler: cadence-gated sends with engagement checks, 4-tier engagement model (click > full open > sub-60s open > none), 3 consecutive non-engagement cutoff. Engagement tier evaluator (cooloff-roll computation). Follow-up draft generation via `generateDraft()` with prior-touch thread context. Wire `transitionAutonomyState()` calls for `probation_send_completed` and `auto_send_completed` events after successful sends. Use `AUTO_SEND_DELAY_MS` for auto-send delay scheduling. `createDealFromLead()` integration for reply-triggered deal creation. Spec §11, §12.H, §16.
+**Next session:** `LG-10` — Stale nudge generator + unsubscribe handler + Lead Gen wrap-up
+**Brief:** Final Lead Gen session. Stale nudge logic (candidates with no sequence activity), unsubscribe endpoint (`/api/unsubscribe`), Resend webhook handler for engagement signals (opens, clicks, bounces, complaints — feeds `outreach_sends` columns), and any remaining LG-10 scope per BUILD_PLAN.md Wave 13.
 **Model tier:** Sonnet (standard build session)
-**Last closed:** LG-8 (2026-04-18) — see `sessions/lg-8-handoff.md`
-**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 through LG-8 complete. Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
+**Last closed:** LG-9 (2026-04-18) — see `sessions/lg-9-handoff.md`
+**Wave status:** Wave 13 (Lead Generation) in progress. LG-1 through LG-9 complete. Content mini-session Batch B (CMS-3 + CMS-4) should run before their consuming waves advance.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

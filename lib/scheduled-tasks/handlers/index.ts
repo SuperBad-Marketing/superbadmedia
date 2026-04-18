@@ -17,6 +17,7 @@ import { CONTENT_NEWSLETTER_SEND_HANDLERS } from "./content-newsletter-send";
 import { CONTENT_RANKING_SNAPSHOT_HANDLERS } from "./content-ranking-snapshot";
 import { CONTENT_OUTREACH_MATCH_HANDLERS } from "./content-outreach-match";
 import { LEAD_GEN_DAILY_SEARCH_HANDLERS } from "./lead-gen-daily-search";
+import { LEAD_GEN_SEQUENCE_HANDLERS } from "./lead-gen-sequence";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -48,4 +49,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...CONTENT_RANKING_SNAPSHOT_HANDLERS,
   ...CONTENT_OUTREACH_MATCH_HANDLERS,
   ...LEAD_GEN_DAILY_SEARCH_HANDLERS,
+  ...LEAD_GEN_SEQUENCE_HANDLERS,
 };

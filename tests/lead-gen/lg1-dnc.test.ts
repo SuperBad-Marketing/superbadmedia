@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("@/lib/channels/email/send", () => ({
+  sendEmail: vi.fn().mockResolvedValue({ sent: true, messageId: "mock" }),
+}));
+
 // ── Mocks ───────────────────────────────────────────────────────────
 
 const mockGet = vi.fn();

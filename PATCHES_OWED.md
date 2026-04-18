@@ -716,6 +716,11 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 
 ## Phase 5 Wave 13 LG-8 (2026-04-18)
 
-- **`lg_8_auto_send_delay_enforcement`** · `AUTO_SEND_DELAY_MS` is exported but 15-minute delay scheduling not wired. LG-9 sequence runner must use this constant when scheduling auto-send tasks via `scheduled_tasks`. · LG-8 handoff · 2026-04-18 · **gate: LG-9**
+- ~~**`lg_8_auto_send_delay_enforcement`**~~ · **CLOSED by LG-9** · `AUTO_SEND_DELAY_MS` used in `sequence-engine.ts` when scheduling auto-send tasks.
 - **`lg_8_circuit_breaker_webhook_wiring`** · Circuit breaker events (hard_bounce, spam_complaint, fast_unsubscribe) need to fire from Resend webhook handler when engagement signals arrive. · LG-8 handoff · 2026-04-18 · **gate: LG-10 or webhook handler session**
-- **`lg_8_auto_send_probation_send_completed`** · `probation_send_completed` and `auto_send_completed` events need to fire from send completion path. Sequence runner (LG-9) or send processor must call `transitionAutonomyState()` after successful sends. · LG-8 handoff · 2026-04-18 · **gate: LG-9**
+- ~~**`lg_8_auto_send_probation_send_completed`**~~ · **CLOSED by LG-9** · `probation_send_completed` and `auto_send_completed` events fired from `executeSend()`.
+
+## Phase 5 Wave 13 LG-9 (2026-04-18)
+
+- **`lg_9_circuit_breaker_from_webhooks`** · Engagement evaluator handles tier-based cutoff, but circuit breaker events still need Resend webhook handler. Inherits from `lg_8_circuit_breaker_webhook_wiring`. · LG-9 handoff · 2026-04-18 · **gate: LG-10 or webhook handler session**
+- **`lg_9_reply_classification_rescore`** · Reactive scoring rescores on engagement tier only. Reply-classification-triggered rescoring needs the reply-intelligence classifier (§13.0). · LG-9 handoff · 2026-04-18 · **gate: reply-intelligence build session**
