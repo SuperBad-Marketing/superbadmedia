@@ -20,6 +20,10 @@ export interface PlanForReview {
     strategyJson: StrategyOutput | null;
     weeksJson: WeeksOutput | null;
     strategyApprovedAtMs: number | null;
+    revisionNote: string | null;
+    revisionResolution: string | null;
+    revisionReplySentAtMs: number | null;
+    revisionReplyBody: string | null;
   };
   prospect: {
     name: string;
@@ -63,6 +67,10 @@ export async function getPlanForReview(
       strategyJson: plan.strategy_json as unknown as StrategyOutput | null,
       weeksJson: plan.weeks_json as unknown as WeeksOutput | null,
       strategyApprovedAtMs: plan.strategy_approved_at_ms,
+      revisionNote: plan.revision_note,
+      revisionResolution: plan.revision_resolution,
+      revisionReplySentAtMs: plan.revision_reply_sent_at_ms,
+      revisionReplyBody: plan.revision_reply_body,
     },
     prospect: {
       name: contact?.name ?? "Unknown",

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-5` — Six-Week Plan Generator: portal plan surface + PDF render + prospect revision flow (spec §6 + §7 + Puppeteer PDF)
-**Brief:** SWP-4 COMPLETE. Shoot-day notes structured form (§3) + "Generate plan" trigger on company detail page Overview tab landed. Save persists to `trial_shoot_notes`, generate creates plan row + enqueues `six_week_plan_generate` + logs activity. Plan status badge + "Open review →" link visible on panel. SWP-5 builds the prospect-facing portal plan surface, PDF rendering, and revision request flow (spec Session C scope).
+**Next session:** `SWP-6` — Six-Week Plan Generator: retainer migration + refresh-review surface (spec §8.1 + §8.2 + §8.3)
+**Brief:** SWP-5 COMPLETE. Portal plan surface live at `/portal/[token]/plan` — pre-activation (6 expandable read-only weeks, Start Week 1, Download PDF, revision modal), post-activation (live tracker with task check-off). Puppeteer PDF with cover/content/closing pages + 24h cache. Revision-review admin surface at `/lite/six-week-plans/[planId]/revision-review` with regen/draft-reply/manual-reply paths. SWP-6 builds retainer migration on Deal Won, refresh-review at `/lite/clients/[companyId]/strategy/refresh-review`, and Stripe first-payment Week 1 trigger.
 **Model tier:** Sonnet
-**Last closed:** SWP-4 (2026-04-19) — see `sessions/swp4-handoff.md`
-**Wave status:** Wave 15 IN PROGRESS. SWP-1 + SWP-2 + SWP-3 + SWP-4 done; SWP-5 (portal + PDF + revision) next.
+**Last closed:** SWP-5 (2026-04-20) — see `sessions/swp5-handoff.md`
+**Wave status:** Wave 15 IN PROGRESS. SWP-1 + SWP-2 + SWP-3 + SWP-4 + SWP-5 done; SWP-6 (retainer migration + refresh-review) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-5 (2026-04-20) — Six-Week Plan Generator: Portal Plan Surface + PDF Render + Revision Flow
+
+**Phase:** 5 — Build Execution (Wave 15). Portal plan page at `/portal/[token]/plan` — pre-activation (6 expandable read-only week cards, Start Week 1 button, Download PDF link, revision modal with 40-char min), post-activation (live tracker with task check-off, day-of-week counter, week auto-advance gating). Puppeteer PDF with full-bleed cover page (SuperBad mark + business name + date), branded intermediate-page footers, closing sign-off with sprinkle line. 24h in-memory cache per plan version. Revision-review admin surface at `/lite/six-week-plans/[planId]/revision-review` — plan summary + prospect's note side-by-side, three actions (regenerate with note, Haiku-drafted reply, manual reply), send-reply fires email + updates plan + logs activity. Extended `getPlanForReview()` with revision fields. See `sessions/swp5-handoff.md`.
+
 ## SWP-4 (2026-04-19) — Six-Week Plan Generator: Shoot-Day Notes Form + Generate Trigger
 
 **Phase:** 5 — Build Execution (Wave 15). Shoot-day notes structured form (spec §3) as a new panel on the company detail Overview tab — Marketing Infrastructure (6 radio groups), Goals (ordered 1–3), Shoot-Day Signals (4 × 1–5 scale), Observations (40-char min). Soft validation + override modal. Server actions: `saveShootDayNotesAction` (upsert), `generateSixWeekPlanAction` (creates plan row + enqueues `six_week_plan_generate` + logs activity). Plan status badge with tone colours + "Open review →" link. Generate button hidden when active plan exists. See `sessions/swp4-handoff.md`.
