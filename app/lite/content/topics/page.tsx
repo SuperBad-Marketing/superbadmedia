@@ -45,15 +45,56 @@ export default async function TopicsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          Admin · Content · Topics
+        </div>
+        <h1
+          className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "-0.4px" }}
+        >
+          Topics
+        </h1>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+          Seeds in, topics out.{" "}
+          <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+            {topics.length > 0 ? "the pipeline\u2019s producing." : "feed it keywords and wait."}
+          </em>
+        </p>
+        <div className="mt-4 flex items-center gap-4 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {topics.length}
+          </span>
+          <span>queued topic{topics.length === 1 ? "" : "s"}</span>
+          <span aria-hidden className="text-[color:var(--color-neutral-700)]">·</span>
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {seedKeywords.length}
+          </span>
+          <span>seed keyword{seedKeywords.length === 1 ? "" : "s"}</span>
+        </div>
+      </header>
+
       <ContentTabs currentPath="/lite/content/topics" />
 
       {/* Seed keywords */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">Seed Keywords</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Seed keywords feed the weekly research pipeline. Add keywords
-          relevant to your business — the engine finds rankable topics
-          from them.
+        <div
+          className="mb-4 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-orange)]"
+          style={{ letterSpacing: "2.5px" }}
+        >
+          Seed Keywords
+        </div>
+        <p className="mb-4 text-[14px] text-[color:var(--color-neutral-300)]">
+          Seed keywords feed the weekly research pipeline. Add keywords relevant to your business — the engine finds rankable topics from them.
         </p>
         {companyId ? (
           <SeedKeywordManager
@@ -61,19 +102,40 @@ export default async function TopicsPage() {
             initialKeywords={seedKeywords}
           />
         ) : (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            No content engine configured yet.
-          </p>
+          <div
+            className="rounded-[12px] px-8 py-10 text-center"
+            style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
+          >
+            <p className="font-[family-name:var(--font-display)] text-[26px] leading-none text-[color:var(--color-brand-cream)]" style={{ letterSpacing: "-0.2px" }}>
+              No content engine configured yet.
+            </p>
+            <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
+              run onboarding first.
+            </p>
+          </div>
         )}
       </section>
 
       {/* Topic queue */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold">Topic Queue</h2>
+        <div
+          className="mb-4 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2.5px" }}
+        >
+          Topic Queue
+        </div>
         {topics.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            No topics queued. Run keyword research to populate the queue.
-          </p>
+          <div
+            className="rounded-[12px] px-8 py-10 text-center"
+            style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
+          >
+            <p className="font-[family-name:var(--font-display)] text-[26px] leading-none text-[color:var(--color-brand-cream)]" style={{ letterSpacing: "-0.2px" }}>
+              Queue&apos;s empty.
+            </p>
+            <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
+              run keyword research to fill it.
+            </p>
+          </div>
         ) : (
           <TopicQueueList topics={topics} />
         )}

@@ -45,9 +45,17 @@ export default async function ListPage() {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <ContentTabs currentPath="/lite/content/list" />
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          No content engine configured yet.
-        </p>
+        <div
+          className="rounded-[12px] px-8 py-10 text-center"
+          style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
+        >
+          <p className="font-[family-name:var(--font-display)] text-[26px] leading-none text-[color:var(--color-brand-cream)]" style={{ letterSpacing: "-0.2px" }}>
+            No content engine configured yet.
+          </p>
+          <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
+            run onboarding first.
+          </p>
+        </div>
       </div>
     );
   }
@@ -62,18 +70,42 @@ export default async function ListPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <ContentTabs currentPath="/lite/content/list" />
-
-      {/* Header with export */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">Subscriber list</h1>
-          <p className="text-sm text-muted-foreground">
-            {health.active} active of {health.total} total
-          </p>
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          Admin · Content · List
         </div>
-        <CsvExportButton companyId={config.company_id} />
-      </div>
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <h1
+            className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.4px" }}
+          >
+            Subscriber List
+          </h1>
+          <CsvExportButton companyId={config.company_id} />
+        </div>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+          Who&apos;s reading, who&apos;s bouncing.{" "}
+          <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+            {health.active > 0 ? "the list is alive." : "empty chairs at empty tables."}
+          </em>
+        </p>
+        <div className="mt-4 flex items-center gap-4 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {health.active}
+          </span>
+          <span>active</span>
+          <span aria-hidden className="text-[color:var(--color-neutral-700)]">·</span>
+          <span>{health.total} total</span>
+        </div>
+      </header>
+
+      <ContentTabs currentPath="/lite/content/list" />
 
       {/* Health panel */}
       <div className="mb-6">

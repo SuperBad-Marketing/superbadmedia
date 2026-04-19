@@ -86,24 +86,76 @@ export default async function SocialPage() {
     }
   }
 
+  const totalDrafts = drafts.length;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          Admin · Content · Social
+        </div>
+        <h1
+          className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "-0.4px" }}
+        >
+          Social Drafts
+        </h1>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+          Posts cut into platform-native pieces.{" "}
+          <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+            {totalDrafts > 0 ? "ready when you are." : "nothing in the hopper."}
+          </em>
+        </p>
+        <div className="mt-4 flex items-center gap-4 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {totalDrafts}
+          </span>
+          <span>draft{totalDrafts === 1 ? "" : "s"}</span>
+          <span aria-hidden className="text-[color:var(--color-neutral-700)]">·</span>
+          <span>
+            {grouped.length} post{grouped.length === 1 ? "" : "s"}
+          </span>
+        </div>
+      </header>
+
       <ContentTabs currentPath="/lite/content/social" />
 
       {grouped.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          No social drafts yet.
-        </p>
+        <div
+          className="rounded-[12px] px-8 py-10 text-center"
+          style={{
+            background: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight)",
+          }}
+        >
+          <p
+            className="font-[family-name:var(--font-display)] text-[26px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.2px" }}
+          >
+            No social drafts yet.
+          </p>
+          <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
+            publish a post and they&apos;ll appear.
+          </p>
+        </div>
       ) : (
         <div className="space-y-8">
           {grouped.map((group) => (
             <section key={group.postId}>
-              <h2 className="mb-3 text-lg font-semibold truncate">
-                {group.postTitle}
-              </h2>
-              <p className="mb-4 text-xs text-muted-foreground">
-                /{group.postSlug}
-              </p>
+              <div className="mb-3 flex items-baseline gap-3">
+                <h2 className="truncate text-[16px] font-medium text-[color:var(--color-brand-cream)]">
+                  {group.postTitle}
+                </h2>
+                <span className="shrink-0 text-[12px] italic text-[color:var(--color-brand-pink)]">
+                  /{group.postSlug}
+                </span>
+              </div>
               <SocialDraftList drafts={group.drafts} />
             </section>
           ))}

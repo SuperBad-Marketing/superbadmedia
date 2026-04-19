@@ -46,10 +46,24 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Review Draft</h1>
+        <div>
+          <div
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+            style={{ letterSpacing: "2px" }}
+          >
+            Content · Review
+          </div>
+          <h1
+            className="mt-2 font-[family-name:var(--font-display)] text-[28px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.3px" }}
+          >
+            {data.post.title}
+          </h1>
+        </div>
         <a
           href="/lite/content"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "1.5px" }}
         >
           Back to queue
         </a>
