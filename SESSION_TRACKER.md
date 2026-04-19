@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CM-7b` — Portal deliverables page (inline preview + approve/reject)
-**Brief:** Wave 10 continues. Build the portal deliverables page at `/portal/[token]/deliverables` — inline preview panel per deliverable, per-deliverable download button, approve/reject in place. Spec: `docs/specs/client-management.md`. Requires `tailwind-v4` + `react-19` + `framer-motion` skills.
+**Next session:** `CM-8` — Portal retainer-mode kickoff (Brand DNA gate + bartender kickoff variant)
+**Brief:** Wave 10 continues. Build the retainer-mode kickoff at `/portal/[token]` — Brand DNA completion gate (F4.b), bartender kickoff variant with contextual opening line, 3-step tour suppression for bundled-release portals (check `bundled_hub_seen_at_ms`). Spec: `docs/specs/client-management.md` §10.2 + §10.4. Requires `tailwind-v4` + `react-19` + `framer-motion` skills.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CM-7 (2026-04-19) — see `sessions/cm-7-handoff.md`
-**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. CM-7 DONE. Next: CM-7b → CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
+**Last closed:** CM-7b (2026-04-18) — see `sessions/cm-7b-handoff.md`
+**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. CM-7 DONE. CM-7b DONE. Next: CM-8 → CM-9 → CM-10 → CM-11 → CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

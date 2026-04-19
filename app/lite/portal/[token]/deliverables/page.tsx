@@ -1,15 +1,50 @@
 import { requirePortalSession } from "@/lib/portal/require-session";
-import { getPortalMode } from "@/lib/portal/mode";
-import { SectionLocked } from "@/components/lite/portal/section-locked";
-import { PortalSectionPlaceholder } from "@/components/lite/portal/section-placeholder";
+import { DeliverablesList } from "@/components/lite/portal/deliverables-list";
+import { DeliverablesHeader } from "@/components/lite/portal/deliverables-header";
+import { getTasksForClientPortal } from "@/lib/tasks/portal";
+import { db } from "@/lib/db";
+import { contacts } from "@/lib/db/schema/contacts";
+import { eq } from "drizzle-orm";
+import { logActivity } from "@/lib/activity-log";
 
 export default async function PortalDeliverablesPage() {
   const session = await requirePortalSession();
-  const { mode } = await getPortalMode(session.contactId);
 
-  if (mode === "pre_retainer") {
-    return <PortalSectionPlaceholder section="Deliverables" description="your photos, video, and tasks — all in one place." />;
+  const [contact] = await db
+    .select({ company_id: contacts.company_id })
+    .from(contacts)
+    .where(eq(contacts.id, session.contactId))
+    .limit(1);
+
+  const companyId = contact?.company_id;
+
+  const tasks = companyId
+    ? await getTasksForClientPortal(companyId, {
+        kind: ["client_deliverable", "client_task"],
+      })
+    : [];
+
+  if (companyId) {
+    void logActivity({
+      contactId: session.contactId,
+      companyId,
+      kind: "deliverables_viewed",
+      body: `Portal deliverables viewed (${tasks.length} items)`,
+    });
   }
 
-  return <PortalSectionPlaceholder section="Deliverables" description="your photos, video, and tasks — all in one place." />;
+  const completedCount = tasks.filter(
+    (t) => t.status === "delivered" || t.status === "done",
+  ).length;
+  const eyebrow =
+    tasks.length > 0
+      ? `${completedCount} of ${tasks.length} complete`
+      : "your room";
+
+  return (
+    <div className="mx-auto max-w-[780px] px-4 md:px-8">
+      <DeliverablesHeader eyebrow={eyebrow} />
+      <DeliverablesList tasks={tasks} />
+    </div>
+  );
 }
