@@ -2,6 +2,8 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { intro_funnel_submissions } from "@/lib/db/schema/intro-funnel-submissions";
 import { intro_funnel_payments } from "@/lib/db/schema/intro-funnel-payments";
+import { intro_funnel_bookings } from "@/lib/db/schema/intro-funnel-bookings";
+import { intro_funnel_reflections } from "@/lib/db/schema/intro-funnel-reflections";
 import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
@@ -49,5 +51,19 @@ export async function loadSubmissionByToken(token: string) {
     .limit(1);
   const payment = paymentRows[0] ?? null;
 
-  return { submission, contact, deal, company, payment };
+  const bookingRows = await db
+    .select()
+    .from(intro_funnel_bookings)
+    .where(eq(intro_funnel_bookings.submission_id, submission.id))
+    .limit(1);
+  const booking = bookingRows[0] ?? null;
+
+  const reflectionRows = await db
+    .select()
+    .from(intro_funnel_reflections)
+    .where(eq(intro_funnel_reflections.submission_id, submission.id))
+    .limit(1);
+  const reflection = reflectionRows[0] ?? null;
+
+  return { submission, contact, deal, company, payment, booking, reflection };
 }

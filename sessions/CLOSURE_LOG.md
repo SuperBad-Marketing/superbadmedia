@@ -4,6 +4,12 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## IF-2 (2026-04-19) — Calendar Booking + Shoot-Day Portal + Reflection Form
+
+**Phase:** 5 — Build Execution (Wave 14). Calendar availability engine with business-hours/blackout/advance-notice/per-week-cap logic. Booking page with slot picker + confirmation. .ics calendar invite generation. Reschedule (2-attempt cap, 48h minimum) and cancel (refund eligibility) flows. Portal shell rewritten for all 12 funnel states. 8-question reflection form with safety-valve branch, synthesis reveal (fallback text — Opus synthesis is IF-3), decision CTA pair. Hourly cron for time-based shoot state transitions. SMS transport via Twilio with DNC/quiet-hours gates. 7 new email classifications. 1 new activity_log kind. See `sessions/if2-handoff.md`.
+
+---
+
 ## CMS-5 (2026-04-19) — Intro Funnel + Six-Week Plan Content
 
 **Phase:** 5 — Build Execution (Content mini-session). Authored all copy, question banks, email/SMS templates, LLM prompts, and visual direction for the Intro Funnel and Six-Week Plan Generator. 8 voice/format decisions resolved with Andy (all option A: quiet confidence opener, striking image + dry caption, plain deliverables list, numbered timeline, two-line commitment with reason, understated CTA, plain shape question, warm second-person questionnaire voice). **IF output:** 9 landing page blocks, section 1 form copy, 9 questionnaire banks (3 shapes × 3 sections + 2 practical-supplement questions), signal-tag mapping to Brand DNA taxonomy, 8-screen reflection questionnaire with Opus synthesis + drift-check fallback, 10 email/SMS templates, deliverables hub copy, timeframe signposting across 4 surfaces. **SWP output:** 4 LLM prompts calibrated (strategy Opus, elaboration Opus, self-review Haiku 10-point checklist, revision-reply Haiku), portal copy (Start Week 1, revision modal, inline cards), 2 refresh-review band variants, archived-portal offline page, PDF layout direction (cover + footer + closing sprinkle line "This plan belongs to you. So does the nerve to run it."), 3 email templates, tab title rotation pool, review UI microcopy. 10 new content files across `docs/content/intro-funnel/` (8) and `docs/content/six-week-plan/` (2). No code changes. See `sessions/cms-5-handoff.md`.

@@ -52,6 +52,19 @@ export const EMAIL_CLASSIFICATIONS = [
   // and the email is recovery-critical.
   "saas_payment_failed_lockout",
   "saas_data_loss_warning",
+  // IF-2 — Trial shoot booking confirmations and reschedule notices.
+  // Transactional: prospect already paid; these are operational.
+  "shoot_booking_confirmed",
+  "shoot_reschedule_confirmed",
+  // IF-2 — Reflection-ready nudge. Non-transactional (marketing-adjacent).
+  "reflection_ready",
+  // IF-1 — Payment receipt (fires on payment_intent.succeeded).
+  "trial_shoot_payment_receipt",
+  // IF-3 — Abandon cadence emails.
+  "intro_funnel_abandon_24h",
+  "intro_funnel_abandon_3d",
+  // IF-2 — Apology email for SuperBad-initiated cancel/reschedule.
+  "apology_email",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -73,6 +86,10 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "subscriber_login_link",
   "saas_payment_failed_lockout",
   "saas_data_loss_warning",
+  "shoot_booking_confirmed",
+  "shoot_reschedule_confirmed",
+  "trial_shoot_payment_receipt",
+  "apology_email",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

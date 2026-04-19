@@ -126,6 +126,7 @@ export const ACTIVITY_LOG_KINDS = [
   "post_trial_negative_feedback",
   "retainer_fit_recommendation_ready",
   "reflection_complete",
+  "intro_funnel_state_transition",
   // --- Lead Generation (16) ---
   "outreach_sent",
   "outreach_opened",

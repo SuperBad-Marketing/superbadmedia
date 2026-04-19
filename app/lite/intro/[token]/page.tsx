@@ -30,6 +30,8 @@ export default async function IntroPortalPage({ params }: Props) {
       deal={data.deal}
       company={data.company}
       payment={data.payment}
+      booking={data.booking}
+      reflection={data.reflection}
     />
   );
 }

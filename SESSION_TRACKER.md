@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `IF-2` — Intro Funnel booking calendar + SMS notifications + admin booking view (Wave 14 continues)
-**Brief:** IF-1 DONE (landing page, Section 1 form, deal creation, portal shell, questionnaire, payment panel all wired). Migration 0052 cleaned of duplicate table defs. Dev DB column drift patched.
+**Next session:** `IF-3` — Retainer/SaaS offer + Opus synthesis + quote recommendation + abandon tracking + drift check (Wave 14 continues)
+**Brief:** IF-2 DONE (calendar availability engine, booking page, .ics generation, reschedule/cancel, portal shell for all 12 funnel states, reflection form with 8-question arc + safety valve + synthesis reveal, hourly cron for time-based transitions, SMS transport via Twilio, email classifications). Booking reminders (scheduled per-booking) deferred to IF-3.
 **Model tier:** Sonnet
-**Last closed:** IF-1 (2026-04-19) — see `sessions/if1-handoff.md`
-**Wave status:** Wave 14 IN PROGRESS. IF-1 COMPLETE. **Next up:** IF-2.
+**Last closed:** IF-2 (2026-04-19) — see `sessions/if2-handoff.md`
+**Wave status:** Wave 14 IN PROGRESS. IF-1 + IF-2 COMPLETE. **Next up:** IF-3.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
