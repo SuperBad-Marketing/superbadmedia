@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## PM-6 (2026-04-19) — Visual Remediation Discipline Patch (Wave 13c)
+
+**Phase:** 5 — Build Execution (DISCIPLINE, doc-only). Extended AUTONOMY_PROTOCOL.md §G0 with a new bullet requiring portal (`mockup-client-portal.html`), intro funnel (`mockup-intro-funnel.html`), and cockpit (`mockup-cockpit-interactive.html`) UI sessions to cite their matching mockup in brief §2a before proceeding. Mirrors the admin-interior discipline bullet added 2026-04-15. 1 PATCHES_OWED closed: `bdapolish1_visual_remediation_backlog`. Zero code. See `sessions/pm-6-handoff.md`.
+
 ## PM-4 (2026-04-19) — Subscription State Naming Reconciliation (Wave 13c)
 
 **Phase:** 5 — Build Execution (INFRA, small). Renamed `DEAL_SUBSCRIPTION_STATES` enum values to match FOUNDATIONS §12 canonical state machine: `active` → `active_current`, `pending_early_exit` → `cancel_scheduled_preterm`. Migration `0051_pm4_subscription_state_rename.sql` (two UPDATE statements). Full cascade through 25+ consumer files: 4 Stripe webhook handlers, early-cancel flow, invoicing chain guard, SaaS headline signals, tier change guards, portal mode, inbox context panel, checkout actions, onboarding dashboard, 11 test files, 3 seed scripts. 1 PATCHES_OWED closed: `qb_subs_subscription_state_naming_drift`. G8: 0 TS errors (excl. pre-existing), 1833 tests / 0 failures. See `sessions/pm-4-handoff.md`.

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `PM-6` — Wave 13c discipline patch (visual remediation — AUTONOMY_PROTOCOL update, zero code)
-**Brief:** PM-5 DONE (invoke.ts system-role plumbing — 3 draft-family callers migrated to native `system` param, 3 PATCHES_OWED closed). Wave 13c remaining: PM-6, PM-7. PM-6 (discipline patch, zero code) should land before CM-5's brief is written. See BUILD_PLAN.md Wave 13c for scope.
-**Model tier:** Haiku (PM-6 is a doc-only patch — no code)
-**Last closed:** PM-5 (2026-04-19) — see `sessions/pm-5-handoff.md`
-**Wave status:** Wave 13c IN PROGRESS (PM-1 ✓, PM-2 ✓, PM-3 ✓, PM-4 ✓, PM-5 ✓). **Pending:** PM-6, PM-7.
+**Next session:** `PM-7` — Wave 13c LG queue edit/nudge buttons (UI, small)
+**Brief:** PM-6 DONE (discipline patch — AUTONOMY_PROTOCOL §G0 extended for portal/funnel/cockpit mockup citations, PATCHES_OWED `bdapolish1_visual_remediation_backlog` closed). Wave 13c remaining: PM-7. See BUILD_PLAN.md Wave 13c for scope.
+**Model tier:** Sonnet (PM-7 is a small UI session — inline editing + nudge-chat button)
+**Last closed:** PM-6 (2026-04-19) — see `sessions/pm-6-handoff.md`
+**Wave status:** Wave 13c IN PROGRESS (PM-1 ✓, PM-2 ✓, PM-3 ✓, PM-4 ✓, PM-5 ✓, PM-6 ✓). **Pending:** PM-7.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
