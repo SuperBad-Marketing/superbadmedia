@@ -69,6 +69,9 @@ superbad-lite-vision.html
 # Content Engine visual assets (generated images, served via API route)
 data/content-assets/
 
+# Data export ZIPs (temporary, 7-day TTL)
+data/exports/
+
 # Playwright (E2E)
 test-results/
 playwright-report/

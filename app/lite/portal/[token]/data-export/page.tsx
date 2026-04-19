@@ -1,7 +1,11 @@
 import { requirePortalSession } from "@/lib/portal/require-session";
 import { getPortalMode } from "@/lib/portal/mode";
 import { SectionLocked } from "@/components/lite/portal/section-locked";
-import { PortalSectionPlaceholder } from "@/components/lite/portal/section-placeholder";
+import { DataExportPanel } from "@/components/lite/portal/data-export-panel";
+import { logActivity } from "@/lib/activity-log";
+import { db } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { contacts } from "@/lib/db/schema/contacts";
 
 export default async function PortalDataExportPage() {
   const session = await requirePortalSession();
@@ -11,5 +15,20 @@ export default async function PortalDataExportPage() {
     return <SectionLocked sectionLabel="Download My Data" />;
   }
 
-  return <PortalSectionPlaceholder section="Download My Data" description="export everything." />;
+  const contact = await db
+    .select({ company_id: contacts.company_id })
+    .from(contacts)
+    .where(eq(contacts.id, session.contactId))
+    .get();
+
+  if (contact) {
+    await logActivity({
+      companyId: contact.company_id,
+      contactId: session.contactId,
+      kind: "client_profile_viewed_by_admin",
+      body: "Client viewed data export page",
+    });
+  }
+
+  return <DataExportPanel />;
 }

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CM-9` — Data export primitive (background ZIP via `scheduled_tasks`, 7d expiry)
-**Brief:** Wave 10 continues. Build the data export background job: ZIP generation triggered from portal, stored with 7-day expiry, download link delivered in portal chat. Spec: `docs/specs/client-management.md` §10.8. Requires `drizzle-orm` skill.
+**Next session:** `CM-10` — Comms threading + Portal Chat tab (read-only admin view + escalation flagging)
+**Brief:** Wave 10 continues. Build the admin-facing Portal Chat tab on the company profile: read-only view of portal_chat_messages, escalation flagging, comms threading. Spec: `docs/specs/client-management.md`. Requires `drizzle-orm` skill.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CM-8 (2026-04-18) — see `sessions/cm-8-handoff.md`
-**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. CM-7 DONE. CM-7b DONE. CM-8 DONE. Next: CM-9 → CM-10 → CM-11 → CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
+**Last closed:** CM-9 (2026-04-19) — see `sessions/cm-9-handoff.md`
+**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. CM-7 DONE. CM-7b DONE. CM-8 DONE. CM-9 DONE. Next: CM-10 → CM-11 → CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
