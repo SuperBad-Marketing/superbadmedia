@@ -303,8 +303,9 @@ export const ACTIVITY_LOG_KINDS = [
   "drift_check_failed",
   "portal_magic_link_sent",
   "portal_magic_link_redeemed",
-  // --- Portal guard A8 (1) ---
+  // --- Portal guard A8 (1) + IF-4 (1) ---
   "portal_session_started",
+  "portal_recovery_form_submitted",
   // --- Support + error triage B1 (1) ---
   "support_ticket_created",
   // --- Brand DNA invite flow BDA-1 (2) ---

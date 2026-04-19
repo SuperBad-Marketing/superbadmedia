@@ -26,6 +26,7 @@ import { invokeLlmText } from "@/lib/ai/invoke";
 import { checkBrandVoiceDrift } from "@/lib/ai/drift-check";
 import { getSuperbadBrandProfile } from "@/lib/quote-builder/superbad-brand-profile";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { generateIntroPortalLink } from "@/lib/intro-funnel/portal-link";
 
 const MINS_15 = 15 * 60 * 1000;
 const HOURS_1 = 60 * 60 * 1000;
@@ -117,7 +118,12 @@ async function send24hSmsAndEmail(
   sub: typeof intro_funnel_submissions.$inferSelect,
 ): Promise<void> {
   const firstName = sub.submitted_name.split(" ")[0] || sub.submitted_name;
-  const portalLink = `${process.env.NEXT_PUBLIC_APP_URL}/lite/intro/${sub.token}`;
+  const portalLink = await generateIntroPortalLink({
+    contactId: sub.contact_id,
+    submissionId: sub.id,
+    introToken: sub.token,
+    issuedFor: "intro_funnel_abandon_24h",
+  });
 
   await sendSms({
     to: sub.submitted_phone,
@@ -222,7 +228,12 @@ async function generateAbandonEmail(
     return getAbandonEmailFallback(sub, stage);
   }
 
-  const portalLink = `${process.env.NEXT_PUBLIC_APP_URL}/lite/intro/${sub.token}`;
+  const portalLink = await generateIntroPortalLink({
+    contactId: sub.contact_id,
+    submissionId: sub.id,
+    introToken: sub.token,
+    issuedFor: `intro_funnel_abandon_${stage}`,
+  });
   const firstName = sub.submitted_name.split(" ")[0] || sub.submitted_name;
   const answers = sub.questionnaire_answers_json as Record<string, unknown> | null;
 
@@ -283,12 +294,17 @@ Respond with JSON only:
   }
 }
 
-function getAbandonEmailFallback(
+async function getAbandonEmailFallback(
   sub: typeof intro_funnel_submissions.$inferSelect,
   stage: "24h" | "3d",
-): AbandonEmailContent {
+): Promise<AbandonEmailContent> {
   const firstName = sub.submitted_name.split(" ")[0] || sub.submitted_name;
-  const portalLink = `${process.env.NEXT_PUBLIC_APP_URL}/lite/intro/${sub.token}`;
+  const portalLink = await generateIntroPortalLink({
+    contactId: sub.contact_id,
+    submissionId: sub.id,
+    introToken: sub.token,
+    issuedFor: `intro_funnel_abandon_${stage}_fallback`,
+  });
 
   if (stage === "24h") {
     return {

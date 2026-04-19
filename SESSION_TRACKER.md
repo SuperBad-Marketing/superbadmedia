@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `IF-4` — Portal-guard recovery flow (consumes A8) + OTT magic-link embedding at every send point (Wave 14 continues)
-**Brief:** IF-3 DONE (reflection synthesis Opus generator with drift check + fallback, retainer-fit recommendation Opus generator with safety-valve branch + structured JSON + drift retry, abandon tracking cron with 4-step SMS/email sequence + Haiku-drafted emails + demotion, decision CTA handling with portal_dormant transition). Booking reminder + reflection reminder handlers still unwired.
+**Next session:** `IF-E2E` — Playwright E2E: landing → questionnaire → booking → payment (Wave 14 closing)
+**Brief:** IF-4 DONE (recovery form real implementation, OTT magic-link embedding at all send points, portal session cookie at section 1 submit, intro funnel portal guard on all routes, booking reminder + reflection reminder handlers registered + booking reminders scheduled on booking creation).
 **Model tier:** Sonnet
-**Last closed:** IF-3 (2026-04-19) — see `sessions/if3-handoff.md`
-**Wave status:** Wave 14 IN PROGRESS. IF-1 + IF-2 + IF-3 COMPLETE. **Next up:** IF-4.
+**Last closed:** IF-4 (2026-04-19) — see `sessions/if4-handoff.md`
+**Wave status:** Wave 14 IN PROGRESS. IF-1 + IF-2 + IF-3 + IF-4 COMPLETE. **Next up:** IF-E2E.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

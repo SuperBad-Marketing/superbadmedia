@@ -4,6 +4,12 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## IF-4 (2026-04-19) — Portal-Guard Recovery Flow + OTT Magic-Link Embedding
+
+**Phase:** 5 — Build Execution (Wave 14). Recovery form real implementation (stub → `intro_funnel_submissions` + `contacts` lookup + `issueMagicLink()` + `sendEmail()`). OTT magic-link embedded at every intro funnel email send point (booking confirmation, reschedule, abandon 24h/3d + fallbacks). Portal session cookie set at section 1 submit + welcome magic-link email in background. `requireIntroSession(token)` guard wired to all `/lite/intro/[token]/*` routes. Booking reminder handler (24h/2h, email + SMS) and reflection reminder handler registered and wired. Booking reminders scheduled on booking creation. +1 `activity_log.kind`. 2 new test files, 5 new tests. See `sessions/if4-handoff.md`.
+
+---
+
 ## IF-2 (2026-04-19) — Calendar Booking + Shoot-Day Portal + Reflection Form
 
 **Phase:** 5 — Build Execution (Wave 14). Calendar availability engine with business-hours/blackout/advance-notice/per-week-cap logic. Booking page with slot picker + confirmation. .ics calendar invite generation. Reschedule (2-attempt cap, 48h minimum) and cancel (refund eligibility) flows. Portal shell rewritten for all 12 funnel states. 8-question reflection form with safety-valve branch, synthesis reveal (fallback text — Opus synthesis is IF-3), decision CTA pair. Hourly cron for time-based shoot state transitions. SMS transport via Twilio with DNC/quiet-hours gates. 7 new email classifications. 1 new activity_log kind. See `sessions/if2-handoff.md`.

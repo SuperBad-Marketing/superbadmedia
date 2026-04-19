@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { loadSubmissionByToken } from "./loaders";
 import { PortalShell } from "./portal-shell";
+import { requireIntroSession } from "@/lib/portal/require-intro-session";
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -21,6 +22,8 @@ export default async function IntroPortalPage({ params }: Props) {
   const { token } = await params;
   const data = await loadSubmissionByToken(token);
   if (!data) notFound();
+
+  await requireIntroSession(token);
 
   return (
     <PortalShell

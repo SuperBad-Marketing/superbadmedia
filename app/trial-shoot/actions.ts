@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -10,6 +11,13 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import { logActivity } from "@/lib/activity-log";
+import {
+  encodePortalSession,
+  PORTAL_SESSION_COOKIE,
+} from "@/lib/portal/guard";
+import { issueMagicLink } from "@/lib/portal/issue-magic-link";
+import { sendEmail } from "@/lib/channels/email/send";
+import settings from "@/lib/settings";
 
 const FUNNEL_SHAPES = ["solo_founder", "founder_led_team", "multi_stakeholder_company"] as const;
 
@@ -127,6 +135,42 @@ export async function submitSection1Action(
       body: `${input.name} started the trial shoot funnel`,
       meta: { shape: input.shape, token },
     });
+
+    // Set portal session cookie so the prospect stays authenticated
+    const ttlDays = await settings.get("portal.session_cookie_ttl_days");
+    const cookieStore = await cookies();
+    cookieStore.set(PORTAL_SESSION_COOKIE, encodePortalSession({
+      contactId: contact.id,
+      clientId: null,
+      submissionId,
+    }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: ttlDays * 24 * 60 * 60,
+    });
+
+    // Issue magic link + send welcome email in background for future returns
+    issueMagicLink({
+      contactId: contact.id,
+      submissionId,
+      issuedFor: "section_1",
+    }).then(({ url }) => {
+      const callbackUrl = encodeURIComponent(`/lite/intro/${token}`);
+      const linkWithCallback = `${url}?callbackUrl=${callbackUrl}`;
+      const firstName = input.name.split(" ")[0] || input.name;
+      return sendEmail({
+        to: input.email,
+        subject: "Your SuperBad portal",
+        body: `<p>Hey ${firstName},</p>
+<p>Your trial shoot portal is live. Bookmark this link — it'll get you back in any time:</p>
+<p><a href="${linkWithCallback}">Open your portal →</a></p>
+<p>— Andy</p>`,
+        classification: "portal_magic_link_recovery",
+        purpose: "section_1_welcome_magic_link",
+      });
+    }).catch(() => {});
 
     return { ok: true, token };
   } catch (err) {

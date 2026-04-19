@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { loadSubmissionByToken } from "../loaders";
 import { loadBookingForSubmission } from "./loaders";
 import { ManageBookingClient } from "./manage-booking-client";
+import { requireIntroSession } from "@/lib/portal/require-intro-session";
 
 export default async function ManageBookingPage({
   params,
@@ -11,6 +12,8 @@ export default async function ManageBookingPage({
   const { token } = await params;
   const data = await loadSubmissionByToken(token);
   if (!data) redirect("/trial-shoot");
+
+  await requireIntroSession(token);
 
   const { submission } = data;
   const booking = await loadBookingForSubmission(submission.id);

@@ -13,6 +13,8 @@ import { logActivity } from "@/lib/activity-log";
 import { sendEmail } from "@/lib/channels/email/send";
 import { generateIcs } from "@/lib/intro-funnel/ics";
 import { computeAvailableSlots } from "@/lib/intro-funnel/calendar";
+import { generateIntroPortalLink } from "@/lib/intro-funnel/portal-link";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 
 const MAX_RESCHEDULES = 2;
 const RESCHEDULE_MINIMUM_HOURS = 48;
@@ -139,12 +141,18 @@ export async function bookSlotAction(
     const dateStr = dateFmt.format(new Date(slotStartMs));
     const timeStr = timeFmt.format(new Date(slotStartMs));
     const firstName = submission.submitted_name.split(" ")[0];
-    const portalUrl = `${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/lite/intro/${token}`;
+    const portalLink = await generateIntroPortalLink({
+      contactId: submission.contact_id,
+      submissionId: submission.id,
+      introToken: token,
+      issuedFor: "shoot_booking_confirmed",
+    });
+    const plainPortalUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/lite/intro/${token}`;
 
     const icsContent = generateIcs({
       uid: `${bookingId}@superbadmedia.com.au`,
       summary: "Trial Shoot — SuperBad Marketing",
-      description: `Your trial shoot with Andy. Portal: ${portalUrl}`,
+      description: `Your trial shoot with Andy. Portal: ${plainPortalUrl}`,
       location: "Your place of business — we'll confirm closer to the day",
       startMs: slotStartMs,
       endMs: slotEndMs,
@@ -164,7 +172,7 @@ export async function bookSlotAction(
 <strong>What to wear:</strong> Whatever you'd normally wear at work. Seriously.</p>
 <p>Between now and then, we'll be doing our homework on your business. You don't need to prepare anything.</p>
 <p>If something comes up, you can reschedule from your portal — we just need 48 hours' notice.</p>
-<p><a href="${portalUrl}">Open your portal →</a></p>
+<p><a href="${portalLink}">Open your portal →</a></p>
 <p>— Andy</p>
 <p style="font-size:12px;color:#999;">P.S. Calendar invite attached. Add it, or don't — we'll remind you either way.</p>`,
       classification: "shoot_booking_confirmed",
@@ -175,6 +183,28 @@ export async function bookSlotAction(
           content: Buffer.from(icsContent, "utf-8"),
         },
       ],
+    });
+  }
+
+  // Schedule booking reminders (24h and 2h before shoot)
+  const HOURS_24 = 24 * 60 * 60 * 1000;
+  const HOURS_2 = 2 * 60 * 60 * 1000;
+  const reminderPayload = { submissionId: submission.id, bookingId };
+
+  if (slotStartMs - nowMs > HOURS_24) {
+    await enqueueTask({
+      task_type: "intro_funnel_booking_reminder",
+      runAt: slotStartMs - HOURS_24,
+      payload: { ...reminderPayload, reminderType: "24h" },
+      idempotencyKey: `booking_reminder_24h_${bookingId}`,
+    });
+  }
+  if (slotStartMs - nowMs > HOURS_2) {
+    await enqueueTask({
+      task_type: "intro_funnel_booking_reminder",
+      runAt: slotStartMs - HOURS_2,
+      payload: { ...reminderPayload, reminderType: "2h" },
+      idempotencyKey: `booking_reminder_2h_${bookingId}`,
     });
   }
 
@@ -284,7 +314,13 @@ export async function rescheduleAction(
 
   // Send reschedule confirmation email with new .ics
   const firstName = submission.submitted_name.split(" ")[0];
-  const portalUrl = `${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/lite/intro/${token}`;
+  const portalLink = await generateIntroPortalLink({
+    contactId: submission.contact_id,
+    submissionId: submission.id,
+    introToken: token,
+    issuedFor: "shoot_reschedule_confirmed",
+  });
+  const plainPortalUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/lite/intro/${token}`;
   const tz = "Australia/Melbourne";
   const dateFmt = new Intl.DateTimeFormat("en-AU", {
     timeZone: tz,
@@ -306,7 +342,7 @@ export async function rescheduleAction(
   const icsContent = generateIcs({
     uid: `${booking.id}@superbadmedia.com.au`,
     summary: "Trial Shoot — SuperBad Marketing (Rescheduled)",
-    description: `Your rescheduled trial shoot with Andy. Portal: ${portalUrl}`,
+    description: `Your rescheduled trial shoot with Andy. Portal: ${plainPortalUrl}`,
     location: "Your place of business",
     startMs: newStartMs,
     endMs: newEndMs,
@@ -322,7 +358,7 @@ export async function rescheduleAction(
     body: `<p>Hey ${firstName},</p>
 <p>Your shoot's been moved to <strong>${dateStr}</strong> at <strong>${timeStr}</strong> (AEST).</p>
 <p>Everything else stays the same. Updated calendar invite attached.</p>
-<p><a href="${portalUrl}">Open your portal →</a></p>
+<p><a href="${portalLink}">Open your portal →</a></p>
 <p>— Andy</p>`,
     classification: "shoot_reschedule_confirmed",
     purpose: "Trial shoot reschedule confirmation",

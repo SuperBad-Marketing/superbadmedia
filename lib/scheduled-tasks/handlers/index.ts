@@ -21,6 +21,8 @@ import { LEAD_GEN_SEQUENCE_HANDLERS } from "./lead-gen-sequence";
 import { CLIENT_DATA_EXPORT_HANDLERS } from "./client-data-export";
 import { CASE_SNIPPET_HANDLERS } from "./case-snippet";
 import { INTRO_FUNNEL_ABANDON_HANDLERS } from "./intro-funnel-abandon";
+import { INTRO_FUNNEL_BOOKING_REMINDER_HANDLERS } from "./intro-funnel-booking-reminder";
+import { INTRO_FUNNEL_REFLECTION_REMINDER_HANDLERS } from "./intro-funnel-reflection-reminder";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -56,4 +58,6 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...CLIENT_DATA_EXPORT_HANDLERS,
   ...CASE_SNIPPET_HANDLERS,
   ...INTRO_FUNNEL_ABANDON_HANDLERS,
+  ...INTRO_FUNNEL_BOOKING_REMINDER_HANDLERS,
+  ...INTRO_FUNNEL_REFLECTION_REMINDER_HANDLERS,
 };
