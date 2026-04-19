@@ -1,4 +1,6 @@
-import type { ThreadRow } from "@/lib/db/schema/messages";
+import type { ThreadRow, MessageRow } from "@/lib/db/schema/messages";
+import Link from "next/link";
+import { ThreadDetail } from "@/components/lite/admin/shared/thread-detail";
 
 function formatDate(ms: number): string {
   return new Date(ms).toLocaleDateString("en-AU", {
@@ -49,9 +51,27 @@ function TicketStatusBadge({ status }: { status: string }) {
 
 export function ContactCommsTab({
   threads,
+  contactId,
+  focusedThreadId,
+  focusedThread,
+  focusedMessages,
 }: {
   threads: ThreadRow[];
+  contactId: string;
+  focusedThreadId?: string | null;
+  focusedThread?: ThreadRow | null;
+  focusedMessages?: MessageRow[] | null;
 }) {
+  if (focusedThreadId && focusedThread && focusedMessages) {
+    return (
+      <ThreadDetail
+        threadSubject={focusedThread.subject ?? "Untitled thread"}
+        messages={focusedMessages}
+        backHref={`/lite/admin/contacts/${contactId}?tab=comms`}
+      />
+    );
+  }
+
   if (threads.length === 0) {
     return (
       <div className="px-4 pb-10">
@@ -98,9 +118,11 @@ export function ContactCommsTab({
             const channelLabel = CHANNEL_ICONS[thread.channel_of_origin] ?? thread.channel_of_origin;
             const lastMsgMs = thread.last_message_at_ms ?? thread.created_at_ms;
             return (
-              <div
+              <Link
                 key={thread.id}
-                className="flex items-start gap-4 px-5 py-3.5"
+                href={`/lite/admin/contacts/${contactId}?tab=comms&thread=${thread.id}`}
+                scroll={false}
+                className="flex items-start gap-4 px-5 py-3.5 transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[rgba(253,245,230,0.02)]"
                 style={{ borderBottom: "1px solid rgba(253, 245, 230, 0.03)" }}
               >
                 <div
@@ -121,6 +143,18 @@ export function ContactCommsTab({
                     {thread.ticket_status && (
                       <TicketStatusBadge status={thread.ticket_status} />
                     )}
+                    {thread.has_cached_draft && (
+                      <span
+                        className="inline-flex items-center rounded-full px-2 py-[1px] font-[family-name:var(--font-label)] text-[9px] uppercase"
+                        style={{
+                          letterSpacing: "1.2px",
+                          background: "rgba(244, 160, 176, 0.10)",
+                          color: "var(--color-brand-pink)",
+                        }}
+                      >
+                        Draft
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[color:var(--color-neutral-500)]">
                     <span>{formatDate(lastMsgMs)} at {formatTime(lastMsgMs)}</span>
@@ -133,7 +167,7 @@ export function ContactCommsTab({
                     title="Signal"
                   />
                 )}
-              </div>
+              </Link>
             );
           })}
         </div>

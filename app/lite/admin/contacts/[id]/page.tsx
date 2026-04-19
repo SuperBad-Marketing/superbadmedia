@@ -14,7 +14,7 @@ import { companies } from "@/lib/db/schema/companies";
 import { deals, type DealStage } from "@/lib/db/schema/deals";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
-import { threads } from "@/lib/db/schema/messages";
+import { threads, messages } from "@/lib/db/schema/messages";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 
 import {
@@ -109,7 +109,7 @@ export default async function ContactAdminPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; thread?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
@@ -150,6 +150,14 @@ export default async function ContactAdminPage({
 
   const commsData = activeTab === "comms"
     ? await db.select().from(threads).where(eq(threads.contact_id, id)).orderBy(desc(threads.last_message_at_ms))
+    : null;
+
+  const focusedThreadId = activeTab === "comms" ? (sp.thread ?? null) : null;
+  const focusedThread = focusedThreadId && commsData
+    ? commsData.find((t) => t.id === focusedThreadId) ?? null
+    : null;
+  const focusedMessages = focusedThread
+    ? await db.select().from(messages).where(eq(messages.thread_id, focusedThread.id)).orderBy(messages.created_at_ms)
     : null;
 
   const portalChatData = activeTab === "portal-chat"
@@ -250,7 +258,13 @@ export default async function ContactAdminPage({
       ) : null}
 
       {activeTab === "comms" && commsData !== null ? (
-        <ContactCommsTab threads={commsData} />
+        <ContactCommsTab
+          threads={commsData}
+          contactId={contact.id}
+          focusedThreadId={focusedThreadId}
+          focusedThread={focusedThread}
+          focusedMessages={focusedMessages}
+        />
       ) : null}
 
       {activeTab === "brand-dna" && brandDnaData !== null ? (
@@ -450,7 +464,7 @@ function OverviewTab({
           </p>
         ) : (
           <p className="mt-3 text-[13px] italic text-[color:var(--color-neutral-500)]">
-            No notes yet. The full notes feed with &ldquo;Visible to AI&rdquo; toggle lands in CM-10.
+            No notes yet. The full notes feed with &ldquo;Visible to AI&rdquo; toggle lands in CM-11.
           </p>
         )}
       </section>

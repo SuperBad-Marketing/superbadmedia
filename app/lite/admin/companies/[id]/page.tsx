@@ -17,7 +17,7 @@ import { invoices, type InvoiceStatus } from "@/lib/db/schema/invoices";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { brand_dna_blends } from "@/lib/db/schema/brand-dna-blends";
-import { threads } from "@/lib/db/schema/messages";
+import { threads, messages } from "@/lib/db/schema/messages";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 import { loadInvoiceDetail } from "@/lib/invoicing/detail-query";
 
@@ -210,7 +210,7 @@ export default async function CompanyAdminPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string; invoice?: string }>;
+  searchParams: Promise<{ tab?: string; invoice?: string; thread?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
@@ -340,6 +340,14 @@ export default async function CompanyAdminPage({
 
   const commsData = activeTab === "comms"
     ? await db.select().from(threads).where(eq(threads.company_id, id)).orderBy(desc(threads.last_message_at_ms))
+    : null;
+
+  const focusedThreadId = activeTab === "comms" ? (sp.thread ?? null) : null;
+  const focusedThread = focusedThreadId && commsData
+    ? commsData.find((t) => t.id === focusedThreadId) ?? null
+    : null;
+  const focusedMessages = focusedThread
+    ? await db.select().from(messages).where(eq(messages.thread_id, focusedThread.id)).orderBy(messages.created_at_ms)
     : null;
 
   const portalChatData = activeTab === "portal-chat" && contactIds.length > 0
@@ -473,7 +481,14 @@ export default async function CompanyAdminPage({
       ) : null}
 
       {activeTab === "comms" && commsData !== null ? (
-        <CommsTab threads={commsData} contacts={contactRows} />
+        <CommsTab
+          threads={commsData}
+          contacts={contactRows}
+          companyId={company.id}
+          focusedThreadId={focusedThreadId}
+          focusedThread={focusedThread}
+          focusedMessages={focusedMessages}
+        />
       ) : null}
 
       {activeTab === "portal-chat" ? (

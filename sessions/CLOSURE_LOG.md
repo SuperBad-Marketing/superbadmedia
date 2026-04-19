@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-10 (2026-04-19) — Comms threading + Portal Chat tab
+
+**Phase:** 5 — Build Execution (FEATURE, medium). Wave 10 continues. Built thread expansion on both company and contact Comms tabs — thread list items now clickable via URL-param pattern (`?tab=comms&thread=xxx`), rendering `ThreadDetail` with individual messages from the `messages` table in chronological order. Shared `ThreadDetail` component with inbound/outbound badges, addresses, subjects, body text. Added "Draft" badge for threads with cached AI drafts. Portal Chat tabs (both levels) confirmed already complete from earlier sessions — no changes needed. Fixed contact overview notes placeholder to reference CM-11. 2 new files, 4 edited files, 12 tests. G8: 0 TS errors, 1757+12 tests / 1 skipped. See `sessions/cm-10-handoff.md`.
+
 ## CM-8 (2026-04-18) — Portal retainer-mode kickoff (Brand DNA gate + bartender kickoff variant)
 
 **Phase:** 5 — Build Execution (UI, small). Wave 10 continues. Built retainer-mode Brand DNA hard lock gate (`BrandDnaGate` component) — lock icon, Playfair explanation, CTA to Brand DNA assessment, blurred section previews beneath. Retainer kickoff bartender variant added to `generateOpeningLine()` — one-shot special prompt acknowledging new chapter + first-shoot scheduling as primary action, stamped via `retainer_kickoff_bartender_said_at_ms`. Tour suppression for retainer converters + bundled-release portals (3 suppression conditions). Entry-path branching: direct/referral entrants redirect to `/lite/portal/welcome` before chat-home. API route passes `kickoffVariant` flag through. 2 activity log events wired (`retainer_mode_brand_dna_gate_entered`, `retainer_kickoff_bartender_message_sent`). 2 new files, 4 edited files, 11 tests. G8: 0 TS errors, 1741 tests / 1 skipped. See `sessions/cm-8-handoff.md`.
