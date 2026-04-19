@@ -46,9 +46,9 @@ export function PortalShell({
           zIndex: 0,
           pointerEvents: "none",
           background: [
-            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242,140,82,0.10), transparent 60%)",
-            "radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178,40,72,0.08), transparent 60%)",
-            "radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244,160,176,0.05), transparent 60%)",
+            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242,140,82,0.18), transparent 60%)",
+            "radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178,40,72,0.15), transparent 60%)",
+            "radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244,160,176,0.10), transparent 60%)",
           ].join(","),
         }}
       />
@@ -225,10 +225,10 @@ export function PortalShell({
             transition={{ ...houseSpring, delay: 0.3 }}
             style={{
               borderRadius: 16,
-              border: "1px solid rgba(253,245,230,0.08)",
-              background: "rgba(34,34,31,0.6)",
-              backdropFilter: "blur(10px)",
-              boxShadow: "inset 0 1px 0 rgba(253,245,230,0.06)",
+              border: "1px solid rgba(253,245,230,0.12)",
+              background: "rgba(34,34,31,0.7)",
+              backdropFilter: "blur(24px)",
+              boxShadow: "inset 0 1px 0 rgba(253,245,230,0.08), 0 2px 12px rgba(0,0,0,0.3)",
               padding: 28,
             }}
           >
@@ -238,7 +238,7 @@ export function PortalShell({
                 fontSize: 10,
                 letterSpacing: "3px",
                 textTransform: "uppercase",
-                color: "var(--neutral-500)",
+                color: "var(--brand-pink)",
                 margin: 0,
               }}
             >
@@ -251,7 +251,7 @@ export function PortalShell({
                 listStyle: "none",
                 display: "flex",
                 flexDirection: "column",
-                gap: 14,
+                gap: 16,
               }}
             >
               {[
@@ -266,8 +266,10 @@ export function PortalShell({
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: 14,
-                    lineHeight: 1.5,
-                    color: "var(--neutral-300)",
+                    lineHeight: 1.6,
+                    color: "var(--brand-cream)",
+                    paddingLeft: 16,
+                    borderLeft: "2px solid rgba(178,40,72,0.4)",
                   }}
                 >
                   {text}
@@ -302,17 +304,17 @@ function PortalCard({
       style={{
         borderRadius: 16,
         border: active
-          ? "1px solid rgba(178,40,72,0.4)"
-          : "1px solid rgba(253,245,230,0.08)",
+          ? "1px solid rgba(178,40,72,0.5)"
+          : "1px solid rgba(253,245,230,0.12)",
         background: active
-          ? "rgba(34,34,31,0.8)"
-          : "rgba(34,34,31,0.4)",
-        backdropFilter: "blur(10px)",
+          ? "rgba(34,34,31,0.85)"
+          : "rgba(34,34,31,0.5)",
+        backdropFilter: "blur(24px)",
         boxShadow: active
-          ? "inset 0 1px 0 rgba(253,245,230,0.06), 0 4px 24px rgba(178,40,72,0.08)"
-          : "inset 0 1px 0 rgba(253,245,230,0.04)",
+          ? "inset 0 1px 0 rgba(253,245,230,0.08), 0 8px 32px rgba(178,40,72,0.12)"
+          : "inset 0 1px 0 rgba(253,245,230,0.06), 0 2px 12px rgba(0,0,0,0.2)",
         padding: 28,
-        opacity: active ? 1 : 0.6,
+        opacity: active ? 1 : 0.7,
         transition: "opacity 300ms ease, border-color 300ms ease",
       }}
     >

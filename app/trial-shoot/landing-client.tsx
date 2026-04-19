@@ -38,9 +38,9 @@ export function LandingClient() {
           zIndex: 0,
           pointerEvents: "none",
           background: [
-            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242,140,82,0.10), transparent 60%)",
-            "radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178,40,72,0.08), transparent 60%)",
-            "radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244,160,176,0.05), transparent 60%)",
+            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242,140,82,0.18), transparent 60%)",
+            "radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178,40,72,0.15), transparent 60%)",
+            "radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244,160,176,0.10), transparent 60%)",
           ].join(","),
         }}
       />
