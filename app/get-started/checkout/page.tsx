@@ -103,7 +103,7 @@ async function authedSubscriberHasLiveSubscriptionFor(
       ),
     );
   return rows.some((r) =>
-    r.subscription_state === "active" ||
+    r.subscription_state === "active_current" ||
     r.subscription_state === "past_due" ||
     r.subscription_state === "paused",
   );

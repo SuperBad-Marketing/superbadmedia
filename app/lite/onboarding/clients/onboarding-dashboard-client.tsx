@@ -50,8 +50,8 @@ function resolveVariant(
   state: string | null,
   usage: DashboardUsageSnapshot | null | undefined,
 ): Variant {
-  if (state === "active" && usage?.anyAtCap) return "at_cap";
-  if (state === "active") return "active";
+  if (state === "active_current" && usage?.anyAtCap) return "at_cap";
+  if (state === "active_current") return "active";
   if (state === "past_due") return "past_due";
   return "waiting";
 }
@@ -154,7 +154,7 @@ function headline(v: Variant): string {
 }
 
 function humanState(s: string): string {
-  if (s === "active") return "active";
+  if (s === "active_current") return "active";
   if (s === "past_due") return "payment failed";
   if (s === "paused") return "paused";
   return s.replaceAll("_", " ");

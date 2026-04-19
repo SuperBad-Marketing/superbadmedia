@@ -37,10 +37,10 @@ export const DEAL_LOSS_REASONS = [
 export type DealLossReason = (typeof DEAL_LOSS_REASONS)[number];
 
 export const DEAL_SUBSCRIPTION_STATES = [
-  "active",
+  "active_current",
   "past_due",
   "paused",
-  "pending_early_exit",
+  "cancel_scheduled_preterm",
   "cancelled_paid_remainder",
   "cancelled_buyout",
   "cancelled_post_term",

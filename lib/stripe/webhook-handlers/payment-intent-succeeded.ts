@@ -184,7 +184,7 @@ export async function handlePaymentIntentSucceeded(
         .update(deals)
         .set({
           stripe_subscription_id: sub.id,
-          subscription_state: "active",
+          subscription_state: "active_current",
           committed_until_date_ms: quote.committed_until_date_ms ?? null,
         })
         .where(eq(deals.id, deal.id));

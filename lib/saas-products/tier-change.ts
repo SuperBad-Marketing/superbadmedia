@@ -160,7 +160,7 @@ export async function applyTierChange(
     );
   }
   if (
-    deal.subscription_state !== "active" &&
+    deal.subscription_state !== "active_current" &&
     deal.subscription_state !== null
   ) {
     // Paused / past_due / cancelled etc. → refuse. Caller shows a copy
@@ -397,7 +397,7 @@ export async function applyProductSwitch(
     );
   }
   if (
-    deal.subscription_state !== "active" &&
+    deal.subscription_state !== "active_current" &&
     deal.subscription_state !== null
   ) {
     throw new TierChangeError(

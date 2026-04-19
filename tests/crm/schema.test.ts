@@ -38,10 +38,10 @@ describe("SP-1 enum shape", () => {
 
   it("deals.subscription_state is the 8-tuple (Quote Builder §5.6 + past_due via subscription-lifecycle webhooks)", () => {
     expect([...DEAL_SUBSCRIPTION_STATES]).toEqual([
-      "active",
+      "active_current",
       "past_due",
       "paused",
-      "pending_early_exit",
+      "cancel_scheduled_preterm",
       "cancelled_paid_remainder",
       "cancelled_buyout",
       "cancelled_post_term",

@@ -79,7 +79,7 @@ export interface HealthBanner {
   first_fired_at: number;
 }
 
-const MRR_STATES: DealSubscriptionState[] = ["active", "past_due"];
+const MRR_STATES: DealSubscriptionState[] = ["active_current", "past_due"];
 const CANCELLED_STATES: DealSubscriptionState[] = [
   "cancelled_paid_remainder",
   "cancelled_buyout",
@@ -205,7 +205,7 @@ async function computeNearCapCount(
 ): Promise<number> {
   let count = 0;
   for (const r of rows) {
-    if (r.subscription_state !== "active") continue;
+    if (r.subscription_state !== "active_current") continue;
     if (!r.primary_contact_id || !r.saas_product_id) continue;
     const snap = await loadDashboardUsage(
       r.primary_contact_id,

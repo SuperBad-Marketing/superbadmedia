@@ -127,7 +127,7 @@ const handleManualInvoiceSend: TaskHandler = async (task) => {
     .where(eq(deals.id, p.deal_id))
     .get();
   if (!deal) return;
-  const active = deal.subscription_state === "active";
+  const active = deal.subscription_state === "active_current";
   const committed = deal.committed_until_date_ms;
   const nextSendAt = sent.issue_date_ms + AVG_MONTH_MS;
   if (active && committed && nextSendAt < committed) {

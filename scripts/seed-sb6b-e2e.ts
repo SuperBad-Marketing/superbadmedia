@@ -58,7 +58,7 @@ export const SB6B_E2E = {
   },
 } as const;
 
-type Variant = "active" | "past_due";
+type Variant = "active_current" | "past_due";
 
 async function seedSubscriber(
   db: DB,
@@ -203,7 +203,7 @@ export async function seedSb6bE2e(db: DB): Promise<Sb6bE2eTokens> {
 
   const active = await seedSubscriber(db, {
     ...SB6B_E2E.active,
-    state: "active",
+    state: "active_current",
   });
   const pastDue = await seedSubscriber(db, {
     ...SB6B_E2E.pastDue,

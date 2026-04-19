@@ -56,7 +56,7 @@ export async function getPortalMode(
   const isRetainer =
     wonDeal.length > 0 &&
     wonDeal[0].subscription_state != null &&
-    ["active", "past_due", "paused"].includes(wonDeal[0].subscription_state);
+    ["active_current", "past_due", "paused"].includes(wonDeal[0].subscription_state);
 
   const [bdProfile] = await db
     .select({ status: brand_dna_profiles.status })

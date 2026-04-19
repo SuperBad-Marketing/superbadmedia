@@ -85,7 +85,7 @@ export async function handleSaasSubscriptionUsageReset(
 
 function isLiveSubscription(state: string | null): boolean {
   if (!state) return false;
-  return state === "active" || state === "past_due" || state === "paused";
+  return state === "active_current" || state === "past_due" || state === "paused";
 }
 
 export const SAAS_SUBSCRIPTION_HANDLERS = {

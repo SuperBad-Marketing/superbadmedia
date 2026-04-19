@@ -100,7 +100,7 @@ export default async function ClientsIndexPage({
     if (d.won_outcome) entry.wonOutcomes.push(d.won_outcome);
 
     const isActive =
-      d.subscription_state === "active" ||
+      d.subscription_state === "active_current" ||
       d.subscription_state === "past_due" ||
       d.subscription_state === "paused";
     const isCancelled =

@@ -103,7 +103,7 @@ function seedSentInvoice(overrides: {
       title: "Acme",
       stage: "won",
       primary_contact_id: contactId,
-      subscription_state: "active",
+      subscription_state: "active_current",
       stripe_customer_id: overrides.dealCustomerId ?? null,
       last_stage_change_at_ms: NOW,
       created_at_ms: NOW,

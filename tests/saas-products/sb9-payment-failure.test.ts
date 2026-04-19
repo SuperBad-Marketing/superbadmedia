@@ -107,7 +107,7 @@ const NOW = 1_700_000_000_000;
 const PRODUCT_ID = "sb9-prod";
 
 function seedDeal(opts?: {
-  state?: "active" | "past_due" | "paused";
+  state?: "active_current" | "past_due" | "paused";
   failureCount?: number;
   firstFailureMs?: number | null;
 }) {
@@ -159,7 +159,7 @@ function seedDeal(opts?: {
     created_at_ms: NOW,
     updated_at_ms: NOW,
     stripe_subscription_id: subId,
-    subscription_state: opts?.state ?? "active",
+    subscription_state: opts?.state ?? "active_current",
     saas_product_id: PRODUCT_ID,
     payment_failure_count: opts?.failureCount ?? 0,
     first_payment_failure_at_ms: opts?.firstFailureMs ?? null,
@@ -267,8 +267,8 @@ describe("SB-9: invoice.payment_succeeded → cancel pending task", () => {
 });
 
 describe("SB-9: handleSaasDataLossWarning handler", () => {
-  it("no-ops silently when deal has recovered (state = active)", async () => {
-    const { dealId, companyId } = seedDeal({ state: "active" });
+  it("no-ops silently when deal has recovered (state = active_current)", async () => {
+    const { dealId, companyId } = seedDeal({ state: "active_current" });
     await handleSaasDataLossWarning({
       id: "t1",
       task_type: "saas_data_loss_warning",

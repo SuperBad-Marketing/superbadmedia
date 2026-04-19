@@ -35,11 +35,11 @@ const NOW = 1_700_000_000_000;
 function seedDeal(
   id: string,
   subscription_state:
-    | "active"
-    | "pending_early_exit"
+    | "active_current"
+    | "cancel_scheduled_preterm"
     | "cancelled_paid_remainder"
     | "cancelled_buyout"
-    | null = "active",
+    | null = "active_current",
 ) {
   testDb
     .insert(deals)
@@ -121,15 +121,15 @@ beforeEach(() => {
 });
 
 describe("QB-8 — beginEarlyCancelIntent", () => {
-  it("flips active → pending_early_exit", async () => {
-    seedDeal("d-1", "active");
+  it("flips active_current → cancel_scheduled_preterm", async () => {
+    seedDeal("d-1", "active_current");
     const result = await beginEarlyCancelIntent({ deal_id: "d-1" });
     expect(result.ok).toBe(true);
-    expect(result.deal?.subscription_state).toBe("pending_early_exit");
+    expect(result.deal?.subscription_state).toBe("cancel_scheduled_preterm");
   });
 
-  it("refuses when deal is not in active", async () => {
-    seedDeal("d-1", "pending_early_exit");
+  it("refuses when deal is not in active_current", async () => {
+    seedDeal("d-1", "cancel_scheduled_preterm");
     const result = await beginEarlyCancelIntent({ deal_id: "d-1" });
     expect(result.ok).toBe(false);
     expect(result.error).toMatch(/illegal_transition/);
@@ -142,7 +142,7 @@ describe("QB-8 — beginEarlyCancelIntent", () => {
   });
 
   it("does not log activity on begin (state flip only)", async () => {
-    seedDeal("d-1", "active");
+    seedDeal("d-1", "active_current");
     await beginEarlyCancelIntent({ deal_id: "d-1" });
     const logs = testDb.select().from(activity_log).all();
     expect(logs).toHaveLength(0);
@@ -150,15 +150,15 @@ describe("QB-8 — beginEarlyCancelIntent", () => {
 });
 
 describe("QB-8 — abandonEarlyCancelIntent", () => {
-  it("flips pending_early_exit → active", async () => {
-    seedDeal("d-1", "pending_early_exit");
+  it("flips cancel_scheduled_preterm → active_current", async () => {
+    seedDeal("d-1", "cancel_scheduled_preterm");
     const result = await abandonEarlyCancelIntent({ deal_id: "d-1" });
     expect(result.ok).toBe(true);
-    expect(result.deal?.subscription_state).toBe("active");
+    expect(result.deal?.subscription_state).toBe("active_current");
   });
 
-  it("refuses if deal is already active", async () => {
-    seedDeal("d-1", "active");
+  it("refuses if deal is already active_current", async () => {
+    seedDeal("d-1", "active_current");
     const result = await abandonEarlyCancelIntent({ deal_id: "d-1" });
     expect(result.ok).toBe(false);
     expect(result.error).toMatch(/illegal_transition/);
@@ -166,12 +166,12 @@ describe("QB-8 — abandonEarlyCancelIntent", () => {
 });
 
 describe("QB-8 — finaliseEarlyCancelPaidRemainder", () => {
-  it("flips pending_early_exit → cancelled_paid_remainder + logs + cancels tasks", async () => {
-    seedDeal("d-1", "pending_early_exit");
+  it("flips cancel_scheduled_preterm → cancelled_paid_remainder + logs + cancels tasks", async () => {
+    seedDeal("d-1", "cancel_scheduled_preterm");
     seedPendingTask("t-1", "subscription_pause_resume", "d-1");
     seedPendingTask("t-2", "subscription_pause_resume_reminder", "d-1", "42");
     // Unrelated deal's pending task — must not be touched.
-    seedDeal("d-2", "pending_early_exit");
+    seedDeal("d-2", "cancel_scheduled_preterm");
     seedPendingTask("t-3", "subscription_pause_resume", "d-2");
 
     const result = await finaliseEarlyCancelPaidRemainder({
@@ -206,19 +206,19 @@ describe("QB-8 — finaliseEarlyCancelPaidRemainder", () => {
     expect(t3.status).toBe("pending");
   });
 
-  it("refuses when deal is not in pending_early_exit", async () => {
-    seedDeal("d-1", "active");
+  it("refuses when deal is not in cancel_scheduled_preterm", async () => {
+    seedDeal("d-1", "active_current");
     const result = await finaliseEarlyCancelPaidRemainder({ deal_id: "d-1" });
     expect(result.ok).toBe(false);
     expect(result.error).toMatch(/illegal_transition/);
     const row = testDb.select().from(deals).where(eq(deals.id, "d-1")).get();
-    expect(row.subscription_state).toBe("active");
+    expect(row.subscription_state).toBe("active_current");
   });
 });
 
 describe("QB-8 — finaliseEarlyCancelBuyout", () => {
-  it("flips pending_early_exit → cancelled_buyout + logs buyout_50pct kind", async () => {
-    seedDeal("d-1", "pending_early_exit");
+  it("flips cancel_scheduled_preterm → cancelled_buyout + logs buyout_50pct kind", async () => {
+    seedDeal("d-1", "cancel_scheduled_preterm");
     const result = await finaliseEarlyCancelBuyout({
       deal_id: "d-1",
       by_user_id: "u-1",

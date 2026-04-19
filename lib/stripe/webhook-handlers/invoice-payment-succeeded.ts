@@ -82,7 +82,7 @@ export async function handleInvoicePaymentSucceeded(
   await database
     .update(deals)
     .set({
-      subscription_state: "active",
+      subscription_state: "active_current",
       payment_failure_count: 0,
       first_payment_failure_at_ms: null,
       updated_at_ms: nowMs,
@@ -116,13 +116,13 @@ export async function handleInvoicePaymentSucceeded(
     company_id: deal.company_id,
     deal_id: deal.id,
     kind: "saas_payment_recovered",
-    body: `Subscription payment recovered — past_due → active.`,
+    body: `Subscription payment recovered — past_due → active_current.`,
     meta: {
       kind: "subscription_payment_recovered",
       stripe_subscription_id: subId,
       stripe_invoice_id: invoice.id,
       previous_state: deal.subscription_state,
-      new_state: "active",
+      new_state: "active_current",
       previous_failure_count: deal.payment_failure_count ?? 0,
       event_id: opts.eventId,
     },

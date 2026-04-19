@@ -88,7 +88,7 @@ async function seedInvoice(opts: {
       title: "Acme",
       stage: "won",
       primary_contact_id: "c-1",
-      subscription_state: "active",
+      subscription_state: "active_current",
       last_stage_change_at_ms: NOW,
       created_at_ms: NOW,
       updated_at_ms: NOW,

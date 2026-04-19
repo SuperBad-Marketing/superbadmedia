@@ -294,7 +294,7 @@ export async function createSaasSubscriptionAction(
           next_action_text: null,
           last_stage_change_at_ms: nowMs,
           source: "get-started-checkout",
-          subscription_state: "active",
+          subscription_state: "active_current",
           committed_until_date_ms: committedUntilDateMs,
           pause_used_this_commitment: false,
           billing_cadence: input.cadence,

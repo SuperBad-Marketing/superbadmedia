@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## PM-4 (2026-04-19) — Subscription State Naming Reconciliation (Wave 13c)
+
+**Phase:** 5 — Build Execution (INFRA, small). Renamed `DEAL_SUBSCRIPTION_STATES` enum values to match FOUNDATIONS §12 canonical state machine: `active` → `active_current`, `pending_early_exit` → `cancel_scheduled_preterm`. Migration `0051_pm4_subscription_state_rename.sql` (two UPDATE statements). Full cascade through 25+ consumer files: 4 Stripe webhook handlers, early-cancel flow, invoicing chain guard, SaaS headline signals, tier change guards, portal mode, inbox context panel, checkout actions, onboarding dashboard, 11 test files, 3 seed scripts. 1 PATCHES_OWED closed: `qb_subs_subscription_state_naming_drift`. G8: 0 TS errors (excl. pre-existing), 1833 tests / 0 failures. See `sessions/pm-4-handoff.md`.
+
 ## PM-3 (2026-04-19) — Realtime Channel / SSE Push Layer (Wave 13c)
 
 **Phase:** 5 — Build Execution (INFRA, medium). SSE infrastructure for admin real-time push: (1) in-process event bus (`lib/events/admin-event-bus.ts`); (2) auth+kill-switch-gated SSE endpoint at `/api/admin/events`; (3) `useAdminEvents()` client hook with auto-reconnect; (4) `<AdminEventToasts />` consumer in admin layout routing events to `useToastWithSound()`. Emitters wired into `email-bounced.ts` (bounce rollback toast + `error` sound) and `invoice-payment-failed.ts` (payment failed toast + `error` sound). `quote-accepted` sound added to `ConfirmationScreen` on public quote page via `useSound().play()`. Kill switch `admin_sse_enabled` added (defaults ON). 3 PATCHES_OWED closed: `sp9_bounce_rollback_toast`, `sp9_payment_failed_urgent_toast`, `qb4c_sound_quote_accepted_emit`. 5 new files, 5 edited. G8: 0 TS errors (excl. pre-existing), 1833 tests / 0 failures. See `sessions/pm-3-handoff.md`.

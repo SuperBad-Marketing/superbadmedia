@@ -2,7 +2,7 @@
  * SB-7 usage metering E2E fixture.
  *
  * Seeds two SaaS subscribers against the hermetic Playwright DB, both
- * `subscription_state = "active"` but on opposite sides of their tier
+ * `subscription_state = "active_current"` but on opposite sides of their tier
  * cap for one usage dimension (`e2e_actions`, limit 10):
  *   - `warn`  → 8 recorded usage events (80% → warn status)
  *   - `at_cap`→ 10 recorded usage events (100% → at_cap takeover)
@@ -155,7 +155,7 @@ async function seedSubscriber(
     stage: "won",
     won_outcome: "saas",
     value_estimated: false,
-    subscription_state: "active",
+    subscription_state: "active_current",
     billing_cadence: "monthly",
     stripe_customer_id: `cus_test_${cfg.userId}`,
     stripe_subscription_id: `sub_test_${cfg.userId}`,

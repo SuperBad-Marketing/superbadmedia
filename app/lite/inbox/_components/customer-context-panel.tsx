@@ -233,14 +233,14 @@ function Row({
 
 function formatSubscriptionState(state: string): string {
   switch (state) {
-    case "active":
+    case "active_current":
       return "Active";
     case "past_due":
       return "Past due";
     case "paused":
       return "Paused";
-    case "pending_early_exit":
-      return "Pending early exit";
+    case "cancel_scheduled_preterm":
+      return "Cancelling at term end";
     case "cancelled_paid_remainder":
       return "Cancelled — paid remainder";
     case "cancelled_buyout":

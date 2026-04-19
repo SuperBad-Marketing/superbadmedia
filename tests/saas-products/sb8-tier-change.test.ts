@@ -151,7 +151,7 @@ function seedFixture() {
   sqlite
     .prepare(
       `INSERT INTO deals (id, company_id, primary_contact_id, title, stage, value_estimated, pause_used_this_commitment, last_stage_change_at_ms, subscription_state, billing_cadence, stripe_subscription_id, saas_product_id, saas_tier_id, created_at_ms, updated_at_ms)
-       VALUES (?, ?, ?, 'Test', 'won', 1, 0, ?, 'active', 'monthly', ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, 'Test', 'won', 1, 0, ?, 'active_current', 'monthly', ?, ?, ?, ?, ?)`,
     )
     .run(
       DEAL_ID, COMPANY_ID, CONTACT_ID, now, STRIPE_SUB,

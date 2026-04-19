@@ -23,17 +23,17 @@ export interface EarlyCancelResult {
 }
 
 /**
- * Flip `subscription_state: active → pending_early_exit` atomically.
+ * Flip `subscription_state: active_current → cancel_scheduled_preterm` atomically.
  *
  * Called from the Client Portal cancel flow the moment the client picks
  * option 2 (pay remainder) or option 3 (buyout), *before* we hit Stripe
- * for the charge. The `pending_early_exit` state is how we resist
+ * for the charge. The `cancel_scheduled_preterm` state is how we resist
  * double-submits and give the back-out path (`abandonEarlyCancelIntent`)
  * somewhere to land if Stripe confirmation fails or the client changes
  * their mind mid-payment.
  *
- * Concurrency guard: `WHERE subscription_state = 'active'` — if anything
- * else has already moved the row off `active`, the UPDATE matches zero
+ * Concurrency guard: `WHERE subscription_state = 'active_current'` — if anything
+ * else has already moved the row off `active_current`, the UPDATE matches zero
  * rows and we return `illegal_transition` rather than clobbering state.
  */
 export async function beginEarlyCancelIntent(
@@ -45,21 +45,21 @@ export async function beginEarlyCancelIntent(
 
   const updated = await database
     .update(deals)
-    .set({ subscription_state: "pending_early_exit", updated_at_ms: now })
+    .set({ subscription_state: "cancel_scheduled_preterm", updated_at_ms: now })
     .where(
-      and(eq(deals.id, input.deal_id), eq(deals.subscription_state, "active")),
+      and(eq(deals.id, input.deal_id), eq(deals.subscription_state, "active_current")),
     )
     .returning();
 
   if (updated.length === 0) {
-    return pickIllegalOrNotFound(database, input.deal_id, "active");
+    return pickIllegalOrNotFound(database, input.deal_id, "active_current");
   }
   return { ok: true, deal: updated[0] };
 }
 
 /**
  * Back-out of a pending early-cancel. Flips
- * `pending_early_exit → active`. Used by (a) the "let's chat" /
+ * `cancel_scheduled_preterm → active_current`. Used by (a) the "let's chat" /
  * "actually, stay" button if it's reachable after begin, and (b) the
  * Stripe payment-failed branch in the Client Portal wave.
  */
@@ -72,11 +72,11 @@ export async function abandonEarlyCancelIntent(
 
   const updated = await database
     .update(deals)
-    .set({ subscription_state: "active", updated_at_ms: now })
+    .set({ subscription_state: "active_current", updated_at_ms: now })
     .where(
       and(
         eq(deals.id, input.deal_id),
-        eq(deals.subscription_state, "pending_early_exit"),
+        eq(deals.subscription_state, "cancel_scheduled_preterm"),
       ),
     )
     .returning();
@@ -85,7 +85,7 @@ export async function abandonEarlyCancelIntent(
     return pickIllegalOrNotFound(
       database,
       input.deal_id,
-      "pending_early_exit",
+      "cancel_scheduled_preterm",
     );
   }
   return { ok: true, deal: updated[0] };
@@ -93,7 +93,7 @@ export async function abandonEarlyCancelIntent(
 
 /**
  * Finalise option 2 — client paid the remaining committed cycles in
- * full. Flips `pending_early_exit → cancelled_paid_remainder`, cancels
+ * full. Flips `cancel_scheduled_preterm → cancelled_paid_remainder`, cancels
  * pending per-deal scheduled tasks, and stamps the activity log.
  *
  * Data shape only — the Stripe charge + subscription cancel run in the
@@ -114,7 +114,7 @@ export async function finaliseEarlyCancelPaidRemainder(
 
 /**
  * Finalise option 3 — client paid the 50% buyout. Flips
- * `pending_early_exit → cancelled_buyout`, cancels pending per-deal
+ * `cancel_scheduled_preterm → cancelled_buyout`, cancels pending per-deal
  * scheduled tasks, and stamps the activity log.
  */
 export async function finaliseEarlyCancelBuyout(
@@ -155,7 +155,7 @@ async function finaliseTerminal(
         .where(
           and(
             eq(deals.id, input.deal_id),
-            eq(deals.subscription_state, "pending_early_exit"),
+            eq(deals.subscription_state, "cancel_scheduled_preterm"),
           ),
         )
         .returning()
@@ -170,7 +170,7 @@ async function finaliseTerminal(
     return pickIllegalOrNotFound(
       database,
       input.deal_id,
-      "pending_early_exit",
+      "cancel_scheduled_preterm",
     );
   }
 

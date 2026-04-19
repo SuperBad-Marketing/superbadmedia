@@ -102,10 +102,10 @@ export async function loadSupportCustomerContext(
   ]);
 
   const liveSubscriberStates = new Set<DealSubscriptionState>([
-    "active",
+    "active_current",
     "past_due",
     "paused",
-    "pending_early_exit",
+    "cancel_scheduled_preterm",
   ]);
   const activeDeal = dealRows.find(
     (d) =>
@@ -176,7 +176,7 @@ export async function loadSupportCustomerContext(
   }
 
   const retainerActive = dealRows.some(
-    (d) => d.won_outcome === "retainer" && d.subscription_state === "active",
+    (d) => d.won_outcome === "retainer" && d.subscription_state === "active_current",
   );
 
   const paymentActivityKindSet = new Set<string>(PAYMENT_ACTIVITY_KINDS);

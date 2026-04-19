@@ -145,7 +145,7 @@ interface DealFixture {
   productId: string;
   tierId: string;
   state:
-    | "active"
+    | "active_current"
     | "past_due"
     | "paused"
     | "cancelled_paid_remainder"
@@ -263,7 +263,7 @@ describe("SB-10 getSaasHeadlineSignals — MRR + cadence + cancel exclusion", ()
       id: "d_active",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 60 * DAY,
     });
     seedDeal({
@@ -302,14 +302,14 @@ describe("SB-10 getSaasHeadlineSignals — new / churn windows", () => {
       id: "d_new_in",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 5 * DAY,
     });
     seedDeal({
       id: "d_new_out",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 60 * DAY,
     });
     const s = await getSaasHeadlineSignals({ nowMs: NOW });
@@ -346,7 +346,7 @@ describe("SB-10 getSaasHeadlineSignals — new / churn windows", () => {
       id: "d_resub",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 3 * DAY,
     });
     const s = await getSaasHeadlineSignals({ nowMs: NOW });
@@ -361,7 +361,7 @@ describe("SB-10 getSaasHeadlineSignals — MRR delta", () => {
       id: "d_stay",
       productId: PRODUCT_A,
       tierId: TIER_A_LARGE,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 90 * DAY,
     });
     // New inside window → not in prior, yes in current.
@@ -369,7 +369,7 @@ describe("SB-10 getSaasHeadlineSignals — MRR delta", () => {
       id: "d_new",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 5 * DAY,
     });
     // Cancelled inside window → in prior (was active at window start), not in current.
@@ -394,7 +394,7 @@ describe("SB-10 getSaasHeadlineSignals — MRR delta", () => {
       id: "d_first",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 5 * DAY,
     });
     const s = await getSaasHeadlineSignals({ nowMs: NOW });
@@ -424,7 +424,7 @@ describe("SB-10 getSaasHeadlineSignals — past_due + activity-log windows", () 
       id: "d_ok",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 60 * DAY,
     });
     const s = await getSaasHeadlineSignals({ nowMs: NOW });
@@ -455,7 +455,7 @@ describe("SB-10 getSaasHeadlineSignals — near cap", () => {
       id: "d_near",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 20 * DAY,
     });
     seedUsage("d_near", PRODUCT_A, "searches", 95);
@@ -464,7 +464,7 @@ describe("SB-10 getSaasHeadlineSignals — near cap", () => {
       id: "d_far",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 20 * DAY,
     });
     seedUsage("d_far", PRODUCT_A, "searches", 10);
@@ -488,14 +488,14 @@ describe("SB-10 per-product slice", () => {
       id: "d_a",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 3 * DAY,
     });
     seedDeal({
       id: "d_b",
       productId: PRODUCT_B,
       tierId: TIER_B_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 3 * DAY,
     });
     const sA = await getSaasHeadlineSignalsForProduct(PRODUCT_A, {
@@ -537,7 +537,7 @@ describe("SB-10 getSaasHealthBanners", () => {
       id: "d_x",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 60 * DAY,
     });
     killSwitches.saas_headlines_enabled = false;
@@ -553,7 +553,7 @@ describe("SB-10 window override", () => {
       id: "d_recent",
       productId: PRODUCT_A,
       tierId: TIER_A_SMALL,
-      state: "active",
+      state: "active_current",
       createdAtMs: NOW - 10 * DAY,
     });
     const s7 = await getSaasHeadlineSignals({ nowMs: NOW, windowDays: 7 });

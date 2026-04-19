@@ -46,7 +46,7 @@ export async function handleSaasSubscriptionTierDowngradeApply(
     .where(eq(deals.id, payload.deal_id))
     .get();
   if (!deal || !deal.stripe_subscription_id) return;
-  if (deal.subscription_state && deal.subscription_state !== "active") return;
+  if (deal.subscription_state && deal.subscription_state !== "active_current") return;
   if (deal.saas_tier_id === payload.to_tier_id) return;
 
   const newTier = await db

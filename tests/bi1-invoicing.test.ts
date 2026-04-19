@@ -51,7 +51,7 @@ const NOW = 1_700_000_000_000;
 function seedCoreRows(opts: {
   gst_applicable?: boolean;
   billing_mode?: "stripe" | "manual";
-  subscription_state?: "active" | "ended_gracefully";
+  subscription_state?: "active_current" | "ended_gracefully";
   committed_until_date_ms?: number | null;
   stage?: "won" | "quoted";
   withAcceptedQuote?: boolean;
@@ -89,7 +89,7 @@ function seedCoreRows(opts: {
       title: "Acme",
       stage: opts.stage ?? "won",
       primary_contact_id: "c-1",
-      subscription_state: opts.subscription_state ?? "active",
+      subscription_state: opts.subscription_state ?? "active_current",
       committed_until_date_ms:
         opts.committed_until_date_ms === undefined
           ? NOW + 365 * 24 * 60 * 60 * 1000

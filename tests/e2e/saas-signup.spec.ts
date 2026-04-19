@@ -191,7 +191,7 @@ test.describe("sb-e2e / SaaS signup golden path", () => {
           .get();
         expect(dealByOutcome).toBeTruthy();
         expect(dealByOutcome!.stage).toBe("won");
-        expect(dealByOutcome!.subscription_state).toBe("active");
+        expect(dealByOutcome!.subscription_state).toBe("active_current");
         expect(dealByOutcome!.stripe_subscription_id).toBeTruthy();
 
         const activity = await db

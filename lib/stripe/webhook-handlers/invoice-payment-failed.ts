@@ -80,7 +80,7 @@ export async function handleInvoicePaymentFailed(
   // practice; if Stripe ever fires spuriously, no-op (safer than
   // misincrementing a counter for a state that can't recover here).
   if (
-    deal.subscription_state !== "active" &&
+    deal.subscription_state !== "active_current" &&
     deal.subscription_state !== "past_due"
   ) {
     return { result: "ok" };

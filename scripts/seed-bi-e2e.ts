@@ -98,7 +98,7 @@ export async function seedBiE2e(db: DB): Promise<BiSeedResult> {
       won_outcome: "retainer",
       value_cents: 275_000,
       value_estimated: false,
-      subscription_state: "active",
+      subscription_state: "active_current",
       stripe_customer_id: null,
       last_stage_change_at_ms: now,
       pause_used_this_commitment: false,

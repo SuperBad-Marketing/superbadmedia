@@ -1,0 +1,2 @@
+UPDATE `deals` SET `subscription_state` = 'active_current' WHERE `subscription_state` = 'active';--> statement-breakpoint
+UPDATE `deals` SET `subscription_state` = 'cancel_scheduled_preterm' WHERE `subscription_state` = 'pending_early_exit';

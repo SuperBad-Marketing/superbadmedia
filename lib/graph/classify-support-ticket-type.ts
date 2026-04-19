@@ -69,7 +69,7 @@ async function loadSenderContext(contactId: string | null): Promise<SenderContex
     .where(eq(deals.primary_contact_id, contactId))
     .get();
 
-  const liveStates = new Set(["active", "past_due", "paused"]);
+  const liveStates = new Set(["active_current", "past_due", "paused"]);
   const isLive = dealRow?.subscription_state
     ? liveStates.has(dealRow.subscription_state)
     : false;

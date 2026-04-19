@@ -110,7 +110,7 @@ function seedSubscribedDeal(opts?: {
       created_at_ms: nowMs,
       updated_at_ms: nowMs,
       stripe_subscription_id: subId,
-      subscription_state: opts?.subscription_state ?? "active",
+      subscription_state: opts?.subscription_state ?? "active_current",
     })
     .run();
   return { dealId, companyId, subId };
@@ -196,7 +196,7 @@ describe("dispatchStripeEvent — customer.subscription.updated", () => {
     );
     expect(change).toBeDefined();
     const meta = change!.meta as Record<string, unknown>;
-    expect(meta.previous_state).toBe("active");
+    expect(meta.previous_state).toBe("active_current");
     expect(meta.new_state).toBe("past_due");
     expect(meta.stripe_status).toBe("past_due");
   });
@@ -247,7 +247,7 @@ describe("dispatchStripeEvent — customer.subscription.updated", () => {
     expect(outcome.error).toBe("unhandled_status:canceled");
 
     const deal = db.select().from(deals).where(eq(deals.id, dealId)).get();
-    expect(deal?.subscription_state).toBe("active");
+    expect(deal?.subscription_state).toBe("active_current");
   });
 
   it("trialing status → skipped", async () => {
@@ -273,7 +273,7 @@ describe("dispatchStripeEvent — customer.subscription.updated", () => {
     expect(outcome.result).toBe("ok");
 
     const deal = db.select().from(deals).where(eq(deals.id, dealId)).get();
-    expect(deal?.subscription_state).toBe("active");
+    expect(deal?.subscription_state).toBe("active_current");
   });
 });
 
@@ -478,7 +478,7 @@ describe("dispatchStripeEvent — invoice.payment_succeeded", () => {
     expect(outcome.result).toBe("ok");
 
     const deal = db.select().from(deals).where(eq(deals.id, dealId)).get();
-    expect(deal?.subscription_state).toBe("active");
+    expect(deal?.subscription_state).toBe("active_current");
 
     const logs = db
       .select()
@@ -493,7 +493,7 @@ describe("dispatchStripeEvent — invoice.payment_succeeded", () => {
     expect(recovered).toBeDefined();
     const meta = recovered!.meta as Record<string, unknown>;
     expect(meta.previous_state).toBe("past_due");
-    expect(meta.new_state).toBe("active");
+    expect(meta.new_state).toBe("active_current");
   });
 
   it("active → no-op on ongoing cycle payment (noise-free)", async () => {
@@ -505,7 +505,7 @@ describe("dispatchStripeEvent — invoice.payment_succeeded", () => {
     expect(outcome.result).toBe("ok");
 
     const deal = db.select().from(deals).where(eq(deals.id, dealId)).get();
-    expect(deal?.subscription_state).toBe("active");
+    expect(deal?.subscription_state).toBe("active_current");
 
     const logs = db
       .select()

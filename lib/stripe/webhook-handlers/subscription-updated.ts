@@ -26,7 +26,7 @@ function mapStatus(
 ): DealSubscriptionState | null {
   switch (status) {
     case "active":
-      return "active";
+      return "active_current";
     case "past_due":
     case "unpaid":
       return "past_due";
