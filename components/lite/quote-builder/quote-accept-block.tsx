@@ -4,6 +4,7 @@ import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { houseSpring } from "@/lib/design-tokens";
+import { useSound } from "@/components/lite/sound-provider";
 import { acceptQuoteAction } from "@/app/lite/quotes/[token]/actions";
 import {
   PaymentElementHost,
@@ -218,6 +219,16 @@ function ConfirmationScreen(props: {
   paymentMode: "stripe" | "manual";
   quoteNumber: string;
 }) {
+  const { play } = useSound();
+  const hasPlayed = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!hasPlayed.current) {
+      hasPlayed.current = true;
+      play("quote-accepted");
+    }
+  }, [play]);
+
   return (
     <motion.div
       layoutId="quote-primary-action"

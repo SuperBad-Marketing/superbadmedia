@@ -7,6 +7,7 @@ import { deals } from "@/lib/db/schema/deals";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { scheduled_tasks } from "@/lib/db/schema/scheduled-tasks";
 import settingsRegistry from "@/lib/settings";
+import { emitAdminEvent } from "@/lib/events/admin-event-bus";
 import type { DispatchOutcome } from "./types";
 
 type Db = BetterSQLite3Database<Record<string, unknown>> | typeof defaultDb;
@@ -130,6 +131,14 @@ export async function handleInvoicePaymentFailed(
       created_by: "stripe_webhook",
     });
 
+
+    emitAdminEvent({
+      type: "payment_failed",
+      message: `Subscription payment failed — ${subId} moved to past_due.`,
+      sound: "error",
+      timestamp: new Date(nowMs).toISOString(),
+      meta: { deal_id: deal.id, stripe_subscription_id: subId },
+    });
 
     const warningDays = await settingsRegistry.get("saas.data_loss_warning_days");
     const runAtMs = nowMs + warningDays * 24 * 60 * 60 * 1000;

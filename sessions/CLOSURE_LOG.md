@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## PM-3 (2026-04-19) — Realtime Channel / SSE Push Layer (Wave 13c)
+
+**Phase:** 5 — Build Execution (INFRA, medium). SSE infrastructure for admin real-time push: (1) in-process event bus (`lib/events/admin-event-bus.ts`); (2) auth+kill-switch-gated SSE endpoint at `/api/admin/events`; (3) `useAdminEvents()` client hook with auto-reconnect; (4) `<AdminEventToasts />` consumer in admin layout routing events to `useToastWithSound()`. Emitters wired into `email-bounced.ts` (bounce rollback toast + `error` sound) and `invoice-payment-failed.ts` (payment failed toast + `error` sound). `quote-accepted` sound added to `ConfirmationScreen` on public quote page via `useSound().play()`. Kill switch `admin_sse_enabled` added (defaults ON). 3 PATCHES_OWED closed: `sp9_bounce_rollback_toast`, `sp9_payment_failed_urgent_toast`, `qb4c_sound_quote_accepted_emit`. 5 new files, 5 edited. G8: 0 TS errors (excl. pre-existing), 1833 tests / 0 failures. See `sessions/pm-3-handoff.md`.
+
 ## PM-2 (2026-04-19) — Design System Baseline Revisit (Wave 13c)
 
 **Phase:** 5 — Build Execution (UI/spec, medium). Spec-only session — no new features, no runtime changes. Four PATCHES_OWED entries reconciled: (1) BHS closed list 8→9 (Won card outcome badge); (2) Tier 2 motion list 7→9 (brand-dna-reveal #8, bundle-reveal #9); (3) `pdf_render_overlay` formalised as named Tier 1 token; (4) sound registry name reconciliation — spec count 7→8 (brand_dna_reveal), sales-pipeline §11/§11A.2/§7.2 patched from descriptive slot names to registry keys, `whoosh-soft`/`glass-tap` removed (never in registry), stale code comments cleaned. 4 files edited, 0 new files. G8: 0 TS errors (excl. pre-existing), 1825 tests / 0 failures. See `sessions/pm-2-handoff.md`.

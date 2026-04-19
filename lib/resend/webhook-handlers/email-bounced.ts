@@ -9,6 +9,7 @@ import { activity_log } from "@/lib/db/schema/activity-log";
 import { email_suppressions } from "@/lib/db/schema/email-suppressions";
 import { normaliseEmail } from "@/lib/crm/normalise";
 import { transitionDealStage } from "@/lib/crm/transition-deal-stage";
+import { emitAdminEvent } from "@/lib/events/admin-event-bus";
 
 import type { DispatchOutcome, ResendWebhookEvent } from "./types";
 
@@ -144,6 +145,14 @@ export async function handleEmailBounced(
         },
         database,
       );
+
+      emitAdminEvent({
+        type: "deal_bounce_rollback",
+        message: `${recipient} bounced. Deal rolled back to Lead.`,
+        sound: "error",
+        timestamp: new Date(nowMs).toISOString(),
+        meta: { deal_id: row.id, contact_id: contact.id },
+      });
     } catch (err) {
       // Never propagate — record and keep going. Rollback best-effort.
       console.error(
