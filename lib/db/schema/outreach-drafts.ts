@@ -31,6 +31,8 @@ export const OUTREACH_APPROVAL_KINDS = [
   "manual",
   "auto_send",
   "nudged_manual",
+  "minor_edit_manual",
+  "edited_manual",
 ] as const;
 export type OutreachApprovalKind = (typeof OUTREACH_APPROVAL_KINDS)[number];
 

@@ -131,11 +131,13 @@ describe("LG-1 schema — enum completeness", () => {
     expect(OUTREACH_DRAFT_STATUSES).toHaveLength(6);
   });
 
-  it("outreach approval kinds has 3 values", () => {
+  it("outreach approval kinds has 5 values", () => {
     expect(OUTREACH_APPROVAL_KINDS).toEqual([
       "manual",
       "auto_send",
       "nudged_manual",
+      "minor_edit_manual",
+      "edited_manual",
     ]);
   });
 

@@ -66,6 +66,9 @@ export const SCHEDULED_TASK_TYPES = [
   "engagement_tier_evaluator",
   "auto_send_execute",
   "stale_nudge_generator",
+  // --- Lead Generation — case snippets (§17, 2) ---
+  "case_snippet_auto_approve",
+  "case_snippet_retainer_90d",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",

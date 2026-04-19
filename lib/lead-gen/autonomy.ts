@@ -14,6 +14,7 @@ type Track = "saas" | "retainer";
 
 export type AutonomyEvent =
   | { type: "clean_approval" }
+  | { type: "minor_edit_approval" }
   | { type: "non_clean_approval" }
   | { type: "rejection" }
   | { type: "hard_bounce"; sendId: string }
@@ -66,6 +67,7 @@ export async function transitionAutonomyState(
 
   switch (event.type) {
     case "clean_approval":
+    case "minor_edit_approval":
       return handleCleanApproval(track, row, dbInstance);
     case "non_clean_approval":
       return handleNonCleanApproval(track, row, dbInstance);

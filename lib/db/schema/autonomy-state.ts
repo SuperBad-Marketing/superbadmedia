@@ -28,7 +28,7 @@ export const autonomyState = sqliteTable("autonomy_state", {
     .default(0),
   graduation_threshold: integer("graduation_threshold")
     .notNull()
-    .default(10),
+    .default(5),
 
   // Probation window
   probation_sends_remaining: integer("probation_sends_remaining"),

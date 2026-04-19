@@ -210,6 +210,18 @@ const registry = {
   // Referral (1 — CM-E)
   "referral.milestone_prompt_cooldown_days": integer,
 
+  // Case snippets (1 — LG-11)
+  "snippet.auto_approve_hours": integer,
+
+  // Retargeting (2 — LG-11)
+  "retargeting.meta_pixel_id": str.nullable(),
+  "retargeting.google_conversion_id": str.nullable(),
+
+  // Autonomy adjustment (3 — LG-11)
+  "autonomy.graduation_threshold": integer,
+  "autonomy.minor_edit_char_threshold": integer,
+  "autonomy.material_edit_ratio_threshold": decimal,
+
   // Warmup ramp (5 — LG-1)
   "warmup.week_one_cap": integer,
   "warmup.week_two_cap": integer,

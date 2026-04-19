@@ -145,6 +145,11 @@ export const ACTIVITY_LOG_KINDS = [
   "dnc_email_removed",
   "dnc_domain_added",
   "dnc_domain_removed",
+  // --- Lead Generation — case snippets (§17, 4) ---
+  "case_snippet_drafted",
+  "case_snippet_approved",
+  "case_snippet_auto_approved",
+  "case_snippet_rejected",
   // --- Lead Generation — reactive scoring (§16.7, 4) ---
   "candidate_rescored",
   "candidate_track_changed",
