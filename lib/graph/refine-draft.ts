@@ -144,15 +144,12 @@ export async function generateRefinedDraft(
     threadHistory,
   });
 
-  // Single-string prompt: matches UI-5/UI-6 pattern until `invoke.ts`
-  // ships a first-class `system` param (PATCHES_OWED from UI-5).
-  const combinedPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
-
   let parsed: DraftReplyOutput;
   try {
     const text = await invokeLlmText({
       job: "inbox-draft-refine",
-      prompt: combinedPrompt,
+      system: systemPrompt,
+      prompt: userPrompt,
       maxTokens: REFINE_MAX_OUTPUT_TOKENS,
     });
     const json = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");

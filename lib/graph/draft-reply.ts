@@ -91,16 +91,13 @@ export async function generateCachedDraftReply(
 
   const systemPrompt = buildDraftReplySystemPrompt(ctx.brand_dna);
   const userPrompt = buildDraftReplyUserPrompt(ctx);
-  // The SDK boundary (`invokeLlmText`) accepts a single prompt string.
-  // Fold the system prompt in as a labelled preamble; Opus handles the
-  // role framing in-text fine and we keep the boundary tight.
-  const combinedPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
 
   let parsed: DraftReplyOutput;
   try {
     const text = await invokeLlmText({
       job: "inbox-draft-reply",
-      prompt: combinedPrompt,
+      system: systemPrompt,
+      prompt: userPrompt,
       maxTokens: MAX_OUTPUT_TOKENS,
     });
     const json = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");

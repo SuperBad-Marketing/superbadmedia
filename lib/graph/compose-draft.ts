@@ -118,16 +118,12 @@ export async function generateComposeDraft(
     recentAndySent: fewShots,
   });
 
-  // UI-5 precedent: `invokeLlmText` only takes a single string; fold the
-  // system prompt in as a labelled preamble. PATCHES_OWED carries the
-  // refactor to route via Anthropic's `system` field.
-  const combinedPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
-
   let parsed: DraftReplyOutput;
   try {
     const text = await invokeLlmText({
       job: "inbox-compose-draft",
-      prompt: combinedPrompt,
+      system: systemPrompt,
+      prompt: userPrompt,
       maxTokens: DRAFT_MAX_OUTPUT_TOKENS,
     });
     const json = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
