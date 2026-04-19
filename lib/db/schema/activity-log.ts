@@ -104,10 +104,13 @@ export const ACTIVITY_LOG_KINDS = [
   "invite_created",
   "invite_used",
   "retake_started",
-  // --- Intro Funnel (21) ---
+  // --- Intro Funnel (24) ---
   "intro_funnel_started",
   "intro_funnel_section_completed",
   "intro_funnel_abandoned",
+  "intro_funnel_abandon_15m_sent",
+  "intro_funnel_abandon_24h_sent",
+  "intro_funnel_abandon_3d_sent",
   "intro_funnel_paid",
   "intro_funnel_sms_sent",
   "intro_funnel_sms_delivered",

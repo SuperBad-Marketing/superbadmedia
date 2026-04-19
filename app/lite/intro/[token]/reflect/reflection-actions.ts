@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { intro_funnel_reflections } from "@/lib/db/schema/intro-funnel-reflections";
 import { intro_funnel_submissions } from "@/lib/db/schema/intro-funnel-submissions";
 import { logActivity } from "@/lib/activity-log";
+import { generateReflectionSynthesis } from "@/lib/intro-funnel/generate-synthesis";
+import { generateRetainerFitRecommendation } from "@/lib/intro-funnel/generate-retainer-fit";
 
 interface SaveAnswerInput {
   submissionId: string;
@@ -91,6 +93,9 @@ export async function triggerSafetyValve(
     })
     .where(eq(intro_funnel_submissions.id, submissionId));
 
+  // Retainer-fit fires even on safety-valve path (per §13.4 F2.d)
+  generateRetainerFitRecommendation(reflectionId).catch(() => {});
+
   await logActivity({
     dealId,
     kind: "post_trial_negative_feedback",
@@ -103,7 +108,7 @@ export async function completeReflection(
   reflectionId: string,
   submissionId: string,
   dealId: string,
-): Promise<void> {
+): Promise<{ synthesisText: string | null }> {
   const nowMs = Date.now();
 
   await db
@@ -119,23 +124,61 @@ export async function completeReflection(
     })
     .where(eq(intro_funnel_submissions.id, submissionId));
 
+  const synthesisResult = await generateReflectionSynthesis(reflectionId);
+  const synthesisText = synthesisResult.ok
+    ? synthesisResult.text
+    : synthesisResult.fallbackText;
+
+  // Retainer-fit fires in background — including on safety-valve path (per §13.4)
+  generateRetainerFitRecommendation(reflectionId).catch(() => {});
+
   await logActivity({
     dealId,
     kind: "reflection_complete",
     body: "Post-shoot reflection completed",
     meta: { reflection_id: reflectionId },
   });
+
+  return { synthesisText };
 }
 
 export async function recordDecision(
   reflectionId: string,
+  submissionId: string,
+  dealId: string,
   choice: "yes_talk" | "think_about_it",
 ): Promise<void> {
+  const nowMs = Date.now();
+
   await db
     .update(intro_funnel_reflections)
     .set({
       decision_cta_choice: choice,
-      decision_made_at_ms: Date.now(),
+      decision_made_at_ms: nowMs,
     })
     .where(eq(intro_funnel_reflections.id, reflectionId));
+
+  if (choice === "yes_talk") {
+    await logActivity({
+      dealId,
+      kind: "intro_funnel_state_transition",
+      body: "Prospect chose 'let's talk about what's next' — urgent follow-up",
+      meta: { reflection_id: reflectionId, decision: "yes_talk" },
+    });
+  } else {
+    await db
+      .update(intro_funnel_submissions)
+      .set({
+        funnel_state: "portal_dormant",
+        last_activity_at_ms: nowMs,
+      })
+      .where(eq(intro_funnel_submissions.id, submissionId));
+
+    await logActivity({
+      dealId,
+      kind: "intro_funnel_state_transition",
+      body: "Prospect chose 'let me think about it' — portal transitions to dormant",
+      meta: { reflection_id: reflectionId, decision: "think_about_it" },
+    });
+  }
 }

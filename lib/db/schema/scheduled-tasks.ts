@@ -69,6 +69,10 @@ export const SCHEDULED_TASK_TYPES = [
   // --- Lead Generation — case snippets (§17, 2) ---
   "case_snippet_auto_approve",
   "case_snippet_retainer_90d",
+  // --- Intro Funnel (3) ---
+  "intro_funnel_abandon_check",
+  "intro_funnel_booking_reminder",
+  "intro_funnel_reflection_reminder",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",

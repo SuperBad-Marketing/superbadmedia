@@ -55,6 +55,7 @@ export function ReflectionClient({
     existingReflection?.id,
   );
   const [safetyText, setSafetyText] = useState("");
+  const [synthesisResult, setSynthesisResult] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const currentQ =
@@ -92,7 +93,12 @@ export function ReflectionClient({
       if (questionIdx + 1 < REFLECTION_QUESTIONS.length) {
         setQuestionIdx(questionIdx + 1);
       } else {
-        await completeReflection(result.reflectionId, submissionId, dealId);
+        const { synthesisText: text } = await completeReflection(
+          result.reflectionId,
+          submissionId,
+          dealId,
+        );
+        setSynthesisResult(text);
         setPhase("synthesis");
       }
     });
@@ -113,7 +119,12 @@ export function ReflectionClient({
       if (questionIdx + 1 < REFLECTION_QUESTIONS.length) {
         setQuestionIdx(questionIdx + 1);
       } else {
-        await completeReflection(result.reflectionId, submissionId, dealId);
+        const { synthesisText: text } = await completeReflection(
+          result.reflectionId,
+          submissionId,
+          dealId,
+        );
+        setSynthesisResult(text);
         setPhase("synthesis");
       }
     });
@@ -130,16 +141,16 @@ export function ReflectionClient({
   function handleDecision(choice: "yes_talk" | "think_about_it") {
     if (!reflectionId) return;
     startTransition(async () => {
-      await recordDecision(reflectionId, choice);
+      await recordDecision(reflectionId, submissionId, dealId, choice);
       setPhase("done");
       setTimeout(() => router.push(`/lite/intro/${token}`), 2000);
     });
   }
 
-  // Fallback synthesis text (real Opus synthesis is IF-3)
   const synthesisText =
+    synthesisResult ??
     existingReflection?.synthesis_text ??
-    `You showed up. That's the part most people talk about but don't do.\n\nEverything from the shoot — the photos, the video, the plan — it's in your portal whenever you're ready to look at it properly. Take your time with it.\n\nIf something clicks, you know where to find us.`;
+    "You showed up. That's the part most people talk about but don't do.\n\nEverything from the shoot — the photos, the video, the plan — it's in your portal whenever you're ready to look at it properly. Take your time with it.\n\nIf something clicks, you know where to find us.";
 
   return (
     <main
