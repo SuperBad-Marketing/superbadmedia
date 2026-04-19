@@ -5,11 +5,15 @@ import { eq, and, gte, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { six_week_plans } from "@/lib/db/schema/six-week-plans";
+import { deals } from "@/lib/db/schema/deals";
+import { contacts } from "@/lib/db/schema/contacts";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { sendEmail } from "@/lib/channels/email/send";
 import { generateWeeksFromStrategy } from "./generate";
 import settingsRegistry from "@/lib/settings";
 import { auth } from "@/lib/auth/session";
+import { issueMagicLink } from "@/lib/portal/issue-magic-link";
 
 async function requireAdmin(): Promise<string> {
   const session = await auth();
@@ -115,6 +119,9 @@ export async function approveDetail(planId: string): Promise<{ ok: boolean; erro
     return { ok: false, error: `Cannot approve detail in status: ${plan.status}` };
   }
 
+  const isRevisionRegen =
+    !!plan.revision_requested_at_ms && !plan.revision_resolution;
+
   const now = Date.now();
   await db
     .update(six_week_plans)
@@ -123,6 +130,12 @@ export async function approveDetail(planId: string): Promise<{ ok: boolean; erro
       approved_at_ms: now,
       reviewed_by: userId,
       updated_at_ms: now,
+      ...(isRevisionRegen
+        ? {
+            revision_resolution: "regenerated" as const,
+            revision_reply_sent_at_ms: now,
+          }
+        : {}),
     })
     .where(eq(six_week_plans.id, planId));
 
@@ -132,6 +145,17 @@ export async function approveDetail(planId: string): Promise<{ ok: boolean; erro
     body: "Six-week plan approved and ready for release.",
     meta: { plan_id: planId },
   });
+
+  if (isRevisionRegen) {
+    await logActivity({
+      dealId: plan.deal_id,
+      kind: "six_week_plan_revision_regenerated",
+      body: "Plan revised after prospect's revision note.",
+      meta: { plan_id: planId },
+    });
+
+    sendRevisionRegeneratedEmail(plan.deal_id, planId).catch(() => {});
+  }
 
   revalidatePath(`/lite/six-week-plans/${planId}/review`);
   return { ok: true };
@@ -207,4 +231,47 @@ async function checkRegenWarning(planId: string): Promise<boolean> {
 
 export async function getRegenWarningStatus(planId: string): Promise<boolean> {
   return checkRegenWarning(planId);
+}
+
+async function sendRevisionRegeneratedEmail(
+  dealId: string,
+  planId: string,
+): Promise<void> {
+  const deal = await db.query.deals.findFirst({
+    where: eq(deals.id, dealId),
+  });
+  if (!deal?.primary_contact_id) return;
+
+  const contact = await db.query.contacts.findFirst({
+    where: eq(contacts.id, deal.primary_contact_id),
+  });
+  if (!contact?.email) return;
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const planPath = "/lite/portal/plan";
+
+  const { url: magicLinkUrl } = await issueMagicLink({
+    contactId: contact.id,
+    issuedFor: "six_week_plan_revision_regenerated",
+  });
+
+  const portalLink = `${magicLinkUrl}?callbackUrl=${encodeURIComponent(planPath)}`;
+
+  await sendEmail({
+    to: contact.email,
+    subject: "Your plan's been updated",
+    body: [
+      "We took your note on board and reworked the plan.",
+      "It's live on your portal now — worth a fresh read through from the top,",
+      "not just the parts you flagged.",
+      "",
+      `Read updated plan: ${portalLink}`,
+      "",
+      "Andy",
+      "SuperBad Marketing",
+    ].join("\n"),
+    classification: "six_week_plan_revision_regenerated",
+    purpose: "Notify prospect their plan was revised after their revision note",
+    replyTo: "andy@superbadmedia.com.au",
+  });
 }

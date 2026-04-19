@@ -25,6 +25,7 @@ import { INTRO_FUNNEL_BOOKING_REMINDER_HANDLERS } from "./intro-funnel-booking-r
 import { INTRO_FUNNEL_REFLECTION_REMINDER_HANDLERS } from "./intro-funnel-reflection-reminder";
 import { SIX_WEEK_PLAN_GENERATE_HANDLERS } from "./six-week-plan-generate";
 import { SIX_WEEK_PLAN_MIGRATION_HANDLERS } from "./six-week-plan-migration";
+import { SIX_WEEK_PLAN_REVISION_QUEUE_HANDLERS } from "./six-week-plan-revision-queue";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -64,4 +65,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...INTRO_FUNNEL_REFLECTION_REMINDER_HANDLERS,
   ...SIX_WEEK_PLAN_GENERATE_HANDLERS,
   ...SIX_WEEK_PLAN_MIGRATION_HANDLERS,
+  ...SIX_WEEK_PLAN_REVISION_QUEUE_HANDLERS,
 };

@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { six_week_plans } from "@/lib/db/schema/six-week-plans";
 import { six_week_plan_task_progress } from "@/lib/db/schema/six-week-plan-task-progress";
 import { logActivity } from "@/lib/activity-log";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { getPortalSession } from "@/lib/portal/guard";
 import settingsRegistry from "@/lib/settings";
 import type { WeeksOutput } from "@/lib/ai/prompts/six-week-plan/weeks";
@@ -154,6 +155,17 @@ export async function submitRevisionAction(
     body: "Prospect requested a plan revision.",
     meta: { plan_id: planId, note_preview: note.trim().slice(0, 100) },
   });
+
+  await enqueueTask({
+    task_type: "plan_revision_review_queue",
+    runAt: Date.now(),
+    payload: {
+      plan_id: planId,
+      deal_id: plan.deal_id,
+      note_preview: note.trim().slice(0, 120),
+    },
+    idempotencyKey: `plan_revision_queue:${planId}`,
+  }).catch(() => {});
 
   revalidatePath(`/lite/portal`);
   return { ok: true };

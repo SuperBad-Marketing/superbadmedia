@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-7 (2026-04-20) — Six-Week Plan Generator: Revision-Review Queue Automation
+
+**Phase:** 5 — Build Execution (Wave 15). `plan_revision_review_queue` scheduled task type + handler — sends admin email when prospect requests plan revision. Portal `submitRevisionAction` enqueues the task. `approveDetail` detects revision-triggered regen (plan has `revision_requested_at_ms` but no `revision_resolution`), stamps resolution as `regenerated`, fires `six_week_plan_revision_regenerated` email with magic-link portal URL, logs activity. Cockpit waiting-item integration deferred to DC wave. See `sessions/swp7-handoff.md`.
+
 ## SWP-6 (2026-04-20) — Six-Week Plan Generator: Retainer Migration + Refresh-Review Surface
 
 **Phase:** 5 — Build Execution (Wave 15). `active_strategies` table (forward dependency for CCE-1, per CCE spec §12.5). Migration handler `migratePlanOnWon()` copies plan payload to active_strategy on Deal Won, enqueued via `six_week_plan_migrate_on_won` scheduled task from `finaliseDealAsWon()`. Refresh-review admin surface at `/lite/admin/clients/[companyId]/strategy/refresh-review` — two-column layout with migrated plan overview + three actions: approve as-is, regenerate against retainer scope, hand-edit weeks inline. Retroactive Week 1 fires on refresh-review publish when payment was queued pre-review. Portal plan-view updated: retainer pending-refresh-review band (two copy variants for pre/post-payment), title switches to "Your Strategy" when live, Start Week 1 button + revision request suppressed for retainer path. See `sessions/swp6-handoff.md`.

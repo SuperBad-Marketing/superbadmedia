@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-7` — Six-Week Plan Generator: revision-review queue automation (spec §7 remaining + BUILD_PLAN cron `plan_revision_review_queue`)
-**Brief:** SWP-6 COMPLETE. `active_strategies` table created (forward dependency for CCE-1). Migration handler copies plan to active_strategy on Deal Won. Refresh-review admin surface at `/lite/admin/clients/[companyId]/strategy/refresh-review` with approve/regen/hand-edit paths. Retroactive Week 1 fires on refresh-review publish when payment was queued. Portal plan-view updated with retainer band + title switch + activation suppression.
+**Next session:** `SWP-8` — Six-Week Plan Generator: PDF render overlay (Puppeteer integration for plan PDF — consumes A4 `renderToPdf()` token)
+**Brief:** SWP-7 COMPLETE. `plan_revision_review_queue` scheduled task registered + handler sends admin email on revision request. Portal `submitRevisionAction` enqueues the task. `approveDetail` detects revision-regen (plan with revision note but no resolution), stamps `revision_resolution='regenerated'`, fires `six_week_plan_revision_regenerated` email with magic-link portal URL, logs activity. Portal echo cards for revision replies already built in SWP-5.
 **Model tier:** Sonnet
-**Last closed:** SWP-6 (2026-04-20) — see `sessions/swp6-handoff.md`
-**Wave status:** Wave 15 IN PROGRESS. SWP-1 through SWP-6 done; SWP-7 next.
+**Last closed:** SWP-7 (2026-04-20) — see `sessions/swp7-handoff.md`
+**Wave status:** Wave 15 IN PROGRESS. SWP-1 through SWP-7 done; SWP-8 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
