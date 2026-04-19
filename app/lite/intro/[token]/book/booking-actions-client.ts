@@ -1,7 +1,6 @@
 "use server";
 
 import { computeAvailableSlots, type Slot } from "@/lib/intro-funnel/calendar";
-import { bookSlotAction } from "@/lib/intro-funnel/booking-actions";
 
 export async function fetchAvailableSlots(): Promise<Slot[]> {
   const now = new Date();
@@ -14,5 +13,6 @@ export async function bookSlot(
   startMs: number,
   endMs: number,
 ): Promise<{ ok: boolean; error?: string }> {
+  const { bookSlotAction } = await import("@/lib/intro-funnel/booking-actions");
   return bookSlotAction(token, startMs, endMs);
 }

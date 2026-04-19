@@ -47,14 +47,40 @@ async function loadCalendarConfig(): Promise<CalendarConfigData> {
     };
   }
 
+  const rawHours = (cfg.business_hours_json ?? {}) as Record<string, unknown>;
+  const businessHours = normaliseBusinessHours(rawHours);
+
   return {
     timezone: cfg.timezone,
-    businessHours:
-      (cfg.business_hours_json as Record<string, { start: string; end: string }>) ?? {},
+    businessHours,
     blackoutDates: (cfg.blackout_dates_json as string[]) ?? [],
     advanceNoticeDays: cfg.intro_funnel_advance_notice_business_days,
     perWeekCap: cfg.intro_funnel_per_week_cap,
   };
+}
+
+const DAY_NAME_TO_NUMBER: Record<string, string> = {
+  sun: "0", mon: "1", tue: "2", wed: "3", thu: "4", fri: "5", sat: "6",
+};
+
+function normaliseBusinessHours(
+  raw: Record<string, unknown>,
+): Record<string, { start: string; end: string }> {
+  const result: Record<string, { start: string; end: string }> = {};
+  for (const [key, val] of Object.entries(raw)) {
+    const dayNum = DAY_NAME_TO_NUMBER[key.toLowerCase()] ?? key;
+    if (Array.isArray(val) && val.length >= 2) {
+      result[dayNum] = { start: String(val[0]), end: String(val[1]) };
+    } else if (
+      val &&
+      typeof val === "object" &&
+      "start" in val &&
+      "end" in val
+    ) {
+      result[dayNum] = val as { start: string; end: string };
+    }
+  }
+  return result;
 }
 
 function addBusinessDays(date: Date, days: number, tz: string): Date {
@@ -205,13 +231,11 @@ export async function computeAvailableSlots(
     ) {
       const slotDate = new Date(cursor);
       const parts = getDatePartsInTz(slotDate, tz);
-      const slotStart = new Date(
-        `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}T${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}:00`,
-      );
-
-      const tzOffset = slotDate.getTimezoneOffset();
-      const targetOffset = getTimezoneOffsetMs(slotStart, tz);
-      const startMs = slotStart.getTime() + targetOffset;
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const utcMs = Date.UTC(parts.year, parts.month - 1, parts.day, h, m, 0);
+      const targetOffset = getTimezoneOffsetMs(new Date(utcMs), tz);
+      const startMs = utcMs + targetOffset;
       const endMs = startMs + SLOT_DURATION_MS;
 
       if (startMs < effectiveFrom.getTime()) {
