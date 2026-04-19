@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-3` — Six-Week Plan Generator: generator pipeline (stages 1 + 2 + self-review + Andy review UI)
-**Brief:** SWP-2 COMPLETE. All 4 prompts populated, content doc landed with portal copy + email bodies + PDF layout + review UI microcopy. SWP-3 builds the two-stage generator pipeline consuming these prompts, plus Andy's two-tier review surface.
+**Next session:** `SWP-4` — Six-Week Plan Generator: shoot-day notes form + "Generate plan" button on Pipeline Trial Shoot panel
+**Brief:** SWP-3 COMPLETE. Full generator pipeline (stages 1 + 2 + self-review), scheduled task handler, server actions, and Andy's two-tier review UI at `/lite/six-week-plans/[planId]/review` all landed. SWP-4 builds the entry point — shoot-day notes structured form on the Deal's Trial Shoot panel + the "Generate plan" button that creates the plan row and enqueues the generator.
 **Model tier:** Sonnet
-**Last closed:** SWP-2 (2026-04-19) — see `sessions/swp2-handoff.md`
-**Wave status:** Wave 15 IN PROGRESS. SWP-1 + SWP-2 done; SWP-3 (generator pipeline + review UI) next.
+**Last closed:** SWP-3 (2026-04-19) — see `sessions/swp3-handoff.md`
+**Wave status:** Wave 15 IN PROGRESS. SWP-1 + SWP-2 + SWP-3 done; SWP-4 (shoot-day notes form + generate trigger) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

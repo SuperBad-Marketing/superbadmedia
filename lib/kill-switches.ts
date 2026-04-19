@@ -35,6 +35,7 @@ export type KillSwitchKey =
   | "content_newsletter_enabled"
   | "content_outreach_enabled"
   | "lead_gen_enabled"
+  | "plan_automations_enabled"
   | "admin_sse_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
@@ -119,6 +120,10 @@ const defaults: KillSwitchRegistry = {
   // Lead Gen cron handlers exit early. Flip ON in Phase 6 after warmup
   // DNS is verified and Hunter.io key is configured.
   lead_gen_enabled: false,
+  // SWP-3: gates the six-week plan generator pipeline, expiry jobs, and
+  // migrate-on-Won handler. When OFF, all SWP scheduled-task handlers
+  // exit early. Flip ON in Phase 6 after prompts are tuned.
+  plan_automations_enabled: false,
   admin_sse_enabled: true,
 };
 

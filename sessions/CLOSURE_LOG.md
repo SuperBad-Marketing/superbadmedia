@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-3 (2026-04-19) — Six-Week Plan Generator: Pipeline + Review UI
+
+**Phase:** 5 — Build Execution (Wave 15). Generator pipeline (`lib/six-week-plan/generate.ts`) — stage 1 (Opus strategy) → stage 2 (Opus weeks) → self-review (Haiku) with one retry. `invokeLlmTextWithMeta()` added for token-level cost tracking. `plan_automations_enabled` kill switch. Scheduled task handler registered. Server actions for approve/regen/reject flows. Review UI at `/lite/six-week-plans/[planId]/review` — two-tier (strategy outline → weekly detail), flagged-assumption corrections, self-review warning banner, regen soft warning at 4+. See `sessions/swp3-handoff.md`.
+
 ## SWP-2 (2026-04-19) — Six-Week Plan Generator: Content Mini-Session
 
 **Phase:** 5 — Build Execution (Wave 15). All 4 prompt stubs populated: strategy (Opus, full context bundle + signal-based calibration), weeks (Opus, per-week elaboration with regen/self-review support), review (Haiku, 8-point checklist), revision-reply (Haiku, Andy's explain-path draft). Content doc at `docs/content/six-week-plan-generator.md` with portal copy, 3 email bodies, archived-portal microcopy, pending-refresh-review band (2 variants), PDF layout direction (cover/footer/closing/overlay), Andy's review UI microcopy (tab titles, badges, action labels, regen placeholders). See `sessions/swp2-handoff.md`.

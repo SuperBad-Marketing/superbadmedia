@@ -39,3 +39,25 @@ export async function invokeLlmText({
   });
   return response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
 }
+
+export interface InvokeLlmResult {
+  text: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+export async function invokeLlmTextWithMeta(
+  options: InvokeLlmTextOptions,
+): Promise<InvokeLlmResult> {
+  const response = await CLIENT_SINGLETON.messages.create({
+    model: modelFor(options.job),
+    max_tokens: options.maxTokens,
+    ...(options.system ? { system: options.system } : {}),
+    messages: [{ role: "user", content: options.prompt }],
+  });
+  return {
+    text: response.content.find((b) => b.type === "text")?.text?.trim() ?? "",
+    inputTokens: response.usage.input_tokens,
+    outputTokens: response.usage.output_tokens,
+  };
+}

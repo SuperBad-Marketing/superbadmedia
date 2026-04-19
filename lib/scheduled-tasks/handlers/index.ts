@@ -23,6 +23,7 @@ import { CASE_SNIPPET_HANDLERS } from "./case-snippet";
 import { INTRO_FUNNEL_ABANDON_HANDLERS } from "./intro-funnel-abandon";
 import { INTRO_FUNNEL_BOOKING_REMINDER_HANDLERS } from "./intro-funnel-booking-reminder";
 import { INTRO_FUNNEL_REFLECTION_REMINDER_HANDLERS } from "./intro-funnel-reflection-reminder";
+import { SIX_WEEK_PLAN_GENERATE_HANDLERS } from "./six-week-plan-generate";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -60,4 +61,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...INTRO_FUNNEL_ABANDON_HANDLERS,
   ...INTRO_FUNNEL_BOOKING_REMINDER_HANDLERS,
   ...INTRO_FUNNEL_REFLECTION_REMINDER_HANDLERS,
+  ...SIX_WEEK_PLAN_GENERATE_HANDLERS,
 };
