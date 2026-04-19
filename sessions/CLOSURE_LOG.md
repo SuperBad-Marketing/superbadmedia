@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## AT-2 (2026-04-19) — Free Audit Tool frontend (Wave 13b COMPLETE)
+
+**Phase:** 5 — Build Execution (UI, large). Wave 13b closes. Form page at `/get-started/audit` with 4 required + 4 optional progressive-disclosure fields, honeypot, Turnstile invisible widget. SSE consumer for cinematic processing reveal (9 signal status lines with live indicator animations). Grade reveal: 1.5s beat → 120px+ spring-animated overall grade → colour-coded category cards staggered 200ms with Haiku explanations. Graceful degradation (<3 categories → simplified partial results). Error phase with reset. Turnstile env vars added to `.env.example`. 3 new files, 1 edited, 6 tests. G8: 0 TS errors, 1819 tests / 0 failures. See `sessions/at-2-handoff.md`.
+
 ## AT-1 (2026-04-19) — Free Audit Tool backend
 
 **Phase:** 5 — Build Execution (FEATURE, large). Wave 13b continues. Full audit tool backend: `audit_submissions` + `audit_rate_limits` tables, 9-signal enrichment orchestrator (reuses LG-2/LG-3), 5-category scoring engine (pure functions), Haiku category explanations, Opus follow-up draft, PDF report template + delivery via `renderToPdf()` + `sendEmail()` (new attachment support), pipeline integration with domain dedup, Turnstile + honeypot + IP rate limit + daily cap validation, two API routes (sync JSON + SSE streaming for cinematic reveal). Also fixed LG-11 migration (breakpoint markers + settings INSERT columns). 12 new files, 7 edited files, 7 tests. G8: 0 TS errors, 1813 tests / 1 skipped. See `sessions/at-1-handoff.md`.
