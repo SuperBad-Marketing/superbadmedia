@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## PM-2 (2026-04-19) — Design System Baseline Revisit (Wave 13c)
+
+**Phase:** 5 — Build Execution (UI/spec, medium). Spec-only session — no new features, no runtime changes. Four PATCHES_OWED entries reconciled: (1) BHS closed list 8→9 (Won card outcome badge); (2) Tier 2 motion list 7→9 (brand-dna-reveal #8, bundle-reveal #9); (3) `pdf_render_overlay` formalised as named Tier 1 token; (4) sound registry name reconciliation — spec count 7→8 (brand_dna_reveal), sales-pipeline §11/§11A.2/§7.2 patched from descriptive slot names to registry keys, `whoosh-soft`/`glass-tap` removed (never in registry), stale code comments cleaned. 4 files edited, 0 new files. G8: 0 TS errors (excl. pre-existing), 1825 tests / 0 failures. See `sessions/pm-2-handoff.md`.
+
 ## PM-1 (2026-04-19) — Settings → Display UI (Wave 13c)
 
 **Phase:** 5 — Build Execution (UI, small). 6-control preferences panel at `/lite/admin/settings/display` — Motion (radio), Sounds (switch), Density (radio), Text Size (radio), Theme (radio), Typeface (radio). Server actions persist to `user` table via Drizzle. Fixed enum drift between A2 design-tokens and A5 user schema (density, text_size enums + theme/typeface defaults). 4 new files, 3 edited, 6 tests. G8: 0 TS errors (excl. pre-existing), 1818 tests / 0 new failures. See `sessions/pm-1-handoff.md`.

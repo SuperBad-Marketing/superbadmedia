@@ -140,7 +140,7 @@ Each colour has a clearly defined job. No colour appears outside its job.
 
 ### Black Han Sans closed list (Q6)
 
-Black Han Sans appears in **exactly these 8 locations** across the entire app. Anywhere else, the rule violates the brand and the build session is wrong. Adding a 9th location requires explicit Andy approval, captured in this spec.
+Black Han Sans appears in **exactly these 9 locations** across the entire app. Anywhere else, the rule violates the brand and the build session is wrong. Adding a 10th location requires explicit Andy approval, captured in this spec.
 
 1. Marketing landing page hero (Lite-hosted, post-GHL).
 2. Morning brief headline / day eyebrow (above the narrative paragraph).
@@ -150,6 +150,7 @@ Black Han Sans appears in **exactly these 8 locations** across the entire app. A
 6. Empty state hero text ("No leads yet.", "Inbox clear. Suspicious.", etc.).
 7. Tier 2 arrival reveal text ("Welcome aboard", "First client. Don't fuck it up.", milestone overlays).
 8. Setup wizard intro screen + completion screen (entry and exit only — not every step).
+9. Won card outcome badge (`RETAINER` / `SAAS`) — caption-size BHS in the Kanban Won column. Added SP-3 (2026-04-14).
 
 Every other H1 in Lite — admin page headers, settings pages, modal titles, table headers — uses **DM Sans semibold at `--text-h2`**, not Black Han Sans.
 
@@ -223,11 +224,13 @@ export const houseSpring = {
 
 Effective duration: ~280ms with a whisker of overshoot. Used on: clicks, hovers, drags, modal opens, drawer slides, toast arrivals, Kanban card drops, tab switches, dropdowns, tooltips, popovers, every default `motion.div` in the app.
 
+**Named Tier 1 token — `pdf_render_overlay`:** Full-screen backdrop overlay that fades in (house spring) while Puppeteer renders a PDF, fades out on completion. Reusable across all synchronous render overlays (quote PDF, invoice PDF, six-week plan PDF, future branded report exports). Defined in `lib/motion/choreographies.ts` alongside the Tier 2 registry. Not a Tier 2 entry — it's a utility pattern, not a brand moment.
+
 ### Tier 2 — Arrival (choreographed)
 
 Reserved for the closed list below. Each moment has its own named choreography. Anything not on this list uses Tier 1 — no exceptions, no drive-by additions.
 
-**Tier 2 closed list:**
+**Tier 2 closed list (9 entries):**
 
 1. **First dashboard load after login.** Sidebar, topbar, main content stagger in over ~400ms total. Once per session.
 2. **Morning brief opens each day.** Playfair Display narrative paragraph fades in as a single block over ~800ms with a custom slow-out cubic-bezier (`cubic-bezier(0.16, 1, 0.3, 1)`). Once per day. Paired with the **morning brief** sound.
@@ -236,6 +239,8 @@ Reserved for the closed list below. Each moment has its own named choreography. 
 5. **Setup wizard completion (any wizard, any role).** Final step: wizard panel warm-pulses, short reward choreography plays, panel resolves into the user's previous context. **Silent** (no sound — registry is full).
 6. **Portal first-ever load.** Both client portal AND Subscriber dashboard. Tracked via `first_seen_at` timestamp on the relationship record. Chrome fades in with the user's name prominent. Subsequent loads use Tier 1.
 7. **Inbox zero.** Inbox transitions from ≥1 message to 0 — last message card shrinks out, empty state fades in with a dry SuperBad-voice line. ~600ms. Silent.
+8. **Brand DNA reveal.** Cinematic: first impression fades in alone (~1.2s), a 2–3s beat, then section-by-section tags + prose materialise over ~15–20s. Paired with the **brand_dna_reveal** sound. Per `docs/specs/brand-dna-assessment.md` §10.5. Added BDA-3 (2026-04-14).
+9. **Bundle reveal (first-visit-after-bundle deliverables hub).** Two-tile hub entrance — gallery tile + plan tile stagger in over ~600ms with warm fade-up. One-shot per contact. Silent. Per `docs/specs/client-management.md` §10.2.1. Added CM-7 (Phase 3.5 F3.a resolution, 2026-04-13).
 
 **Tier 2 conditional overlays** (extend an existing Tier 2 moment, do not add new ones):
 
@@ -254,7 +259,7 @@ OS-level `prefers-reduced-motion: reduce` automatically maps to **Motion = Reduc
 
 ## Sound (FOUNDATIONS §10 + per-sound character details)
 
-The sound registry is **locked at 7 sounds**. Adding an 8th requires explicit Andy approval. The locked registry:
+The sound registry is **locked at 8 sounds**. Adding a 9th requires explicit Andy approval. The locked registry:
 
 | # | Sound key | Character | Duration | Pairs with |
 |---|---|---|---|---|
@@ -265,6 +270,9 @@ The sound registry is **locked at 7 sounds**. Adding an 8th requires explicit An
 | 5 | `inbox-arrival` | Gentle warm pop, soft attack, no reverb, mid-frequency | ~150ms | Inbox new message (Tier 1) |
 | 6 | `deliverable-complete` | Subtle ascending two-note (C–E or similar), quiet, satisfying | ~400ms | Deliverable status change to "complete" (Tier 1) |
 | 7 | `error` | Low warm thud, low frequency, warm wooden character. Respectful failure, never harsh. | ~250ms | Error toast / form error |
+| 8 | `brand_dna_reveal` | Slow warm swell — airy pad with a distant bell that lands as the first impression fades in. Cinematic, not triumphant. | ~2.4s | Tier 2 #8 |
+
+**Sound name reconciliation (PM-2, 2026-04-19).** The sales-pipeline spec (§11, §11A.2) originally used descriptive slot names that don't exist as registry keys. The canonical mapping is: `chime-bright` → `quote-accepted` (retainer/project wins) or `subscription-activated` (SaaS wins); `tick-warm` → `kanban-drop`; `urgent-thud` → `error`. The sales-pipeline spec has been patched to use registry keys directly. No new registry entries needed — the descriptive names were character descriptions, not distinct sounds.
 
 **What is silent:**
 - All hovers
@@ -619,7 +627,7 @@ These are real questions that don't need to be answered to write *more spec*, bu
 
 1. **Exact `theme-late-shift` and `theme-quiet-hours` token values.** The values above are starting points; the first UI session tunes them in-browser against the actual app and locks the final hex codes back into this spec.
 2. **Exact `--success` sage green hex.** Currently `#7BAE7E` as a starting point; needs in-context tuning against the warm-neutral scale.
-3. **The 4 actual sound files.** Sourcing happens in the dedicated sound review session — the registry character descriptions above are the brief.
+3. **The 8 actual sound files.** Sourcing happens in the dedicated sound review session — the registry character descriptions above are the brief.
 4. **The empty state copy library** — every BHS empty state location needs a dry SuperBad-voice line. Drafted per-feature in feature specs, but they all live in `lib/empty-state-copy.ts` for consistency.
 5. **The exact Cubic-bezier curves for Tier 2 #2, #3, #4.** Defined by name above; specific curve values tuned in-browser during Phase 5.
 6. **Mobile breakpoints for the admin shell.** Desktop-first, but the eventual responsive breakpoint behaviour is a Phase 5 polish task.

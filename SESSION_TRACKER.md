@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `PM-2` — Wave 13c patch mop-up (design system revisit)
-**Brief:** PM-1 DONE (Settings Display UI). Wave 13c remaining: PM-2..PM-7. PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16). See BUILD_PLAN.md Wave 13c for scope.
-**Model tier:** Sonnet (standard session)
-**Last closed:** PM-1 (2026-04-19) — see `sessions/pm-1-handoff.md`
-**Wave status:** Wave 13c IN PROGRESS (PM-1 ✓). **Pending:** PM-2..PM-7. PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
+**Next session:** `PM-3` — Wave 13c patch mop-up (realtime channel / SSE push layer)
+**Brief:** PM-2 DONE (design system baseline revisit — spec patches only). Wave 13c remaining: PM-3..PM-7. PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16). See BUILD_PLAN.md Wave 13c for scope.
+**Model tier:** Sonnet (standard session — PM-3 is medium INFRA)
+**Last closed:** PM-2 (2026-04-19) — see `sessions/pm-2-handoff.md`
+**Wave status:** Wave 13c IN PROGRESS (PM-1 ✓, PM-2 ✓). **Pending:** PM-3..PM-7. PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

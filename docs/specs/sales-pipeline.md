@@ -474,7 +474,7 @@ Stripe is the default and the safest path. But some clients (especially larger o
 
 ### 7.2 New primitives this spec adds
 
-- **`SheetWithSound`** — slide-over panel for Deal detail. Right-edge slide-in, house spring, plays the `whoosh-soft` sound from the registry. Used for the Deal detail view, the Contact detail view, and the Trial Shoot panel.
+- **`SheetWithSound`** — slide-over panel for Deal detail. Right-edge slide-in, house spring. Silent (no sound key — slide-over opens are in the "What is silent" list per design-system baseline). Used for the Deal detail view, the Contact detail view, and the Trial Shoot panel.
 - **`DestructiveConfirmModal`** — generic confirm modal for high-stakes destructive actions. Two modes: `simple` (single button) and `type-to-confirm` (requires typing a string, button disabled until match). Also used by Loss Reason modal and any future destructive primitive.
 
 ### 7.3 New design-system addition request
@@ -595,12 +595,10 @@ Reads:
 
 ## 11. Sounds
 
-From the locked sound registry (design system baseline §10):
-- `whoosh-soft` — slide-over open (Deal detail panel)
-- `tick-warm` — successful drag-and-drop settle
-- `chime-bright` — `Won` transition (Stripe-driven OR manual)
-- `urgent-thud` — bounce / complaint webhook fires; payment failed
-- `glass-tap` — generic UI confirm (modal buttons)
+From the locked sound registry (design system baseline §Sound). Registry key names used below — see `lib/sounds.ts`:
+- `kanban-drop` — successful drag-and-drop settle
+- `quote-accepted` — retainer/project `Won` transition; `subscription-activated` — SaaS `Won` transition
+- `error` — bounce / complaint webhook fires; payment failed
 
 All sounds gated by the `prefersSound` user preference (Settings → Display).
 
@@ -629,11 +627,12 @@ All Pipeline toasts go through the locked `toast()` primitive (design system bas
 
 Pipeline-specific toast copy (dry, never cheerleading):
 - **Stage advance (non-Won):** *"Moved to {stage}."*
-- **Won (Stripe-driven):** *"{Company} converted. Nice."* + `chime-bright`
-- **Won (manual):** *"Logged as Won. Hope you invoiced them."* + `chime-bright`
+- **Won (Stripe-driven, retainer/project):** *"{Company} converted. Nice."* + `quote-accepted`
+- **Won (Stripe-driven, SaaS):** *"{Company} converted. Nice."* + `subscription-activated`
+- **Won (manual):** *"Logged as Won. Hope you invoiced them."* + `quote-accepted`
 - **Lost:** *"Marked Lost. Reason saved."* + no sound (muted event)
-- **Bounce rollback:** *"{Contact} bounced. Deal rolled back to Lead."* + `urgent-thud`
-- **Snoozed:** *"Snoozed until {date}."* + `tick-warm`
+- **Bounce rollback:** *"{Contact} bounced. Deal rolled back to Lead."* + `error`
+- **Snoozed:** *"Snoozed until {date}."* + `kanban-drop`
 
 Never use exclamation marks except on `Won`. Never say "success" or "🎉".
 
@@ -714,7 +713,7 @@ Sales Pipeline ships when:
 2. **Resend bounce/complaint rollback chain has a lot of edge cases.** Mitigation: bounce-handler-only Phase 5 session with comprehensive test fixtures.
 3. **Cross-spec coupling.** Every other Phase 3 spec will want to touch this one. Mitigation: the integration touchpoints in §10 are the contract — future specs implement against these signatures.
 4. **The Hiring Pipeline reusability claim** (`KanbanBoard` and `activity_log` are generic enough) is true by construction only if we hold the discipline. Mitigation: build-time rule §12.5.
-5. **Tier 2 motion temptation.** The Won transition is a perfect candidate for a cinematic moment — but it's not on the locked Tier 2 list. Mitigation: house spring + chime-bright sound is enough. Resist.
+5. **Tier 2 motion temptation.** The Won transition is a perfect candidate for a cinematic moment — but it's not on the locked Tier 2 list. Mitigation: house spring + `quote-accepted` / `subscription-activated` sound is enough. Resist.
 
 ---
 

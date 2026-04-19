@@ -80,8 +80,6 @@ export function PipelineBoard({
           prev.map((d) => (d.id === card.id ? { ...d, stage: toStage } : d)),
         );
         const label = STAGE_COLUMNS.find((c) => c.id === toStage)?.label ?? toStage;
-        // `kanban-drop` is the registry-locked sound for drag settle / tick-warm
-        // slot per §11 sound mapping.
         toast(`Moved to ${label}.`, { sound: "kanban-drop" });
       });
     },
@@ -126,10 +124,6 @@ export function PipelineBoard({
           ),
         );
         setFinalise(null);
-        // Won sound pairing per §11 sound mapping: retainer → quote-accepted,
-        // saas → subscription-activated, project → quote-accepted (sister
-        // chime covers both retainer and project). The `chime-bright` name
-        // in §11A.2 maps to these two locked registry entries.
         const sound: SoundKey =
           wonOutcome === "saas" ? "subscription-activated" : "quote-accepted";
         const wonMessage =
