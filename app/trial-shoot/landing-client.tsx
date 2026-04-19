@@ -145,30 +145,67 @@ export function LandingClient() {
               {/* Block 3 — Value drop */}
               <section
                 style={{
-                  maxWidth: 600,
+                  maxWidth: 520,
                   margin: "0 auto",
                   padding: "0 24px 80px",
-                  textAlign: "center",
                 }}
               >
                 <div
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 12,
-                    fontFamily: "var(--font-body)",
-                    fontSize: "clamp(1rem, 2vw, 1.125rem)",
-                    color: "var(--brand-cream)",
+                    borderRadius: 16,
+                    border: "1px solid rgba(253,245,230,0.12)",
+                    background: "rgba(34,34,31,0.7)",
+                    backdropFilter: "blur(24px)",
+                    boxShadow: "inset 0 1px 0 rgba(253,245,230,0.08), 0 2px 12px rgba(0,0,0,0.3)",
+                    padding: "32px 36px",
                   }}
                 >
-                  <p style={{ margin: 0 }}>1 short-form video</p>
-                  <p style={{ margin: 0 }}>10 edited photographs</p>
-                  <p style={{ margin: 0 }}>A bespoke 6-week marketing plan</p>
-                  <p style={{ margin: 0 }}>60 days of portal access</p>
+                  <h2
+                    style={{
+                      fontFamily: "var(--font-label)",
+                      fontSize: 10,
+                      letterSpacing: "3px",
+                      textTransform: "uppercase",
+                      color: "var(--brand-pink)",
+                      margin: "0 0 24px",
+                      textAlign: "center",
+                    }}
+                  >
+                    What you walk away with
+                  </h2>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 16,
+                    }}
+                  >
+                    {[
+                      "1 short-form video",
+                      "10 edited photographs",
+                      "A bespoke 6-week marketing plan",
+                      "60 days of portal access",
+                    ].map((item) => (
+                      <p
+                        key={item}
+                        style={{
+                          margin: 0,
+                          fontFamily: "var(--font-body)",
+                          fontSize: "clamp(1rem, 2vw, 1.125rem)",
+                          color: "var(--brand-cream)",
+                          paddingLeft: 16,
+                          borderLeft: "2px solid rgba(178,40,72,0.5)",
+                        }}
+                      >
+                        {item}
+                      </p>
+                    ))}
+                  </div>
                 </div>
                 <p
                   style={{
-                    marginTop: 24,
+                    marginTop: 20,
+                    textAlign: "center",
                     fontFamily: "var(--font-narrative)",
                     fontStyle: "italic",
                     fontSize: 16,
