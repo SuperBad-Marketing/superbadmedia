@@ -222,6 +222,12 @@ const registry = {
   "autonomy.minor_edit_char_threshold": integer,
   "autonomy.material_edit_ratio_threshold": decimal,
 
+  // Free Audit Tool (4 — AT-1)
+  "audit.daily_cap": integer,
+  "audit.rate_limit_per_ip": integer,
+  "audit.scoring_boost": integer,
+  "audit.profile_reuse_days": integer,
+
   // Warmup ramp (5 — LG-1)
   "warmup.week_one_cap": integer,
   "warmup.week_two_cap": integer,

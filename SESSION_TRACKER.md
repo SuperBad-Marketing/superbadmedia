@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `AT-1` — Free Audit Tool backend (Wave 13b)
-**Brief:** LG-11 CLOSED. AT-1 next: Free Audit Tool backend (form handler + enrichment + scoring + PDF + deal creation). See BUILD_PLAN.md Wave 13b for scope.
+**Next session:** `AT-2` — Free Audit Tool frontend (Wave 13b)
+**Brief:** AT-1 CLOSED. AT-2 next: Free Audit Tool frontend (form page at `/get-started/audit`, cinematic processing reveal via SSE, grade reveal with motion + sound, category build-in, graceful degradation). See BUILD_PLAN.md Wave 13b for scope.
 **Model tier:** Sonnet (standard session)
-**Last closed:** LG-11 (2026-04-19) — see `sessions/lg-11-handoff.md`
-**Wave status:** Wave 13b in progress (LG-11 ✓, AT-1 + AT-2 remaining). **Pending waves:** Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
+**Last closed:** AT-1 (2026-04-19) — see `sessions/at-1-handoff.md`
+**Wave status:** Wave 13b in progress (LG-11 ✓, AT-1 ✓, AT-2 remaining). **Pending waves:** Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

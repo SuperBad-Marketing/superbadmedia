@@ -106,6 +106,9 @@ export const MODELS = {
   "admin-setup-assistant": "opus",
   // email-adapter / drift-check (1) — A7
   "drift-check-grader": "haiku",
+  // free-audit-tool (2)
+  "audit-category-explanation": "haiku",
+  "audit-followup-draft": "opus",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;

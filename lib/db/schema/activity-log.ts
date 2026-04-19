@@ -313,6 +313,11 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Referral CM-E (2) ---
   "referral_submitted",
   "referral_received",
+  // --- Free Audit Tool (4) ---
+  "audit_completed",
+  "audit_followup_drafted",
+  "audit_pdf_sent",
+  "audit_retry_completed",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

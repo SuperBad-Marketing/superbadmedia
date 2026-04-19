@@ -4,6 +4,14 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## AT-1 (2026-04-19) — Free Audit Tool backend
+
+**Phase:** 5 — Build Execution (FEATURE, large). Wave 13b continues. Full audit tool backend: `audit_submissions` + `audit_rate_limits` tables, 9-signal enrichment orchestrator (reuses LG-2/LG-3), 5-category scoring engine (pure functions), Haiku category explanations, Opus follow-up draft, PDF report template + delivery via `renderToPdf()` + `sendEmail()` (new attachment support), pipeline integration with domain dedup, Turnstile + honeypot + IP rate limit + daily cap validation, two API routes (sync JSON + SSE streaming for cinematic reveal). Also fixed LG-11 migration (breakpoint markers + settings INSERT columns). 12 new files, 7 edited files, 7 tests. G8: 0 TS errors, 1813 tests / 1 skipped. See `sessions/at-1-handoff.md`.
+
+## LG-11 (2026-04-19) — Case snippets + retargeting pixel + autonomy adjustment
+
+**Phase:** 5 — Build Execution (FEATURE, medium). Wave 13b. See `sessions/lg-11-handoff.md`.
+
 ## CM-E2E (2026-04-19) — Playwright E2E: portal magic link → session → portal
 
 **Phase:** 5 — Build Execution (TEST, small). Wave 10 closer. Playwright E2E smoke test for the portal auth critical flow. Seed script (`scripts/seed-cm-e2e.ts`): company + contact + unconsumed magic link. Spec (`tests/e2e/portal-auth.spec.ts`): 2 tests — (1) magic link redeems → cookie set → portal shell renders → menu overlay opens → section grid + "Know someone?" referral item visible → DB assertions (link consumed, activity logged); (2) consumed link redirects to recover page. 2 new files, 0 edited files. G8: 0 TS errors, 1787 tests / 1 skipped. See `sessions/cm-e2e-handoff.md`.
