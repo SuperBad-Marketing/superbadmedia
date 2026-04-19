@@ -79,8 +79,9 @@ export const MODELS = {
   "finance-draft-narrative": "haiku",
   // daily-cockpit (1)
   "cockpit-brief": "opus",
-  // lead-generation (2)
+  // lead-generation (3)
   "lead-gen-outreach-draft": "opus",
+  "lead-gen-nudge-rewrite": "opus",
   "lead-gen-case-snippet": "haiku",
   // client-management (3)
   "client-mgmt-bartender-opening-line": "haiku",

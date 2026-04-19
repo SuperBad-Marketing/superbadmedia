@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## PM-7 (2026-04-19) — LG Queue Edit/Nudge Buttons (Wave 13c COMPLETE)
+
+**Phase:** 5 — Build Execution (UI, small). Added inline draft editing (subject + body textarea, `classifyEdit` integration, `approval_kind` pre-set for minor/material edits) and nudge-chat sidecar (Opus rewrite with brand voice, 6-turn limit, same pattern as inbox refine from UI-7) to the lead-gen approval queue at `/lite/admin/lead-gen`. Three new server actions: `updateDraftAction`, `nudgeRewriteAction`, `applyNudgeAction`. `minor_edit_manual` counts as clean for autonomy streak per spec §18b.2. `lead-gen-nudge-rewrite` registered in model registry. 2 new activity log kinds. 1 new file + 4 edited. 218 test files / 1833 passed. 1 PATCHES_OWED closed: `lg_7_edit_nudge_buttons`. **Wave 13c fully closed** (PM-1 through PM-7). See `sessions/pm-7-handoff.md`.
+
 ## PM-6 (2026-04-19) — Visual Remediation Discipline Patch (Wave 13c)
 
 **Phase:** 5 — Build Execution (DISCIPLINE, doc-only). Extended AUTONOMY_PROTOCOL.md §G0 with a new bullet requiring portal (`mockup-client-portal.html`), intro funnel (`mockup-intro-funnel.html`), and cockpit (`mockup-cockpit-interactive.html`) UI sessions to cite their matching mockup in brief §2a before proceeding. Mirrors the admin-interior discipline bullet added 2026-04-15. 1 PATCHES_OWED closed: `bdapolish1_visual_remediation_backlog`. Zero code. See `sessions/pm-6-handoff.md`.

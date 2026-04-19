@@ -10,6 +10,11 @@ import { dncDomains } from "@/lib/db/schema/dnc";
 import { eq } from "drizzle-orm";
 import { logActivity } from "@/lib/activity-log";
 import { transitionAutonomyState } from "@/lib/lead-gen/autonomy";
+import { classifyEdit } from "@/lib/lead-gen/classify-edit";
+import { killSwitches } from "@/lib/kill-switches";
+import { invokeLlmText } from "@/lib/ai/invoke";
+import { getSuperbadBrandProfile } from "@/lib/quote-builder/superbad-brand-profile";
+import { checkBrandVoiceDrift } from "@/lib/ai/drift-check";
 import { randomUUID } from "node:crypto";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -43,7 +48,12 @@ export async function approveDraftAction(
     draft.nudge_thread_json != null &&
     Array.isArray(draft.nudge_thread_json) &&
     (draft.nudge_thread_json as unknown[]).length > 0;
-  const approvalKind = hasNudges ? ("nudged_manual" as const) : ("manual" as const);
+  const presetKind = draft.approval_kind;
+  const approvalKind = presetKind === "minor_edit_manual" || presetKind === "edited_manual"
+    ? presetKind
+    : hasNudges
+      ? ("nudged_manual" as const)
+      : ("manual" as const);
 
   await db
     .update(outreachDrafts)
@@ -70,7 +80,7 @@ export async function approveDraftAction(
       .limit(1);
 
     if (candidate?.track === "saas" || candidate?.track === "retainer") {
-      const isClean = approvalKind === "manual";
+      const isClean = approvalKind === "manual" || approvalKind === "minor_edit_manual";
       await transitionAutonomyState(
         candidate.track,
         isClean ? { type: "clean_approval" } : { type: "non_clean_approval" },
@@ -247,6 +257,153 @@ export async function removeDncDomainAction(
     body: `Removed ${row.domain} from DNC domain list`,
     createdBy: by,
     meta: { domain: row.domain },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
+// ── Inline edit ─────────────────────────────────────────────────────
+
+export async function updateDraftAction(
+  draftId: string,
+  subject: string,
+  bodyMarkdown: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [draft] = await db
+    .select()
+    .from(outreachDrafts)
+    .where(eq(outreachDrafts.id, draftId))
+    .limit(1);
+
+  if (!draft) return { ok: false, error: "Draft not found." };
+  if (draft.status !== "pending_approval") {
+    return { ok: false, error: "Only pending drafts can be edited." };
+  }
+
+  const classification = await classifyEdit(
+    { subject: draft.subject, body_markdown: draft.body_markdown },
+    { subject, body_markdown: bodyMarkdown },
+  );
+
+  if (classification === "clean") return { ok: true };
+
+  const approvalKind =
+    classification === "minor" ? "minor_edit_manual" as const : "edited_manual" as const;
+
+  await db
+    .update(outreachDrafts)
+    .set({ subject, body_markdown: bodyMarkdown, approval_kind: approvalKind })
+    .where(eq(outreachDrafts.id, draftId));
+
+  await logActivity({
+    kind: "outreach_draft_edited",
+    body: `Edited draft ${draftId} (${classification})`,
+    createdBy: by,
+    meta: { draft_id: draftId, edit_classification: classification },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
+// ── Nudge rewrite (LLM call) ───────────────────────────────────────
+
+const NUDGE_MAX_INSTRUCTION = 500;
+const NUDGE_MAX_OUTPUT_TOKENS = 1024;
+
+type NudgeResult =
+  | { ok: true; body: string }
+  | { ok: false; error: string };
+
+export async function nudgeRewriteAction(
+  draftId: string,
+  instruction: string,
+  currentBody: string,
+): Promise<NudgeResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  if (!killSwitches.llm_calls_enabled) {
+    return { ok: false, error: "LLM calls are paused." };
+  }
+
+  const trimmed = instruction.trim().slice(0, NUDGE_MAX_INSTRUCTION);
+  if (!trimmed) return { ok: false, error: "Instruction is empty." };
+
+  const brandProfile = await getSuperbadBrandProfile();
+
+  const systemPrompt = `You are rewriting a cold outreach email on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia).
+
+BRAND VOICE:
+${brandProfile.voiceDescription}
+Tone markers: ${brandProfile.toneMarkers.join(", ")}
+${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}
+
+Respond with ONLY the rewritten email body in markdown. No JSON wrapper, no explanation, no subject line — just the email body text.`;
+
+  const userPrompt = `CURRENT DRAFT:
+${currentBody}
+
+ANDY'S INSTRUCTION:
+${trimmed}
+
+Rewrite the draft to satisfy the instruction. Keep everything the instruction doesn't touch. Changes should be surgical unless a total rewrite is asked for.`;
+
+  try {
+    const rewritten = await invokeLlmText({
+      job: "lead-gen-nudge-rewrite",
+      system: systemPrompt,
+      prompt: userPrompt,
+      maxTokens: NUDGE_MAX_OUTPUT_TOKENS,
+    });
+
+    const body = rewritten.trim();
+    if (!body) return { ok: false, error: "Model returned empty body." };
+
+    return { ok: true, body };
+  } catch {
+    return { ok: false, error: "Rewrite failed — try again." };
+  }
+}
+
+// ── Apply nudge (persist rewritten body) ────────────────────────────
+
+export async function applyNudgeAction(
+  draftId: string,
+  newBody: string,
+  nudgeThread: Array<{ role: string; content: string }>,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [draft] = await db
+    .select()
+    .from(outreachDrafts)
+    .where(eq(outreachDrafts.id, draftId))
+    .limit(1);
+
+  if (!draft) return { ok: false, error: "Draft not found." };
+  if (draft.status !== "pending_approval") {
+    return { ok: false, error: "Only pending drafts can be nudged." };
+  }
+
+  await db
+    .update(outreachDrafts)
+    .set({
+      body_markdown: newBody,
+      nudge_thread_json: nudgeThread,
+    })
+    .where(eq(outreachDrafts.id, draftId));
+
+  await logActivity({
+    kind: "outreach_draft_nudged",
+    body: `Nudge-rewrote draft ${draftId}`,
+    createdBy: by,
+    meta: { draft_id: draftId, nudge_turns: nudgeThread.length },
   });
 
   revalidatePath(LEAD_GEN_PATH);

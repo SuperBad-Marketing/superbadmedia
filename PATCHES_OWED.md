@@ -716,7 +716,7 @@ Inputs to fold into `AUTONOMY_PROTOCOL.md` when Phase 4 runs. Goal: minimise tok
 ## Phase 5 Wave 13 LG-7 (2026-04-18)
 
 - ~~**`lg_7_autonomy_streak_wiring`**~~ · **CLOSED LG-8 (2026-04-18)** — Autonomy streak cards now show real data from `getAutonomyStates()`.
-- **`lg_7_edit_nudge_buttons`** · Queue rows show Approve & Reject but not Edit or Nudge buttons. Edit requires inline draft editing UI. Nudge requires nudge-chat primitive. · LG-7 handoff · 2026-04-18 · **gate: dedicated UI session**
+- ~~**`lg_7_edit_nudge_buttons`**~~ · **CLOSED PM-7 (2026-04-19)** — Inline edit (subject + body textarea, classifyEdit integration) and nudge-chat sidecar (LLM rewrite with brand voice, same pattern as inbox refine) added to approval queue.
 
 ## Phase 5 Wave 13 LG-8 (2026-04-18)
 

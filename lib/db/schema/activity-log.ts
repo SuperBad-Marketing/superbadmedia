@@ -135,6 +135,8 @@ export const ACTIVITY_LOG_KINDS = [
   "outreach_unsubscribed",
   "outreach_draft_approved",
   "outreach_draft_rejected",
+  "outreach_draft_edited",
+  "outreach_draft_nudged",
   "sequence_stopped_engagement",
   "sequence_stopped_manual",
   "autonomy_graduated",
