@@ -19,6 +19,7 @@ interface ChatHomeProps {
   initialRemainingToday: number;
   dailyLimit: number;
   tourSeen: boolean;
+  kickoffVariant?: boolean;
 }
 
 export function ChatHome({
@@ -27,6 +28,7 @@ export function ChatHome({
   initialRemainingToday,
   dailyLimit,
   tourSeen,
+  kickoffVariant = false,
 }: ChatHomeProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
@@ -58,7 +60,7 @@ export function ChatHome({
         const res = await fetch("/api/lite/portal/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "opening_line" }),
+          body: JSON.stringify({ action: "opening_line", kickoffVariant }),
         });
         if (!cancelled && res.ok) {
           const data = (await res.json()) as { openingLine: string };

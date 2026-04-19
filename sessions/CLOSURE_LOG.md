@@ -4,6 +4,14 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-8 (2026-04-18) — Portal retainer-mode kickoff (Brand DNA gate + bartender kickoff variant)
+
+**Phase:** 5 — Build Execution (UI, small). Wave 10 continues. Built retainer-mode Brand DNA hard lock gate (`BrandDnaGate` component) — lock icon, Playfair explanation, CTA to Brand DNA assessment, blurred section previews beneath. Retainer kickoff bartender variant added to `generateOpeningLine()` — one-shot special prompt acknowledging new chapter + first-shoot scheduling as primary action, stamped via `retainer_kickoff_bartender_said_at_ms`. Tour suppression for retainer converters + bundled-release portals (3 suppression conditions). Entry-path branching: direct/referral entrants redirect to `/lite/portal/welcome` before chat-home. API route passes `kickoffVariant` flag through. 2 activity log events wired (`retainer_mode_brand_dna_gate_entered`, `retainer_kickoff_bartender_message_sent`). 2 new files, 4 edited files, 11 tests. G8: 0 TS errors, 1741 tests / 1 skipped. See `sessions/cm-8-handoff.md`.
+
+## CM-7b (2026-04-18) — Portal deliverables page
+
+**Phase:** 5 — Build Execution (UI, small). Wave 10 continues. Full deliverables UI with expandable cards, status badges, checklist progress, approve/reject actions. Task type definitions + portal query stubs for TM-1. Three-section grouping (awaiting → in-progress → delivered). 6 new files, 1 edited, 11 tests. G8: 0 TS errors, 1730 tests / 1 skipped. See `sessions/cm-7b-handoff.md`.
+
 ## CM-7 (2026-04-19) — Bundled first-visit hub (Gallery + Plan tiles)
 
 **Phase:** 5 — Build Execution (UI, medium). Wave 10 continues. One-shot two-tile deliverables hub at `/portal/[token]` intercepting chat-home for first-visit-after-bundle prospects. `getBundleHubState()` checks `contacts.bundled_hub_seen_at_ms` + `deals.cloudinary_gallery_folder` as proxy gate (full IF trigger wires in Wave 14). `dismissBundleHub()` stamps the flag and logs `bundled_hub_dismissed`. `bundle-reveal` Tier-2 choreography added (slot 9, 600ms staggered tile entrance). Plan page stub at `/portal/[token]/plan`. Plan section added to `PORTAL_SECTIONS` registry (preRetainer: true). Migration 0046 adds `bundled_hub_seen_at_ms` to contacts. 2 new activity log kinds. 5 new files, 7 edited, 8 tests. G8: 0 TS errors, 1719 tests / 1 skipped. See `sessions/cm-7-handoff.md`.

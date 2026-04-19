@@ -180,11 +180,18 @@ Rules:
 
 export async function generateOpeningLine(
   contactId: string,
+  options?: { kickoffVariant?: boolean },
 ): Promise<string> {
   const ctx = await assemblePortalContext(contactId);
   const contextBlock = buildContextBlock(ctx);
+  const isKickoff = options?.kickoffVariant ?? false;
 
-  const prompt = `Generate a single warm, contextual opening line for ${ctx.contactName} visiting their SuperBad portal. Acknowledge what's current without recapping everything. Never pitch. If nothing notable is happening, a simple warm greeting. One sentence only.
+  const prompt = isKickoff
+    ? `Generate a single warm opening line for ${ctx.contactName} who just became a retainer client. This is their first login after Brand DNA completion and deal close. Acknowledge the new chapter in one breath. Surface first-shoot scheduling as the single primary next action${ctx.pendingInvoiceCount > 0 ? ' — add "once your first invoice clears" since they have a pending invoice' : ""}. Never pitch services already paid for. Never re-walk Brand DNA. Bartender register, no slogan, no exclamation marks. One to two sentences max.
+
+Current state:
+${contextBlock}`
+    : `Generate a single warm, contextual opening line for ${ctx.contactName} visiting their SuperBad portal. Acknowledge what's current without recapping everything. Never pitch. If nothing notable is happening, a simple warm greeting. One sentence only.
 
 Current state:
 ${contextBlock}`;
@@ -203,6 +210,26 @@ ${contextBlock}`;
     escalated_to_inbox: false,
     created_at_ms: Date.now(),
   });
+
+  if (isKickoff) {
+    await db
+      .update(contacts)
+      .set({
+        retainer_kickoff_bartender_said_at_ms: Date.now(),
+        updated_at_ms: Date.now(),
+      })
+      .where(eq(contacts.id, contactId));
+
+    await logActivity({
+      contactId,
+      kind: "retainer_kickoff_bartender_message_sent",
+      body: JSON.stringify({
+        client_id: contactId,
+        contact_id: contactId,
+        gate_bypassed_pre_retainer: true,
+      }),
+    });
+  }
 
   return line;
 }

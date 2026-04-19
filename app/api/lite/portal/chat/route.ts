@@ -34,10 +34,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await req.json()) as { message?: string; action?: string };
+  const body = (await req.json()) as {
+    message?: string;
+    action?: string;
+    kickoffVariant?: boolean;
+  };
 
   if (body.action === "opening_line") {
-    const line = await generateOpeningLine(session.contactId);
+    const line = await generateOpeningLine(session.contactId, {
+      kickoffVariant: body.kickoffVariant === true,
+    });
     return NextResponse.json({ openingLine: line });
   }
 

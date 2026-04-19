@@ -5,8 +5,11 @@ import { eq } from "drizzle-orm";
 import { getPortalSession } from "@/lib/portal/guard";
 import { getChatHistory, getTodayChatCount, getDailyLimit } from "@/lib/portal/chat";
 import { getBundleHubState } from "@/lib/portal/bundle-hub";
+import { getPortalMode } from "@/lib/portal/mode";
+import { logActivity } from "@/lib/activity-log";
 import { ChatHome } from "@/components/lite/portal/chat-home";
 import { BundleHub } from "@/components/lite/portal/bundle-hub";
+import { BrandDnaGate } from "@/components/lite/portal/brand-dna-gate";
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -23,6 +26,8 @@ export default async function PortalHomePage({ params }: Props) {
     .select({
       name: contacts.name,
       portal_last_visited_at_ms: contacts.portal_last_visited_at_ms,
+      bundled_hub_seen_at_ms: contacts.bundled_hub_seen_at_ms,
+      onboarding_welcome_seen_at_ms: contacts.onboarding_welcome_seen_at_ms,
     })
     .from(contacts)
     .where(eq(contacts.id, session.contactId))
@@ -30,6 +35,35 @@ export default async function PortalHomePage({ params }: Props) {
 
   if (!contactRow) {
     redirect("/lite/portal/recover");
+  }
+
+  const modeResult = await getPortalMode(session.contactId);
+
+  if (modeResult.mode === "retainer") {
+    if (!modeResult.brandDnaComplete) {
+      await logActivity({
+        contactId: session.contactId,
+        kind: "retainer_mode_brand_dna_gate_entered",
+        body: JSON.stringify({
+          client_id: session.contactId,
+          contact_id: session.contactId,
+        }),
+      });
+
+      return (
+        <BrandDnaGate
+          portalToken={token}
+          contactFirstName={contactRow.name.split(" ")[0]}
+        />
+      );
+    }
+
+    const isDirectReferralEntrant =
+      !session.submissionId &&
+      contactRow.onboarding_welcome_seen_at_ms === null;
+    if (isDirectReferralEntrant) {
+      redirect(`/lite/portal/welcome?token=${token}`);
+    }
   }
 
   const hubState = await getBundleHubState(session.contactId);
@@ -44,7 +78,16 @@ export default async function PortalHomePage({ params }: Props) {
     );
   }
 
-  const tourSeen = contactRow.portal_last_visited_at_ms !== null;
+  const isRetainerConverter =
+    modeResult.mode === "retainer" && modeResult.brandDnaComplete;
+  const bundleHubWasSeen = contactRow.bundled_hub_seen_at_ms !== null;
+  const tourSeen =
+    contactRow.portal_last_visited_at_ms !== null ||
+    isRetainerConverter ||
+    bundleHubWasSeen;
+
+  const isKickoff =
+    isRetainerConverter && !modeResult.retainerKickoffSaid;
 
   const [history, todayCount, dailyLimit] = await Promise.all([
     getChatHistory(session.contactId),
@@ -59,6 +102,7 @@ export default async function PortalHomePage({ params }: Props) {
       initialRemainingToday={Math.max(0, dailyLimit - todayCount)}
       dailyLimit={dailyLimit}
       tourSeen={tourSeen}
+      kickoffVariant={isKickoff}
     />
   );
 }
