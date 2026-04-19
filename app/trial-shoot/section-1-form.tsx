@@ -60,17 +60,45 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <div>
-        <h2 className="font-[family-name:var(--font-label)] text-[14px] uppercase tracking-[0.15em] text-[color:var(--color-brand-cream)]">
-          LET&rsquo;S START
+        <span
+          style={{
+            fontFamily: "var(--font-label)",
+            fontSize: 10,
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+            color: "var(--brand-pink)",
+          }}
+        >
+          Step 1 of 4
+        </span>
+        <h2
+          style={{
+            fontFamily: "var(--font-narrative)",
+            fontStyle: "italic",
+            fontSize: "clamp(1.75rem, 4vw, 2.75rem)",
+            lineHeight: 1.15,
+            letterSpacing: "-0.5px",
+            color: "var(--brand-cream)",
+            margin: "12px 0 0",
+          }}
+        >
+          Let&rsquo;s start
         </h2>
-        <p className="mt-2 font-[family-name:var(--font-body)] text-[15px] text-[color:var(--color-neutral-300)]">
+        <p
+          style={{
+            marginTop: 8,
+            fontFamily: "var(--font-body)",
+            fontSize: 16,
+            color: "var(--neutral-300)",
+          }}
+        >
           Tell us the basics. We&rsquo;ll take it from here.
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <Field
           name="name"
           label="Your name"
@@ -102,18 +130,37 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
       </div>
 
       {/* SMS opt-in */}
-      <label className="flex cursor-pointer items-start gap-3">
+      <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer" }}>
         <input
           type="checkbox"
           name="smsOptIn"
           defaultChecked
-          className="mt-0.5 h-4 w-4 rounded border-[color:var(--color-neutral-600)] bg-[color:var(--color-neutral-800)] accent-[color:var(--color-brand-red)]"
+          style={{
+            marginTop: 3,
+            width: 16,
+            height: 16,
+            accentColor: "var(--brand-red)",
+          }}
         />
         <div>
-          <span className="font-[family-name:var(--font-body)] text-[15px] text-[color:var(--color-brand-cream)]">
+          <span
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 15,
+              color: "var(--brand-cream)",
+            }}
+          >
             It&rsquo;s okay to text me about my shoot.
           </span>
-          <p className="mt-1 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <p
+            style={{
+              marginTop: 4,
+              fontFamily: "var(--font-body)",
+              fontSize: 12,
+              color: "var(--neutral-500)",
+              lineHeight: 1.5,
+            }}
+          >
             We&rsquo;ll only text about your booking — reminders, changes, that
             sort of thing. You can opt out any time.
           </p>
@@ -121,11 +168,18 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
       </label>
 
       {/* Shape classification */}
-      <div className="space-y-3">
-        <p className="font-[family-name:var(--font-body)] text-[15px] text-[color:var(--color-brand-cream)]">
+      <div>
+        <p
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: 15,
+            color: "var(--brand-cream)",
+            marginBottom: 12,
+          }}
+        >
           Which best describes your business right now?
         </p>
-        <div className="space-y-2">
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {SHAPES.map((shape) => (
             <motion.button
               key={shape.value}
@@ -133,11 +187,47 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
               onClick={() => setSelectedShape(shape.value)}
               whileTap={{ scale: 0.98 }}
               transition={houseSpring}
-              className={`w-full rounded-lg px-4 py-3 text-left font-[family-name:var(--font-body)] text-[15px] transition-colors ${
-                selectedShape === shape.value
-                  ? "bg-[color:var(--color-brand-red)] text-[color:var(--color-brand-cream)]"
-                  : "bg-[color:var(--color-neutral-800)] text-[color:var(--color-neutral-300)] hover:bg-[color:var(--color-neutral-700)]"
-              }`}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "14px 20px",
+                borderRadius: 12,
+                border:
+                  selectedShape === shape.value
+                    ? "1px solid var(--brand-red)"
+                    : "1px solid rgba(253,245,230,0.08)",
+                background:
+                  selectedShape === shape.value
+                    ? "var(--brand-red)"
+                    : "var(--neutral-800)",
+                color:
+                  selectedShape === shape.value
+                    ? "var(--brand-cream)"
+                    : "var(--neutral-300)",
+                fontFamily: "var(--font-body)",
+                fontSize: 15,
+                cursor: "pointer",
+                boxShadow:
+                  selectedShape === shape.value
+                    ? "0 4px 16px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)"
+                    : "inset 0 1px 0 rgba(253,245,230,0.04)",
+                transition:
+                  "background 250ms cubic-bezier(0.16,1,0.3,1), border-color 250ms cubic-bezier(0.16,1,0.3,1), box-shadow 250ms cubic-bezier(0.16,1,0.3,1)",
+              }}
+              onMouseEnter={(e) => {
+                if (selectedShape !== shape.value) {
+                  e.currentTarget.style.background = "var(--neutral-700)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(244,160,176,0.3)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedShape !== shape.value) {
+                  e.currentTarget.style.background = "var(--neutral-800)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(253,245,230,0.08)";
+                }
+              }}
             >
               {shape.label}
             </motion.button>
@@ -146,7 +236,13 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
       </div>
 
       {error && (
-        <p className="font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-brand-red)]">
+        <p
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: 14,
+            color: "var(--brand-red)",
+          }}
+        >
           {error}
         </p>
       )}
@@ -154,7 +250,40 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
       <button
         type="submit"
         disabled={isPending || !selectedShape}
-        className="w-full rounded-lg bg-[color:var(--color-brand-red)] px-6 py-3.5 font-[family-name:var(--font-body)] text-[16px] font-medium text-[color:var(--color-brand-cream)] transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:hover:brightness-100"
+        style={{
+          width: "100%",
+          padding: "16px 24px",
+          borderRadius: 10,
+          border: "none",
+          background: isPending || !selectedShape ? "var(--neutral-700)" : "var(--brand-red)",
+          color: "var(--brand-cream)",
+          fontFamily: "var(--font-label)",
+          fontSize: 12,
+          letterSpacing: "2px",
+          textTransform: "uppercase",
+          cursor: isPending || !selectedShape ? "not-allowed" : "pointer",
+          opacity: isPending || !selectedShape ? 0.5 : 1,
+          boxShadow:
+            isPending || !selectedShape
+              ? "none"
+              : "0 8px 24px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)",
+          transition:
+            "transform 280ms cubic-bezier(0.2,0.8,0.2,1.05), box-shadow 280ms cubic-bezier(0.2,0.8,0.2,1.05), opacity 280ms ease",
+        }}
+        onMouseEnter={(e) => {
+          if (!isPending && selectedShape) {
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow =
+              "0 12px 32px rgba(178,40,72,0.4), inset 0 1px 0 rgba(253,245,230,0.15)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          if (!isPending && selectedShape) {
+            e.currentTarget.style.boxShadow =
+              "0 8px 24px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)";
+          }
+        }}
       >
         {isPending ? "One moment…" : "Next"}
       </button>
@@ -179,7 +308,15 @@ function Field({
     <div>
       <label
         htmlFor={name}
-        className="block font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-brand-cream)]"
+        style={{
+          display: "block",
+          fontFamily: "var(--font-label)",
+          fontSize: 10,
+          letterSpacing: "2px",
+          textTransform: "uppercase",
+          color: "var(--neutral-500)",
+          marginBottom: 8,
+        }}
       >
         {label}
       </label>
@@ -189,7 +326,26 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
-        className="mt-1.5 w-full rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-neutral-800)] px-3.5 py-2.5 font-[family-name:var(--font-body)] text-[15px] text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-500)] focus:border-[color:var(--color-brand-red)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-red)]"
+        style={{
+          width: "100%",
+          padding: "14px 16px",
+          borderRadius: 8,
+          border: "1px solid rgba(253,245,230,0.08)",
+          background: "var(--neutral-800)",
+          boxShadow: "inset 0 1px 0 rgba(253,245,230,0.04)",
+          fontFamily: "var(--font-body)",
+          fontSize: 16,
+          color: "var(--brand-cream)",
+          outline: "none",
+          transition:
+            "border-color 250ms cubic-bezier(0.16,1,0.3,1)",
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = "rgba(244,160,176,0.4)";
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = "rgba(253,245,230,0.08)";
+        }}
       />
     </div>
   );

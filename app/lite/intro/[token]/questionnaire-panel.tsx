@@ -79,26 +79,47 @@ export function QuestionnairePanel({
     <div>
       {/* Section intro */}
       {currentQuestion === 0 && (
-        <div className="mb-6">
-          <h4 className="font-[family-name:var(--font-body)] text-[15px] font-medium text-[color:var(--color-brand-cream)]">
+        <div style={{ marginBottom: 24 }}>
+          <h4
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 10,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "var(--brand-pink)",
+              margin: 0,
+            }}
+          >
             {section.heading}
           </h4>
-          <p className="mt-1 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
+          <p
+            style={{
+              marginTop: 6,
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              color: "var(--neutral-500)",
+            }}
+          >
             {section.subline}
           </p>
         </div>
       )}
 
       {/* Progress */}
-      <div className="mb-4 flex gap-1">
+      <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
         {section.questions.map((_, i) => (
           <div
             key={i}
-            className={`h-1 flex-1 rounded-full transition-colors ${
-              i <= currentQuestion
-                ? "bg-[color:var(--color-brand-red)]"
-                : "bg-[color:var(--color-neutral-700)]"
-            }`}
+            style={{
+              height: 3,
+              flex: 1,
+              borderRadius: 2,
+              background:
+                i <= currentQuestion
+                  ? "var(--brand-red)"
+                  : "var(--neutral-700)",
+              transition: "background 300ms ease",
+            }}
           />
         ))}
       </div>
@@ -121,13 +142,28 @@ export function QuestionnairePanel({
       </AnimatePresence>
 
       {/* Next / Skip */}
-      <div className="mt-4 flex gap-3">
+      <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
         {question.freeText && (
           <button
             type="button"
             onClick={advanceQuestion}
             disabled={isPending}
-            className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]"
+            style={{
+              background: "none",
+              border: "none",
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              color: "var(--neutral-500)",
+              cursor: "pointer",
+              padding: 0,
+              transition: "color 200ms ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "var(--neutral-300)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "var(--neutral-500)";
+            }}
           >
             Skip
           </button>
@@ -137,10 +173,42 @@ export function QuestionnairePanel({
             type="button"
             onClick={advanceQuestion}
             disabled={isPending}
-            className="ml-auto rounded-lg bg-[color:var(--color-brand-red)] px-5 py-2 font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-brand-cream)] transition hover:brightness-110 disabled:opacity-50"
+            style={{
+              marginLeft: "auto",
+              padding: "10px 24px",
+              borderRadius: 10,
+              border: "none",
+              background: isPending ? "var(--neutral-700)" : "var(--brand-red)",
+              color: "var(--brand-cream)",
+              fontFamily: "var(--font-label)",
+              fontSize: 12,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              cursor: isPending ? "not-allowed" : "pointer",
+              opacity: isPending ? 0.5 : 1,
+              boxShadow: isPending
+                ? "none"
+                : "0 6px 20px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)",
+              transition:
+                "transform 280ms cubic-bezier(0.2,0.8,0.2,1.05), box-shadow 280ms cubic-bezier(0.2,0.8,0.2,1.05), opacity 280ms ease",
+            }}
+            onMouseEnter={(e) => {
+              if (!isPending) {
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 28px rgba(178,40,72,0.4), inset 0 1px 0 rgba(253,245,230,0.15)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              if (!isPending) {
+                e.currentTarget.style.boxShadow =
+                  "0 6px 20px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)";
+              }
+            }}
           >
             {isPending
-              ? "Saving…"
+              ? "Saving\u2026"
               : isLastQuestion && isLastSection
                 ? "Finish"
                 : isLastQuestion
@@ -165,7 +233,14 @@ function QuestionCard({
   if (question.freeText) {
     return (
       <div>
-        <p className="mb-3 font-[family-name:var(--font-body)] text-[15px] text-[color:var(--color-brand-cream)]">
+        <p
+          style={{
+            marginBottom: 12,
+            fontFamily: "var(--font-body)",
+            fontSize: 15,
+            color: "var(--brand-cream)",
+          }}
+        >
           {question.question}
         </p>
         <textarea
@@ -174,10 +249,37 @@ function QuestionCard({
           placeholder={question.placeholder}
           maxLength={question.charLimit}
           rows={4}
-          className="w-full resize-none rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-neutral-800)] px-3.5 py-2.5 font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-500)] focus:border-[color:var(--color-brand-red)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-red)]"
+          style={{
+            width: "100%",
+            resize: "none",
+            padding: "14px 16px",
+            borderRadius: 8,
+            border: "1px solid rgba(253,245,230,0.08)",
+            background: "var(--neutral-800)",
+            boxShadow: "inset 0 1px 0 rgba(253,245,230,0.04)",
+            fontFamily: "var(--font-body)",
+            fontSize: 14,
+            color: "var(--brand-cream)",
+            outline: "none",
+            transition: "border-color 250ms cubic-bezier(0.16,1,0.3,1)",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "rgba(244,160,176,0.4)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "rgba(253,245,230,0.08)";
+          }}
         />
         {question.charLimit && (
-          <p className="mt-1 text-right font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]">
+          <p
+            style={{
+              marginTop: 4,
+              textAlign: "right",
+              fontFamily: "var(--font-body)",
+              fontSize: 11,
+              color: "var(--neutral-500)",
+            }}
+          >
             {(currentAnswer?.length ?? 0)}/{question.charLimit}
           </p>
         )}
@@ -187,10 +289,17 @@ function QuestionCard({
 
   return (
     <div>
-      <p className="mb-3 font-[family-name:var(--font-body)] text-[15px] text-[color:var(--color-brand-cream)]">
+      <p
+        style={{
+          marginBottom: 12,
+          fontFamily: "var(--font-body)",
+          fontSize: 15,
+          color: "var(--brand-cream)",
+        }}
+      >
         {question.question}
       </p>
-      <div className="space-y-2">
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {question.options?.map((option) => (
           <motion.button
             key={option}
@@ -198,11 +307,45 @@ function QuestionCard({
             onClick={() => onAnswer(question.id, option)}
             whileTap={{ scale: 0.98 }}
             transition={houseSpring}
-            className={`w-full rounded-lg px-4 py-3 text-left font-[family-name:var(--font-body)] text-[14px] transition-colors ${
-              currentAnswer === option
-                ? "bg-[color:var(--color-brand-red)] text-[color:var(--color-brand-cream)]"
-                : "bg-[color:var(--color-neutral-800)] text-[color:var(--color-neutral-300)] hover:bg-[color:var(--color-neutral-700)]"
-            }`}
+            style={{
+              width: "100%",
+              textAlign: "left",
+              padding: "14px 20px",
+              borderRadius: 12,
+              border:
+                currentAnswer === option
+                  ? "1px solid var(--brand-red)"
+                  : "1px solid rgba(253,245,230,0.08)",
+              background:
+                currentAnswer === option
+                  ? "var(--brand-red)"
+                  : "var(--neutral-800)",
+              color:
+                currentAnswer === option
+                  ? "var(--brand-cream)"
+                  : "var(--neutral-300)",
+              fontFamily: "var(--font-body)",
+              fontSize: 14,
+              cursor: "pointer",
+              boxShadow:
+                currentAnswer === option
+                  ? "0 4px 16px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)"
+                  : "inset 0 1px 0 rgba(253,245,230,0.04)",
+              transition:
+                "background 250ms cubic-bezier(0.16,1,0.3,1), border-color 250ms cubic-bezier(0.16,1,0.3,1), box-shadow 250ms cubic-bezier(0.16,1,0.3,1)",
+            }}
+            onMouseEnter={(e) => {
+              if (currentAnswer !== option) {
+                e.currentTarget.style.background = "var(--neutral-700)";
+                e.currentTarget.style.borderColor = "rgba(244,160,176,0.3)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentAnswer !== option) {
+                e.currentTarget.style.background = "var(--neutral-800)";
+                e.currentTarget.style.borderColor = "rgba(253,245,230,0.08)";
+              }
+            }}
           >
             {option}
           </motion.button>

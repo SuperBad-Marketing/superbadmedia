@@ -61,10 +61,25 @@ export function PaymentPanel({ token, submissionId }: PaymentPanelProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 py-4">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--color-neutral-500)] border-t-[color:var(--color-brand-red)]" />
-        <span className="font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-500)]">
-          Preparing payment…
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 0" }}>
+        <div
+          style={{
+            width: 16,
+            height: 16,
+            borderRadius: "50%",
+            border: "2px solid var(--neutral-500)",
+            borderTopColor: "var(--brand-red)",
+            animation: "spin 1s linear infinite",
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: 14,
+            color: "var(--neutral-500)",
+          }}
+        >
+          Preparing payment&hellip;
         </span>
       </div>
     );
@@ -72,7 +87,13 @@ export function PaymentPanel({ token, submissionId }: PaymentPanelProps) {
 
   if (error) {
     return (
-      <p className="font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-brand-red)]">
+      <p
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: 14,
+          color: "var(--brand-red)",
+        }}
+      >
         {error}
       </p>
     );
@@ -91,11 +112,48 @@ export function PaymentPanel({ token, submissionId }: PaymentPanelProps) {
             ease: [0.16, 1, 0.3, 1],
           }}
         >
-          <div className="mb-4 text-center">
-            <p className="font-[family-name:var(--font-display)] text-[2rem] text-[color:var(--color-brand-cream)]">
-              ${(amountCents / 100).toFixed(0)}
+          {/* Price display */}
+          <div
+            style={{
+              textAlign: "center",
+              marginBottom: 28,
+              padding: "24px 32px",
+              borderRadius: 16,
+              background: "rgba(34,34,31,0.6)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(253,245,230,0.08)",
+              boxShadow: "inset 0 1px 0 rgba(253,245,230,0.06)",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(2.5rem, 6vw, 3.5rem)",
+                lineHeight: 1,
+                color: "var(--brand-cream)",
+                margin: 0,
+              }}
+            >
+              <sup
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 14,
+                  color: "var(--brand-pink)",
+                  verticalAlign: "super",
+                }}
+              >
+                $
+              </sup>
+              {(amountCents / 100).toFixed(0)}
             </p>
-            <p className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
+            <p
+              style={{
+                marginTop: 8,
+                fontFamily: "var(--font-body)",
+                fontSize: 13,
+                color: "var(--neutral-500)",
+              }}
+            >
               GST inclusive
             </p>
           </div>
@@ -110,8 +168,28 @@ export function PaymentPanel({ token, submissionId }: PaymentPanelProps) {
                   colorPrimary: "#B22848",
                   colorBackground: "#1A1A18",
                   colorText: "#FDF5E6",
+                  colorTextSecondary: "#8A8A80",
+                  colorDanger: "#B22848",
                   borderRadius: "8px",
                   fontFamily: "var(--font-body), system-ui, sans-serif",
+                  spacingUnit: "4px",
+                },
+                rules: {
+                  ".Input": {
+                    border: "1px solid rgba(253,245,230,0.08)",
+                    boxShadow: "inset 0 1px 0 rgba(253,245,230,0.04)",
+                    transition: "border-color 250ms cubic-bezier(0.16,1,0.3,1)",
+                  },
+                  ".Input:focus": {
+                    border: "1px solid rgba(244,160,176,0.4)",
+                    boxShadow: "inset 0 1px 0 rgba(253,245,230,0.04)",
+                  },
+                  ".Label": {
+                    fontSize: "10px",
+                    letterSpacing: "2px",
+                    textTransform: "uppercase",
+                    color: "#8A8A80",
+                  },
                 },
               },
             }}
@@ -143,6 +221,8 @@ function PaymentForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+
+  const disabled = !stripe || processing || isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -192,20 +272,71 @@ function PaymentForm({
       <PaymentElement />
 
       {error && (
-        <p className="mt-3 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-red)]">
+        <p
+          style={{
+            marginTop: 12,
+            fontFamily: "var(--font-body)",
+            fontSize: 13,
+            color: "var(--brand-red)",
+          }}
+        >
           {error}
         </p>
       )}
 
       <button
         type="submit"
-        disabled={!stripe || processing || isPending}
-        className="mt-4 w-full rounded-lg bg-[color:var(--color-brand-red)] px-6 py-3 font-[family-name:var(--font-body)] text-[15px] font-medium text-[color:var(--color-brand-cream)] transition hover:brightness-110 disabled:opacity-50"
+        disabled={disabled}
+        style={{
+          width: "100%",
+          marginTop: 20,
+          padding: "16px 24px",
+          borderRadius: 10,
+          border: "none",
+          background: disabled ? "var(--neutral-700)" : "var(--brand-red)",
+          color: "var(--brand-cream)",
+          fontFamily: "var(--font-label)",
+          fontSize: 12,
+          letterSpacing: "2px",
+          textTransform: "uppercase",
+          cursor: disabled ? "not-allowed" : "pointer",
+          opacity: disabled ? 0.5 : 1,
+          boxShadow: disabled
+            ? "none"
+            : "0 8px 24px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)",
+          transition:
+            "transform 280ms cubic-bezier(0.2,0.8,0.2,1.05), box-shadow 280ms cubic-bezier(0.2,0.8,0.2,1.05), opacity 280ms ease",
+        }}
+        onMouseEnter={(e) => {
+          if (!disabled) {
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow =
+              "0 12px 32px rgba(178,40,72,0.4), inset 0 1px 0 rgba(253,245,230,0.15)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          if (!disabled) {
+            e.currentTarget.style.boxShadow =
+              "0 8px 24px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)";
+          }
+        }}
       >
-        {processing || isPending ? "Processing…" : `Pay $${(amountCents / 100).toFixed(0)}`}
+        {processing || isPending
+          ? "Processing\u2026"
+          : `Pay $${(amountCents / 100).toFixed(0)}`}
       </button>
 
-      <p className="mt-3 text-center font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+      <p
+        style={{
+          marginTop: 16,
+          textAlign: "center",
+          fontFamily: "var(--font-body)",
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: "var(--neutral-500)",
+        }}
+      >
         Your shoot is locked in. After the day, we&rsquo;ll put your photos,
         video, and six-week plan together — you&rsquo;ll get everything at once,
         usually within a week.
