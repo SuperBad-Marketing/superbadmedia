@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CM-11` — Private notes (Visible to AI toggle)
-**Brief:** Wave 10 continues. Build private notes on contact profiles with "Visible to AI" toggle. Spec: `docs/specs/client-management.md`. Requires `drizzle-orm` skill.
+**Next session:** `CM-12` — Portal polish + responsive + dark-mode + S&D ambient slots
+**Brief:** Wave 10 continues. Portal polish pass: responsive layout, dark-mode, Surprise & Delight ambient copy slots. Spec: `docs/specs/client-management.md`. Requires `framer-motion`, `tailwind-v4` skills.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CM-10 (2026-04-19) — see `sessions/cm-10-handoff.md`
-**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. CM-7 DONE. CM-7b DONE. CM-8 DONE. CM-9 DONE. CM-10 DONE. Next: CM-11 → CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
+**Last closed:** CM-11 (2026-04-19) — see `sessions/cm-11-handoff.md`
+**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. CM-7 DONE. CM-7b DONE. CM-8 DONE. CM-9 DONE. CM-10 DONE. CM-11 DONE. Next: CM-12 → CM-E → CM-E2E. (CM-E added 2026-04-18: referral surface, requires CM-5 for portal chat acknowledgement.) **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

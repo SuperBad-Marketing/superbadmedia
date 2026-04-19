@@ -3,7 +3,7 @@
  * Spec: docs/specs/client-management.md §3.
  */
 import { notFound, redirect } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -13,6 +13,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { companies } from "@/lib/db/schema/companies";
 import { deals, type DealStage } from "@/lib/db/schema/deals";
 import { activity_log } from "@/lib/db/schema/activity-log";
+import { private_notes } from "@/lib/db/schema/private-notes";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { threads, messages } from "@/lib/db/schema/messages";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
@@ -25,6 +26,8 @@ import { ContactBrandDnaTab } from "@/components/lite/admin/contacts/contact-bra
 import { ContactCommsTab } from "@/components/lite/admin/contacts/contact-comms-tab";
 import { ContactPortalChatTab } from "@/components/lite/admin/contacts/contact-portal-chat-tab";
 import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
+import { PrivateNotesFeed } from "@/components/lite/admin/contacts/private-notes-feed";
+import { addNote, toggleVisibility } from "./actions";
 
 export const metadata: Metadata = {
   title: "SuperBad — Contact",
@@ -168,6 +171,14 @@ export default async function ContactAdminPage({
     ? await db.select().from(activity_log).where(eq(activity_log.contact_id, id)).orderBy(desc(activity_log.created_at_ms)).limit(200)
     : null;
 
+  const privateNotesData = activeTab === "overview" || activeTab === "activity"
+    ? await db.select().from(private_notes).where(eq(private_notes.contact_id, id)).orderBy(desc(private_notes.created_at_ms))
+    : null;
+
+  const activityNotesData = activeTab === "overview"
+    ? await db.select().from(activity_log).where(and(eq(activity_log.contact_id, id), eq(activity_log.kind, "note"))).orderBy(desc(activity_log.created_at_ms))
+    : null;
+
   return (
     <div className="mx-auto max-w-4xl">
       {/* ——— breadcrumb ——— */}
@@ -254,6 +265,8 @@ export default async function ContactAdminPage({
           deals={dealRows}
           primaryDeal={primaryDeal}
           nowMs={nowMs}
+          privateNotes={privateNotesData ?? []}
+          activityNotes={activityNotesData ?? []}
         />
       ) : null}
 
@@ -276,7 +289,10 @@ export default async function ContactAdminPage({
       ) : null}
 
       {activeTab === "activity" ? (
-        <ActivityTab activities={activityData ?? []} />
+        <ActivityTab
+          activities={activityData ?? []}
+          privateNotes={privateNotesData ?? []}
+        />
       ) : null}
     </div>
   );
@@ -337,12 +353,16 @@ function OverviewTab({
   deals: dealRows,
   primaryDeal,
   nowMs,
+  privateNotes,
+  activityNotes,
 }: {
   contact: typeof contacts.$inferSelect;
   company: typeof companies.$inferSelect | undefined;
   deals: (typeof deals.$inferSelect)[];
   primaryDeal: typeof deals.$inferSelect | null;
   nowMs: number;
+  privateNotes: (typeof private_notes.$inferSelect)[];
+  activityNotes: (typeof activity_log.$inferSelect)[];
 }) {
   return (
     <div className="space-y-5 px-4 pb-10">
@@ -446,28 +466,14 @@ function OverviewTab({
         </section>
       )}
 
-      {/* Private notes — placeholder */}
-      <section
-        aria-label="Private notes"
-        className="rounded-[12px] p-5"
-        style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
-      >
-        <p
-          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-          style={{ letterSpacing: "1.8px" }}
-        >
-          Private notes
-        </p>
-        {contact.notes ? (
-          <p className="mt-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.65] text-[color:var(--color-neutral-300)]">
-            {contact.notes}
-          </p>
-        ) : (
-          <p className="mt-3 text-[13px] italic text-[color:var(--color-neutral-500)]">
-            No notes yet. The full notes feed with &ldquo;Visible to AI&rdquo; toggle lands in CM-11.
-          </p>
-        )}
-      </section>
+      {/* Private notes feed */}
+      <PrivateNotesFeed
+        privateNotes={privateNotes}
+        activityNotes={activityNotes}
+        contactId={contact.id}
+        addNoteAction={addNote}
+        toggleVisibilityAction={toggleVisibility}
+      />
     </div>
   );
 }

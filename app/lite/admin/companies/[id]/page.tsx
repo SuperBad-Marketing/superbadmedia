@@ -15,6 +15,7 @@ import { deals, type DealStage } from "@/lib/db/schema/deals";
 import { contacts } from "@/lib/db/schema/contacts";
 import { invoices, type InvoiceStatus } from "@/lib/db/schema/invoices";
 import { activity_log } from "@/lib/db/schema/activity-log";
+import { private_notes } from "@/lib/db/schema/private-notes";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { brand_dna_blends } from "@/lib/db/schema/brand-dna-blends";
 import { threads, messages } from "@/lib/db/schema/messages";
@@ -358,6 +359,10 @@ export default async function CompanyAdminPage({
     ? await db.select().from(activity_log).where(eq(activity_log.company_id, id)).orderBy(desc(activity_log.created_at_ms)).limit(200)
     : null;
 
+  const companyPrivateNotes = activeTab === "activity" && contactIds.length > 0
+    ? await db.select().from(private_notes).where(inArray(private_notes.contact_id, contactIds)).orderBy(desc(private_notes.created_at_ms))
+    : null;
+
   const daysSinceFirstSeen = Math.max(
     1,
     Math.floor((nowMs - company.first_seen_at_ms) / (24 * 60 * 60 * 1000)),
@@ -499,7 +504,10 @@ export default async function CompanyAdminPage({
       ) : null}
 
       {activeTab === "activity" ? (
-        <ActivityTab activities={activityData ?? []} />
+        <ActivityTab
+          activities={activityData ?? []}
+          privateNotes={companyPrivateNotes ?? undefined}
+        />
       ) : null}
     </div>
   );

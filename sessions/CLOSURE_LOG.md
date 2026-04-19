@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-11 (2026-04-19) — Private notes (Visible to AI toggle)
+
+**Phase:** 5 — Build Execution (FEATURE, small). Wave 10 continues. Built private notes with "Visible to AI" toggle on contact Overview tab. New `private_notes` table (migration 0047) with physical separation from Context Engine module per spec §7. Notes with "Visible to AI" on go to `activity_log` (kind: "note"), off goes to `private_notes` table — toggle moves rows between tables. PrivateNotesFeed client component with add-note textarea, toggle button, chronological feed. Activity tab upgraded to interleave private notes with lock icons on both contact and company profiles. Server actions for addNote and toggleVisibility. 6 new files, 5 edited files, 13 tests. G8: 0 TS errors, 1782 tests / 1 skipped. See `sessions/cm-11-handoff.md`.
+
 ## CM-10 (2026-04-19) — Comms threading + Portal Chat tab
 
 **Phase:** 5 — Build Execution (FEATURE, medium). Wave 10 continues. Built thread expansion on both company and contact Comms tabs — thread list items now clickable via URL-param pattern (`?tab=comms&thread=xxx`), rendering `ThreadDetail` with individual messages from the `messages` table in chronological order. Shared `ThreadDetail` component with inbound/outbound badges, addresses, subjects, body text. Added "Draft" badge for threads with cached AI drafts. Portal Chat tabs (both levels) confirmed already complete from earlier sessions — no changes needed. Fixed contact overview notes placeholder to reference CM-11. 2 new files, 4 edited files, 12 tests. G8: 0 TS errors, 1757+12 tests / 1 skipped. See `sessions/cm-10-handoff.md`.
