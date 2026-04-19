@@ -4,6 +4,14 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-E2E (2026-04-19) — Playwright E2E: portal magic link → session → portal
+
+**Phase:** 5 — Build Execution (TEST, small). Wave 10 closer. Playwright E2E smoke test for the portal auth critical flow. Seed script (`scripts/seed-cm-e2e.ts`): company + contact + unconsumed magic link. Spec (`tests/e2e/portal-auth.spec.ts`): 2 tests — (1) magic link redeems → cookie set → portal shell renders → menu overlay opens → section grid + "Know someone?" referral item visible → DB assertions (link consumed, activity logged); (2) consumed link redirects to recover page. 2 new files, 0 edited files. G8: 0 TS errors, 1787 tests / 1 skipped. See `sessions/cm-e2e-handoff.md`.
+
+## CM-E (2026-04-19) — Referral surface
+
+**Phase:** 5 — Build Execution (FEATURE, small). Wave 10 continues. Portal referral surface: "Know someone?" menu item + bottom-sheet form (name/email/note) + `submitReferral()` module (domain dedup, activity log, portal chat acknowledgement, Opus follow-up draft). Milestone prompt toast with 30-day cooldown. Schema: `referral_from_company_id` + `referral_from_contact_id` on deals, `last_referral_prompt_at_ms` on contacts. 5 new files, 12 edited files, 5 tests. G8: 0 TS errors, 1787 tests / 1 skipped. See `sessions/cm-e-handoff.md`.
+
 ## CM-12 (2026-04-19) — Portal polish + responsive + S&D ambient slots
 
 **Phase:** 5 — Build Execution (UI, small). Wave 10 continues. Responsive polish across 12 portal components: mobile-friendly header, menu bubble, chat bubble, section headers (stacking layout), deliverables cards (overflow fix), brand DNA gate heading. Composer bottom clearance for mobile menu bubble. 11 `data-ambient-slot` attributes wired for Wave 20 S&D `generateInVoice()` injection (empty states, descriptions, locked states, chat copy). Dark-mode confirmed no-op (platform is dark-only). 0 new files, 12 edited files, 0 new tests (CSS-only changes). G8: 0 TS errors, 1782 tests / 1 skipped. See `sessions/cm-12-handoff.md`.

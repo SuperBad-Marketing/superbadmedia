@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CM-E2E` — Playwright E2E for portal magic link → session cookie → unlocked portal
-**Brief:** Wave 10 closing. Playwright E2E smoke test for the portal auth flow: magic link → session cookie → portal renders → menu opens → referral form accessible. Critical-flow E2E per AUTONOMY_PROTOCOL.
+**Next session:** `LG-11` — Lead Gen addendum (Wave 13b opener)
+**Brief:** Wave 10 CLOSED. Wave 13b next: LG-11 + AT-1 + AT-2 (Lead Gen addendum + Free Audit Tool). See BUILD_PLAN.md Wave 13b for scope.
 **Model tier:** Sonnet (standard session)
-**Last closed:** CM-E (2026-04-19) — see `sessions/cm-e-handoff.md`
-**Wave status:** Wave 10 in progress. CM-1 DONE. CM-2 DONE. CM-3 DONE. CM-4 DONE. CM-5 DONE. CM-6 DONE. CLD-1 DONE. CLD-2 DONE. CM-7 DONE. CM-7b DONE. CM-8 DONE. CM-9 DONE. CM-10 DONE. CM-11 DONE. CM-12 DONE. CM-E DONE. Next: CM-E2E. **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
+**Last closed:** CM-E2E (2026-04-19) — see `sessions/cm-e2e-handoff.md`
+**Wave status:** Wave 10 CLOSED. **Pending waves:** Wave 13b (LG-11 + AT-1..2), Wave 13c (PM-1..PM-7 patch mop-up). PM-6 (discipline patch, zero code) still outstanding. PM-5 (invoke.ts refactor) must land before CCE-1 (Wave 16).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
