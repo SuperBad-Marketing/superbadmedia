@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-9` — Six-Week Plan Generator: migrate-on-Won to CCE active_strategy (scope likely reduced — migration handler already built in SWP-6)
-**Brief:** SWP-8 COMPLETE. Reusable `PdfRenderOverlay` component consuming the Tier-1 `pdfRenderOverlay` motion token. Plan-view "Download as PDF" now fetches via client-side blob download with branded overlay (SuperBad mark + spinner + "Rendering your plan…") that auto-dismisses on completion. Ready for QB-3 and BI-2 to adopt.
+**Next session:** `SWP-10` — Six-Week Plan Generator: non-converter expiry (day-53 email + day-60 archive) + E2E tests + settings audit
+**Brief:** SWP-9 COMPLETE (reduced scope). Post-regen active_strategy sync hook added to `approveDetail()` — when a retainer-scope regenerated plan is approved, the `active_strategies` row's payload updates automatically. Closes the gap flagged in SWP-6 handoff.
 **Model tier:** Sonnet
-**Last closed:** SWP-8 (2026-04-20) — see `sessions/swp8-handoff.md`
-**Wave status:** Wave 15 IN PROGRESS. SWP-1 through SWP-8 done; SWP-9 next.
+**Last closed:** SWP-9 (2026-04-20) — see `sessions/swp9-handoff.md`
+**Wave status:** Wave 15 IN PROGRESS. SWP-1 through SWP-9 done; SWP-10 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

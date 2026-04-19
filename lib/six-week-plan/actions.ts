@@ -5,6 +5,7 @@ import { eq, and, gte, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { six_week_plans } from "@/lib/db/schema/six-week-plans";
+import { active_strategies } from "@/lib/db/schema/active-strategies";
 import { deals } from "@/lib/db/schema/deals";
 import { contacts } from "@/lib/db/schema/contacts";
 import { logActivity } from "@/lib/activity-log";
@@ -157,6 +158,8 @@ export async function approveDetail(planId: string): Promise<{ ok: boolean; erro
     sendRevisionRegeneratedEmail(plan.deal_id, planId).catch(() => {});
   }
 
+  await maybeSyncActiveStrategy(planId);
+
   revalidatePath(`/lite/six-week-plans/${planId}/review`);
   return { ok: true };
 }
@@ -273,5 +276,46 @@ async function sendRevisionRegeneratedEmail(
     classification: "six_week_plan_revision_regenerated",
     purpose: "Notify prospect their plan was revised after their revision note",
     replyTo: "andy@superbadmedia.com.au",
+  });
+}
+
+async function maybeSyncActiveStrategy(planId: string): Promise<void> {
+  const strategy = await db.query.active_strategies.findFirst({
+    where: eq(active_strategies.source_id, planId),
+  });
+  if (!strategy || strategy.status !== "pending_refresh_review") return;
+
+  const plan = await db.query.six_week_plans.findFirst({
+    where: eq(six_week_plans.id, planId),
+  });
+  if (!plan) return;
+
+  const weeksData = plan.weeks_json as Record<string, unknown> | null;
+  const strategyData = plan.strategy_json as Record<string, unknown> | null;
+
+  const payload = {
+    intro: (weeksData as { plan_intro?: string })?.plan_intro ?? "",
+    weeks_json: (weeksData as { weeks?: unknown[] })?.weeks ?? [],
+    chosen_primitives:
+      (strategyData as { chosen_primitives?: unknown[] })?.chosen_primitives ??
+      [],
+    theme_arc: (strategyData as { theme_arc?: string })?.theme_arc ?? "",
+  };
+
+  const now = Date.now();
+  await db
+    .update(active_strategies)
+    .set({ payload_json: payload, updated_at_ms: now })
+    .where(eq(active_strategies.id, strategy.id));
+
+  await logActivity({
+    companyId: strategy.client_id,
+    kind: "active_strategy_updated",
+    body: "Active strategy payload synced after plan regeneration approval.",
+    meta: {
+      active_strategy_id: strategy.id,
+      plan_id: planId,
+      trigger: "post_regen_approval",
+    },
   });
 }

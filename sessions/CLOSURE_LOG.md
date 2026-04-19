@@ -4,6 +4,14 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-9 (2026-04-20) — Six-Week Plan Generator: Post-Regen Active Strategy Sync
+
+**Phase:** 5 — Build Execution (Wave 15). Reduced scope — SWP-6 already built the full migrate-on-Won pipeline (table, handler, deal-won hook, refresh-review surface, portal retainer state). SWP-9 added the one missing piece: `maybeSyncActiveStrategy()` hook in `approveDetail()` that copies updated plan payload into the `active_strategies` row when a retainer-scope regenerated plan is approved. Active_strategy stays in `pending_refresh_review` — Andy still approves via refresh-review surface. See `sessions/swp9-handoff.md`.
+
+## SWP-8 (2026-04-20) — Six-Week Plan Generator: PDF Render Overlay
+
+**Phase:** 5 — Build Execution (Wave 15). Reusable `PdfRenderOverlay` component consuming Tier-1 `pdfRenderOverlay` motion token. Plan-view "Download as PDF" uses client-side blob download with branded overlay (SuperBad mark + spinner + "Rendering your plan…") that auto-dismisses on completion. Ready for QB-3 and BI-2 adoption. See `sessions/swp8-handoff.md`.
+
 ## SWP-7 (2026-04-20) — Six-Week Plan Generator: Revision-Review Queue Automation
 
 **Phase:** 5 — Build Execution (Wave 15). `plan_revision_review_queue` scheduled task type + handler — sends admin email when prospect requests plan revision. Portal `submitRevisionAction` enqueues the task. `approveDetail` detects revision-triggered regen (plan has `revision_requested_at_ms` but no `revision_resolution`), stamps resolution as `regenerated`, fires `six_week_plan_revision_regenerated` email with magic-link portal URL, logs activity. Cockpit waiting-item integration deferred to DC wave. See `sessions/swp7-handoff.md`.
