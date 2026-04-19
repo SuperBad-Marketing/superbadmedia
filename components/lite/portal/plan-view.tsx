@@ -11,6 +11,7 @@ import {
   submitRevisionAction,
   dismissRevisionReplyAction,
 } from "@/app/lite/portal/[token]/plan/actions";
+import { PdfRenderOverlay } from "@/components/lite/pdf-render-overlay";
 
 interface Props {
   data: PortalPlanData;
@@ -68,6 +69,34 @@ export function PlanView({ data, portalToken }: Props) {
   );
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [pdfRendering, setPdfRendering] = useState(false);
+
+  const handleDownloadPdf = useCallback(async () => {
+    setPdfRendering(true);
+    try {
+      const res = await fetch(
+        `/api/lite/portal/plan/${encodeURIComponent(plan.id)}/pdf`,
+      );
+      if (!res.ok) {
+        setPdfRendering(false);
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const match = disposition.match(/filename="(.+)"/);
+      const filename = match?.[1] ?? "SuperBad-Six-Week-Plan.pdf";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPdfRendering(false);
+    }
+  }, [plan.id]);
 
   const showRevisionReplyCard =
     plan.revisionReplySentAtMs && !plan.revisionReplyDismissedAtMs;
@@ -192,13 +221,16 @@ export function PlanView({ data, portalToken }: Props) {
         ))}
       </div>
 
+      <PdfRenderOverlay visible={pdfRendering} />
+
       <div className="mt-12 flex flex-col items-center gap-3 pb-12">
-        <a
-          href={`/api/lite/portal/plan/${encodeURIComponent(plan.id)}/pdf`}
-          className="text-[13px] text-[var(--color-neutral-500)] transition-colors hover:border-b hover:border-[var(--color-neutral-500)] hover:text-[var(--color-neutral-300)]"
+        <button
+          onClick={handleDownloadPdf}
+          disabled={pdfRendering}
+          className="text-[13px] text-[var(--color-neutral-500)] transition-colors hover:border-b hover:border-[var(--color-neutral-500)] hover:text-[var(--color-neutral-300)] disabled:opacity-50"
         >
           Download as PDF
-        </a>
+        </button>
 
         {canRequestRevision ? (
           <div className="mt-10">
