@@ -4,6 +4,12 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CMS-5 (2026-04-19) — Intro Funnel + Six-Week Plan Content
+
+**Phase:** 5 — Build Execution (Content mini-session). Authored all copy, question banks, email/SMS templates, LLM prompts, and visual direction for the Intro Funnel and Six-Week Plan Generator. 8 voice/format decisions resolved with Andy (all option A: quiet confidence opener, striking image + dry caption, plain deliverables list, numbered timeline, two-line commitment with reason, understated CTA, plain shape question, warm second-person questionnaire voice). **IF output:** 9 landing page blocks, section 1 form copy, 9 questionnaire banks (3 shapes × 3 sections + 2 practical-supplement questions), signal-tag mapping to Brand DNA taxonomy, 8-screen reflection questionnaire with Opus synthesis + drift-check fallback, 10 email/SMS templates, deliverables hub copy, timeframe signposting across 4 surfaces. **SWP output:** 4 LLM prompts calibrated (strategy Opus, elaboration Opus, self-review Haiku 10-point checklist, revision-reply Haiku), portal copy (Start Week 1, revision modal, inline cards), 2 refresh-review band variants, archived-portal offline page, PDF layout direction (cover + footer + closing sprinkle line "This plan belongs to you. So does the nerve to run it."), 3 email templates, tab title rotation pool, review UI microcopy. 10 new content files across `docs/content/intro-funnel/` (8) and `docs/content/six-week-plan/` (2). No code changes. See `sessions/cms-5-handoff.md`.
+
+---
+
 ## PM-7 (2026-04-19) — LG Queue Edit/Nudge Buttons (Wave 13c COMPLETE)
 
 **Phase:** 5 — Build Execution (UI, small). Added inline draft editing (subject + body textarea, `classifyEdit` integration, `approval_kind` pre-set for minor/material edits) and nudge-chat sidecar (Opus rewrite with brand voice, 6-turn limit, same pattern as inbox refine from UI-7) to the lead-gen approval queue at `/lite/admin/lead-gen`. Three new server actions: `updateDraftAction`, `nudgeRewriteAction`, `applyNudgeAction`. `minor_edit_manual` counts as clean for autonomy streak per spec §18b.2. `lead-gen-nudge-rewrite` registered in model registry. 2 new activity log kinds. 1 new file + 4 edited. 218 test files / 1833 passed. 1 PATCHES_OWED closed: `lg_7_edit_nudge_buttons`. **Wave 13c fully closed** (PM-1 through PM-7). See `sessions/pm-7-handoff.md`.
