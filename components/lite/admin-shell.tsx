@@ -35,11 +35,18 @@ export function AdminShell({
     >
       <aside
         data-slot="admin-shell-sidebar"
-        className="sticky top-0 h-svh overflow-y-auto border-r border-border bg-[color:var(--color-surface-1,var(--card))] p-6"
+        className="sticky top-0 h-svh overflow-y-auto bg-[color:var(--color-surface-1,var(--card))] p-6"
+        style={{
+          boxShadow:
+            "var(--surface-highlight), 1px 0 0 rgba(253, 245, 230, 0.06), 4px 0 16px rgba(0, 0, 0, 0.15)",
+        }}
       >
         {sidebar}
       </aside>
-      <main data-slot="admin-shell-main" className="overflow-x-hidden p-8">
+      <main
+        data-slot="admin-shell-main"
+        className="relative overflow-x-hidden p-8"
+      >
         {children}
       </main>
     </div>

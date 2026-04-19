@@ -22,8 +22,8 @@
   /* Warm neutral scale (8 steps, warm-biased) */
   --neutral-950: #0F0F0E;
   --neutral-900: #1A1A18;
-  --neutral-800: #22221F;
-  --neutral-700: #2C2C28;
+  --neutral-800: #252320;
+  --neutral-700: #332F2A;
   --neutral-600: #3D3D37;
   --neutral-500: #807F73;
   --neutral-300: #D4D2C2;
@@ -36,7 +36,7 @@
   --surface-3: var(--neutral-600);
 
   /* Inner highlight applied to every elevated surface. Cream, not white. */
-  --highlight-opacity: 0.04;
+  --highlight-opacity: 0.10;
   --surface-highlight: inset 0 1px 0 rgba(253, 245, 230, var(--highlight-opacity));
 
   /* Semantic tokens */
@@ -109,7 +109,7 @@
   --radius: var(--radius-default);
   --background: var(--surface-0);
   --foreground: var(--neutral-300);
-  --card: var(--surface-1);
+  --card: var(--surface-2);
   --card-foreground: var(--neutral-300);
   --popover: var(--surface-2);
   --popover-foreground: var(--neutral-300);
@@ -291,6 +291,57 @@
     font-size: var(--text-body);
     line-height: var(--text-body-lh);
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Card & admin interior — mockup-admin-interior.html §13 rules 3 + 9 */
+/* ------------------------------------------------------------------ */
+
+[data-slot="card"] {
+  box-shadow: var(--surface-highlight), 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(253, 245, 230, 0.06);
+  transition: transform 200ms var(--motion-tier1-ease),
+    border-color 200ms var(--motion-tier1-ease),
+    box-shadow 200ms var(--motion-tier1-ease);
+}
+[data-slot="card"]:hover {
+  transform: translateY(-2px);
+  border-color: rgba(244, 160, 176, 0.22);
+  box-shadow: var(--surface-highlight), 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Admin page header separator — mockup-admin-interior.html §7 .page-header */
+[data-slot="admin-shell-main"] header {
+  border-bottom: 1px solid rgba(253, 245, 230, 0.07);
+  margin-bottom: var(--space-5);
+}
+
+/* Admin sidebar warm gradient + depth */
+[data-slot="admin-shell-sidebar"] {
+  background: linear-gradient(
+    180deg,
+    var(--surface-1) 0%,
+    color-mix(in srgb, var(--surface-1), var(--brand-red) 3%) 100%
+  ) !important;
+}
+
+/* Admin interior ambient gradient — warm orange/red glow */
+[data-slot="admin-shell-main"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+      ellipse at 70% 0%,
+      rgba(242, 140, 82, 0.14),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 0% 100%,
+      rgba(178, 40, 72, 0.10),
+      transparent 60%
+    );
 }
 
 /* ------------------------------------------------------------------ */

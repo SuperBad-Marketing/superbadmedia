@@ -40,11 +40,22 @@ export function QueueList({ drafts, llmEnabled }: QueueListProps) {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={
-              filter === f
-                ? "rounded-full border border-foreground bg-foreground/10 px-3 py-1 text-xs font-medium"
-                : "rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            }
+            className="rounded-md px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+            style={{
+              letterSpacing: "1.5px",
+              color:
+                filter === f
+                  ? "var(--color-brand-cream)"
+                  : "var(--color-neutral-500)",
+              background:
+                filter === f
+                  ? "rgba(178, 40, 72, 0.16)"
+                  : "transparent",
+              border:
+                filter === f
+                  ? "1px solid rgba(178, 40, 72, 0.35)"
+                  : "1px solid rgba(253, 245, 230, 0.05)",
+            }}
           >
             {f === "all" ? "All" : f === "saas" ? "SaaS" : "Retainer"}
           </button>
@@ -52,9 +63,23 @@ export function QueueList({ drafts, llmEnabled }: QueueListProps) {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted-foreground">
-          No drafts waiting for approval.
-        </p>
+        <div
+          className="rounded-[12px] px-8 py-10 text-center"
+          style={{
+            background: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight)",
+          }}
+        >
+          <p
+            className="font-[family-name:var(--font-display)] text-[26px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.2px" }}
+          >
+            Queue&apos;s clear.
+          </p>
+          <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
+            nothing waiting on you.
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((draft) => (
@@ -149,9 +174,14 @@ function QueueRow({
 
   return (
     <div
-      className={`rounded-lg border border-border bg-background p-4 transition-opacity ${
+      className={`rounded-[12px] p-5 transition-[opacity,transform,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px hover:border-[color:rgba(244,160,176,0.18)] ${
         isPending ? "opacity-50 pointer-events-none" : ""
       }`}
+      style={{
+        background: "var(--color-surface-2)",
+        boxShadow: "var(--surface-highlight)",
+        border: "1px solid transparent",
+      }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
