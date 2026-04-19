@@ -62,6 +62,7 @@ function contact(
     portal_last_visited_at_ms: null,
     retainer_kickoff_bartender_said_at_ms: null,
     bundled_hub_seen_at_ms: null,
+    last_referral_prompt_at_ms: null,
     created_at_ms: NOW,
     updated_at_ms: NOW,
     ...overrides,

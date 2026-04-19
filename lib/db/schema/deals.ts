@@ -103,6 +103,14 @@ export const deals = sqliteTable(
     payment_failure_count: integer("payment_failure_count").notNull().default(0),
     first_payment_failure_at_ms: integer("first_payment_failure_at_ms"),
     cloudinary_gallery_folder: text("cloudinary_gallery_folder"),
+    referral_from_company_id: text("referral_from_company_id").references(
+      () => companies.id,
+      { onDelete: "set null" },
+    ),
+    referral_from_contact_id: text("referral_from_contact_id").references(
+      () => contacts.id,
+      { onDelete: "set null" },
+    ),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },

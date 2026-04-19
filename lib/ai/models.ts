@@ -85,6 +85,8 @@ export const MODELS = {
   "client-mgmt-bartender-opening-line": "haiku",
   "client-mgmt-chat-response": "opus",
   "client-mgmt-escalation-summary": "haiku",
+  // referral (1)
+  "referral-follow-up-draft": "opus",
   // task-manager (1)
   "task-manager-parse-braindump": "haiku",
   // unified-inbox (8)

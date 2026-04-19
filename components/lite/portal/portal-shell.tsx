@@ -1,8 +1,11 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useState, useCallback } from "react";
 import { MenuBubble } from "./menu-bubble";
 import { ChatBubble } from "./chat-bubble";
+import { ReferralPrompt } from "./referral-prompt";
+import { ReferralForm } from "./referral-form";
 import type { PortalMode } from "@/lib/portal/mode";
 
 interface MenuSection {
@@ -19,6 +22,13 @@ interface PortalShellProps {
   contactName: string;
   sections: MenuSection[];
   children: React.ReactNode;
+  onReferralSubmit?: (data: {
+    name: string;
+    email: string;
+    note: string;
+  }) => Promise<void>;
+  showReferralPrompt?: boolean;
+  onReferralPromptDismiss?: () => Promise<void>;
 }
 
 export function PortalShell({
@@ -27,6 +37,9 @@ export function PortalShell({
   contactName,
   sections,
   children,
+  onReferralSubmit,
+  showReferralPrompt,
+  onReferralPromptDismiss,
 }: PortalShellProps) {
   const pathname = usePathname();
   const isChat = pathname === `/lite/portal/${portalToken}`;
@@ -78,10 +91,57 @@ export function PortalShell({
         portalMode={portalMode}
         sections={sections}
         currentSection={currentSection}
+        onReferralSubmit={onReferralSubmit}
       />
 
       {/* Chat bubble — visible on non-chat pages */}
       {!isChat && <ChatBubble portalToken={portalToken} />}
+
+      {/* Contextual referral milestone prompt */}
+      {showReferralPrompt && onReferralSubmit && (
+        <ReferralPromptWrapper
+          onReferralSubmit={onReferralSubmit}
+          onDismiss={onReferralPromptDismiss}
+        />
+      )}
     </div>
+  );
+}
+
+function ReferralPromptWrapper({
+  onReferralSubmit,
+  onDismiss,
+}: {
+  onReferralSubmit: (data: {
+    name: string;
+    email: string;
+    note: string;
+  }) => Promise<void>;
+  onDismiss?: () => Promise<void>;
+}) {
+  const [showForm, setShowForm] = useState(false);
+
+  const handleRefer = useCallback(() => {
+    setShowForm(true);
+    onDismiss?.();
+  }, [onDismiss]);
+
+  const handleDismiss = useCallback(() => {
+    onDismiss?.();
+  }, [onDismiss]);
+
+  return (
+    <>
+      <ReferralPrompt
+        visible={!showForm}
+        onRefer={handleRefer}
+        onDismiss={handleDismiss}
+      />
+      <ReferralForm
+        open={showForm}
+        onClose={() => setShowForm(false)}
+        onSubmit={onReferralSubmit}
+      />
+    </>
   );
 }

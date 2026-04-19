@@ -75,6 +75,7 @@ export const contacts = sqliteTable(
     /** When the bundled first-visit hub was dismissed. Null = not yet shown.
      *  Temporary home — migrates to `intro_funnel_submissions` when IF-1 lands. */
     bundled_hub_seen_at_ms: integer("bundled_hub_seen_at_ms"),
+    last_referral_prompt_at_ms: integer("last_referral_prompt_at_ms"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },

@@ -305,6 +305,9 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Bundled hub CM-7 (2) ---
   "bundled_hub_shown",
   "bundled_hub_dismissed",
+  // --- Referral CM-E (2) ---
+  "referral_submitted",
+  "referral_received",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

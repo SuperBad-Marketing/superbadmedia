@@ -47,11 +47,11 @@ describe("settings registry + seed migration", () => {
     }
   });
 
-  it("seeds 138 keys total (137 pre-CM-1 + 1 CM-1 portal data export key)", () => {
+  it("seeds 139 keys total (138 pre-CM-E + 1 CM-E referral cooldown key)", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(138);
+    expect(count.n).toBe(139);
   });
 
   it("stores portal.magic_link_ttl_hours = 168", () => {
@@ -87,7 +87,7 @@ describe("settings registry + seed migration", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(138);
+    expect(count.n).toBe(139);
   });
 
   it("every SETTINGS_KEYS entry is a string matching the feature.rule shape", () => {

@@ -207,6 +207,9 @@ const registry = {
   "lead_generation.run_time": str,
   "lead_generation.auto_send_delay_minutes": integer,
 
+  // Referral (1 — CM-E)
+  "referral.milestone_prompt_cooldown_days": integer,
+
   // Warmup ramp (5 — LG-1)
   "warmup.week_one_cap": integer,
   "warmup.week_two_cap": integer,

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { houseSpring } from "@/lib/design-tokens";
 import type { PortalMode } from "@/lib/portal/mode";
+import { ReferralForm } from "./referral-form";
 
 interface MenuSection {
   key: string;
@@ -19,6 +20,11 @@ interface MenuBubbleProps {
   sections: MenuSection[];
   currentSection: string;
   hasNewDeliverables?: boolean;
+  onReferralSubmit?: (data: {
+    name: string;
+    email: string;
+    note: string;
+  }) => Promise<void>;
 }
 
 export function MenuBubble({
@@ -27,8 +33,10 @@ export function MenuBubble({
   sections,
   currentSection,
   hasNewDeliverables,
+  onReferralSubmit,
 }: MenuBubbleProps) {
   const [open, setOpen] = useState(false);
+  const [referralOpen, setReferralOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   const handleNavigate = useCallback(
@@ -42,6 +50,11 @@ export function MenuBubble({
     },
     [portalToken],
   );
+
+  const handleReferralClick = useCallback(() => {
+    setOpen(false);
+    setReferralOpen(true);
+  }, []);
 
   return (
     <>
@@ -145,10 +158,60 @@ export function MenuBubble({
                   );
                 })}
               </div>
+
+              {/* Know someone? — standing referral item */}
+              <motion.button
+                initial={
+                  shouldReduceMotion
+                    ? {}
+                    : { opacity: 0, y: 8 }
+                }
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0 }
+                    : {
+                        ...houseSpring,
+                        delay: sections.length * 0.05 + 0.05,
+                      }
+                }
+                onClick={handleReferralClick}
+                className="flex w-full items-center gap-3 rounded-xl border border-[rgba(244,160,176,0.15)] bg-[rgba(34,34,31,0.4)] px-4 py-4 text-left transition-all duration-300 hover:translate-y-[-2px] hover:border-[rgba(244,160,176,0.35)] hover:bg-[rgba(34,34,31,0.7)] sm:px-6 sm:py-5"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-brand-pink)"
+                  strokeWidth={1.5}
+                  className="h-5 w-5 shrink-0"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <line x1="19" y1="8" x2="19" y2="14" />
+                  <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>
+                <div>
+                  <span className="font-[family-name:var(--font-black-han-sans)] text-[16px] leading-none text-[var(--color-brand-cream)] sm:text-[18px]">
+                    Know someone?
+                  </span>
+                  <span className="mt-0.5 block text-[12px] italic text-[var(--color-neutral-500)]">
+                    send a name our way
+                  </span>
+                </div>
+              </motion.button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Referral form modal */}
+      <ReferralForm
+        open={referralOpen}
+        onClose={() => setReferralOpen(false)}
+        onSubmit={async (data) => {
+          if (onReferralSubmit) await onReferralSubmit(data);
+        }}
+      />
     </>
   );
 }

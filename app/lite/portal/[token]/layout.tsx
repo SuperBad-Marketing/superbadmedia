@@ -5,6 +5,11 @@ import { PortalShell } from "@/components/lite/portal/portal-shell";
 import { db } from "@/lib/db";
 import { contacts } from "@/lib/db/schema/contacts";
 import { eq } from "drizzle-orm";
+import { shouldShowMilestonePrompt } from "@/lib/referral";
+import {
+  submitReferralAction,
+  dismissReferralPromptAction,
+} from "./referral-actions";
 
 interface Props {
   children: React.ReactNode;
@@ -28,7 +33,10 @@ export default async function PortalTokenLayout({ children, params }: Props) {
     redirect("/lite/portal/recover");
   }
 
-  const modeResult = await getPortalMode(session.contactId);
+  const [modeResult, showPrompt] = await Promise.all([
+    getPortalMode(session.contactId),
+    shouldShowMilestonePrompt(session.contactId),
+  ]);
 
   return (
     <PortalShell
@@ -42,6 +50,9 @@ export default async function PortalTokenLayout({ children, params }: Props) {
         description: string;
         preRetainer: boolean;
       }>}
+      onReferralSubmit={submitReferralAction}
+      showReferralPrompt={showPrompt}
+      onReferralPromptDismiss={dismissReferralPromptAction}
     >
       {children}
     </PortalShell>
