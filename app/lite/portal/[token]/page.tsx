@@ -4,14 +4,16 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { eq } from "drizzle-orm";
 import { getPortalSession } from "@/lib/portal/guard";
 import { getChatHistory, getTodayChatCount, getDailyLimit } from "@/lib/portal/chat";
+import { getBundleHubState } from "@/lib/portal/bundle-hub";
 import { ChatHome } from "@/components/lite/portal/chat-home";
+import { BundleHub } from "@/components/lite/portal/bundle-hub";
 
 interface Props {
   params: Promise<{ token: string }>;
 }
 
-export default async function PortalChatPage({ params }: Props) {
-  void (await params);
+export default async function PortalHomePage({ params }: Props) {
+  const { token } = await params;
   const session = await getPortalSession();
   if (!session) {
     redirect("/lite/portal/recover");
@@ -28,6 +30,18 @@ export default async function PortalChatPage({ params }: Props) {
 
   if (!contactRow) {
     redirect("/lite/portal/recover");
+  }
+
+  const hubState = await getBundleHubState(session.contactId);
+
+  if (hubState.showHub) {
+    return (
+      <BundleHub
+        portalToken={token}
+        hasGallery={hubState.hasGallery}
+        hasPlan={hubState.hasPlan}
+      />
+    );
   }
 
   const tourSeen = contactRow.portal_last_visited_at_ms !== null;

@@ -32,6 +32,7 @@ export const TIER_2_KEYS = [
   "portal-first-load",
   "inbox-zero",
   "brand-dna-reveal",
+  "bundle-reveal",
 ] as const;
 
 export type Tier2Key = (typeof TIER_2_KEYS)[number];
@@ -220,6 +221,29 @@ const brandDnaReveal: ChoreographyEntry = {
   },
 };
 
+/** 9. Bundle reveal — first-visit-after-bundle deliverables hub (F3.a). Tiles stagger in. */
+const bundleReveal: ChoreographyEntry = {
+  description:
+    "Two-tile deliverables hub entrance. Tiles stagger in over ~600ms with warm fade-up. One-shot per contact.",
+  durationMs: 600,
+  variants: {
+    initial: { opacity: 0, y: 20, scale: 0.97 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+  },
+  transition: { duration: 0.5, ease: tier2SlowOut },
+  container: {
+    variants: {
+      initial: {},
+      animate: { transition: { staggerChildren: 0.12 } },
+    },
+    transition: { staggerChildren: 0.12 },
+  },
+  reduced: {
+    variants: { initial: { opacity: 0 }, animate: { opacity: 1 } },
+    transition: { duration: 0.18, ease: "linear" },
+  },
+};
+
 export const tier2: Record<Tier2Key, ChoreographyEntry> = {
   "dashboard-first-load": dashboardFirstLoad,
   "morning-brief-open": morningBriefOpen,
@@ -229,6 +253,7 @@ export const tier2: Record<Tier2Key, ChoreographyEntry> = {
   "portal-first-load": portalFirstLoad,
   "inbox-zero": inboxZero,
   "brand-dna-reveal": brandDnaReveal,
+  "bundle-reveal": bundleReveal,
 };
 
 /**

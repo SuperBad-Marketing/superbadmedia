@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CM-7 (2026-04-19) — Bundled first-visit hub (Gallery + Plan tiles)
+
+**Phase:** 5 — Build Execution (UI, medium). Wave 10 continues. One-shot two-tile deliverables hub at `/portal/[token]` intercepting chat-home for first-visit-after-bundle prospects. `getBundleHubState()` checks `contacts.bundled_hub_seen_at_ms` + `deals.cloudinary_gallery_folder` as proxy gate (full IF trigger wires in Wave 14). `dismissBundleHub()` stamps the flag and logs `bundled_hub_dismissed`. `bundle-reveal` Tier-2 choreography added (slot 9, 600ms staggered tile entrance). Plan page stub at `/portal/[token]/plan`. Plan section added to `PORTAL_SECTIONS` registry (preRetainer: true). Migration 0046 adds `bundled_hub_seen_at_ms` to contacts. 2 new activity log kinds. 5 new files, 7 edited, 8 tests. G8: 0 TS errors, 1719 tests / 1 skipped. See `sessions/cm-7-handoff.md`.
+
 ## CLD-2 (2026-04-19) — Portal gallery page (Cloudinary-powered grid)
 
 **Phase:** 5 — Build Execution (UI, large). Wave 10 continues. Built `/lite/portal/[token]/gallery` — native Cloudinary-powered image/video grid replacing the placeholder. Server action fetches from `deals.cloudinary_gallery_folder` via `listFolder()` + `transformUrl()`. Responsive CSS-columns masonry (2→3→4 cols). Per-item download via `fl_attachment`. "Download all" ZIP via `generateArchiveUrl()`. Full-screen lightbox with `AnimatePresence` (images at native aspect, videos auto-play). Bartender-voice empty state. `deliverables_viewed` activity logged server-side on every gallery load. `useReducedMotion` respected throughout. 3 new files, 1 edited file, 1 test file (7 tests). G8: 0 TS errors, 1712 tests / 1 skipped. See `sessions/cld-2-handoff.md`.

@@ -9,11 +9,11 @@ import { SOUND_KEYS, soundRegistry } from "@/lib/sounds"
 import { houseSpring } from "@/lib/design-tokens"
 
 describe("Tier 2 choreography registry", () => {
-  it("has exactly 8 locked keys", () => {
-    expect(TIER_2_KEYS).toHaveLength(8)
+  it("has exactly 9 locked keys", () => {
+    expect(TIER_2_KEYS).toHaveLength(9)
   })
 
-  it("names the 8 moments from docs/specs/design-system-baseline.md §Motion + brand-dna-assessment §10.5", () => {
+  it("names the 9 moments from design-system-baseline + brand-dna-assessment + client-management §10.2.1", () => {
     expect([...TIER_2_KEYS].sort()).toEqual(
       [
         "dashboard-first-load",
@@ -24,6 +24,7 @@ describe("Tier 2 choreography registry", () => {
         "portal-first-load",
         "inbox-zero",
         "brand-dna-reveal",
+        "bundle-reveal",
       ].sort()
     )
   })

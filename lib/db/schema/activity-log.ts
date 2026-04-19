@@ -302,6 +302,9 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Client Management CM-1 (2 — 8 others already in Client Management block above) ---
   "retainer_mode_brand_dna_gate_entered",
   "retainer_kickoff_bartender_message_sent",
+  // --- Bundled hub CM-7 (2) ---
+  "bundled_hub_shown",
+  "bundled_hub_dismissed",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

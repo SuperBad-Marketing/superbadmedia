@@ -72,6 +72,9 @@ export const contacts = sqliteTable(
     portal_last_visited_at_ms: integer("portal_last_visited_at_ms"),
     /** When the retainer-kickoff bartender opener fired for this contact. Null = not yet fired. */
     retainer_kickoff_bartender_said_at_ms: integer("retainer_kickoff_bartender_said_at_ms"),
+    /** When the bundled first-visit hub was dismissed. Null = not yet shown.
+     *  Temporary home — migrates to `intro_funnel_submissions` when IF-1 lands. */
+    bundled_hub_seen_at_ms: integer("bundled_hub_seen_at_ms"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },

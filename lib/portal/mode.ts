@@ -93,6 +93,7 @@ export const PORTAL_SECTIONS = [
   { key: "package", label: "Package", eyebrow: "Your plan", description: "Subscription and billing", preRetainer: false },
   { key: "messages", label: "Messages", eyebrow: "Comms", description: "Thread with Andy", preRetainer: false },
   { key: "gallery", label: "Gallery", eyebrow: "Media", description: "Your photos and video", preRetainer: true },
+  { key: "plan", label: "Your Plan", eyebrow: "Strategy", description: "Your 6-week marketing plan", preRetainer: true },
   { key: "data-export", label: "Download My Data", eyebrow: "Privacy", description: "Export everything", preRetainer: false },
 ] as const;
 

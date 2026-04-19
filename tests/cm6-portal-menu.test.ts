@@ -30,7 +30,7 @@ describe("CM-6 — Portal menu + navigation + retainer-mode gate", () => {
     const mod = await import("@/lib/portal/mode");
     expect(typeof mod.getPortalMode).toBe("function");
     expect(Array.isArray(mod.PORTAL_SECTIONS)).toBe(true);
-    expect(mod.PORTAL_SECTIONS.length).toBe(8);
+    expect(mod.PORTAL_SECTIONS.length).toBe(9);
   });
 
   it("PORTAL_SECTIONS has correct pre-retainer gating", async () => {
@@ -43,6 +43,7 @@ describe("CM-6 — Portal menu + navigation + retainer-mode gate", () => {
       "deliverables",
       "brand-dna",
       "gallery",
+      "plan",
     ]);
     expect(lockedSections.map((s) => s.key)).toEqual([
       "invoices",
