@@ -57,11 +57,11 @@ export function PortalShell({
       />
 
       {/* Top bar */}
-      <header className="relative z-[2] flex flex-shrink-0 items-center justify-between border-b border-[rgba(253,245,230,0.04)] px-8 py-5">
-        <span className="cursor-pointer font-[family-name:var(--font-pacifico)] text-[22px] text-[var(--color-brand-cream)]">
+      <header className="relative z-[2] flex flex-shrink-0 items-center justify-between border-b border-[rgba(253,245,230,0.04)] px-4 py-4 sm:px-8 sm:py-5">
+        <span className="cursor-pointer font-[family-name:var(--font-pacifico)] text-[18px] text-[var(--color-brand-cream)] sm:text-[22px]">
           SuperBad
         </span>
-        <span className="font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2px] text-[var(--color-neutral-500)]">
+        <span className="hidden font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2px] text-[var(--color-neutral-500)] sm:inline">
           <em className="not-italic text-[var(--color-brand-pink)]">
             {contactName.split(" ")[0]}
           </em>

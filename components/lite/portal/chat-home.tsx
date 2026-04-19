@@ -213,7 +213,7 @@ export function ChatHome({
                 <p className="max-w-[620px] font-[family-name:var(--font-playfair-display)] text-[22px] italic leading-[1.3] text-[var(--color-foreground)] md:text-[26px]">
                   {openingLine}
                 </p>
-                <p className="text-[13px] italic text-[var(--color-neutral-500)]">
+                <p className="text-[13px] italic text-[var(--color-neutral-500)]" data-ambient-slot="portal_chat_subtitle">
                   ask me anything about your work with us, or tap the menu for
                   the rest of your room.
                 </p>
@@ -290,7 +290,7 @@ export function ChatHome({
       </div>
 
       {/* Composer */}
-      <div className="mx-auto w-full max-w-[780px] px-4 pb-6 pt-3 md:px-8">
+      <div className="mx-auto w-full max-w-[780px] px-4 pb-20 pt-3 sm:pb-6 md:px-8">
         <div
           className={`flex items-center gap-3 rounded-full border bg-[var(--color-neutral-800)] px-[22px] py-1.5 transition-colors duration-300 ${
             rateLimited
@@ -330,7 +330,7 @@ export function ChatHome({
           </button>
         </div>
         <div className="mt-2.5 flex justify-between px-5 text-[12px] italic text-[var(--color-neutral-500)]">
-          <span>the bartender reads your whole history. always.</span>
+          <span data-ambient-slot="portal_chat_footer">the bartender reads your whole history. always.</span>
           {!rateLimited && remainingToday <= 5 && (
             <span>
               {remainingToday} message{remainingToday !== 1 ? "s" : ""} left

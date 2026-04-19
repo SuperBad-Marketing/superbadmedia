@@ -65,7 +65,7 @@ export function BrandDnaGate({
           <p className="font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2px] text-[var(--color-brand-orange)]">
             one thing first
           </p>
-          <h1 className="font-[family-name:var(--font-black-han-sans)] text-[32px] leading-[1.1] text-[var(--color-foreground)] md:text-[40px]">
+          <h1 className="font-[family-name:var(--font-black-han-sans)] text-[28px] leading-[1.1] text-[var(--color-foreground)] sm:text-[32px] md:text-[40px]">
             Brand DNA
           </h1>
           <p className="font-[family-name:var(--font-playfair-display)] text-[18px] italic leading-[1.4] text-[var(--color-neutral-300)]">

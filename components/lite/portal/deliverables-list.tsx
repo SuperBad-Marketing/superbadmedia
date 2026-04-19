@@ -123,9 +123,9 @@ function DeliverableCard({ task }: { task: PortalTask }) {
       onClick={() => setExpanded((prev) => !prev)}
     >
       {/* Top row: title + status badge */}
-      <div className="mb-3 flex items-start justify-between">
-        <div>
-          <div className="text-base font-medium text-[var(--color-brand-cream)]">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-[15px] font-medium text-[var(--color-brand-cream)] sm:text-base">
             {task.title}
           </div>
           <div className="mt-1 text-xs text-[var(--color-neutral-500)]">
@@ -133,7 +133,7 @@ function DeliverableCard({ task }: { task: PortalTask }) {
           </div>
         </div>
         <span
-          className={`whitespace-nowrap rounded px-2.5 py-1 font-[family-name:var(--font-righteous)] text-[9px] uppercase tracking-[1.5px] ${statusBadgeClass(task.status)}`}
+          className={`shrink-0 whitespace-nowrap rounded px-2.5 py-1 font-[family-name:var(--font-righteous)] text-[9px] uppercase tracking-[1.5px] ${statusBadgeClass(task.status)}`}
         >
           {statusLabel(task.status)}
         </span>
@@ -308,7 +308,7 @@ export function DeliverablesList({ tasks }: DeliverablesListProps) {
         transition={shouldReduceMotion ? { duration: 0 } : { ...houseSpring, delay: 0.15 }}
         className="flex min-h-[40vh] items-center justify-center"
       >
-        <p className="text-center font-[family-name:var(--font-playfair-display)] text-[15px] italic text-[var(--color-neutral-500)]">
+        <p className="text-center font-[family-name:var(--font-playfair-display)] text-[15px] italic text-[var(--color-neutral-500)]" data-ambient-slot="portal_deliverables_empty">
           nothing here yet. when there is, you&rsquo;ll know.
         </p>
       </motion.div>

@@ -49,7 +49,7 @@ export function MenuBubble({
       <button
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="fixed bottom-8 right-8 z-20 flex h-[52px] items-center gap-2.5 rounded-full border-none bg-[var(--color-brand-red)] px-5 pl-4 font-[family-name:var(--font-righteous)] text-[11px] uppercase tracking-[2px] text-[var(--color-brand-cream)] shadow-[0_12px_40px_rgba(178,40,72,0.35),inset_0_1px_0_rgba(253,245,230,0.12)] transition-transform duration-[400ms] [animation:breathe_3.6s_cubic-bezier(0.16,1,0.3,1)_infinite] hover:scale-[1.04] hover:translate-y-[-1px] hover:shadow-[0_16px_50px_rgba(178,40,72,0.45),inset_0_1px_0_rgba(253,245,230,0.18)] hover:[animation-play-state:paused]"
+        className="fixed bottom-5 right-5 z-20 flex h-[46px] items-center gap-2 rounded-full border-none bg-[var(--color-brand-red)] px-4 pl-3.5 font-[family-name:var(--font-righteous)] text-[11px] uppercase tracking-[2px] text-[var(--color-brand-cream)] shadow-[0_12px_40px_rgba(178,40,72,0.35),inset_0_1px_0_rgba(253,245,230,0.12)] transition-transform duration-[400ms] [animation:breathe_3.6s_cubic-bezier(0.16,1,0.3,1)_infinite] hover:scale-[1.04] hover:translate-y-[-1px] hover:shadow-[0_16px_50px_rgba(178,40,72,0.45),inset_0_1px_0_rgba(253,245,230,0.18)] hover:[animation-play-state:paused] sm:bottom-8 sm:right-8 sm:h-[52px] sm:gap-2.5 sm:px-5 sm:pl-4"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-[18px] w-[18px]">
           <path d="M4 6h16M4 12h16M4 18h16" />
@@ -70,12 +70,12 @@ export function MenuBubble({
             {/* Close button */}
             <button
               onClick={() => setOpen(false)}
-              className="absolute right-10 top-7 rounded-md border border-[rgba(253,245,230,0.2)] bg-transparent px-3.5 py-2 font-[family-name:var(--font-righteous)] text-[11px] uppercase tracking-[2px] text-[var(--color-brand-cream)] transition-colors duration-200 hover:border-[var(--color-brand-pink)]"
+              className="absolute right-5 top-5 rounded-md border border-[rgba(253,245,230,0.2)] bg-transparent px-3.5 py-2 font-[family-name:var(--font-righteous)] text-[11px] uppercase tracking-[2px] text-[var(--color-brand-cream)] transition-colors duration-200 hover:border-[var(--color-brand-pink)] sm:right-10 sm:top-7"
             >
               Close
             </button>
 
-            <div className="mx-auto flex w-full max-w-[900px] flex-col gap-10 px-10 py-20">
+            <div className="mx-auto flex w-full max-w-[900px] flex-col gap-8 px-5 py-14 sm:gap-10 sm:px-10 sm:py-20">
               {/* Greeting */}
               <p className="max-w-[480px] font-[family-name:var(--font-playfair-display)] text-xl italic text-[var(--color-brand-pink)]">
                 everything in its place.
@@ -109,7 +109,7 @@ export function MenuBubble({
                         if (!locked) handleNavigate(section.key);
                       }}
                       disabled={locked}
-                      className={`relative flex flex-col gap-1.5 rounded-2xl border px-6 py-7 text-left transition-all duration-300 ${
+                      className={`relative flex flex-col gap-1.5 rounded-2xl border px-4 py-5 text-left transition-all duration-300 sm:px-6 sm:py-7 ${
                         locked
                           ? "cursor-not-allowed border-[rgba(253,245,230,0.04)] bg-[rgba(34,34,31,0.3)] opacity-50"
                           : isCurrent
@@ -120,7 +120,7 @@ export function MenuBubble({
                       <span className="font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2px] text-[var(--color-brand-orange)]">
                         {section.eyebrow}
                       </span>
-                      <span className="font-[family-name:var(--font-black-han-sans)] text-[26px] leading-none text-[var(--color-brand-cream)]">
+                      <span className="font-[family-name:var(--font-black-han-sans)] text-[20px] leading-none text-[var(--color-brand-cream)] sm:text-[26px]">
                         {locked ? (
                           <span className="opacity-40">{section.label}</span>
                         ) : (

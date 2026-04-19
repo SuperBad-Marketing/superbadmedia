@@ -27,7 +27,7 @@ export function SectionLocked({ sectionLabel }: SectionLockedProps) {
         <p className="font-[family-name:var(--font-playfair-display)] text-lg italic text-[var(--color-brand-cream)]">
           {sectionLabel} is available on retainer.
         </p>
-        <p className="text-sm italic text-[var(--color-neutral-500)]">
+        <p className="text-sm italic text-[var(--color-neutral-500)]" data-ambient-slot="portal_section_locked">
           when you&apos;re ready, we&apos;ll unlock everything.
         </p>
       </motion.div>

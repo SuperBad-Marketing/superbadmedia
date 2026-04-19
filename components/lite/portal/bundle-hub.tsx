@@ -123,7 +123,7 @@ export function BundleHub({ portalToken, hasGallery, hasPlan }: BundleHubProps) 
               <span className="font-[family-name:var(--font-bhs)] text-[22px] text-[var(--color-neutral-300)]">
                 Your plan
               </span>
-              <span className="text-[13px] italic text-[var(--color-neutral-500)]">
+              <span className="text-[13px] italic text-[var(--color-neutral-500)]" data-ambient-slot="portal_plan_arriving">
                 arriving shortly.
               </span>
             </div>
