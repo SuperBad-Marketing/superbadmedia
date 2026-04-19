@@ -20,8 +20,9 @@ import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { brand_dna_blends } from "@/lib/db/schema/brand-dna-blends";
 import { threads, messages } from "@/lib/db/schema/messages";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
+import { trial_shoot_notes } from "@/lib/db/schema/trial-shoot-notes";
+import { six_week_plans } from "@/lib/db/schema/six-week-plans";
 import { loadInvoiceDetail } from "@/lib/invoicing/detail-query";
-
 
 import { BillingTab } from "@/components/lite/invoices/billing-tab";
 import type { InvoiceIndexRow } from "@/components/lite/invoices/invoice-index-client";
@@ -39,6 +40,11 @@ import { CommsTab } from "@/components/lite/admin/companies/comms-tab";
 import { PortalChatTab } from "@/components/lite/admin/companies/portal-chat-tab";
 import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
 import { DeliverablesTab } from "@/components/lite/admin/companies/deliverables-tab";
+import {
+  ShootDayNotesPanel,
+  type ShootDayNotesData,
+  type PlanStatusData,
+} from "@/components/lite/company/shoot-day-notes-panel";
 
 export const metadata: Metadata = {
   title: "SuperBad — Company",
@@ -329,6 +335,66 @@ export default async function CompanyAdminPage({
     focusedDetail = await loadInvoiceDetail(sp.invoice);
   }
 
+  // Shoot-day notes + plan status for trial-shoot deals (overview tab).
+  const trialShootDeal = dealRows.find((d) => d.stage === "trial_shoot") ?? null;
+  let shootDayNotesData: ShootDayNotesData | null = null;
+  let planStatusData: PlanStatusData | null = null;
+  if (trialShootDeal) {
+    const [notesRow, planRow] = await Promise.all([
+      db.query.trial_shoot_notes.findFirst({
+        where: eq(trial_shoot_notes.deal_id, trialShootDeal.id),
+      }),
+      db.query.six_week_plans.findFirst({
+        where: eq(six_week_plans.deal_id, trialShootDeal.id),
+        orderBy: (t, { desc: d }) => d(t.created_at_ms),
+      }),
+    ]);
+    if (notesRow) {
+      shootDayNotesData = {
+        id: notesRow.id,
+        dealId: notesRow.deal_id,
+        infraEmailList: notesRow.infra_email_list,
+        infraEmailListNote: notesRow.infra_email_list_note,
+        infraAdExperience: notesRow.infra_ad_experience,
+        infraAdExperienceNote: notesRow.infra_ad_experience_note,
+        infraLeadMagnet: notesRow.infra_lead_magnet,
+        infraLeadMagnetNote: notesRow.infra_lead_magnet_note,
+        infraWebsiteStatus: notesRow.infra_website_status,
+        infraWebsiteCms: notesRow.infra_website_cms,
+        infraSocialCadence: notesRow.infra_social_cadence,
+        infraSocialPrimaryPlatform: notesRow.infra_social_primary_platform,
+        infraCompetitors: notesRow.infra_competitors,
+        goalsJson: notesRow.goals_json as Array<{ priority: number; text: string }> | null,
+        signalEnergy: notesRow.signal_energy,
+        signalFluency: notesRow.signal_fluency,
+        signalIcpClarity: notesRow.signal_icp_clarity,
+        signalConversionReady: notesRow.signal_conversion_ready,
+        observations: notesRow.observations,
+        enrichmentPrefillJson: notesRow.enrichment_prefill_json as Record<string, unknown> | null,
+        filledAtMs: notesRow.filled_at_ms,
+      };
+    } else {
+      shootDayNotesData = {
+        id: null,
+        dealId: trialShootDeal.id,
+        infraEmailList: null, infraEmailListNote: null,
+        infraAdExperience: null, infraAdExperienceNote: null,
+        infraLeadMagnet: null, infraLeadMagnetNote: null,
+        infraWebsiteStatus: null, infraWebsiteCms: null,
+        infraSocialCadence: null, infraSocialPrimaryPlatform: null,
+        infraCompetitors: null,
+        goalsJson: null,
+        signalEnergy: null, signalFluency: null,
+        signalIcpClarity: null, signalConversionReady: null,
+        observations: null,
+        enrichmentPrefillJson: null, filledAtMs: null,
+      };
+    }
+    if (planRow) {
+      planStatusData = { planId: planRow.id, status: planRow.status };
+    }
+  }
+
   // Tab-specific data loads (only fetch what the active tab needs).
   const contactIds = contactRows.map((c) => c.id);
 
@@ -456,6 +522,9 @@ export default async function CompanyAdminPage({
           overdueCount={overdueCount}
           bhsMoment={bhsMoment}
           nowMs={nowMs}
+          trialShootDeal={trialShootDeal}
+          shootDayNotes={shootDayNotesData}
+          planStatus={planStatusData}
         />
       ) : null}
 
@@ -541,6 +610,9 @@ function OverviewTab({
   overdueCount,
   bhsMoment,
   nowMs,
+  trialShootDeal,
+  shootDayNotes,
+  planStatus,
 }: {
   company: typeof companies.$inferSelect;
   status: CompanyDerivedStatus;
@@ -560,6 +632,9 @@ function OverviewTab({
   overdueCount: number;
   bhsMoment: { value: string; label: string; caption: string } | null;
   nowMs: number;
+  trialShootDeal: (typeof deals.$inferSelect) | null;
+  shootDayNotes: ShootDayNotesData | null;
+  planStatus: PlanStatusData | null;
 }) {
   return (
     <div className="space-y-5 px-4 pb-10">
@@ -572,6 +647,16 @@ function OverviewTab({
       />
 
       <LinkedDealsPanel deals={dealRows} nowMs={nowMs} />
+
+      {trialShootDeal && (
+        <ShootDayNotesPanel
+          companyId={company.id}
+          dealId={trialShootDeal.id}
+          dealTitle={trialShootDeal.title}
+          notes={shootDayNotes}
+          planStatus={planStatus}
+        />
+      )}
 
       <LinkedInvoicesPanel
         invoices={invoiceRows}

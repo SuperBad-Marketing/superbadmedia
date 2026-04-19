@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-4 (2026-04-19) — Six-Week Plan Generator: Shoot-Day Notes Form + Generate Trigger
+
+**Phase:** 5 — Build Execution (Wave 15). Shoot-day notes structured form (spec §3) as a new panel on the company detail Overview tab — Marketing Infrastructure (6 radio groups), Goals (ordered 1–3), Shoot-Day Signals (4 × 1–5 scale), Observations (40-char min). Soft validation + override modal. Server actions: `saveShootDayNotesAction` (upsert), `generateSixWeekPlanAction` (creates plan row + enqueues `six_week_plan_generate` + logs activity). Plan status badge with tone colours + "Open review →" link. Generate button hidden when active plan exists. See `sessions/swp4-handoff.md`.
+
 ## SWP-3 (2026-04-19) — Six-Week Plan Generator: Pipeline + Review UI
 
 **Phase:** 5 — Build Execution (Wave 15). Generator pipeline (`lib/six-week-plan/generate.ts`) — stage 1 (Opus strategy) → stage 2 (Opus weeks) → self-review (Haiku) with one retry. `invokeLlmTextWithMeta()` added for token-level cost tracking. `plan_automations_enabled` kill switch. Scheduled task handler registered. Server actions for approve/regen/reject flows. Review UI at `/lite/six-week-plans/[planId]/review` — two-tier (strategy outline → weekly detail), flagged-assumption corrections, self-review warning banner, regen soft warning at 4+. See `sessions/swp3-handoff.md`.
