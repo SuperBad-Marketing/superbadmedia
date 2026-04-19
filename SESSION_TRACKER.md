@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-2` — Six-Week Plan Generator: content mini-session (prompt content population for all 4 LLM jobs)
-**Brief:** SWP-1 COMPLETE. 3 new tables, migration, 4 prompt stubs, context assembly helper, all cross-cutting registrations landed. Prompt stubs are typed but empty — content mini-session must fill them before SWP-3 (generator pipeline).
+**Next session:** `SWP-3` — Six-Week Plan Generator: generator pipeline (stages 1 + 2 + self-review + Andy review UI)
+**Brief:** SWP-2 COMPLETE. All 4 prompts populated, content doc landed with portal copy + email bodies + PDF layout + review UI microcopy. SWP-3 builds the two-stage generator pipeline consuming these prompts, plus Andy's two-tier review surface.
 **Model tier:** Sonnet
-**Last closed:** SWP-1 (2026-04-19) — see `sessions/swp1-handoff.md`
-**Wave status:** Wave 15 IN PROGRESS. SWP-1 done; SWP-2 (content mini-session) next.
+**Last closed:** SWP-2 (2026-04-19) — see `sessions/swp2-handoff.md`
+**Wave status:** Wave 15 IN PROGRESS. SWP-1 + SWP-2 done; SWP-3 (generator pipeline + review UI) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

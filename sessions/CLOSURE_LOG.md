@@ -4,6 +4,12 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-2 (2026-04-19) — Six-Week Plan Generator: Content Mini-Session
+
+**Phase:** 5 — Build Execution (Wave 15). All 4 prompt stubs populated: strategy (Opus, full context bundle + signal-based calibration), weeks (Opus, per-week elaboration with regen/self-review support), review (Haiku, 8-point checklist), revision-reply (Haiku, Andy's explain-path draft). Content doc at `docs/content/six-week-plan-generator.md` with portal copy, 3 email bodies, archived-portal microcopy, pending-refresh-review band (2 variants), PDF layout direction (cover/footer/closing/overlay), Andy's review UI microcopy (tab titles, badges, action labels, regen placeholders). See `sessions/swp2-handoff.md`.
+
+---
+
 ## SWP-1 (2026-04-19) — Six-Week Plan Generator: Data Model + Migrations + Helpers + Prompt Stubs
 
 **Phase:** 5 — Build Execution (Wave 15 opener). 3 new tables (`six_week_plans`, `six_week_plan_task_progress`, `trial_shoot_notes`) with full spec §10.1 column set. Manual migration SQL (drizzle-kit snapshot collision workaround). +3 activity_log kinds, +4 scheduled task types, +1 email classification (+5 promoted to transactional). 4 typed prompt file stubs in `lib/ai/prompts/six-week-plan/`. `assembleSixWeekContext(dealId)` helper gathering questionnaire + enrichment + shoot notes + Brand DNA + offer constant. Pre-existing registrations (settings, LLM registry, most activity/email entries) confirmed in place. See `sessions/swp1-handoff.md`.
