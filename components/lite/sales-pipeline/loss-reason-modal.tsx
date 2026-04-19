@@ -31,6 +31,13 @@ const LOSS_LABELS: Record<DealLossReason, string> = {
   ghosted: "Ghosted",
   internal_change: "Internal change",
   other: "Other",
+  trial_only_no_retainer_fit: "Trial only — no retainer fit",
+  intro_funnel_abandoned: "Intro funnel abandoned",
+  intro_funnel_cancelled_refunded: "Cancelled — refunded",
+  intro_funnel_cancelled_no_refund: "Cancelled — no refund",
+  intro_funnel_no_show: "No show",
+  intro_funnel_cancelled_by_superbad: "Cancelled by SuperBad",
+  prospect_unresponsive_reschedules: "Unresponsive reschedules",
 };
 
 export function LossReasonModal({

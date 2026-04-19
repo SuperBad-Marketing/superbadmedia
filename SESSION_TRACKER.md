@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `IF-1` — Intro Funnel landing + questionnaire + Stripe Payment Element + Deal creation (Wave 14 begins)
-**Brief:** CMS-5 DONE (Intro Funnel + Six-Week Plan content authored). All content files committed to `docs/content/intro-funnel/` and `docs/content/six-week-plan/`. Wave 14 can start.
-**Model tier:** Sonnet (IF-1 is a large build session — standard Phase 5)
-**Last closed:** CMS-5 (2026-04-19) — see `sessions/cms-5-handoff.md`
-**Wave status:** Wave 13c COMPLETE. CMS-5 COMPLETE. **Next up:** Wave 14 (IF-1 → IF-4 → IF-E2E).
+**Next session:** `IF-2` — Intro Funnel booking calendar + SMS notifications + admin booking view (Wave 14 continues)
+**Brief:** IF-1 DONE (landing page, Section 1 form, deal creation, portal shell, questionnaire, payment panel all wired). Migration 0052 cleaned of duplicate table defs. Dev DB column drift patched.
+**Model tier:** Sonnet
+**Last closed:** IF-1 (2026-04-19) — see `sessions/if1-handoff.md`
+**Wave status:** Wave 14 IN PROGRESS. IF-1 COMPLETE. **Next up:** IF-2.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

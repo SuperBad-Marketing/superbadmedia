@@ -32,8 +32,8 @@ describe("SP-1 enum shape", () => {
     expect([...DEAL_WON_OUTCOMES]).toEqual(["retainer", "saas", "project"]);
   });
 
-  it("deals.loss_reason is the locked 7-tuple", () => {
-    expect(DEAL_LOSS_REASONS).toHaveLength(7);
+  it("deals.loss_reason is the locked 14-tuple (7 original + 7 intro funnel)", () => {
+    expect(DEAL_LOSS_REASONS).toHaveLength(14);
   });
 
   it("deals.subscription_state is the 8-tuple (Quote Builder §5.6 + past_due via subscription-lifecycle webhooks)", () => {

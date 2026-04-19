@@ -33,6 +33,13 @@ export const DEAL_LOSS_REASONS = [
   "ghosted",
   "internal_change",
   "other",
+  "trial_only_no_retainer_fit",
+  "intro_funnel_abandoned",
+  "intro_funnel_cancelled_refunded",
+  "intro_funnel_cancelled_no_refund",
+  "intro_funnel_no_show",
+  "intro_funnel_cancelled_by_superbad",
+  "prospect_unresponsive_reschedules",
 ] as const;
 export type DealLossReason = (typeof DEAL_LOSS_REASONS)[number];
 
@@ -103,6 +110,10 @@ export const deals = sqliteTable(
     payment_failure_count: integer("payment_failure_count").notNull().default(0),
     first_payment_failure_at_ms: integer("first_payment_failure_at_ms"),
     cloudinary_gallery_folder: text("cloudinary_gallery_folder"),
+    funnel_submission_id: text("funnel_submission_id"),
+    funnel_state: text("funnel_state"),
+    post_trial_signal: text("post_trial_signal"),
+    reschedule_count: integer("reschedule_count").notNull().default(0),
     referral_from_company_id: text("referral_from_company_id").references(
       () => companies.id,
       { onDelete: "set null" },

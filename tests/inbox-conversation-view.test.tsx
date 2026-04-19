@@ -61,6 +61,8 @@ function contact(
     portal_chat_last_seen_at_ms: null,
     portal_last_visited_at_ms: null,
     retainer_kickoff_bartender_said_at_ms: null,
+    sms_opt_in: false,
+    sms_consent_at_ms: null,
     bundled_hub_seen_at_ms: null,
     last_referral_prompt_at_ms: null,
     created_at_ms: NOW,

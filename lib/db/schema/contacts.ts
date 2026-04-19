@@ -44,6 +44,10 @@ export const contacts = sqliteTable(
       .default("unknown"),
     phone: text("phone"),
     phone_normalised: text("phone_normalised"),
+    sms_opt_in: integer("sms_opt_in", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    sms_consent_at_ms: integer("sms_consent_at_ms"),
     is_primary: integer("is_primary", { mode: "boolean" })
       .notNull()
       .default(false),
