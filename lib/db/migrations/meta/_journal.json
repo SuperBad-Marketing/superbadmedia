@@ -302,6 +302,13 @@
       "when": 1776589458468,
       "tag": "0052_if1_intro_funnel",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1776636400000,
+      "tag": "0053_swp1_six_week_plan",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,12 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-1 (2026-04-19) — Six-Week Plan Generator: Data Model + Migrations + Helpers + Prompt Stubs
+
+**Phase:** 5 — Build Execution (Wave 15 opener). 3 new tables (`six_week_plans`, `six_week_plan_task_progress`, `trial_shoot_notes`) with full spec §10.1 column set. Manual migration SQL (drizzle-kit snapshot collision workaround). +3 activity_log kinds, +4 scheduled task types, +1 email classification (+5 promoted to transactional). 4 typed prompt file stubs in `lib/ai/prompts/six-week-plan/`. `assembleSixWeekContext(dealId)` helper gathering questionnaire + enrichment + shoot notes + Brand DNA + offer constant. Pre-existing registrations (settings, LLM registry, most activity/email entries) confirmed in place. See `sessions/swp1-handoff.md`.
+
+---
+
 ## IF-4 (2026-04-19) — Portal-Guard Recovery Flow + OTT Magic-Link Embedding
 
 **Phase:** 5 — Build Execution (Wave 14). Recovery form real implementation (stub → `intro_funnel_submissions` + `contacts` lookup + `issueMagicLink()` + `sendEmail()`). OTT magic-link embedded at every intro funnel email send point (booking confirmation, reschedule, abandon 24h/3d + fallbacks). Portal session cookie set at section 1 submit + welcome magic-link email in background. `requireIntroSession(token)` guard wired to all `/lite/intro/[token]/*` routes. Booking reminder handler (24h/2h, email + SMS) and reflection reminder handler registered and wired. Booking reminders scheduled on booking creation. +1 `activity_log.kind`. 2 new test files, 5 new tests. See `sessions/if4-handoff.md`.

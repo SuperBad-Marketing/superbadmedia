@@ -294,6 +294,9 @@ export const ACTIVITY_LOG_KINDS = [
   "six_week_plan_migrated_to_client_context",
   "six_week_plan_refresh_review_requested",
   "six_week_plan_live_strategy_set",
+  "six_week_plan_retainer_payment_queued_pending_refresh_review",
+  "six_week_plan_retainer_week_1_activated",
+  "six_week_plan_expiry_email_sent",
   "six_week_plan_portal_archived_non_converter",
   "six_week_plan_pdf_downloaded",
   // --- Shape canonicalisation (2) ---

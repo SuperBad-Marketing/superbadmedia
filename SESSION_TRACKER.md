@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-1` — Six-Week Plan Generator: data model + migrations + helpers + prompt-file stubs (Wave 15 opener)
-**Brief:** Wave 14 COMPLETE (IF-1 + IF-2 + IF-3 + IF-4 + IF-E2E). Full intro funnel critical flow built and E2E covered. Remaining loose ends: `ensureAbandonCheckEnqueued()` bootstrap unwired, reflection reminder hourly-cron wiring unwired, reschedule cancels old reminders wastefully (all non-blocking, tracked in handoffs).
+**Next session:** `SWP-2` — Six-Week Plan Generator: content mini-session (prompt content population for all 4 LLM jobs)
+**Brief:** SWP-1 COMPLETE. 3 new tables, migration, 4 prompt stubs, context assembly helper, all cross-cutting registrations landed. Prompt stubs are typed but empty — content mini-session must fill them before SWP-3 (generator pipeline).
 **Model tier:** Sonnet
-**Last closed:** IF-E2E (2026-04-19) — see `sessions/if-e2e-handoff.md`
-**Wave status:** Wave 14 COMPLETE. **Next up:** Wave 15 (SWP-1..SWP-10, Six-Week Plan Generator).
+**Last closed:** SWP-1 (2026-04-19) — see `sessions/swp1-handoff.md`
+**Wave status:** Wave 15 IN PROGRESS. SWP-1 done; SWP-2 (content mini-session) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

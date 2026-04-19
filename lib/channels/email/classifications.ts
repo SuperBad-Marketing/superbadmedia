@@ -24,6 +24,7 @@ export const EMAIL_CLASSIFICATIONS = [
   "six_week_plan_revision_regenerated",
   "six_week_plan_revision_explained",
   "six_week_plan_expiry_email",
+  "six_week_plan_non_converter_expiry",
   "hiring_invite",
   "hiring_followup_question",
   "hiring_trial_send",
@@ -90,6 +91,13 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "shoot_reschedule_confirmed",
   "trial_shoot_payment_receipt",
   "apology_email",
+  // SWP — plan delivery, revision replies, and expiry are all transactional
+  // (prospect is in an engaged relationship — they paid for the trial shoot).
+  "six_week_plan_delivery",
+  "six_week_plan_revision_regenerated",
+  "six_week_plan_revision_explained",
+  "six_week_plan_expiry_email",
+  "six_week_plan_non_converter_expiry",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

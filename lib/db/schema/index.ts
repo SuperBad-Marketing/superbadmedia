@@ -64,3 +64,6 @@ export * from "./intro-funnel-config";
 export * from "./calendar";
 export * from "./dnc-phones";
 export * from "./twilio-sms-log";
+export * from "./six-week-plans";
+export * from "./six-week-plan-task-progress";
+export * from "./trial-shoot-notes";

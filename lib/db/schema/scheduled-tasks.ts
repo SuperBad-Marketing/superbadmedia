@@ -73,6 +73,11 @@ export const SCHEDULED_TASK_TYPES = [
   "intro_funnel_abandon_check",
   "intro_funnel_booking_reminder",
   "intro_funnel_reflection_reminder",
+  // --- Six-Week Plan Generator (4) ---
+  "six_week_plan_generate",
+  "six_week_plan_migrate_on_won",
+  "six_week_plan_expiry_email",
+  "six_week_plan_non_converter_expiry",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",
