@@ -309,6 +309,13 @@
       "when": 1776636400000,
       "tag": "0053_swp1_six_week_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "6",
+      "when": 1776808800000,
+      "tag": "0054_swp6_active_strategies",
+      "breakpoints": true
     }
   ]
 }

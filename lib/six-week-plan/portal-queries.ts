@@ -1,8 +1,9 @@
 import "server-only";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { six_week_plans } from "@/lib/db/schema/six-week-plans";
 import { six_week_plan_task_progress } from "@/lib/db/schema/six-week-plan-task-progress";
+import { active_strategies } from "@/lib/db/schema/active-strategies";
 import { deals } from "@/lib/db/schema/deals";
 import { contacts } from "@/lib/db/schema/contacts";
 import { companies } from "@/lib/db/schema/companies";
@@ -36,6 +37,12 @@ export interface PortalPlanData {
     taskIndex: number;
     completedAtMs: number | null;
   }>;
+  retainerState: {
+    isRetainer: boolean;
+    pendingRefreshReview: boolean;
+    paymentReceivedBeforeReview: boolean;
+    strategyIsLive: boolean;
+  };
 }
 
 export async function getPlanForPortal(
@@ -55,6 +62,10 @@ export async function getPlanForPortal(
     .where(eq(companies.id, contact.company_id))
     .limit(1);
 
+  const strategy = await db.query.active_strategies.findFirst({
+    where: eq(active_strategies.client_id, contact.company_id),
+  });
+
   const deal = await db.query.deals.findFirst({
     where: and(
       eq(deals.company_id, contact.company_id),
@@ -71,44 +82,46 @@ export async function getPlanForPortal(
     });
     if (!wonDeal) return null;
 
-    return findPlanForDeal(wonDeal.id, contact.name, company?.name ?? "Your business");
+    return findPlanForDeal(
+      wonDeal.id,
+      contact.name,
+      company?.name ?? "Your business",
+      strategy,
+    );
   }
 
-  return findPlanForDeal(deal.id, contact.name, company?.name ?? "Your business");
+  return findPlanForDeal(
+    deal.id,
+    contact.name,
+    company?.name ?? "Your business",
+    strategy,
+  );
 }
 
 async function findPlanForDeal(
   dealId: string,
   contactName: string,
   businessName: string,
+  strategy: typeof active_strategies.$inferSelect | null | undefined,
 ): Promise<PortalPlanData | null> {
   const plan = await db.query.six_week_plans.findFirst({
     where: and(
       eq(six_week_plans.deal_id, dealId),
-      eq(six_week_plans.status, "approved"),
+      inArray(six_week_plans.status, ["approved", "released"]),
     ),
     orderBy: [desc(six_week_plans.generation_version)],
   });
 
-  if (!plan) {
-    const releasedPlan = await db.query.six_week_plans.findFirst({
-      where: and(
-        eq(six_week_plans.deal_id, dealId),
-        eq(six_week_plans.status, "released"),
-      ),
-      orderBy: [desc(six_week_plans.generation_version)],
-    });
-    if (!releasedPlan) return null;
-    return buildPortalPlanData(releasedPlan, contactName, businessName);
-  }
+  if (!plan) return null;
 
-  return buildPortalPlanData(plan, contactName, businessName);
+  return buildPortalPlanData(plan, contactName, businessName, strategy);
 }
 
 async function buildPortalPlanData(
   plan: typeof six_week_plans.$inferSelect,
   contactName: string,
   businessName: string,
+  strategy: typeof active_strategies.$inferSelect | null | undefined,
 ): Promise<PortalPlanData> {
   const weeksData = plan.weeks_json as unknown as WeeksOutput | null;
 
@@ -120,6 +133,12 @@ async function buildPortalPlanData(
     })
     .from(six_week_plan_task_progress)
     .where(eq(six_week_plan_task_progress.plan_id, plan.id));
+
+  const isRetainer = !!plan.migrated_to_client_context_at_ms;
+  const pendingRefreshReview = strategy?.pending_refresh_review ?? false;
+  const paymentReceivedBeforeReview =
+    !!plan.retainer_payment_received_at_ms && pendingRefreshReview;
+  const strategyIsLive = strategy?.status === "live";
 
   return {
     plan: {
@@ -149,5 +168,11 @@ async function buildPortalPlanData(
       taskIndex: p.task_index,
       completedAtMs: p.completed_at_ms,
     })),
+    retainerState: {
+      isRetainer,
+      pendingRefreshReview,
+      paymentReceivedBeforeReview,
+      strategyIsLive,
+    },
   };
 }

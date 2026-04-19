@@ -25,6 +25,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   measurement: "Measurement",
 };
 
+const CATEGORY_STYLES: Record<string, string> = {
+  infrastructure: "bg-[rgba(242,140,82,0.12)] text-[var(--color-brand-orange)]",
+  content: "bg-[rgba(244,160,176,0.10)] text-[var(--color-brand-pink)]",
+  distribution: "bg-[rgba(178,40,72,0.12)] text-[#E05A7A]",
+  conversion: "bg-[rgba(253,245,230,0.06)] text-[var(--color-brand-cream)]",
+  measurement: "bg-[rgba(128,127,115,0.15)] text-[var(--color-neutral-300)]",
+};
+
 const EFFORT_LABELS: Record<string, string> = {
   quick: "Quick",
   half_day: "Half day",
@@ -52,7 +60,7 @@ function getDayOfWeek(weekNumber: number, activatedAtMs: number): number {
 }
 
 export function PlanView({ data, portalToken }: Props) {
-  const { plan, prospect, taskProgress } = data;
+  const { plan, prospect, taskProgress, retainerState } = data;
   const shouldReduceMotion = useReducedMotion();
   const isActivated = !!plan.activatedAtMs;
   const [expandedWeek, setExpandedWeek] = useState<number | null>(
@@ -64,7 +72,12 @@ export function PlanView({ data, portalToken }: Props) {
   const showRevisionReplyCard =
     plan.revisionReplySentAtMs && !plan.revisionReplyDismissedAtMs;
   const canRequestRevision =
-    !plan.revisionRequestedAtMs && !isActivated;
+    !plan.revisionRequestedAtMs && !isActivated && !retainerState.isRetainer;
+  const showActivateButton =
+    !isActivated && !retainerState.isRetainer;
+  const planTitle = retainerState.strategyIsLive
+    ? "Your Strategy"
+    : "Your Six-Week Plan";
 
   const handleActivate = useCallback(async () => {
     setActivating(true);
@@ -75,24 +88,37 @@ export function PlanView({ data, portalToken }: Props) {
   }, [plan.id]);
 
   return (
-    <div className="mx-auto max-w-[780px] px-4 md:px-8">
+    <div className="mx-auto max-w-[740px] px-4 md:px-8">
       <motion.div
         initial={shouldReduceMotion ? {} : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={shouldReduceMotion ? { duration: 0 } : houseSpring}
-        className="border-b border-[rgba(253,245,230,0.06)] pb-7 pt-10"
+        className="pb-0 pt-12"
       >
-        <span className="mb-2 block font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2px] text-[var(--color-brand-orange)]">
-          strategy
+        <span className="mb-3 block font-[family-name:var(--font-righteous)] text-[11px] uppercase tracking-[3px] text-[var(--color-brand-pink)]">
+          Strategy dated {new Date().toLocaleDateString("en-AU", { month: "long", year: "numeric" })}
         </span>
-        <h1 className="font-[family-name:var(--font-black-han-sans)] text-3xl leading-none text-[var(--color-brand-cream)] sm:text-4xl">
-          Your Six-Week Plan
+        <h1 className="font-[family-name:var(--font-righteous)] text-[32px] uppercase tracking-[1px] text-[var(--color-brand-cream)]">
+          {planTitle}
         </h1>
-        <p className="mt-3 font-[family-name:var(--font-playfair-display)] text-[15px] italic text-[var(--color-neutral-500)]">
-          Built from everything we learned about your business — what you told
-          us, what we found, and what we saw on shoot day.
-        </p>
       </motion.div>
+
+      {retainerState.pendingRefreshReview && (
+        <motion.div
+          initial={shouldReduceMotion ? {} : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            shouldReduceMotion ? { duration: 0 } : { ...houseSpring, delay: 0.05 }
+          }
+          className="mt-4 rounded-lg border border-[rgba(242,140,82,0.2)] bg-[rgba(242,140,82,0.06)] px-5 py-3.5"
+        >
+          <p className="text-[14px] leading-[1.6] text-[var(--color-neutral-300)]">
+            {retainerState.paymentReceivedBeforeReview
+              ? "Kicking off Week 1 shortly \u2014 Andy\u2019s finalising the refreshed plan."
+              : "Andy\u2019s doing a pass on this before we kick off \u2014 live version lands on first payment."}
+          </p>
+        </motion.div>
+      )}
 
       {showRevisionReplyCard && (
         <RevisionReplyCard
@@ -108,14 +134,14 @@ export function PlanView({ data, portalToken }: Props) {
         transition={
           shouldReduceMotion ? { duration: 0 } : { ...houseSpring, delay: 0.1 }
         }
-        className="py-8"
+        className="py-12"
       >
-        <p className="text-[16px] leading-relaxed text-[var(--color-brand-cream)]">
+        <p className="max-w-[640px] text-[17px] leading-[1.7] text-[var(--color-neutral-300)]">
           {plan.planIntro}
         </p>
       </motion.div>
 
-      {!isActivated && (
+      {showActivateButton && (
         <motion.div
           initial={shouldReduceMotion ? {} : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -129,17 +155,17 @@ export function PlanView({ data, portalToken }: Props) {
           <button
             onClick={handleActivate}
             disabled={activating}
-            className="rounded-[8px] bg-[var(--color-brand-red)] px-8 py-3 font-[family-name:var(--font-righteous)] text-[15px] uppercase tracking-[1px] text-[var(--color-brand-cream)] transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="rounded-[8px] bg-[var(--color-brand-red)] px-12 py-4 text-[15px] font-semibold tracking-[0.3px] text-[var(--color-brand-cream)] transition-all hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(178,40,72,0.3)] active:translate-y-0 disabled:opacity-50"
           >
-            {activating ? "Starting…" : "Start Week 1"}
+            {activating ? "Starting\u2026" : "Start Week 1"}
           </button>
-          <span className="text-center text-[13px] text-[var(--color-neutral-500)]">
-            You're running this. When you're ready, we'll start the clock.
+          <span className="max-w-[300px] text-center text-[12px] leading-[1.5] text-[var(--color-neutral-500)]">
+            {`You\u2019re running this. When you\u2019re ready, we\u2019ll start the clock.`}
           </span>
         </motion.div>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 pb-2">
         {plan.weeks.map((week, i) => (
           <WeekCard
             key={week.week_number}
@@ -166,28 +192,32 @@ export function PlanView({ data, portalToken }: Props) {
         ))}
       </div>
 
-      <div className="mt-10 flex flex-col items-center gap-4 border-t border-[rgba(253,245,230,0.06)] pb-12 pt-8">
+      <div className="mt-12 flex flex-col items-center gap-3 pb-12">
         <a
           href={`/api/lite/portal/plan/${encodeURIComponent(plan.id)}/pdf`}
-          className="text-[13px] text-[var(--color-neutral-500)] underline underline-offset-2 transition-colors hover:text-[var(--color-brand-cream)]"
+          className="text-[13px] text-[var(--color-neutral-500)] transition-colors hover:border-b hover:border-[var(--color-neutral-500)] hover:text-[var(--color-neutral-300)]"
         >
           Download as PDF
         </a>
 
         {canRequestRevision ? (
-          <button
-            onClick={() => setRevisionModalOpen(true)}
-            className="text-[13px] text-[var(--color-neutral-500)] underline underline-offset-2 transition-colors hover:text-[var(--color-brand-cream)]"
-          >
-            {"This doesn\u2019t fit my business"}
-          </button>
+          <div className="mt-10">
+            <button
+              onClick={() => setRevisionModalOpen(true)}
+              className="text-[12px] text-[var(--color-neutral-500)] decoration-dashed decoration-[rgba(128,127,115,0.3)] underline-offset-2 transition-colors hover:text-[var(--color-neutral-300)] hover:underline"
+            >
+              {"This doesn\u2019t quite fit my business"}
+            </button>
+          </div>
         ) : plan.revisionRequestedAtMs && !isActivated ? (
-          <a
-            href="mailto:andy@superbadmedia.com.au"
-            className="text-[13px] text-[var(--color-neutral-500)] underline underline-offset-2 transition-colors hover:text-[var(--color-brand-cream)]"
-          >
-            Have more questions about this plan? Email Andy
-          </a>
+          <div className="mt-10">
+            <a
+              href="mailto:andy@superbadmedia.com.au"
+              className="text-[12px] text-[var(--color-neutral-500)] decoration-dashed decoration-[rgba(128,127,115,0.3)] underline-offset-2 transition-colors hover:text-[var(--color-neutral-300)] hover:underline"
+            >
+              Have more questions about this plan? Email Andy
+            </a>
+          </div>
         ) : null}
       </div>
 
@@ -251,24 +281,18 @@ function WeekCard({
           ? { duration: 0 }
           : { ...houseSpring, delay: 0.05 * index }
       }
-      className={`overflow-hidden rounded-[8px] border ${
-        isCurrent
-          ? "border-[var(--color-brand-orange)]/30 bg-[var(--color-neutral-800)]"
-          : "border-[rgba(253,245,230,0.06)] bg-[var(--color-neutral-900)]"
-      }`}
+      className="overflow-hidden rounded-[16px] bg-[var(--color-neutral-800)] shadow-[inset_0_1px_0_rgba(253,245,230,0.04)]"
     >
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between px-5 py-4 text-left"
+        className="flex w-full items-center gap-4 px-6 py-5 text-left transition-colors hover:bg-[rgba(253,245,230,0.015)]"
       >
-        <div className="flex items-center gap-3">
-          <span className="font-[family-name:var(--font-righteous)] text-[11px] uppercase tracking-[1.5px] text-[var(--color-brand-orange)]">
-            Week {week.week_number}
-          </span>
-          <span className="text-[15px] font-medium text-[var(--color-brand-cream)]">
-            {week.theme}
-          </span>
-        </div>
+        <span className="min-w-[64px] shrink-0 font-[family-name:var(--font-righteous)] text-[11px] uppercase tracking-[2px] text-[var(--color-brand-pink)]">
+          Week {week.week_number}
+        </span>
+        <span className="flex-1 text-[15px] font-semibold text-[var(--color-brand-cream)]">
+          {week.theme}
+        </span>
         <div className="flex items-center gap-3">
           {isCurrent && dayOfWeek && (
             <span className="text-[12px] text-[var(--color-neutral-500)]">
@@ -282,23 +306,20 @@ function WeekCard({
           )}
           {weekStatus === "future" && isActivated && (
             <span className="text-[12px] italic text-[var(--color-neutral-500)]">
-              {`This week opens when Week ${week.week_number - 1} wraps.`}
+              {`Opens when Week ${week.week_number - 1} wraps`}
             </span>
           )}
           <svg
-            className={`h-4 w-4 text-[var(--color-neutral-500)] transition-transform ${
+            className={`h-5 w-5 text-[var(--color-neutral-500)] transition-transform duration-350 ${
               isExpanded ? "rotate-180" : ""
             }`}
+            style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
             fill="none"
-            viewBox="0 0 24 24"
+            viewBox="0 0 20 20"
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19 9l-7 7-7-7"
-            />
+            <path d="M5 7.5L10 12.5L15 7.5" />
           </svg>
         </div>
       </button>
@@ -312,23 +333,21 @@ function WeekCard({
             transition={shouldReduceMotion ? { duration: 0 } : houseSpring}
             className="overflow-hidden"
           >
-            <div className="border-t border-[rgba(253,245,230,0.06)] px-5 pb-6 pt-4">
-              <p className="mb-4 text-[14px] leading-relaxed text-[var(--color-neutral-300)]">
+            <div className="border-t border-[rgba(253,245,230,0.04)] px-6 pb-7 pt-5">
+              <p className="mb-6 text-[15px] leading-[1.65] text-[var(--color-neutral-300)]">
                 {week.why_this_week}
               </p>
 
               {week.content_angles.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="mb-2 font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[1.5px] text-[var(--color-neutral-500)]">
+                <div className="mb-6">
+                  <h4 className="mb-2.5 font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2.5px] text-[var(--color-neutral-500)]">
                     Content angles
                   </h4>
                   <div className="flex flex-col gap-2">
                     {week.content_angles.map((angle, i) => (
-                      <div key={i} className="text-[13px] text-[var(--color-neutral-300)]">
-                        <span className="mr-2 inline-block rounded bg-[var(--color-neutral-700)] px-2 py-0.5 text-[11px] text-[var(--color-brand-pink)]">
-                          {angle.shoot_asset_ref}
-                        </span>
-                        {angle.description}
+                      <div key={i} className="flex items-baseline gap-2.5 text-[14px] text-[var(--color-neutral-300)]">
+                        <span className="mt-[7px] h-[5px] w-[5px] shrink-0 rounded-full bg-[var(--color-brand-pink)]" />
+                        <span>{angle.description}</span>
                       </div>
                     ))}
                   </div>
@@ -336,15 +355,15 @@ function WeekCard({
               )}
 
               {week.channel_mix.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="mb-2 font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[1.5px] text-[var(--color-neutral-500)]">
+                <div className="mb-6">
+                  <h4 className="mb-2.5 font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2.5px] text-[var(--color-neutral-500)]">
                     Channels
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {week.channel_mix.map((ch) => (
                       <span
                         key={ch}
-                        className="rounded-full bg-[var(--color-neutral-700)] px-3 py-1 text-[12px] text-[var(--color-brand-cream)]"
+                        className="rounded-full border border-[rgba(244,160,176,0.12)] bg-[rgba(244,160,176,0.08)] px-3 py-1 text-[11px] font-semibold tracking-[0.5px] text-[var(--color-brand-pink)]"
                       >
                         {ch}
                       </span>
@@ -353,11 +372,11 @@ function WeekCard({
                 </div>
               )}
 
-              <div className="mb-4">
-                <h4 className="mb-2 font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[1.5px] text-[var(--color-neutral-500)]">
+              <div className="mb-6">
+                <h4 className="mb-2.5 font-[family-name:var(--font-righteous)] text-[10px] uppercase tracking-[2.5px] text-[var(--color-neutral-500)]">
                   Tasks
                 </h4>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2.5">
                   {week.tasks.map((task, ti) => (
                     <TaskRow
                       key={ti}
@@ -378,23 +397,19 @@ function WeekCard({
                 </div>
               </div>
 
-              <div className="mt-4 rounded-[8px] bg-[var(--color-neutral-800)] p-4">
-                <div className="mb-2">
-                  <span className="text-[12px] font-medium text-[var(--color-brand-orange)]">
+              <div className="rounded-[10px] border-l-[3px] border-l-[var(--color-brand-red)] bg-[rgba(178,40,72,0.06)] p-4">
+                <div className="mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-[2px] text-[var(--color-brand-red)]">
                     Success signal
                   </span>
-                  <p className="text-[13px] text-[var(--color-neutral-300)]">
-                    {week.success_signal}
-                  </p>
                 </div>
-                <div>
-                  <span className="text-[12px] font-medium text-[var(--color-neutral-500)]">
-                    Fallback
-                  </span>
-                  <p className="text-[13px] text-[var(--color-neutral-500)]">
-                    {week.fallback}
-                  </p>
-                </div>
+                <p className="text-[14px] leading-[1.5] text-[var(--color-brand-cream)]">
+                  {week.success_signal}
+                </p>
+                <p className="mt-2.5 text-[13px] italic text-[var(--color-neutral-500)]">
+                  <span className="not-italic font-semibold">If not:</span>{" "}
+                  {week.fallback}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -436,7 +451,7 @@ function TaskRow({
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-[6px] p-2 ${
+      className={`flex gap-3 rounded-[10px] bg-[var(--color-neutral-700)] p-4 shadow-[inset_0_1px_0_rgba(253,245,230,0.03)] ${
         completed ? "opacity-60" : ""
       }`}
     >
@@ -444,15 +459,15 @@ function TaskRow({
         <button
           onClick={handleToggle}
           disabled={toggling}
-          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
+          className={`mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border-2 transition-colors ${
             completed
-              ? "border-[var(--color-brand-orange)] bg-[var(--color-brand-orange)]"
-              : "border-[var(--color-neutral-600)] bg-transparent"
-          } transition-colors`}
+              ? "border-[var(--color-brand-red)] bg-[var(--color-brand-red)]"
+              : "border-[var(--color-neutral-500)] bg-transparent hover:border-[var(--color-brand-pink)]"
+          }`}
         >
           {completed && (
             <svg
-              className="h-3 w-3 text-[var(--color-neutral-900)]"
+              className="h-2.5 w-2.5 text-[var(--color-brand-cream)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -467,29 +482,29 @@ function TaskRow({
           )}
         </button>
       ) : (
-        <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[var(--color-neutral-600)]" />
+        <div className="mt-[5px] h-[18px] w-[18px] shrink-0 rounded border-2 border-[var(--color-neutral-500)]" />
       )}
       <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-[14px] font-medium ${
-              completed
-                ? "text-[var(--color-neutral-500)] line-through"
-                : "text-[var(--color-brand-cream)]"
-            }`}
-          >
-            {task.title}
-          </span>
-          <span className="rounded bg-[var(--color-neutral-700)] px-1.5 py-0.5 text-[10px] uppercase tracking-[0.5px] text-[var(--color-neutral-500)]">
+        <div
+          className={`text-[14px] font-semibold ${
+            completed
+              ? "text-[var(--color-neutral-500)] line-through"
+              : "text-[var(--color-brand-cream)]"
+          }`}
+        >
+          {task.title}
+        </div>
+        <p className="mt-1 text-[13px] leading-[1.5] text-[var(--color-neutral-500)]">
+          {task.detail}
+        </p>
+        <div className="mt-1.5 flex gap-2">
+          <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.5px] ${CATEGORY_STYLES[task.category] ?? "bg-[rgba(253,245,230,0.06)] text-[var(--color-neutral-300)]"}`}>
             {CATEGORY_LABELS[task.category] ?? task.category}
           </span>
-          <span className="text-[10px] text-[var(--color-neutral-500)]">
+          <span className="rounded bg-[rgba(253,245,230,0.04)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.5px] text-[var(--color-neutral-500)]">
             {EFFORT_LABELS[task.effort_estimate] ?? task.effort_estimate}
           </span>
         </div>
-        <p className="mt-0.5 text-[13px] text-[var(--color-neutral-500)]">
-          {task.detail}
-        </p>
       </div>
     </div>
   );

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-6` — Six-Week Plan Generator: retainer migration + refresh-review surface (spec §8.1 + §8.2 + §8.3)
-**Brief:** SWP-5 COMPLETE. Portal plan surface live at `/portal/[token]/plan` — pre-activation (6 expandable read-only weeks, Start Week 1, Download PDF, revision modal), post-activation (live tracker with task check-off). Puppeteer PDF with cover/content/closing pages + 24h cache. Revision-review admin surface at `/lite/six-week-plans/[planId]/revision-review` with regen/draft-reply/manual-reply paths. SWP-6 builds retainer migration on Deal Won, refresh-review at `/lite/clients/[companyId]/strategy/refresh-review`, and Stripe first-payment Week 1 trigger.
+**Next session:** `SWP-7` — Six-Week Plan Generator: revision-review queue automation (spec §7 remaining + BUILD_PLAN cron `plan_revision_review_queue`)
+**Brief:** SWP-6 COMPLETE. `active_strategies` table created (forward dependency for CCE-1). Migration handler copies plan to active_strategy on Deal Won. Refresh-review admin surface at `/lite/admin/clients/[companyId]/strategy/refresh-review` with approve/regen/hand-edit paths. Retroactive Week 1 fires on refresh-review publish when payment was queued. Portal plan-view updated with retainer band + title switch + activation suppression.
 **Model tier:** Sonnet
-**Last closed:** SWP-5 (2026-04-20) — see `sessions/swp5-handoff.md`
-**Wave status:** Wave 15 IN PROGRESS. SWP-1 + SWP-2 + SWP-3 + SWP-4 + SWP-5 done; SWP-6 (retainer migration + refresh-review) next.
+**Last closed:** SWP-6 (2026-04-20) — see `sessions/swp6-handoff.md`
+**Wave status:** Wave 15 IN PROGRESS. SWP-1 through SWP-6 done; SWP-7 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

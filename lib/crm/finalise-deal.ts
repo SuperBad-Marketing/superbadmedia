@@ -8,6 +8,7 @@ import {
   type DealWonOutcome,
 } from "@/lib/db/schema/deals";
 import { transitionDealStage } from "./transition-deal-stage";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 
 type Db = BetterSQLite3Database<Record<string, unknown>> | typeof defaultDb;
 
@@ -48,7 +49,7 @@ export function finaliseDealAsWon(
 ): DealRow {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const database = dbArg as any;
-  return database.transaction((tx: Db) => {
+  const result: DealRow = database.transaction((tx: Db) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const txDb = tx as any;
     const valueUpdate =
@@ -78,6 +79,17 @@ export function finaliseDealAsWon(
       tx,
     );
   });
+
+  if (result.company_id) {
+    enqueueTask({
+      task_type: "six_week_plan_migrate_on_won",
+      runAt: Date.now(),
+      payload: { deal_id: dealId, company_id: result.company_id },
+      idempotencyKey: `swp_migrate:${dealId}`,
+    }).catch(() => {});
+  }
+
+  return result;
 }
 
 export function finaliseDealAsLost(

@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-6 (2026-04-20) — Six-Week Plan Generator: Retainer Migration + Refresh-Review Surface
+
+**Phase:** 5 — Build Execution (Wave 15). `active_strategies` table (forward dependency for CCE-1, per CCE spec §12.5). Migration handler `migratePlanOnWon()` copies plan payload to active_strategy on Deal Won, enqueued via `six_week_plan_migrate_on_won` scheduled task from `finaliseDealAsWon()`. Refresh-review admin surface at `/lite/admin/clients/[companyId]/strategy/refresh-review` — two-column layout with migrated plan overview + three actions: approve as-is, regenerate against retainer scope, hand-edit weeks inline. Retroactive Week 1 fires on refresh-review publish when payment was queued pre-review. Portal plan-view updated: retainer pending-refresh-review band (two copy variants for pre/post-payment), title switches to "Your Strategy" when live, Start Week 1 button + revision request suppressed for retainer path. See `sessions/swp6-handoff.md`.
+
 ## SWP-5 (2026-04-20) — Six-Week Plan Generator: Portal Plan Surface + PDF Render + Revision Flow
 
 **Phase:** 5 — Build Execution (Wave 15). Portal plan page at `/portal/[token]/plan` — pre-activation (6 expandable read-only week cards, Start Week 1 button, Download PDF link, revision modal with 40-char min), post-activation (live tracker with task check-off, day-of-week counter, week auto-advance gating). Puppeteer PDF with full-bleed cover page (SuperBad mark + business name + date), branded intermediate-page footers, closing sign-off with sprinkle line. 24h in-memory cache per plan version. Revision-review admin surface at `/lite/six-week-plans/[planId]/revision-review` — plan summary + prospect's note side-by-side, three actions (regenerate with note, Haiku-drafted reply, manual reply), send-reply fires email + updates plan + logs activity. Extended `getPlanForReview()` with revision fields. See `sessions/swp5-handoff.md`.
