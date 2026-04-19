@@ -116,10 +116,10 @@ async function seedSubscriber(
     timezone: "Australia/Melbourne",
     motion_preference: "full",
     sounds_enabled: true,
-    density_preference: "comfortable",
-    text_size_preference: "default",
-    theme_preset: "base-nova",
-    typeface_preset: "default",
+    density_preference: "comfort",
+    text_size_preference: "standard",
+    theme_preset: "standard",
+    typeface_preset: "house",
     created_at_ms: nowMs,
   });
 

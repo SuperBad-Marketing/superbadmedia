@@ -32,17 +32,17 @@ export const user = sqliteTable("user", {
     .notNull()
     .default(true),
   density_preference: text("density_preference", {
-    enum: ["compact", "comfortable", "spacious"],
+    enum: ["comfort", "compact"],
   })
     .notNull()
-    .default("comfortable"),
+    .default("comfort"),
   text_size_preference: text("text_size_preference", {
-    enum: ["small", "default", "large"],
+    enum: ["standard", "large"],
   })
     .notNull()
-    .default("default"),
-  theme_preset: text("theme_preset").notNull().default("base-nova"),
-  typeface_preset: text("typeface_preset").notNull().default("default"),
+    .default("standard"),
+  theme_preset: text("theme_preset").notNull().default("standard"),
+  typeface_preset: text("typeface_preset").notNull().default("house"),
 
   first_signed_in_at_ms: integer("first_signed_in_at_ms"),
   created_at_ms: integer("created_at_ms").notNull(),

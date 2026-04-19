@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## PM-1 (2026-04-19) — Settings → Display UI (Wave 13c)
+
+**Phase:** 5 — Build Execution (UI, small). 6-control preferences panel at `/lite/admin/settings/display` — Motion (radio), Sounds (switch), Density (radio), Text Size (radio), Theme (radio), Typeface (radio). Server actions persist to `user` table via Drizzle. Fixed enum drift between A2 design-tokens and A5 user schema (density, text_size enums + theme/typeface defaults). 4 new files, 3 edited, 6 tests. G8: 0 TS errors (excl. pre-existing), 1818 tests / 0 new failures. See `sessions/pm-1-handoff.md`.
+
 ## AT-2 (2026-04-19) — Free Audit Tool frontend (Wave 13b COMPLETE)
 
 **Phase:** 5 — Build Execution (UI, large). Wave 13b closes. Form page at `/get-started/audit` with 4 required + 4 optional progressive-disclosure fields, honeypot, Turnstile invisible widget. SSE consumer for cinematic processing reveal (9 signal status lines with live indicator animations). Grade reveal: 1.5s beat → 120px+ spring-animated overall grade → colour-coded category cards staggered 200ms with Haiku explanations. Graceful degradation (<3 categories → simplified partial results). Error phase with reset. Turnstile env vars added to `.env.example`. 3 new files, 1 edited, 6 tests. G8: 0 TS errors, 1819 tests / 0 failures. See `sessions/at-2-handoff.md`.
