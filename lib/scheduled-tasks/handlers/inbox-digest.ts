@@ -16,6 +16,7 @@ import { logActivity } from "@/lib/activity-log";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { buildDigestContent, sendDigestEmail } from "@/lib/graph/digest";
 import settingsRegistry from "@/lib/settings";
+import { nextMelbourneHourMs } from "@/lib/time/melbourne";
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
 
 export const INBOX_DIGEST_TASK_KEY_PREFIX = "inbox_morning_digest:";
@@ -56,90 +57,9 @@ export async function handleInboxMorningDigest(): Promise<void> {
 
 // ── Schedule helpers ────────────────────────────────────────────────
 
-/**
- * Compute the next 08:00 Melbourne wall-clock instant as epoch-ms.
- * Uses the configurable `inbox.digest_hour` setting (default 8).
- *
- * DST-safe: Melbourne offset is re-derived at the candidate instant
- * using the same Intl.DateTimeFormat approach as `next23MelbourneMs`.
- */
 export async function next8amMelbourneMs(nowMs: number): Promise<number> {
   const hour = await settingsRegistry.get("inbox.digest_hour");
   return nextMelbourneHourMs(nowMs, hour);
-}
-
-/**
- * Generic next-Melbourne-wall-clock-hour scheduler. Extracted so the
- * hour is configurable via settings.
- */
-function nextMelbourneHourMs(nowMs: number, hour: number): number {
-  const today = melbourneWallDate(nowMs);
-  let candidate = melbourneWallToUtcMs(today.year, today.month, today.day, hour);
-  if (candidate <= nowMs) {
-    const tomorrow = new Date(
-      Date.UTC(today.year, today.month - 1, today.day + 1),
-    );
-    candidate = melbourneWallToUtcMs(
-      tomorrow.getUTCFullYear(),
-      tomorrow.getUTCMonth() + 1,
-      tomorrow.getUTCDate(),
-      hour,
-    );
-  }
-  return candidate;
-}
-
-function melbourneWallDate(utcMs: number): {
-  year: number;
-  month: number;
-  day: number;
-} {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Australia/Melbourne",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  return {
-    year: Number(map.year),
-    month: Number(map.month),
-    day: Number(map.day),
-  };
-}
-
-function melbourneWallToUtcMs(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-): number {
-  const naiveUtc = Date.UTC(year, month - 1, day, hour, 0, 0);
-  const offsetMs = melbourneOffsetMsAt(naiveUtc);
-  return naiveUtc - offsetMs;
-}
-
-function melbourneOffsetMsAt(utcMs: number): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Australia/Melbourne",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  const melbAsIfUtc = Date.UTC(
-    Number(map.year),
-    Number(map.month) - 1,
-    Number(map.day),
-    Number(map.hour === "24" ? "00" : map.hour),
-    Number(map.minute),
-    Number(map.second),
-  );
-  return melbAsIfUtc - utcMs;
 }
 
 /**

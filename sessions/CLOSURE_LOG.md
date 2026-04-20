@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## TM-9 (2026-04-20) — Task Manager: Polish, E2E Wiring, Bootstrap (WAVE 17 COMPLETE)
+
+**Phase:** 5 — Build Execution (Wave 17 — session 9/9, wave closer). Five polish items: (1) Melbourne timezone helper extraction to shared `lib/time/melbourne.ts` — deduplicated from 4 files; (2) Cockpit integration contracts in `lib/tasks/cockpit.ts` — `getTasksForCockpitKanban()`, `getTaskWaitingItems()`, `getTaskHealthBanners()` per Daily Cockpit spec contracts; (3) Deep-link `?open={taskId}` auto-opens task drawer via `useSearchParams()`; (4) Digest bootstrap — `ensureTaskDigestEnqueued()` called on admin sign-in; (5) Dynamic browser tab title via `generateMetadata()`. 26 new tests. See `sessions/tm9-handoff.md`.
+
 ## TM-8 (2026-04-20) — Task Manager: Morning Digest Cron Handler
 
 **Phase:** 5 — Build Execution (Wave 17 — session 8/9). Built `task_morning_digest` scheduled task handler in `lib/scheduled-tasks/handlers/task-morning-digest.ts`. Triple-gated: kill switch (`tasks_digest_enabled`), settings (`tasks.morning_digest_enabled`), admin-sign-in check (`hasAdminSignedInToday()`). On pass: calls TM-7's `buildTaskDigestContent()` + `sendTaskDigestEmail()`, logs `task_digest_sent` activity. Self-perpetuates by enqueuing next day's run via `ensureTaskDigestEnqueued()` using DST-safe Melbourne scheduling from `tasks.morning_digest_time` setting. Registered in handler index. 14 new tests. See `sessions/tm8-handoff.md`.

@@ -12,8 +12,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { sendEmail } from "@/lib/channels/email/send";
 import settingsRegistry from "@/lib/settings";
-
-const MELBOURNE_TZ = "Australia/Melbourne";
+import { melbourneStartAndEndOfDay } from "@/lib/time/melbourne";
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -39,75 +38,6 @@ export interface TaskDigestContent {
   overdue: TaskDigestItem[];
   dueToday: TaskDigestItem[];
   approvalOutcomes: ApprovalOutcomeItem[];
-}
-
-// ── Melbourne time helpers ──────────────────────────────────────────
-
-function melbourneWallDate(utcMs: number): {
-  year: number;
-  month: number;
-  day: number;
-} {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: MELBOURNE_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  return {
-    year: Number(map.year),
-    month: Number(map.month),
-    day: Number(map.day),
-  };
-}
-
-function melbourneWallToUtcMs(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-): number {
-  const naiveUtc = Date.UTC(year, month - 1, day, hour, 0, 0);
-  const offsetMs = melbourneOffsetMsAt(naiveUtc);
-  return naiveUtc - offsetMs;
-}
-
-function melbourneOffsetMsAt(utcMs: number): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: MELBOURNE_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  const melbAsIfUtc = Date.UTC(
-    Number(map.year),
-    Number(map.month) - 1,
-    Number(map.day),
-    Number(map.hour === "24" ? "00" : map.hour),
-    Number(map.minute),
-    Number(map.second),
-  );
-  return melbAsIfUtc - utcMs;
-}
-
-/**
- * Get start-of-day (00:00) and end-of-day (23:59:59.999) in Melbourne
- * as UTC epoch milliseconds for a given UTC instant.
- */
-export function melbourneStartAndEndOfDay(utcMs: number): {
-  startMs: number;
-  endMs: number;
-} {
-  const { year, month, day } = melbourneWallDate(utcMs);
-  const startMs = melbourneWallToUtcMs(year, month, day, 0);
-  const endMs = melbourneWallToUtcMs(year, month, day, 23) + 59 * 60_000 + 59_999;
-  return { startMs, endMs };
 }
 
 /**

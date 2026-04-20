@@ -26,6 +26,7 @@ import { isBrandDnaCompleteForUser } from "./brand-dna-complete-check";
 import { hasCompletedCriticalFlight } from "./has-completed-critical-flight";
 import { redeemSubscriberMagicLink } from "./subscriber-magic-link";
 import { logActivity } from "@/lib/activity-log";
+import { ensureTaskDigestEnqueued } from "@/lib/scheduled-tasks/handlers/task-morning-digest";
 
 export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
@@ -66,6 +67,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           body: "Admin signed in.",
           createdBy: u.id,
         });
+        void ensureTaskDigestEnqueued();
       }
     },
   },

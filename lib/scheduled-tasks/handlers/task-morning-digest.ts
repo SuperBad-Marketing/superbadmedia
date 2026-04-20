@@ -5,8 +5,8 @@ import {
   buildTaskDigestContent,
   sendTaskDigestEmail,
   hasAdminSignedInToday,
-  melbourneStartAndEndOfDay,
 } from "@/lib/tasks/digest";
+import { nextMelbourneHourMs } from "@/lib/time/melbourne";
 import settingsRegistry from "@/lib/settings";
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
 
@@ -53,59 +53,6 @@ export async function handleTaskMorningDigest(): Promise<void> {
 
 // ── Schedule helpers ────────────────────────────────────────────────
 
-function melbourneWallDate(utcMs: number): {
-  year: number;
-  month: number;
-  day: number;
-} {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Australia/Melbourne",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  return {
-    year: Number(map.year),
-    month: Number(map.month),
-    day: Number(map.day),
-  };
-}
-
-function melbourneWallToUtcMs(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-): number {
-  const naiveUtc = Date.UTC(year, month - 1, day, hour, 0, 0);
-  const offsetMs = melbourneOffsetMsAt(naiveUtc);
-  return naiveUtc - offsetMs;
-}
-
-function melbourneOffsetMsAt(utcMs: number): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Australia/Melbourne",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  const melbAsIfUtc = Date.UTC(
-    Number(map.year),
-    Number(map.month) - 1,
-    Number(map.day),
-    Number(map.hour === "24" ? "00" : map.hour),
-    Number(map.minute),
-    Number(map.second),
-  );
-  return melbAsIfUtc - utcMs;
-}
-
 function parseDigestHour(timeStr: string): number {
   const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
   if (!match) return 8;
@@ -115,20 +62,7 @@ function parseDigestHour(timeStr: string): number {
 async function nextTaskDigestMs(nowMs: number): Promise<number> {
   const timeStr = await settingsRegistry.get("tasks.morning_digest_time");
   const hour = parseDigestHour(timeStr);
-  const today = melbourneWallDate(nowMs);
-  let candidate = melbourneWallToUtcMs(today.year, today.month, today.day, hour);
-  if (candidate <= nowMs) {
-    const tomorrow = new Date(
-      Date.UTC(today.year, today.month - 1, today.day + 1),
-    );
-    candidate = melbourneWallToUtcMs(
-      tomorrow.getUTCFullYear(),
-      tomorrow.getUTCMonth() + 1,
-      tomorrow.getUTCDate(),
-      hour,
-    );
-  }
-  return candidate;
+  return nextMelbourneHourMs(nowMs, hour);
 }
 
 export async function ensureTaskDigestEnqueued(

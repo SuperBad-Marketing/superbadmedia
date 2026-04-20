@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-9` — Task Manager: Final session (polish, E2E wiring, bootstrap)
-**Brief:** TM-8 complete. Morning digest cron handler live — triple-gated (kill switch + settings + admin-sign-in), self-perpetuating schedule via `ensureTaskDigestEnqueued()`, reads `tasks.morning_digest_time` setting for DST-safe Melbourne scheduling, `task_digest_sent` activity logging. 234 files passing, 2040 tests green.
+**Next session:** `HP-1` — Hiring Pipeline: Data model + schema + core CRUD
+**Brief:** Wave 17 (Task Manager) complete. TM-9 landed Melbourne timezone extraction (`lib/time/melbourne.ts`), cockpit integration contracts (`lib/tasks/cockpit.ts`), deep-link `?open={taskId}`, digest bootstrap on admin sign-in, dynamic browser tab title. 235 files passing, 2066 tests green.
 **Model tier:** Sonnet
-**Last closed:** TM-8 (2026-04-20) — see `sessions/tm8-handoff.md`
-**Wave status:** Wave 17 in progress (TM-1..TM-8 done, TM-9 remaining).
+**Last closed:** TM-9 (2026-04-20) — see `sessions/tm9-handoff.md`
+**Wave status:** Wave 18 next (Hiring Pipeline, HP-1..HP-19).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

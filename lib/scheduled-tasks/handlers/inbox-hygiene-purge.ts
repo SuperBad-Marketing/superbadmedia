@@ -24,6 +24,10 @@ import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { recomputeThreadKeepUntil } from "@/lib/graph/signal-noise";
+import {
+  melbourneWallDate,
+  melbourneWallToUtcMs,
+} from "@/lib/time/melbourne";
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
 
 const TRASH_RETENTION_DAYS = 14;
@@ -218,55 +222,6 @@ export function next23MelbourneMs(nowMs: number): number {
     );
   }
   return candidate;
-}
-
-function melbourneWallDate(utcMs: number): { year: number; month: number; day: number } {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Australia/Melbourne",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  return {
-    year: Number(map.year),
-    month: Number(map.month),
-    day: Number(map.day),
-  };
-}
-
-function melbourneWallToUtcMs(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-): number {
-  const naiveUtc = Date.UTC(year, month - 1, day, hour, 0, 0);
-  const offsetMs = melbourneOffsetMsAt(naiveUtc);
-  return naiveUtc - offsetMs;
-}
-
-function melbourneOffsetMsAt(utcMs: number): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Australia/Melbourne",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date(utcMs));
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-  const melbAsIfUtc = Date.UTC(
-    Number(map.year),
-    Number(map.month) - 1,
-    Number(map.day),
-    Number(map.hour === "24" ? "00" : map.hour),
-    Number(map.minute),
-    Number(map.second),
-  );
-  return melbAsIfUtc - utcMs;
 }
 
 /**

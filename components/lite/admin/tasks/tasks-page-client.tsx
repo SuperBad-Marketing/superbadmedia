@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Trash2 } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
@@ -116,6 +116,7 @@ function endOfWeek(d: Date): number {
 
 export function TasksPageClient({ tasks }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("open");
   const [kindFilter, setKindFilter] = React.useState<TaskKind | "all">("all");
   const [priorityFilter, setPriorityFilter] = React.useState<TaskPriority | "all">("all");
@@ -126,6 +127,13 @@ export function TasksPageClient({ tasks }: Props) {
   const [isCreating, setIsCreating] = React.useState(false);
   const [bulkDeleting, setBulkDeleting] = React.useState(false);
   const [now] = React.useState(() => Date.now());
+
+  React.useEffect(() => {
+    const openId = searchParams.get("open");
+    if (openId && tasks.some((t) => t.id === openId)) {
+      setDrawerTaskId(openId);
+    }
+  }, [searchParams, tasks]);
 
   const visible = React.useMemo(() => {
     const s = search.trim().toLowerCase();

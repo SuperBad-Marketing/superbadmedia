@@ -552,7 +552,7 @@ describe("TM-7: Task Morning Digest", () => {
   describe("Melbourne timezone helpers", () => {
     it("melbourneStartAndEndOfDay returns valid bounds", async () => {
       const { melbourneStartAndEndOfDay } = await import(
-        "@/lib/tasks/digest"
+        "@/lib/time/melbourne"
       );
       const now = Date.now();
       const { startMs, endMs } = melbourneStartAndEndOfDay(now);

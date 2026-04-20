@@ -5,10 +5,32 @@ import { auth } from "@/lib/auth/session";
 import { listTasks } from "@/lib/tasks/queries";
 import { TasksPageClient } from "@/components/lite/admin/tasks/tasks-page-client";
 
-export const metadata: Metadata = {
-  title: "SuperBad — Tasks",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { title: "SuperBad — Tasks", robots: { index: false, follow: false } };
+  }
+  const allTasks = await listTasks();
+  const overdue = allTasks.filter(
+    (t) =>
+      t.due_at_ms != null &&
+      t.due_at_ms < Date.now() &&
+      t.status !== "done" &&
+      t.status !== "cancelled",
+  ).length;
+  const open = allTasks.filter(
+    (t) => t.status !== "done" && t.status !== "cancelled",
+  ).length;
+
+  let title = "SuperBad — Tasks";
+  if (overdue > 0) {
+    title = `SuperBad — ${overdue} overdue`;
+  } else if (open === 0) {
+    title = "SuperBad — nothing's on fire";
+  }
+
+  return { title, robots: { index: false, follow: false } };
+}
 
 export default async function TasksPage() {
   const session = await auth();
