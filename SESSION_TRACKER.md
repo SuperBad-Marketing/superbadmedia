@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CCE-2` — Client Context Engine: Summary regen + action-item extraction (Haiku) + dedup + event-to-section mapping
-**Brief:** CCE-1 COMPLETE. Data model (context_summaries, action_items, llm_usage_log, preferred_channel on contacts) + core functions (assembleContext, computeHealthScore, getSignalsForContact, getActionItems) + scheduled task handler stubs + module boundary setup. CCE-2 wires the Haiku prompts into the handler stubs.
+**Next session:** `CCE-3` — Client Context Engine: Draft drawer UI (Tier 2 motion) + draft generation (Opus) + nudge/reformat + channel switcher + unsent draft persistence + cold-prospect fallback
+**Brief:** CCE-2 COMPLETE. Summary regen handler wired (assembleContext → Haiku → upsertContextSummary → logLlmUsage → logActivity). Action-item extraction handler wired (fetch message → assembleContext → Haiku → parse JSON → createActionItem per result → logLlmUsage). Prompt formatters in `lib/context-engine/prompts.ts`. Event-to-section mapping in `lib/context-engine/event-map.ts` with `handleMaterialEvent()`. Dedup in extraction prompt. CCE-3 builds the UI + Opus draft prompts.
 **Model tier:** Sonnet
-**Last closed:** CCE-1 (2026-04-20) — see `sessions/cce1-handoff.md`
-**Wave status:** Wave 16 in progress. CCE-1 done, CCE-2 and CCE-3 remaining.
+**Last closed:** CCE-2 (2026-04-20) — see `sessions/cce2-handoff.md`
+**Wave status:** Wave 16 in progress. CCE-1 and CCE-2 done, CCE-3 remaining.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

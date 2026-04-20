@@ -19,3 +19,4 @@ export {
   enqueueContextSummaryRegenerate,
   enqueueActionItemExtract,
 } from "./enqueue";
+export { handleMaterialEvent, type MaterialEventType } from "./event-map";

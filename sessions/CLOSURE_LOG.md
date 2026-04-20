@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CCE-2 (2026-04-20) — Client Context Engine: Summary Regen + Action-Item Extraction + Event Map
+
+**Phase:** 5 — Build Execution (Wave 16 — session 2/3). Handler stubs fully wired: `handleContextSummaryRegenerate` (assembleContext → Haiku `client-context-summarise` → upsertContextSummary → logLlmUsage → logActivity) and `handleContextActionItemExtract` (fetch message → assembleContext extraction → Haiku `client-context-extract-action-items` → JSON parse with Zod validation → createActionItem per result → logLlmUsage). Prompt formatters in `lib/context-engine/prompts.ts` (summary: flat factual 2-4 sentences, ~4k cap; extraction: direction-aware ownership rules, existing-item dedup, ~2k cap). Event-to-section mapping in `lib/context-engine/event-map.ts` with typed `MaterialEventType` and `handleMaterialEvent()` dispatch. 21 new tests. See `sessions/cce2-handoff.md`.
+
 ## CCE-1 (2026-04-20) — Client Context Engine: Data Model + Core Functions
 
 **Phase:** 5 — Build Execution (Wave 16 — session 1/3). Schema: `context_summaries` (one-per-contact summary cache + draft persistence), `action_items` (dedicated table with owner/source/status), `llm_usage_log` (per-call token tracking), `preferred_channel` column on `contacts`. Core functions: `assembleContext()` (compose-at-read-time from 8 source tables), `computeHealthScore()` (5-factor weighted rule engine), `getSignalsForContact/AllContacts()`, `getActionItems()`, `createActionItem/complete/dismiss/edit`, `upsertContextSummary()`, `logLlmUsage()`, `enqueueContextSummaryRegenerate()` (with dedup), `enqueueActionItemExtract()`. Scheduled task handler stubs registered for `context_summary_regenerate` and `context_action_item_extract` (gated on `llm_calls_enabled`). Module boundary enforced: zero imports from `lib/private-notes/` in `lib/context-engine/`. Migration 0055. 28 new tests. See `sessions/cce1-handoff.md`.
