@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-14` — Hiring Pipeline: Contractor Portal sub-pages (assignments, invoices, availability, profile)
-**Brief:** HP-13 landed bench auth primitives (separate `sbl_bench_session` cookie, `bench_magic_links` table, issue/redeem functions), route structure (`/bench/r/[token]` redeem, `(authenticated)` layout with onboarding gate, dashboard page), onboarding flow (4-step: ABN → agreement → bank details → rate/capacity, vault-encrypted bank details), bench shell component with bottom nav, `hiring-contractor-onboarding` wizard definition. 3 new activity log kinds. `hiring_contractor_auth` added to transactional email list. 12 new tests, 248 files / 2349 tests green.
+**Next session:** `HP-15` — Hiring Pipeline: Role Brief regeneration cycle (§6.3 periodic synthesis + material-event triggers)
+**Brief:** HP-14 landed all four contractor portal sub-pages: `/bench/assignments` (task list + deliverable submission), `/bench/invoices` (new `contractor_invoices` table + submit form), `/bench/availability` (pause/resume + capacity slider), `/bench/profile` (read-only view + approval-gated edits via new `candidate_edit_requests` table). 6 server actions, 6 new activity log kinds, 9 new tests. 249 files / 2358 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-13 (2026-04-20) — see `sessions/hp13-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-13 done, HP-14..HP-19 remaining).
+**Last closed:** HP-14 (2026-04-20) — see `sessions/hp14-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-14 done, HP-15..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

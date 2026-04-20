@@ -66,6 +66,13 @@ export const ACTIVITY_LOG_KINDS = [
   "role_brief_regenerated",
   "role_brief_closed",
   "trial_skipped",
+  // --- Contractor Portal (6) ---
+  "contractor_deliverable_submitted",
+  "contractor_invoice_submitted",
+  "contractor_availability_updated",
+  "contractor_pause_toggled",
+  "contractor_profile_edit_requested",
+  "contractor_portfolio_updated",
   // --- Client Context Engine — active_strategy (4) ---
   "active_strategy_created",
   "active_strategy_reviewed",

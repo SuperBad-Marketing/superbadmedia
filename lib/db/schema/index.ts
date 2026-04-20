@@ -79,3 +79,5 @@ export * from "./trial-tasks";
 export * from "./candidate-archives";
 export * from "./bench-magic-links";
 export * from "./invite-drafts";
+export * from "./contractor-invoices";
+export * from "./candidate-edit-requests";

@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-14 (2026-04-20) — Hiring Pipeline: Contractor Portal Sub-pages
+
+**Phase:** 5 — Build Execution (Wave 18 — session 14/19). Four contractor portal sub-pages per spec §10.3: `/bench/assignments` (task list with deliverable submission), `/bench/invoices` (new `contractor_invoices` table, submit form with status chips), `/bench/availability` (pause/resume toggle, `paused_until` date picker, weekly capacity slider), `/bench/profile` (read-only view, approval-gated edits via new `candidate_edit_requests` table, direct portfolio URL edits). 6 server actions in `app/bench/(authenticated)/actions.ts`. 6 new activity log kinds. Migration `0060_hp14_bench_portal_subpages.sql`. 12 new files, 2 edited files, 9 new tests, 249 files / 2358 green. See `sessions/hp14-handoff.md`.
+
 ## HP-13 (2026-04-20) — Hiring Pipeline: Contractor Portal (`/bench`) — Basic Surface + Onboarding Gate
 
 **Phase:** 5 — Build Execution (Wave 18 — session 13/19). Bench auth primitives: `lib/bench/` with guard, issue/redeem magic links, separate `sbl_bench_session` cookie and `bench_magic_links` table. Route structure: `/bench/r/[token]` redemption, `(authenticated)` route group with session guard + onboarding gate, dashboard page with active assignments. Onboarding flow: 4-step (ABN & legal name → agreement → bank details → rate/capacity confirm), bank details vault-encrypted, completion sets `bench_status = 'active'`. Bench shell: header with SuperBad branding + bottom tab nav (Home, Assignments, Invoices, Availability, Profile). `hiring-contractor-onboarding` wizard definition registered. 3 new activity log kinds. `hiring_contractor_auth` added to transactional email list. Pre-existing HP-12 test fix. 17 new files, 4 edited files, 12 new tests, 248 files / 2349 green. See `sessions/hp13-handoff.md`.
