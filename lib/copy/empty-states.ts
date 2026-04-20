@@ -63,6 +63,36 @@ export const EMPTY_STATES = {
     hero: "—",
     message: "First note, first entry. Tidy.",
   },
+
+  // Hiring Pipeline — 7 Kanban columns (hiring-pipeline §13.1).
+  "hiring.column.sourced": {
+    hero: "—",
+    message: "Nobody scouted yet. Discovery kicks in weekly.",
+  },
+  "hiring.column.invited": {
+    hero: "—",
+    message: "No invites out. Quiet inbox, quiet column.",
+  },
+  "hiring.column.applied": {
+    hero: "—",
+    message: "Nobody's applied. The form is patient.",
+  },
+  "hiring.column.screened": {
+    hero: "—",
+    message: "Nothing to screen. Enjoy the silence.",
+  },
+  "hiring.column.trial": {
+    hero: "—",
+    message: "No trials in flight.",
+  },
+  "hiring.column.bench": {
+    hero: "—",
+    message: "Nobody on the bench. Bet there's a Role Brief waiting.",
+  },
+  "hiring.column.archived": {
+    hero: "—",
+    message: "Clean slate. Either early days or unrealistically picky.",
+  },
 } as const satisfies Record<string, EmptyStateCopy>;
 
 export type EmptyStateKey = keyof typeof EMPTY_STATES;

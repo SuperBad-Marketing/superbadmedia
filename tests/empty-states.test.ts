@@ -10,14 +10,17 @@ import {
 } from "@/components/lite/sales-pipeline/stage-config";
 
 describe("empty-state copy bank", () => {
-  it("registers all 8 pipeline column keys + 2 feed surfaces", () => {
+  it("registers all pipeline + hiring column keys + feed surfaces", () => {
     const keys = Object.keys(EMPTY_STATES);
     expect(keys).toContain("pipeline.column.lead");
     expect(keys).toContain("pipeline.column.won");
     expect(keys).toContain("pipeline.column.lost");
     expect(keys).toContain("pipeline.deal_activity_feed");
     expect(keys).toContain("pipeline.company_feed_new");
-    expect(keys.length).toBe(10);
+    expect(keys).toContain("hiring.column.sourced");
+    expect(keys).toContain("hiring.column.bench");
+    expect(keys).toContain("hiring.column.archived");
+    expect(keys.length).toBe(17);
   });
 
   it("every entry is unique copy (no duplicate messages across the bank)", () => {

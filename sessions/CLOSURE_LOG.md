@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-3 (2026-04-20) — Hiring Pipeline: Admin Kanban Surface
+
+**Phase:** 5 — Build Execution (Wave 18 — session 3/19). Admin kanban at `/lite/admin/hiring` — 7-column `KanbanBoard` with drag-to-transition, pessimistic updates. Archive modal with per-stage reason taxonomy, reflection field, disposition direction. Bench confirm modal with compliance gate (type-to-confirm or block with missing fields). Skip-trial modal (3-reason closed list + type-to-confirm). Two-tier candidate card (hover-expand with follow-up Q+A, compliance status, trial summary). Role Brief multi-select filter chips. Stale-card treatment via settings thresholds. 7 empty-state keys registered. 9 new files, 16 new tests, 238 files / 2144 green. See `sessions/hp3-handoff.md`.
+
 ## HP-2 (2026-04-20) — Hiring Pipeline: Role Brief Authoring Wizard
 
 **Phase:** 5 — Build Execution (Wave 18 — session 2/19). 4-step wizard definition (`hiring-role-brief`) per spec §6.2: role basics form, multi-URL reference portfolio input with `ingestPortfolioUrl()` stub + platform detection, LLM synthesis via `hiring-brief-synthesize` (Sonnet) with editable output + overrides, review-and-confirm with status flip to `open` + `role_brief_opened` activity log. Portfolio signal type surface (`PortfolioSignal`, `WorkSample`). Server actions: `synthesizeRoleBriefAction`, `ingestPortfolioUrlAction`, `completeRoleBriefAction`. Client component wired into admin wizard page dispatcher. 8 hiring LLM job slugs registered in model registry. 32 new tests, 237 files / 2128 green. See `sessions/hp2-handoff.md`.
