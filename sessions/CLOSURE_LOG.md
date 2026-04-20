@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CCE-1 (2026-04-20) — Client Context Engine: Data Model + Core Functions
+
+**Phase:** 5 — Build Execution (Wave 16 — session 1/3). Schema: `context_summaries` (one-per-contact summary cache + draft persistence), `action_items` (dedicated table with owner/source/status), `llm_usage_log` (per-call token tracking), `preferred_channel` column on `contacts`. Core functions: `assembleContext()` (compose-at-read-time from 8 source tables), `computeHealthScore()` (5-factor weighted rule engine), `getSignalsForContact/AllContacts()`, `getActionItems()`, `createActionItem/complete/dismiss/edit`, `upsertContextSummary()`, `logLlmUsage()`, `enqueueContextSummaryRegenerate()` (with dedup), `enqueueActionItemExtract()`. Scheduled task handler stubs registered for `context_summary_regenerate` and `context_action_item_extract` (gated on `llm_calls_enabled`). Module boundary enforced: zero imports from `lib/private-notes/` in `lib/context-engine/`. Migration 0055. 28 new tests. See `sessions/cce1-handoff.md`.
+
 ## SWP-10 (2026-04-20) — Six-Week Plan Generator: Non-Converter Expiry + Settings Audit
 
 **Phase:** 5 — Build Execution (Wave 15 — FINAL SESSION). Built day-53 expiry email handler (`runExpiryEmailSweep()` — sends wind-down email with fresh PDF attached, three-condition gate, activity log) and day-60 portal archive handler (`runPortalArchiveSweep()` — sets `portal_archived_at_ms`, transitions to `archived` status). Both self-perpetuating daily sweeps gated on `plan_automations_enabled`. Settings audit converted 3 hardcoded literals to `settings.get()`: PDF cache TTL, revision note min chars, observations min chars. 16 new tests, all green. Wave 15 complete. See `sessions/swp10-handoff.md`.

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CCE-1` — Client Context Engine: context_summaries, action_items, private_notes, llm_usage_log + assembleContext() + computeHealthScore() rule engine + getSignalsForContact() + getActionItems()
-**Brief:** SWP-10 COMPLETE. Wave 15 (Six-Week Plan Generator) fully shipped — all 10 sessions done. Non-converter expiry handlers (day-53 email + day-60 archive) + settings audit (3 literals converted to settings.get()). Moving to Wave 16: Client Context Engine.
+**Next session:** `CCE-2` — Client Context Engine: Summary regen + action-item extraction (Haiku) + dedup + event-to-section mapping
+**Brief:** CCE-1 COMPLETE. Data model (context_summaries, action_items, llm_usage_log, preferred_channel on contacts) + core functions (assembleContext, computeHealthScore, getSignalsForContact, getActionItems) + scheduled task handler stubs + module boundary setup. CCE-2 wires the Haiku prompts into the handler stubs.
 **Model tier:** Sonnet
-**Last closed:** SWP-10 (2026-04-20) — see `sessions/swp10-handoff.md`
-**Wave status:** Wave 15 COMPLETE. Wave 16 (Client Context Engine) next — CCE-1 through CCE-3.
+**Last closed:** CCE-1 (2026-04-20) — see `sessions/cce1-handoff.md`
+**Wave status:** Wave 16 in progress. CCE-1 done, CCE-2 and CCE-3 remaining.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -7,6 +7,10 @@ import { companies } from "./companies";
  * on first payment via `ensureStripeCustomer(contactId)` (FOUNDATIONS
  * §11.7). `deals.stripe_customer_id` is a denormalised mirror.
  */
+export const CONTACT_PREFERRED_CHANNELS = ["email"] as const;
+export type ContactPreferredChannel =
+  (typeof CONTACT_PREFERRED_CHANNELS)[number];
+
 export const CONTACT_RELATIONSHIP_TYPES = [
   "lead",
   "client",
@@ -79,6 +83,11 @@ export const contacts = sqliteTable(
     /** When the bundled first-visit hub was dismissed. Null = not yet shown.
      *  Temporary home — migrates to `intro_funnel_submissions` when IF-1 lands. */
     bundled_hub_seen_at_ms: integer("bundled_hub_seen_at_ms"),
+    preferred_channel: text("preferred_channel", {
+      enum: CONTACT_PREFERRED_CHANNELS,
+    })
+      .notNull()
+      .default("email"),
     last_referral_prompt_at_ms: integer("last_referral_prompt_at_ms"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
