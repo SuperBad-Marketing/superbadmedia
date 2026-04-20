@@ -91,17 +91,38 @@ export function FinanceDashboardClient({
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-sm">
+          <div
+            className="overflow-hidden rounded-[12px]"
+            style={{
+              background: "var(--color-surface-2)",
+              boxShadow: "var(--surface-highlight)",
+            }}
+          >
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="px-3 py-2 text-left font-medium">Date</th>
-                  <th className="px-3 py-2 text-left font-medium">Vendor</th>
-                  <th className="px-3 py-2 text-left font-medium">Category</th>
-                  <th className="px-3 py-2 text-right font-medium">Amount</th>
-                  <th className="px-3 py-2 text-right font-medium">GST</th>
-                  <th className="px-3 py-2 text-left font-medium">Source</th>
-                  <th className="px-3 py-2 text-left font-medium">Status</th>
+                <tr>
+                  {[
+                    { label: "Date", align: "left" as const },
+                    { label: "Vendor", align: "left" as const },
+                    { label: "Category", align: "left" as const },
+                    { label: "Amount", align: "right" as const },
+                    { label: "GST", align: "right" as const },
+                    { label: "Source", align: "left" as const },
+                    { label: "Status", align: "left" as const },
+                  ].map((h) => (
+                    <th
+                      key={h.label}
+                      className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                      style={{
+                        letterSpacing: "2px",
+                        padding: "12px 14px",
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.05)",
+                        textAlign: h.align,
+                      }}
+                    >
+                      {h.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -113,28 +134,55 @@ export function FinanceDashboardClient({
                       initial={reducedMotion ? false : { opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="cursor-pointer border-b transition-colors hover:bg-muted/30"
+                      className="cursor-pointer transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      style={{
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.05)",
+                      }}
                       onClick={() => handleEdit(exp)}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          "rgba(253, 245, 230, 0.02)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
                     >
-                      <td className="px-3 py-2 whitespace-nowrap">
+                      <td
+                        className="whitespace-nowrap font-[family-name:var(--font-body)] text-[13px] tabular-nums text-[color:var(--color-neutral-400)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {formatDate(exp.expense_date)}
                       </td>
-                      <td className="px-3 py-2">{exp.vendor}</td>
-                      <td className="px-3 py-2 text-muted-foreground">
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[13px] font-medium text-[color:var(--color-brand-cream)]"
+                        style={{ padding: "12px 14px" }}
+                      >
+                        {exp.vendor}
+                      </td>
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {EXPENSE_CATEGORY_LABELS[exp.category as ExpenseCategory] ?? exp.category}
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums font-medium">
+                      <td
+                        className="text-right font-[family-name:var(--font-body)] text-[13px] tabular-nums font-medium text-[color:var(--color-brand-cream)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {formatAud(exp.amount_inc_gst)}
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                      <td
+                        className="text-right font-[family-name:var(--font-body)] text-[13px] tabular-nums text-[color:var(--color-neutral-400)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {exp.gst_amount != null ? formatAud(exp.gst_amount) : "—"}
                       </td>
-                      <td className="px-3 py-2">
+                      <td style={{ padding: "12px 14px" }}>
                         <Badge variant="secondary" className="text-xs">
                           {sourceLabel(exp.source)}
                         </Badge>
                       </td>
-                      <td className="px-3 py-2">
+                      <td style={{ padding: "12px 14px" }}>
                         {exp.status === "pending_review" ? (
                           <Badge variant="outline" className="border-amber-500/50 text-amber-600 text-xs">
                             Review

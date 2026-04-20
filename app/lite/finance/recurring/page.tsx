@@ -17,27 +17,50 @@ export default async function RecurringExpensesPage() {
   }
 
   const recurring = await getRecurringExpenses();
+  const activeCount = recurring.filter((r) => r.status === "active").length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Recurring Expenses
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Declared recurring costs booked automatically each period.
-          </p>
-        </div>
-        <a
-          href="/lite/finance"
-          className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4 transition-colors"
+    <div>
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
         >
-          Back to Finance
-        </a>
+          Admin · Finance ·{" "}
+          <a
+            href="/lite/finance"
+            className="transition-colors duration-150 hover:text-[color:var(--color-brand-cream)]"
+          >
+            Recurring
+          </a>
+        </div>
+        <h1
+          className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "-0.4px" }}
+        >
+          Recurring Expenses
+        </h1>
+        <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+          Declared costs, booked automatically each period.{" "}
+          <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+            {recurring.length === 0
+              ? "nothing declared yet."
+              : `${activeCount} active, ${recurring.length - activeCount} paused.`}
+          </em>
+        </p>
+        <div className="mt-4 flex items-center gap-4 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <a
+            href="/lite/finance"
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-400)] transition-colors duration-150 hover:text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            ← Back to Finance
+          </a>
+        </div>
+      </header>
+      <div className="px-4 pb-10">
+        <RecurringExpensesClient recurring={recurring} />
       </div>
-
-      <RecurringExpensesClient recurring={recurring} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import {
   Building2,
+  DollarSign,
   FileText,
   GaugeCircle,
   Inbox,
@@ -103,6 +104,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Package,
     status: "live",
     matchPrefix: "/lite/admin/products",
+  },
+  {
+    id: "finance",
+    label: "Finance",
+    href: "/lite/finance",
+    icon: DollarSign,
+    status: "live",
+    matchPrefix: "/lite/finance",
   },
   {
     id: "settings",

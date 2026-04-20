@@ -213,9 +213,14 @@ export function RecurringExpensesClient({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={spring}
-          className="bg-muted/40 flex flex-col items-center rounded-xl border border-dashed py-16"
+          className="flex flex-col items-center rounded-[12px] py-16"
+          style={{
+            background: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight)",
+            border: "1px dashed rgba(253, 245, 230, 0.08)",
+          }}
         >
-          <p className="text-muted-foreground mb-4 text-sm">
+          <p className="mb-4 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
             No recurring expenses declared yet.
           </p>
           <Button onClick={openNew} size="sm">
@@ -232,17 +237,38 @@ export function RecurringExpensesClient({
             </Button>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-sm">
+          <div
+            className="overflow-hidden rounded-[12px]"
+            style={{
+              background: "var(--color-surface-2)",
+              boxShadow: "var(--surface-highlight)",
+            }}
+          >
+            <table className="w-full text-left">
               <thead>
-                <tr className="bg-muted/50 text-muted-foreground border-b text-left text-xs uppercase tracking-wider">
-                  <th className="px-4 py-3">Vendor</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3">Frequency</th>
-                  <th className="px-4 py-3">Next fire</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                <tr>
+                  {[
+                    { label: "Vendor", align: "left" as const },
+                    { label: "Category", align: "left" as const },
+                    { label: "Amount", align: "right" as const },
+                    { label: "Frequency", align: "left" as const },
+                    { label: "Next fire", align: "left" as const },
+                    { label: "Status", align: "left" as const },
+                    { label: "Actions", align: "right" as const },
+                  ].map((h) => (
+                    <th
+                      key={h.label}
+                      className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                      style={{
+                        letterSpacing: "2px",
+                        padding: "12px 14px",
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.05)",
+                        textAlign: h.align,
+                      }}
+                    >
+                      {h.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -255,23 +281,50 @@ export function RecurringExpensesClient({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={spring}
-                      className="hover:bg-muted/30 border-b transition-colors last:border-0"
+                      className="transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      style={{
+                        borderBottom: "1px solid rgba(253, 245, 230, 0.05)",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          "rgba(253, 245, 230, 0.02)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
                     >
-                      <td className="px-4 py-3 font-medium">{row.vendor}</td>
-                      <td className="px-4 py-3">
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[13px] font-medium text-[color:var(--color-brand-cream)]"
+                        style={{ padding: "12px 14px" }}
+                      >
+                        {row.vendor}
+                      </td>
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {EXPENSE_CATEGORY_LABELS[row.category as ExpenseCategory] ??
                           row.category}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums">
+                      <td
+                        className="text-right font-[family-name:var(--font-body)] text-[13px] tabular-nums text-[color:var(--color-brand-cream)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {formatAud(row.amount_inc_gst)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {frequencyLabel(row.frequency)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td
+                        className="font-[family-name:var(--font-body)] text-[13px] tabular-nums text-[color:var(--color-neutral-400)]"
+                        style={{ padding: "12px 14px" }}
+                      >
                         {formatDate(row.next_fire_date)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td style={{ padding: "12px 14px" }}>
                         <Badge
                           variant={
                             row.status === "active" ? "default" : "secondary"
@@ -280,7 +333,10 @@ export function RecurringExpensesClient({
                           {row.status === "active" ? "Active" : "Paused"}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td
+                        className="text-right"
+                        style={{ padding: "12px 14px" }}
+                      >
                         <div className="flex items-center justify-end gap-1">
                           <Button
                             variant="ghost"

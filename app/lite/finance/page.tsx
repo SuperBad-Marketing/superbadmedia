@@ -42,6 +42,50 @@ async function getVendorSuggestions(): Promise<string[]> {
   return rows.map((r) => r.vendor);
 }
 
+function FinanceHeader({
+  pendingReviewCount,
+  expenseCount,
+}: {
+  pendingReviewCount: number;
+  expenseCount: number;
+}) {
+  return (
+    <header className="px-4 pt-6 pb-5">
+      <div
+        className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "2px" }}
+      >
+        Admin · Finance
+      </div>
+      <h1
+        className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+        style={{ letterSpacing: "-0.4px" }}
+      >
+        Finance
+      </h1>
+      <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+        Where the money lives.{" "}
+        <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+          {expenseCount === 0
+            ? "nothing recorded yet."
+            : pendingReviewCount > 0
+              ? `${pendingReviewCount} pending review.`
+              : "all confirmed. nice."}
+        </em>
+      </p>
+      <div className="mt-4 flex items-center gap-4 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+        <a
+          href="/lite/finance/recurring"
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-400)] transition-colors duration-150 hover:text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "1.5px" }}
+        >
+          Recurring expenses →
+        </a>
+      </div>
+    </header>
+  );
+}
+
 export default async function FinancePage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
@@ -68,65 +112,67 @@ export default async function FinancePage() {
 
   if (!stripeConnected && !hasAnyData) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <EmptyState
-          hero="FINANCE"
-          message="Connect Stripe to start seeing revenue. Or add your first expense below."
-        >
-          <div className="flex gap-3">
-            <a
-              href="/lite/setup/admin/stripe"
-              className={cn(buttonVariants({ variant: "outline" }))}
-            >
-              Connect Stripe
-            </a>
-          </div>
-        </EmptyState>
-        <FinanceDashboardClient
-          expenses={[]}
-          vendorSuggestions={vendorSuggestions}
-          pendingReviewCount={0}
-          hasStripeConnection={false}
-        />
+      <div>
+        <FinanceHeader pendingReviewCount={0} expenseCount={0} />
+        <div className="px-4 pb-10">
+          <EmptyState
+            hero="FINANCE"
+            message="Connect Stripe to start seeing revenue. Or add your first expense below."
+          >
+            <div className="flex gap-3">
+              <a
+                href="/lite/setup/admin/stripe"
+                className={cn(buttonVariants({ variant: "outline" }))}
+              >
+                Connect Stripe
+              </a>
+            </div>
+          </EmptyState>
+          <FinanceDashboardClient
+            expenses={[]}
+            vendorSuggestions={vendorSuggestions}
+            pendingReviewCount={0}
+            hasStripeConnection={false}
+          />
+        </div>
       </div>
     );
   }
 
   if (!hasAnyData) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <EmptyState
-          hero="FINANCE"
-          message="No revenue yet. Come back when an invoice is paid."
-        />
-        <FinanceDashboardClient
-          expenses={[]}
-          vendorSuggestions={vendorSuggestions}
-          pendingReviewCount={0}
-          hasStripeConnection={stripeConnected}
-        />
+      <div>
+        <FinanceHeader pendingReviewCount={0} expenseCount={0} />
+        <div className="px-4 pb-10">
+          <EmptyState
+            hero="FINANCE"
+            message="No revenue yet. Come back when an invoice is paid."
+          />
+          <FinanceDashboardClient
+            expenses={[]}
+            vendorSuggestions={vendorSuggestions}
+            pendingReviewCount={0}
+            hasStripeConnection={stripeConnected}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Finance</h1>
-        <a
-          href="/lite/finance/export"
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-        >
-          Export
-        </a>
-      </div>
-
-      <FinanceDashboardClient
-        expenses={recentExpenses}
-        vendorSuggestions={vendorSuggestions}
+    <div>
+      <FinanceHeader
         pendingReviewCount={pendingReviewCount}
-        hasStripeConnection={stripeConnected}
+        expenseCount={recentExpenses.length}
       />
+      <div className="px-4 pb-10">
+        <FinanceDashboardClient
+          expenses={recentExpenses}
+          vendorSuggestions={vendorSuggestions}
+          pendingReviewCount={pendingReviewCount}
+          hasStripeConnection={stripeConnected}
+        />
+      </div>
     </div>
   );
 }
