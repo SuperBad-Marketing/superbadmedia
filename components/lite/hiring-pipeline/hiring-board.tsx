@@ -146,7 +146,7 @@ export function HiringBoard({
           ),
         );
         setModal(null);
-        toast("Archived. Reason saved.");
+        toast("Archived. Reason saved.", { sound: "kanban-drop" });
       });
     },
     [modal, toast],

@@ -11,6 +11,7 @@ import {
   LinkIcon,
 } from "lucide-react";
 import { brand, neutral, semantic, houseSpring } from "@/lib/design-tokens";
+import { useSound } from "@/components/lite/sound-provider";
 import { submitDeliverableAction } from "@/app/bench/(authenticated)/actions";
 
 interface Task {
@@ -57,6 +58,7 @@ function TaskCard({
   showSubmit: boolean;
 }) {
   const router = useRouter();
+  const { play } = useSound();
   const [submitting, setSubmitting] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [url, setUrl] = useState("");
@@ -74,6 +76,7 @@ function TaskCard({
     setError("");
     const result = await submitDeliverableAction(task.id, url);
     if (result.ok) {
+      play("deliverable-complete");
       setShowUrlInput(false);
       setUrl("");
       router.refresh();

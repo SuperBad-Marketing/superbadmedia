@@ -7,6 +7,8 @@ import { CheckIcon, ChevronRightIcon, LoaderIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { brand, neutral, houseSpring } from "@/lib/design-tokens";
+import { tier2 } from "@/lib/motion/choreographies";
+import { useSound } from "@/components/lite/sound-provider";
 import {
   saveAbnLegalNameAction,
   saveAgreementAction,
@@ -34,7 +36,9 @@ export function ContractorOnboardingFlow({
   defaultCapacity,
 }: Props) {
   const router = useRouter();
+  const { play } = useSound();
   const [step, setStep] = useState(0);
+  const [completed, setCompleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -67,8 +71,12 @@ export function ContractorOnboardingFlow({
           Number(capacity),
         );
         if (!result.ok) { setError(result.error); return; }
-        router.push("/bench");
-        router.refresh();
+        play("quote-accepted");
+        setCompleted(true);
+        setTimeout(() => {
+          router.push("/bench");
+          router.refresh();
+        }, 1200);
       }
     });
   }
@@ -267,26 +275,40 @@ export function ContractorOnboardingFlow({
         )}
 
         <div className="mt-8">
-          <Button
-            onClick={handleNext}
-            disabled={isPending}
-            className="w-full"
-            style={{ backgroundColor: brand.orange, color: "#fff" }}
-          >
-            {isPending ? (
-              <LoaderIcon size={16} className="animate-spin" />
-            ) : step === 3 ? (
-              <>
-                Complete onboarding
-                <CheckIcon size={16} className="ml-1" />
-              </>
-            ) : (
-              <>
-                Continue
-                <ChevronRightIcon size={16} className="ml-1" />
-              </>
-            )}
-          </Button>
+          {completed ? (
+            <motion.div
+              initial="initial"
+              animate="animate"
+              variants={tier2["wizard-complete"].variants}
+              transition={tier2["wizard-complete"].transition}
+              className="text-center"
+            >
+              <p className="text-lg font-semibold" style={{ color: neutral[900] }}>
+                You&apos;re in.
+              </p>
+            </motion.div>
+          ) : (
+            <Button
+              onClick={handleNext}
+              disabled={isPending}
+              className="w-full"
+              style={{ backgroundColor: brand.orange, color: "#fff" }}
+            >
+              {isPending ? (
+                <LoaderIcon size={16} className="animate-spin" />
+              ) : step === 3 ? (
+                <>
+                  Complete onboarding
+                  <CheckIcon size={16} className="ml-1" />
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ChevronRightIcon size={16} className="ml-1" />
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>

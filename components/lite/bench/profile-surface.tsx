@@ -13,6 +13,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { brand, neutral, semantic, houseSpring } from "@/lib/design-tokens";
+import { useSound } from "@/components/lite/sound-provider";
 import {
   requestProfileEditAction,
   updatePortfolioUrlsAction,
@@ -101,6 +102,7 @@ export function ProfileSurface({
   pendingEdits,
 }: ProfileSurfaceProps) {
   const router = useRouter();
+  const { play } = useSound();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -132,6 +134,7 @@ export function ProfileSurface({
 
     const result = await requestProfileEditAction(editingField, editValue);
     if (result.ok) {
+      play("kanban-drop");
       setEditingField(null);
       setEditValue("");
       router.refresh();
@@ -157,6 +160,7 @@ export function ProfileSurface({
     setUrlsSaved(false);
     const result = await updatePortfolioUrlsAction(urls);
     if (result.ok) {
+      play("kanban-drop");
       setUrlsSaved(true);
       setTimeout(() => setUrlsSaved(false), 2000);
       router.refresh();

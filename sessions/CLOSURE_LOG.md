@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-16 (2026-04-20) — Hiring Pipeline: Sounds + Motion
+
+**Phase:** 5 — Build Execution (Wave 18 — session 16/19). Sound + motion wiring across 7 hiring pipeline surfaces per spec §16 (all inherit, no new slots). Trial review: 3 disposition sounds via `useToastWithSound`. Hiring board: archive toast now plays `kanban-drop`. Contractor onboarding: Tier 2 `wizard-complete` choreography + `quote-accepted` sound on completion. Bench sub-pages (4): `deliverable-complete` on submissions, `kanban-drop` on state changes/saves. 0 new files (excluding test), 7 edited files, 12 new tests, 251 files / 2381 green. See `sessions/hp16-handoff.md`.
+
 ## HP-15 (2026-04-20) — Hiring Pipeline: Role Brief Regeneration Cycle
 
 **Phase:** 5 — Build Execution (Wave 18 — session 15/19). Role Brief regeneration cycle per spec §6.3: `regenerateRoleBrief()` core LLM re-synthesis function, `maybeRegenerateRoleBrief()` debounced enqueue helper with settings-gated triggers (bench entry, archive reflection, archive threshold, manual retune), `hiring_role_brief_regenerate` scheduled task handler + registry wiring, `retuneRoleBriefAction` admin action. Triggers wired into `archiveCandidateAction`, `transitionCandidateAction`, `skipTrialAction`. 4 new files, 3 edited files, 11 new tests, 250 files / 2369 green. See `sessions/hp15-handoff.md`.

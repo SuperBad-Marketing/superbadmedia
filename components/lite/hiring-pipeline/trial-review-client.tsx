@@ -3,12 +3,12 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { houseSpring } from "@/lib/design-tokens";
+import { useToastWithSound } from "@/components/lite/toast-with-sound";
 import {
   markTrialTaskDeliveredAction,
   reviewTrialTaskAction,
@@ -42,6 +42,7 @@ interface TrialReviewClientProps {
 export function TrialReviewClient({ task }: TrialReviewClientProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const toast = useToastWithSound();
 
   const [deliveryUrl, setDeliveryUrl] = useState(task.deliveryUrl ?? "");
   const [notes, setNotes] = useState(task.notes ?? "");
@@ -59,10 +60,10 @@ export function TrialReviewClient({ task }: TrialReviewClientProps) {
     startTransition(async () => {
       const result = await markTrialTaskDeliveredAction(task.id, deliveryUrl.trim());
       if (result.ok) {
-        toast.success("Delivery received.");
+        toast.success("Delivery received.", { sound: "deliverable-complete" });
         router.refresh();
       } else {
-        toast.error(result.error);
+        toast.error(result.error, { sound: "error" });
       }
     });
   }
@@ -85,10 +86,15 @@ export function TrialReviewClient({ task }: TrialReviewClientProps) {
           archived: "Archived",
           redelivered: "Revision requested",
         };
-        toast.success(labels[disposition]);
+        const sounds = {
+          shipped: "deliverable-complete" as const,
+          archived: "error" as const,
+          redelivered: "kanban-drop" as const,
+        };
+        toast.success(labels[disposition], { sound: sounds[disposition] });
         router.refresh();
       } else {
-        toast.error(result.error);
+        toast.error(result.error, { sound: "error" });
       }
     });
   }

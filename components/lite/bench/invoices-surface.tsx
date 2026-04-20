@@ -12,6 +12,7 @@ import {
   BanknoteIcon,
 } from "lucide-react";
 import { brand, neutral, semantic, houseSpring } from "@/lib/design-tokens";
+import { useSound } from "@/components/lite/sound-provider";
 import { submitInvoiceAction } from "@/app/bench/(authenticated)/actions";
 
 interface Invoice {
@@ -47,6 +48,7 @@ function formatDate(ms: number): string {
 
 export function InvoicesSurface({ invoices }: InvoicesSurfaceProps) {
   const router = useRouter();
+  const { play } = useSound();
   const [showForm, setShowForm] = useState(false);
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
@@ -75,6 +77,7 @@ export function InvoicesSurface({ invoices }: InvoicesSurfaceProps) {
     );
 
     if (result.ok) {
+      play("deliverable-complete");
       setShowForm(false);
       setAmount("");
       setReference("");

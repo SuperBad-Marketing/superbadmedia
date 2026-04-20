@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { brand, neutral, semantic, houseSpring } from "@/lib/design-tokens";
+import { useSound } from "@/components/lite/sound-provider";
 import type { CandidateBenchStatus } from "@/lib/db/schema/candidates";
 import {
   togglePauseAction,
@@ -29,6 +30,7 @@ export function AvailabilitySurface({
   weeklyCapacityHours,
 }: AvailabilitySurfaceProps) {
   const router = useRouter();
+  const { play } = useSound();
   const isPaused = benchStatus === "paused";
   const [pausing, setPausing] = useState(false);
   const [pauseDate, setPauseDate] = useState(formatDateInput(pausedUntilMs));
@@ -43,13 +45,15 @@ export function AvailabilitySurface({
 
     if (isPaused) {
       const result = await togglePauseAction(false);
-      if (!result.ok) setError(result.error);
+      if (!result.ok) { setError(result.error); setPausing(false); return; }
+      play("kanban-drop");
     } else {
       const untilMs = pauseDate
         ? new Date(pauseDate).getTime()
         : undefined;
       const result = await togglePauseAction(true, untilMs);
-      if (!result.ok) setError(result.error);
+      if (!result.ok) { setError(result.error); setPausing(false); return; }
+      play("kanban-drop");
     }
 
     setPausing(false);
@@ -63,6 +67,7 @@ export function AvailabilitySurface({
 
     const result = await updateCapacityAction(capacity);
     if (result.ok) {
+      play("kanban-drop");
       setCapacitySaved(true);
       setTimeout(() => setCapacitySaved(false), 2000);
     } else {
