@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-9` — Hiring Pipeline: Trial task authoring (LLM-authored from Content Engine backlog)
-**Brief:** HP-8 landed the invite send gate: `invite_drafts` table, `evaluateInviteSendGate()` with confidence threshold + daily cap + per-candidate throttle + cross-role annual cap, `processInviteDraft()` end-to-end flow (drift check → gate → auto-send or queue), `sendInviteDraft()` manual send path, `hiring_invite_send` scheduled task handler, updated Quick-Add to flow through the gate, new server actions (`sendInviteDraftAction`, `expireInviteDraftAction`). 22 new tests, 243 files / 2261 tests green.
+**Next session:** `HP-10` — Hiring Pipeline: Trial task delivery tracking + review surface
+**Brief:** HP-9 landed trial task authoring: `hiring-trial-task-author` Sonnet prompt, `proposeTrialTask()` fetches Content Engine backlog + LLM proposes matched item, `confirmAndSendTrialTask()` claims content item + creates `trial_tasks` row + sends email + transitions to Trial + enqueues overdue handler. Two-phase overdue handler (reminder at grace, auto-archive at grace+2). Server actions for propose + confirm. 21 new tests, 244 files / 2282 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-8 (2026-04-20) — see `sessions/hp8-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-8 done, HP-9..HP-19 remaining).
+**Last closed:** HP-9 (2026-04-20) — see `sessions/hp9-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-9 done, HP-10..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

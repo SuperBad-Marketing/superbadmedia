@@ -356,6 +356,89 @@ export interface DiscoveryRunActionResult {
   costCapHit: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Trial Task Authoring (§9.1)
+// ---------------------------------------------------------------------------
+
+export async function proposeTrialTaskAction(
+  candidateId: string,
+): Promise<
+  | {
+      ok: true;
+      proposal: {
+        contentItemId: string;
+        contentItemKeyword: string;
+        rationale: string;
+        taskDescription: string;
+        budgetCapHours: number;
+        deliverableFormat: string;
+      };
+      candidateName: string;
+      roleName: string;
+      candidateRate: number | null;
+      candidateRateUnit: string | null;
+      budgetCapAud: number;
+      deadlineDays: number;
+    }
+  | { ok: false; error: string }
+> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const { proposeTrialTask } = await import("@/lib/hiring/trial-task");
+    const result = await proposeTrialTask(candidateId);
+    if (!result.ok) return { ok: false, error: result.reason };
+    return result;
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Trial task proposal failed.",
+    };
+  }
+}
+
+export async function confirmTrialTaskAction(
+  candidateId: string,
+  contentItemId: string,
+  taskDescription: string,
+  budgetCapAud: number,
+  ratePerUnitAud: number,
+  rateUnit: string,
+  deadlineDays: number,
+): Promise<{ ok: true; trialTaskId: string } | { ok: false; error: string }> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const { confirmAndSendTrialTask } = await import(
+      "@/lib/hiring/trial-task"
+    );
+    const result = await confirmAndSendTrialTask({
+      candidateId,
+      contentItemId,
+      taskDescription,
+      budgetCapAud,
+      ratePerUnitAud,
+      rateUnit,
+      deadlineDays,
+      by,
+    });
+    if (!result.ok) return { ok: false, error: result.reason };
+    revalidatePath("/lite/admin/hiring");
+    return { ok: true, trialTaskId: result.trialTask.id };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Trial task send failed.",
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Discovery (§5)
+// ---------------------------------------------------------------------------
+
 export async function runDiscoveryNowAction(
   roleBriefId?: string,
 ): Promise<DiscoveryRunActionResult | { ok: false; error: string }> {

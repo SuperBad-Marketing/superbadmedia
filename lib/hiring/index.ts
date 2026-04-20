@@ -9,3 +9,4 @@ export * from "./discovery";
 export * from "./apply";
 export * from "./invite-gate";
 export * from "./send-invite";
+export * from "./trial-task";
