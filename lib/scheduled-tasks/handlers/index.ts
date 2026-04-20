@@ -33,6 +33,7 @@ import { DELIVERABLE_APPROVAL_REMINDER_HANDLERS } from "./deliverable-approval-r
 import { TASK_DIGEST_HANDLERS } from "./task-morning-digest";
 import { HIRING_DISCOVERY_HANDLERS } from "./hiring-discovery";
 import { HIRING_APPLY_HANDLERS } from "./hiring-apply";
+import { HIRING_INVITE_HANDLERS } from "./hiring-invite";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -80,4 +81,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...TASK_DIGEST_HANDLERS,
   ...HIRING_DISCOVERY_HANDLERS,
   ...HIRING_APPLY_HANDLERS,
+  ...HIRING_INVITE_HANDLERS,
 };

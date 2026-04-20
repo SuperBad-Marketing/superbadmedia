@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-8` — Hiring Pipeline: Invite send gate (confidence-gated auto-send)
-**Brief:** HP-7 landed the public `/apply` form + LLM follow-up question: server-rendered form page with open role brief dropdown + rate bands from settings, form submission handler with existing-candidate matching (email index lookup), referral URL parsing from "recommend someone" field, 2-minute-delay scheduled task for portfolio ingestion + Haiku follow-up question generation + email send, confirmation page. 19 new tests, 242 files / 2239 tests green.
+**Next session:** `HP-9` — Hiring Pipeline: Trial task authoring (LLM-authored from Content Engine backlog)
+**Brief:** HP-8 landed the invite send gate: `invite_drafts` table, `evaluateInviteSendGate()` with confidence threshold + daily cap + per-candidate throttle + cross-role annual cap, `processInviteDraft()` end-to-end flow (drift check → gate → auto-send or queue), `sendInviteDraft()` manual send path, `hiring_invite_send` scheduled task handler, updated Quick-Add to flow through the gate, new server actions (`sendInviteDraftAction`, `expireInviteDraftAction`). 22 new tests, 243 files / 2261 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-7 (2026-04-20) — see `sessions/hp7-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-7 done, HP-8..HP-19 remaining).
+**Last closed:** HP-8 (2026-04-20) — see `sessions/hp8-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-8 done, HP-9..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

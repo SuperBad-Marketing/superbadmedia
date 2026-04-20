@@ -7,12 +7,17 @@ import { transitionCandidateStage } from "@/lib/hiring/transition-candidate-stag
 import {
   createCandidate,
   createCandidateArchive,
+  getCandidateById,
   listRoleBriefs,
   updateCandidate,
 } from "@/lib/hiring/queries";
 import { ingestPortfolioUrl } from "@/lib/hiring/portfolio";
 import { scoreCandidateAgainstBriefs } from "@/lib/hiring/score-candidate";
 import { draftInviteEmail } from "@/lib/hiring/draft-invite";
+import {
+  processInviteDraft,
+  sendInviteDraft,
+} from "@/lib/hiring/send-invite";
 import { logActivity } from "@/lib/activity-log";
 import {
   CANDIDATE_STAGES,
@@ -37,6 +42,9 @@ export interface QuickAddResult {
   inviteBody: string;
   inviteConfidence: number;
   platform: string;
+  inviteDraftId: string;
+  inviteAutoSent: boolean;
+  inviteHoldReason: string | null;
 }
 
 type QuickAddActionResult =
@@ -233,6 +241,14 @@ export async function quickAddCandidateAction(
         : [],
     });
 
+    const freshCandidate = await getCandidateById(candidate.id);
+    const inviteResult = await processInviteDraft({
+      candidate: freshCandidate ?? candidate,
+      draft,
+      roleBriefId: bestBriefId,
+      by,
+    });
+
     revalidatePath("/lite/admin/hiring");
 
     return {
@@ -246,6 +262,9 @@ export async function quickAddCandidateAction(
       inviteBody: draft.body,
       inviteConfidence: draft.confidence,
       platform: signal.platform,
+      inviteDraftId: inviteResult.draftId,
+      inviteAutoSent: inviteResult.autoSent,
+      inviteHoldReason: inviteResult.holdReason,
     };
   } catch (err) {
     return {
@@ -257,18 +276,74 @@ export async function quickAddCandidateAction(
 
 export async function confirmQuickAddInviteAction(
   candidateId: string,
+  draftId?: string,
 ): Promise<ActionResult> {
   const by = await adminActorTag();
   if (!by) return { ok: false, error: "Not authorised." };
 
   try {
-    transitionCandidateStage(candidateId, "invited", { by });
+    if (draftId) {
+      const result = await sendInviteDraft(draftId, by);
+      if (!result.sent) {
+        return { ok: false, error: result.reason ?? "Send failed." };
+      }
+    } else {
+      transitionCandidateStage(candidateId, "invited", { by });
+    }
     revalidatePath("/lite/admin/hiring");
     return { ok: true };
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Couldn't move to Invited.",
+      error: err instanceof Error ? err.message : "Couldn't send invite.",
+    };
+  }
+}
+
+export async function sendInviteDraftAction(
+  draftId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const result = await sendInviteDraft(draftId, by);
+    if (!result.sent) {
+      return { ok: false, error: result.reason ?? "Send failed." };
+    }
+    revalidatePath("/lite/admin/hiring");
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Send failed.",
+    };
+  }
+}
+
+export async function expireInviteDraftAction(
+  draftId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const { eq } = await import("drizzle-orm");
+    const { db } = await import("@/lib/db");
+    const { invite_drafts } = await import(
+      "@/lib/db/schema/invite-drafts"
+    );
+    await db
+      .update(invite_drafts)
+      .set({ status: "expired", updated_at_ms: Date.now() })
+      .where(eq(invite_drafts.id, draftId))
+      .run();
+    revalidatePath("/lite/admin/hiring");
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Expire failed.",
     };
   }
 }

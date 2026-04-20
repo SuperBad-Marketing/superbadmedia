@@ -27,7 +27,12 @@ import {
   type CandidateArchiveInsert,
   type DispositionDirection,
 } from "@/lib/db/schema/candidate-archives";
-import { eq, and, inArray, lte, gte, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, inArray, lte, gte, isNull, isNotNull, desc } from "drizzle-orm";
+import {
+  invite_drafts,
+  type InviteDraftRow,
+  type InviteDraftStatus,
+} from "@/lib/db/schema/invite-drafts";
 
 // ---------------------------------------------------------------------------
 // Role Briefs — Create
@@ -487,4 +492,43 @@ export async function markArchiveUnarchived(
       .where(eq(candidate_archives.id, archive.id))
       .run();
   }
+}
+
+// ---------------------------------------------------------------------------
+// Invite Drafts — Read
+// ---------------------------------------------------------------------------
+
+export async function getInviteDraftById(
+  id: string,
+): Promise<InviteDraftRow | undefined> {
+  return db.query.invite_drafts.findFirst({
+    where: eq(invite_drafts.id, id),
+  });
+}
+
+export interface ListInviteDraftsFilter {
+  status?: InviteDraftStatus[];
+  candidateId?: string;
+  roleBriefId?: string;
+}
+
+export async function listInviteDrafts(
+  filter?: ListInviteDraftsFilter,
+): Promise<InviteDraftRow[]> {
+  const conditions = [];
+  if (filter?.status?.length) {
+    conditions.push(inArray(invite_drafts.status, filter.status));
+  }
+  if (filter?.candidateId) {
+    conditions.push(eq(invite_drafts.candidate_id, filter.candidateId));
+  }
+  if (filter?.roleBriefId) {
+    conditions.push(eq(invite_drafts.role_brief_id, filter.roleBriefId));
+  }
+  return db
+    .select()
+    .from(invite_drafts)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(invite_drafts.created_at_ms))
+    .all();
 }
