@@ -32,6 +32,7 @@ import { CONTEXT_ENGINE_HANDLERS } from "./context-engine";
 import { DELIVERABLE_APPROVAL_REMINDER_HANDLERS } from "./deliverable-approval-reminder";
 import { TASK_DIGEST_HANDLERS } from "./task-morning-digest";
 import { HIRING_DISCOVERY_HANDLERS } from "./hiring-discovery";
+import { HIRING_APPLY_HANDLERS } from "./hiring-apply";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -78,4 +79,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...DELIVERABLE_APPROVAL_REMINDER_HANDLERS,
   ...TASK_DIGEST_HANDLERS,
   ...HIRING_DISCOVERY_HANDLERS,
+  ...HIRING_APPLY_HANDLERS,
 };

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-7` — Hiring Pipeline: Apply form + LLM follow-up question
-**Brief:** HP-6 landed the full discovery pipeline: `DiscoverySource` adapter interface + Vimeo Staff Picks RSS + Behance Gallery feed sources, Instagram Apify on-demand handler with graceful fallback chain, LLM+search discovery agent (Sonnet + SerpAPI) with cost cap + URL dedup + score-and-persist, discovery agent prompt builders, `hiring_discovery_run` scheduled task + handler + kill switch, manual `runDiscoveryNowAction()` server action. 24 new tests, 241 files / 2220 tests green.
+**Next session:** `HP-8` — Hiring Pipeline: Invite send gate (confidence-gated auto-send)
+**Brief:** HP-7 landed the public `/apply` form + LLM follow-up question: server-rendered form page with open role brief dropdown + rate bands from settings, form submission handler with existing-candidate matching (email index lookup), referral URL parsing from "recommend someone" field, 2-minute-delay scheduled task for portfolio ingestion + Haiku follow-up question generation + email send, confirmation page. 19 new tests, 242 files / 2239 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-6 (2026-04-20) — see `sessions/hp6-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-6 done, HP-7..HP-19 remaining).
+**Last closed:** HP-7 (2026-04-20) — see `sessions/hp7-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-7 done, HP-8..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
