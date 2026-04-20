@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## FD-2 (2026-04-21) — Finance Dashboard: Projection Logic + Roll-up Crons + Recurring Expense Booking
+
+**Phase:** 5 — Build Execution (Wave 19 — session 2/4). Projection module (`computeProjection`): contracted MRR + pipeline-weighted + stage-age decay over 90-day horizon. Snapshot metrics module (`computeSnapshotMetrics`): 9-field FinanceMetrics + Stripe Balance API with stale flags. 4 cron handlers: `finance_snapshot_take` (daily metrics + projection upsert), `finance_observatory_rollup` (external_call_log → expenses), `finance_stripe_fee_rollup` (Stripe Balance Transactions API → expenses), `recurring_expense_book` (books due recurring into expenses as pending_review). Recurring expense CRUD actions + `/lite/finance/recurring` management screen with table, add/edit modal, pause/resume. 11 new files, 1 edited file, 22 new tests, 256 files / 2438 green. See `sessions/fd2-handoff.md`.
+
 ## FD-1 (2026-04-20) — Finance Dashboard: Data Model + Manual Expense Entry
 
 **Phase:** 5 — Build Execution (Wave 19 — session 1/4). 4 new Drizzle tables: `expenses` (9 categories, 4 sources, unique source_ref index for rollup idempotency, candidate_id FK), `recurring_expenses` (monthly/quarterly/annual, active/paused), `finance_snapshots` (daily PK, JSON metrics/projection/callouts, nullable narrative), `compliance_milestones` (BAS/EOFY filed markers). Migration 0061. Server actions: create/update/confirm/bulk-confirm expenses + vendor suggestions. Expense modal with GST auto-calc, payment-processing block nudge, vendor autocomplete. `/lite/finance` landing page with 3 empty states (no Stripe, no data, has data). FAB for quick-add. 10 new files, 2 edited files, 7 new tests, 255 files / 2416 green. See `sessions/fd1-handoff.md`.

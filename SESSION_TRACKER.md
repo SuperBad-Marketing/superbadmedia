@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `FD-2` — Finance Dashboard: Session B (projection logic + roll-up crons + recurring expense booking + Stripe Balance API)
-**Brief:** FD-1 landed 4 new tables (expenses, recurring_expenses, finance_snapshots, compliance_milestones), migration 0061, manual expense CRUD actions, expense modal + FAB, `/lite/finance` landing page with empty states. 255 files / 2416 tests green.
+**Next session:** `FD-3` — Finance Dashboard: Session C (dashboard UI + narrative prompt + drill-downs + tax provision tile + mobile)
+**Brief:** FD-2 landed projection module (contracted MRR + pipeline-weighted + stage-age decay), snapshot metrics computation (9-field FinanceMetrics + Stripe Balance API), 4 cron handlers (snapshot_take, observatory_rollup, stripe_fee_rollup, recurring_expense_book), recurring expense CRUD actions, `/lite/finance/recurring` management screen. 256 files / 2438 tests green.
 **Model tier:** Sonnet
-**Last closed:** FD-1 (2026-04-20) — see `sessions/fd1-handoff.md`
-**Wave status:** Wave 19 in progress. FD-1 complete, FD-2 next.
+**Last closed:** FD-2 (2026-04-21) — see `sessions/fd2-handoff.md`
+**Wave status:** Wave 19 in progress. FD-1 + FD-2 complete, FD-3 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

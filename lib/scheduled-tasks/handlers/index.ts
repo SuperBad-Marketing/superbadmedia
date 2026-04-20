@@ -39,6 +39,10 @@ import { HIRING_TRIAL_HANDLERS } from "./hiring-trial";
 import { HIRING_ARCHIVE_REFLECTION_HANDLERS } from "./hiring-archive-reflection";
 import { HIRING_ROLE_BRIEF_REGENERATE_HANDLERS } from "./hiring-role-brief-regenerate";
 import { HIRING_BENCH_PAUSE_ENDING_HANDLERS } from "./hiring-bench-pause-ending";
+import { FINANCE_SNAPSHOT_HANDLERS } from "./finance-snapshot";
+import { FINANCE_OBSERVATORY_ROLLUP_HANDLERS } from "./finance-observatory-rollup";
+import { FINANCE_STRIPE_FEE_ROLLUP_HANDLERS } from "./finance-stripe-fee-rollup";
+import { FINANCE_RECURRING_EXPENSE_BOOK_HANDLERS } from "./finance-recurring-expense-book";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -92,4 +96,8 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...HIRING_ARCHIVE_REFLECTION_HANDLERS,
   ...HIRING_ROLE_BRIEF_REGENERATE_HANDLERS,
   ...HIRING_BENCH_PAUSE_ENDING_HANDLERS,
+  ...FINANCE_SNAPSHOT_HANDLERS,
+  ...FINANCE_OBSERVATORY_ROLLUP_HANDLERS,
+  ...FINANCE_STRIPE_FEE_ROLLUP_HANDLERS,
+  ...FINANCE_RECURRING_EXPENSE_BOOK_HANDLERS,
 };
