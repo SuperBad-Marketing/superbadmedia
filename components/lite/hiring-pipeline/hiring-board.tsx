@@ -24,6 +24,7 @@ import {
   archiveCandidateAction,
   skipTrialAction,
 } from "@/app/lite/admin/hiring/actions";
+import { QuickAddBar } from "./quick-add-bar";
 
 type PendingModal =
   | { kind: "archive"; card: HiringCardCandidate }
@@ -180,6 +181,8 @@ export function HiringBoard({
 
   return (
     <>
+      <QuickAddBar />
+
       {roleBriefFilter.length > 0 ? (
         <div className="flex flex-wrap gap-2 px-4 pb-4">
           {roleBriefFilter.map((rb) => (

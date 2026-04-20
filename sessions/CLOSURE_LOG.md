@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-4 (2026-04-20) — Hiring Pipeline: Quick-Add Primitive + Candidate Scoring
+
+**Phase:** 5 — Build Execution (Wave 18 — session 4/19). Quick-Add primitive (§5.3) — persistent URL input bar on `/lite/admin/hiring`. `scoreCandidateAgainstBriefs()` scores PortfolioSignal against all open Role Briefs via `hiring-candidate-score` (Haiku), returns sorted results with name_guess. `draftInviteEmail()` via `hiring-invite-draft` (Sonnet) generates personalised invite with confidence rating. `quickAddCandidateAction()` orchestrates the full flow: ingest → score → create candidate → draft invite. Animated result panel with score chip, reasoning, draft preview, confirm/dismiss buttons. `confirmQuickAddInviteAction()` moves Sourced → Invited. 4 new files, 3 edited files, 27 new tests, 239 files / 2171 green. See `sessions/hp4-handoff.md`.
+
 ## HP-3 (2026-04-20) — Hiring Pipeline: Admin Kanban Surface
 
 **Phase:** 5 — Build Execution (Wave 18 — session 3/19). Admin kanban at `/lite/admin/hiring` — 7-column `KanbanBoard` with drag-to-transition, pessimistic updates. Archive modal with per-stage reason taxonomy, reflection field, disposition direction. Bench confirm modal with compliance gate (type-to-confirm or block with missing fields). Skip-trial modal (3-reason closed list + type-to-confirm). Two-tier candidate card (hover-expand with follow-up Q+A, compliance status, trial summary). Role Brief multi-select filter chips. Stale-card treatment via settings thresholds. 7 empty-state keys registered. 9 new files, 16 new tests, 238 files / 2144 green. See `sessions/hp3-handoff.md`.

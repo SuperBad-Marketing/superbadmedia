@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-4` — Hiring Pipeline: Quick-Add primitive + candidate scoring
-**Brief:** HP-3 landed the admin kanban surface at `/lite/admin/hiring` — 7-column KanbanBoard with drag transitions, archive modal (per-stage reason taxonomy + reflection + disposition), bench confirm modal (compliance gate), skip-trial modal, candidate card (two-tier with hover expand), role brief filter chips, stale-card treatment via settings. 16 new tests, 238 files / 2144 tests green.
+**Next session:** `HP-5` — Hiring Pipeline: Portfolio ingestion — platform-specific API handlers (Vimeo, Behance, generic web)
+**Brief:** HP-4 landed Quick-Add primitive (§5.3) + candidate scoring + invite drafting. Persistent URL input bar on kanban page, `scoreCandidateAgainstBriefs()` via `hiring-candidate-score` (Haiku), `draftInviteEmail()` via `hiring-invite-draft` (Sonnet), animated result panel with score + draft preview + confirm/dismiss. 27 new tests, 239 files / 2171 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-3 (2026-04-20) — see `sessions/hp3-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-3 done, HP-4..HP-19 remaining).
+**Last closed:** HP-4 (2026-04-20) — see `sessions/hp4-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-4 done, HP-5..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
