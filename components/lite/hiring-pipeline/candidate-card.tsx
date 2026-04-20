@@ -9,6 +9,7 @@ import type { CandidateStage } from "@/lib/db/schema/candidates";
 export interface HiringCardCandidate {
   id: string;
   stage: CandidateStage;
+  stage_before_archive: string | null;
   name: string;
   role_brief_id: string | null;
   role_name: string | null;

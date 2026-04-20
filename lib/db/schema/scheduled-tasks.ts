@@ -82,12 +82,13 @@ export const SCHEDULED_TASK_TYPES = [
   // --- Task Manager (2) ---
   "deliverable_approval_reminder",
   "task_morning_digest",
-  // --- Hiring Pipeline (5) ---
+  // --- Hiring Pipeline (6) ---
   "hiring_discovery_run",
   "hiring_apply_followup_send",
   "hiring_invite_send",
   "hiring_invite_followup_check",
   "hiring_trial_task_overdue",
+  "hiring_archive_reflection_ingest",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",

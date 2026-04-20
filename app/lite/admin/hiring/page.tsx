@@ -191,6 +191,7 @@ export default async function HiringPage() {
     return {
       id: c.id,
       stage: c.stage,
+      stage_before_archive: c.stage_before_archive,
       name: c.name,
       role_brief_id: c.role_brief_id,
       role_name: rb?.role_name ?? null,

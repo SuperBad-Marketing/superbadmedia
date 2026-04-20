@@ -36,6 +36,7 @@ import { HIRING_APPLY_HANDLERS } from "./hiring-apply";
 import { HIRING_INVITE_HANDLERS } from "./hiring-invite";
 import { HIRING_FOLLOWUP_CHECK_HANDLERS } from "./hiring-followup-check";
 import { HIRING_TRIAL_HANDLERS } from "./hiring-trial";
+import { HIRING_ARCHIVE_REFLECTION_HANDLERS } from "./hiring-archive-reflection";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -86,4 +87,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...HIRING_INVITE_HANDLERS,
   ...HIRING_FOLLOWUP_CHECK_HANDLERS,
   ...HIRING_TRIAL_HANDLERS,
+  ...HIRING_ARCHIVE_REFLECTION_HANDLERS,
 };

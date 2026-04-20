@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-12` — Hiring Pipeline: Apply form + public route + LLM follow-up question UI
-**Brief:** HP-11 landed followup reply check handler (`hiring_invite_followup_check` scheduled task — sets `no_reply` after wait window) + reply intelligence dispatcher (`routeHiringReply()` — LLM-classified dispatch for invite replies: positive → apply link, negative → auto-archive, objection/question → Andy queue, auto_responder → ignore; followup question replies stored directly). Enqueue wiring in `generateAndSendFollowup()`. `hiring-reply-classify` Haiku job registered. 21 new tests, 246 files / 2320 tests green.
+**Next session:** `HP-13` — Hiring Pipeline: Contractor Portal (`/bench`) — basic surface + onboarding gate
+**Brief:** HP-12 landed archive reflection ingest (Haiku LLM → Role Brief `style_avoid_list` update via scheduled task) + un-archive server action + kanban wiring (drag from Archived restores to `stage_before_archive`, no confirm modal). `hiring_archive_reflection_ingest` task type added. 17 new tests, 247 files / 2337 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-11 (2026-04-20) — see `sessions/hp11-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-11 done, HP-12..HP-19 remaining).
+**Last closed:** HP-12 (2026-04-20) — see `sessions/hp12-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-12 done, HP-13..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

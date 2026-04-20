@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-12 (2026-04-20) — Hiring Pipeline: Archive Reflection Ingest + Un-archive
+
+**Phase:** 5 — Build Execution (Wave 18 — session 12/19). Archive reflection ingest: `ingestArchiveReflection()` reads reflection text from archive row, calls `hiring-archive-reflection-ingest` (Haiku) to extract 0–3 avoid items, merges into Role Brief's `style_avoid_list_json`, logs `role_brief_regenerated`. Scheduled task handler gated by `llm_calls_enabled`. `archiveCandidateAction()` now enqueues reflection ingest when reflection_text present. Un-archive: `unarchiveCandidateAction()` restores candidate to `stage_before_archive`, sets `un_archived_at` on archive rows. Kanban wiring: drag from Archived calls un-archive (no confirm modal per spec §11.2). `HiringCardCandidate` type + page mapping include `stage_before_archive`. 4 new files, 7 edited files, 17 new tests, 247 files / 2337 green. See `sessions/hp12-handoff.md`.
+
 ## HP-11 (2026-04-20) — Hiring Pipeline: Invite Follow-up Check Handler + Reply Intelligence Routing
 
 **Phase:** 5 — Build Execution (Wave 18 — session 11/19). Followup reply check handler: `hiring_invite_followup_check` scheduled task fires after `followup_reply_wait_days`, sets `followup_status = 'no_reply'` if candidate still pending in Applied. Enqueue wiring added to `generateAndSendFollowup()`. Reply intelligence dispatcher: `classifyHiringReply()` uses Haiku LLM to classify inbound replies (positive/objection/question/negative/auto_responder), `routeHiringReply()` dispatches per spec §8.4 — positive → apply link email, negative → auto-archive with `they_withdrew`, objection/question → Andy queue + activity log, auto_responder → ignored. Followup question thread replies stored directly (no LLM needed). Safe fallback to question on any failure. 3 new files, 5 edited files, 21 new tests, 246 files / 2320 green. See `sessions/hp11-handoff.md`.

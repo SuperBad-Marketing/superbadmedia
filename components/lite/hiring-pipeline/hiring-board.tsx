@@ -22,6 +22,7 @@ import type { SkipTrialReason } from "@/lib/hiring/stages";
 import {
   transitionCandidateAction,
   archiveCandidateAction,
+  unarchiveCandidateAction,
   skipTrialAction,
 } from "@/app/lite/admin/hiring/actions";
 import { QuickAddBar } from "./quick-add-bar";
@@ -73,6 +74,27 @@ export function HiringBoard({
   const onDrop = React.useCallback(
     (card: HiringCardCandidate, toId: string) => {
       const toStage = toId as CandidateStage;
+
+      if (card.stage === "archived" && toStage !== "archived") {
+        startTransition(async () => {
+          const result = await unarchiveCandidateAction(card.id);
+          if (!result.ok) {
+            toast.error(result.error ?? "Couldn't un-archive.");
+            return;
+          }
+          const restoreTo = card.stage_before_archive ?? "sourced";
+          setLocalCandidates((prev) =>
+            prev.map((c) =>
+              c.id === card.id ? { ...c, stage: restoreTo as CandidateStage } : c,
+            ),
+          );
+          const label =
+            HIRING_STAGE_COLUMNS.find((col) => col.id === restoreTo)?.label ??
+            restoreTo;
+          toast(`Un-archived. Back to ${label}.`, { sound: "kanban-drop" });
+        });
+        return;
+      }
 
       if (toStage === "archived") {
         setModal({ kind: "archive", card });

@@ -9,6 +9,7 @@ import {
   createCandidateArchive,
   getCandidateById,
   listRoleBriefs,
+  markArchiveUnarchived,
   updateCandidate,
 } from "@/lib/hiring/queries";
 import { ingestPortfolioUrl } from "@/lib/hiring/portfolio";
@@ -19,6 +20,7 @@ import {
   sendInviteDraft,
 } from "@/lib/hiring/send-invite";
 import { logActivity } from "@/lib/activity-log";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import {
   CANDIDATE_STAGES,
   type CandidateStage,
@@ -87,7 +89,7 @@ export async function archiveCandidateAction(
   if (!by) return { ok: false, error: "Not authorised." };
 
   try {
-    await createCandidateArchive({
+    const archiveRow = await createCandidateArchive({
       candidate_id: candidateId,
       stage_when_archived: fromStage,
       reason_code: archive.reason_code,
@@ -97,12 +99,48 @@ export async function archiveCandidateAction(
     });
 
     transitionCandidateStage(candidateId, "archived", { by });
+
+    if (archive.reflection_text) {
+      await enqueueTask({
+        task_type: "hiring_archive_reflection_ingest",
+        runAt: Date.now() + 5_000,
+        payload: { candidate_id: candidateId, archive_id: archiveRow.id },
+        idempotencyKey: `archive-reflection-${archiveRow.id}`,
+      });
+    }
+
     revalidatePath("/lite/admin/hiring");
     return { ok: true };
   } catch (err) {
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Archive failed.",
+    };
+  }
+}
+
+export async function unarchiveCandidateAction(
+  candidateId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const candidate = await getCandidateById(candidateId);
+    if (!candidate) return { ok: false, error: "Candidate not found." };
+    if (candidate.stage !== "archived") {
+      return { ok: false, error: "Candidate is not archived." };
+    }
+
+    const restoreTo = candidate.stage_before_archive ?? "sourced";
+    await markArchiveUnarchived(candidateId);
+    transitionCandidateStage(candidateId, restoreTo as CandidateStage, { by });
+    revalidatePath("/lite/admin/hiring");
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Un-archive failed.",
     };
   }
 }
