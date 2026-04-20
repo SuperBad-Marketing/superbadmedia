@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-10` — Hiring Pipeline: Trial task delivery tracking + review surface
-**Brief:** HP-9 landed trial task authoring: `hiring-trial-task-author` Sonnet prompt, `proposeTrialTask()` fetches Content Engine backlog + LLM proposes matched item, `confirmAndSendTrialTask()` claims content item + creates `trial_tasks` row + sends email + transitions to Trial + enqueues overdue handler. Two-phase overdue handler (reminder at grace, auto-archive at grace+2). Server actions for propose + confirm. 21 new tests, 244 files / 2282 tests green.
+**Next session:** `HP-11` — Hiring Pipeline: Invite follow-up check handler + reply intelligence routing
+**Brief:** HP-10 landed trial task delivery tracking + review surface: `markTrialTaskDelivered()` marks pending tasks as delivered, `reviewTrialTask()` handles three dispositions (shipped → logs activity, archived → releases content item + archives candidate, redelivered → resets to pending + extends deadline + enqueues new overdue). Review page at `/lite/admin/hiring/trials/[id]` with split-pane layout. Server actions for both flows. 17 new tests, 245 files / 2299 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-9 (2026-04-20) — see `sessions/hp9-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-9 done, HP-10..HP-19 remaining).
+**Last closed:** HP-10 (2026-04-20) — see `sessions/hp10-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-10 done, HP-11..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

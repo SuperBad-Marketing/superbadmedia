@@ -436,6 +436,68 @@ export async function confirmTrialTaskAction(
 }
 
 // ---------------------------------------------------------------------------
+// Trial Task Delivery + Review (§9.2)
+// ---------------------------------------------------------------------------
+
+export async function markTrialTaskDeliveredAction(
+  trialTaskId: string,
+  deliveryUrl: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const { markTrialTaskDelivered } = await import(
+      "@/lib/hiring/trial-review"
+    );
+    const result = await markTrialTaskDelivered({
+      trialTaskId,
+      deliveryUrl,
+      by,
+    });
+    if (!result.ok) return { ok: false, error: result.reason };
+    revalidatePath("/lite/admin/hiring");
+    revalidatePath(`/lite/admin/hiring/trials/${trialTaskId}`);
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Mark delivered failed.",
+    };
+  }
+}
+
+export async function reviewTrialTaskAction(
+  trialTaskId: string,
+  notes: string,
+  rating: number,
+  disposition: "shipped" | "archived" | "redelivered",
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const { reviewTrialTask } = await import("@/lib/hiring/trial-review");
+    const result = await reviewTrialTask({
+      trialTaskId,
+      notes,
+      rating,
+      disposition,
+      by,
+    });
+    if (!result.ok) return { ok: false, error: result.reason };
+    revalidatePath("/lite/admin/hiring");
+    revalidatePath(`/lite/admin/hiring/trials/${trialTaskId}`);
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Review failed.",
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Discovery (§5)
 // ---------------------------------------------------------------------------
 
