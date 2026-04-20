@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-15` — Hiring Pipeline: Role Brief regeneration cycle (§6.3 periodic synthesis + material-event triggers)
-**Brief:** HP-14 landed all four contractor portal sub-pages: `/bench/assignments` (task list + deliverable submission), `/bench/invoices` (new `contractor_invoices` table + submit form), `/bench/availability` (pause/resume + capacity slider), `/bench/profile` (read-only view + approval-gated edits via new `candidate_edit_requests` table). 6 server actions, 6 new activity log kinds, 9 new tests. 249 files / 2358 tests green.
+**Next session:** `HP-16` — Hiring Pipeline: sounds + motion
+**Brief:** HP-15 landed Role Brief regeneration cycle (§6.3): `regenerateRoleBrief()` core function, `maybeRegenerateRoleBrief()` debounced helper, `hiring_role_brief_regenerate` scheduled task handler + registry wiring, triggers on archive (reflection + threshold), bench entry, and manual Retune action. 11 new tests. 250 files / 2369 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-14 (2026-04-20) — see `sessions/hp14-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-14 done, HP-15..HP-19 remaining).
+**Last closed:** HP-15 (2026-04-20) — see `sessions/hp15-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-15 done, HP-16..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

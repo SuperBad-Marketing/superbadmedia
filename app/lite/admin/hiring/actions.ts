@@ -30,6 +30,7 @@ import {
   type SkipTrialReason,
 } from "@/lib/hiring/stages";
 import type { ArchiveResult } from "@/components/lite/hiring-pipeline/archive-modal";
+import { maybeRegenerateRoleBrief } from "@/lib/hiring/maybe-regenerate-brief";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -69,7 +70,10 @@ export async function transitionCandidateAction(
     return { ok: false, error: "Unknown stage." };
   }
   try {
-    transitionCandidateStage(candidateId, toStage, { by });
+    const updated = transitionCandidateStage(candidateId, toStage, { by });
+    if (toStage === "bench" && updated.role_brief_id) {
+      await maybeRegenerateRoleBrief(updated.role_brief_id, "bench_entry");
+    }
     revalidatePath("/lite/admin/hiring");
     return { ok: true };
   } catch (err) {
@@ -107,6 +111,20 @@ export async function archiveCandidateAction(
         payload: { candidate_id: candidateId, archive_id: archiveRow.id },
         idempotencyKey: `archive-reflection-${archiveRow.id}`,
       });
+    }
+
+    const candidate = await getCandidateById(candidateId);
+    if (candidate?.role_brief_id) {
+      if (archive.reflection_text) {
+        await maybeRegenerateRoleBrief(
+          candidate.role_brief_id,
+          "archive_reflection",
+        );
+      }
+      await maybeRegenerateRoleBrief(
+        candidate.role_brief_id,
+        "archive_threshold",
+      );
     }
 
     revalidatePath("/lite/admin/hiring");
@@ -157,10 +175,13 @@ export async function skipTrialAction(
   }
 
   try {
-    transitionCandidateStage(candidateId, "bench", {
+    const updated = transitionCandidateStage(candidateId, "bench", {
       by,
       meta: { skip_trial_reason: reason },
     });
+    if (updated.role_brief_id) {
+      await maybeRegenerateRoleBrief(updated.role_brief_id, "bench_entry");
+    }
     revalidatePath("/lite/admin/hiring");
     return { ok: true };
   } catch (err) {
@@ -583,6 +604,34 @@ export async function runDiscoveryNowAction(
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Discovery run failed.",
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Retune Role Brief (§6.3 manual trigger)
+// ---------------------------------------------------------------------------
+
+export async function retuneRoleBriefAction(
+  roleBriefId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const result = await maybeRegenerateRoleBrief(
+      roleBriefId,
+      "manual_retune",
+    );
+    if (!result.enqueued) {
+      return { ok: false, error: result.reason ?? "Regen not enqueued." };
+    }
+    revalidatePath("/lite/admin/hiring");
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Retune failed.",
     };
   }
 }

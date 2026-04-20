@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-15 (2026-04-20) — Hiring Pipeline: Role Brief Regeneration Cycle
+
+**Phase:** 5 — Build Execution (Wave 18 — session 15/19). Role Brief regeneration cycle per spec §6.3: `regenerateRoleBrief()` core LLM re-synthesis function, `maybeRegenerateRoleBrief()` debounced enqueue helper with settings-gated triggers (bench entry, archive reflection, archive threshold, manual retune), `hiring_role_brief_regenerate` scheduled task handler + registry wiring, `retuneRoleBriefAction` admin action. Triggers wired into `archiveCandidateAction`, `transitionCandidateAction`, `skipTrialAction`. 4 new files, 3 edited files, 11 new tests, 250 files / 2369 green. See `sessions/hp15-handoff.md`.
+
 ## HP-14 (2026-04-20) — Hiring Pipeline: Contractor Portal Sub-pages
 
 **Phase:** 5 — Build Execution (Wave 18 — session 14/19). Four contractor portal sub-pages per spec §10.3: `/bench/assignments` (task list with deliverable submission), `/bench/invoices` (new `contractor_invoices` table, submit form with status chips), `/bench/availability` (pause/resume toggle, `paused_until` date picker, weekly capacity slider), `/bench/profile` (read-only view, approval-gated edits via new `candidate_edit_requests` table, direct portfolio URL edits). 6 server actions in `app/bench/(authenticated)/actions.ts`. 6 new activity log kinds. Migration `0060_hp14_bench_portal_subpages.sql`. 12 new files, 2 edited files, 9 new tests, 249 files / 2358 green. See `sessions/hp14-handoff.md`.
