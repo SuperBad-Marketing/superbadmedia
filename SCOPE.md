@@ -671,6 +671,8 @@ One inbound lead-generation feature added to v1 scope in a brainstorm on 2026-04
 
 Features deliberately parked for v1.1 or later. Explicitly **not** in v1.0 scope — but captured here so Phase 4 doesn't accidentally fold them in, and so v1.1 planning has a starting list.
 
+> **Cross-reference:** smaller deferred plumbing and polish items (compose autosave, rich-text compose, Hunter.io name inference, draft parallelisation, etc.) are tracked in `PATCHES_OWED.md` with `gate: v1.1` tags and consolidated in `LAUNCH_READY.md` §15. Check both when planning v1.1 sessions.
+
 ### v1.1 (post-launch, priority-ordered)
 
 1. **Trial shoot pricing + framing revisit.** Revisit the $297 trial-shoot price with real v1.0 conversion data in hand. Two axes to review together — they're one decision, not two:

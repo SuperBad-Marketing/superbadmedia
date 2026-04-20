@@ -205,6 +205,7 @@ If verification fails: stop, diagnose root cause, fix. Do not bulldoze. Do not b
 7. **Shadow period — Andy uses Lite on himself for two weeks before any external client touches it.** Run your own real work (admin tasks, any inbound lead, your own outreach, your own internal content) through Lite while stakes are zero. Surfaces the visceral day-in-life friction we already named (mobile, calendar split, dry-voice saturation, decision fatigue) when it's cheap to fix.
 8. **Write `INCIDENT_PLAYBOOK.md`** — one short doc covering: common failure modes + triage steps + when to flip a kill switch vs roll back vs patch + communication template for affected clients + key support contacts (Stripe, Resend, Coolify, etc.). Andy is solo; the playbook is the colleague.
 9. Write `sessions/phase-6-handoff.md` documenting the live URLs, env vars needed, monitoring setup, dry-run results, shadow-period observations, and any patches applied during shadow.
+10. **Seed post-launch backlog.** Update `SESSION_TRACKER.md` Next Action to point at the first post-launch polish session from `LAUNCH_READY.md` §15. This keeps the "let's go" protocol alive after launch — without it, there's no next action and the loop goes dead.
 
 ---
 

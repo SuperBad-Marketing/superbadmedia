@@ -139,3 +139,40 @@ Any handoff that fails = fix before launch. The dry-run is the last-line integra
 - [ ] **Date + git SHA of launch recorded** in `sessions/phase-6-handoff.md`.
 
 Unticked rows block launch. This file is the gate.
+
+---
+
+## §14 — Deferred plumbing (land during Phase 6, before or at launch)
+
+Items tracked in `PATCHES_OWED.md` that are gated on Phase 6 but aren't covered by the sections above. Each token links back to its full description in PATCHES_OWED.
+
+- [ ] **`middleware.ts` → `proxy.ts` rename** — Next.js 16 deprecation. Token: `a8_middleware_rename_proxy`. Gate: next middleware-touch session or Phase 6 sweep.
+- [ ] **`next-themes` dep removal audit** — pulled transitively by shadcn sonner; unused (dark-only app). Token: `a3_next_themes_audit`. Gate: Phase 6 dep audit.
+- [ ] **Webhook `clientState` verification** — Graph webhook handler doesn't verify `clientState` against stored value. Low risk (idempotent) but should harden. Token: `ui_1_webhook_client_state_verification`. Gate: Phase 6 launch prep.
+- [ ] **Sentry enablement** — SDK installed and kill-switched off. Flip `sentry_enabled` in production. Token: `b1_sentry_dep`. Gate: Phase 6 enablement.
+- [ ] **Sentry session replay URL population** — `session_replay_url` column always null; needs replay SDK project config. Token: `b1_replay_url_unpopulated`. Gate: Phase 6 or dedicated Sentry replay session.
+- [ ] **CI wiring for e2e tests** — `.github/workflows/` is empty; wire `npm run test:e2e` with Stripe test keys as CI secrets. Token: `sbe2e_ci_wire`. Gate: CI infra setup.
+- [ ] **`SoundProvider` `onloaderror` → `console.warn`** — already listed in §12 above; included here for completeness. Token: `a4_soundprovider_onloaderror`.
+- [ ] **Swap Outfit → General Sans** (Dispatch body font) — only if Dispatch preset gets real usage and the visual gap matters. Token: `a2_dispatch_general_sans`. Gate: post-launch / first user complaint.
+- [ ] **Incident playbook entries** — Brand DNA gate bypass (`BRAND_DNA_GATE_BYPASS=true`), critical-flight middleware bypass, A8 rollback path. Tokens: `a8_incident_playbook_rollback`, plus Phase 6 step 8 scope.
+
+## §15 — Post-launch polish sessions (not launch-blocking, but tracked)
+
+These aren't gates — they're the first post-launch work sessions, collected here so nothing falls through the cracks. Each will need its own brief.
+
+### Compose polish session
+- [ ] **Autosave for compose drafts** — debounced write on keystroke pause; currently explicit Save only. Token: `ui_6_autosave_for_compose_drafts`.
+- [ ] **Rich-text compose** — Markdown paste, inline links, attachments, signature insertion. Currently plain-text → `<br>` only. Token: `ui_6_text_to_html_richness_deferred`.
+- [ ] **Create calendar invites from scratch** — date/time picker + attendee list + Graph POST. Currently RSVP-only. Token: `ui_10_compose_invite_creation_owed`.
+
+### Inbox / email polish
+- [ ] **On-demand per-thread email backfill** — fetch full thread history beyond the 12-month import window. Token: `ui_12_on_demand_per_thread_backfill`.
+
+### Lead generation polish
+- [ ] **Hunter.io name-based pattern inference** — pass team names from website scrape through to contact discovery. Token: `lg_5_hunter_name_pattern_inference`.
+- [ ] **Draft generation parallelisation** — sequential is fine at 5–30 daily caps; parallelise if caps increase. Token: `lg_5_draft_generation_parallel`.
+- [ ] **Blog post context in outreach drafts** — wire `recentBlogPosts` from Content Engine into draft generator. Token: `lg_5_recent_blog_posts_wiring`.
+
+### Other
+- [ ] **Companies list index page** — `/lite/admin/companies/page.tsx`. Deferred from admin-polish-4; reachability covered by pipeline drill-through for now.
+- [ ] **Quote builder redraft retry on drift failure** — `fail_observed` slug logged but no retry loop. Token: `qb6_drift_fail_redraft_unacted` (closed as renamed; retry remains a v1.1 option).
