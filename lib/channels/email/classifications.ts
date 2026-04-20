@@ -89,6 +89,7 @@ export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
 export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "transactional",
   "portal_magic_link_recovery",
+  "hiring_contractor_auth",
   "quote_send",
   "quote_reminder",
   "quote_expired",

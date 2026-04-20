@@ -77,4 +77,5 @@ export * from "./role-briefs";
 export * from "./candidates";
 export * from "./trial-tasks";
 export * from "./candidate-archives";
+export * from "./bench-magic-links";
 export * from "./invite-drafts";

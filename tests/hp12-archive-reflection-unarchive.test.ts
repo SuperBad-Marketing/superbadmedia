@@ -127,7 +127,9 @@ function makeTask(payload: Record<string, unknown>): ScheduledTaskRow {
     attempts: 0,
     last_error: null,
     created_at_ms: Date.now(),
-    updated_at_ms: Date.now(),
+    last_attempted_at_ms: null,
+    done_at_ms: null,
+    reclaimed_at_ms: null,
   };
 }
 
