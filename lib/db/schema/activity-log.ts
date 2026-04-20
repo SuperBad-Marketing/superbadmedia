@@ -328,6 +328,19 @@ export const ACTIVITY_LOG_KINDS = [
   "audit_followup_drafted",
   "audit_pdf_sent",
   "audit_retry_completed",
+  // --- Task Manager (12) ---
+  "task_created",
+  "task_updated",
+  "task_status_changed",
+  "task_deleted",
+  "task_bulk_deleted",
+  "task_approval_requested",
+  "task_approved",
+  "task_rejected",
+  "task_recurrence_spawned",
+  "task_checklist_auto_completed",
+  "braindump_parsed",
+  "braindump_committed",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

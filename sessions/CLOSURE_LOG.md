@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## TM-1 (2026-04-20) — Task Manager: Data model + schema + core CRUD functions
+
+**Phase:** 5 — Build Execution (Wave 17 — session 1/9). Drizzle schema for `tasks` (26 columns, 6 indexes) and `braindumps` (8 columns) tables. Migration 0056. State machine in `lib/tasks/transitions.ts` with kind-aware gating (awaiting_approval/delivered restricted to client_deliverable). Core CRUD in `lib/tasks/queries.ts`: createTask, listTasks (filtered), transitionTaskStatus, updateChecklist (with auto-complete), spawnNextRecurrence, markTaskDone, bulk delete, braindump CRUD, portal queries, approval token lookup. 12 activity log kinds added. Portal stubs replaced with real DB queries. Barrel export via `lib/tasks/index.ts`. CM-7b test updated for real DB. 37 new tests. See `sessions/tm1-handoff.md`.
+
 ## CCE-3 (2026-04-20) — Client Context Engine: Draft Drawer UI + Draft Generation + Action Items Panel + Profile Summary Tile
 
 **Phase:** 5 — Build Execution (Wave 16 — session 3/3, WAVE COMPLETE). Draft generation: `generateDraft()` (Opus), `regenerateDraft()` (Opus + nudge chain), `reformatDraft()` (Haiku channel switch). Three prompt formatters with layered architecture (context in system, reply in user). Draft persistence (getDraft/saveDraft/clearDraft on context_summaries). 9 server actions for drafts + action items (discriminated union pattern). UI: ProfileSummaryTile (narrative + sidebar facts + health chip + unsent-draft indicator), ActionItemsPanel (two groups with inline Done/Edit/Dismiss + manual add + past items toggle), DraftDrawer (Tier 2 motion: slide-from-right 340ms houseSpring, channel switcher, nudge field with history chips, loading pulse, auto-restore). Wired into contact profile page overview tab replacing the placeholder. 19 new tests. See `sessions/cce3-handoff.md`.

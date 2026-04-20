@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-1` — Task Manager: Data model + schema + core CRUD functions
-**Brief:** Wave 16 (CCE) COMPLETE. All 3 sessions done: CCE-1 (data model + core), CCE-2 (summary regen + action-item extraction), CCE-3 (draft drawer UI + draft generation + action items panel + profile summary tile). Full context engine stack operational.
+**Next session:** `TM-2` — Task Manager: Task List UI + task detail drawer
+**Brief:** TM-1 complete. Tasks + braindumps tables, state machine, core CRUD, recurrence spawning, portal queries all landed. 37 new tests, 229 files passing.
 **Model tier:** Sonnet
-**Last closed:** CCE-3 (2026-04-20) — see `sessions/cce3-handoff.md`
-**Wave status:** Wave 16 complete. Wave 17 (Task Manager) next.
+**Last closed:** TM-1 (2026-04-20) — see `sessions/tm1-handoff.md`
+**Wave status:** Wave 17 in progress (TM-1 done, TM-2..TM-9 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -1,28 +1,16 @@
-/**
- * Task type definitions — matches Task Manager spec schema.
- * Stub until TM-1 builds the `tasks` table + Drizzle schema.
- * Owner: TM-1. Consumer: CM-7b (portal deliverables).
- */
+import type { TaskKind, TaskStatus } from "@/lib/db/schema/tasks";
 
-export const TASK_KINDS = [
-  "personal",
-  "admin",
-  "prospect_followup",
-  "client_deliverable",
-  "client_task",
-] as const;
-export type TaskKind = (typeof TASK_KINDS)[number];
-
-export const TASK_STATUSES = [
-  "todo",
-  "in_progress",
-  "blocked",
-  "awaiting_approval",
-  "delivered",
-  "done",
-  "cancelled",
-] as const;
-export type TaskStatus = (typeof TASK_STATUSES)[number];
+export {
+  TASK_KINDS,
+  TASK_STATUSES,
+  TASK_PRIORITIES,
+  TASK_RECURRENCES,
+  type TaskKind,
+  type TaskStatus,
+  type TaskPriority,
+  type TaskRecurrence,
+  type TaskRow,
+} from "@/lib/db/schema/tasks";
 
 export type ChecklistItem = {
   id: string;
