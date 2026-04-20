@@ -29,6 +29,7 @@ import { SIX_WEEK_PLAN_REVISION_QUEUE_HANDLERS } from "./six-week-plan-revision-
 import { SIX_WEEK_PLAN_EXPIRY_EMAIL_HANDLERS } from "./six-week-plan-expiry-email";
 import { SIX_WEEK_PLAN_NON_CONVERTER_ARCHIVE_HANDLERS } from "./six-week-plan-non-converter-archive";
 import { CONTEXT_ENGINE_HANDLERS } from "./context-engine";
+import { DELIVERABLE_APPROVAL_REMINDER_HANDLERS } from "./deliverable-approval-reminder";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -72,4 +73,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...SIX_WEEK_PLAN_EXPIRY_EMAIL_HANDLERS,
   ...SIX_WEEK_PLAN_NON_CONVERTER_ARCHIVE_HANDLERS,
   ...CONTEXT_ENGINE_HANDLERS,
+  ...DELIVERABLE_APPROVAL_REMINDER_HANDLERS,
 };

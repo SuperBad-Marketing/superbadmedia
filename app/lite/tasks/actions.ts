@@ -17,10 +17,12 @@ import {
 import type { TaskStatus } from "@/lib/db/schema/tasks";
 import type { ChecklistItem } from "@/lib/tasks/types";
 import { logActivity } from "@/lib/activity-log";
+import { issueApprovalToken } from "@/lib/tasks/approve";
+import { getTaskById } from "@/lib/tasks/queries";
 import { db } from "@/lib/db";
 import { contacts } from "@/lib/db/schema/contacts";
 import { companies } from "@/lib/db/schema/companies";
-import { like, or } from "drizzle-orm";
+import { like, or, eq, and } from "drizzle-orm";
 
 type ActionResult<T = void> =
   | { ok: true; data: T }
@@ -97,6 +99,27 @@ export async function transitionTaskAction(
       meta: { task_id: id, to },
       createdBy: by,
     });
+
+    // When transitioning to awaiting_approval, issue token + fire email
+    if (to === "awaiting_approval") {
+      const task = await getTaskById(id);
+      if (task?.entity_type === "client" && task.entity_id) {
+        const primaryContact = await db
+          .select({ id: contacts.id })
+          .from(contacts)
+          .where(
+            and(
+              eq(contacts.company_id, task.entity_id),
+              eq(contacts.is_primary, true),
+            ),
+          )
+          .limit(1);
+        if (primaryContact[0]) {
+          await issueApprovalToken(id, primaryContact[0].id);
+        }
+      }
+    }
+
     revalidatePath("/lite/tasks");
     return { ok: true, data: undefined };
   } catch (err) {

@@ -203,6 +203,16 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 ---
 
+### Task Manager (TM-6, TM-7)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `tasks.deliverable_approval_token_ttl_days` | `14` | integer | How long an approval magic-link token is valid before expiry. Source: spec §Approval workflow. |
+| `tasks.morning_digest_enabled` | `true` | boolean | Whether the 08:00 morning task digest email fires. Source: spec §Notifications. |
+| `tasks.morning_digest_time` | `08:00` | string | Local time (Melbourne) for morning digest. Source: spec §Notifications. |
+
+---
+
 ## Totals
 
 - Finance: 11
@@ -219,6 +229,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - SaaS Subscription Billing: 1 (SB-2b seeded 1 — `billing.saas.monthly_setup_fee_cents`)
 - Unified Inbox: 3 (UI-1 seeded 3 — `inbox.graph_sync_interval_seconds`, `inbox.graph_subscription_ttl_hours`, `inbox.graph_subscription_renew_buffer_hours`)
 - Content Engine: 5 (CE-1 seeded 5 — `content.tier`, `content.send_window_day`, `content.send_window_hour`, `content.max_posts_per_month`, `content.max_subscribers_per_tier`)
-- **Total: 97 keys at v1.0 seed** (was 92 pre-CE-1)
+- Task Manager: 3 (TM-6 seeded 3 — `tasks.deliverable_approval_token_ttl_days`, `tasks.morning_digest_enabled`, `tasks.morning_digest_time`)
+- **Total: 100 keys at v1.0 seed** (was 97 pre-TM-6)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

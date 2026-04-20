@@ -228,6 +228,11 @@ const registry = {
   "audit.scoring_boost": integer,
   "audit.profile_reuse_days": integer,
 
+  // Task Manager (3 — TM-6, TM-7)
+  "tasks.deliverable_approval_token_ttl_days": integer,
+  "tasks.morning_digest_enabled": boolean,
+  "tasks.morning_digest_time": str,
+
   // Warmup ramp (5 — LG-1)
   "warmup.week_one_cap": integer,
   "warmup.week_two_cap": integer,

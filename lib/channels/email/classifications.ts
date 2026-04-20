@@ -66,6 +66,13 @@ export const EMAIL_CLASSIFICATIONS = [
   "intro_funnel_abandon_3d",
   // IF-2 — Apology email for SuperBad-initiated cancel/reschedule.
   "apology_email",
+  // TM-6 — Deliverable approval request + 48h reminder + outcome.
+  // Approval request is transactional (client is in an active retainer
+  // relationship and is being asked to sign off on work). Reminder
+  // respects quiet window per spec.
+  "deliverable_approval_request",
+  "deliverable_approval_reminder",
+  "deliverable_approval_outcome",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -98,6 +105,9 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "six_week_plan_revision_explained",
   "six_week_plan_expiry_email",
   "six_week_plan_non_converter_expiry",
+  // TM-6 — approval request + outcome are transactional; reminder is not
+  "deliverable_approval_request",
+  "deliverable_approval_outcome",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

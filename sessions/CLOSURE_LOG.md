@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## TM-6 (2026-04-20) — Task Manager: Approval Workflow
+
+**Phase:** 5 — Build Execution (Wave 17 — session 6/9). Built canonical `approveDeliverable()` primitive in `lib/tasks/approve.ts` — the single code path for deliverable approval per spec §25. Approval token lifecycle: SHA-256 hashed, TTL from `settings.get('tasks.deliverable_approval_token_ttl_days')`, one-time-use, bound to contact+task. On approve: →delivered, clear token, log activity, fire outcome email to Andy. On reject: →in_progress, store feedback, create rejection thread in inbox (task_feedback channel), fire outcome email to Andy. Idempotent on repeat calls. Token-based approval route at `/lite/portal/approve/[token]` with `ApprovalCard` UI component. 48h reminder handler (skips viewed/resolved). Wired approval token issuance into `transitionTaskAction` for `awaiting_approval`. 3 email classifications (request=transactional, reminder=non-transactional, outcome=transactional). 3 settings keys seeded. Refactored portal.ts to remove old stubs. 18 new tests. See `sessions/tm6-handoff.md`.
+
 ## TM-5 (2026-04-20) — Task Manager: Entity-Profile Task Embedding
 
 **Phase:** 5 — Build Execution (Wave 17 — session 5/9). Built reusable `EntityTasksPanel` server component for embedding task lists on entity profiles. Added "Tasks" tab to contact profile (between Overview and Comms) and company profile (between Overview and Deliverables). Wired company "Deliverables" tab from placeholder to real data (filters tasks by `kind === 'client_deliverable'`). Panel shows Open/Closed task sections with kind labels, status chips, priority indicators, due dates, checklist progress, and "Open task manager →" link. 6 new tests covering entity query delegation and data contracts. See `sessions/tm5-handoff.md`.

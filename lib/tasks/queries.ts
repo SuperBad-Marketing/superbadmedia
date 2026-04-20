@@ -420,14 +420,3 @@ export async function getTasksForClientPortal(
   });
 }
 
-// ---------------------------------------------------------------------------
-// Approval token lookup
-// ---------------------------------------------------------------------------
-
-export async function getTaskByApprovalToken(
-  token: string,
-): Promise<TaskRow | undefined> {
-  return db.query.tasks.findFirst({
-    where: eq(tasks.approval_token, token),
-  });
-}

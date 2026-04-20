@@ -79,6 +79,9 @@ export const SCHEDULED_TASK_TYPES = [
   "six_week_plan_expiry_email",
   "six_week_plan_non_converter_expiry",
   "plan_revision_review_queue",
+  // --- Task Manager (2) ---
+  "deliverable_approval_reminder",
+  "task_morning_digest",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",

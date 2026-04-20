@@ -2,8 +2,7 @@ import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
 import type { TaskRow } from "@/lib/db/schema/tasks";
 import { eq, and, inArray } from "drizzle-orm";
-import { validateTransition } from "./transitions";
-import type { PortalTask, TaskKind, TaskStatus } from "./types";
+import type { PortalTask } from "./types";
 
 function toPortalTask(row: TaskRow): PortalTask {
   return {
@@ -46,71 +45,4 @@ export async function getTasksForClientPortal(
     orderBy: [tasks.status, tasks.due_at_ms],
   });
   return rows.map(toPortalTask);
-}
-
-export type ApproveResult = { ok: true } | { ok: false; reason: string };
-
-export async function approveDeliverable(
-  taskId: string,
-  _contactId: string,
-): Promise<ApproveResult> {
-  try {
-    const task = await db.query.tasks.findFirst({
-      where: eq(tasks.id, taskId),
-    });
-    if (!task) return { ok: false, reason: "Task not found." };
-
-    validateTransition(
-      task.status as TaskStatus,
-      "delivered",
-      task.kind as TaskKind,
-    );
-
-    await db
-      .update(tasks)
-      .set({
-        status: "delivered",
-        approved_at_ms: Date.now(),
-        approved_by_contact_id: _contactId,
-        updated_at_ms: Date.now(),
-      })
-      .where(eq(tasks.id, taskId));
-
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
-  }
-}
-
-export async function rejectDeliverable(
-  taskId: string,
-  contactId: string,
-  feedback: string,
-): Promise<ApproveResult> {
-  try {
-    const task = await db.query.tasks.findFirst({
-      where: eq(tasks.id, taskId),
-    });
-    if (!task) return { ok: false, reason: "Task not found." };
-
-    validateTransition(
-      task.status as TaskStatus,
-      "in_progress",
-      task.kind as TaskKind,
-    );
-
-    await db
-      .update(tasks)
-      .set({
-        status: "in_progress",
-        rejected_at_ms: Date.now(),
-        rejection_feedback: feedback,
-        updated_at_ms: Date.now(),
-      })
-      .where(eq(tasks.id, taskId));
-
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
-  }
 }
