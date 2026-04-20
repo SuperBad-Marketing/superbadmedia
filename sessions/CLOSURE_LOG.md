@@ -4,6 +4,14 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-19 (2026-04-20) — Hiring Pipeline: Final Session (Briefing Signals + Admin Surfaces + Audit)
+
+**Phase:** 5 — Build Execution (Wave 18 — session 19/19, wave complete). `getHiringBriefingSignals()` — §14.3 morning brief narrative contract exposing newly-applied, trials-delivered, bench-capacity, discovery-last-run signals for Daily Cockpit consumption. Role Brief admin surface (`/lite/admin/hiring/briefs` list + `[id]` detail): status filter tabs, style summary, tags, do/avoid lists, bench members, pipeline counts, archive patterns, retune button. Drafts queue (`/lite/admin/hiring/drafts`): pending invite drafts with confidence chips, expandable body preview, send/edit/archive actions. Fixed 5 HP-17 TS2722 errors. Full instrumentation audit passed: 17/17 activity log kinds, 6/6 task types, 6/6 email classifications, 28/28 settings keys. 7 new files, 1 edited file, 5 new tests, 254 files / 2409 green. See `sessions/hp19-handoff.md`.
+
+## HP-18 (2026-04-20) — Hiring Pipeline: Cockpit Waiting-Items + Health-Banners Contracts
+
+**Phase:** 5 — Build Execution (Wave 18 — session 18/19). `getHiringWaitingItems()` (7 source kinds) and `getHiringHealthBanners()` (3 banner kinds) in `lib/hiring/cockpit.ts` — Daily Cockpit §14 contracts. 2 new files, 1 edited file, 10 new tests, 253 files / 2404 green. See `sessions/hp18-handoff.md`.
+
 ## HP-17 (2026-04-20) — Hiring Pipeline: Bench Pause Ending Cron + Availability Helpers
 
 **Phase:** 5 — Build Execution (Wave 18 — session 17/19). `hiring_bench_pause_ending` scheduled task handler: 2-day pre-pause-end notification email to Andy with candidate name/role/resume date, gated by candidate still being bench/paused. `enqueueBenchPauseEnding()` helper reads `hiring.bench.pause_ending_warn_days` setting, computes run-at, idempotency-keyed. Wired into contractor portal `togglePauseAction`. Refined `getAvailableBenchMembers()`: added `role_brief_id` filter in DB query + `updated_at_ms` ascending sort for rotation fairness. Added `hiring_bench_pause_ending` to scheduled task types, `bench_pause_ending_notified` to activity log kinds. 3 new files (handler, helper, test), 6 edited files, 13 new tests, 252 files / 2394 green. See `sessions/hp17-handoff.md`.

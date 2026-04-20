@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-19` — Hiring Pipeline: final session (check BUILD_PLAN.md for scope)
-**Brief:** HP-18 built `getHiringWaitingItems()` (7 source kinds) and `getHiringHealthBanners()` (3 banner kinds) in `lib/hiring/cockpit.ts` — the Daily Cockpit §14 contracts. 10 new tests. 253 files / 2404 tests green.
+**Next session:** `FD-1` — Finance Dashboard: first session (check BUILD_PLAN.md for scope)
+**Brief:** HP-19 closed Wave 18 (Hiring Pipeline). Built `getHiringBriefingSignals()` (§14.3 morning brief narrative contract), Role Brief admin surface (`/lite/admin/hiring/briefs` + detail), Drafts queue (`/lite/admin/hiring/drafts`), fixed HP-17 TS errors, passed full instrumentation audit (17 activity log kinds, 6 task types, 6 email classifications, 28 settings keys). 254 files / 2409 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-18 (2026-04-20) — see `sessions/hp18-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-18 done, HP-19 remaining).
+**Last closed:** HP-19 (2026-04-20) — see `sessions/hp19-handoff.md`
+**Wave status:** Wave 18 complete. Wave 19 (Finance Dashboard) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

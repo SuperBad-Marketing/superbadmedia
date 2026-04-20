@@ -111,7 +111,7 @@ describe("HP-17 — Bench pause ending cron + availability helpers", () => {
       );
 
       const handler =
-        HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending;
+        HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending!;
       await handler({
         id: "task-1",
         payload: { candidate_id: "cand-1" },
@@ -150,7 +150,7 @@ describe("HP-17 — Bench pause ending cron + availability helpers", () => {
       const { HIRING_BENCH_PAUSE_ENDING_HANDLERS } = await import(
         "@/lib/scheduled-tasks/handlers/hiring-bench-pause-ending"
       );
-      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending({
+      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending!({
         id: "task-1",
         payload: { candidate_id: "cand-1" },
       } as any);
@@ -173,7 +173,7 @@ describe("HP-17 — Bench pause ending cron + availability helpers", () => {
       const { HIRING_BENCH_PAUSE_ENDING_HANDLERS } = await import(
         "@/lib/scheduled-tasks/handlers/hiring-bench-pause-ending"
       );
-      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending({
+      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending!({
         id: "task-1",
         payload: { candidate_id: "cand-1" },
       } as any);
@@ -196,7 +196,7 @@ describe("HP-17 — Bench pause ending cron + availability helpers", () => {
       const { HIRING_BENCH_PAUSE_ENDING_HANDLERS } = await import(
         "@/lib/scheduled-tasks/handlers/hiring-bench-pause-ending"
       );
-      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending({
+      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending!({
         id: "task-1",
         payload: { candidate_id: "cand-1" },
       } as any);
@@ -210,7 +210,7 @@ describe("HP-17 — Bench pause ending cron + availability helpers", () => {
       const { HIRING_BENCH_PAUSE_ENDING_HANDLERS } = await import(
         "@/lib/scheduled-tasks/handlers/hiring-bench-pause-ending"
       );
-      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending({
+      await HIRING_BENCH_PAUSE_ENDING_HANDLERS.hiring_bench_pause_ending!({
         id: "task-1",
         payload: {},
       } as any);

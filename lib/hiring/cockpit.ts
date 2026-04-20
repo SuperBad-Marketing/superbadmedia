@@ -298,3 +298,159 @@ export async function getHiringHealthBanners(
 
   return banners;
 }
+
+// ── Briefing signals (Daily Cockpit §14.3 morning brief narrative) ──────────
+
+export interface HiringBriefingSignals {
+  newly_applied_yesterday: { name: string; role: string }[];
+  trials_delivered_overnight: { name: string; role: string }[];
+  bench_capacity_hours: number;
+  discovery_last_run: {
+    role: string;
+    candidates_found: number;
+    run_at_ms: number;
+  } | null;
+}
+
+export async function getHiringBriefingSignals(
+  nowMs: number = Date.now(),
+): Promise<HiringBriefingSignals> {
+  const oneDayAgo = nowMs - MS_PER_DAY;
+
+  // Newly applied yesterday (within last 24h)
+  const recentApplicants = await db
+    .select({
+      name: candidates.name,
+      role_brief_id: candidates.role_brief_id,
+    })
+    .from(candidates)
+    .where(
+      and(
+        eq(candidates.stage, "applied"),
+        sql`${candidates.updated_at_ms} >= ${oneDayAgo}`,
+        sql`${candidates.updated_at_ms} < ${nowMs}`,
+      ),
+    )
+    .all();
+
+  const roleBriefIds = [
+    ...new Set(
+      recentApplicants.map((c) => c.role_brief_id).filter((id): id is string => id != null),
+    ),
+  ];
+  const roleMap = new Map<string, string>();
+  if (roleBriefIds.length > 0) {
+    const roles = await db
+      .select({ id: role_briefs.id, role_name: role_briefs.role_name })
+      .from(role_briefs)
+      .where(inArray(role_briefs.id, roleBriefIds))
+      .all();
+    for (const r of roles) {
+      roleMap.set(r.id, r.role_name);
+    }
+  }
+
+  const newly_applied_yesterday = recentApplicants.map((c) => ({
+    name: c.name,
+    role: (c.role_brief_id && roleMap.get(c.role_brief_id)) ?? "Unknown role",
+  }));
+
+  // Trials delivered overnight (within last 24h)
+  const recentDeliveries = await db
+    .select({
+      candidate_name: candidates.name,
+      role_brief_id: candidates.role_brief_id,
+    })
+    .from(trial_tasks)
+    .innerJoin(candidates, eq(trial_tasks.candidate_id, candidates.id))
+    .where(
+      and(
+        isNotNull(trial_tasks.delivered_at_ms),
+        sql`${trial_tasks.delivered_at_ms} >= ${oneDayAgo}`,
+        sql`${trial_tasks.delivered_at_ms} < ${nowMs}`,
+      ),
+    )
+    .all();
+
+  const deliveryRoleIds = [
+    ...new Set(
+      recentDeliveries.map((d) => d.role_brief_id).filter((id): id is string => id != null),
+    ),
+  ];
+  if (deliveryRoleIds.length > 0) {
+    const roles = await db
+      .select({ id: role_briefs.id, role_name: role_briefs.role_name })
+      .from(role_briefs)
+      .where(inArray(role_briefs.id, deliveryRoleIds))
+      .all();
+    for (const r of roles) {
+      roleMap.set(r.id, r.role_name);
+    }
+  }
+
+  const trials_delivered_overnight = recentDeliveries.map((d) => ({
+    name: d.candidate_name,
+    role: (d.role_brief_id && roleMap.get(d.role_brief_id)) ?? "Unknown role",
+  }));
+
+  // Bench capacity — sum of weekly_capacity_hours across active bench
+  const capacityResult = await db
+    .select({
+      total: sql<number>`coalesce(sum(${candidates.weekly_capacity_hours}), 0)`,
+    })
+    .from(candidates)
+    .where(
+      and(
+        eq(candidates.stage, "bench"),
+        eq(candidates.bench_status, "active"),
+      ),
+    )
+    .get();
+
+  const bench_capacity_hours = capacityResult?.total ?? 0;
+
+  // Discovery: most recent run across all open roles
+  const lastDiscoveryRole = await db
+    .select({
+      role_name: role_briefs.role_name,
+      last_discovery_run_at_ms: role_briefs.last_discovery_run_at_ms,
+    })
+    .from(role_briefs)
+    .where(
+      and(
+        eq(role_briefs.status, "open"),
+        isNotNull(role_briefs.last_discovery_run_at_ms),
+      ),
+    )
+    .orderBy(sql`${role_briefs.last_discovery_run_at_ms} DESC`)
+    .limit(1)
+    .get();
+
+  let discovery_last_run: HiringBriefingSignals["discovery_last_run"] = null;
+  if (lastDiscoveryRole?.last_discovery_run_at_ms) {
+    const discoveryRunMs = lastDiscoveryRole.last_discovery_run_at_ms;
+    const candidatesFoundSinceRun = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(candidates)
+      .where(
+        and(
+          eq(candidates.source, "auto_discovered"),
+          sql`${candidates.created_at_ms} >= ${discoveryRunMs - MS_PER_DAY}`,
+        ),
+      )
+      .get();
+
+    discovery_last_run = {
+      role: lastDiscoveryRole.role_name,
+      candidates_found: candidatesFoundSinceRun?.count ?? 0,
+      run_at_ms: discoveryRunMs,
+    };
+  }
+
+  return {
+    newly_applied_yesterday,
+    trials_delivered_overnight,
+    bench_capacity_hours,
+    discovery_last_run,
+  };
+}
