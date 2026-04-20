@@ -19,6 +19,16 @@ export interface TriggerContext {
   visitCount: number;
   sessionId: string;
   isMobile: boolean;
+  /** YYYY-MM-DD in Melbourne time, populated by the orchestration layer. */
+  melbourneDateISO?: string;
+  /** Melbourne local hour (0-23), populated by the orchestration layer. */
+  melbourneHour?: number;
+  /** Holiday name if today is a public holiday, null otherwise. */
+  holidayName?: string | null;
+  /** Current Melbourne precipitation mm/h from Open-Meteo, null if unknown. */
+  weatherPrecipitationMm?: number | null;
+  /** Egg IDs already fired in this session (for cross-egg suppression). */
+  firedEggIdsInSession?: string[];
 }
 
 export type TriggerEvidence = Record<string, unknown>;

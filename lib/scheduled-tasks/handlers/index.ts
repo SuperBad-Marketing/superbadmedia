@@ -46,6 +46,7 @@ import { FINANCE_RECURRING_EXPENSE_BOOK_HANDLERS } from "./finance-recurring-exp
 import { FINANCE_NARRATIVE_HANDLERS } from "./finance-narrative";
 import { FINANCE_EXPORT_GENERATE_HANDLERS } from "./finance-export-generate";
 import { FINANCE_EXPORT_RETENTION_PURGE_HANDLERS } from "./finance-export-retention-purge";
+import { AMBIENT_COPY_GENERATE_HANDLERS } from "./ambient-copy-generate";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -106,4 +107,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...FINANCE_NARRATIVE_HANDLERS,
   ...FINANCE_EXPORT_GENERATE_HANDLERS,
   ...FINANCE_EXPORT_RETENTION_PURGE_HANDLERS,
+  ...AMBIENT_COPY_GENERATE_HANDLERS,
 };

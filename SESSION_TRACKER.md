@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-3` — Surprise & Delight: Session C (Wave 20). Register remaining public triggers (melbourne_public_holiday, melbourne_rain, public_crt_turn_off) + ambient copy cache builder scheduled task.
-**Brief:** SD-2 completed — `generateInVoice()` wired with real Haiku LLM + drift check + one-retry pipeline. 9 public trigger functions registered. Model registry updated. 260 files / 2518 tests green.
+**Next session:** `SD-4` — Surprise & Delight: Session D (Wave 20). Admin egg triggers (crt_turn_off, milestone_spotter, three_wons) — these need activity_log queries and are distinct from the pure browser-context public triggers.
+**Brief:** SD-3 completed — 3 remaining public triggers registered (melbourne_public_holiday, melbourne_rain, public_crt_turn_off). TriggerContext extended with 5 optional fields for external data. Melbourne weather/holiday helpers built. Ambient copy cache builder handler wired. 261 files / 2537 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-2 (2026-04-21) — see `sessions/sd2-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 next.
+**Last closed:** SD-3 (2026-04-21) — see `sessions/sd3-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

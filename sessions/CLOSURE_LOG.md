@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SD-3 (2026-04-21) — Surprise & Delight: Remaining Public Triggers + Ambient Copy Cache Builder
+
+**Phase:** 5 — Build Execution (Wave 20 — session 3/14). Registered final 3 public triggers: melbourne_public_holiday (holiday JSON lookup), melbourne_rain (Open-Meteo precipitation), public_crt_turn_off (Melbourne 01:00–04:59 + 3min dwell + cross-egg suppression). Extended TriggerContext with 5 optional fields for external/async data (melbourneDateISO, melbourneHour, holidayName, weatherPrecipitationMm, firedEggIdsInSession). Built Melbourne weather helper (Open-Meteo + 15min cache + external_call_log) and holiday helper (lazy-loaded JSON). Wired `ambient_copy_generate` scheduled task handler — iterates all 6 ambient slots, respects refresh interval setting, calls generateInVoice() + writes to ambient_copy_cache. 7 new files, 3 edited, 19 new tests, 261 files / 2537 green. See `sessions/sd3-handoff.md`.
+
 ## SD-2 (2026-04-21) — Surprise & Delight: generateInVoice LLM Pipeline + First Triggers
 
 **Phase:** 5 — Build Execution (Wave 20 — session 2/14). Replaced `generateInVoice()` stub with full Haiku LLM pipeline: kill-switch gated, slot-aware prompting (6 ambient categories), brand-voice drift check with one-retry on failure. Added `sd-generate-in-voice` job slug to model registry (Haiku tier). Registered 9 public trigger functions in `lib/eggs/triggers/*.ts`: late_night_visitor, sunday_researcher, linkedin_referrer, google_intent_cheap, rapid_scroller, deep_reader, abandoned_tab, fifth_time_visitor, returning_visitor. All pure functions, fail-closed. 11 new files, 2 edited, 26 new tests, 260 files / 2518 green. See `sessions/sd2-handoff.md`.

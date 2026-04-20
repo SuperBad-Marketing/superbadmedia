@@ -7,3 +7,6 @@ import "./deep-reader";
 import "./abandoned-tab";
 import "./fifth-time-visitor";
 import "./returning-visitor";
+import "./melbourne-public-holiday";
+import "./melbourne-rain";
+import "./public-crt-turn-off";
