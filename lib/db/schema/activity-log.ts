@@ -73,6 +73,7 @@ export const ACTIVITY_LOG_KINDS = [
   "contractor_pause_toggled",
   "contractor_profile_edit_requested",
   "contractor_portfolio_updated",
+  "bench_pause_ending_notified",
   // --- Client Context Engine — active_strategy (4) ---
   "active_strategy_created",
   "active_strategy_reviewed",

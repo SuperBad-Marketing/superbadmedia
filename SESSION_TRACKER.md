@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-17` — Hiring Pipeline: bench pause ending cron + availability helpers
-**Brief:** HP-16 wired sound + motion across 7 hiring pipeline surfaces: trial review (3 disposition sounds), hiring board archive toast, contractor onboarding Tier 2 wizard-complete + quote-accepted, and all 4 bench sub-pages (deliverable-complete, kanban-drop). 12 new tests. 251 files / 2381 tests green.
+**Next session:** `HP-18` — Hiring Pipeline: Cockpit waiting-items + health-banners contracts
+**Brief:** HP-17 built the `hiring_bench_pause_ending` scheduled task handler (2-day pre-pause-end notification to Andy), `enqueueBenchPauseEnding` helper wired into contractor portal `togglePauseAction`, and refined `getAvailableBenchMembers` with role filtering + rotation-friendly sort. 13 new tests. 252 files / 2394 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-16 (2026-04-20) — see `sessions/hp16-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-16 done, HP-17..HP-19 remaining).
+**Last closed:** HP-17 (2026-04-20) — see `sessions/hp17-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-17 done, HP-18..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

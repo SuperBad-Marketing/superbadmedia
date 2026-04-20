@@ -10,6 +10,7 @@ import { candidate_edit_requests } from "@/lib/db/schema/candidate-edit-requests
 import { getBenchSession } from "@/lib/bench/guard";
 import { logActivity } from "@/lib/activity-log";
 import { vault } from "@/lib/crypto/vault";
+import { enqueueBenchPauseEnding } from "@/lib/hiring/bench-pause";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -111,6 +112,10 @@ export async function togglePauseAction(
         updated_at_ms: now,
       })
       .where(eq(candidates.id, session.candidateId));
+
+    if (pausedUntilMs) {
+      await enqueueBenchPauseEnding(session.candidateId, pausedUntilMs);
+    }
   } else {
     await db
       .update(candidates)

@@ -38,6 +38,7 @@ import { HIRING_FOLLOWUP_CHECK_HANDLERS } from "./hiring-followup-check";
 import { HIRING_TRIAL_HANDLERS } from "./hiring-trial";
 import { HIRING_ARCHIVE_REFLECTION_HANDLERS } from "./hiring-archive-reflection";
 import { HIRING_ROLE_BRIEF_REGENERATE_HANDLERS } from "./hiring-role-brief-regenerate";
+import { HIRING_BENCH_PAUSE_ENDING_HANDLERS } from "./hiring-bench-pause-ending";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -90,4 +91,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...HIRING_TRIAL_HANDLERS,
   ...HIRING_ARCHIVE_REFLECTION_HANDLERS,
   ...HIRING_ROLE_BRIEF_REGENERATE_HANDLERS,
+  ...HIRING_BENCH_PAUSE_ENDING_HANDLERS,
 };

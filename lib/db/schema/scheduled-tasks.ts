@@ -90,6 +90,7 @@ export const SCHEDULED_TASK_TYPES = [
   "hiring_trial_task_overdue",
   "hiring_archive_reflection_ingest",
   "hiring_role_brief_regenerate",
+  "hiring_bench_pause_ending",
   // --- Finance Dashboard (6) ---
   "finance_snapshot_take",
   "finance_narrative_regenerate",

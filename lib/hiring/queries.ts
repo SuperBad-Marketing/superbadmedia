@@ -27,7 +27,7 @@ import {
   type CandidateArchiveInsert,
   type DispositionDirection,
 } from "@/lib/db/schema/candidate-archives";
-import { eq, and, inArray, lte, gte, isNull, isNotNull, desc } from "drizzle-orm";
+import { eq, and, inArray, lte, gte, isNull, isNotNull, desc, asc, or } from "drizzle-orm";
 import {
   invite_drafts,
   type InviteDraftRow,
@@ -260,7 +260,7 @@ export async function updateCandidate(
 // ---------------------------------------------------------------------------
 
 export async function getAvailableBenchMembers(
-  role: string,
+  roleBriefId: string,
   hoursNeeded: number,
   options?: { excludeIds?: string[] },
 ): Promise<CandidateRow[]> {
@@ -272,8 +272,10 @@ export async function getAvailableBenchMembers(
       and(
         eq(candidates.stage, "bench"),
         eq(candidates.bench_status, "active"),
+        eq(candidates.role_brief_id, roleBriefId),
       ),
     )
+    .orderBy(asc(candidates.updated_at_ms))
     .all();
 
   return all.filter((c) => {
@@ -281,7 +283,6 @@ export async function getAvailableBenchMembers(
     if (c.paused_until_ms && c.paused_until_ms > nowMs) return false;
     if (!c.weekly_capacity_hours || c.weekly_capacity_hours < hoursNeeded)
       return false;
-    if (!c.role_brief_id) return false;
     return true;
   });
 }

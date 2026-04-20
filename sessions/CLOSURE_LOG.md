@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-17 (2026-04-20) — Hiring Pipeline: Bench Pause Ending Cron + Availability Helpers
+
+**Phase:** 5 — Build Execution (Wave 18 — session 17/19). `hiring_bench_pause_ending` scheduled task handler: 2-day pre-pause-end notification email to Andy with candidate name/role/resume date, gated by candidate still being bench/paused. `enqueueBenchPauseEnding()` helper reads `hiring.bench.pause_ending_warn_days` setting, computes run-at, idempotency-keyed. Wired into contractor portal `togglePauseAction`. Refined `getAvailableBenchMembers()`: added `role_brief_id` filter in DB query + `updated_at_ms` ascending sort for rotation fairness. Added `hiring_bench_pause_ending` to scheduled task types, `bench_pause_ending_notified` to activity log kinds. 3 new files (handler, helper, test), 6 edited files, 13 new tests, 252 files / 2394 green. See `sessions/hp17-handoff.md`.
+
 ## HP-16 (2026-04-20) — Hiring Pipeline: Sounds + Motion
 
 **Phase:** 5 — Build Execution (Wave 18 — session 16/19). Sound + motion wiring across 7 hiring pipeline surfaces per spec §16 (all inherit, no new slots). Trial review: 3 disposition sounds via `useToastWithSound`. Hiring board: archive toast now plays `kanban-drop`. Contractor onboarding: Tier 2 `wizard-complete` choreography + `quote-accepted` sound on completion. Bench sub-pages (4): `deliverable-complete` on submissions, `kanban-drop` on state changes/saves. 0 new files (excluding test), 7 edited files, 12 new tests, 251 files / 2381 green. See `sessions/hp16-handoff.md`.
