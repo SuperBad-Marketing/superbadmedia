@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## FD-1 (2026-04-20) — Finance Dashboard: Data Model + Manual Expense Entry
+
+**Phase:** 5 — Build Execution (Wave 19 — session 1/4). 4 new Drizzle tables: `expenses` (9 categories, 4 sources, unique source_ref index for rollup idempotency, candidate_id FK), `recurring_expenses` (monthly/quarterly/annual, active/paused), `finance_snapshots` (daily PK, JSON metrics/projection/callouts, nullable narrative), `compliance_milestones` (BAS/EOFY filed markers). Migration 0061. Server actions: create/update/confirm/bulk-confirm expenses + vendor suggestions. Expense modal with GST auto-calc, payment-processing block nudge, vendor autocomplete. `/lite/finance` landing page with 3 empty states (no Stripe, no data, has data). FAB for quick-add. 10 new files, 2 edited files, 7 new tests, 255 files / 2416 green. See `sessions/fd1-handoff.md`.
+
 ## HP-19 (2026-04-20) — Hiring Pipeline: Final Session (Briefing Signals + Admin Surfaces + Audit)
 
 **Phase:** 5 — Build Execution (Wave 18 — session 19/19, wave complete). `getHiringBriefingSignals()` — §14.3 morning brief narrative contract exposing newly-applied, trials-delivered, bench-capacity, discovery-last-run signals for Daily Cockpit consumption. Role Brief admin surface (`/lite/admin/hiring/briefs` list + `[id]` detail): status filter tabs, style summary, tags, do/avoid lists, bench members, pipeline counts, archive patterns, retune button. Drafts queue (`/lite/admin/hiring/drafts`): pending invite drafts with confidence chips, expandable body preview, send/edit/archive actions. Fixed 5 HP-17 TS2722 errors. Full instrumentation audit passed: 17/17 activity log kinds, 6/6 task types, 6/6 email classifications, 28/28 settings keys. 7 new files, 1 edited file, 5 new tests, 254 files / 2409 green. See `sessions/hp19-handoff.md`.
