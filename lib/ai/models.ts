@@ -117,8 +117,10 @@ export const MODELS = {
   "admin-setup-assistant": "opus",
   // email-adapter / drift-check (1) — A7
   "drift-check-grader": "haiku",
-  // surprise-and-delight (1) — SD-2
+  // surprise-and-delight (3) — SD-2 + SD-4
   "sd-generate-in-voice": "haiku",
+  "sd-milestone-extract": "haiku",
+  "sd-milestone-draft": "opus",
   // free-audit-tool (2)
   "audit-category-explanation": "haiku",
   "audit-followup-draft": "opus",

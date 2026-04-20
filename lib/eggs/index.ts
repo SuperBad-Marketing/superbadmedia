@@ -30,3 +30,11 @@ export {
   type GenerateInVoiceParams,
   type GenerateInVoiceResult,
 } from "./generate-in-voice";
+export {
+  evaluateCrtTurnOff,
+  scanForMilestones,
+  generateMilestoneDraft,
+  maybeFireThreeWonsEgg,
+  type CrtTurnOffResult,
+  type DetectedMilestone,
+} from "./admin-triggers";

@@ -18,7 +18,7 @@ import {
   getStageEmptyState,
   type StageColumn,
 } from "./stage-config";
-import { maybeFireThreeWonsEgg } from "@/app/lite/admin/pipeline/three-wons-egg";
+import { maybeFireThreeWonsEgg } from "@/lib/eggs/admin-triggers/three-wons";
 import {
   transitionDealAction,
   finaliseWonAction,

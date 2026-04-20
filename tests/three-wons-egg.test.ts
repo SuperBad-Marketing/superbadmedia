@@ -50,20 +50,27 @@ afterAll(() => {
   }
 });
 
+function ensureUser(id: string, role = "admin") {
+  const existing = sqlite
+    .prepare("SELECT id FROM user WHERE id = ?")
+    .get(id);
+  if (!existing) {
+    sqlite
+      .prepare(
+        `INSERT INTO user (id, email, role, name, theme_preset, density_preference, typeface_preset, hidden_egg_tricks_enabled, created_at_ms) VALUES (?, ?, ?, ?, 'standard', 'comfortable', 'house', 1, ?)`,
+      )
+      .run(id, `${id}@test.com`, role, id, Date.now());
+  }
+}
+
 beforeEach(async () => {
-  // Reset cooldown stamp between cases + clear in-memory settings cache.
-  sqlite
-    .prepare(
-      "UPDATE settings SET value = '0' WHERE key = 'pipeline.sd_three_wons_last_fired_ms'",
-    )
-    .run();
-  const settings = await import("@/lib/settings");
-  settings.default.invalidateCache();
+  sqlite.prepare("DELETE FROM hidden_egg_fires").run();
+  ensureUser("admin-1");
   authMock.mockResolvedValue({ user: { id: "admin-1", role: "admin" } });
 });
 
-describe("maybeFireThreeWonsEgg", () => {
-  it("fires and stamps the cooldown on a fresh admin call", async () => {
+describe("maybeFireThreeWonsEgg (migrated to hidden_egg_fires)", () => {
+  it("fires and writes a row to hidden_egg_fires", async () => {
     const { maybeFireThreeWonsEgg } = await import(
       "@/app/lite/admin/pipeline/three-wons-egg"
     );
@@ -71,11 +78,11 @@ describe("maybeFireThreeWonsEgg", () => {
     expect(fired).toBe(true);
 
     const row = sqlite
-      .prepare(
-        "SELECT value FROM settings WHERE key = 'pipeline.sd_three_wons_last_fired_ms'",
-      )
-      .get() as { value: string };
-    expect(Number(row.value)).toBeGreaterThan(0);
+      .prepare("SELECT * FROM hidden_egg_fires WHERE egg_id = 'three_wons'")
+      .get() as { egg_id: string; actor_type: string; user_id: string } | undefined;
+    expect(row).toBeDefined();
+    expect(row!.actor_type).toBe("admin");
+    expect(row!.user_id).toBe("admin-1");
   });
 
   it("does not re-fire within the 30-day cooldown", async () => {
@@ -95,11 +102,9 @@ describe("maybeFireThreeWonsEgg", () => {
     const longAgo = Date.now() - 31 * 24 * 60 * 60 * 1000;
     sqlite
       .prepare(
-        "UPDATE settings SET value = ? WHERE key = 'pipeline.sd_three_wons_last_fired_ms'",
+        `INSERT INTO hidden_egg_fires (id, egg_id, actor_type, user_id, fired_at_ms, trigger_evidence) VALUES (?, ?, ?, ?, ?, ?)`,
       )
-      .run(String(longAgo));
-    const settings = await import("@/lib/settings");
-    settings.default.invalidateCache();
+      .run("hef-old", "three_wons", "admin", "admin-1", longAgo, JSON.stringify({ reason: "test" }));
 
     const fired = await maybeFireThreeWonsEgg();
     expect(fired).toBe(true);
@@ -115,12 +120,10 @@ describe("maybeFireThreeWonsEgg", () => {
     const fired = await maybeFireThreeWonsEgg();
     expect(fired).toBe(false);
 
-    const row = sqlite
-      .prepare(
-        "SELECT value FROM settings WHERE key = 'pipeline.sd_three_wons_last_fired_ms'",
-      )
-      .get() as { value: string };
-    expect(Number(row.value)).toBe(0);
+    const rows = sqlite
+      .prepare("SELECT * FROM hidden_egg_fires WHERE egg_id = 'three_wons'")
+      .all();
+    expect(rows.length).toBe(0);
   });
 
   it("refuses when unauthenticated", async () => {
