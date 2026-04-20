@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SWP-10` — Six-Week Plan Generator: non-converter expiry (day-53 email + day-60 archive) + E2E tests + settings audit
-**Brief:** SWP-9 COMPLETE (reduced scope). Post-regen active_strategy sync hook added to `approveDetail()` — when a retainer-scope regenerated plan is approved, the `active_strategies` row's payload updates automatically. Closes the gap flagged in SWP-6 handoff.
+**Next session:** `CCE-1` — Client Context Engine: context_summaries, action_items, private_notes, llm_usage_log + assembleContext() + computeHealthScore() rule engine + getSignalsForContact() + getActionItems()
+**Brief:** SWP-10 COMPLETE. Wave 15 (Six-Week Plan Generator) fully shipped — all 10 sessions done. Non-converter expiry handlers (day-53 email + day-60 archive) + settings audit (3 literals converted to settings.get()). Moving to Wave 16: Client Context Engine.
 **Model tier:** Sonnet
-**Last closed:** SWP-9 (2026-04-20) — see `sessions/swp9-handoff.md`
-**Wave status:** Wave 15 IN PROGRESS. SWP-1 through SWP-9 done; SWP-10 next.
+**Last closed:** SWP-10 (2026-04-20) — see `sessions/swp10-handoff.md`
+**Wave status:** Wave 15 COMPLETE. Wave 16 (Client Context Engine) next — CCE-1 through CCE-3.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

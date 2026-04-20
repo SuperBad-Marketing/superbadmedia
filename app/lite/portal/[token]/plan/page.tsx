@@ -2,6 +2,7 @@ import { requirePortalSession } from "@/lib/portal/require-session";
 import { getPlanForPortal } from "@/lib/six-week-plan/portal-queries";
 import { PortalSectionPlaceholder } from "@/components/lite/portal/section-placeholder";
 import { PlanView } from "@/components/lite/portal/plan-view";
+import settings from "@/lib/settings";
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -21,5 +22,7 @@ export default async function PortalPlanPage({ params }: Props) {
     );
   }
 
-  return <PlanView data={planData} portalToken={token} />;
+  const revisionMinChars = await settings.get("plan.revision_note_min_chars");
+
+  return <PlanView data={planData} portalToken={token} revisionMinChars={revisionMinChars} />;
 }

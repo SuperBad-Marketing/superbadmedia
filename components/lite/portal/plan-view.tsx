@@ -16,6 +16,7 @@ import { PdfRenderOverlay } from "@/components/lite/pdf-render-overlay";
 interface Props {
   data: PortalPlanData;
   portalToken: string;
+  revisionMinChars?: number;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -60,7 +61,10 @@ function getDayOfWeek(weekNumber: number, activatedAtMs: number): number {
   return Math.min(7, Math.max(1, Math.ceil(dayInWeek)));
 }
 
-export function PlanView({ data, portalToken }: Props) {
+const DEFAULT_REVISION_MIN_CHARS = 40;
+
+export function PlanView({ data, portalToken, revisionMinChars }: Props) {
+  const minChars = revisionMinChars ?? DEFAULT_REVISION_MIN_CHARS;
   const { plan, prospect, taskProgress, retainerState } = data;
   const shouldReduceMotion = useReducedMotion();
   const isActivated = !!plan.activatedAtMs;
@@ -258,6 +262,7 @@ export function PlanView({ data, portalToken }: Props) {
           <RevisionModal
             planId={plan.id}
             onClose={() => setRevisionModalOpen(false)}
+            minChars={minChars}
           />
         )}
       </AnimatePresence>
@@ -635,9 +640,11 @@ function RevisionReplyCard({
 function RevisionModal({
   planId,
   onClose,
+  minChars,
 }: {
   planId: string;
   onClose: () => void;
+  minChars: number;
 }) {
   const shouldReduceMotion = useReducedMotion();
   const [note, setNote] = useState("");
@@ -690,12 +697,12 @@ function RevisionModal({
         <div className="mt-1 flex items-center justify-between">
           <span
             className={`text-[12px] ${
-              note.trim().length >= 40
+              note.trim().length >= minChars
                 ? "text-[var(--color-neutral-500)]"
                 : "text-[var(--color-brand-orange)]"
             }`}
           >
-            {note.trim().length}/40 min
+            {note.trim().length}/{minChars} min
           </span>
           {error && (
             <span className="text-[12px] text-[var(--color-brand-red)]">
@@ -712,7 +719,7 @@ function RevisionModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={submitting || note.trim().length < 40}
+            disabled={submitting || note.trim().length < minChars}
             className="rounded-[8px] bg-[var(--color-brand-red)] px-6 py-2 font-[family-name:var(--font-righteous)] text-[14px] text-[var(--color-brand-cream)] transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {submitting ? "Sending…" : "Send revision note"}

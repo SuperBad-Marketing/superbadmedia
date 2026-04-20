@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SWP-10 (2026-04-20) — Six-Week Plan Generator: Non-Converter Expiry + Settings Audit
+
+**Phase:** 5 — Build Execution (Wave 15 — FINAL SESSION). Built day-53 expiry email handler (`runExpiryEmailSweep()` — sends wind-down email with fresh PDF attached, three-condition gate, activity log) and day-60 portal archive handler (`runPortalArchiveSweep()` — sets `portal_archived_at_ms`, transitions to `archived` status). Both self-perpetuating daily sweeps gated on `plan_automations_enabled`. Settings audit converted 3 hardcoded literals to `settings.get()`: PDF cache TTL, revision note min chars, observations min chars. 16 new tests, all green. Wave 15 complete. See `sessions/swp10-handoff.md`.
+
 ## SWP-9 (2026-04-20) — Six-Week Plan Generator: Post-Regen Active Strategy Sync
 
 **Phase:** 5 — Build Execution (Wave 15). Reduced scope — SWP-6 already built the full migrate-on-Won pipeline (table, handler, deal-won hook, refresh-review surface, portal retainer state). SWP-9 added the one missing piece: `maybeSyncActiveStrategy()` hook in `approveDetail()` that copies updated plan payload into the `active_strategies` row when a retainer-scope regenerated plan is approved. Active_strategy stays in `pending_refresh_review` — Andy still approves via refresh-review surface. See `sessions/swp9-handoff.md`.

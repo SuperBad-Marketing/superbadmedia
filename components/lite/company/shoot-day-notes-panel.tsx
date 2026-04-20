@@ -68,6 +68,7 @@ export interface ShootDayNotesPanelProps {
   dealTitle: string;
   notes: ShootDayNotesData | null;
   planStatus: PlanStatusData | null;
+  observationsMinChars?: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -137,13 +138,17 @@ const TONE_COLORS: Record<string, { bg: string; color: string }> = {
 
 // ── Component ──────────────────────────────────────────────────────────
 
+const DEFAULT_OBSERVATIONS_MIN_CHARS = 40;
+
 export function ShootDayNotesPanel({
   companyId,
   dealId,
   dealTitle,
   notes,
   planStatus,
+  observationsMinChars,
 }: ShootDayNotesPanelProps) {
+  const obsMinChars = observationsMinChars ?? DEFAULT_OBSERVATIONS_MIN_CHARS;
   // Infrastructure
   const [emailList, setEmailList] = useState<InfraEmailListValue | null>(notes?.infraEmailList ?? null);
   const [emailListNote, setEmailListNote] = useState(notes?.infraEmailListNote ?? "");
@@ -193,7 +198,7 @@ export function ShootDayNotesPanel({
   const allInfraFilled = emailList != null && adExperience != null && leadMagnet != null && websiteStatus != null && socialCadence != null;
   const hasGoal = goals.some((g) => g.text.trim().length > 0);
   const allSignalsFilled = signalEnergy != null && signalFluency != null && signalIcpClarity != null && signalConversionReady != null;
-  const observationsValid = observations.trim().length >= 40;
+  const observationsValid = observations.trim().length >= obsMinChars;
   const isComplete = allInfraFilled && hasGoal && allSignalsFilled && observationsValid;
 
   const updateGoal = useCallback((idx: number, text: string) => {
@@ -489,11 +494,11 @@ export function ShootDayNotesPanel({
           />
           <p className={cn(
             "text-[11px]",
-            observations.trim().length >= 40
+            observations.trim().length >= obsMinChars
               ? "text-[color:var(--color-neutral-500)]"
               : "text-[color:var(--color-brand-orange)]",
           )}>
-            {observations.trim().length}/40 min characters
+            {observations.trim().length}/{obsMinChars} min characters
           </p>
         </fieldset>
 

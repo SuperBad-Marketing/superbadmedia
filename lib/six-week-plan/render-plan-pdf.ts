@@ -6,6 +6,7 @@ import { companies } from "@/lib/db/schema/companies";
 import { renderToPdf } from "@/lib/pdf/render";
 import { buildPlanPdfHtml, planPdfFilename } from "./pdf-template";
 import { logActivity } from "@/lib/activity-log";
+import settings from "@/lib/settings";
 import type { WeeksOutput } from "@/lib/ai/prompts/six-week-plan/weeks";
 
 export interface RenderedPlanPdf {
@@ -15,11 +16,12 @@ export interface RenderedPlanPdf {
 }
 
 const pdfCache = new Map<string, { buffer: Buffer; filename: string; generationVersion: number; cachedAtMs: number }>();
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const MS_PER_HOUR = 60 * 60 * 1000;
 
 export async function renderPlanPdf(
   planId: string,
   contactId?: string,
+  opts?: { skipCache?: boolean },
 ): Promise<RenderedPlanPdf | null> {
   const plan = await db.query.six_week_plans.findFirst({
     where: eq(six_week_plans.id, planId),
@@ -29,7 +31,9 @@ export async function renderPlanPdf(
 
   const cacheKey = `${planId}:${plan.generation_version}`;
   const cached = pdfCache.get(cacheKey);
-  if (cached && Date.now() - cached.cachedAtMs < CACHE_TTL_MS) {
+  const cacheTtlHours = await settings.get("plan.pdf_cache_hours");
+  const cacheTtlMs = cacheTtlHours * MS_PER_HOUR;
+  if (!opts?.skipCache && cached && Date.now() - cached.cachedAtMs < cacheTtlMs) {
     if (contactId) {
       void logPdfDownload(plan.deal_id, contactId, planId, plan.generation_version);
     }

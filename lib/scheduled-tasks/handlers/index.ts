@@ -26,6 +26,8 @@ import { INTRO_FUNNEL_REFLECTION_REMINDER_HANDLERS } from "./intro-funnel-reflec
 import { SIX_WEEK_PLAN_GENERATE_HANDLERS } from "./six-week-plan-generate";
 import { SIX_WEEK_PLAN_MIGRATION_HANDLERS } from "./six-week-plan-migration";
 import { SIX_WEEK_PLAN_REVISION_QUEUE_HANDLERS } from "./six-week-plan-revision-queue";
+import { SIX_WEEK_PLAN_EXPIRY_EMAIL_HANDLERS } from "./six-week-plan-expiry-email";
+import { SIX_WEEK_PLAN_NON_CONVERTER_ARCHIVE_HANDLERS } from "./six-week-plan-non-converter-archive";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -66,4 +68,6 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...SIX_WEEK_PLAN_GENERATE_HANDLERS,
   ...SIX_WEEK_PLAN_MIGRATION_HANDLERS,
   ...SIX_WEEK_PLAN_REVISION_QUEUE_HANDLERS,
+  ...SIX_WEEK_PLAN_EXPIRY_EMAIL_HANDLERS,
+  ...SIX_WEEK_PLAN_NON_CONVERTER_ARCHIVE_HANDLERS,
 };

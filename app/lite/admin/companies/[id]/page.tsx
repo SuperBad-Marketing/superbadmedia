@@ -23,6 +23,7 @@ import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 import { trial_shoot_notes } from "@/lib/db/schema/trial-shoot-notes";
 import { six_week_plans } from "@/lib/db/schema/six-week-plans";
 import { loadInvoiceDetail } from "@/lib/invoicing/detail-query";
+import settings from "@/lib/settings";
 
 import { BillingTab } from "@/components/lite/invoices/billing-tab";
 import type { InvoiceIndexRow } from "@/components/lite/invoices/invoice-index-client";
@@ -436,6 +437,10 @@ export default async function CompanyAdminPage({
   const primaryContact =
     contactRows.find((c) => c.is_primary) ?? contactRows[0] ?? null;
 
+  const observationsMinChars = activeTab === "overview"
+    ? await settings.get("plan.observations_min_chars")
+    : undefined;
+
   return (
     <div className="mx-auto max-w-4xl">
       {/* ——— §3 entity-detail header ——— */}
@@ -525,6 +530,7 @@ export default async function CompanyAdminPage({
           trialShootDeal={trialShootDeal}
           shootDayNotes={shootDayNotesData}
           planStatus={planStatusData}
+          observationsMinChars={observationsMinChars}
         />
       ) : null}
 
@@ -613,6 +619,7 @@ function OverviewTab({
   trialShootDeal,
   shootDayNotes,
   planStatus,
+  observationsMinChars,
 }: {
   company: typeof companies.$inferSelect;
   status: CompanyDerivedStatus;
@@ -635,6 +642,7 @@ function OverviewTab({
   trialShootDeal: (typeof deals.$inferSelect) | null;
   shootDayNotes: ShootDayNotesData | null;
   planStatus: PlanStatusData | null;
+  observationsMinChars?: number;
 }) {
   return (
     <div className="space-y-5 px-4 pb-10">
@@ -655,6 +663,7 @@ function OverviewTab({
           dealTitle={trialShootDeal.title}
           notes={shootDayNotes}
           planStatus={planStatus}
+          observationsMinChars={observationsMinChars}
         />
       )}
 
