@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 export type CompanyTab =
   | "overview"
+  | "tasks"
   | "deliverables"
   | "billing"
   | "brand-dna"
@@ -14,6 +15,7 @@ export type CompanyTab =
 
 const TABS: { id: CompanyTab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "tasks", label: "Tasks" },
   { id: "deliverables", label: "Deliverables" },
   { id: "billing", label: "Billing" },
   { id: "brand-dna", label: "Brand DNA" },

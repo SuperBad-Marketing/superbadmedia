@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## TM-5 (2026-04-20) — Task Manager: Entity-Profile Task Embedding
+
+**Phase:** 5 — Build Execution (Wave 17 — session 5/9). Built reusable `EntityTasksPanel` server component for embedding task lists on entity profiles. Added "Tasks" tab to contact profile (between Overview and Comms) and company profile (between Overview and Deliverables). Wired company "Deliverables" tab from placeholder to real data (filters tasks by `kind === 'client_deliverable'`). Panel shows Open/Closed task sections with kind labels, status chips, priority indicators, due dates, checklist progress, and "Open task manager →" link. 6 new tests covering entity query delegation and data contracts. See `sessions/tm5-handoff.md`.
+
 ## TM-4 (2026-04-20) — Task Manager: `parseBraindump()` Claude Primitive
 
 **Phase:** 5 — Build Execution (Wave 17 — session 4/9). Replaced stub line-split parser with real Haiku call via `invokeLlmText` (job: `task-manager-parse-braindump`). Entity context injection: fetches recent contacts (90d) + active clients + recent companies + companies with active deals, formatted as structured list in prompt. Surface context flows through for entity pre-linking. Response parsing: strips markdown fences, validates JSON, maps LLM output to existing `ParsedTask` type. Highest-confidence entity candidate becomes primary; all candidates go to `alternatives.entity`. Checklist strings mapped to `ChecklistItem[]`. Invalid kind→admin, invalid priority→normal, confidence clamped 0–1. Kill-switch gated. Logs `braindump_parsed` activity. 11 new tests (mocked LLM, covers mapping, validation, error paths). See `sessions/tm4-handoff.md`.

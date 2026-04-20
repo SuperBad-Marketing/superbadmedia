@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 export type ContactTab =
   | "overview"
+  | "tasks"
   | "comms"
   | "brand-dna"
   | "portal-chat"
@@ -12,6 +13,7 @@ export type ContactTab =
 
 const TABS: { id: ContactTab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "tasks", label: "Tasks" },
   { id: "comms", label: "Comms" },
   { id: "brand-dna", label: "Brand DNA" },
   { id: "portal-chat", label: "Portal Chat" },

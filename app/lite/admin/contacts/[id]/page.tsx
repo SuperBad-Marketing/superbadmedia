@@ -35,6 +35,8 @@ import {
   getActionItems,
 } from "@/lib/context-engine";
 import { context_summaries } from "@/lib/db/schema/context-summaries";
+import { getTasksByEntity } from "@/lib/tasks/queries";
+import { EntityTasksPanel } from "@/components/lite/admin/tasks/entity-tasks-panel";
 
 export const metadata: Metadata = {
   title: "SuperBad — Contact",
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
 };
 
 const VALID_TABS: ContactTab[] = [
-  "overview", "comms", "brand-dna", "portal-chat", "activity",
+  "overview", "tasks", "comms", "brand-dna", "portal-chat", "activity",
 ];
 
 function parseTab(raw: string | undefined): ContactTab {
@@ -186,6 +188,10 @@ export default async function ContactAdminPage({
     ? await db.select().from(activity_log).where(and(eq(activity_log.contact_id, id), eq(activity_log.kind, "note"))).orderBy(desc(activity_log.created_at_ms))
     : null;
 
+  const entityTasks = activeTab === "tasks"
+    ? await getTasksByEntity("contact", id)
+    : null;
+
   // Context Engine data (overview tab)
   const [contextSummaryRow, contextSignals, contextActionItems] =
     activeTab === "overview"
@@ -287,6 +293,14 @@ export default async function ContactAdminPage({
           contextSummaryRow={contextSummaryRow ?? null}
           contextSignals={contextSignals}
           contextActionItems={contextActionItems ?? []}
+        />
+      ) : null}
+
+      {activeTab === "tasks" && entityTasks !== null ? (
+        <EntityTasksPanel
+          tasks={entityTasks}
+          emptyHero="No tasks for this contact."
+          emptyMutter="nothing on the list. yet."
         />
       ) : null}
 

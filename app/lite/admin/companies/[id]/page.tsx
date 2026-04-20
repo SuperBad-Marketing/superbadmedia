@@ -25,6 +25,8 @@ import { six_week_plans } from "@/lib/db/schema/six-week-plans";
 import { loadInvoiceDetail } from "@/lib/invoicing/detail-query";
 import settings from "@/lib/settings";
 
+import { getTasksByEntity } from "@/lib/tasks/queries";
+import { EntityTasksPanel } from "@/components/lite/admin/tasks/entity-tasks-panel";
 import { BillingTab } from "@/components/lite/invoices/billing-tab";
 import type { InvoiceIndexRow } from "@/components/lite/invoices/invoice-index-client";
 import {
@@ -40,7 +42,6 @@ import { BrandDnaTab } from "@/components/lite/admin/companies/brand-dna-tab";
 import { CommsTab } from "@/components/lite/admin/companies/comms-tab";
 import { PortalChatTab } from "@/components/lite/admin/companies/portal-chat-tab";
 import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
-import { DeliverablesTab } from "@/components/lite/admin/companies/deliverables-tab";
 import {
   ShootDayNotesPanel,
   type ShootDayNotesData,
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
 };
 
 const VALID_TABS: CompanyTab[] = [
-  "overview", "deliverables", "billing", "brand-dna", "comms", "portal-chat", "activity",
+  "overview", "tasks", "deliverables", "billing", "brand-dna", "comms", "portal-chat", "activity",
 ];
 
 function parseTab(raw: string | undefined): CompanyTab {
@@ -396,6 +397,17 @@ export default async function CompanyAdminPage({
     }
   }
 
+  // Task-related data (tasks tab + deliverables tab).
+  const entityTasks = activeTab === "tasks"
+    ? await getTasksByEntity("company", id)
+    : null;
+
+  const deliverableTasks = activeTab === "deliverables"
+    ? await getTasksByEntity("company", id).then((all) =>
+        all.filter((t) => t.kind === "client_deliverable"),
+      )
+    : null;
+
   // Tab-specific data loads (only fetch what the active tab needs).
   const contactIds = contactRows.map((c) => c.id);
 
@@ -534,8 +546,20 @@ export default async function CompanyAdminPage({
         />
       ) : null}
 
+      {activeTab === "tasks" && entityTasks !== null ? (
+        <EntityTasksPanel
+          tasks={entityTasks}
+          emptyHero="No tasks for this company."
+          emptyMutter="clean slate. for now."
+        />
+      ) : null}
+
       {activeTab === "deliverables" ? (
-        <DeliverablesTab />
+        <EntityTasksPanel
+          tasks={deliverableTasks ?? []}
+          emptyHero="No deliverables yet."
+          emptyMutter="nothing owed. nothing pending."
+        />
       ) : null}
 
       {activeTab === "billing" ? (

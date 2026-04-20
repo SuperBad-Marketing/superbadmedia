@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-5` — Task Manager: Entity-profile task embedding
-**Brief:** TM-4 complete. Real `parseBraindump()` Haiku call live — entity context injection, date parsing, kind/priority classification, confidence scoring, entity candidate ranking. 230 files passing, 1982 tests green.
+**Next session:** `TM-6` — Task Manager: Approval workflow (`approveDeliverable()` primitive)
+**Brief:** TM-5 complete. Entity-profile task embedding live — reusable `EntityTasksPanel`, Tasks tab on contact + company profiles, Deliverables tab wired to real data. 231 files passing, 1988 tests green.
 **Model tier:** Sonnet
-**Last closed:** TM-4 (2026-04-20) — see `sessions/tm4-handoff.md`
-**Wave status:** Wave 17 in progress (TM-1..TM-4 done, TM-5..TM-9 remaining).
+**Last closed:** TM-5 (2026-04-20) — see `sessions/tm5-handoff.md`
+**Wave status:** Wave 17 in progress (TM-1..TM-5 done, TM-6..TM-9 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
