@@ -11,3 +11,4 @@ export * from "./invite-gate";
 export * from "./send-invite";
 export * from "./trial-task";
 export * from "./trial-review";
+export * from "./reply-intelligence";

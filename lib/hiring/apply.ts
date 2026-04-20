@@ -212,6 +212,16 @@ export async function generateAndSendFollowup(
       { name: "type", value: "hiring_followup" },
     ],
   });
+
+  const waitDays = await settings.get("hiring.apply.followup_reply_wait_days");
+  const waitMs = (typeof waitDays === "number" ? waitDays : 7) * 24 * 60 * 60 * 1000;
+
+  await enqueueTask({
+    task_type: "hiring_invite_followup_check",
+    runAt: Date.now() + waitMs,
+    payload: { candidate_id: candidateId },
+    idempotencyKey: `hiring_followup_check:${candidateId}`,
+  });
 }
 
 // ---------------------------------------------------------------------------

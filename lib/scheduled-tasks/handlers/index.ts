@@ -34,6 +34,7 @@ import { TASK_DIGEST_HANDLERS } from "./task-morning-digest";
 import { HIRING_DISCOVERY_HANDLERS } from "./hiring-discovery";
 import { HIRING_APPLY_HANDLERS } from "./hiring-apply";
 import { HIRING_INVITE_HANDLERS } from "./hiring-invite";
+import { HIRING_FOLLOWUP_CHECK_HANDLERS } from "./hiring-followup-check";
 import { HIRING_TRIAL_HANDLERS } from "./hiring-trial";
 
 /**
@@ -83,5 +84,6 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...HIRING_DISCOVERY_HANDLERS,
   ...HIRING_APPLY_HANDLERS,
   ...HIRING_INVITE_HANDLERS,
+  ...HIRING_FOLLOWUP_CHECK_HANDLERS,
   ...HIRING_TRIAL_HANDLERS,
 };
