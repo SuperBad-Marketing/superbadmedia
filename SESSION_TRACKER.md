@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-3` — Task Manager: Braindump modal UI
-**Brief:** TM-2 complete. `/lite/tasks` page live with task list (filters, search, bulk delete), task detail drawer (all fields editable, kind-aware state machine transitions, natural-language date input, entity autocomplete, checklist editor). Nav item added. 229 files passing.
+**Next session:** `TM-4` — Task Manager: `parseBraindump()` Claude primitive
+**Brief:** TM-3 complete. Braindump modal UI live — FAB on all admin surfaces, Cmd+Shift+D shortcut, textarea → parse → proto-task cards → edit → commit flow. Stub parser in place at `lib/ai/parse-braindump.ts` — TM-4 replaces with real Haiku call. 229 files passing.
 **Model tier:** Sonnet
-**Last closed:** TM-2 (2026-04-20) — see `sessions/tm2-handoff.md`
-**Wave status:** Wave 17 in progress (TM-1..TM-2 done, TM-3..TM-9 remaining).
+**Last closed:** TM-3 (2026-04-20) — see `sessions/tm3-handoff.md`
+**Wave status:** Wave 17 in progress (TM-1..TM-3 done, TM-4..TM-9 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

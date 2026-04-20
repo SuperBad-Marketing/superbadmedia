@@ -16,6 +16,7 @@ import {
   matchActiveId,
 } from "@/components/lite/admin-shell-nav"
 import { GlobalSearchTrigger } from "@/components/lite/global-search"
+import { BraindumpFab } from "@/components/lite/braindump/braindump-fab"
 
 /**
  * AdminShellWithNav — consumes `AdminShell` and hydrates the sidebar
@@ -85,6 +86,7 @@ export function AdminShellWithNav({
   return (
     <div data-density="comfort">
       <AdminShell sidebar={sidebar}>{children}</AdminShell>
+      <BraindumpFab />
     </div>
   )
 }
