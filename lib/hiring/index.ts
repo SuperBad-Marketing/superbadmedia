@@ -14,3 +14,4 @@ export * from "./trial-review";
 export * from "./reply-intelligence";
 export * from "./archive-reflection";
 export * from "./bench-pause";
+export * from "./cockpit";
