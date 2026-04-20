@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-2` — Task Manager: Task List UI + task detail drawer
-**Brief:** TM-1 complete. Tasks + braindumps tables, state machine, core CRUD, recurrence spawning, portal queries all landed. 37 new tests, 229 files passing.
+**Next session:** `TM-3` — Task Manager: Braindump modal UI
+**Brief:** TM-2 complete. `/lite/tasks` page live with task list (filters, search, bulk delete), task detail drawer (all fields editable, kind-aware state machine transitions, natural-language date input, entity autocomplete, checklist editor). Nav item added. 229 files passing.
 **Model tier:** Sonnet
-**Last closed:** TM-1 (2026-04-20) — see `sessions/tm1-handoff.md`
-**Wave status:** Wave 17 in progress (TM-1 done, TM-2..TM-9 remaining).
+**Last closed:** TM-2 (2026-04-20) — see `sessions/tm2-handoff.md`
+**Wave status:** Wave 17 in progress (TM-1..TM-2 done, TM-3..TM-9 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

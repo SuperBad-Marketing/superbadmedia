@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## TM-2 (2026-04-20) — Task Manager: Task List UI + Task Detail Drawer
+
+**Phase:** 5 — Build Execution (Wave 17 — session 2/9). `/lite/tasks` page with admin layout, header (dry copy variants per open/overdue counts). Client component: status tabs (open/done/cancelled/all), kind/priority/due date dropdowns, full-text search, select-all + bulk delete bar (houseSpring animated). Table with columns: checkbox, title + checklist progress, kind (colour-coded), status, priority (! indicator), due date (orange if overdue). Task detail drawer: right-side Framer Motion slide (520px, houseSpring), all fields editable, kind-aware status transitions via `getLegalTransitions()`, natural-language due date parsing (tomorrow/friday/in N days/ISO), entity link autocomplete (contacts + companies), checklist editor (toggle/add/reorder/remove), rejection feedback read-only block, metadata timestamps. 6 server actions (create/update/transition/checklist/delete/bulkDelete + entity search) all auth-gated with activity logging. Nav item added (ListTodo icon). See `sessions/tm2-handoff.md`.
+
 ## TM-1 (2026-04-20) — Task Manager: Data model + schema + core CRUD functions
 
 **Phase:** 5 — Build Execution (Wave 17 — session 1/9). Drizzle schema for `tasks` (26 columns, 6 indexes) and `braindumps` (8 columns) tables. Migration 0056. State machine in `lib/tasks/transitions.ts` with kind-aware gating (awaiting_approval/delivered restricted to client_deliverable). Core CRUD in `lib/tasks/queries.ts`: createTask, listTasks (filtered), transitionTaskStatus, updateChecklist (with auto-complete), spawnNextRecurrence, markTaskDone, bulk delete, braindump CRUD, portal queries, approval token lookup. 12 activity log kinds added. Portal stubs replaced with real DB queries. Barrel export via `lib/tasks/index.ts`. CM-7b test updated for real DB. 37 new tests. See `sessions/tm1-handoff.md`.

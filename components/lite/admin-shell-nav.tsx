@@ -4,6 +4,7 @@ import {
   GaugeCircle,
   Inbox,
   LayoutGrid,
+  ListTodo,
   type LucideIcon,
   Newspaper,
   Package,
@@ -70,6 +71,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Building2,
     status: "live",
     matchPrefix: "/lite/admin/clients",
+  },
+  {
+    id: "tasks",
+    label: "Tasks",
+    href: "/lite/tasks",
+    icon: ListTodo,
+    status: "live",
+    matchPrefix: "/lite/tasks",
   },
   {
     id: "lead-gen",
