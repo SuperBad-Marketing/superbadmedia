@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-5` — Hiring Pipeline: Portfolio ingestion — platform-specific API handlers (Vimeo, Behance, generic web)
-**Brief:** HP-4 landed Quick-Add primitive (§5.3) + candidate scoring + invite drafting. Persistent URL input bar on kanban page, `scoreCandidateAgainstBriefs()` via `hiring-candidate-score` (Haiku), `draftInviteEmail()` via `hiring-invite-draft` (Sonnet), animated result panel with score + draft preview + confirm/dismiss. 27 new tests, 239 files / 2171 tests green.
+**Next session:** `HP-6` — Hiring Pipeline: Discovery agent + IG ingestion (Apify) + discovery source adapters
+**Brief:** HP-5 landed platform-specific portfolio handlers (Vimeo oEmbed, Behance OG, generic web OG) + vision LLM analysis via new `invokeLlmVision()` + external call logging + settings kill switches. `ingestPortfolioUrl()` now returns real thumbnails, bios, work samples, and extracted style tags instead of stubs. 25 new tests, 240 files / 2196 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-4 (2026-04-20) — see `sessions/hp4-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-4 done, HP-5..HP-19 remaining).
+**Last closed:** HP-5 (2026-04-20) — see `sessions/hp5-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-5 done, HP-6..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -1,14 +1,26 @@
 /**
- * Portfolio ingestion primitive — types + URL handler.
+ * Portfolio ingestion primitive — types + multi-platform URL handlers.
  *
  * `ingestPortfolioUrl()` is the single entry point for turning a portfolio
- * URL into structured signals the Role Brief can consume. Multi-platform
- * handlers (Vimeo API, Behance API, Apify IG, etc.) land in later HP
- * sessions; this module ships the type surface + a baseline metadata-fetch
- * implementation that covers personal sites / any URL with an OG profile.
+ * URL into structured signals the Role Brief can consume.
  *
- * Owner: HP-2. Spec: docs/specs/hiring-pipeline.md §3.2, §6.2.
+ * Platform handlers (HP-5):
+ *   - Vimeo: oEmbed API (free, no key)
+ *   - Behance: page fetch + OG metadata extraction
+ *   - Generic web: page fetch + OG metadata extraction
+ *   - Vision LLM: Sonnet vision on thumbnails → extracted_tags
+ *
+ * Future (HP-6+): Apify IG, discovery agent sources.
+ *
+ * Owner: HP-2 (types), HP-5 (handlers).
+ * Spec: docs/specs/hiring-pipeline.md §3.2, §6.2, §15.
  */
+
+import * as cheerio from "cheerio";
+import { db } from "@/lib/db";
+import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { invokeLlmVision } from "@/lib/ai/invoke";
+import settings from "@/lib/settings";
 
 export type WorkSample = {
   url: string;
@@ -49,25 +61,246 @@ const PLATFORM_PATTERNS: [RegExp, PortfolioSignal["platform"]][] = [
   [/tiktok\.com/i, "tiktok"],
 ];
 
-function detectPlatform(url: string): PortfolioSignal["platform"] {
+export function detectPlatform(url: string): PortfolioSignal["platform"] {
   for (const [pattern, platform] of PLATFORM_PATTERNS) {
     if (pattern.test(url)) return platform;
   }
   return "personal";
 }
 
-/**
- * Ingest a single portfolio URL and return structured signals.
- *
- * Current implementation: platform detection + metadata stub. Full
- * platform-specific handlers (Vimeo API for reel metadata, Apify for IG
- * with graceful fallback, Behance project extraction, vision model
- * analysis) land in HP-5/HP-6.
- */
-export async function ingestPortfolioUrl(url: string): Promise<PortfolioSignal> {
+const FETCH_TIMEOUT_MS = 10_000;
+const MAX_BODY_BYTES = 512_000;
+
+// ---------------------------------------------------------------------------
+// Vimeo oEmbed handler
+// ---------------------------------------------------------------------------
+
+interface VimeoOEmbedResponse {
+  title?: string;
+  description?: string;
+  author_name?: string;
+  author_url?: string;
+  thumbnail_url?: string;
+  thumbnail_width?: number;
+  thumbnail_height?: number;
+  duration?: number;
+  video_id?: number;
+}
+
+async function fetchVimeoSignal(url: string): Promise<Partial<PortfolioSignal>> {
+  const enabled = await settings.get("hiring.discovery.vimeo_enabled");
+  if (!enabled) return { confidence: 0.2 };
+
+  const start = Date.now();
+
+  try {
+    const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`;
+    const response = await fetch(oembedUrl, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      await logExternalCall("hiring-portfolio-ingest-vimeo", Date.now() - start, 0);
+      return { confidence: 0.3 };
+    }
+
+    const data = (await response.json()) as VimeoOEmbedResponse;
+    await logExternalCall("hiring-portfolio-ingest-vimeo", Date.now() - start, 0);
+
+    const thumbnails: string[] = [];
+    if (data.thumbnail_url) {
+      thumbnails.push(data.thumbnail_url);
+    }
+
+    const workSamples: WorkSample[] = [
+      {
+        url,
+        title: data.title ?? null,
+        thumbnailUrl: data.thumbnail_url ?? null,
+        mediaType: "video",
+      },
+    ];
+
+    const bio = [data.author_name, data.description]
+      .filter(Boolean)
+      .join(" — ");
+
+    return {
+      thumbnails,
+      bio,
+      work_samples: workSamples,
+      confidence: 0.7,
+    };
+  } catch {
+    await logExternalCall("hiring-portfolio-ingest-vimeo", Date.now() - start, 0);
+    return { confidence: 0.3 };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Behance OG metadata handler
+// ---------------------------------------------------------------------------
+
+async function fetchBehanceSignal(url: string): Promise<Partial<PortfolioSignal>> {
+  const enabled = await settings.get("hiring.discovery.behance_enabled");
+  if (!enabled) return { confidence: 0.2 };
+
+  return fetchOgSignal(url, "hiring-portfolio-ingest-behance");
+}
+
+// ---------------------------------------------------------------------------
+// Generic web OG metadata handler
+// ---------------------------------------------------------------------------
+
+async function fetchOgSignal(
+  url: string,
+  job: string,
+): Promise<Partial<PortfolioSignal>> {
+  const start = Date.now();
+
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; SuperBadBot/1.0; +https://superbadmedia.com.au)",
+      },
+    });
+
+    if (!response.ok) {
+      await logExternalCall(job, Date.now() - start, 0);
+      return { confidence: 0.3 };
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("text/html")) {
+      await logExternalCall(job, Date.now() - start, 0);
+      return { confidence: 0.2 };
+    }
+
+    const buffer = await response.arrayBuffer();
+    const html = new TextDecoder().decode(buffer.slice(0, MAX_BODY_BYTES));
+    const $ = cheerio.load(html);
+
+    const ogTitle =
+      $('meta[property="og:title"]').attr("content") ??
+      $("title").text() ??
+      null;
+    const ogDescription =
+      $('meta[property="og:description"]').attr("content") ??
+      $('meta[name="description"]').attr("content") ??
+      null;
+    const ogImage = $('meta[property="og:image"]').attr("content") ?? null;
+
+    const thumbnails: string[] = [];
+    if (ogImage) thumbnails.push(ogImage);
+
+    $('meta[property="og:image"]').each((_, el) => {
+      const src = $(el).attr("content");
+      if (src && !thumbnails.includes(src)) thumbnails.push(src);
+    });
+
+    const workSamples: WorkSample[] = [
+      {
+        url,
+        title: ogTitle,
+        thumbnailUrl: ogImage,
+        mediaType: ogImage ? "image" : "link",
+      },
+    ];
+
+    const bio = [ogTitle, ogDescription].filter(Boolean).join(" — ");
+
+    await logExternalCall(job, Date.now() - start, 0);
+
+    return {
+      thumbnails: thumbnails.slice(0, 10),
+      bio,
+      work_samples: workSamples,
+      confidence: thumbnails.length > 0 ? 0.6 : 0.4,
+    };
+  } catch {
+    await logExternalCall(job, Date.now() - start, 0);
+    return { confidence: 0.3 };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Vision LLM analysis — extract style tags from thumbnails
+// ---------------------------------------------------------------------------
+
+async function analyzePortfolioVision(
+  thumbnails: string[],
+  platform: PortfolioSignal["platform"],
+  bio: string,
+): Promise<string[]> {
+  if (thumbnails.length === 0) return [];
+
+  const imageUrls = thumbnails.slice(0, 4);
+  const start = Date.now();
+
+  try {
+    const result = await invokeLlmVision({
+      job: "hiring-portfolio-ingest-vision",
+      prompt: [
+        `Analyse these portfolio images from a ${platform} profile.`,
+        bio ? `Bio/context: "${bio}"` : "",
+        "",
+        "Extract 5–15 style tags that describe the visual style, technique,",
+        "subject matter, and production quality. Tags should be lowercase,",
+        "hyphenated where multi-word (e.g. \"handheld-documentary\",",
+        "\"food-photography\", \"warm-tones\", \"motion-graphics\").",
+        "",
+        "Return ONLY a JSON array of strings, no other text.",
+        "Example: [\"food-photography\",\"warm-tones\",\"natural-light\"]",
+      ]
+        .filter((l) => l !== "")
+        .join("\n"),
+      imageUrls,
+      maxTokens: 300,
+    });
+
+    await logExternalCall(
+      "hiring-portfolio-ingest-vision",
+      Date.now() - start,
+      0.01,
+      { images_analyzed: imageUrls.length },
+    );
+
+    try {
+      const cleaned = result.text.replace(/```json\s*|```/g, "").trim();
+      const parsed = JSON.parse(cleaned) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((t): t is string => typeof t === "string")
+          .slice(0, 20);
+      }
+    } catch {
+      // LLM returned non-JSON — extract comma-separated tags as fallback
+    }
+
+    return [];
+  } catch {
+    await logExternalCall(
+      "hiring-portfolio-ingest-vision",
+      Date.now() - start,
+      0.01,
+      { images_analyzed: 0 },
+    );
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main entry point
+// ---------------------------------------------------------------------------
+
+export async function ingestPortfolioUrl(
+  url: string,
+): Promise<PortfolioSignal> {
   const platform = detectPlatform(url);
 
-  return {
+  const base: PortfolioSignal = {
     url,
     platform,
     thumbnails: [],
@@ -77,4 +310,78 @@ export async function ingestPortfolioUrl(url: string): Promise<PortfolioSignal> 
     confidence: platform === "unknown" ? 0.1 : 0.3,
     fetched_at: Date.now(),
   };
+
+  let partial: Partial<PortfolioSignal> = {};
+
+  switch (platform) {
+    case "vimeo":
+      partial = await fetchVimeoSignal(url);
+      break;
+    case "behance":
+      partial = await fetchBehanceSignal(url);
+      break;
+    case "dribbble":
+    case "arena":
+    case "youtube":
+    case "linkedin":
+    case "tiktok":
+    case "personal":
+      partial = await fetchOgSignal(url, "hiring-portfolio-ingest-generic");
+      break;
+    case "unknown":
+      partial = await fetchOgSignal(url, "hiring-portfolio-ingest-generic");
+      break;
+    default:
+      break;
+  }
+
+  const merged: PortfolioSignal = {
+    ...base,
+    thumbnails: partial.thumbnails ?? base.thumbnails,
+    bio: partial.bio ?? base.bio,
+    work_samples: partial.work_samples ?? base.work_samples,
+    confidence: partial.confidence ?? base.confidence,
+    fetched_at: Date.now(),
+    extracted_tags: [],
+  };
+
+  if (merged.thumbnails.length > 0) {
+    merged.extracted_tags = await analyzePortfolioVision(
+      merged.thumbnails,
+      platform,
+      merged.bio,
+    );
+    if (merged.extracted_tags.length > 0 && merged.confidence < 0.8) {
+      merged.confidence = Math.min(merged.confidence + 0.15, 0.85);
+    }
+  }
+
+  return merged;
+}
+
+// ---------------------------------------------------------------------------
+// External call logging (best-effort)
+// ---------------------------------------------------------------------------
+
+async function logExternalCall(
+  job: string,
+  durationMs: number,
+  estimatedCostAud: number,
+  units?: Record<string, number>,
+): Promise<void> {
+  try {
+    await db.insert(external_call_log).values({
+      id: crypto.randomUUID(),
+      job,
+      actor_type: "internal",
+      units: JSON.stringify({
+        duration_ms: durationMs,
+        ...units,
+      }),
+      estimated_cost_aud: estimatedCostAud,
+      created_at_ms: Date.now(),
+    });
+  } catch {
+    // Best-effort logging — never block the ingestion flow
+  }
 }

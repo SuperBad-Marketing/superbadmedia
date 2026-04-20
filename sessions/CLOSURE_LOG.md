@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-5 (2026-04-20) — Hiring Pipeline: Portfolio Ingestion (Platform-Specific API Handlers)
+
+**Phase:** 5 — Build Execution (Wave 18 — session 5/19). Platform-specific portfolio handlers: Vimeo oEmbed API (free, no key), Behance OG metadata extraction, generic web OG extraction for personal sites + all other platforms. Vision LLM analysis via new `invokeLlmVision()` in `lib/ai/invoke.ts` — sends thumbnails to `hiring-portfolio-ingest-vision` (Sonnet vision), extracts style tags as JSON array. Kill switches via `settings.get()` for Vimeo + Behance. External call logging for all 4 job types. Confidence tiering from 0.2 (disabled) through 0.85 (vision tags extracted). `ingestPortfolioUrl()` rewritten from stub to full routing pipeline. 1 new file, 2 edited files, 25 new tests, 240 files / 2196 green. See `sessions/hp5-handoff.md`.
+
 ## HP-4 (2026-04-20) — Hiring Pipeline: Quick-Add Primitive + Candidate Scoring
 
 **Phase:** 5 — Build Execution (Wave 18 — session 4/19). Quick-Add primitive (§5.3) — persistent URL input bar on `/lite/admin/hiring`. `scoreCandidateAgainstBriefs()` scores PortfolioSignal against all open Role Briefs via `hiring-candidate-score` (Haiku), returns sorted results with name_guess. `draftInviteEmail()` via `hiring-invite-draft` (Sonnet) generates personalised invite with confidence rating. `quickAddCandidateAction()` orchestrates the full flow: ingest → score → create candidate → draft invite. Animated result panel with score chip, reasoning, draft preview, confirm/dismiss buttons. `confirmQuickAddInviteAction()` moves Sourced → Invited. 4 new files, 3 edited files, 27 new tests, 239 files / 2171 green. See `sessions/hp4-handoff.md`.

@@ -61,3 +61,45 @@ export async function invokeLlmTextWithMeta(
     outputTokens: response.usage.output_tokens,
   };
 }
+
+export interface InvokeLlmVisionOptions {
+  job: ModelJobSlug;
+  prompt: string;
+  imageUrls: string[];
+  system?: string;
+  maxTokens: number;
+}
+
+export async function invokeLlmVision({
+  job,
+  prompt,
+  imageUrls,
+  system,
+  maxTokens,
+}: InvokeLlmVisionOptions): Promise<InvokeLlmResult> {
+  const imageBlocks: Anthropic.ImageBlockParam[] = imageUrls.map((url) => ({
+    type: "image" as const,
+    source: { type: "url" as const, url },
+  }));
+
+  const response = await CLIENT_SINGLETON.messages.create({
+    model: modelFor(job),
+    max_tokens: maxTokens,
+    ...(system ? { system } : {}),
+    messages: [
+      {
+        role: "user",
+        content: [
+          ...imageBlocks,
+          { type: "text" as const, text: prompt },
+        ],
+      },
+    ],
+  });
+
+  return {
+    text: response.content.find((b) => b.type === "text")?.text?.trim() ?? "",
+    inputTokens: response.usage.input_tokens,
+    outputTokens: response.usage.output_tokens,
+  };
+}
