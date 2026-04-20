@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-2 (2026-04-20) — Hiring Pipeline: Role Brief Authoring Wizard
+
+**Phase:** 5 — Build Execution (Wave 18 — session 2/19). 4-step wizard definition (`hiring-role-brief`) per spec §6.2: role basics form, multi-URL reference portfolio input with `ingestPortfolioUrl()` stub + platform detection, LLM synthesis via `hiring-brief-synthesize` (Sonnet) with editable output + overrides, review-and-confirm with status flip to `open` + `role_brief_opened` activity log. Portfolio signal type surface (`PortfolioSignal`, `WorkSample`). Server actions: `synthesizeRoleBriefAction`, `ingestPortfolioUrlAction`, `completeRoleBriefAction`. Client component wired into admin wizard page dispatcher. 8 hiring LLM job slugs registered in model registry. 32 new tests, 237 files / 2128 green. See `sessions/hp2-handoff.md`.
+
 ## HP-1 (2026-04-20) — Hiring Pipeline: Data Model + Schema + Core CRUD
 
 **Phase:** 5 — Build Execution (Wave 18 — session 1/19). Four new tables: `role_briefs` (perpetual LLM context per hiring role), `candidates` (pipeline entries at any stage), `trial_tasks` (paid trials), `candidate_archives` (archive event timeline). Stage model with 7 stages + archive reason taxonomy + skip-trial reasons. `validateCandidate()` enforcing bench compliance gate. `transitionCandidateStage()` with transactional stage change + activity logging. Core CRUD for all 4 tables + bench-availability queries (`getAvailableBenchMembers()`, `openBenchCount()`). `trial_skipped` added to activity_log kinds. 30 new tests, 236 files / 2096 green. See `sessions/hp1-handoff.md`.

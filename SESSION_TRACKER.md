@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-2` — Hiring Pipeline: Role Brief authoring wizard
-**Brief:** HP-1 landed all 4 Hiring Pipeline tables (role_briefs, candidates, trial_tasks, candidate_archives), stage model, validation, transition function, core CRUD queries, and bench-availability contracts. 30 new tests, 236 files / 2096 tests green. `HiringCandidateSource` renamed to avoid collision with lead-gen's `CandidateSource`.
+**Next session:** `HP-3` — Hiring Pipeline: Admin kanban surface
+**Brief:** HP-2 landed the Role Brief authoring wizard — 4-step wizard definition, portfolio ingestion type + stub, LLM synthesis server action, client component with editable synthesis output, 8 hiring LLM job slugs in the model registry. 32 new tests, 237 files / 2128 tests green.
 **Model tier:** Sonnet
-**Last closed:** HP-1 (2026-04-20) — see `sessions/hp1-handoff.md`
-**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1 done, HP-2..HP-19 remaining).
+**Last closed:** HP-2 (2026-04-20) — see `sessions/hp2-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1..HP-2 done, HP-3..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -44,6 +44,7 @@ import { GoogleAdsClient } from "./clients/google-ads-client";
 import { TwilioClient } from "./clients/twilio-client";
 import { ApiKeyClient } from "./clients/api-key-client";
 import { SaasProductSetupClient } from "./clients/saas-product-setup-client";
+import { HiringRoleBriefClient } from "./clients/hiring-role-brief-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -90,6 +91,9 @@ const CLIENT_MAP: Record<string, ClientRenderer> = {
       {...common}
       setupFeeCentsDefault={saasSetupFeeCentsDefault}
     />
+  ),
+  "hiring-role-brief": ({ common }) => (
+    <HiringRoleBriefClient {...common} />
   ),
   "api-key": ({ common, searchParams }) => {
     const raw =

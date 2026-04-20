@@ -100,6 +100,15 @@ export const MODELS = {
   "inbox-compose-draft": "opus",
   "inbox-compose-subject": "haiku",
   "inbox-draft-refine": "opus",
+  // hiring-pipeline (8)
+  "hiring-brief-synthesize": "sonnet",
+  "hiring-discovery-agent": "sonnet",
+  "hiring-candidate-score": "haiku",
+  "hiring-invite-draft": "sonnet",
+  "hiring-followup-question-draft": "haiku",
+  "hiring-trial-task-author": "sonnet",
+  "hiring-portfolio-ingest-vision": "sonnet",
+  "hiring-archive-reflection-ingest": "haiku",
   // onboarding (2) — OS-1
   "onboarding-welcome-email": "opus",
   "onboarding-welcome-summary": "opus",
