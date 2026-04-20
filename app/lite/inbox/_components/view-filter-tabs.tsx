@@ -6,13 +6,18 @@ import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import {
   AlertOctagon,
   AtSign,
+  Building2,
   Circle,
   Focus,
   Globe,
   Inbox as InboxIcon,
+  LayoutGrid,
   LifeBuoy,
   Moon,
+  Newspaper,
+  Package,
   PencilLine,
+  Radar,
   Send,
   Settings,
   Trash2,
@@ -210,19 +215,47 @@ export function ViewFilterTabs({
 
       <div className="flex-1" aria-hidden />
 
-      <Link
-        href="/lite/admin/settings/catalogue"
-        className={cn(
-          "flex items-center gap-3 rounded-sm py-2 pl-4 pr-3",
-          "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
-          "text-[color:var(--color-neutral-300)] outline-none",
-          "transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)]",
-          "focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--color-surface-1)]",
-        )}
-      >
-        <Settings size={16} strokeWidth={1.5} aria-hidden className="shrink-0" />
-        <span>Settings</span>
-      </Link>
+      <div
+        className="border-t border-[color:var(--color-neutral-700)]"
+        aria-hidden
+      />
+
+      <div className="flex flex-col gap-1">
+        <span
+          className="mb-1 font-[family-name:var(--font-righteous)] text-[length:var(--text-micro)] uppercase tracking-wider text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
+        >
+          Admin
+        </span>
+        {(
+          [
+            { href: "/lite/admin/pipeline", label: "Pipeline", icon: LayoutGrid },
+            { href: "/lite/admin/clients", label: "Clients", icon: Building2 },
+            { href: "/lite/admin/lead-gen", label: "Lead Gen", icon: Radar },
+            { href: "/lite/content", label: "Content", icon: Newspaper },
+            { href: "/lite/admin/products", label: "Products", icon: Package },
+            { href: "/lite/admin/settings/catalogue", label: "Catalogue", icon: Settings },
+          ] as const
+        ).map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-2 rounded-sm py-1.5 pl-4 pr-3",
+                "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
+                "text-[color:var(--color-neutral-400)] outline-none",
+                "transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)]",
+                "focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--color-surface-1)]",
+              )}
+            >
+              <Icon size={14} strokeWidth={1.5} aria-hidden className="shrink-0" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

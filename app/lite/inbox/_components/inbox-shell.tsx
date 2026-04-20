@@ -84,7 +84,13 @@ export function InboxShell({
     >
       <aside
         data-slot="inbox-nav"
-        className="sticky top-0 h-svh overflow-y-auto border-r border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)]"
+        className="sticky top-0 h-svh overflow-y-auto bg-[color:var(--color-surface-1)]"
+        style={{
+          background:
+            "linear-gradient(180deg, var(--color-surface-1) 0%, color-mix(in srgb, var(--color-surface-1), var(--color-brand-red) 3%) 100%)",
+          boxShadow:
+            "var(--surface-highlight), 1px 0 0 rgba(253, 245, 230, 0.06), 4px 0 16px rgba(0, 0, 0, 0.15)",
+        }}
       >
         <ViewFilterTabs
           activeView={view}
@@ -96,7 +102,10 @@ export function InboxShell({
       <section
         data-slot="inbox-list"
         aria-label="Thread list"
-        className="sticky top-0 h-svh overflow-hidden border-r border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)]"
+        className="sticky top-0 h-svh overflow-hidden bg-[color:var(--color-background)]"
+        style={{
+          borderRight: "1px solid rgba(253, 245, 230, 0.06)",
+        }}
       >
         <ThreadList
           rows={rows}
@@ -113,8 +122,16 @@ export function InboxShell({
       <section
         data-slot="inbox-detail"
         aria-label="Thread detail"
-        className="h-svh overflow-hidden bg-[color:var(--color-background)]"
+        className="relative h-svh overflow-hidden bg-[color:var(--color-background)]"
       >
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at 70% 0%, rgba(242, 140, 82, 0.14), transparent 55%), radial-gradient(ellipse at 0% 100%, rgba(178, 40, 72, 0.10), transparent 60%)",
+          }}
+        />
         {detail}
       </section>
 
