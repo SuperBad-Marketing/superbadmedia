@@ -36,6 +36,7 @@ export type KillSwitchKey =
   | "content_outreach_enabled"
   | "lead_gen_enabled"
   | "plan_automations_enabled"
+  | "tasks_digest_enabled"
   | "admin_sse_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
@@ -124,6 +125,10 @@ const defaults: KillSwitchRegistry = {
   // migrate-on-Won handler. When OFF, all SWP scheduled-task handlers
   // exit early. Flip ON in Phase 6 after prompts are tuned.
   plan_automations_enabled: false,
+  // TM-7: gates the daily 08:00 morning task digest email. When OFF, the
+  // handler exits without sending and does NOT re-enqueue — the bootstrap
+  // helper is the entry point when the switch flips back on.
+  tasks_digest_enabled: false,
   admin_sse_enabled: true,
 };
 

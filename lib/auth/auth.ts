@@ -25,6 +25,7 @@ import { authConfig } from "./auth.config";
 import { isBrandDnaCompleteForUser } from "./brand-dna-complete-check";
 import { hasCompletedCriticalFlight } from "./has-completed-critical-flight";
 import { redeemSubscriberMagicLink } from "./subscriber-magic-link";
+import { logActivity } from "@/lib/activity-log";
 
 export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
@@ -53,6 +54,19 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       token.brand_dna_complete = await isBrandDnaCompleteForUser(userId);
       token.critical_flight_complete = await hasCompletedCriticalFlight(userId);
       return token;
+    },
+  },
+
+  events: {
+    async signIn({ user: signedInUser }) {
+      const u = signedInUser as { id?: string; role?: string };
+      if (u.role === "admin" && u.id) {
+        void logActivity({
+          kind: "admin_session_started",
+          body: "Admin signed in.",
+          createdBy: u.id,
+        });
+      }
     },
   },
 

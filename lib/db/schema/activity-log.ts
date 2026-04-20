@@ -341,6 +341,9 @@ export const ACTIVITY_LOG_KINDS = [
   "task_checklist_auto_completed",
   "braindump_parsed",
   "braindump_committed",
+  "task_digest_sent",
+  // --- Admin session tracking (TM-7) ---
+  "admin_session_started",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

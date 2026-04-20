@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-7` — Task Manager: Morning digest email
-**Brief:** TM-6 complete. Canonical `approveDeliverable()` primitive live — token lifecycle, approval request/reminder/outcome emails, portal approval route, rejection→inbox message, idempotency, activity logging. 232 files passing, 2006 tests green.
+**Next session:** `TM-8` — Task Manager: Morning digest cron handler
+**Brief:** TM-7 complete. Digest content builder + sender live — overdue/due-today/approval-outcome queries, HTML email, `task_morning_digest` classification (transactional), `tasks_digest_enabled` kill switch, `admin_session_started` activity logging on admin sign-in. 233 files passing, 2026 tests green.
 **Model tier:** Sonnet
-**Last closed:** TM-6 (2026-04-20) — see `sessions/tm6-handoff.md`
-**Wave status:** Wave 17 in progress (TM-1..TM-6 done, TM-7..TM-9 remaining).
+**Last closed:** TM-7 (2026-04-20) — see `sessions/tm7-handoff.md`
+**Wave status:** Wave 17 in progress (TM-1..TM-7 done, TM-8..TM-9 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -73,6 +73,10 @@ export const EMAIL_CLASSIFICATIONS = [
   "deliverable_approval_request",
   "deliverable_approval_reminder",
   "deliverable_approval_outcome",
+  // TM-7 — Morning task digest to Andy. Transactional: operational email
+  // to the admin about his own tasks. Bypasses outreach kill switch + quiet
+  // window so it reliably arrives at 08:00.
+  "task_morning_digest",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -108,6 +112,8 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   // TM-6 — approval request + outcome are transactional; reminder is not
   "deliverable_approval_request",
   "deliverable_approval_outcome",
+  // TM-7 — task digest is operational admin email
+  "task_morning_digest",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {
