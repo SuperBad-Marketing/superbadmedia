@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## TM-8 (2026-04-20) — Task Manager: Morning Digest Cron Handler
+
+**Phase:** 5 — Build Execution (Wave 17 — session 8/9). Built `task_morning_digest` scheduled task handler in `lib/scheduled-tasks/handlers/task-morning-digest.ts`. Triple-gated: kill switch (`tasks_digest_enabled`), settings (`tasks.morning_digest_enabled`), admin-sign-in check (`hasAdminSignedInToday()`). On pass: calls TM-7's `buildTaskDigestContent()` + `sendTaskDigestEmail()`, logs `task_digest_sent` activity. Self-perpetuates by enqueuing next day's run via `ensureTaskDigestEnqueued()` using DST-safe Melbourne scheduling from `tasks.morning_digest_time` setting. Registered in handler index. 14 new tests. See `sessions/tm8-handoff.md`.
+
 ## TM-7 (2026-04-20) — Task Manager: Morning Digest Email
 
 **Phase:** 5 — Build Execution (Wave 17 — session 7/9). Built morning task digest content builder + sender in `lib/tasks/digest.ts`. Queries overdue tasks, due-today tasks, and approval outcomes (approved/rejected) since a time window. Returns null when nothing to report (the spec's "something to report" gate). Static dry subject line (generateInVoice is Wave 20). HTML body grouped by Overdue / Today / Approval news, each line clickable to `/lite/tasks?open={id}`. Added `task_morning_digest` email classification (transactional). Added `tasks_digest_enabled` kill switch (default false). Added `admin_session_started` + `task_digest_sent` activity log kinds. Wired admin sign-in logging in NextAuth `events.signIn` callback. Exported `hasAdminSignedInToday()` and `melbourneStartAndEndOfDay()` for TM-8 cron handler. 20 new tests. See `sessions/tm7-handoff.md`.

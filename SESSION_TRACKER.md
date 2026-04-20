@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-8` — Task Manager: Morning digest cron handler
-**Brief:** TM-7 complete. Digest content builder + sender live — overdue/due-today/approval-outcome queries, HTML email, `task_morning_digest` classification (transactional), `tasks_digest_enabled` kill switch, `admin_session_started` activity logging on admin sign-in. 233 files passing, 2026 tests green.
+**Next session:** `TM-9` — Task Manager: Final session (polish, E2E wiring, bootstrap)
+**Brief:** TM-8 complete. Morning digest cron handler live — triple-gated (kill switch + settings + admin-sign-in), self-perpetuating schedule via `ensureTaskDigestEnqueued()`, reads `tasks.morning_digest_time` setting for DST-safe Melbourne scheduling, `task_digest_sent` activity logging. 234 files passing, 2040 tests green.
 **Model tier:** Sonnet
-**Last closed:** TM-7 (2026-04-20) — see `sessions/tm7-handoff.md`
-**Wave status:** Wave 17 in progress (TM-1..TM-7 done, TM-8..TM-9 remaining).
+**Last closed:** TM-8 (2026-04-20) — see `sessions/tm8-handoff.md`
+**Wave status:** Wave 17 in progress (TM-1..TM-8 done, TM-9 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
