@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `HP-1` — Hiring Pipeline: Data model + schema + core CRUD
-**Brief:** Wave 17 (Task Manager) complete. TM-9 landed Melbourne timezone extraction (`lib/time/melbourne.ts`), cockpit integration contracts (`lib/tasks/cockpit.ts`), deep-link `?open={taskId}`, digest bootstrap on admin sign-in, dynamic browser tab title. 235 files passing, 2066 tests green.
+**Next session:** `HP-2` — Hiring Pipeline: Role Brief authoring wizard
+**Brief:** HP-1 landed all 4 Hiring Pipeline tables (role_briefs, candidates, trial_tasks, candidate_archives), stage model, validation, transition function, core CRUD queries, and bench-availability contracts. 30 new tests, 236 files / 2096 tests green. `HiringCandidateSource` renamed to avoid collision with lead-gen's `CandidateSource`.
 **Model tier:** Sonnet
-**Last closed:** TM-9 (2026-04-20) — see `sessions/tm9-handoff.md`
-**Wave status:** Wave 18 next (Hiring Pipeline, HP-1..HP-19).
+**Last closed:** HP-1 (2026-04-20) — see `sessions/hp1-handoff.md`
+**Wave status:** Wave 18 in progress (Hiring Pipeline, HP-1 done, HP-2..HP-19 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

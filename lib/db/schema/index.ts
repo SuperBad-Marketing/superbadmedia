@@ -73,3 +73,7 @@ export * from "./action-items";
 export * from "./llm-usage-log";
 export * from "./tasks";
 export * from "./braindumps";
+export * from "./role-briefs";
+export * from "./candidates";
+export * from "./trial-tasks";
+export * from "./candidate-archives";

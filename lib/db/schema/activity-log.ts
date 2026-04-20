@@ -62,6 +62,7 @@ export const ACTIVITY_LOG_KINDS = [
   "role_brief_opened",
   "role_brief_regenerated",
   "role_brief_closed",
+  "trial_skipped",
   // --- Client Context Engine — active_strategy (4) ---
   "active_strategy_created",
   "active_strategy_reviewed",

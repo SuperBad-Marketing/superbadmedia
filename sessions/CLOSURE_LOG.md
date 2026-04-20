@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## HP-1 (2026-04-20) — Hiring Pipeline: Data Model + Schema + Core CRUD
+
+**Phase:** 5 — Build Execution (Wave 18 — session 1/19). Four new tables: `role_briefs` (perpetual LLM context per hiring role), `candidates` (pipeline entries at any stage), `trial_tasks` (paid trials), `candidate_archives` (archive event timeline). Stage model with 7 stages + archive reason taxonomy + skip-trial reasons. `validateCandidate()` enforcing bench compliance gate. `transitionCandidateStage()` with transactional stage change + activity logging. Core CRUD for all 4 tables + bench-availability queries (`getAvailableBenchMembers()`, `openBenchCount()`). `trial_skipped` added to activity_log kinds. 30 new tests, 236 files / 2096 green. See `sessions/hp1-handoff.md`.
+
 ## TM-9 (2026-04-20) — Task Manager: Polish, E2E Wiring, Bootstrap (WAVE 17 COMPLETE)
 
 **Phase:** 5 — Build Execution (Wave 17 — session 9/9, wave closer). Five polish items: (1) Melbourne timezone helper extraction to shared `lib/time/melbourne.ts` — deduplicated from 4 files; (2) Cockpit integration contracts in `lib/tasks/cockpit.ts` — `getTasksForCockpitKanban()`, `getTaskWaitingItems()`, `getTaskHealthBanners()` per Daily Cockpit spec contracts; (3) Deep-link `?open={taskId}` auto-opens task drawer via `useSearchParams()`; (4) Digest bootstrap — `ensureTaskDigestEnqueued()` called on admin sign-in; (5) Dynamic browser tab title via `generateMetadata()`. 26 new tests. See `sessions/tm9-handoff.md`.

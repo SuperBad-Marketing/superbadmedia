@@ -330,6 +330,13 @@
       "when": 1776981600000,
       "tag": "0056_tm1_task_manager",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "6",
+      "when": 1777068000000,
+      "tag": "0058_hp1_hiring_pipeline",
+      "breakpoints": true
     }
   ]
 }
