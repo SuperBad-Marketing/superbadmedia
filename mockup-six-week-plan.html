@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad — Your Six-Week Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red: #B22848;
+    --brand-cream: #FDF5E6;
+    --brand-pink: #F4A0B0;
+    --brand-orange: #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-300: #D4D2C2;
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --radius-card: 16px;
+    --radius-button: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--neutral-900);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242, 140, 82, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178, 40, 72, 0.08), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244, 160, 176, 0.05), transparent 60%);
+  }
+
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.035; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .app {
+    position: relative; z-index: 2;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  /* ======== HEADER ======== */
+  header.top-bar {
+    padding: 20px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 22px; color: var(--brand-cream);
+    cursor: pointer;
+  }
+  .who {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .who em { color: var(--brand-pink); font-style: normal; }
+
+  /* ======== NAV TABS ======== */
+  .portal-nav {
+    display: flex; gap: 0; padding: 0 32px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .portal-nav a {
+    display: block; padding: 14px 20px;
+    font-family: "DM Sans"; font-size: 13px; font-weight: 500;
+    color: var(--neutral-500); text-decoration: none;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s var(--spring), border-color 0.2s var(--spring);
+  }
+  .portal-nav a:hover { color: var(--neutral-300); }
+  .portal-nav a.active {
+    color: var(--brand-cream);
+    border-bottom-color: var(--brand-red);
+  }
+
+  /* ======== MAIN CONTENT ======== */
+  .page-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 48px 32px 80px;
+  }
+  .plan-container {
+    max-width: 740px;
+    margin: 0 auto;
+  }
+
+  /* ======== PLAN HEADER ======== */
+  .plan-eyebrow {
+    font-family: "Righteous";
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--brand-pink);
+    margin-bottom: 12px;
+  }
+  .plan-title {
+    font-family: "Righteous";
+    font-size: 32px;
+    color: var(--brand-cream);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+  }
+  .plan-intro {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--neutral-300);
+    margin-bottom: 48px;
+    max-width: 640px;
+  }
+
+  /* ======== WEEK CARDS ======== */
+  .week-card {
+    background: var(--neutral-800);
+    border-radius: var(--radius-card);
+    margin-bottom: 12px;
+    box-shadow: inset 0 1px 0 rgba(253, 245, 230, 0.04);
+    overflow: hidden;
+    transition: background 0.25s var(--spring);
+  }
+  .week-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .week-header:hover { background: rgba(253, 245, 230, 0.015); }
+  .week-number {
+    font-family: "Righteous";
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--brand-pink);
+    min-width: 64px;
+    flex-shrink: 0;
+  }
+  .week-theme {
+    font-family: "DM Sans";
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--brand-cream);
+    flex: 1;
+  }
+  .week-chevron {
+    width: 20px; height: 20px;
+    color: var(--neutral-500);
+    transition: transform 0.35s var(--spring);
+    flex-shrink: 0;
+  }
+  .week-card.open .week-chevron { transform: rotate(180deg); }
+
+  .week-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s var(--spring);
+  }
+  .week-card.open .week-body {
+    max-height: 2000px;
+  }
+  .week-inner {
+    padding: 0 24px 28px;
+    border-top: 1px solid rgba(253, 245, 230, 0.04);
+    padding-top: 20px;
+  }
+
+  .week-why {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--neutral-300);
+    margin-bottom: 24px;
+  }
+
+  /* ---- Content Angles ---- */
+  .section-label {
+    font-family: "Righteous";
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--neutral-500);
+    margin-bottom: 10px;
+  }
+  .content-angles {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 24px;
+  }
+  .angle {
+    display: flex; gap: 10px; align-items: baseline;
+    font-size: 14px; color: var(--neutral-300);
+  }
+  .angle-dot {
+    width: 5px; height: 5px;
+    background: var(--brand-pink);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  /* ---- Channel Mix ---- */
+  .channel-mix {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .channel-chip {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    background: rgba(244, 160, 176, 0.08);
+    color: var(--brand-pink);
+    border: 1px solid rgba(244, 160, 176, 0.12);
+  }
+
+  /* ---- Tasks ---- */
+  .tasks {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 24px;
+  }
+  .task {
+    display: flex; gap: 12px;
+    padding: 14px 16px;
+    background: var(--neutral-700);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(253, 245, 230, 0.03);
+  }
+  .task-check {
+    width: 18px; height: 18px;
+    border: 2px solid var(--neutral-500);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    cursor: pointer;
+    transition: border-color 0.2s var(--spring), background 0.2s var(--spring);
+  }
+  .task-check:hover {
+    border-color: var(--brand-pink);
+  }
+  .task-check.checked {
+    border-color: var(--brand-red);
+    background: var(--brand-red);
+    position: relative;
+  }
+  .task-check.checked::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 5px;
+    width: 5px; height: 9px;
+    border: solid var(--brand-cream); border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .task-content { flex: 1; }
+  .task-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--brand-cream);
+    margin-bottom: 3px;
+  }
+  .task.checked-task .task-title {
+    text-decoration: line-through;
+    color: var(--neutral-500);
+  }
+  .task-detail {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--neutral-500);
+  }
+  .task-meta {
+    display: flex; gap: 8px; margin-top: 6px;
+  }
+  .task-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge-infrastructure { background: rgba(242, 140, 82, 0.12); color: var(--brand-orange); }
+  .badge-content { background: rgba(244, 160, 176, 0.10); color: var(--brand-pink); }
+  .badge-distribution { background: rgba(178, 40, 72, 0.12); color: #E05A7A; }
+  .badge-conversion { background: rgba(253, 245, 230, 0.06); color: var(--brand-cream); }
+  .badge-measurement { background: rgba(128, 127, 115, 0.15); color: var(--neutral-300); }
+  .badge-effort {
+    background: rgba(253, 245, 230, 0.04);
+    color: var(--neutral-500);
+  }
+
+  /* ---- Success Signal + Fallback ---- */
+  .signal-block {
+    display: flex; gap: 16px;
+    padding: 16px;
+    background: rgba(178, 40, 72, 0.06);
+    border-radius: 10px;
+    border-left: 3px solid var(--brand-red);
+  }
+  .signal-content { flex: 1; }
+  .signal-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--brand-red);
+    margin-bottom: 4px;
+  }
+  .signal-text {
+    font-size: 14px;
+    color: var(--brand-cream);
+    line-height: 1.5;
+  }
+  .fallback {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--neutral-500);
+    font-style: italic;
+  }
+  .fallback strong {
+    font-style: normal;
+    color: var(--neutral-500);
+    font-weight: 600;
+  }
+
+  /* ======== BOTTOM ACTIONS ======== */
+  .plan-actions {
+    margin-top: 48px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .btn-primary {
+    font-family: "DM Sans";
+    font-size: 15px;
+    font-weight: 600;
+    padding: 16px 48px;
+    border: none;
+    border-radius: var(--radius-button);
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: transform 0.25s var(--spring), box-shadow 0.25s var(--spring);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(178, 40, 72, 0.3);
+  }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-subtext {
+    font-size: 12px;
+    color: var(--neutral-500);
+    max-width: 300px;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .btn-link {
+    font-size: 13px;
+    color: var(--neutral-500);
+    text-decoration: none;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-link:hover {
+    color: var(--neutral-300);
+    border-bottom-color: var(--neutral-500);
+  }
+
+  .plan-footer {
+    margin-top: 56px;
+    text-align: center;
+  }
+  .plan-revision-link {
+    font-size: 12px;
+    color: var(--neutral-500);
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(128, 127, 115, 0.3);
+    transition: color 0.2s;
+  }
+  .plan-revision-link:hover { color: var(--neutral-300); }
+
+  /* ======== RESPONSIVE ======== */
+  @media (max-width: 600px) {
+    .page-content { padding: 32px 16px 64px; }
+    .plan-title { font-size: 24px; }
+    .plan-intro { font-size: 15px; }
+    .week-header { padding: 16px; }
+    .week-inner { padding: 0 16px 20px; padding-top: 16px; }
+    .task { padding: 12px; }
+    .signal-block { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="top-bar">
+    <div class="logo">SuperBad</div>
+    <div class="who">prepared for <em>Thetford Brewing Co.</em></div>
+  </header>
+
+  <!-- Nav -->
+  <nav class="portal-nav">
+    <a href="#">Gallery</a>
+    <a href="#" class="active">Your plan</a>
+    <a href="#">Chat</a>
+  </nav>
+
+  <!-- Main -->
+  <div class="page-content">
+    <div class="plan-container">
+
+      <div class="plan-eyebrow">Strategy dated April 2026</div>
+      <h1 class="plan-title">Your Six-Week Plan</h1>
+
+      <p class="plan-intro">
+        You've got a brewery that looks the part and beer that speaks for itself — but right now, nobody outside your taproom regulars knows that. This plan is built around the footage we shot and the gaps in your current setup. Six weeks, one thing at a time. If you run it yourself, it works. If you want us to run it, it becomes your retainer strategy on day one.
+      </p>
+
+      <!-- WEEK 1 -->
+      <div class="week-card open">
+        <div class="week-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="week-number">Week 1</span>
+          <span class="week-theme">Lay the plumbing</span>
+          <svg class="week-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7.5L10 12.5L15 7.5"/></svg>
+        </div>
+        <div class="week-body">
+          <div class="week-inner">
+            <p class="week-why">
+              Before you post anything, you need somewhere for interested people to go that isn't just your Instagram bio link. This week is about getting the boring foundations in place so that everything you do from Week 2 onwards actually captures attention instead of leaking it.
+            </p>
+
+            <div class="section-label">Content angles</div>
+            <div class="content-angles">
+              <div class="angle"><span class="angle-dot"></span><span>Workspace hero shot of the brewhouse floor — use as the header image on your Google Business Profile and landing page</span></div>
+              <div class="angle"><span class="angle-dot"></span><span>Owner portrait at the bar — LinkedIn profile update and "about" page, establishes you as the face behind the brand</span></div>
+            </div>
+
+            <div class="section-label">Channels</div>
+            <div class="channel-mix">
+              <span class="channel-chip">Google Business Profile</span>
+              <span class="channel-chip">Email</span>
+              <span class="channel-chip">Website</span>
+            </div>
+
+            <div class="section-label">Tasks</div>
+            <div class="tasks">
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Claim and complete your Google Business Profile</div>
+                  <div class="task-detail">Upload the brewhouse hero shot, add your hours, write a 2-sentence description that mentions craft beer + your suburb. This is how 70% of local search traffic finds you.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-infrastructure">Infrastructure</span>
+                    <span class="task-badge badge-effort">Half day</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Set up an email capture on your website</div>
+                  <div class="task-detail">Simple signup form — "First to know about new releases." No lead magnet needed yet, just start collecting addresses. Even 20 emails in Week 1 is a win.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-infrastructure">Infrastructure</span>
+                    <span class="task-badge badge-effort">Half day</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Update your Instagram bio link</div>
+                  <div class="task-detail">Point it to a simple link-in-bio page with: email signup, Google Maps directions, and your taproom hours. Takes 20 minutes with Linktree or similar.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-infrastructure">Infrastructure</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="signal-block">
+              <div class="signal-content">
+                <div class="signal-label">Success signal</div>
+                <div class="signal-text">Google Business Profile is live, email form is capturing signups, and your Instagram bio links to something useful.</div>
+                <div class="fallback"><strong>If not:</strong> Focus on Google Business Profile alone — it's the highest-leverage single task this week.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 2 -->
+      <div class="week-card">
+        <div class="week-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="week-number">Week 2</span>
+          <span class="week-theme">Show them what you look like</span>
+          <svg class="week-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7.5L10 12.5L15 7.5"/></svg>
+        </div>
+        <div class="week-body">
+          <div class="week-inner">
+            <p class="week-why">
+              You've got professional footage now. This week is about getting it in front of people who already follow you, and giving them a reason to share it. First impressions set the tone for everything that follows.
+            </p>
+
+            <div class="section-label">Content angles</div>
+            <div class="content-angles">
+              <div class="angle"><span class="angle-dot"></span><span>Short-form video (the one we shot) — post natively on Instagram Reels and TikTok. Caption: something honest about what goes into a batch, not a sales pitch.</span></div>
+              <div class="angle"><span class="angle-dot"></span><span>Detail shots of the taps and glassware — carousel post showing the textures and craft of your space. Let the photography do the talking.</span></div>
+              <div class="angle"><span class="angle-dot"></span><span>Behind-the-scenes stills from shoot day — story sequence. People love seeing the process. Tag us if you want, don't if you don't.</span></div>
+            </div>
+
+            <div class="section-label">Channels</div>
+            <div class="channel-mix">
+              <span class="channel-chip">Instagram Reels</span>
+              <span class="channel-chip">TikTok</span>
+              <span class="channel-chip">Instagram Stories</span>
+            </div>
+
+            <div class="section-label">Tasks</div>
+            <div class="tasks">
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Post the short-form video to Reels and TikTok</div>
+                  <div class="task-detail">Post natively (upload to each platform separately, don't cross-post). Write a caption that sounds like you, not like marketing. 2-3 relevant hashtags max.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-content">Content</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Share a 4-image carousel of the best stills</div>
+                  <div class="task-detail">Pick your four strongest images. No text overlays. Let them breathe. Post on Instagram feed with a short caption about what makes your space yours.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-content">Content</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Run a 3-frame Instagram Story from shoot day</div>
+                  <div class="task-detail">Behind-the-scenes. Raw, not polished. Add a poll sticker on the last frame: "Which new beer should we feature next?" — easy engagement, useful data.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-distribution">Distribution</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="signal-block">
+              <div class="signal-content">
+                <div class="signal-label">Success signal</div>
+                <div class="signal-text">The video gets at least 500 views in 48 hours and you gain 15+ new followers across platforms.</div>
+                <div class="fallback"><strong>If not:</strong> Share the video to your personal profile and ask 5 friends to reshare. Organic reach needs a push to start.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 3 -->
+      <div class="week-card">
+        <div class="week-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="week-number">Week 3</span>
+          <span class="week-theme">Start the conversation</span>
+          <svg class="week-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7.5L10 12.5L15 7.5"/></svg>
+        </div>
+        <div class="week-body">
+          <div class="week-inner">
+            <p class="week-why">
+              You've posted, people have seen it — now make them feel like insiders. This week shifts from broadcasting to building a relationship with the people who showed up. Reviews and direct engagement are your highest-trust signals.
+            </p>
+
+            <div class="section-label">Content angles</div>
+            <div class="content-angles">
+              <div class="angle"><span class="angle-dot"></span><span>Pour shot close-up — pair with a "what are you drinking this weekend?" prompt. Conversational, not polished.</span></div>
+              <div class="angle"><span class="angle-dot"></span><span>Taproom atmosphere shot — use for a Google review request post. Show the vibe they're endorsing.</span></div>
+            </div>
+
+            <div class="section-label">Channels</div>
+            <div class="channel-mix">
+              <span class="channel-chip">Instagram Feed</span>
+              <span class="channel-chip">Google Reviews</span>
+              <span class="channel-chip">Email</span>
+            </div>
+
+            <div class="section-label">Tasks</div>
+            <div class="tasks">
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Ask your top 10 regulars for a Google review</div>
+                  <div class="task-detail">Send them the direct review link personally. Don't blast it — pick the people who genuinely love the place. 5 real reviews outweigh 50 generic ones.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-conversion">Conversion</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Send your first email to everyone who signed up</div>
+                  <div class="task-detail">Short, warm, not salesy. "Hey — thanks for signing up. Here's what's pouring this week." Include one photo from the shoot. That's it.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-distribution">Distribution</span>
+                    <span class="task-badge badge-effort">Half day</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Reply to every comment and DM from last week</div>
+                  <div class="task-detail">Not with emojis — with actual words. Ask a follow-up question. The algorithm rewards conversations, not reactions.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-distribution">Distribution</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="signal-block">
+              <div class="signal-content">
+                <div class="signal-label">Success signal</div>
+                <div class="signal-text">You've added 5+ Google reviews and sent your first email with an open rate above 40%.</div>
+                <div class="fallback"><strong>If not:</strong> Follow up with the reviewers in person next time they visit. Face-to-face asks convert 3x better than digital ones.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 4 -->
+      <div class="week-card">
+        <div class="week-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="week-number">Week 4</span>
+          <span class="week-theme">Bring in new faces</span>
+          <svg class="week-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7.5L10 12.5L15 7.5"/></svg>
+        </div>
+        <div class="week-body">
+          <div class="week-inner">
+            <p class="week-why">
+              You've built a foundation and warmed up your existing audience. Now it's time to reach people who don't know you exist yet. A small, targeted ad spend goes further than you think when the creative is already professional.
+            </p>
+
+            <div class="section-label">Content angles</div>
+            <div class="content-angles">
+              <div class="angle"><span class="angle-dot"></span><span>Short-form video (repurpose from Week 2) — use as the primary ad creative. It already performed organically, which means the algorithm will back it with spend.</span></div>
+              <div class="angle"><span class="angle-dot"></span><span>Taproom atmosphere shot — secondary ad creative for the "visit us" angle. Different hook, same quality bar.</span></div>
+            </div>
+
+            <div class="section-label">Channels</div>
+            <div class="channel-mix">
+              <span class="channel-chip">Meta Ads</span>
+              <span class="channel-chip">Instagram Feed</span>
+            </div>
+
+            <div class="section-label">Tasks</div>
+            <div class="tasks">
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Set up a Meta ad campaign targeting 10km radius</div>
+                  <div class="task-detail">$5-10/day budget. Target 25-45 year olds interested in craft beer, local food, or nightlife within 10km of your venue. Use the video as the primary creative.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-distribution">Distribution</span>
+                    <span class="task-badge badge-effort">Half day</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Cross-promote with a nearby food venue</div>
+                  <div class="task-detail">Pick one restaurant or food truck you respect. Propose a simple mutual shoutout — they post about your beer, you post about their food. No money changes hands.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-distribution">Distribution</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Post a "new faces" welcome on Instagram</div>
+                  <div class="task-detail">Acknowledge that new people are finding you. "If you just followed us — welcome. Here's what we're about." Use the owner portrait. Authentic, not corporate.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-content">Content</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="signal-block">
+              <div class="signal-content">
+                <div class="signal-label">Success signal</div>
+                <div class="signal-text">Your ad reaches 5,000+ people and you see at least 3 new faces at the taproom who mention they found you online.</div>
+                <div class="fallback"><strong>If not:</strong> Check your targeting radius — if it's too narrow, widen to 15km. If the creative isn't clicking, swap in the carousel images as a static ad.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 5 -->
+      <div class="week-card">
+        <div class="week-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="week-number">Week 5</span>
+          <span class="week-theme">Give them a reason to come back</span>
+          <svg class="week-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7.5L10 12.5L15 7.5"/></svg>
+        </div>
+        <div class="week-body">
+          <div class="week-inner">
+            <p class="week-why">
+              Acquiring a new customer costs 5x more than keeping an existing one. This week is about turning first-timers into regulars and giving your email list a reason to stay subscribed. An event or a release gives people a calendar-worthy reason to return.
+            </p>
+
+            <div class="section-label">Content angles</div>
+            <div class="content-angles">
+              <div class="angle"><span class="angle-dot"></span><span>Remaining shoot stills you haven't used yet — save the best for an event announcement or new release tease. Fresh assets keep your feed from looking repetitive.</span></div>
+              <div class="angle"><span class="angle-dot"></span><span>User-generated content from taproom visitors — reshare (with permission) alongside your professional shots. Shows social proof without you having to say "trust us."</span></div>
+            </div>
+
+            <div class="section-label">Channels</div>
+            <div class="channel-mix">
+              <span class="channel-chip">Email</span>
+              <span class="channel-chip">Instagram Stories</span>
+              <span class="channel-chip">In-venue</span>
+            </div>
+
+            <div class="section-label">Tasks</div>
+            <div class="tasks">
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Plan and announce a taproom event</div>
+                  <div class="task-detail">Doesn't have to be big — a tasting night, a food truck collab, a new release party. Pick a date 2-3 weeks out and announce via email + stories. Give people a reason to put it in their calendar.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-conversion">Conversion</span>
+                    <span class="task-badge badge-effort">Half day</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Send your second email newsletter</div>
+                  <div class="task-detail">Lead with the event. Include one behind-the-scenes photo. End with "reply to this email if you're coming" — replies boost deliverability and make people feel heard.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-distribution">Distribution</span>
+                    <span class="task-badge badge-effort">Half day</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Put a QR code on your bar</div>
+                  <div class="task-detail">Links to your email signup. Print it on a small card or sticker next to the taps. Every person sitting at your bar is already a warm lead — capture them.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-infrastructure">Infrastructure</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="signal-block">
+              <div class="signal-content">
+                <div class="signal-label">Success signal</div>
+                <div class="signal-text">Your event has 20+ RSVPs or replies, and your email list has grown to 50+ subscribers.</div>
+                <div class="fallback"><strong>If not:</strong> Promote the event on your personal networks. Founders sharing their own events gets 3x the engagement of brand accounts.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 6 -->
+      <div class="week-card">
+        <div class="week-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="week-number">Week 6</span>
+          <span class="week-theme">Measure what worked and keep going</span>
+          <svg class="week-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7.5L10 12.5L15 7.5"/></svg>
+        </div>
+        <div class="week-body">
+          <div class="week-inner">
+            <p class="week-why">
+              Most businesses do six weeks of marketing and then stop because they don't know if it worked. This week is about looking at the numbers, understanding what moved, and setting up a rhythm you can sustain without burning out. The goal isn't perfection — it's momentum.
+            </p>
+
+            <div class="section-label">Content angles</div>
+            <div class="content-angles">
+              <div class="angle"><span class="angle-dot"></span><span>Any remaining shoot assets — schedule them out over the next 2 weeks so your feed doesn't go dark while you plan your next content batch.</span></div>
+              <div class="angle"><span class="angle-dot"></span><span>Event recap content (photos, stories, attendee tags) — if your Week 5 event happened, this is your highest-engagement content of the entire plan.</span></div>
+            </div>
+
+            <div class="section-label">Channels</div>
+            <div class="channel-mix">
+              <span class="channel-chip">Google Analytics</span>
+              <span class="channel-chip">Meta Ads Manager</span>
+              <span class="channel-chip">Email</span>
+            </div>
+
+            <div class="section-label">Tasks</div>
+            <div class="tasks">
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Review your numbers across all channels</div>
+                  <div class="task-detail">Instagram follower growth, email list size, Google review count, ad spend vs. reach, website visits. Write them down in one place. You can't improve what you don't measure.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-measurement">Measurement</span>
+                    <span class="task-badge badge-effort">Half day</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Identify your top-performing content</div>
+                  <div class="task-detail">Which post got the most engagement? Which email had the best open rate? Do more of that. Marketing isn't about doing everything — it's about doubling down on what works.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-measurement">Measurement</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Set a sustainable posting rhythm</div>
+                  <div class="task-detail">Based on what you learned: pick a frequency you can actually maintain. 2 posts and 1 email per week beats 7 posts for one week and then silence for a month.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-content">Content</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+              <div class="task">
+                <div class="task-check"></div>
+                <div class="task-content">
+                  <div class="task-title">Decide whether to keep running the Meta ad</div>
+                  <div class="task-detail">If it's bringing people through the door, keep it at the same budget. If not, pause it and redirect that spend to your next content shoot or event.</div>
+                  <div class="task-meta">
+                    <span class="task-badge badge-measurement">Measurement</span>
+                    <span class="task-badge badge-effort">Quick</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="signal-block">
+              <div class="signal-content">
+                <div class="signal-label">Success signal</div>
+                <div class="signal-text">You can answer the question "what's working and what should I keep doing?" with specific numbers, not gut feelings.</div>
+                <div class="fallback"><strong>If not:</strong> That's okay — the act of reviewing is the win. Most businesses never look at their data at all. You're already ahead.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="plan-actions">
+        <button class="btn-primary">Start Week 1</button>
+        <div class="btn-subtext">You're running this. When you're ready, we'll start the clock.</div>
+        <a class="btn-link" href="#">Download as PDF</a>
+      </div>
+
+      <div class="plan-footer">
+        <a class="plan-revision-link" href="#">This doesn't quite fit my business</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

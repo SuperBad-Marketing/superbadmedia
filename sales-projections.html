@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBad — Revenue Projections</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Righteous&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #B22848;
+    --cream: #FDF5E6;
+    --pink: #F4A0B0;
+    --orange: #F28C52;
+    --charcoal: #1A1A18;
+    --charcoal-light: #2A2A28;
+    --charcoal-lighter: #3A3A38;
+    --charcoal-border: #4A4A48;
+    --green: #4CAF50;
+    --green-dim: #2E7D32;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--charcoal);
+    color: var(--cream);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: 60px 40px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -10%;
+    width: 120%;
+    height: 200%;
+    background: radial-gradient(ellipse at center top, rgba(178,40,72,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .header h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    letter-spacing: 2px;
+    color: var(--cream);
+    position: relative;
+  }
+  .header h1 span { color: var(--red); }
+  .header p {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 0.85rem;
+    color: var(--pink);
+    margin-top: 8px;
+    position: relative;
+  }
+  .header .subtitle {
+    font-family: 'DM Sans', sans-serif;
+    font-style: italic;
+    color: var(--pink);
+    opacity: 0.7;
+    font-size: 0.85rem;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-top: 12px;
+  }
+
+  /* ── Top Nav ── */
+  .top-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin-top: 32px;
+    position: relative;
+    border-bottom: 1px solid var(--charcoal-border);
+  }
+  .top-nav-tab {
+    background: none;
+    border: none;
+    color: var(--cream);
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 0.8rem;
+    padding: 16px 40px;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: all 0.3s ease;
+    position: relative;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .top-nav-tab:hover { opacity: 0.7; }
+  .top-nav-tab.active {
+    opacity: 1;
+    color: var(--red);
+    border-bottom-color: var(--red);
+  }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--charcoal-light);
+    border: 1px solid var(--charcoal-border);
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+    transition: border-color 0.3s ease;
+  }
+  .card:hover { border-color: rgba(178,40,72,0.4); }
+  .card-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 0.7rem;
+    color: var(--red);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-label .dot {
+    width: 6px;
+    height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* ── Input rows ── */
+  .input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    gap: 12px;
+  }
+  .input-row:last-child { border-bottom: none; }
+  .input-label {
+    font-size: 0.9rem;
+    color: var(--cream);
+    flex: 1;
+    min-width: 0;
+  }
+  .input-label .benchmark {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--pink);
+    opacity: 0.7;
+    font-style: italic;
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .input-wrap .unit {
+    font-size: 0.8rem;
+    color: var(--pink);
+    opacity: 0.6;
+    width: 16px;
+    text-align: right;
+  }
+  .input-wrap .unit-left {
+    font-size: 0.8rem;
+    color: var(--pink);
+    opacity: 0.6;
+    width: 14px;
+    text-align: left;
+  }
+  input[type="number"] {
+    background: var(--charcoal);
+    border: 1px solid var(--charcoal-border);
+    border-radius: 8px;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    width: 100px;
+    text-align: right;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(178,40,72,0.15);
+  }
+
+  /* ── Range slider ── */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--charcoal);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--red);
+    cursor: pointer;
+    border: 2px solid var(--cream);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--red);
+    cursor: pointer;
+    border: 2px solid var(--cream);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  /* ── Results ── */
+  .results-strip {
+    background: linear-gradient(135deg, var(--charcoal-light) 0%, rgba(178,40,72,0.08) 100%);
+    border: 1px solid rgba(178,40,72,0.3);
+    border-radius: 16px;
+    padding: 40px 32px;
+    margin-bottom: 40px;
+  }
+  .results-strip .card-label { margin-bottom: 28px; }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 24px;
+  }
+  .result-item {
+    text-align: center;
+    padding: 16px 8px;
+  }
+  .result-value {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    color: var(--cream);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .result-value.highlight { color: var(--red); }
+  .result-value.green { color: var(--green); }
+  .result-value.orange { color: var(--orange); }
+  .result-value.pink { color: var(--pink); }
+  .result-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.65rem;
+    color: var(--pink);
+    opacity: 0.8;
+  }
+  .result-sub {
+    font-size: 0.75rem;
+    color: var(--cream);
+    opacity: 0.4;
+    margin-top: 4px;
+  }
+  .divider {
+    width: 1px;
+    background: var(--charcoal-border);
+    align-self: stretch;
+    justify-self: center;
+  }
+  @media (max-width: 900px) { .divider { display: none; } }
+
+  /* ── Breakdown table ── */
+  .breakdown {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+  .breakdown th {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.65rem;
+    color: var(--pink);
+    text-align: right;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--charcoal-border);
+  }
+  .breakdown th:first-child { text-align: left; }
+  .breakdown td {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .breakdown td:first-child {
+    text-align: left;
+    color: var(--cream);
+    font-weight: 500;
+  }
+  .breakdown .row-services td:first-child { color: var(--orange); }
+  .breakdown .row-saas td:first-child { color: var(--pink); }
+  .breakdown .row-total {
+    border-top: 2px solid var(--red);
+    border-bottom: none;
+  }
+  .breakdown .row-total td {
+    font-weight: 700;
+    color: var(--cream);
+    padding-top: 14px;
+    font-size: 1rem;
+  }
+
+  /* ── Section headers ── */
+  .section-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 0.8rem;
+    color: var(--red);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--charcoal-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header .line {
+    flex: 1;
+    height: 1px;
+    background: var(--charcoal-border);
+  }
+
+  /* ── Full-width card ── */
+  .card-full {
+    grid-column: 1 / -1;
+  }
+
+  /* ── Bar chart ── */
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 200px;
+    padding: 20px 0;
+    margin-top: 16px;
+  }
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .bar-stack {
+    width: 100%;
+    max-width: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border-radius: 6px 6px 0 0;
+    overflow: hidden;
+    transition: all 0.4s ease;
+  }
+  .bar-segment {
+    width: 100%;
+    transition: height 0.4s ease;
+    min-height: 0;
+  }
+  .bar-segment.services { background: var(--orange); }
+  .bar-segment.saas { background: var(--pink); }
+  .bar-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.6rem;
+    color: var(--cream);
+    opacity: 0.5;
+  }
+  .bar-value {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--cream);
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--cream);
+    opacity: 0.7;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ── Funnel viz ── */
+  .funnel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 20px;
+  }
+  .funnel-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .funnel-bar-wrap {
+    flex: 1;
+    position: relative;
+  }
+  .funnel-bar {
+    height: 32px;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+  }
+  .funnel-bar span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--charcoal);
+    white-space: nowrap;
+  }
+  .funnel-label {
+    width: 120px;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    text-align: right;
+    color: var(--cream);
+    opacity: 0.7;
+  }
+  .funnel-count {
+    width: 60px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+    color: var(--cream);
+  }
+
+  /* ── Reset button ── */
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--charcoal-border);
+    color: var(--pink);
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.7rem;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 24px;
+  }
+  .reset-btn:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: rgba(178,40,72,0.05);
+  }
+
+  /* ── Scenario tabs ── */
+  .scenario-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    justify-content: center;
+  }
+  .scenario-tab {
+    background: var(--charcoal-light);
+    border: 1px solid var(--charcoal-border);
+    color: var(--cream);
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.7rem;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.5;
+  }
+  .scenario-tab:hover { opacity: 0.8; border-color: var(--red); }
+  .scenario-tab.active {
+    opacity: 1;
+    border-color: var(--red);
+    background: rgba(178,40,72,0.1);
+    color: var(--red);
+  }
+
+  /* ── Targets bar ── */
+  .target-bar {
+    margin-top: 8px;
+    background: var(--charcoal);
+    border-radius: 8px;
+    height: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .target-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.4s ease, background 0.4s ease;
+  }
+  .target-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    margin-top: 6px;
+    color: var(--cream);
+    opacity: 0.4;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--charcoal-border);
+    margin-top: 40px;
+  }
+  .footer p {
+    font-size: 0.75rem;
+    color: var(--cream);
+    opacity: 0.25;
+  }
+
+  /* ── Reverse tab specific ── */
+  .split-viz {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0 8px;
+  }
+  .split-viz-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--charcoal);
+    transition: width 0.3s ease;
+    min-width: 40px;
+  }
+
+  .req-metric {
+    text-align: center;
+    padding: 24px 16px;
+    background: var(--charcoal);
+    border-radius: 12px;
+    border: 1px solid var(--charcoal-border);
+    transition: border-color 0.3s ease;
+  }
+  .req-metric:hover { border-color: rgba(178,40,72,0.3); }
+  .req-metric-value {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .req-metric-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.6rem;
+    color: var(--pink);
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
+  .req-metric-sub {
+    font-size: 0.7rem;
+    color: var(--cream);
+    opacity: 0.35;
+    line-height: 1.3;
+  }
+
+  .req-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .feasibility-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.65rem;
+    margin-top: 8px;
+  }
+  .feasibility-badge.green { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
+  .feasibility-badge.orange { background: rgba(242,140,82,0.15); color: var(--orange); border: 1px solid rgba(242,140,82,0.3); }
+  .feasibility-badge.red { background: rgba(178,40,72,0.15); color: var(--red); border: 1px solid rgba(178,40,72,0.3); }
+
+  .feasibility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .feasibility-row:last-child { border-bottom: none; }
+  .feasibility-metric {
+    font-size: 0.85rem;
+    color: var(--cream);
+  }
+  .feasibility-value {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .feasibility-vs {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-left: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SUPER<span>BAD</span></h1>
+  <p>Revenue Projection Engine</p>
+
+  <div class="top-nav">
+    <button class="top-nav-tab active" onclick="switchView('forward')">Forward Projection</button>
+    <button class="top-nav-tab" onclick="switchView('reverse')">Reverse Engineer</button>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ╔══════════════════════════════════════════════════════════════╗ -->
+<!-- ║  VIEW 1 — FORWARD PROJECTION                                ║ -->
+<!-- ╚══════════════════════════════════════════════════════════════╝ -->
+<div id="view-forward" class="view active">
+
+  <!-- Scenario Presets -->
+  <div class="scenario-tabs">
+    <button class="scenario-tab active" onclick="loadScenario('conservative')">Conservative</button>
+    <button class="scenario-tab" onclick="loadScenario('moderate')">Moderate</button>
+    <button class="scenario-tab" onclick="loadScenario('aggressive')">Aggressive</button>
+    <button class="scenario-tab" onclick="loadScenario('custom')">Custom</button>
+  </div>
+
+  <div class="section-header">
+    Outreach & Pipeline <span class="line"></span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> Outreach Volume</div>
+      <div class="input-row">
+        <div class="input-label">Cold emails sent per month<span class="benchmark">Industry avg: 1,000–3,000/mo for agencies</span></div>
+        <div class="input-wrap"><input type="number" id="emailsSent" value="2000" min="0" step="100" oninput="recalc()"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Open rate<span class="benchmark">Industry avg: 25–35% cold · 40–60% warm</span></div>
+        <div class="input-wrap"><input type="number" id="openRate" value="35" min="0" max="100" step="1" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Reply rate<span class="benchmark">Industry avg: 2–5% cold · 8–15% warm</span></div>
+        <div class="input-wrap"><input type="number" id="replyRate" value="4" min="0" max="100" step="0.5" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Positive reply rate<span class="benchmark">Industry avg: 30–50% of replies are positive</span></div>
+        <div class="input-wrap"><input type="number" id="positiveReplyRate" value="40" min="0" max="100" step="5" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> Services Conversion</div>
+      <div class="input-row">
+        <div class="input-label">Positive reply → trial shoot booked<span class="benchmark">Industry avg: 20–40% lead-to-meeting for agencies</span></div>
+        <div class="input-wrap"><input type="number" id="trialBookRate" value="30" min="0" max="100" step="5" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Trial shoot → retainer client<span class="benchmark">Industry avg: 20–30% trial-to-paid for premium services</span></div>
+        <div class="input-wrap"><input type="number" id="retainerConvRate" value="25" min="0" max="100" step="5" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Average monthly retainer value<span class="benchmark">Agency avg: $2k–$8k/mo · premium: $5k–$15k/mo</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="avgRetainerValue" value="5000" min="0" step="500" oninput="recalc()"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Average client retention<span class="benchmark">Agency avg: 6–12 months · top quartile: 18+ months</span></div>
+        <div class="input-wrap"><input type="number" id="avgRetention" value="9" min="1" max="36" step="1" oninput="recalc()"><span class="unit" style="width:auto">mo</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Trial shoot fee (one-off)<span class="benchmark">Photography/video intro shoots: $500–$2,000</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="trialShootFee" value="0" min="0" step="100" oninput="recalc()"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    SaaS Subscriptions <span class="line"></span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> SaaS Pricing Tiers</div>
+      <div class="input-row">
+        <div class="input-label">Small tier (capture)<span class="benchmark">SaaS avg entry: $19–$49/mo</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="saasSmall" value="29" min="0" step="5" oninput="recalc()"><span class="unit" style="width:auto">/mo</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Medium tier (default)<span class="benchmark">SaaS avg mid: $49–$99/mo</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="saasMedium" value="69" min="0" step="5" oninput="recalc()"><span class="unit" style="width:auto">/mo</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Large tier (popcorn)<span class="benchmark">Small jump from medium, big margin lift</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="saasLarge" value="89" min="0" step="5" oninput="recalc()"><span class="unit" style="width:auto">/mo</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Tier split — Small / Medium / Large<span class="benchmark">Popcorn effect: ~20% / ~50% / ~30% typical</span></div>
+        <div class="input-wrap" style="gap:2px">
+          <input type="number" id="tierSmall" value="20" min="0" max="100" step="5" style="width:55px" oninput="recalc()">
+          <span class="unit">/</span>
+          <input type="number" id="tierMed" value="50" min="0" max="100" step="5" style="width:55px" oninput="recalc()">
+          <span class="unit">/</span>
+          <input type="number" id="tierLg" value="30" min="0" max="100" step="5" style="width:55px" oninput="recalc()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> SaaS Acquisition</div>
+      <div class="input-row">
+        <div class="input-label">New SaaS subscribers per month<span class="benchmark">Organic + outreach combined. Early-stage: 10–50/mo</span></div>
+        <div class="input-wrap"><input type="number" id="saasNewSubs" value="25" min="0" step="5" oninput="recalc()"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Monthly churn rate<span class="benchmark">SaaS avg: 5–7%/mo · good: 3–5% · great: &lt;3%</span></div>
+        <div class="input-wrap"><input type="number" id="saasChurn" value="5" min="0" max="50" step="0.5" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Free trial → paid conversion<span class="benchmark">SaaS avg: 10–15% · no-CC trial: 2–5% · CC-required: 40–60%</span></div>
+        <div class="input-wrap"><input type="number" id="saasTrialConv" value="12" min="0" max="100" step="1" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">SaaS gross margin<span class="benchmark">SaaS avg: 70–85% · AI-heavy: 50–65%</span></div>
+        <div class="input-wrap"><input type="number" id="saasMargin" value="65" min="0" max="100" step="5" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    Projections <span class="line"></span>
+  </div>
+
+  <div class="results-strip">
+    <div class="card-label"><span class="dot"></span> Month 12 Snapshot</div>
+    <div class="results-grid">
+      <div class="result-item">
+        <div class="result-value highlight" id="r-monthlyRev">—</div>
+        <div class="result-label">Monthly Revenue</div>
+      </div>
+      <div class="divider"></div>
+      <div class="result-item">
+        <div class="result-value" id="r-annualRev">—</div>
+        <div class="result-label">Annual Run Rate</div>
+      </div>
+      <div class="divider"></div>
+      <div class="result-item">
+        <div class="result-value" id="r-retainerClients">—</div>
+        <div class="result-label">Active Retainers</div>
+      </div>
+      <div class="divider"></div>
+      <div class="result-item">
+        <div class="result-value" id="r-saasClients">—</div>
+        <div class="result-label">SaaS Subscribers</div>
+      </div>
+      <div class="divider"></div>
+      <div class="result-item">
+        <div class="result-value green" id="r-ltv12">—</div>
+        <div class="result-label">12-Month Total Rev</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+        <span style="font-size:0.78rem; color:var(--cream); opacity:0.6;">Year 1 target: $600k–$800k</span>
+        <span style="font-size:0.78rem; font-weight:600;" id="r-targetPct">—</span>
+      </div>
+      <div class="target-bar">
+        <div class="target-fill" id="r-targetFill" style="width:0%; background:var(--red);"></div>
+      </div>
+      <div class="target-label">
+        <span>$0</span>
+        <span>$600k</span>
+        <span>$800k</span>
+        <span>$1M</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> Monthly Services Funnel</div>
+      <div class="funnel" id="serviceFunnel"></div>
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> Monthly Breakdown</div>
+      <table class="breakdown" id="breakdownTable"></table>
+    </div>
+  </div>
+
+  <div class="card card-full" style="margin-bottom:40px;">
+    <div class="card-label"><span class="dot"></span> 12-Month Revenue Build-Up</div>
+    <div class="chart-bars" id="monthlyChart"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange);"></div> Services</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--pink);"></div> SaaS</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    Unit Economics <span class="line"></span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> Services Economics</div>
+      <div class="input-row">
+        <div class="input-label">Retainer client LTV</div>
+        <div class="input-wrap"><span id="u-retainerLtv" style="font-weight:700; font-size:0.95rem;">—</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Cost per qualified lead (email only)</div>
+        <div class="input-wrap"><span id="u-cpl" style="font-weight:700; font-size:0.95rem;">—</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Cost per retainer client acquired</div>
+        <div class="input-wrap"><span id="u-cpa" style="font-weight:700; font-size:0.95rem;">—</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Outreach cost per email<span class="benchmark">Avg: $0.02–$0.10 incl. tools + LLM</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="costPerEmail" value="0.05" min="0" max="5" step="0.01" oninput="recalc()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> SaaS Economics</div>
+      <div class="input-row">
+        <div class="input-label">Blended ARPU</div>
+        <div class="input-wrap"><span id="u-arpu" style="font-weight:700; font-size:0.95rem;">—</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Average subscriber lifetime</div>
+        <div class="input-wrap"><span id="u-saasLife" style="font-weight:700; font-size:0.95rem;">—</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Subscriber LTV</div>
+        <div class="input-wrap"><span id="u-saasLtv" style="font-weight:700; font-size:0.95rem;">—</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">LTV gross margin</div>
+        <div class="input-wrap"><span id="u-saasLtvMargin" style="font-weight:700; font-size:0.95rem;">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:16px;">
+    <button class="reset-btn" onclick="loadScenario('conservative')">Reset to defaults</button>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗ -->
+<!-- ║  VIEW 2 — REVERSE ENGINEER                                  ║ -->
+<!-- ╚══════════════════════════════════════════════════════════════╝ -->
+<div id="view-reverse" class="view">
+
+  <div class="section-header" style="margin-top:8px;">
+    Set Your Target <span class="line"></span>
+  </div>
+
+  <div class="results-strip" style="margin-bottom:32px;">
+    <div class="card-label"><span class="dot"></span> Revenue Target</div>
+
+    <div class="grid" style="margin-bottom:0; gap:24px;">
+      <div>
+        <div class="input-row">
+          <div class="input-label" style="font-size:1rem; font-weight:600;">Annual revenue target</div>
+          <div class="input-wrap">
+            <span class="unit-left">$</span>
+            <input type="number" id="rev-target" value="800000" min="0" step="50000" style="width:130px; font-size:1.1rem;" oninput="reverseCalc()">
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-label">
+            Revenue split — Services vs SaaS
+            <span class="benchmark">Drag the slider to set your ideal mix</span>
+          </div>
+          <div class="input-wrap" style="width:80px; justify-content:flex-end;">
+            <span id="rev-split-label" style="font-weight:600; font-size:0.85rem; color:var(--orange);">70 / 30</span>
+          </div>
+        </div>
+        <input type="range" id="rev-split" min="0" max="100" value="70" oninput="reverseCalc()" style="margin-top:4px;">
+        <div class="split-viz">
+          <div class="split-viz-seg" id="rev-split-svc" style="width:70%; background:var(--orange);">70%</div>
+          <div class="split-viz-seg" id="rev-split-saas" style="width:30%; background:var(--pink);">30%</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:0.7rem; opacity:0.4; margin-top:4px;">
+          <span>Services</span>
+          <span>SaaS</span>
+        </div>
+
+        <div class="input-row" style="margin-top:16px;">
+          <div class="input-label">Ramp-up period<span class="benchmark">Months to reach steady-state. Affects total 12-month revenue.</span></div>
+          <div class="input-wrap"><input type="number" id="rev-ramp" value="6" min="1" max="12" step="1" oninput="reverseCalc()"><span class="unit" style="width:auto">mo</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="text-align:center; padding:16px 0;">
+          <div style="font-family:'Righteous',sans-serif; text-transform:uppercase; letter-spacing:3px; font-size:0.65rem; color:var(--pink); opacity:0.6; margin-bottom:12px;">Your target breaks down to</div>
+          <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap;">
+            <div>
+              <div class="result-value orange" id="rev-svc-annual" style="font-size:1.8rem;">—</div>
+              <div class="result-label">Services / Year</div>
+            </div>
+            <div>
+              <div class="result-value pink" id="rev-saas-annual" style="font-size:1.8rem;">—</div>
+              <div class="result-label">SaaS / Year</div>
+            </div>
+          </div>
+          <div style="margin-top:20px; display:flex; gap:24px; justify-content:center; flex-wrap:wrap;">
+            <div>
+              <div class="result-value" id="rev-svc-monthly" style="font-size:1.4rem;">—</div>
+              <div class="result-label" style="font-size:0.55rem;">Services / Month</div>
+            </div>
+            <div>
+              <div class="result-value" id="rev-saas-monthly" style="font-size:1.4rem;">—</div>
+              <div class="result-label" style="font-size:0.55rem;">SaaS / Month</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assumptions -->
+  <div class="section-header">
+    Assumptions <span class="line"></span>
+  </div>
+  <p style="font-size:0.8rem; color:var(--cream); opacity:0.4; margin-bottom:24px; margin-top:-16px;">These are the conversion rates used to back-calculate what you need. Adjust them to match your expectations.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> Services Assumptions</div>
+      <div class="input-row">
+        <div class="input-label">Average monthly retainer<span class="benchmark">Agency avg: $2k–$8k/mo · premium: $5k–$15k/mo</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="rev-retainerVal" value="5000" min="0" step="500" oninput="reverseCalc()"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Reply rate<span class="benchmark">Industry avg: 2–5% cold · 8–15% warm</span></div>
+        <div class="input-wrap"><input type="number" id="rev-replyRate" value="4" min="0.1" max="100" step="0.5" oninput="reverseCalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Positive reply rate<span class="benchmark">Industry avg: 30–50% of replies are positive</span></div>
+        <div class="input-wrap"><input type="number" id="rev-posRate" value="40" min="1" max="100" step="5" oninput="reverseCalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Positive → trial booked<span class="benchmark">Industry avg: 20–40% lead-to-meeting</span></div>
+        <div class="input-wrap"><input type="number" id="rev-bookRate" value="30" min="1" max="100" step="5" oninput="reverseCalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Trial → retainer conversion<span class="benchmark">Industry avg: 20–30% trial-to-paid</span></div>
+        <div class="input-wrap"><input type="number" id="rev-convRate" value="25" min="1" max="100" step="5" oninput="reverseCalc()"><span class="unit">%</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> SaaS Assumptions</div>
+      <div class="input-row">
+        <div class="input-label">Blended ARPU<span class="benchmark">Based on tier split. Edit prices in Forward tab.</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="rev-arpu" value="66" min="1" step="5" oninput="reverseCalc()"><span class="unit" style="width:auto">/mo</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Monthly churn rate<span class="benchmark">SaaS avg: 5–7%/mo · good: 3–5% · great: &lt;3%</span></div>
+        <div class="input-wrap"><input type="number" id="rev-churn" value="5" min="0.5" max="50" step="0.5" oninput="reverseCalc()"><span class="unit">%</span></div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">Outreach cost per email<span class="benchmark">Avg: $0.02–$0.10 incl. tools + LLM</span></div>
+        <div class="input-wrap"><span class="unit-left">$</span><input type="number" id="rev-costEmail" value="0.05" min="0" max="5" step="0.01" oninput="reverseCalc()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Required metrics -->
+  <div class="section-header">
+    What You Need <span class="line"></span>
+  </div>
+
+  <div class="results-strip">
+    <div class="card-label"><span class="dot"></span> Required Monthly Activity</div>
+    <div class="req-grid" id="req-metrics"></div>
+  </div>
+
+  <!-- Feasibility check -->
+  <div class="grid">
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> Services Feasibility</div>
+      <div id="feas-services"></div>
+    </div>
+    <div class="card">
+      <div class="card-label"><span class="dot"></span> SaaS Feasibility</div>
+      <div id="feas-saas"></div>
+    </div>
+  </div>
+
+  <!-- Reverse funnel -->
+  <div class="card card-full" style="margin-bottom:40px;">
+    <div class="card-label"><span class="dot"></span> Required Funnel (Monthly, Steady-State)</div>
+    <div class="funnel" id="reverseFunnel"></div>
+  </div>
+
+  <!-- Annual cost -->
+  <div class="card card-full">
+    <div class="card-label"><span class="dot"></span> Estimated Outreach Cost</div>
+    <div class="results-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+      <div class="result-item">
+        <div class="result-value" id="rev-cost-monthly">—</div>
+        <div class="result-label">Monthly Cost</div>
+      </div>
+      <div class="divider"></div>
+      <div class="result-item">
+        <div class="result-value" id="rev-cost-annual">—</div>
+        <div class="result-label">Annual Cost</div>
+      </div>
+      <div class="divider"></div>
+      <div class="result-item">
+        <div class="result-value green" id="rev-cost-roi">—</div>
+        <div class="result-label">Revenue per $1 Spent</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<div class="footer">
+  <p>SuperBad Marketing — Internal Planning Tool — Not for distribution</p>
+</div>
+
+<script>
+// ── View switching ──
+function switchView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.top-nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  const tabs = document.querySelectorAll('.top-nav-tab');
+  if (view === 'forward') { tabs[0].classList.add('active'); recalc(); }
+  else { tabs[1].classList.add('active'); reverseCalc(); }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Helpers ──
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(n) { return '$' + Math.round(n).toLocaleString('en-AU'); }
+function fmtK(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + Math.round(n / 1000).toLocaleString('en-AU') + 'k';
+  return fmt(n);
+}
+function fmtN(n) { return Math.round(n).toLocaleString('en-AU'); }
+
+// ── Forward scenarios ──
+const scenarios = {
+  conservative: {
+    emailsSent: 1500, openRate: 30, replyRate: 3, positiveReplyRate: 35,
+    trialBookRate: 25, retainerConvRate: 20, avgRetainerValue: 4000, avgRetention: 8, trialShootFee: 0,
+    saasSmall: 29, saasMedium: 69, saasLarge: 89,
+    tierSmall: 20, tierMed: 50, tierLg: 30,
+    saasNewSubs: 15, saasChurn: 6, saasTrialConv: 10, saasMargin: 65,
+    costPerEmail: 0.05
+  },
+  moderate: {
+    emailsSent: 2000, openRate: 35, replyRate: 4, positiveReplyRate: 40,
+    trialBookRate: 30, retainerConvRate: 25, avgRetainerValue: 5000, avgRetention: 9, trialShootFee: 0,
+    saasSmall: 29, saasMedium: 69, saasLarge: 89,
+    tierSmall: 20, tierMed: 50, tierLg: 30,
+    saasNewSubs: 25, saasChurn: 5, saasTrialConv: 12, saasMargin: 65,
+    costPerEmail: 0.05
+  },
+  aggressive: {
+    emailsSent: 3000, openRate: 40, replyRate: 6, positiveReplyRate: 45,
+    trialBookRate: 35, retainerConvRate: 30, avgRetainerValue: 6000, avgRetention: 12, trialShootFee: 0,
+    saasSmall: 29, saasMedium: 69, saasLarge: 89,
+    tierSmall: 15, tierMed: 50, tierLg: 35,
+    saasNewSubs: 40, saasChurn: 4, saasTrialConv: 15, saasMargin: 65,
+    costPerEmail: 0.05
+  }
+};
+
+function loadScenario(name) {
+  document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+  if (name === 'custom') {
+    document.querySelectorAll('.scenario-tab')[3].classList.add('active');
+    return;
+  }
+  const idx = name === 'conservative' ? 0 : name === 'moderate' ? 1 : 2;
+  document.querySelectorAll('.scenario-tab')[idx].classList.add('active');
+  const s = scenarios[name];
+  Object.keys(s).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = s[k];
+  });
+  recalc();
+}
+
+// ══════════════════════════════════════
+// FORWARD PROJECTION
+// ══════════════════════════════════════
+function recalc() {
+  const activeTab = document.querySelector('.scenario-tab.active');
+  if (activeTab && activeTab.textContent !== 'Custom') {
+    const name = activeTab.textContent.toLowerCase();
+    const s = scenarios[name];
+    let match = true;
+    Object.keys(s).forEach(k => { if (v(k) !== s[k]) match = false; });
+    if (!match) {
+      document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.scenario-tab')[3].classList.add('active');
+    }
+  }
+
+  const sent = v('emailsSent');
+  const opened = sent * v('openRate') / 100;
+  const replies = sent * v('replyRate') / 100;
+  const positiveReplies = replies * v('positiveReplyRate') / 100;
+  const trialsBooked = positiveReplies * v('trialBookRate') / 100;
+  const retainerConversions = trialsBooked * v('retainerConvRate') / 100;
+  const retainerValue = v('avgRetainerValue');
+  const retention = v('avgRetention');
+  const trialFee = v('trialShootFee');
+
+  const saasNew = v('saasNewSubs');
+  const churn = v('saasChurn') / 100;
+  const margin = v('saasMargin') / 100;
+
+  const tierS = v('tierSmall') / 100;
+  const tierM = v('tierMed') / 100;
+  const tierL = v('tierLg') / 100;
+  const priceS = v('saasSmall');
+  const priceM = v('saasMedium');
+  const priceL = v('saasLarge');
+  const arpu = tierS * priceS + tierM * priceM + tierL * priceL;
+
+  let saasBase = 0;
+  let activeRetainers = 0;
+  let totalRev12 = 0;
+  const months = [];
+
+  for (let m = 1; m <= 12; m++) {
+    activeRetainers += retainerConversions;
+    if (m > retention) activeRetainers -= retainerConversions;
+    activeRetainers = Math.max(0, activeRetainers);
+    const servicesRev = activeRetainers * retainerValue + trialsBooked * trialFee;
+    saasBase = saasBase * (1 - churn) + saasNew;
+    const saasRev = saasBase * arpu;
+    const total = servicesRev + saasRev;
+    totalRev12 += total;
+    months.push({ m, servicesRev, saasRev, total, retainers: activeRetainers, saasSubs: saasBase });
+  }
+
+  const m12 = months[11];
+
+  document.getElementById('r-monthlyRev').textContent = fmtK(m12.total);
+  document.getElementById('r-annualRev').textContent = fmtK(m12.total * 12);
+  document.getElementById('r-retainerClients').textContent = Math.round(m12.retainers);
+  document.getElementById('r-saasClients').textContent = Math.round(m12.saasSubs);
+  document.getElementById('r-ltv12').textContent = fmtK(totalRev12);
+
+  const pct = Math.min(totalRev12 / 1000000 * 100, 100);
+  const fill = document.getElementById('r-targetFill');
+  fill.style.width = pct + '%';
+  fill.style.background = totalRev12 >= 800000 ? 'var(--green)' : totalRev12 >= 600000 ? 'var(--orange)' : 'var(--red)';
+  const pctLabel = document.getElementById('r-targetPct');
+  if (totalRev12 >= 600000) {
+    pctLabel.textContent = 'On target';
+    pctLabel.style.color = totalRev12 >= 800000 ? 'var(--green)' : 'var(--orange)';
+  } else {
+    pctLabel.textContent = Math.round(totalRev12 / 600000 * 100) + '% of minimum';
+    pctLabel.style.color = 'var(--red)';
+  }
+
+  // Funnel
+  const funnelData = [
+    { label: 'Emails Sent', value: sent, color: 'var(--charcoal-lighter)' },
+    { label: 'Opened', value: opened, color: 'var(--charcoal-border)' },
+    { label: 'Replies', value: replies, color: 'var(--pink)' },
+    { label: 'Positive', value: positiveReplies, color: 'var(--orange)' },
+    { label: 'Trials Booked', value: trialsBooked, color: 'var(--red)' },
+    { label: 'Retainers Won', value: retainerConversions, color: 'var(--green)' },
+  ];
+  const maxFunnel = funnelData[0].value || 1;
+  document.getElementById('serviceFunnel').innerHTML = funnelData.map(f => {
+    const w = Math.max((f.value / maxFunnel) * 100, 2);
+    return `<div class="funnel-step">
+      <div class="funnel-label">${f.label}</div>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${w}%; background:${f.color};">${w > 15 ? `<span>${fmtN(f.value)}</span>` : ''}</div></div>
+      <div class="funnel-count">${w <= 15 ? fmtN(f.value) : ''}</div>
+    </div>`;
+  }).join('');
+
+  // Breakdown
+  document.getElementById('breakdownTable').innerHTML = `
+    <tr><th>Source</th><th>Monthly</th><th>Annual</th></tr>
+    <tr class="row-services"><td>Retainer revenue</td><td>${fmt(m12.retainers * retainerValue)}</td><td>${fmt(m12.retainers * retainerValue * 12)}</td></tr>
+    <tr class="row-services"><td>Trial shoot fees</td><td>${fmt(trialsBooked * trialFee)}</td><td>${fmt(trialsBooked * trialFee * 12)}</td></tr>
+    <tr class="row-saas"><td>SaaS — Small (${Math.round(m12.saasSubs * tierS)})</td><td>${fmt(m12.saasSubs * tierS * priceS)}</td><td>${fmt(m12.saasSubs * tierS * priceS * 12)}</td></tr>
+    <tr class="row-saas"><td>SaaS — Medium (${Math.round(m12.saasSubs * tierM)})</td><td>${fmt(m12.saasSubs * tierM * priceM)}</td><td>${fmt(m12.saasSubs * tierM * priceM * 12)}</td></tr>
+    <tr class="row-saas"><td>SaaS — Large (${Math.round(m12.saasSubs * tierL)})</td><td>${fmt(m12.saasSubs * tierL * priceL)}</td><td>${fmt(m12.saasSubs * tierL * priceL * 12)}</td></tr>
+    <tr class="row-total"><td>Total</td><td>${fmt(m12.total)}</td><td>${fmt(m12.total * 12)}</td></tr>
+  `;
+
+  // Chart
+  const maxMonth = Math.max(...months.map(m => m.total)) || 1;
+  document.getElementById('monthlyChart').innerHTML = months.map(m => {
+    const sH = (m.servicesRev / maxMonth) * 180;
+    const aH = (m.saasRev / maxMonth) * 180;
+    return `<div class="bar-group">
+      <div class="bar-value">${fmtK(m.total)}</div>
+      <div class="bar-stack" style="height:${sH + aH}px;">
+        <div class="bar-segment saas" style="height:${aH}px;"></div>
+        <div class="bar-segment services" style="height:${sH}px;"></div>
+      </div>
+      <div class="bar-label">M${m.m}</div>
+    </div>`;
+  }).join('');
+
+  // Unit economics
+  document.getElementById('u-retainerLtv').textContent = fmt(retainerValue * retention);
+  document.getElementById('u-arpu').textContent = fmt(arpu) + '/mo';
+  const saasLife = churn > 0 ? (1 / churn) : 999;
+  document.getElementById('u-saasLife').textContent = Math.round(saasLife) + ' months';
+  const saasLtv = arpu * saasLife;
+  document.getElementById('u-saasLtv').textContent = fmt(saasLtv);
+  document.getElementById('u-saasLtvMargin').textContent = fmt(saasLtv * margin);
+  const costPerEmail = v('costPerEmail');
+  const totalCost = sent * costPerEmail;
+  const cpl = positiveReplies > 0 ? totalCost / positiveReplies : 0;
+  const cpa = retainerConversions > 0 ? totalCost / retainerConversions : 0;
+  document.getElementById('u-cpl').textContent = cpl > 0 ? fmt(Math.round(cpl)) : '—';
+  document.getElementById('u-cpa').textContent = cpa > 0 ? fmt(Math.round(cpa)) : '—';
+}
+
+
+// ══════════════════════════════════════
+// REVERSE ENGINEER
+// ══════════════════════════════════════
+function reverseCalc() {
+  const target = v('rev-target');
+  const svcPct = v('rev-split') / 100;
+  const saasPct = 1 - svcPct;
+  const ramp = v('rev-ramp');
+
+  // Split viz
+  document.getElementById('rev-split-label').innerHTML =
+    `<span style="color:var(--orange)">${Math.round(svcPct*100)}</span> / <span style="color:var(--pink)">${Math.round(saasPct*100)}</span>`;
+  document.getElementById('rev-split-svc').style.width = Math.max(svcPct * 100, 5) + '%';
+  document.getElementById('rev-split-svc').textContent = Math.round(svcPct * 100) + '%';
+  document.getElementById('rev-split-saas').style.width = Math.max(saasPct * 100, 5) + '%';
+  document.getElementById('rev-split-saas').textContent = Math.round(saasPct * 100) + '%';
+
+  const svcAnnual = target * svcPct;
+  const saasAnnual = target * saasPct;
+
+  document.getElementById('rev-svc-annual').textContent = fmtK(svcAnnual);
+  document.getElementById('rev-saas-annual').textContent = fmtK(saasAnnual);
+
+  // Steady-state monthly targets (accounting for ramp)
+  // During ramp months, revenue builds linearly. After ramp, it's at steady state.
+  // Total = sum of ramp months + (12-ramp) * steady
+  // Ramp sum = steady * (1/ramp + 2/ramp + ... + ramp/ramp) = steady * (ramp+1)/2
+  // Total = steady * ((ramp+1)/2 + (12-ramp)) = steady * (12 - ramp/2 + 0.5)
+  const effectiveMonths = 12 - (ramp - 1) / 2;
+  const svcMonthly = svcAnnual / effectiveMonths;
+  const saasMonthly = saasAnnual / effectiveMonths;
+
+  document.getElementById('rev-svc-monthly').textContent = fmtK(svcMonthly);
+  document.getElementById('rev-saas-monthly').textContent = fmtK(saasMonthly);
+
+  // ── Services back-calc ──
+  const retainerVal = v('rev-retainerVal');
+  const replyRate = v('rev-replyRate') / 100;
+  const posRate = v('rev-posRate') / 100;
+  const bookRate = v('rev-bookRate') / 100;
+  const convRate = v('rev-convRate') / 100;
+
+  const reqRetainers = retainerVal > 0 ? svcMonthly / retainerVal : 0;
+  const reqNewRetainersPerMonth = reqRetainers > 0 ? Math.ceil(reqRetainers / Math.min(ramp, 9)) : 0;
+  // Steady-state: need reqNewRetainersPerMonth new clients/mo to maintain base
+  // (assuming churn replaces at ~1/retention rate)
+  const reqTrials = convRate > 0 ? reqNewRetainersPerMonth / convRate : 0;
+  const reqPositive = bookRate > 0 ? reqTrials / bookRate : 0;
+  const reqReplies = posRate > 0 ? reqPositive / posRate : 0;
+  const reqEmails = replyRate > 0 ? reqReplies / replyRate : 0;
+
+  // ── SaaS back-calc ──
+  const arpuVal = v('rev-arpu');
+  const churnRate = v('rev-churn') / 100;
+
+  // Steady-state subscriber base needed
+  const reqSaasSubs = arpuVal > 0 ? saasMonthly / arpuVal : 0;
+  // To reach reqSaasSubs in `ramp` months with churn:
+  // Steady state: newSubs = churn * base → newSubs = churnRate * reqSaasSubs
+  const reqNewSaasPerMonth = churnRate > 0 ? Math.ceil(churnRate * reqSaasSubs) : Math.ceil(reqSaasSubs / ramp);
+
+  // ── Outreach cost ──
+  const emailCost = v('rev-costEmail');
+  const monthlyCost = reqEmails * emailCost;
+  const annualCost = monthlyCost * 12;
+  const roi = annualCost > 0 ? target / annualCost : 0;
+
+  document.getElementById('rev-cost-monthly').textContent = fmtK(monthlyCost);
+  document.getElementById('rev-cost-annual').textContent = fmtK(annualCost);
+  document.getElementById('rev-cost-roi').textContent = roi > 0 ? fmt(Math.round(roi)) : '—';
+
+  // ── Required metrics grid ──
+  document.getElementById('req-metrics').innerHTML = `
+    <div class="req-metric">
+      <div class="req-metric-value highlight">${fmtN(Math.ceil(reqEmails))}</div>
+      <div class="req-metric-label">Emails / Month</div>
+      <div class="req-metric-sub">${fmtN(Math.ceil(reqEmails / 22))}/business day</div>
+    </div>
+    <div class="req-metric">
+      <div class="req-metric-value" style="color:var(--pink)">${fmtN(Math.ceil(reqReplies))}</div>
+      <div class="req-metric-label">Replies Needed</div>
+      <div class="req-metric-sub">${(replyRate*100).toFixed(1)}% of sends</div>
+    </div>
+    <div class="req-metric">
+      <div class="req-metric-value" style="color:var(--orange)">${fmtN(Math.ceil(reqPositive))}</div>
+      <div class="req-metric-label">Positive Replies</div>
+      <div class="req-metric-sub">${(posRate*100).toFixed(0)}% of replies</div>
+    </div>
+    <div class="req-metric">
+      <div class="req-metric-value" style="color:var(--red)">${Math.ceil(reqTrials).toFixed(1)}</div>
+      <div class="req-metric-label">Trials Booked / Mo</div>
+      <div class="req-metric-sub">${(bookRate*100).toFixed(0)}% of positive</div>
+    </div>
+    <div class="req-metric">
+      <div class="req-metric-value" style="color:var(--green)">${reqNewRetainersPerMonth.toFixed(1)}</div>
+      <div class="req-metric-label">New Retainers / Mo</div>
+      <div class="req-metric-sub">${(convRate*100).toFixed(0)}% of trials</div>
+    </div>
+    <div class="req-metric">
+      <div class="req-metric-value" style="color:var(--cream)">${Math.round(reqRetainers)}</div>
+      <div class="req-metric-label">Active Retainers</div>
+      <div class="req-metric-sub">at ${fmtK(retainerVal)}/mo each</div>
+    </div>
+    <div class="req-metric">
+      <div class="req-metric-value" style="color:var(--pink)">${fmtN(Math.round(reqSaasSubs))}</div>
+      <div class="req-metric-label">SaaS Subscribers</div>
+      <div class="req-metric-sub">at ${fmt(arpuVal)} ARPU</div>
+    </div>
+    <div class="req-metric">
+      <div class="req-metric-value" style="color:var(--orange)">${fmtN(reqNewSaasPerMonth)}</div>
+      <div class="req-metric-label">New Subs / Month</div>
+      <div class="req-metric-sub">to offset ${(churnRate*100).toFixed(1)}% churn</div>
+    </div>
+  `;
+
+  // ── Feasibility checks ──
+  const svcChecks = [
+    {
+      metric: 'Emails per month',
+      value: Math.ceil(reqEmails),
+      display: fmtN(Math.ceil(reqEmails)),
+      benchmark: '1,000–3,000',
+      status: reqEmails <= 3000 ? 'green' : reqEmails <= 5000 ? 'orange' : 'red'
+    },
+    {
+      metric: 'Emails per business day',
+      value: Math.ceil(reqEmails / 22),
+      display: fmtN(Math.ceil(reqEmails / 22)),
+      benchmark: '50–150',
+      status: reqEmails/22 <= 150 ? 'green' : reqEmails/22 <= 250 ? 'orange' : 'red'
+    },
+    {
+      metric: 'Trial shoots per month',
+      value: reqTrials,
+      display: reqTrials.toFixed(1),
+      benchmark: '2–8 for a solo operator',
+      status: reqTrials <= 8 ? 'green' : reqTrials <= 12 ? 'orange' : 'red'
+    },
+    {
+      metric: 'Active retainers',
+      value: reqRetainers,
+      display: Math.round(reqRetainers).toString(),
+      benchmark: '5–10 solo · 10–15 with AM',
+      status: reqRetainers <= 10 ? 'green' : reqRetainers <= 15 ? 'orange' : 'red'
+    }
+  ];
+
+  document.getElementById('feas-services').innerHTML = svcChecks.map(c => `
+    <div class="feasibility-row">
+      <span class="feasibility-metric">${c.metric}</span>
+      <span>
+        <span class="feasibility-value" style="color:var(--${c.status})">${c.display}</span>
+        <span class="feasibility-vs">benchmark: ${c.benchmark}</span>
+      </span>
+    </div>
+  `).join('') + `
+    <div style="text-align:center; margin-top:12px;">
+      ${getFeasBadge(svcChecks)}
+    </div>
+  `;
+
+  const saasChecks = [
+    {
+      metric: 'Subscriber base needed',
+      value: reqSaasSubs,
+      display: fmtN(Math.round(reqSaasSubs)),
+      benchmark: 'Year 1: 100–500 typical',
+      status: reqSaasSubs <= 500 ? 'green' : reqSaasSubs <= 1000 ? 'orange' : 'red'
+    },
+    {
+      metric: 'New subscribers per month',
+      value: reqNewSaasPerMonth,
+      display: fmtN(reqNewSaasPerMonth),
+      benchmark: 'Early-stage: 10–50/mo',
+      status: reqNewSaasPerMonth <= 50 ? 'green' : reqNewSaasPerMonth <= 100 ? 'orange' : 'red'
+    },
+    {
+      metric: 'Monthly churn rate',
+      value: churnRate * 100,
+      display: (churnRate*100).toFixed(1) + '%',
+      benchmark: 'Good: 3–5% · Avg: 5–7%',
+      status: churnRate <= 0.05 ? 'green' : churnRate <= 0.07 ? 'orange' : 'red'
+    }
+  ];
+
+  document.getElementById('feas-saas').innerHTML = saasChecks.map(c => `
+    <div class="feasibility-row">
+      <span class="feasibility-metric">${c.metric}</span>
+      <span>
+        <span class="feasibility-value" style="color:var(--${c.status})">${c.display}</span>
+        <span class="feasibility-vs">benchmark: ${c.benchmark}</span>
+      </span>
+    </div>
+  `).join('') + `
+    <div style="text-align:center; margin-top:12px;">
+      ${getFeasBadge(saasChecks)}
+    </div>
+  `;
+
+  // ── Reverse funnel ──
+  const revFunnelData = [
+    { label: 'Emails Sent', value: Math.ceil(reqEmails), color: 'var(--charcoal-lighter)' },
+    { label: 'Replies', value: Math.ceil(reqReplies), color: 'var(--pink)' },
+    { label: 'Positive', value: Math.ceil(reqPositive), color: 'var(--orange)' },
+    { label: 'Trials Booked', value: Math.ceil(reqTrials), color: 'var(--red)' },
+    { label: 'Retainers Won', value: reqNewRetainersPerMonth, color: 'var(--green)' },
+  ];
+  const maxRevFunnel = revFunnelData[0].value || 1;
+  document.getElementById('reverseFunnel').innerHTML = revFunnelData.map(f => {
+    const w = Math.max((f.value / maxRevFunnel) * 100, 3);
+    const displayVal = f.value < 1 ? f.value.toFixed(1) : fmtN(Math.ceil(f.value));
+    return `<div class="funnel-step">
+      <div class="funnel-label">${f.label}</div>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${w}%; background:${f.color};">${w > 15 ? `<span>${displayVal}</span>` : ''}</div></div>
+      <div class="funnel-count">${w <= 15 ? displayVal : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function getFeasBadge(checks) {
+  const reds = checks.filter(c => c.status === 'red').length;
+  const oranges = checks.filter(c => c.status === 'orange').length;
+  if (reds > 0) return '<span class="feasibility-badge red">Ambitious — needs scaling</span>';
+  if (oranges > 0) return '<span class="feasibility-badge orange">Stretch — doable with focus</span>';
+  return '<span class="feasibility-badge green">Realistic — within norms</span>';
+}
+
+// ── Init ──
+recalc();
+reverseCalc();
+</script>
+
+</body>
+</html>

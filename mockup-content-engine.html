@@ -1,0 +1,1587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad Lite — Content Engine dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red:      #B22848;
+    --brand-cream:    #FDF5E6;
+    --brand-pink:     #F4A0B0;
+    --brand-orange:   #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-950: #0F0F0E;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-400: #A8A596;
+    --neutral-300: #D4D2C2;
+    --neutral-100: #FDF5E6;
+    --success: #7BAE7E;
+    --warn:    #E4B062;
+    --surface-0: var(--neutral-900);
+    --surface-1: var(--neutral-800);
+    --surface-2: var(--neutral-700);
+    --radius-default: 8px;
+    --radius-generous: 16px;
+    --inner-highlight: inset 0 1px 0 rgba(253, 245, 230, 0.04);
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--surface-0);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 70% 10%, rgba(242, 140, 82, 0.06), transparent 55%),
+                radial-gradient(ellipse at 0% 100%, rgba(178, 40, 72, 0.045), transparent 60%);
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ---------- sidebar ---------- */
+  aside.nav {
+    background: var(--surface-1);
+    padding: 24px 16px;
+    box-shadow: var(--inner-highlight), 1px 0 0 rgba(253, 245, 230, 0.025);
+    display: flex; flex-direction: column; gap: 24px;
+    overflow-y: auto;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 26px; color: var(--brand-cream);
+    padding: 4px 8px;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .logo .lite {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; color: var(--brand-pink);
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid rgba(244, 160, 176, 0.25);
+    border-radius: 4px;
+    align-self: center;
+  }
+  .nav-section .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.6px; color: var(--neutral-500);
+    text-transform: uppercase; padding: 12px 12px 8px;
+  }
+  .nav-section ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .nav-section a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 6px;
+    color: var(--neutral-300); text-decoration: none;
+    font-size: 14px;
+    transition: background 160ms var(--spring), color 160ms var(--spring);
+  }
+  .nav-section a:hover { background: rgba(253, 245, 230, 0.04); color: var(--brand-cream); }
+  .nav-section a.active { background: rgba(178, 40, 72, 0.12); color: var(--brand-cream); }
+  .nav-section a .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neutral-500); flex-shrink: 0; }
+  .nav-section a.active .dot { background: var(--brand-red); }
+  .nav-section a .count {
+    margin-left: auto; font-size: 11px;
+    padding: 1px 6px; border-radius: 999px;
+    background: rgba(253, 245, 230, 0.06); color: var(--neutral-300);
+  }
+  .nav-footer {
+    margin-top: auto; padding: 12px;
+    font-family: "DM Sans"; font-style: italic;
+    color: var(--brand-pink); font-size: 12px; opacity: 0.7;
+    line-height: 1.5;
+  }
+
+  /* ---------- main content ---------- */
+  main {
+    padding: 40px 48px 80px;
+    display: flex; flex-direction: column; gap: 28px;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  /* ---------- page header ---------- */
+  .page-header {
+    display: flex; flex-direction: column; gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .page-header .crumbs {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .page-header .crumbs .sep { color: var(--neutral-600); }
+  .page-header .crumbs .here { color: var(--brand-pink); }
+  .page-header h1 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 48px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.5px;
+  }
+  .page-header .deck {
+    font-family: "DM Sans", sans-serif;
+    font-size: 16px; color: var(--neutral-400);
+    max-width: 720px; line-height: 1.55;
+  }
+  .page-header .deck em { color: var(--brand-pink); font-style: italic; }
+  .page-header .mutter {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 14px; color: var(--brand-pink);
+    margin-top: 4px;
+  }
+
+  /* ---------- metric strip ---------- */
+  .metric-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .metric-card {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: var(--inner-highlight);
+    display: flex; flex-direction: column; gap: 8px;
+    transition: transform 200ms var(--spring), border-color 200ms var(--spring);
+    border: 1px solid transparent;
+    cursor: default;
+  }
+  .metric-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(244, 160, 176, 0.12);
+  }
+  .metric-card .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .metric-card .value {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 32px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.3px;
+  }
+  .metric-card .sub {
+    font-size: 12px; color: var(--neutral-400);
+  }
+  .metric-card .sub .up { color: var(--success); }
+  .metric-card .sub .down { color: var(--brand-red); }
+  .metric-card .sub .flat { color: var(--neutral-500); }
+  .metric-card.has-alert { border-color: rgba(178, 40, 72, 0.25); }
+
+  /* ---------- tab bar ---------- */
+  .tab-bar {
+    display: flex; gap: 0; align-items: stretch;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  .tab {
+    font-family: "Righteous", sans-serif;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    padding: 14px 24px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 160ms var(--spring), border-color 160ms var(--spring);
+    display: flex; align-items: center; gap: 8px;
+    background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .tab:hover { color: var(--brand-cream); }
+  .tab.active {
+    color: var(--brand-cream);
+    border-bottom-color: var(--brand-red);
+  }
+  .tab .badge {
+    font-family: "DM Sans", sans-serif;
+    font-size: 10px; letter-spacing: 0; text-transform: none;
+    padding: 1px 7px; border-radius: 999px;
+    background: rgba(178, 40, 72, 0.2);
+    color: var(--brand-pink);
+  }
+
+  /* ---------- tab panels ---------- */
+  .tab-panel { display: none; flex-direction: column; gap: 24px; }
+  .tab-panel.active { display: flex; }
+
+  /* ---------- review panel ---------- */
+  .review-queue { display: flex; flex-direction: column; gap: 12px; }
+  .review-card {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: var(--inner-highlight);
+    display: flex; justify-content: space-between; align-items: center; gap: 20px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 200ms var(--spring), border-color 200ms var(--spring);
+  }
+  .review-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(244, 160, 176, 0.15);
+  }
+  .review-card .left { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .review-card .title {
+    font-size: 16px; font-weight: 500; color: var(--brand-cream);
+  }
+  .review-card .meta {
+    display: flex; gap: 12px; align-items: center;
+    font-size: 12px; color: var(--neutral-500);
+  }
+  .review-card .meta .sep { color: var(--neutral-600); }
+  .review-card .actions {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .btn {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 8px 16px; border-radius: 8px;
+    border: none; cursor: pointer;
+    transition: transform 200ms var(--spring);
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary {
+    background: var(--brand-red); color: var(--brand-cream);
+    box-shadow: var(--inner-highlight), 0 4px 12px rgba(178, 40, 72, 0.25);
+  }
+  .btn.ghost {
+    background: transparent; color: var(--neutral-300);
+    border: 1px solid rgba(253, 245, 230, 0.1);
+  }
+
+  /* chip */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 999px;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .chip .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: 0.85;
+  }
+  .chip.draft    { background: rgba(244, 160, 176, 0.10); color: var(--brand-pink); }
+  .chip.ready    { background: rgba(242, 140, 82, 0.15); color: var(--brand-orange); }
+  .chip.published { background: rgba(123, 174, 126, 0.14); color: var(--success); }
+  .chip.rejected { background: rgba(178, 40, 72, 0.2); color: #F4A0B0; }
+  .chip.queued   { background: rgba(253, 245, 230, 0.06); color: var(--neutral-300); }
+  .chip.vetoed   { background: rgba(128, 127, 115, 0.12); color: var(--neutral-400); text-decoration: line-through; text-decoration-color: rgba(212, 210, 194, 0.25); }
+  .chip.generating { background: rgba(242, 140, 82, 0.12); color: var(--brand-orange); }
+  .chip.sending  { background: rgba(228, 176, 98, 0.14); color: var(--warn); }
+  .chip.sent     { background: rgba(123, 174, 126, 0.14); color: var(--success); }
+  .chip.healthy  { background: rgba(123, 174, 126, 0.1); color: var(--success); }
+  .chip.warn-chip { background: rgba(228, 176, 98, 0.14); color: var(--warn); }
+  .chip.platform {
+    background: rgba(253, 245, 230, 0.05);
+    color: var(--neutral-300);
+    font-size: 9px;
+  }
+
+  /* ---------- split-pane review ---------- */
+  .split-pane {
+    display: grid; grid-template-columns: 6fr 4fr; gap: 0;
+    background: var(--surface-1);
+    border-radius: var(--radius-generous);
+    overflow: hidden;
+    min-height: 520px;
+    box-shadow: var(--inner-highlight);
+    border: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .preview-pane {
+    padding: 36px 40px;
+    overflow-y: auto;
+    border-right: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .preview-pane .post-title {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 32px; color: var(--brand-cream);
+    line-height: 1.1; letter-spacing: -0.4px;
+    margin-bottom: 12px;
+  }
+  .preview-pane .post-meta {
+    font-size: 12px; color: var(--neutral-500);
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .preview-pane .post-body {
+    font-size: 15px; color: var(--neutral-300);
+    line-height: 1.7;
+  }
+  .preview-pane .post-body p { margin-bottom: 16px; }
+  .preview-pane .post-body h2 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 22px; color: var(--brand-cream);
+    margin: 28px 0 12px; letter-spacing: -0.2px;
+  }
+  .preview-pane .post-body blockquote {
+    border-left: 3px solid var(--brand-red);
+    padding: 12px 20px;
+    margin: 20px 0;
+    background: rgba(178, 40, 72, 0.06);
+    border-radius: 0 8px 8px 0;
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    color: var(--brand-pink);
+    font-size: 17px;
+  }
+  .preview-pane .seo-preview {
+    margin-top: 28px;
+    padding: 20px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .preview-pane .seo-preview .seo-label {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    margin-bottom: 4px;
+  }
+  .preview-pane .seo-preview .seo-url { font-size: 12px; color: var(--success); }
+  .preview-pane .seo-preview .seo-title { font-size: 16px; color: #8AB4F8; font-weight: 500; }
+  .preview-pane .seo-preview .seo-desc { font-size: 13px; color: var(--neutral-400); line-height: 1.5; }
+
+  .chat-pane {
+    padding: 0;
+    display: flex; flex-direction: column;
+    background: var(--neutral-900);
+  }
+  .chat-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .chat-header h3 {
+    font-family: "Righteous", sans-serif;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-cream);
+  }
+  .chat-header .iteration {
+    font-size: 11px; color: var(--neutral-500);
+    font-family: "Righteous"; letter-spacing: 1px;
+  }
+  .chat-messages {
+    flex: 1; overflow-y: auto;
+    padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .chat-msg {
+    display: flex; flex-direction: column; gap: 4px;
+    max-width: 88%;
+  }
+  .chat-msg.user { align-self: flex-end; }
+  .chat-msg.assistant { align-self: flex-start; }
+  .chat-msg .sender {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .chat-msg .bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px; line-height: 1.5;
+  }
+  .chat-msg.user .bubble {
+    background: rgba(178, 40, 72, 0.15);
+    color: var(--brand-cream);
+    border-bottom-right-radius: 4px;
+  }
+  .chat-msg.assistant .bubble {
+    background: var(--surface-1);
+    color: var(--neutral-300);
+    border-bottom-left-radius: 4px;
+    box-shadow: var(--inner-highlight);
+  }
+  .chat-input {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(253, 245, 230, 0.05);
+    display: flex; gap: 10px;
+  }
+  .chat-input input {
+    all: unset;
+    flex: 1; padding: 10px 14px;
+    background: var(--surface-1);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 8px;
+    color: var(--brand-cream);
+    font-size: 13px;
+  }
+  .chat-input input::placeholder { color: var(--neutral-500); font-style: italic; }
+  .chat-actions {
+    padding: 12px 20px 16px;
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+
+  /* ---------- topics table ---------- */
+  .tbl {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .tbl thead th {
+    text-align: left;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .tbl tbody tr {
+    transition: background 160ms var(--spring);
+    cursor: pointer;
+  }
+  .tbl tbody tr:hover { background: rgba(253, 245, 230, 0.025); }
+  .tbl tbody td {
+    padding: 14px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.03);
+    color: var(--neutral-300);
+    vertical-align: middle;
+  }
+  .tbl td.name { color: var(--brand-cream); font-weight: 500; }
+  .tbl td.num {
+    font-family: "Righteous", sans-serif;
+    letter-spacing: 1px; color: var(--brand-cream);
+    text-align: right;
+  }
+  .tbl td.muted { color: var(--neutral-500); font-style: italic; font-size: 12px; }
+  .tbl tfoot td {
+    padding: 14px;
+    font-size: 12px; color: var(--neutral-500);
+    font-style: italic;
+  }
+
+  /* rankability bar */
+  .rank-bar {
+    width: 80px; height: 6px;
+    background: var(--neutral-700);
+    border-radius: 3px;
+    overflow: hidden;
+    display: inline-block; vertical-align: middle;
+  }
+  .rank-bar .fill {
+    height: 100%; border-radius: 3px;
+    transition: width 400ms var(--spring);
+  }
+  .rank-bar .fill.high { background: var(--success); }
+  .rank-bar .fill.mid { background: var(--brand-orange); }
+  .rank-bar .fill.low { background: var(--brand-red); }
+
+  /* ---------- social grid ---------- */
+  .social-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  }
+  .social-card {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--inner-highlight);
+    display: flex; flex-direction: column; gap: 14px;
+    border: 1px solid transparent;
+    transition: transform 200ms var(--spring), border-color 200ms var(--spring);
+    cursor: pointer;
+  }
+  .social-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(244, 160, 176, 0.12);
+  }
+  .social-card .card-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .social-card .platform-name {
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-orange);
+  }
+  .social-card .post-ref {
+    font-size: 14px; font-weight: 500; color: var(--brand-cream);
+  }
+  .social-card .caption-preview {
+    font-size: 13px; color: var(--neutral-400);
+    line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .social-card .visual-preview {
+    height: 140px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .social-card .visual-preview .template-label {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    position: absolute; bottom: 8px; right: 10px;
+    background: rgba(15, 15, 14, 0.7);
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .social-card .card-foot {
+    display: flex; gap: 8px; align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid rgba(253, 245, 230, 0.04);
+  }
+
+  /* ---------- metrics grid ---------- */
+  .metrics-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .chart-card {
+    background: var(--surface-1);
+    border-radius: var(--radius-generous);
+    padding: 24px;
+    box-shadow: var(--inner-highlight);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .chart-card .chart-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .chart-card .chart-header h3 {
+    font-family: "Righteous", sans-serif;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-cream);
+  }
+  .chart-card .chart-header .period {
+    font-size: 11px; color: var(--neutral-500);
+    font-family: "Righteous"; letter-spacing: 1px;
+  }
+  .chart-card .chart-area {
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-card.full-width { grid-column: 1 / -1; }
+
+  /* mini sparkline via SVG */
+  .sparkline {
+    width: 100%; height: 100%;
+  }
+  .sparkline polyline {
+    fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .sparkline .area {
+    stroke: none; opacity: 0.15;
+  }
+
+  /* ranking table */
+  .ranking-row {
+    display: grid; grid-template-columns: 2fr 1fr 80px 1fr; gap: 16px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.03);
+    font-size: 13px;
+  }
+  .ranking-row .keyword { color: var(--brand-cream); font-weight: 500; }
+  .ranking-row .position {
+    font-family: "Righteous", sans-serif;
+    letter-spacing: 1px; color: var(--brand-cream);
+  }
+  .ranking-row .position.top10 { color: var(--success); }
+  .ranking-row .position.top20 { color: var(--brand-orange); }
+  .ranking-row .position.below { color: var(--neutral-500); }
+  .ranking-row .trend { font-size: 12px; }
+  .ranking-row .trend .up { color: var(--success); }
+  .ranking-row .trend .down { color: var(--brand-red); }
+  .ranking-row .trend .flat { color: var(--neutral-500); }
+
+  /* ---------- list panel ---------- */
+  .list-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .list-stat {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: var(--inner-highlight);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .list-stat .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .list-stat .value {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 28px; color: var(--brand-cream);
+    line-height: 1;
+  }
+  .list-stat .note { font-size: 11px; color: var(--neutral-400); }
+
+  /* subscriber rows */
+  .sub-row {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px; gap: 16px;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.03);
+    font-size: 13px;
+    transition: background 160ms var(--spring);
+    cursor: pointer;
+  }
+  .sub-row:hover { background: rgba(253, 245, 230, 0.025); }
+  .sub-row .email { color: var(--brand-cream); font-weight: 500; }
+  .sub-row .source { color: var(--neutral-400); font-size: 12px; }
+  .sub-row .date { color: var(--neutral-500); font-size: 12px; font-family: "Righteous"; letter-spacing: 1px; }
+  .sub-row .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .sub-row .status-dot.active { background: var(--success); }
+  .sub-row .status-dot.bounced { background: var(--brand-red); }
+  .sub-row .status-dot.pending { background: var(--brand-orange); }
+
+  /* ---------- section headers ---------- */
+  .section-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  }
+  .section-header h2 {
+    font-family: "Righteous", sans-serif;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-cream);
+  }
+  .section-header .count {
+    font-size: 11px; color: var(--neutral-500);
+    font-family: "DM Sans";
+  }
+
+  /* ---------- empty states ---------- */
+  .empty-state {
+    padding: 40px 32px;
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+    border: 1px dashed rgba(253, 245, 230, 0.07);
+    border-radius: 12px;
+    background: rgba(15, 15, 14, 0.3);
+  }
+  .empty-state .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--brand-orange);
+  }
+  .empty-state h4 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 26px; color: var(--brand-cream);
+    line-height: 1.1;
+  }
+  .empty-state p {
+    color: var(--neutral-400); font-size: 14px;
+    max-width: 440px; line-height: 1.55;
+  }
+  .empty-state p em { color: var(--brand-pink); font-style: italic; }
+  .empty-state .micro {
+    font-style: italic; color: var(--brand-pink);
+    font-size: 12px; margin-top: 6px;
+  }
+
+  /* ---------- passive line ---------- */
+  .passive-line {
+    padding: 14px 16px;
+    border-top: 1px dashed rgba(253, 245, 230, 0.08);
+    color: var(--neutral-500); font-size: 12px; font-style: italic;
+    line-height: 1.55;
+  }
+  .passive-line strong { color: var(--neutral-300); font-style: normal; font-weight: 500; }
+
+  /* ---------- newsletter schedule ---------- */
+  .schedule-bar {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 18px 24px;
+    box-shadow: var(--inner-highlight);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .schedule-bar .left {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .schedule-bar .sched-label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+  .schedule-bar .sched-value {
+    font-size: 15px; color: var(--brand-cream); font-weight: 500;
+  }
+  .schedule-bar .sched-value em { color: var(--brand-pink); font-style: italic; font-weight: 400; }
+
+  /* seed keywords */
+  .seed-keywords {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 16px 0;
+  }
+  .seed-keyword {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 999px;
+    background: rgba(253, 245, 230, 0.05);
+    color: var(--neutral-300);
+    font-size: 13px;
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    transition: border-color 160ms var(--spring);
+    cursor: default;
+  }
+  .seed-keyword:hover { border-color: rgba(244, 160, 176, 0.2); }
+  .seed-keyword .remove {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: rgba(253, 245, 230, 0.08);
+    color: var(--neutral-500);
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 160ms var(--spring), color 160ms var(--spring);
+  }
+  .seed-keyword .remove:hover { background: rgba(178, 40, 72, 0.3); color: var(--brand-cream); }
+
+  /* topic outline expandable */
+  .topic-outline {
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 13px; color: var(--neutral-400);
+    line-height: 1.6;
+    display: none;
+  }
+  .topic-outline.visible { display: block; }
+  .topic-outline .outline-heading {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--neutral-500);
+    margin-bottom: 8px;
+  }
+  .topic-outline ul {
+    margin: 0; padding-left: 20px;
+  }
+  .topic-outline li { margin-bottom: 4px; color: var(--neutral-300); }
+
+  /* ---------- toolbar ---------- */
+  .toolbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    box-shadow: var(--inner-highlight);
+  }
+  .toolbar .search {
+    flex: 1; min-width: 200px;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(15, 15, 14, 0.45);
+    border: 1px solid rgba(253, 245, 230, 0.04);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .toolbar .search input {
+    all: unset;
+    flex: 1; color: var(--brand-cream);
+    font-size: 13px; font-family: "DM Sans";
+  }
+  .toolbar .search input::placeholder { color: var(--neutral-500); font-style: italic; }
+  .toolbar .spacer { flex: 1; }
+
+  /* transition for panels */
+  .tab-panel {
+    animation: fadeIn 300ms var(--spring);
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* responsive */
+  @media (max-width: 1100px) {
+    .metric-strip { grid-template-columns: repeat(2, 1fr); }
+    .social-grid { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: 1fr; }
+    .list-stats { grid-template-columns: repeat(2, 1fr); }
+    .split-pane { grid-template-columns: 1fr; }
+    .chat-pane { min-height: 400px; }
+  }
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    aside.nav { display: none; }
+    main { margin-left: 0; padding: 24px 20px 60px; }
+    .page-header h1 { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="nav">
+    <div class="logo">SuperBad<span class="lite">Lite</span></div>
+
+    <div class="nav-section">
+      <div class="eyebrow">Today</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Cockpit<span class="count">8</span></a></li>
+        <li><a href="#"><span class="dot"></span>Inbox<span class="count">3</span></a></li>
+        <li><a href="#"><span class="dot"></span>Approvals<span class="count">5</span></a></li>
+      </ul>
+    </div>
+
+    <div class="nav-section">
+      <div class="eyebrow">Clients</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Pipeline</a></li>
+        <li><a href="#"><span class="dot"></span>Clients</a></li>
+        <li><a href="#"><span class="dot"></span>Quotes</a></li>
+        <li><a href="#"><span class="dot"></span>Invoices</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-section">
+      <div class="eyebrow">Growth</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Outreach</a></li>
+        <li><a href="#" class="active"><span class="dot"></span>Content<span class="count">1</span></a></li>
+        <li><a href="#"><span class="dot"></span>Products</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-footer">
+      the engine wrote while you slept. one post waiting.
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main>
+
+    <!-- page header -->
+    <div class="page-header">
+      <div class="crumbs">
+        <span>Admin</span><span class="sep">/</span><span class="here">Content Engine</span>
+      </div>
+      <h1>Content Engine.</h1>
+      <p class="deck">One draft waiting for review. <em>4 posts published this month, 2 newsletters sent.</em> Next newsletter holds for Tuesday 10am. Ranking snapshots updated overnight — two posts climbing.</p>
+      <p class="mutter">it wrote three thousand words about your industry while you were watching telly. just saying.</p>
+    </div>
+
+    <!-- metric strip -->
+    <div class="metric-strip">
+      <div class="metric-card">
+        <div class="label">Published this month</div>
+        <div class="value">4</div>
+        <div class="sub"><span class="up">+2 vs March</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Newsletter subscribers</div>
+        <div class="value">347</div>
+        <div class="sub"><span class="up">+41 this month</span></div>
+      </div>
+      <div class="metric-card has-alert">
+        <div class="label">Awaiting review</div>
+        <div class="value">1</div>
+        <div class="sub"><span style="color:var(--brand-orange)">draft ready since yesterday</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Avg. ranking position</div>
+        <div class="value">18</div>
+        <div class="sub"><span class="up">+6 positions avg.</span></div>
+      </div>
+    </div>
+
+    <!-- tab bar -->
+    <div class="tab-bar">
+      <button class="tab active" data-tab="review">Review <span class="badge">1</span></button>
+      <button class="tab" data-tab="social">Social</button>
+      <button class="tab" data-tab="metrics">Metrics</button>
+      <button class="tab" data-tab="topics">Topics</button>
+      <button class="tab" data-tab="list">List</button>
+    </div>
+
+    <!-- ==================== REVIEW TAB ==================== -->
+    <div class="tab-panel active" id="panel-review">
+
+      <!-- queue -->
+      <div class="section-header">
+        <h2>Draft queue</h2>
+        <span class="count">1 awaiting review</span>
+      </div>
+
+      <div class="review-card" onclick="document.getElementById('splitReview').style.display='grid'; this.style.display='none';">
+        <div class="left">
+          <div class="title">Why your competitor's blog ranks and yours collects dust</div>
+          <div class="meta">
+            <span class="chip draft"><span class="dot"></span>In review</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>1,840 words</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Keyword: <em style="color:var(--brand-cream)">small business blog strategy melbourne</em></span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Rankability: 78</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn ghost">Preview</button>
+          <button class="btn primary">Review</button>
+        </div>
+      </div>
+
+      <!-- split-pane review (initially collapsed, click above to expand) -->
+      <div class="split-pane" id="splitReview" style="display: none;">
+        <div class="preview-pane">
+          <div class="post-title">Why your competitor's blog ranks and yours collects dust.</div>
+          <div class="post-meta">
+            <span>superbadmedia.com.au/blog/competitor-blog-ranks</span>
+            <span style="color:var(--neutral-600)">·</span>
+            <span>1,840 words</span>
+            <span style="color:var(--neutral-600)">·</span>
+            <span>8 min read</span>
+          </div>
+          <div class="post-body">
+            <p>You've got a blog. It's sitting there. Four posts from 2023 and a "Welcome to our new website" entry that aged like milk. Meanwhile your competitor — the one with the worse logo and the Wix site — is ranking for every search your customers are making.</p>
+
+            <p>That's not because they're better at marketing. It's because they're writing about the things people are actually searching for, and you're writing about what you think sounds impressive at a networking event.</p>
+
+            <h2>The uncomfortable truth about content.</h2>
+
+            <p>Most small business blogs fail for the same reason most gyms make money: the owner signs up with good intentions, writes two posts about "Our Approach to Quality," realises nobody's reading them, and quietly stops. The gym keeps charging. Your blog just sits there, silently judging you from the About page dropdown.</p>
+
+            <blockquote>Content isn't about proving you know things. It's about showing up where your customer is already looking.</blockquote>
+
+            <p>The difference between a blog that ranks and one that doesn't isn't writing quality — it's research. A 500-word post targeting a keyword with actual search volume and low competition will outperform a 3,000-word masterpiece about "synergistic growth strategies" every single time.</p>
+
+            <h2>What "keyword research" actually means for a small business.</h2>
+
+            <p>Not what the SEO agency charges you $2,000 a month to pretend to do. Real keyword research is asking: what are my customers typing into Google right now, and which of those searches doesn't already have a perfect answer from a massive website?</p>
+
+            <p>That's the gap. That's where a small business blog wins — not by outwriting Forbes, but by answering the specific question Forbes would never bother with.</p>
+          </div>
+
+          <div class="seo-preview">
+            <div class="seo-label">Google preview</div>
+            <div class="seo-url">superbadmedia.com.au/blog/competitor-blog-ranks</div>
+            <div class="seo-title">Why Your Competitor's Blog Ranks and Yours Collects Dust | SuperBad</div>
+            <div class="seo-desc">Your competitor with the worse logo is ranking for every search your customers make. Here's why — and what you'd need to do about it if you had the time.</div>
+          </div>
+        </div>
+
+        <div class="chat-pane">
+          <div class="chat-header">
+            <h3>Rejection chat</h3>
+            <div class="iteration">V1 · first draft</div>
+          </div>
+          <div class="chat-messages">
+            <div class="chat-msg assistant">
+              <div class="sender">Content Engine</div>
+              <div class="bubble">Draft ready for review. 1,840 words targeting "small business blog strategy melbourne" — rankability score 78. Voice-matched against your Brand DNA profile. Featured snippet opportunity flagged on the keyword research section.</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <input placeholder="Tell me what to change..." />
+          </div>
+          <div class="chat-actions">
+            <button class="btn ghost" onclick="document.getElementById('splitReview').style.display='none'; document.querySelector('.review-card').style.display='flex';">Close</button>
+            <button class="btn primary">Approve & publish</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- recently published -->
+      <div class="section-header" style="margin-top: 8px;">
+        <h2>Recently published</h2>
+        <span class="count">4 this month</span>
+      </div>
+
+      <div class="review-card" style="cursor: default;">
+        <div class="left">
+          <div class="title">The 90-day content plan that writes itself (literally)</div>
+          <div class="meta">
+            <span class="chip published"><span class="dot"></span>Published</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>14 Apr</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Ranking: <strong style="color:var(--success)">#8</strong></span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Newsletter sent to 306</span>
+          </div>
+        </div>
+        <span class="chip published"><span class="dot"></span>Live</span>
+      </div>
+
+      <div class="review-card" style="cursor: default;">
+        <div class="left">
+          <div class="title">Melbourne photography studios that actually get your brand</div>
+          <div class="meta">
+            <span class="chip published"><span class="dot"></span>Published</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>9 Apr</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Ranking: <strong style="color:var(--brand-orange)">#14</strong></span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Newsletter sent to 291</span>
+          </div>
+        </div>
+        <span class="chip published"><span class="dot"></span>Live</span>
+      </div>
+
+      <div class="review-card" style="cursor: default;">
+        <div class="left">
+          <div class="title">What most businesses get wrong about their visual identity</div>
+          <div class="meta">
+            <span class="chip published"><span class="dot"></span>Published</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>3 Apr</span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Ranking: <strong style="color:var(--success)">#6</strong></span>
+            <span class="sep" style="color:var(--neutral-600)">·</span>
+            <span>Newsletter sent to 278</span>
+          </div>
+        </div>
+        <span class="chip published"><span class="dot"></span>Live</span>
+      </div>
+
+      <div class="passive-line">
+        <strong>1 post waiting.</strong> Engine paused until this one's reviewed — it won't pile up drafts.
+      </div>
+    </div>
+
+    <!-- ==================== SOCIAL TAB ==================== -->
+    <div class="tab-panel" id="panel-social">
+      <div class="section-header">
+        <h2>Social drafts</h2>
+        <span class="count">4 ready from latest post</span>
+      </div>
+
+      <div class="social-grid">
+        <div class="social-card">
+          <div class="card-top">
+            <div class="platform-name">Instagram</div>
+            <span class="chip ready"><span class="dot"></span>Ready</span>
+          </div>
+          <div class="post-ref">The 90-day content plan that writes itself</div>
+          <div class="caption-preview">Your competitor's blog is ranking. Yours has four posts from 2023 and a "Welcome to our new website" entry that aged like milk. Here's the uncomfortable truth about content...</div>
+          <div class="visual-preview" style="background: linear-gradient(135deg, var(--brand-red) 0%, rgba(242,140,82,0.6) 100%);">
+            <div style="font-family: 'Black Han Sans'; font-size: 20px; color: var(--brand-cream); text-align: center; padding: 16px; line-height: 1.15;">90 DAYS.<br><span style="font-family:'Playfair Display'; font-style: italic; font-size: 16px; color: var(--brand-pink);">zero effort.</span></div>
+            <div class="template-label">Carousel · 4 slides</div>
+          </div>
+          <div class="card-foot">
+            <span class="chip platform">Carousel · 4 slides</span>
+            <button class="btn ghost" style="padding: 5px 12px; font-size: 10px;">Copy</button>
+            <button class="btn ghost" style="padding: 5px 12px; font-size: 10px;">Download</button>
+            <button class="btn primary" style="padding: 5px 12px; font-size: 10px;">Publish</button>
+          </div>
+        </div>
+
+        <div class="social-card">
+          <div class="card-top">
+            <div class="platform-name">LinkedIn</div>
+            <span class="chip ready"><span class="dot"></span>Ready</span>
+          </div>
+          <div class="post-ref">The 90-day content plan that writes itself</div>
+          <div class="caption-preview">Most small business blogs fail for the same reason most gyms make money: good intentions, two posts about "Our Approach to Quality," then silence. The difference between ranking and not isn't writing quality...</div>
+          <div class="visual-preview" style="background: var(--surface-2);">
+            <div style="font-family: 'Black Han Sans'; font-size: 18px; color: var(--brand-cream); text-align: center; padding: 20px; line-height: 1.15;">WHY YOUR<br>COMPETITOR'S BLOG<br>RANKS.</div>
+            <div class="template-label">Single · landscape</div>
+          </div>
+          <div class="card-foot">
+            <span class="chip platform">Single · landscape</span>
+            <button class="btn ghost" style="padding: 5px 12px; font-size: 10px;">Copy</button>
+            <button class="btn ghost" style="padding: 5px 12px; font-size: 10px;">Download</button>
+            <button class="btn primary" style="padding: 5px 12px; font-size: 10px;">Publish</button>
+          </div>
+        </div>
+
+        <div class="social-card">
+          <div class="card-top">
+            <div class="platform-name">X (Twitter)</div>
+            <span class="chip ready"><span class="dot"></span>Ready</span>
+          </div>
+          <div class="post-ref">The 90-day content plan that writes itself</div>
+          <div class="caption-preview">Your blog has four posts from 2023 and a "Welcome to our new website" entry. Your competitor's blog ranks for everything your customers are searching. The difference isn't talent. It's research. 🧵</div>
+          <div class="visual-preview" style="background: var(--surface-2);">
+            <div style="font-family: 'Righteous'; font-size: 11px; letter-spacing: 2px; color: var(--neutral-500); text-transform: uppercase;">Thread preview · 4 tweets</div>
+          </div>
+          <div class="card-foot">
+            <span class="chip platform">Thread · 4 tweets</span>
+            <button class="btn ghost" style="padding: 5px 12px; font-size: 10px;">Copy</button>
+            <button class="btn primary" style="padding: 5px 12px; font-size: 10px;">Publish</button>
+          </div>
+        </div>
+
+        <div class="social-card">
+          <div class="card-top">
+            <div class="platform-name">Facebook</div>
+            <span class="chip ready"><span class="dot"></span>Ready</span>
+          </div>
+          <div class="post-ref">The 90-day content plan that writes itself</div>
+          <div class="caption-preview">Quick question: when was the last time you published a blog post? If the answer involves scrolling back through 2023... we should talk. Here's why some small business blogs rank and others just sit there.</div>
+          <div class="visual-preview" style="background: var(--surface-2);">
+            <div style="font-family: 'Black Han Sans'; font-size: 18px; color: var(--brand-cream); text-align: center; padding: 20px;">YOUR BLOG.<br><span style="font-family: 'Playfair Display'; font-style: italic; font-size: 14px; color: var(--brand-pink);">collecting dust since 2023.</span></div>
+            <div class="template-label">Single · landscape</div>
+          </div>
+          <div class="card-foot">
+            <span class="chip platform">Single · landscape</span>
+            <button class="btn ghost" style="padding: 5px 12px; font-size: 10px;">Copy</button>
+            <button class="btn ghost" style="padding: 5px 12px; font-size: 10px;">Download</button>
+            <button class="btn primary" style="padding: 5px 12px; font-size: 10px;">Publish</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="passive-line">
+        <strong>Publish opens the platform's compose screen</strong> with text pre-filled. Direct API posting is a future enhancement — for now, you're one click and a paste away.
+      </div>
+    </div>
+
+    <!-- ==================== METRICS TAB ==================== -->
+    <div class="tab-panel" id="panel-metrics">
+
+      <div class="metrics-grid">
+
+        <!-- ranking trends -->
+        <div class="chart-card full-width">
+          <div class="chart-header">
+            <h3>Ranking positions</h3>
+            <span class="period">Last 8 weeks</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0;">
+            <div class="ranking-row" style="border-bottom: 1px solid rgba(253,245,230,0.06);">
+              <div style="font-family:'Righteous'; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--neutral-500);">Keyword</div>
+              <div style="font-family:'Righteous'; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--neutral-500);">Position</div>
+              <div style="font-family:'Righteous'; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--neutral-500);">Trend</div>
+              <div style="font-family:'Righteous'; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--neutral-500);">Post</div>
+            </div>
+            <div class="ranking-row">
+              <div class="keyword">visual identity small business</div>
+              <div class="position top10">#6</div>
+              <div>
+                <span class="rank-bar"><span class="fill high" style="width: 78%;"></span></span>
+                <span class="trend"><span class="up"> +12</span></span>
+              </div>
+              <div style="color:var(--neutral-400); font-size:12px;">What most businesses get wrong...</div>
+            </div>
+            <div class="ranking-row">
+              <div class="keyword">content plan small business melbourne</div>
+              <div class="position top10">#8</div>
+              <div>
+                <span class="rank-bar"><span class="fill high" style="width: 72%;"></span></span>
+                <span class="trend"><span class="up"> +9</span></span>
+              </div>
+              <div style="color:var(--neutral-400); font-size:12px;">The 90-day content plan...</div>
+            </div>
+            <div class="ranking-row">
+              <div class="keyword">melbourne photography studios brand</div>
+              <div class="position top20">#14</div>
+              <div>
+                <span class="rank-bar"><span class="fill mid" style="width: 56%;"></span></span>
+                <span class="trend"><span class="up"> +4</span></span>
+              </div>
+              <div style="color:var(--neutral-400); font-size:12px;">Melbourne photography studios...</div>
+            </div>
+            <div class="ranking-row">
+              <div class="keyword">small business blog strategy</div>
+              <div class="position below">#34</div>
+              <div>
+                <span class="rank-bar"><span class="fill low" style="width: 28%;"></span></span>
+                <span class="trend"><span class="flat"> new</span></span>
+              </div>
+              <div style="color:var(--neutral-400); font-size:12px;">Why your competitor's blog...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- newsletter performance -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Newsletter opens</h3>
+            <span class="period">Last 6 sends</span>
+          </div>
+          <div class="chart-area">
+            <svg class="sparkline" viewBox="0 0 300 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="openGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#F28C52" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#F28C52" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <polygon class="area" points="20,95 70,78 120,82 170,65 220,58 270,42 270,115 20,115" fill="url(#openGrad)"/>
+              <polyline points="20,95 70,78 120,82 170,65 220,58 270,42" stroke="#F28C52"/>
+              <!-- data points -->
+              <circle cx="20" cy="95" r="3" fill="#F28C52"/>
+              <circle cx="70" cy="78" r="3" fill="#F28C52"/>
+              <circle cx="120" cy="82" r="3" fill="#F28C52"/>
+              <circle cx="170" cy="65" r="3" fill="#F28C52"/>
+              <circle cx="220" cy="58" r="3" fill="#F28C52"/>
+              <circle cx="270" cy="42" r="3" fill="#F28C52"/>
+              <!-- labels -->
+              <text x="20" y="112" fill="#807F73" font-size="8" font-family="Righteous" text-anchor="middle">MAR 4</text>
+              <text x="70" y="112" fill="#807F73" font-size="8" font-family="Righteous" text-anchor="middle">MAR 11</text>
+              <text x="120" y="112" fill="#807F73" font-size="8" font-family="Righteous" text-anchor="middle">MAR 18</text>
+              <text x="170" y="112" fill="#807F73" font-size="8" font-family="Righteous" text-anchor="middle">MAR 25</text>
+              <text x="220" y="112" fill="#807F73" font-size="8" font-family="Righteous" text-anchor="middle">APR 8</text>
+              <text x="270" y="112" fill="#807F73" font-size="8" font-family="Righteous" text-anchor="middle">APR 14</text>
+              <!-- % labels on points -->
+              <text x="20" y="88" fill="#D4D2C2" font-size="9" font-family="Righteous" text-anchor="middle">32%</text>
+              <text x="70" y="71" fill="#D4D2C2" font-size="9" font-family="Righteous" text-anchor="middle">38%</text>
+              <text x="120" y="75" fill="#D4D2C2" font-size="9" font-family="Righteous" text-anchor="middle">36%</text>
+              <text x="170" y="58" fill="#D4D2C2" font-size="9" font-family="Righteous" text-anchor="middle">41%</text>
+              <text x="220" y="51" fill="#D4D2C2" font-size="9" font-family="Righteous" text-anchor="middle">44%</text>
+              <text x="270" y="35" fill="#FDF5E6" font-size="9" font-family="Righteous" text-anchor="middle">48%</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- list growth -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>List growth</h3>
+            <span class="period">Last 30 days</span>
+          </div>
+          <div class="chart-area">
+            <svg class="sparkline" viewBox="0 0 300 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="listGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#7BAE7E" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#7BAE7E" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <polygon class="area" points="10,90 50,88 90,84 130,80 170,72 210,60 250,48 290,38 290,115 10,115" fill="url(#listGrad)"/>
+              <polyline points="10,90 50,88 90,84 130,80 170,72 210,60 250,48 290,38" stroke="#7BAE7E"/>
+              <circle cx="290" cy="38" r="4" fill="#7BAE7E"/>
+              <text x="290" y="30" fill="#FDF5E6" font-size="10" font-family="Black Han Sans" text-anchor="middle">347</text>
+              <text x="10" y="102" fill="#807F73" font-size="10" font-family="Righteous" text-anchor="start">306</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="passive-line">
+        <strong>SerpAPI ranking snapshots run weekly at 02:00.</strong> Google Search Console available at Medium tier — currently using SerpAPI only.
+      </div>
+    </div>
+
+    <!-- ==================== TOPICS TAB ==================== -->
+    <div class="tab-panel" id="panel-topics">
+
+      <!-- seed keywords -->
+      <div class="section-header">
+        <h2>Seed keywords</h2>
+        <span class="count">engine derives topics from these</span>
+      </div>
+      <div class="seed-keywords">
+        <div class="seed-keyword">small business marketing melbourne <span class="remove">×</span></div>
+        <div class="seed-keyword">brand photography <span class="remove">×</span></div>
+        <div class="seed-keyword">content marketing strategy <span class="remove">×</span></div>
+        <div class="seed-keyword">visual identity design <span class="remove">×</span></div>
+        <div class="seed-keyword">marketing agency melbourne <span class="remove">×</span></div>
+        <div class="seed-keyword">social media for small business <span class="remove">×</span></div>
+      </div>
+
+      <!-- topic queue -->
+      <div class="section-header">
+        <h2>Topic queue</h2>
+        <span class="count">6 topics researched · click to see outline</span>
+      </div>
+
+      <div style="background: var(--surface-1); border-radius: var(--radius-generous); overflow: hidden; box-shadow: var(--inner-highlight);">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width: 36%">Keyword</th>
+              <th>Rankability</th>
+              <th>Content gap</th>
+              <th>Status</th>
+              <th style="text-align: right">Words</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="topic-row" data-topic="0">
+              <td class="name">how to choose a marketing agency australia</td>
+              <td>
+                <span class="rank-bar"><span class="fill high" style="width: 82%;"></span></span>
+                <span style="font-family:'Righteous'; font-size:11px; letter-spacing:1px; color:var(--brand-cream); margin-left:8px;">82</span>
+              </td>
+              <td style="font-size:12px; color:var(--neutral-400);">No candid perspective from agencies themselves</td>
+              <td><span class="chip queued">Queued</span></td>
+              <td class="num">~1,600</td>
+            </tr>
+            <tr class="topic-row" data-topic="1">
+              <td class="name">brand shoot preparation checklist</td>
+              <td>
+                <span class="rank-bar"><span class="fill high" style="width: 74%;"></span></span>
+                <span style="font-family:'Righteous'; font-size:11px; letter-spacing:1px; color:var(--brand-cream); margin-left:8px;">74</span>
+              </td>
+              <td style="font-size:12px; color:var(--neutral-400);">Existing content generic, not industry-specific</td>
+              <td><span class="chip queued">Queued</span></td>
+              <td class="num">~1,400</td>
+            </tr>
+            <tr class="topic-row" data-topic="2">
+              <td class="name">social media content calendar template 2026</td>
+              <td>
+                <span class="rank-bar"><span class="fill mid" style="width: 65%;"></span></span>
+                <span style="font-family:'Righteous'; font-size:11px; letter-spacing:1px; color:var(--brand-cream); margin-left:8px;">65</span>
+              </td>
+              <td style="font-size:12px; color:var(--neutral-400);">High volume but competitive — angle available</td>
+              <td><span class="chip queued">Queued</span></td>
+              <td class="num">~2,100</td>
+            </tr>
+            <tr class="topic-row" data-topic="3">
+              <td class="name">roi on professional photography for business</td>
+              <td>
+                <span class="rank-bar"><span class="fill mid" style="width: 58%;"></span></span>
+                <span style="font-family:'Righteous'; font-size:11px; letter-spacing:1px; color:var(--brand-cream); margin-left:8px;">58</span>
+              </td>
+              <td style="font-size:12px; color:var(--neutral-400);">No real numbers from actual agencies</td>
+              <td><span class="chip queued">Queued</span></td>
+              <td class="num">~1,800</td>
+            </tr>
+            <tr>
+              <td class="name" style="color:var(--neutral-400); text-decoration: line-through; text-decoration-color: rgba(212,210,194,0.25);">best CRM for marketing agencies</td>
+              <td>
+                <span class="rank-bar"><span class="fill low" style="width: 31%;"></span></span>
+                <span style="font-family:'Righteous'; font-size:11px; letter-spacing:1px; color:var(--neutral-500); margin-left:8px;">31</span>
+              </td>
+              <td style="font-size:12px; color:var(--neutral-500);">Saturated by affiliate content</td>
+              <td><span class="chip vetoed">Vetoed</span></td>
+              <td class="num" style="color:var(--neutral-500);">—</td>
+            </tr>
+            <tr class="topic-row" data-topic="4">
+              <td class="name">what does a marketing retainer include</td>
+              <td>
+                <span class="rank-bar"><span class="fill high" style="width: 71%;"></span></span>
+                <span style="font-family:'Righteous'; font-size:11px; letter-spacing:1px; color:var(--brand-cream); margin-left:8px;">71</span>
+              </td>
+              <td style="font-size:12px; color:var(--neutral-400);">Mostly vague — room for specific breakdown</td>
+              <td><span class="chip queued">Queued</span></td>
+              <td class="num">~1,500</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td colspan="5">Next research cycle: <em>Monday 21 April, 02:00 AEST</em></td></tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- expandable outline (appears below table on click) -->
+      <div class="topic-outline" id="topicOutline">
+        <div class="outline-heading">Haiku-generated outline</div>
+        <ul id="outlineList"></ul>
+        <div style="margin-top: 10px; font-size: 11px; color: var(--neutral-500); display: flex; gap: 16px;">
+          <span>Featured snippet opportunity: <strong style="color: var(--brand-orange); font-weight: 500;">Yes</strong></span>
+          <span>Target word count: <strong style="color: var(--neutral-300); font-weight: 500;" id="outlineWords">~1,600</strong></span>
+        </div>
+      </div>
+
+      <div class="passive-line">
+        <strong>You see and veto. The engine picks and orders.</strong> Topics enter the queue from weekly keyword research — vetoed topics are replaced next cycle.
+      </div>
+    </div>
+
+    <!-- ==================== LIST TAB ==================== -->
+    <div class="tab-panel" id="panel-list">
+
+      <!-- schedule bar -->
+      <div class="schedule-bar">
+        <div class="left">
+          <div class="sched-label">Next newsletter</div>
+          <div class="sched-value">Tuesday 22 April, 10:00 AEST <em>· 1 post queued for send</em></div>
+        </div>
+        <span class="chip sending"><span class="dot"></span>Scheduled</span>
+      </div>
+
+      <!-- list health stats -->
+      <div class="list-stats">
+        <div class="list-stat">
+          <div class="label">Active subscribers</div>
+          <div class="value">347</div>
+          <div class="note">+41 this month</div>
+        </div>
+        <div class="list-stat">
+          <div class="label">Open rate (avg)</div>
+          <div class="value" style="font-size: 24px;">44%</div>
+          <div class="note" style="color: var(--success);">above industry avg</div>
+        </div>
+        <div class="list-stat">
+          <div class="label">Bounce rate</div>
+          <div class="value" style="font-size: 24px;">1.2%</div>
+          <div class="note">3 hard bounces removed</div>
+        </div>
+        <div class="list-stat">
+          <div class="label">Unsubscribes (30d)</div>
+          <div class="value" style="font-size: 24px;">4</div>
+          <div class="note">1.1% — within range</div>
+        </div>
+      </div>
+
+      <!-- toolbar -->
+      <div class="toolbar">
+        <div class="search">
+          <span style="color:var(--neutral-500)">&#9906;</span>
+          <input placeholder="Search subscribers..." />
+        </div>
+        <div class="spacer"></div>
+        <button class="btn ghost">Export CSV</button>
+        <button class="btn ghost">Embed code</button>
+        <button class="btn primary">Import list</button>
+      </div>
+
+      <!-- subscriber list -->
+      <div style="background: var(--surface-1); border-radius: var(--radius-generous); overflow: hidden; box-shadow: var(--inner-highlight);">
+        <div style="padding: 10px 14px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px; gap: 16px; font-family: 'Righteous'; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--neutral-500); border-bottom: 1px solid rgba(253,245,230,0.05);">
+          <div>Email</div>
+          <div>Source</div>
+          <div>Joined</div>
+          <div>Last open</div>
+          <div>Status</div>
+        </div>
+        <div class="sub-row">
+          <div class="email">sarah.l@meridianstudio.com.au</div>
+          <div class="source">Blog CTA</div>
+          <div class="date">14 APR</div>
+          <div class="date">16 APR</div>
+          <div style="display:flex; align-items:center; gap:8px;"><span class="status-dot active"></span><span style="font-size:12px; color:var(--success);">Active</span></div>
+        </div>
+        <div class="sub-row">
+          <div class="email">tom.k@bowerbird.com.au</div>
+          <div class="source">Outreach reply</div>
+          <div class="date">11 APR</div>
+          <div class="date">14 APR</div>
+          <div style="display:flex; align-items:center; gap:8px;"><span class="status-dot active"></span><span style="font-size:12px; color:var(--success);">Active</span></div>
+        </div>
+        <div class="sub-row">
+          <div class="email">jamie@northarmbuilders.com.au</div>
+          <div class="source">Embed form</div>
+          <div class="date">8 APR</div>
+          <div class="date">9 APR</div>
+          <div style="display:flex; align-items:center; gap:8px;"><span class="status-dot active"></span><span style="font-size:12px; color:var(--success);">Active</span></div>
+        </div>
+        <div class="sub-row">
+          <div class="email">priya.r@fenwickroe.com</div>
+          <div class="source">CSV import</div>
+          <div class="date">3 APR</div>
+          <div class="date">3 APR</div>
+          <div style="display:flex; align-items:center; gap:8px;"><span class="status-dot pending"></span><span style="font-size:12px; color:var(--brand-orange);">Pending</span></div>
+        </div>
+        <div class="sub-row">
+          <div class="email" style="color:var(--neutral-400); text-decoration: line-through; text-decoration-color: rgba(212,210,194,0.2);">old.contact@example.com</div>
+          <div class="source" style="color:var(--neutral-500);">CSV import</div>
+          <div class="date">1 MAR</div>
+          <div class="date" style="color:var(--neutral-600);">never</div>
+          <div style="display:flex; align-items:center; gap:8px;"><span class="status-dot bounced"></span><span style="font-size:12px; color:var(--brand-red);">Bounced</span></div>
+        </div>
+      </div>
+
+      <div class="passive-line">
+        <strong>347 active of 362 total.</strong> 4 unsubscribed, 3 bounced, 8 removed (inactive 90d). List hygiene runs automatically — no override.
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // topic outline expansion
+  const topicOutlines = {
+    0: {
+      sections: [
+        "Why agencies write these articles (and why that should make you suspicious)",
+        "The three questions that actually matter — before the portfolio review",
+        "What 'full service' means when a team has four people",
+        "Retainer vs project: which one protects you more",
+        "Red flags that show up after the first month",
+        "The uncomfortable cost conversation nobody wants to have first"
+      ],
+      words: "~1,600"
+    },
+    1: {
+      sections: [
+        "What your photographer needs from you (and won't ask for)",
+        "The outfit question — answered without a mood board",
+        "Location scouting: your office vs their studio vs somewhere better",
+        "Shot list vs vibes: how to brief without micromanaging",
+        "The 48-hour prep timeline that actually works",
+        "What to do with the photos after (the part everyone skips)"
+      ],
+      words: "~1,400"
+    },
+    2: {
+      sections: [
+        "Why your current posting 'schedule' is a fiction you tell yourself",
+        "The minimum viable calendar: 3 posts/week that don't make you hate Monday",
+        "Content pillars for service businesses (with examples that aren't 'tips and tricks')",
+        "Batching vs real-time: the honest tradeoffs",
+        "Tools that help vs tools that become the procrastination",
+        "The template (free, no email gate, just take it)"
+      ],
+      words: "~2,100"
+    },
+    3: {
+      sections: [
+        "The 'before and after' gallery that nobody tracks",
+        "What professional photography costs — with actual numbers from 2025-2026",
+        "The hidden ROI: what your photos do for two years after the shoot",
+        "Stock photos vs custom: the math that killed your conversion rate",
+        "Case study: $2,400 shoot, $38,000 in attributable revenue over 14 months",
+        "When it doesn't make sense (yes, sometimes)"
+      ],
+      words: "~1,800"
+    },
+    4: {
+      sections: [
+        "What you're actually buying (hint: not 'hours')",
+        "The monthly retainer breakdown: strategy, execution, reporting, iteration",
+        "What gets cut when budget gets tight — the honest priority stack",
+        "Retainer vs project-based: the switch point most businesses get wrong",
+        "What a good month report looks like vs what most agencies send you",
+        "The exit clause nobody reads but should"
+      ],
+      words: "~1,500"
+    }
+  };
+
+  document.querySelectorAll('.topic-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const topicId = row.dataset.topic;
+      const outline = topicOutlines[topicId];
+      if (!outline) return;
+
+      const panel = document.getElementById('topicOutline');
+      const list = document.getElementById('outlineList');
+      const words = document.getElementById('outlineWords');
+
+      list.innerHTML = outline.sections.map(s => `<li>${s}</li>`).join('');
+      words.textContent = outline.words;
+
+      if (panel.classList.contains('visible') && panel.dataset.current === topicId) {
+        panel.classList.remove('visible');
+      } else {
+        panel.classList.add('visible');
+        panel.dataset.current = topicId;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  });
+</script>
+</body>
+</html>

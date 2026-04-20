@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Trial Shoot Proposal — Wyndham Basketball</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Righteous&display=swap');
+
+  @page { size: A4 portrait; margin: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #1A1A18;
+    color: #FDF5E6;
+    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 10pt;
+    line-height: 1.5;
+  }
+
+  /* ─── Cover ─── */
+  .cover {
+    width: 210mm;
+    height: 297mm;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 40mm 36mm;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 55%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(178,40,72,0.08) 0%, rgba(242,140,82,0.04) 100%);
+    clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+  }
+  .cover-mark {
+    position: absolute;
+    top: 32mm;
+    left: 36mm;
+    font-family: "Black Han Sans", "Impact", system-ui, sans-serif;
+    font-size: 18pt;
+    letter-spacing: 0.08em;
+    color: #B22848;
+    text-transform: uppercase;
+  }
+  .cover-tagline {
+    position: absolute;
+    top: 44mm;
+    left: 36mm;
+    font-size: 7.5pt;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #807F73;
+  }
+  .cover-title {
+    font-family: "Black Han Sans", "Impact", system-ui, sans-serif;
+    font-size: 42pt;
+    line-height: 1.0;
+    color: #FDF5E6;
+    letter-spacing: 0.02em;
+    margin-bottom: 8pt;
+    position: relative;
+  }
+  .cover-subtitle {
+    font-family: "Righteous", system-ui, sans-serif;
+    font-size: 13pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #F4A0B0;
+    margin-bottom: 28pt;
+  }
+  .cover-details {
+    display: flex;
+    gap: 28pt;
+    position: relative;
+  }
+  .cover-detail {
+    display: flex;
+    flex-direction: column;
+  }
+  .cover-detail-label {
+    font-size: 7pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #807F73;
+    margin-bottom: 3pt;
+  }
+  .cover-detail-value {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #FDF5E6;
+  }
+  .cover-pullquote {
+    position: absolute;
+    bottom: 32mm;
+    right: 36mm;
+    max-width: 200pt;
+    text-align: right;
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 11pt;
+    line-height: 1.45;
+    color: #807F73;
+  }
+
+  /* ─── Content pages ─── */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 28mm 36mm 32mm;
+    page-break-after: always;
+    position: relative;
+  }
+  .page-mark {
+    position: absolute;
+    top: 16mm;
+    left: 36mm;
+    font-family: "Black Han Sans", "Impact", system-ui, sans-serif;
+    font-size: 9pt;
+    letter-spacing: 0.08em;
+    color: #B22848;
+    text-transform: uppercase;
+  }
+
+  .section-label {
+    font-family: "Righteous", system-ui, sans-serif;
+    font-size: 8pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #F28C52;
+    margin-bottom: 8pt;
+  }
+  .section-title {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #FDF5E6;
+    margin-bottom: 6pt;
+    line-height: 1.2;
+  }
+  .section-intro {
+    font-size: 10.5pt;
+    color: #D4D2C2;
+    line-height: 1.6;
+    margin-bottom: 24pt;
+    max-width: 420pt;
+  }
+
+  /* ─── Package cards ─── */
+  .packages {
+    display: flex;
+    gap: 16pt;
+    margin-top: 8pt;
+  }
+  .package {
+    flex: 1;
+    border: 1pt solid #332F2A;
+    border-radius: 6pt;
+    padding: 22pt 20pt;
+    position: relative;
+    background: #252320;
+  }
+  .package.featured {
+    border-color: #B22848;
+    background: linear-gradient(180deg, #252320 0%, rgba(178,40,72,0.06) 100%);
+  }
+  .package-badge {
+    position: absolute;
+    top: -8pt;
+    right: 16pt;
+    background: #B22848;
+    color: #FDF5E6;
+    font-family: "Righteous", system-ui, sans-serif;
+    font-size: 6.5pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3pt 10pt;
+    border-radius: 3pt;
+  }
+  .package-name {
+    font-family: "Righteous", system-ui, sans-serif;
+    font-size: 11pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #FDF5E6;
+    margin-bottom: 4pt;
+  }
+  .package-price {
+    font-family: "Black Han Sans", "Impact", system-ui, sans-serif;
+    font-size: 28pt;
+    color: #FDF5E6;
+    line-height: 1.1;
+    margin-bottom: 2pt;
+  }
+  .package-price-note {
+    font-size: 8pt;
+    color: #807F73;
+    margin-bottom: 16pt;
+  }
+  .package-divider {
+    border: none;
+    border-top: 1pt solid #332F2A;
+    margin-bottom: 14pt;
+  }
+  .package.featured .package-divider {
+    border-top-color: rgba(178,40,72,0.25);
+  }
+  .package-items {
+    list-style: none;
+  }
+  .package-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8pt;
+    margin-bottom: 10pt;
+    font-size: 10pt;
+    color: #D4D2C2;
+    line-height: 1.4;
+  }
+  .package-item-icon {
+    flex-shrink: 0;
+    width: 16pt;
+    height: 16pt;
+    border-radius: 50%;
+    background: rgba(178,40,72,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1pt;
+  }
+  .package.featured .package-item-icon {
+    background: rgba(178,40,72,0.25);
+  }
+  .package-item-icon svg {
+    width: 9pt;
+    height: 9pt;
+  }
+  .package-item strong {
+    color: #FDF5E6;
+    font-weight: 600;
+  }
+
+  /* ─── How it works ─── */
+  .steps {
+    margin-top: 28pt;
+  }
+  .step {
+    display: flex;
+    gap: 14pt;
+    margin-bottom: 18pt;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 26pt;
+    height: 26pt;
+    border-radius: 50%;
+    background: #332F2A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Righteous", system-ui, sans-serif;
+    font-size: 11pt;
+    color: #F28C52;
+    margin-top: 1pt;
+  }
+  .step-content {
+    flex: 1;
+  }
+  .step-title {
+    font-weight: 700;
+    font-size: 11pt;
+    color: #FDF5E6;
+    margin-bottom: 2pt;
+  }
+  .step-desc {
+    font-size: 9.5pt;
+    color: #807F73;
+    line-height: 1.5;
+  }
+
+  /* ─── Payment page ─── */
+  .payment-box {
+    background: #252320;
+    border: 1pt solid #332F2A;
+    border-radius: 6pt;
+    padding: 22pt 24pt;
+    margin-top: 8pt;
+    margin-bottom: 24pt;
+  }
+  .payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 7pt 0;
+    border-bottom: 1pt solid #332F2A;
+  }
+  .payment-row:last-child {
+    border-bottom: none;
+  }
+  .payment-label {
+    font-size: 9pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #807F73;
+  }
+  .payment-value {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #FDF5E6;
+    text-align: right;
+  }
+
+  .note-box {
+    background: rgba(178,40,72,0.06);
+    border-left: 2pt solid #B22848;
+    padding: 14pt 16pt;
+    margin-top: 20pt;
+    margin-bottom: 20pt;
+    border-radius: 0 4pt 4pt 0;
+  }
+  .note-box p {
+    font-size: 9.5pt;
+    color: #D4D2C2;
+    line-height: 1.55;
+  }
+  .note-box strong {
+    color: #FDF5E6;
+  }
+
+  /* ─── Closing page ─── */
+  .closing {
+    width: 210mm;
+    height: 297mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    page-break-before: always;
+  }
+  .closing-line {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-size: 18pt;
+    color: #FDF5E6;
+    line-height: 1.4;
+    max-width: 340pt;
+    margin-bottom: 28pt;
+  }
+  .closing-mark {
+    font-family: "Black Han Sans", "Impact", system-ui, sans-serif;
+    font-size: 14pt;
+    letter-spacing: 0.08em;
+    color: #B22848;
+    text-transform: uppercase;
+    margin-bottom: 8pt;
+  }
+  .closing-contact {
+    font-size: 9pt;
+    color: #807F73;
+  }
+  .closing-contact a {
+    color: #F4A0B0;
+    text-decoration: none;
+  }
+
+  /* ─── Tick SVG ─── */
+  .tick { fill: #B22848; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ COVER ═══════════════════ -->
+<div class="cover">
+  <div class="cover-mark">SUPERBAD</div>
+  <div class="cover-tagline">SuperBad Marketing &middot; Melbourne</div>
+
+  <div class="cover-title">WYNDHAM<br/>BASKETBALL</div>
+  <div class="cover-subtitle">Senior Women's &mdash; Game Day Shoot</div>
+
+  <div class="cover-details">
+    <div class="cover-detail">
+      <span class="cover-detail-label">Date</span>
+      <span class="cover-detail-value">Sunday 10 May 2026</span>
+    </div>
+    <div class="cover-detail">
+      <span class="cover-detail-label">Time</span>
+      <span class="cover-detail-value">1:30 PM</span>
+    </div>
+    <div class="cover-detail">
+      <span class="cover-detail-label">Venue</span>
+      <span class="cover-detail-value">Eagle Stadium</span>
+    </div>
+    <div class="cover-detail">
+      <span class="cover-detail-label">Prepared For</span>
+      <span class="cover-detail-value">Shernecia Martin</span>
+    </div>
+  </div>
+
+  <div class="cover-pullquote">
+    Your team already plays with intensity.<br/>
+    Now the rest of the world gets to see it.
+  </div>
+</div>
+
+<!-- ═══════════════════ PACKAGES ═══════════════════ -->
+<div class="page">
+  <div class="page-mark">SUPERBAD</div>
+
+  <div class="section-label">What You Get</div>
+  <div class="section-title">Game Day Coverage</div>
+  <div class="section-intro">
+    Full-game coverage from tip-off to final buzzer. No clock-watching, no rush — just the whole story of the game, captured properly.
+  </div>
+
+  <div class="packages">
+    <!-- Standard -->
+    <div class="package">
+      <div class="package-name">Standard</div>
+      <div class="package-price">$297</div>
+      <div class="package-price-note">Inc. GST &middot; One-off</div>
+      <hr class="package-divider" />
+      <ul class="package-items">
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>10–15 edited photos</strong><br/>High-res, colour-graded game stills</span>
+        </li>
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>1 &times; video highlight</strong><br/>Up to 60 seconds, edited with music</span>
+        </li>
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>Full-game coverage</strong><br/>Every quarter, start to finish</span>
+        </li>
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>~7 day turnaround</strong><br/>Delivered via private online gallery</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Premium -->
+    <div class="package featured">
+      <div class="package-badge">Recommended</div>
+      <div class="package-name">Premium</div>
+      <div class="package-price">$497</div>
+      <div class="package-price-note">Inc. GST &middot; One-off</div>
+      <hr class="package-divider" />
+      <ul class="package-items">
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>20–25 edited photos</strong><br/>High-res, colour-graded game stills</span>
+        </li>
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>1 &times; hero video</strong><br/>60–90 seconds, full game highlight reel</span>
+        </li>
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>1 &times; short-form clip</strong><br/>Under 30 seconds — ready for reels &amp; stories</span>
+        </li>
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>Full-game coverage</strong><br/>Every quarter, start to finish</span>
+        </li>
+        <li class="package-item">
+          <span class="package-item-icon"><svg viewBox="0 0 12 12"><path class="tick" d="M10 3L4.5 8.5 2 6" fill="none" stroke="#B22848" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong>~7 day turnaround</strong><br/>Delivered via private online gallery</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ HOW IT WORKS + PAYMENT ═══════════════════ -->
+<div class="page">
+  <div class="page-mark">SUPERBAD</div>
+
+  <div class="section-label">How It Works</div>
+  <div class="section-title">From Booking to Delivery</div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Pick your package</div>
+        <div class="step-desc">Choose Standard or Premium — both include full-game coverage.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Lock in the date</div>
+        <div class="step-desc">Transfer payment to confirm your booking for Sunday 10 May.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Game day</div>
+        <div class="step-desc">I'll be there from warm-up, covering the full game. Your team just plays.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Delivery</div>
+        <div class="step-desc">Edited photos and video delivered to a private online gallery within ~7 days.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 32pt;">
+    <div class="section-label">Payment Details</div>
+    <div class="section-title" style="font-size: 16pt; margin-bottom: 4pt;">Bank Transfer</div>
+  </div>
+
+  <div class="payment-box">
+    <div class="payment-row">
+      <span class="payment-label">Account Name</span>
+      <span class="payment-value">SuperBad Media PTY Ltd</span>
+    </div>
+    <div class="payment-row">
+      <span class="payment-label">BSB</span>
+      <span class="payment-value">013 711</span>
+    </div>
+    <div class="payment-row">
+      <span class="payment-label">Account Number</span>
+      <span class="payment-value">176 203 557</span>
+    </div>
+    <div class="payment-row">
+      <span class="payment-label">Reference</span>
+      <span class="payment-value">WYNDHAM-SHOOT</span>
+    </div>
+    <div class="payment-row">
+      <span class="payment-label">Amount</span>
+      <span class="payment-value">$297 (Standard) &nbsp;/&nbsp; $497 (Premium)</span>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <p><strong>Payment is required to lock in the shoot date.</strong> Once payment is received, your booking for Sunday 10 May is confirmed. Please include the reference <strong>WYNDHAM-SHOOT</strong> with your transfer.</p>
+  </div>
+
+  <div style="margin-top: 16pt; font-size: 9pt; color: #807F73; line-height: 1.6;">
+    <strong style="color: #D4D2C2;">Usage rights:</strong> All delivered content is yours to use across your club's social media, website, and promotional materials. Credit appreciated but not required.
+  </div>
+</div>
+
+<!-- ═══════════════════ CLOSING ═══════════════════ -->
+<div class="closing">
+  <div class="closing-line">
+    Good teams deserve<br/>to look as good as they play.
+  </div>
+  <div class="closing-mark">SUPERBAD</div>
+  <div class="closing-contact">
+    Andy Robinson &middot; <a href="mailto:andy@superbadmedia.com.au">andy@superbadmedia.com.au</a>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad Lite — Ads Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red:      #B22848;
+    --brand-cream:    #FDF5E6;
+    --brand-pink:     #F4A0B0;
+    --brand-orange:   #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-950: #0F0F0E;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-400: #A8A596;
+    --neutral-300: #D4D2C2;
+    --neutral-100: #FDF5E6;
+    --success: #7BAE7E;
+    --warn:    #E4B062;
+    --surface-0: var(--neutral-900);
+    --surface-1: var(--neutral-800);
+    --surface-2: var(--neutral-700);
+    --radius-default: 8px;
+    --radius-generous: 16px;
+    --inner-highlight: inset 0 1px 0 rgba(253, 245, 230, 0.04);
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--surface-0);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 70% 10%, rgba(242, 140, 82, 0.06), transparent 55%),
+                radial-gradient(ellipse at 0% 100%, rgba(178, 40, 72, 0.045), transparent 60%);
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+  .app.detail-open {
+    grid-template-columns: 240px 1fr 400px;
+  }
+
+  /* ---------- sidebar ---------- */
+  aside.nav {
+    background: var(--surface-1);
+    padding: 24px 16px;
+    box-shadow: var(--inner-highlight), 1px 0 0 rgba(253, 245, 230, 0.025);
+    display: flex; flex-direction: column; gap: 24px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 26px; color: var(--brand-cream);
+    padding: 4px 8px;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .logo .lite {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px; color: var(--brand-pink);
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid rgba(244, 160, 176, 0.25);
+    border-radius: 4px;
+    align-self: center;
+  }
+  .nav-section .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.6px; color: var(--neutral-500);
+    text-transform: uppercase; padding: 12px 12px 8px;
+  }
+  .nav-section ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .nav-section a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 6px;
+    color: var(--neutral-300); text-decoration: none;
+    font-size: 14px;
+    transition: background 160ms var(--spring), color 160ms var(--spring);
+  }
+  .nav-section a:hover { background: rgba(253, 245, 230, 0.04); color: var(--brand-cream); }
+  .nav-section a.active { background: rgba(178, 40, 72, 0.12); color: var(--brand-cream); }
+  .nav-section a .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neutral-500); }
+  .nav-section a.active .dot { background: var(--brand-red); }
+  .nav-section a .count {
+    margin-left: auto; font-size: 11px;
+    padding: 1px 6px; border-radius: 999px;
+    background: rgba(253, 245, 230, 0.06); color: var(--neutral-300);
+  }
+  .nav-footer {
+    margin-top: auto; padding: 12px;
+    font-family: "DM Sans"; font-style: italic;
+    color: var(--brand-pink); font-size: 12px; opacity: 0.7;
+    line-height: 1.5;
+  }
+
+  /* ---------- main ---------- */
+  main {
+    padding: 32px 40px 80px;
+    display: flex; flex-direction: column; gap: 28px;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .page-header h1 {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 36px; color: var(--brand-cream);
+    line-height: 1; letter-spacing: -0.3px;
+  }
+  .page-header .subtitle {
+    font-size: 13px; color: var(--neutral-500);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .btn-primary {
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none; border-radius: 8px;
+    padding: 10px 20px;
+    font-family: "Righteous", sans-serif;
+    font-size: 13px; letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 200ms var(--spring), background 200ms var(--spring), box-shadow 200ms var(--spring);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    background: #C93058;
+    box-shadow: 0 4px 16px rgba(178, 40, 72, 0.3);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ---------- KPI strip ---------- */
+  .kpi-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .kpi {
+    background: var(--surface-1);
+    border-radius: var(--radius-generous);
+    padding: 20px;
+    box-shadow: var(--inner-highlight);
+    transition: transform 200ms var(--spring);
+  }
+  .kpi:hover { transform: translateY(-2px); }
+  .kpi .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--neutral-500);
+    margin-bottom: 8px;
+  }
+  .kpi .value {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 28px; color: var(--brand-cream);
+    line-height: 1;
+  }
+  .kpi .delta {
+    font-size: 11px; margin-top: 6px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .kpi .delta.up { color: var(--success); }
+  .kpi .delta.down { color: var(--brand-red); }
+  .kpi .delta.flat { color: var(--neutral-500); }
+  .kpi .sparkline {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 28px; margin-top: 10px;
+  }
+  .kpi .sparkline .bar {
+    flex: 1; border-radius: 2px;
+    background: rgba(178, 40, 72, 0.25);
+    transition: height 600ms var(--spring);
+  }
+  .kpi .sparkline .bar:last-child { background: var(--brand-red); }
+
+  /* ---------- flywheel ---------- */
+  .flywheel-strip {
+    background: var(--surface-1);
+    border-radius: var(--radius-generous);
+    padding: 20px 28px;
+    box-shadow: var(--inner-highlight);
+    display: flex; align-items: center; gap: 0;
+  }
+  .flywheel-step {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center;
+    position: relative;
+  }
+  .flywheel-step .icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: transform 300ms var(--spring), box-shadow 300ms var(--spring);
+  }
+  .flywheel-step:hover .icon {
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgba(178, 40, 72, 0.2);
+  }
+  .flywheel-step .icon.s1 { background: rgba(242, 140, 82, 0.15); }
+  .flywheel-step .icon.s2 { background: rgba(244, 160, 176, 0.15); }
+  .flywheel-step .icon.s3 { background: rgba(178, 40, 72, 0.15); }
+  .flywheel-step .icon.s4 { background: rgba(123, 174, 126, 0.15); }
+  .flywheel-step .step-label {
+    font-size: 11px; color: var(--brand-cream);
+    font-weight: 500;
+  }
+  .flywheel-step .step-count {
+    font-size: 10px; color: var(--neutral-500);
+    font-family: "Righteous"; letter-spacing: 1px;
+  }
+  .flywheel-arrow {
+    color: var(--neutral-600); font-size: 18px;
+    padding: 0 8px;
+    margin-top: -16px;
+  }
+
+  /* ---------- tab filters ---------- */
+  .tab-bar {
+    display: flex; gap: 4px;
+    padding: 4px;
+    background: var(--surface-1);
+    border-radius: 10px;
+    width: fit-content;
+  }
+  .tab {
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    color: var(--neutral-400);
+    cursor: pointer;
+    transition: all 200ms var(--spring);
+    border: none; background: transparent;
+    font-family: "DM Sans", sans-serif;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tab:hover { color: var(--brand-cream); background: rgba(253, 245, 230, 0.04); }
+  .tab.active {
+    background: var(--surface-2);
+    color: var(--brand-cream);
+    box-shadow: var(--inner-highlight);
+  }
+  .tab .badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 99px;
+    background: rgba(253, 245, 230, 0.06);
+    font-family: "Righteous"; letter-spacing: 0.5px;
+  }
+  .tab.active .badge { background: rgba(178, 40, 72, 0.2); color: var(--brand-pink); }
+
+  /* ---------- campaign list ---------- */
+  .campaign-list {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .campaign-row {
+    display: grid;
+    grid-template-columns: 36px 2fr 1.2fr 0.8fr 0.8fr 0.6fr 0.6fr 0.7fr 36px;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--surface-1);
+    border-radius: 10px;
+    box-shadow: var(--inner-highlight);
+    cursor: pointer;
+    transition: transform 200ms var(--spring), background 200ms var(--spring), border-color 200ms var(--spring);
+    border: 1px solid transparent;
+  }
+  .campaign-row:hover {
+    transform: translateY(-1px);
+    border-color: rgba(253, 245, 230, 0.06);
+    background: var(--surface-2);
+  }
+  .campaign-row.selected {
+    border-color: rgba(178, 40, 72, 0.3);
+    background: rgba(178, 40, 72, 0.06);
+  }
+  .campaign-row .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    justify-self: center;
+  }
+  .campaign-row .status-dot.active { background: var(--success); box-shadow: 0 0 6px rgba(123,174,126,0.3); }
+  .campaign-row .status-dot.paused { background: var(--warn); }
+  .campaign-row .status-dot.ended { background: var(--neutral-500); }
+  .campaign-row .name-cell {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .campaign-row .name-cell .name { color: var(--brand-cream); font-weight: 500; font-size: 14px; }
+  .campaign-row .name-cell .client { color: var(--brand-pink); font-size: 11px; font-style: italic; }
+  .campaign-row .platform-badges { display: flex; gap: 4px; }
+  .platform-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 4px;
+    font-family: "Righteous"; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .platform-badge.meta { background: rgba(66, 103, 178, 0.15); color: #8B9FD4; }
+  .platform-badge.google { background: rgba(66, 133, 244, 0.15); color: #7CB5F9; }
+  .campaign-row .metric {
+    font-size: 13px; color: var(--neutral-300);
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .campaign-row .metric .val { color: var(--brand-cream); font-weight: 500; }
+  .campaign-row .metric .lbl {
+    font-size: 9px; color: var(--neutral-500);
+    font-family: "Righteous"; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .campaign-row .roas {
+    font-family: "Black Han Sans"; font-size: 16px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .campaign-row .roas .val { color: var(--success); }
+  .campaign-row .roas .lbl {
+    font-size: 9px; color: var(--neutral-500);
+    font-family: "Righteous"; letter-spacing: 1px;
+  }
+  .campaign-row .toggle-btn {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: 1px solid rgba(253,245,230,0.08);
+    background: transparent; color: var(--neutral-500);
+    cursor: pointer; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 200ms var(--spring);
+  }
+  .campaign-row .toggle-btn:hover { background: rgba(253,245,230,0.06); color: var(--brand-cream); }
+
+  .list-header {
+    display: grid;
+    grid-template-columns: 36px 2fr 1.2fr 0.8fr 0.8fr 0.6fr 0.6fr 0.7fr 36px;
+    gap: 12px;
+    padding: 8px 18px;
+    font-size: 9px;
+    font-family: "Righteous"; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--neutral-500);
+  }
+
+  /* ---------- detail panel ---------- */
+  .detail-panel {
+    background: var(--surface-1);
+    border-left: 1px solid rgba(253, 245, 230, 0.04);
+    padding: 32px 28px;
+    display: flex; flex-direction: column; gap: 24px;
+    overflow-y: auto;
+    position: sticky; top: 0; height: 100vh;
+    transform: translateX(100%);
+    transition: transform 400ms var(--spring);
+  }
+  .detail-open .detail-panel { transform: translateX(0); }
+
+  .detail-panel .detail-header {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .detail-panel .detail-title {
+    font-family: "Black Han Sans"; font-size: 22px; color: var(--brand-cream);
+    line-height: 1.1;
+  }
+  .detail-panel .detail-client {
+    font-size: 13px; color: var(--brand-pink); font-style: italic;
+  }
+  .detail-panel .detail-status {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px;
+  }
+  .detail-panel .detail-status .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .detail-panel .close-btn {
+    position: absolute; top: 16px; right: 16px;
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid rgba(253,245,230,0.08);
+    background: transparent; color: var(--neutral-400);
+    cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 200ms var(--spring);
+  }
+  .detail-panel .close-btn:hover { background: rgba(253,245,230,0.06); color: var(--brand-cream); }
+
+  /* detail sections */
+  .detail-section {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .detail-section h4 {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--neutral-500);
+  }
+
+  .detail-metrics {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .detail-metric-card {
+    background: var(--surface-2);
+    border-radius: 8px; padding: 12px;
+  }
+  .detail-metric-card .dm-label { font-size: 10px; color: var(--neutral-500); font-family: "Righteous"; letter-spacing: 1px; text-transform: uppercase; }
+  .detail-metric-card .dm-value { font-size: 18px; color: var(--brand-cream); font-family: "Black Han Sans"; margin-top: 4px; }
+  .detail-metric-card .dm-sub { font-size: 10px; color: var(--neutral-500); margin-top: 2px; }
+
+  /* chart placeholder */
+  .chart-area {
+    background: var(--surface-2);
+    border-radius: 10px;
+    height: 140px;
+    padding: 16px;
+    display: flex; align-items: flex-end; gap: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-area::before {
+    content: "SPEND VS ROAS — 30D";
+    position: absolute; top: 10px; left: 16px;
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .chart-bar {
+    flex: 1; border-radius: 3px 3px 0 0;
+    position: relative;
+    transition: height 600ms var(--spring);
+  }
+  .chart-bar .spend { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 3px 3px 0 0; background: rgba(178, 40, 72, 0.3); }
+  .chart-bar .roas-line {
+    position: absolute; left: 0; right: 0; height: 3px; border-radius: 2px;
+    background: var(--success);
+    transition: bottom 600ms var(--spring);
+  }
+
+  /* creatives */
+  .creatives-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .creative-card {
+    border-radius: 8px;
+    height: 100px;
+    display: flex; align-items: flex-end;
+    padding: 8px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 200ms var(--spring);
+  }
+  .creative-card:hover { transform: scale(1.03); }
+  .creative-card .creative-label {
+    font-size: 9px; color: white;
+    font-family: "Righteous"; letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 4px;
+    backdrop-filter: blur(4px);
+  }
+  .creative-card .creative-perf {
+    position: absolute; top: 6px; right: 6px;
+    font-size: 9px; color: var(--success);
+    background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
+    font-family: "Righteous"; letter-spacing: 0.5px;
+  }
+  .cc1 { background: linear-gradient(135deg, #2C1810, #8B3A1A, #D4622A); }
+  .cc2 { background: linear-gradient(135deg, #1A1A2E, #16213E, #0F3460); }
+  .cc3 { background: linear-gradient(135deg, #1A0520, #3D0F3D, #7B2D8E); }
+  .cc4 { background: linear-gradient(135deg, #0D1B0E, #1B3D1E, #2D6B30); }
+
+  /* rationale */
+  .rationale-card {
+    background: var(--surface-2);
+    border-radius: 10px; padding: 16px;
+    border-left: 3px solid var(--brand-orange);
+  }
+  .rationale-card .rationale-title {
+    font-size: 13px; color: var(--brand-cream); font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .rationale-card p {
+    font-size: 12px; color: var(--neutral-400);
+    line-height: 1.6;
+  }
+  .rationale-card .updated {
+    font-size: 10px; color: var(--neutral-500); font-style: italic;
+    margin-top: 8px;
+  }
+
+  /* audience */
+  .audience-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .audience-tag {
+    font-size: 11px; padding: 4px 10px; border-radius: 6px;
+    background: rgba(253, 245, 230, 0.04);
+    color: var(--neutral-300);
+    border: 1px solid rgba(253,245,230,0.06);
+  }
+
+  /* budget bar */
+  .budget-bar-container {
+    background: var(--surface-2);
+    border-radius: 10px; padding: 14px;
+  }
+  .budget-bar-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .budget-bar-header .spent { font-size: 14px; color: var(--brand-cream); font-weight: 500; }
+  .budget-bar-header .total { font-size: 12px; color: var(--neutral-500); }
+  .budget-track {
+    height: 6px; background: rgba(253,245,230,0.06); border-radius: 3px;
+    overflow: hidden;
+  }
+  .budget-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--brand-red), var(--brand-orange));
+    transition: width 800ms var(--spring);
+  }
+  .budget-meta {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--neutral-500); margin-top: 6px;
+  }
+
+  /* ---------- empty / utility ---------- */
+  .mutter {
+    font-size: 12px; color: var(--brand-pink); font-style: italic;
+    opacity: 0.7; padding: 8px 0;
+  }
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="nav">
+    <div class="logo">SuperBad<span class="lite">Lite</span></div>
+
+    <div class="nav-section">
+      <div class="eyebrow">Today</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Cockpit<span class="count">11</span></a></li>
+        <li><a href="#"><span class="dot"></span>Inbox<span class="count">4</span></a></li>
+        <li><a href="#"><span class="dot"></span>Approvals<span class="count">7</span></a></li>
+      </ul>
+    </div>
+
+    <div class="nav-section">
+      <div class="eyebrow">Clients</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Pipeline</a></li>
+        <li><a href="#"><span class="dot"></span>Clients</a></li>
+        <li><a href="#"><span class="dot"></span>Quotes</a></li>
+        <li><a href="#"><span class="dot"></span>Invoices</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-section">
+      <div class="eyebrow">Growth</div>
+      <ul>
+        <li><a href="#"><span class="dot"></span>Outreach</a></li>
+        <li><a href="#"><span class="dot"></span>Content</a></li>
+        <li><a href="#" class="active"><span class="dot"></span>Campaigns<span class="count">6</span></a></li>
+        <li><a href="#"><span class="dot"></span>Products</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-footer">
+      bowerbird's retarget audience is up 23% this week. the flywheel's turning.
+    </div>
+  </aside>
+
+  <main>
+    <div class="page-header">
+      <div>
+        <h1>Campaigns</h1>
+        <div class="subtitle">in-platform ad management — ROAS on revenue, not vanity</div>
+      </div>
+      <button class="btn-primary" onclick="alert('Campaign creation wizard — step-by-step, never raw forms.')">+ New Campaign</button>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-strip">
+      <div class="kpi">
+        <div class="label">Monthly spend</div>
+        <div class="value">$14,280</div>
+        <div class="delta up">&#9650; 12% vs last month</div>
+        <div class="sparkline">
+          <div class="bar" style="height:40%"></div>
+          <div class="bar" style="height:55%"></div>
+          <div class="bar" style="height:48%"></div>
+          <div class="bar" style="height:62%"></div>
+          <div class="bar" style="height:58%"></div>
+          <div class="bar" style="height:70%"></div>
+          <div class="bar" style="height:78%"></div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">Leads generated</div>
+        <div class="value">47</div>
+        <div class="delta up">&#9650; 8 vs last month</div>
+        <div class="sparkline">
+          <div class="bar" style="height:35%"></div>
+          <div class="bar" style="height:42%"></div>
+          <div class="bar" style="height:50%"></div>
+          <div class="bar" style="height:45%"></div>
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:65%"></div>
+          <div class="bar" style="height:72%"></div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">Revenue ROAS</div>
+        <div class="value">4.2x</div>
+        <div class="delta up">&#9650; 0.3x improvement</div>
+        <div class="sparkline">
+          <div class="bar" style="height:55%"></div>
+          <div class="bar" style="height:50%"></div>
+          <div class="bar" style="height:58%"></div>
+          <div class="bar" style="height:52%"></div>
+          <div class="bar" style="height:62%"></div>
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:68%"></div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">Active campaigns</div>
+        <div class="value">5</div>
+        <div class="delta flat">&#8212; 1 paused</div>
+        <div class="sparkline">
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:60%"></div>
+          <div class="bar" style="height:75%"></div>
+          <div class="bar" style="height:75%"></div>
+          <div class="bar" style="height:75%"></div>
+          <div class="bar" style="height:75%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- flywheel -->
+    <div class="flywheel-strip">
+      <div class="flywheel-step">
+        <div class="icon s1">&#127916;</div>
+        <div class="step-label">Entertainment anchor</div>
+        <div class="step-count">12 assets live</div>
+      </div>
+      <div class="flywheel-arrow">&#8594;</div>
+      <div class="flywheel-step">
+        <div class="icon s2">&#9986;</div>
+        <div class="step-label">Snippet distribution</div>
+        <div class="step-count">38 snippets this month</div>
+      </div>
+      <div class="flywheel-arrow">&#8594;</div>
+      <div class="flywheel-step">
+        <div class="icon s3">&#127919;</div>
+        <div class="step-label">Retarget + lookalike</div>
+        <div class="step-count">4 audiences active</div>
+      </div>
+      <div class="flywheel-arrow">&#8594;</div>
+      <div class="flywheel-step">
+        <div class="icon s4">&#9989;</div>
+        <div class="step-label">Conversion layer</div>
+        <div class="step-count">47 leads this month</div>
+      </div>
+    </div>
+
+    <!-- tab filters -->
+    <div class="tab-bar" id="tabBar">
+      <button class="tab active" data-filter="all">All<span class="badge">6</span></button>
+      <button class="tab" data-filter="meta">Meta<span class="badge">4</span></button>
+      <button class="tab" data-filter="google">Google<span class="badge">3</span></button>
+      <button class="tab" data-filter="own">Own<span class="badge">2</span></button>
+      <button class="tab" data-filter="client">Client<span class="badge">4</span></button>
+    </div>
+
+    <!-- list header -->
+    <div class="list-header">
+      <span></span>
+      <span>Campaign</span>
+      <span>Platform</span>
+      <span>Budget</span>
+      <span>Spend</span>
+      <span>Leads</span>
+      <span>CPA</span>
+      <span>ROAS</span>
+      <span></span>
+    </div>
+
+    <!-- campaign list -->
+    <div class="campaign-list" id="campaignList">
+
+      <div class="campaign-row" data-id="1" data-platform="meta" data-owner="client" onclick="selectCampaign(this)">
+        <span class="status-dot active"></span>
+        <div class="name-cell"><div class="name">Melbourne Aesthetics — Brand Awareness</div><div class="client">Mercer Advisory</div></div>
+        <div class="platform-badges"><span class="platform-badge meta">Meta</span></div>
+        <div class="metric"><span class="val">$2,400</span><span class="lbl">Budget</span></div>
+        <div class="metric"><span class="val">$1,880</span><span class="lbl">Spend</span></div>
+        <div class="metric"><span class="val">8</span><span class="lbl">Leads</span></div>
+        <div class="metric"><span class="val">$235</span><span class="lbl">CPA</span></div>
+        <div class="roas"><span class="val">5.1x</span><span class="lbl">ROAS</span></div>
+        <button class="toggle-btn" title="Pause" onclick="event.stopPropagation()">&#10074;&#10074;</button>
+      </div>
+
+      <div class="campaign-row" data-id="2" data-platform="meta google" data-owner="client" onclick="selectCampaign(this)">
+        <span class="status-dot active"></span>
+        <div class="name-cell"><div class="name">Bowerbird Spring Launch</div><div class="client">Bowerbird Projects</div></div>
+        <div class="platform-badges"><span class="platform-badge meta">Meta</span><span class="platform-badge google">Google</span></div>
+        <div class="metric"><span class="val">$4,500</span><span class="lbl">Budget</span></div>
+        <div class="metric"><span class="val">$3,240</span><span class="lbl">Spend</span></div>
+        <div class="metric"><span class="val">14</span><span class="lbl">Leads</span></div>
+        <div class="metric"><span class="val">$231</span><span class="lbl">CPA</span></div>
+        <div class="roas"><span class="val">4.8x</span><span class="lbl">ROAS</span></div>
+        <button class="toggle-btn" title="Pause" onclick="event.stopPropagation()">&#10074;&#10074;</button>
+      </div>
+
+      <div class="campaign-row" data-id="3" data-platform="meta" data-owner="own" onclick="selectCampaign(this)">
+        <span class="status-dot active"></span>
+        <div class="name-cell"><div class="name">Portfolio Showcase — Q2 Push</div><div class="client">SuperBad</div></div>
+        <div class="platform-badges"><span class="platform-badge meta">Meta</span></div>
+        <div class="metric"><span class="val">$1,200</span><span class="lbl">Budget</span></div>
+        <div class="metric"><span class="val">$980</span><span class="lbl">Spend</span></div>
+        <div class="metric"><span class="val">6</span><span class="lbl">Leads</span></div>
+        <div class="metric"><span class="val">$163</span><span class="lbl">CPA</span></div>
+        <div class="roas"><span class="val">3.2x</span><span class="lbl">ROAS</span></div>
+        <button class="toggle-btn" title="Pause" onclick="event.stopPropagation()">&#10074;&#10074;</button>
+      </div>
+
+      <div class="campaign-row" data-id="4" data-platform="google" data-owner="client" onclick="selectCampaign(this)">
+        <span class="status-dot paused"></span>
+        <div class="name-cell"><div class="name">Allied Health Retarget</div><div class="client">Fenwick &amp; Roe</div></div>
+        <div class="platform-badges"><span class="platform-badge google">Google</span></div>
+        <div class="metric"><span class="val">$1,800</span><span class="lbl">Budget</span></div>
+        <div class="metric"><span class="val">$420</span><span class="lbl">Spend</span></div>
+        <div class="metric"><span class="val">3</span><span class="lbl">Leads</span></div>
+        <div class="metric"><span class="val">$140</span><span class="lbl">CPA</span></div>
+        <div class="roas"><span class="val">6.2x</span><span class="lbl">ROAS</span></div>
+        <button class="toggle-btn" title="Resume" onclick="event.stopPropagation()">&#9654;</button>
+      </div>
+
+      <div class="campaign-row" data-id="5" data-platform="google" data-owner="own" onclick="selectCampaign(this)">
+        <span class="status-dot active"></span>
+        <div class="name-cell"><div class="name">SaaS Product Awareness — Global</div><div class="client">SuperBad</div></div>
+        <div class="platform-badges"><span class="platform-badge google">Google</span></div>
+        <div class="metric"><span class="val">$2,000</span><span class="lbl">Budget</span></div>
+        <div class="metric"><span class="val">$1,640</span><span class="lbl">Spend</span></div>
+        <div class="metric"><span class="val">11</span><span class="lbl">Leads</span></div>
+        <div class="metric"><span class="val">$149</span><span class="lbl">CPA</span></div>
+        <div class="roas"><span class="val">2.8x</span><span class="lbl">ROAS</span></div>
+        <button class="toggle-btn" title="Pause" onclick="event.stopPropagation()">&#10074;&#10074;</button>
+      </div>
+
+      <div class="campaign-row" data-id="6" data-platform="meta" data-owner="client" onclick="selectCampaign(this)">
+        <span class="status-dot active"></span>
+        <div class="name-cell"><div class="name">North Arm — Brand Story Series</div><div class="client">North Arm Builders</div></div>
+        <div class="platform-badges"><span class="platform-badge meta">Meta</span></div>
+        <div class="metric"><span class="val">$3,200</span><span class="lbl">Budget</span></div>
+        <div class="metric"><span class="val">$2,870</span><span class="lbl">Spend</span></div>
+        <div class="metric"><span class="val">9</span><span class="lbl">Leads</span></div>
+        <div class="metric"><span class="val">$319</span><span class="lbl">CPA</span></div>
+        <div class="roas"><span class="val">3.9x</span><span class="lbl">ROAS</span></div>
+        <button class="toggle-btn" title="Pause" onclick="event.stopPropagation()">&#10074;&#10074;</button>
+      </div>
+
+    </div>
+
+    <div class="mutter">six campaigns running. two of them are yours. the rest are paying for this.</div>
+  </main>
+
+  <!-- Detail panel -->
+  <aside class="detail-panel" id="detailPanel">
+    <button class="close-btn" onclick="closeDetail()">&times;</button>
+
+    <div class="detail-header">
+      <div class="detail-title" id="detailTitle">Bowerbird Spring Launch</div>
+      <div class="detail-client" id="detailClient">Bowerbird Projects</div>
+      <div class="detail-status">
+        <span class="dot" id="detailDot" style="width:8px;height:8px;border-radius:50%;background:var(--success)"></span>
+        <span id="detailStatus" style="color:var(--success);font-family:Righteous;font-size:11px;letter-spacing:1px;text-transform:uppercase">Active</span>
+        <span style="color:var(--neutral-500);font-size:11px">&#183; day 18 of 30</span>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Performance — 30 days</h4>
+      <div class="chart-area" id="detailChart">
+        <div class="chart-bar" style="height:35%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:70%"></div></div>
+        <div class="chart-bar" style="height:42%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:65%"></div></div>
+        <div class="chart-bar" style="height:38%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:72%"></div></div>
+        <div class="chart-bar" style="height:50%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:68%"></div></div>
+        <div class="chart-bar" style="height:55%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:75%"></div></div>
+        <div class="chart-bar" style="height:48%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:70%"></div></div>
+        <div class="chart-bar" style="height:60%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:78%"></div></div>
+        <div class="chart-bar" style="height:58%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:74%"></div></div>
+        <div class="chart-bar" style="height:65%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:80%"></div></div>
+        <div class="chart-bar" style="height:72%"><div class="spend" style="height:100%"></div><div class="roas-line" style="bottom:76%"></div></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Key metrics</h4>
+      <div class="detail-metrics">
+        <div class="detail-metric-card"><div class="dm-label">Spend</div><div class="dm-value">$3,240</div><div class="dm-sub">72% of budget</div></div>
+        <div class="detail-metric-card"><div class="dm-label">Leads</div><div class="dm-value">14</div><div class="dm-sub">+3 this week</div></div>
+        <div class="detail-metric-card"><div class="dm-label">CPA</div><div class="dm-value">$231</div><div class="dm-sub">target: $250</div></div>
+        <div class="detail-metric-card"><div class="dm-label">Revenue ROAS</div><div class="dm-value" style="color:var(--success)">4.8x</div><div class="dm-sub">by client LTV</div></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Budget</h4>
+      <div class="budget-bar-container">
+        <div class="budget-bar-header">
+          <span class="spent">$3,240</span>
+          <span class="total">of $4,500</span>
+        </div>
+        <div class="budget-track"><div class="budget-fill" style="width:72%"></div></div>
+        <div class="budget-meta"><span>72% spent</span><span>12 days remaining</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Active creatives (AI-generated)</h4>
+      <div class="creatives-grid">
+        <div class="creative-card cc1"><span class="creative-perf">CTR 2.4%</span><span class="creative-label">Story — Hero reel</span></div>
+        <div class="creative-card cc2"><span class="creative-perf">CTR 1.8%</span><span class="creative-label">Feed — Before/after</span></div>
+        <div class="creative-card cc3"><span class="creative-perf">CTR 3.1%</span><span class="creative-label">Reel — BTS snippet</span></div>
+        <div class="creative-card cc4"><span class="creative-perf">CTR 1.2%</span><span class="creative-label">Feed — Testimonial</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Living rationale</h4>
+      <div class="rationale-card">
+        <div class="rationale-title">Why this campaign exists</div>
+        <p>Bowerbird's spring collection launches May 1. The campaign seeds brand awareness 4 weeks out, then shifts to retarget on week 3 as the audience pool fills. Entertainment-first creative (BTS reels + hero shots from February shoot) drives initial reach. Conversion layer activates week 4 with direct booking CTAs.</p>
+        <div class="updated">Auto-updated 2 days ago after week 2 performance review</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Audience</h4>
+      <div class="audience-tags">
+        <span class="audience-tag">Melbourne 25km</span>
+        <span class="audience-tag">25-45 F interest: architecture</span>
+        <span class="audience-tag">Lookalike: Bowerbird website visitors</span>
+        <span class="audience-tag">Retarget: video viewers 50%+</span>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<script>
+  // Tab switching
+  document.getElementById('tabBar').addEventListener('click', function(e) {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('.campaign-row').forEach(row => {
+      if (filter === 'all') {
+        row.style.display = '';
+        return;
+      }
+      const platform = row.dataset.platform || '';
+      const owner = row.dataset.owner || '';
+
+      let show = false;
+      if (filter === 'meta') show = platform.includes('meta');
+      else if (filter === 'google') show = platform.includes('google');
+      else if (filter === 'own') show = owner === 'own';
+      else if (filter === 'client') show = owner === 'client';
+
+      row.style.display = show ? '' : 'none';
+    });
+  });
+
+  // Campaign selection
+  function selectCampaign(row) {
+    document.querySelectorAll('.campaign-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    document.getElementById('app').classList.add('detail-open');
+
+    // Update detail panel with campaign data
+    const name = row.querySelector('.name').textContent;
+    const client = row.querySelector('.client').textContent;
+    document.getElementById('detailTitle').textContent = name;
+    document.getElementById('detailClient').textContent = client;
+
+    const statusDot = row.querySelector('.status-dot');
+    const detailDot = document.getElementById('detailDot');
+    const detailStatus = document.getElementById('detailStatus');
+
+    if (statusDot.classList.contains('active')) {
+      detailDot.style.background = 'var(--success)';
+      detailStatus.style.color = 'var(--success)';
+      detailStatus.textContent = 'Active';
+    } else if (statusDot.classList.contains('paused')) {
+      detailDot.style.background = 'var(--warn)';
+      detailStatus.style.color = 'var(--warn)';
+      detailStatus.textContent = 'Paused';
+    }
+  }
+
+  function closeDetail() {
+    document.getElementById('app').classList.remove('detail-open');
+    document.querySelectorAll('.campaign-row').forEach(r => r.classList.remove('selected'));
+  }
+
+  // Animate sparklines on load
+  window.addEventListener('load', function() {
+    document.querySelectorAll('.sparkline .bar').forEach(bar => {
+      const h = bar.style.height;
+      bar.style.height = '0%';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          bar.style.height = h;
+        });
+      });
+    });
+  });
+</script>
+</body>
+</html>

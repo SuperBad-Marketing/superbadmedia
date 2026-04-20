@@ -1,0 +1,1897 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad — Setup Wizards & Client First View</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red: #B22848;
+    --brand-cream: #FDF5E6;
+    --brand-pink: #F4A0B0;
+    --brand-orange: #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-400: #A09E8F;
+    --neutral-300: #D4D2C2;
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --radius-card: 16px;
+    --radius-button: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--neutral-900);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242, 140, 82, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178, 40, 72, 0.08), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244, 160, 176, 0.05), transparent 60%);
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.035; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ======== SCENE NAVIGATOR ======== */
+  .scene-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(26, 26, 24, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+    padding: 12px 24px;
+    display: flex; align-items: center; gap: 8px;
+    overflow-x: auto;
+  }
+  .scene-nav-label {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+    white-space: nowrap; margin-right: 8px;
+  }
+  .scene-btn {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    background: transparent;
+    color: var(--neutral-400);
+    font-family: "DM Sans"; font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 300ms var(--spring);
+  }
+  .scene-btn:hover { border-color: rgba(244, 160, 176, 0.3); color: var(--brand-cream); }
+  .scene-btn.active {
+    background: var(--brand-red);
+    border-color: var(--brand-red);
+    color: var(--brand-cream);
+  }
+
+  /* ======== SCENE CONTAINER ======== */
+  .scene-container {
+    position: fixed; inset: 0;
+    padding-top: 52px;
+    z-index: 2;
+  }
+  .scene {
+    position: absolute; inset: 0; top: 52px;
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 500ms var(--spring), transform 500ms var(--spring);
+    pointer-events: none;
+  }
+  .scene.active {
+    opacity: 1; transform: translateY(0); pointer-events: all;
+  }
+  .scene::-webkit-scrollbar { width: 6px; }
+  .scene::-webkit-scrollbar-track { background: transparent; }
+  .scene::-webkit-scrollbar-thumb { background: rgba(253, 245, 230, 0.08); border-radius: 3px; }
+
+  /* ======== SHARED: HEADER BAR ======== */
+  .top-bar {
+    padding: 20px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 22px; color: var(--brand-cream);
+  }
+  .who {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .who em { color: var(--brand-pink); font-style: normal; }
+
+  /* ======== SHARED: CENTERED CONTENT ======== */
+  .centered {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  .centered-wide {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ======== SCENE 1: WELCOME SCREEN (RETAINER) ======== */
+  .welcome-hero {
+    padding-top: 80px;
+    text-align: center;
+  }
+  .welcome-name {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 52px;
+    color: var(--brand-cream);
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    animation: fadeUp 800ms var(--spring) both;
+  }
+  .welcome-line {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--brand-pink);
+    max-width: 440px;
+    margin: 0 auto 48px;
+    animation: fadeUp 800ms 200ms var(--spring) both;
+  }
+
+  .welcome-known {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: var(--radius-card);
+    padding: 28px 32px;
+    margin-bottom: 40px;
+    text-align: left;
+    animation: fadeUp 800ms 400ms var(--spring) both;
+  }
+  .welcome-known-label {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .welcome-known p {
+    color: var(--neutral-300);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .welcome-steps {
+    text-align: left;
+    margin-bottom: 48px;
+    animation: fadeUp 800ms 600ms var(--spring) both;
+  }
+  .welcome-steps-label {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .welcome-step {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 12px 0;
+  }
+  .welcome-step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(178, 40, 72, 0.15);
+    border: 1px solid rgba(178, 40, 72, 0.3);
+    color: var(--brand-pink);
+    font-family: "Righteous"; font-size: 12px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .welcome-step-text {
+    font-size: 15px;
+    color: var(--neutral-300);
+  }
+  .welcome-step-time {
+    color: var(--neutral-500);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .cta-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 16px 40px;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none;
+    border-radius: var(--radius-button);
+    font-family: "DM Sans"; font-size: 16px; font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(178, 40, 72, 0.35);
+    transition: all 300ms var(--spring);
+    animation: fadeUp 800ms 800ms var(--spring) both;
+  }
+  .cta-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(178, 40, 72, 0.5);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ======== SCENE 3: ADMIN WIZARD ======== */
+  .wizard-shell {
+    height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+  }
+  .wizard-header {
+    padding: 20px 32px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .wizard-title {
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .wizard-cancel {
+    font-size: 13px; color: var(--neutral-500);
+    background: none; border: none; cursor: pointer;
+    transition: color 200ms;
+  }
+  .wizard-cancel:hover { color: var(--brand-cream); }
+
+  .wizard-progress {
+    height: 3px;
+    background: var(--neutral-800);
+    display: flex;
+  }
+  .wizard-progress-seg {
+    flex: 1;
+    position: relative;
+    margin-right: 2px;
+  }
+  .wizard-progress-seg:last-child { margin-right: 0; }
+  .wizard-progress-seg::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: var(--brand-red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 600ms var(--spring);
+  }
+  .wizard-progress-seg.done::after { transform: scaleX(1); }
+  .wizard-progress-seg.active::after {
+    transform: scaleX(0.5);
+    background: var(--brand-pink);
+  }
+
+  .wizard-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 32px;
+  }
+  .wizard-step {
+    max-width: 520px;
+    width: 100%;
+    display: none;
+  }
+  .wizard-step.active { display: block; }
+
+  .wizard-step h2 {
+    font-family: "Black Han Sans";
+    font-size: 28px;
+    color: var(--brand-cream);
+    margin-bottom: 8px;
+  }
+  .wizard-step .step-desc {
+    color: var(--neutral-400);
+    font-size: 15px;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+  .form-label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+    margin-bottom: 8px; display: block;
+  }
+  .form-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-button);
+    color: var(--brand-cream);
+    font-family: "DM Sans"; font-size: 15px;
+    outline: none;
+    transition: border-color 300ms;
+  }
+  .form-input:focus {
+    border-color: var(--brand-pink);
+  }
+  .form-input::placeholder { color: var(--neutral-600); }
+
+  .form-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--neutral-500);
+    line-height: 1.5;
+  }
+
+  .wizard-footer {
+    padding: 20px 32px;
+    border-top: 1px solid rgba(253, 245, 230, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn-back {
+    padding: 12px 24px;
+    background: none;
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-button);
+    color: var(--neutral-400);
+    font-family: "DM Sans"; font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    transition: all 200ms;
+  }
+  .btn-back:hover { border-color: rgba(253, 245, 230, 0.2); color: var(--brand-cream); }
+  .btn-next {
+    padding: 12px 32px;
+    background: var(--brand-red);
+    border: none;
+    border-radius: var(--radius-button);
+    color: var(--brand-cream);
+    font-family: "DM Sans"; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(178, 40, 72, 0.3);
+    transition: all 300ms var(--spring);
+  }
+  .btn-next:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(178, 40, 72, 0.4);
+  }
+
+  /* OAuth step */
+  .oauth-card {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: var(--radius-card);
+    padding: 32px;
+    text-align: center;
+  }
+  .oauth-icon {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    background: rgba(178, 40, 72, 0.1);
+    display: grid; place-items: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+  }
+  .oauth-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 28px;
+    background: #635BFF;
+    color: white;
+    border: none;
+    border-radius: var(--radius-button);
+    font-family: "DM Sans"; font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    transition: all 300ms var(--spring);
+    margin-top: 16px;
+  }
+  .oauth-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 91, 255, 0.35); }
+  .oauth-btn.resend { background: #000; }
+  .oauth-btn.resend:hover { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+  .oauth-btn.microsoft { background: #0078D4; }
+  .oauth-btn.microsoft:hover { box-shadow: 0 8px 24px rgba(0, 120, 212, 0.35); }
+
+  /* Webhook probe */
+  .probe-visual {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: var(--radius-card);
+    padding: 48px 32px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .probe-pulse {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(178, 40, 72, 0.15);
+    margin: 0 auto 24px;
+    display: grid; place-items: center;
+    position: relative;
+  }
+  .probe-pulse::before {
+    content: "";
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 2px solid rgba(178, 40, 72, 0.3);
+    animation: probePulse 2s ease-in-out infinite;
+  }
+  .probe-pulse-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--brand-red);
+    animation: probeDot 2s ease-in-out infinite;
+  }
+  @keyframes probePulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.3); opacity: 0; }
+  }
+  @keyframes probeDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .probe-text {
+    color: var(--neutral-400);
+    font-size: 14px;
+  }
+  .probe-timer {
+    color: var(--neutral-500);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  /* Celebration step */
+  .celebration {
+    text-align: center;
+    padding: 40px 0;
+  }
+  .celebration-check {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(178, 40, 72, 0.15);
+    border: 2px solid var(--brand-red);
+    display: grid; place-items: center;
+    margin: 0 auto 28px;
+    animation: celebPop 600ms var(--spring) both;
+  }
+  .celebration-check svg {
+    width: 36px; height: 36px;
+    stroke: var(--brand-red);
+    stroke-width: 2.5;
+    fill: none;
+  }
+  @keyframes celebPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .celebration h2 {
+    font-family: "Black Han Sans";
+    font-size: 32px;
+    color: var(--brand-cream);
+    margin-bottom: 12px;
+  }
+  .celebration .outro {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--brand-pink);
+    margin-bottom: 32px;
+  }
+  .celebration .summary {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: var(--radius-card);
+    padding: 20px 24px;
+    text-align: left;
+    margin-bottom: 32px;
+    font-size: 13px;
+    color: var(--neutral-400);
+    line-height: 1.7;
+  }
+  .celebration .summary strong {
+    color: var(--neutral-300);
+    font-weight: 600;
+  }
+
+  /* Capstone */
+  .capstone {
+    text-align: center;
+    padding: 80px 0;
+  }
+  .capstone-logo {
+    font-family: "Pacifico", cursive;
+    font-size: 48px;
+    color: var(--brand-cream);
+    margin-bottom: 24px;
+    animation: capFadeIn 1200ms var(--spring) both;
+  }
+  .capstone h1 {
+    font-family: "Black Han Sans";
+    font-size: 44px;
+    color: var(--brand-cream);
+    margin-bottom: 16px;
+    animation: capFadeIn 1200ms 300ms var(--spring) both;
+  }
+  .capstone .tagline {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--brand-pink);
+    margin-bottom: 48px;
+    animation: capFadeIn 1200ms 600ms var(--spring) both;
+  }
+  .capstone .cta-primary {
+    animation: capFadeIn 1200ms 900ms var(--spring) both;
+  }
+  @keyframes capFadeIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Flight tracker */
+  .flight-tracker {
+    display: flex; gap: 12px; align-items: center;
+    justify-content: center;
+    margin-bottom: 48px;
+    animation: fadeUp 600ms 200ms var(--spring) both;
+  }
+  .flight-dot {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 999px;
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    font-size: 12px; color: var(--neutral-500);
+    font-family: "DM Sans"; font-weight: 500;
+  }
+  .flight-dot .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--neutral-600);
+  }
+  .flight-dot.done .dot { background: var(--brand-red); }
+  .flight-dot.active .dot { background: var(--brand-pink); animation: blinkDot 1.5s ease infinite; }
+  .flight-dot.done { color: var(--neutral-400); }
+  .flight-dot.active { color: var(--brand-cream); border-color: rgba(244, 160, 176, 0.2); }
+  .flight-connector {
+    width: 24px; height: 1px;
+    background: rgba(253, 245, 230, 0.08);
+  }
+  @keyframes blinkDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ======== SCENE 4: BRAND DNA GATE ======== */
+  .gate-container {
+    height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+  }
+  .gate-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .gate-blurred {
+    position: absolute; inset: 0;
+    opacity: 0.15;
+    filter: blur(8px);
+    pointer-events: none;
+    padding: 40px;
+  }
+  .gate-blurred-item {
+    background: var(--neutral-800);
+    border-radius: var(--radius-card);
+    height: 60px;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  .gate-card {
+    position: relative;
+    z-index: 5;
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-card);
+    padding: 48px 40px;
+    max-width: 460px;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  }
+  .gate-card h2 {
+    font-family: "Black Han Sans";
+    font-size: 28px;
+    color: var(--brand-cream);
+    margin-bottom: 12px;
+  }
+  .gate-card p {
+    color: var(--neutral-400);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .gate-card .time-hint {
+    font-size: 13px;
+    color: var(--neutral-500);
+    margin-bottom: 32px;
+  }
+
+  /* ======== SCENE 5: FIRST-VISIT TOUR ======== */
+  .tour-overlay {
+    position: absolute; inset: 0;
+    background: rgba(26, 26, 24, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  .tour-card {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-card);
+    padding: 40px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  }
+  .tour-step-indicator {
+    display: flex; gap: 6px; justify-content: center;
+    margin-bottom: 24px;
+  }
+  .tour-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--neutral-600);
+    transition: all 300ms var(--spring);
+  }
+  .tour-dot.active { background: var(--brand-red); transform: scale(1.2); }
+  .tour-card h3 {
+    font-family: "Black Han Sans";
+    font-size: 22px;
+    color: var(--brand-cream);
+    margin-bottom: 12px;
+  }
+  .tour-card p {
+    color: var(--neutral-400);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .tour-btn {
+    padding: 12px 28px;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none;
+    border-radius: var(--radius-button);
+    font-family: "DM Sans"; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: all 300ms var(--spring);
+  }
+  .tour-btn:hover { transform: translateY(-1px); }
+
+  /* ======== SCENE 6: PORTAL CHAT HOME ======== */
+  .portal-shell {
+    height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+  }
+  .portal-chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .portal-chat-inner {
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .chat-opening {
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .chat-opening .bartender-line {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--brand-pink);
+    line-height: 1.6;
+    animation: fadeUp 800ms var(--spring) both;
+  }
+  .chat-input-area {
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 32px 32px;
+  }
+  .chat-input-wrap {
+    position: relative;
+    border-radius: 12px;
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    overflow: hidden;
+    animation: inputGlow 3s ease-in-out infinite;
+  }
+  @keyframes inputGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(178, 40, 72, 0); }
+    50% { box-shadow: 0 0 20px 0 rgba(178, 40, 72, 0.15); }
+  }
+  .chat-input-wrap input {
+    width: 100%;
+    padding: 16px 52px 16px 20px;
+    background: transparent;
+    border: none;
+    color: var(--brand-cream);
+    font-family: "DM Sans"; font-size: 15px;
+    outline: none;
+  }
+  .chat-input-wrap input::placeholder { color: var(--neutral-600); }
+  .chat-send-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--brand-red);
+    border: none;
+    color: var(--brand-cream);
+    display: grid; place-items: center;
+    cursor: pointer;
+    transition: all 200ms;
+  }
+  .chat-send-btn:hover { background: #C8325A; }
+  .chat-send-btn svg { width: 16px; height: 16px; }
+
+  /* Menu bubble */
+  .menu-bubble {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    z-index: 20;
+    height: 48px;
+    padding: 0 18px 0 14px;
+    border-radius: 999px;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    box-shadow: 0 8px 30px rgba(178, 40, 72, 0.35);
+    transition: all 300ms var(--spring);
+    animation: breathe 3.6s var(--spring) infinite;
+  }
+  .menu-bubble:hover {
+    transform: scale(1.04) translateY(-1px);
+    animation-play-state: paused;
+  }
+  .menu-bubble svg { width: 16px; height: 16px; }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 8px 24px rgba(178, 40, 72, 0.3); }
+    50% { box-shadow: 0 12px 36px rgba(178, 40, 72, 0.5); }
+  }
+
+  /* ======== SCENE 7: BUNDLED HUB ======== */
+  .bundle-hub {
+    height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .bundle-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .bundle-header h2 {
+    font-family: "Black Han Sans";
+    font-size: 32px;
+    color: var(--brand-cream);
+    margin-bottom: 8px;
+    animation: fadeUp 800ms var(--spring) both;
+  }
+  .bundle-header p {
+    color: var(--neutral-400);
+    font-size: 15px;
+    animation: fadeUp 800ms 200ms var(--spring) both;
+  }
+  .bundle-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 640px;
+    width: 100%;
+  }
+  .bundle-tile {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: var(--radius-card);
+    padding: 36px 28px;
+    cursor: pointer;
+    transition: all 400ms var(--spring);
+    text-align: center;
+  }
+  .bundle-tile:first-child { animation: fadeUp 800ms 400ms var(--spring) both; }
+  .bundle-tile:last-child { animation: fadeUp 800ms 550ms var(--spring) both; }
+  .bundle-tile:hover {
+    transform: translateY(-4px);
+    border-color: rgba(244, 160, 176, 0.2);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  }
+  .bundle-tile-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: rgba(178, 40, 72, 0.1);
+    display: grid; place-items: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+  }
+  .bundle-tile h3 {
+    font-family: "Righteous";
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--brand-cream);
+    margin-bottom: 8px;
+  }
+  .bundle-tile p {
+    font-size: 13px;
+    color: var(--neutral-500);
+    line-height: 1.5;
+  }
+  .bundle-tile .tile-preview {
+    margin-top: 16px;
+    display: flex; gap: 4px; justify-content: center;
+  }
+  .tile-thumb {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    background: var(--neutral-700);
+  }
+
+  /* ======== SCENE: RESUME ======== */
+  .resume-container {
+    height: calc(100vh - 52px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .resume-card {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-card);
+    padding: 48px 40px;
+    max-width: 460px;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  }
+  .resume-progress-ring {
+    width: 80px; height: 80px;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+  .resume-progress-ring svg {
+    transform: rotate(-90deg);
+  }
+  .resume-progress-ring .ring-bg {
+    fill: none;
+    stroke: var(--neutral-700);
+    stroke-width: 4;
+  }
+  .resume-progress-ring .ring-fill {
+    fill: none;
+    stroke: var(--brand-red);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 226;
+    stroke-dashoffset: 136;
+    transition: stroke-dashoffset 600ms var(--spring);
+  }
+  .resume-pct {
+    position: absolute;
+    inset: 0;
+    display: grid; place-items: center;
+    font-family: "Righteous"; font-size: 18px;
+    color: var(--brand-cream);
+  }
+  .resume-card h2 {
+    font-family: "Black Han Sans";
+    font-size: 24px;
+    color: var(--brand-cream);
+    margin-bottom: 8px;
+  }
+  .resume-card p {
+    color: var(--neutral-400);
+    font-size: 15px;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  /* ======== SCENE: SaaS WELCOME ======== */
+  .saas-welcome .welcome-hero { padding-top: 60px; }
+
+  /* ======== SCENE: YOUR MONTH (CLIENT) ======== */
+  .month-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 40px 0 32px;
+  }
+  .month-title {
+    font-family: "Black Han Sans"; font-size: 36px;
+    color: var(--brand-cream);
+  }
+  .month-nav {
+    display: flex; gap: 8px;
+  }
+  .month-nav-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    color: var(--neutral-400);
+    display: grid; place-items: center;
+    cursor: pointer;
+    transition: all 200ms;
+  }
+  .month-nav-btn:hover { border-color: rgba(244, 160, 176, 0.2); color: var(--brand-cream); }
+  .month-nav-btn.disabled { opacity: 0.3; pointer-events: none; }
+  .month-nav-btn svg { width: 16px; height: 16px; }
+
+  .week-group {
+    margin-bottom: 32px;
+    animation: fadeUp 600ms var(--spring) both;
+  }
+  .week-group:nth-child(2) { animation-delay: 100ms; }
+  .week-group:nth-child(3) { animation-delay: 200ms; }
+  .week-group:nth-child(4) { animation-delay: 300ms; }
+  .week-label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+    margin-bottom: 12px; padding-left: 4px;
+  }
+  .deliverable-card {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: all 300ms var(--spring);
+    cursor: pointer;
+  }
+  .deliverable-card:hover {
+    border-color: rgba(253, 245, 230, 0.12);
+    transform: translateX(4px);
+  }
+  .deliverable-left {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .deliverable-title {
+    font-size: 15px; font-weight: 500;
+    color: var(--brand-cream);
+  }
+  .deliverable-date {
+    font-size: 12px;
+    color: var(--neutral-500);
+    margin-top: 2px;
+  }
+  .deliverable-date .updated-indicator {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: var(--brand-orange);
+    font-size: 11px;
+    margin-left: 6px;
+    cursor: help;
+  }
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: "DM Sans"; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .status-badge.planned {
+    background: var(--neutral-700);
+    color: var(--neutral-400);
+  }
+  .status-badge.in-progress {
+    background: rgba(244, 160, 176, 0.1);
+    color: var(--brand-pink);
+  }
+  .status-badge.ready-for-you {
+    background: rgba(178, 40, 72, 0.12);
+    color: var(--brand-red);
+    animation: readyPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes readyPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(178, 40, 72, 0); }
+    50% { box-shadow: 0 0 12px 0 rgba(178, 40, 72, 0.2); }
+  }
+  .status-badge.done {
+    background: var(--neutral-700);
+    color: var(--neutral-500);
+  }
+  .status-badge.done::before {
+    content: "✓ ";
+  }
+
+  .month-history {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .month-history-toggle {
+    display: flex; align-items: center; gap: 8px;
+    background: none; border: none;
+    color: var(--neutral-500);
+    font-family: "DM Sans"; font-size: 13px;
+    cursor: pointer;
+    transition: color 200ms;
+  }
+  .month-history-toggle:hover { color: var(--neutral-300); }
+  .month-history-toggle svg { width: 14px; height: 14px; transition: transform 200ms; }
+  .month-history-toggle.open svg { transform: rotate(90deg); }
+
+  /* ======== SCENE: ADMIN PLAN REVIEW ======== */
+  .review-shell {
+    height: calc(100vh - 52px);
+    display: flex; flex-direction: column;
+  }
+  .review-header {
+    padding: 20px 32px;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .review-header h2 {
+    font-family: "Black Han Sans"; font-size: 22px;
+    color: var(--brand-cream);
+  }
+  .review-progress-text {
+    font-size: 13px; color: var(--neutral-500);
+  }
+  .review-progress-text em { color: var(--brand-pink); font-style: normal; font-weight: 600; }
+  .review-progress-bar {
+    height: 3px; background: var(--neutral-800);
+  }
+  .review-progress-fill {
+    height: 100%; background: var(--brand-red);
+    transition: width 400ms var(--spring);
+  }
+  .review-body {
+    flex: 1; overflow-y: auto;
+    padding: 32px;
+    display: flex; justify-content: center;
+  }
+  .review-card {
+    max-width: 600px; width: 100%;
+  }
+  .review-client-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px;
+  }
+  .review-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-red), var(--brand-pink));
+    display: grid; place-items: center;
+    font-family: "Black Han Sans"; font-size: 16px; color: var(--brand-cream);
+  }
+  .review-client-name {
+    font-family: "DM Sans"; font-size: 18px; font-weight: 600;
+    color: var(--brand-cream);
+  }
+  .review-client-meta {
+    font-size: 12px; color: var(--neutral-500);
+  }
+  .review-month-badge {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(244, 160, 176, 0.08);
+    color: var(--brand-pink);
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .review-items {
+    margin-bottom: 24px;
+  }
+  .review-item {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .review-item-title {
+    font-size: 14px; color: var(--brand-cream); font-weight: 500;
+  }
+  .review-item-date {
+    font-size: 12px; color: var(--neutral-500);
+  }
+  .review-chat {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .review-chat-messages {
+    padding: 16px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .review-chat-msg {
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .review-chat-msg.andy {
+    color: var(--brand-cream);
+  }
+  .review-chat-msg.claude {
+    color: var(--neutral-400);
+    padding-left: 12px;
+    border-left: 2px solid rgba(178, 40, 72, 0.3);
+  }
+  .review-chat-input {
+    display: flex;
+    border-top: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .review-chat-input input {
+    flex: 1;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    color: var(--brand-cream);
+    font-family: "DM Sans"; font-size: 14px;
+    outline: none;
+  }
+  .review-chat-input input::placeholder { color: var(--neutral-600); }
+  .review-chat-input button {
+    padding: 0 16px;
+    background: none; border: none;
+    color: var(--brand-red);
+    cursor: pointer;
+    font-size: 14px; font-weight: 600;
+    font-family: "DM Sans";
+  }
+  .review-actions {
+    display: flex; gap: 10px;
+  }
+  .review-actions .btn-approve {
+    flex: 1;
+    padding: 14px;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none;
+    border-radius: var(--radius-button);
+    font-family: "DM Sans"; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(178, 40, 72, 0.3);
+    transition: all 300ms var(--spring);
+  }
+  .review-actions .btn-approve:hover { transform: translateY(-1px); }
+  .review-actions .btn-skip {
+    padding: 14px 24px;
+    background: none;
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-button);
+    color: var(--neutral-400);
+    font-family: "DM Sans"; font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    transition: all 200ms;
+  }
+  .review-actions .btn-skip:hover { border-color: rgba(253, 245, 230, 0.2); color: var(--brand-cream); }
+
+  /* ======== HIDE/SHOW ======== */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ========== SCENE NAVIGATOR ========== -->
+<nav class="scene-nav">
+  <span class="scene-nav-label">Scenes</span>
+  <button class="scene-btn active" data-scene="retainer-welcome">Retainer Welcome</button>
+  <button class="scene-btn" data-scene="saas-welcome">SaaS Welcome</button>
+  <button class="scene-btn" data-scene="admin-wizard">Admin Critical Flight</button>
+  <button class="scene-btn" data-scene="brand-dna-gate">Brand DNA Gate</button>
+  <button class="scene-btn" data-scene="resume-screen">Resume Screen</button>
+  <button class="scene-btn" data-scene="bundle-hub">Deliverables Hub</button>
+  <button class="scene-btn" data-scene="portal-tour">Portal + Tour</button>
+  <button class="scene-btn" data-scene="portal-home">Portal Chat Home</button>
+  <button class="scene-btn" data-scene="your-month">Your Month (Client)</button>
+  <button class="scene-btn" data-scene="admin-plan-review">Admin Plan Review</button>
+</nav>
+
+<!-- ========== SCENE 1: RETAINER WELCOME SCREEN ========== -->
+<div class="scene-container">
+
+<div class="scene active" id="retainer-welcome">
+  <header class="top-bar">
+    <div class="logo">SuperBad</div>
+    <div class="who">Welcome, <em>Sarah</em></div>
+  </header>
+  <div class="centered">
+    <div class="welcome-hero">
+      <div class="welcome-name">Sarah.</div>
+      <div class="welcome-line">You picked us. Questionable judgement, frankly. But here we are.</div>
+
+      <div class="welcome-known">
+        <div class="welcome-known-label">What we already know about you</div>
+        <p>You run a pilates studio in Richmond that's been going four years. You've tried two agencies — neither stuck. Your Instagram's got 2,400 followers and you post maybe twice a week when you remember. Your words, not ours: "the brand looks like I made it in 2019." You did. We're going to fix that.</p>
+      </div>
+
+      <div class="welcome-steps">
+        <div class="welcome-steps-label">Here's what's about to happen</div>
+        <div class="welcome-step">
+          <div class="welcome-step-num">1</div>
+          <div>
+            <div class="welcome-step-text">Getting to know you properly. This is the good part.</div>
+            <div class="welcome-step-time">~30 minutes</div>
+          </div>
+        </div>
+        <div class="welcome-step">
+          <div class="welcome-step-num">2</div>
+          <div>
+            <div class="welcome-step-text">A bit of practical admin you can do whenever.</div>
+            <div class="welcome-step-time">~10 minutes</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="cta-primary" onclick="switchScene('brand-dna-gate')">Let's get started</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCENE 2: SaaS WELCOME SCREEN ========== -->
+<div class="scene saas-welcome" id="saas-welcome">
+  <header class="top-bar">
+    <div class="logo">SuperBad</div>
+    <div class="who">Welcome, <em>Marcus</em></div>
+  </header>
+  <div class="centered">
+    <div class="welcome-hero">
+      <div class="welcome-name">Marcus.</div>
+      <div class="welcome-line">You just bought a content engine. Brave. Let's make it worth it.</div>
+
+      <div class="welcome-steps">
+        <div class="welcome-steps-label">Here's what's about to happen</div>
+        <div class="welcome-step">
+          <div class="welcome-step-num">1</div>
+          <div>
+            <div class="welcome-step-text">Getting to know you properly.</div>
+            <div class="welcome-step-time">~30 minutes</div>
+          </div>
+        </div>
+        <div class="welcome-step">
+          <div class="welcome-step-num">2</div>
+          <div>
+            <div class="welcome-step-text">Five quick questions about where your business is.</div>
+            <div class="welcome-step-time">~2 minutes</div>
+          </div>
+        </div>
+        <div class="welcome-step">
+          <div class="welcome-step-num">3</div>
+          <div>
+            <div class="welcome-step-text">Setting up ContentEngine.</div>
+            <div class="welcome-step-time">~3 minutes</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="cta-primary" onclick="switchScene('brand-dna-gate')">Let's get started</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCENE 3: ADMIN CRITICAL FLIGHT WIZARD ========== -->
+<div class="scene" id="admin-wizard">
+  <div class="wizard-shell">
+    <div class="wizard-header">
+      <div class="wizard-title">Setup — Critical Flight</div>
+      <div class="flight-tracker" style="margin-bottom:0; animation:none;">
+        <div class="flight-dot" id="ft-stripe"><div class="dot"></div>Stripe</div>
+        <div class="flight-connector"></div>
+        <div class="flight-dot" id="ft-resend"><div class="dot"></div>Resend</div>
+        <div class="flight-connector"></div>
+        <div class="flight-dot" id="ft-graph"><div class="dot"></div>Inbox</div>
+      </div>
+      <button class="wizard-cancel">Save for later</button>
+    </div>
+    <div class="wizard-progress" id="wiz-progress">
+      <div class="wizard-progress-seg" id="seg-0"></div>
+      <div class="wizard-progress-seg" id="seg-1"></div>
+      <div class="wizard-progress-seg" id="seg-2"></div>
+      <div class="wizard-progress-seg" id="seg-3"></div>
+      <div class="wizard-progress-seg" id="seg-4"></div>
+    </div>
+    <div class="wizard-body">
+
+      <!-- Step 0: Stripe API key -->
+      <div class="wizard-step active" id="wstep-0">
+        <h2>Connect Stripe.</h2>
+        <p class="step-desc">Nothing works without payment. This takes about a minute.</p>
+        <div class="form-group">
+          <label class="form-label">Stripe Secret Key</label>
+          <input class="form-input" type="text" placeholder="sk_live_..." value="sk_live_51NcJk..." />
+          <div class="form-hint">Find this in your Stripe Dashboard → Developers → API keys.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stripe Publishable Key</label>
+          <input class="form-input" type="text" placeholder="pk_live_..." value="pk_live_51NcJk..." />
+        </div>
+      </div>
+
+      <!-- Step 1: Stripe webhook probe -->
+      <div class="wizard-step" id="wstep-1">
+        <h2>Waiting for Stripe.</h2>
+        <p class="step-desc">We've registered a webhook endpoint. Stripe's sending a test event now.</p>
+        <div class="probe-visual">
+          <div class="probe-pulse">
+            <div class="probe-pulse-dot"></div>
+          </div>
+          <div class="probe-text">Listening for webhook event...</div>
+          <div class="probe-timer">Usually takes a few seconds</div>
+        </div>
+      </div>
+
+      <!-- Step 2: Resend API key -->
+      <div class="wizard-step" id="wstep-2">
+        <h2>Connect Resend.</h2>
+        <p class="step-desc">Transactional email — welcome emails, invoice notifications, the lot.</p>
+        <div class="oauth-card">
+          <div class="oauth-icon">✉️</div>
+          <p style="color:var(--neutral-400);font-size:15px;margin-bottom:4px;">Paste your API key from Resend.</p>
+          <div class="form-group" style="text-align:left;margin-top:16px;">
+            <label class="form-label">Resend API Key</label>
+            <input class="form-input" type="text" placeholder="re_..." value="re_7hGkP2x..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Graph API OAuth -->
+      <div class="wizard-step" id="wstep-3">
+        <h2>Connect your inbox.</h2>
+        <p class="step-desc">One click. Microsoft handles the rest. We'll pull in your email history afterwards.</p>
+        <div class="oauth-card">
+          <div class="oauth-icon">📧</div>
+          <p style="color:var(--neutral-400);font-size:15px;margin-bottom:4px;">Sign in with your Microsoft account to connect your inbox.</p>
+          <button class="oauth-btn microsoft">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect width="7" height="7" fill="#F25022"/><rect x="9" width="7" height="7" fill="#7FBA00"/><rect y="9" width="7" height="7" fill="#00A4EF"/><rect x="9" y="9" width="7" height="7" fill="#FFB900"/></svg>
+            Continue to Microsoft
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: Celebration / Capstone -->
+      <div class="wizard-step" id="wstep-4">
+        <div class="capstone">
+          <div class="capstone-logo">SuperBad</div>
+          <h1>Open for business.</h1>
+          <p class="tagline">Payments. Email. Inbox. You're live.</p>
+          <button class="cta-primary" onclick="switchScene('portal-home')">Go to Cockpit</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="wizard-footer" id="wiz-footer">
+      <button class="btn-back" id="wiz-back" onclick="wizardBack()">Back</button>
+      <button class="btn-next" id="wiz-next" onclick="wizardNext()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCENE 4: BRAND DNA GATE ========== -->
+<div class="scene" id="brand-dna-gate">
+  <div class="gate-container">
+    <header class="top-bar">
+      <div class="logo">SuperBad</div>
+      <div class="who">Portal — <em>Sarah</em></div>
+    </header>
+    <div class="gate-body">
+      <div class="gate-blurred">
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <div class="gate-blurred-item" style="flex:1;height:120px;"></div>
+          <div class="gate-blurred-item" style="flex:1;height:120px;"></div>
+        </div>
+        <div class="gate-blurred-item" style="height:200px;"></div>
+        <div class="gate-blurred-item" style="height:80px;"></div>
+        <div class="gate-blurred-item" style="height:80px;"></div>
+        <div class="gate-blurred-item" style="height:80px;"></div>
+      </div>
+      <div class="gate-card">
+        <h2>One thing first.</h2>
+        <p>Before we unlock everything, we need to understand your brand properly. This is the part that makes everything else work.</p>
+        <div class="time-hint">Takes about 30 minutes. Worth every one of them.</div>
+        <button class="cta-primary">Complete your Brand DNA</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCENE 5: RESUME SCREEN ========== -->
+<div class="scene" id="resume-screen">
+  <div class="resume-container">
+    <div class="resume-card">
+      <div class="resume-progress-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle class="ring-bg" cx="40" cy="40" r="36" />
+          <circle class="ring-fill" cx="40" cy="40" r="36" />
+        </svg>
+        <div class="resume-pct">40%</div>
+      </div>
+      <h2>Welcome back.</h2>
+      <p>You're 40% through your Brand DNA. Pick up where you left off — your answers are saved.</p>
+      <button class="cta-primary" style="animation:none;">Continue</button>
+      <div style="margin-top:16px;">
+        <button style="background:none;border:none;color:var(--neutral-500);font-size:13px;cursor:pointer;">Start over</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCENE 6: BUNDLED DELIVERABLES HUB ========== -->
+<div class="scene" id="bundle-hub">
+  <header class="top-bar">
+    <div class="logo">SuperBad</div>
+    <div class="who">Portal — <em>Sarah</em></div>
+  </header>
+  <div class="bundle-hub" style="padding-top:0;">
+    <div class="bundle-header">
+      <h2>Everything you paid for, together.</h2>
+      <p>Choose where you'd like to start.</p>
+    </div>
+    <div class="bundle-tiles">
+      <div class="bundle-tile" onclick="switchScene('portal-home')">
+        <div class="bundle-tile-icon">📸</div>
+        <h3>Your Photos & Video</h3>
+        <p>60 minutes of your best side. Ready to view.</p>
+        <div class="tile-preview">
+          <div class="tile-thumb" style="background:linear-gradient(135deg, var(--neutral-600), var(--neutral-700));"></div>
+          <div class="tile-thumb" style="background:linear-gradient(135deg, var(--neutral-600), var(--neutral-700));"></div>
+          <div class="tile-thumb" style="background:linear-gradient(135deg, var(--neutral-600), var(--neutral-700));"></div>
+          <div class="tile-thumb" style="background:linear-gradient(135deg, var(--neutral-600), var(--neutral-700));"></div>
+        </div>
+      </div>
+      <div class="bundle-tile" onclick="switchScene('portal-home')">
+        <div class="bundle-tile-icon">📋</div>
+        <h3>Your Plan</h3>
+        <p>Six weeks of what we'd do if we were your agency.</p>
+        <div style="margin-top:16px;text-align:left;padding:12px;background:var(--neutral-700);border-radius:8px;">
+          <div style="font-size:11px;color:var(--neutral-500);font-family:Righteous;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Week 1</div>
+          <div style="font-size:13px;color:var(--neutral-400);">Brand foundation & content audit</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCENE 7: PORTAL + FIRST-VISIT TOUR ========== -->
+<div class="scene" id="portal-tour">
+  <div class="portal-shell">
+    <header class="top-bar">
+      <div class="logo">SuperBad</div>
+      <div class="who">Portal — <em>Sarah</em></div>
+    </header>
+    <div class="portal-chat-area" style="opacity:0.3;filter:blur(2px);">
+      <div class="portal-chat-inner">
+        <div class="chat-opening">
+          <div class="bartender-line" style="animation:none;opacity:0.5;">Your invoices are up to date and we've got a shoot booked for Thursday...</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area" style="opacity:0.3;filter:blur(2px);">
+      <div class="chat-input-wrap" style="animation:none;">
+        <input type="text" placeholder="Ask me anything..." disabled />
+      </div>
+    </div>
+
+    <div class="tour-overlay" id="tour-overlay">
+      <div class="tour-card">
+        <div class="tour-step-indicator">
+          <div class="tour-dot active" id="td-0"></div>
+          <div class="tour-dot" id="td-1"></div>
+          <div class="tour-dot" id="td-2"></div>
+        </div>
+        <div id="tour-content">
+          <h3>This is your space.</h3>
+          <p>Ask me anything about your account — deliverables, invoices, what's coming up. I'm here.</p>
+        </div>
+        <button class="tour-btn" onclick="advanceTour()">Got it</button>
+      </div>
+    </div>
+  </div>
+  <button class="menu-bubble" style="opacity:0.3;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    Menu
+  </button>
+</div>
+
+<!-- ========== SCENE 8: PORTAL CHAT HOME (STEADY STATE) ========== -->
+<div class="scene" id="portal-home">
+  <div class="portal-shell">
+    <header class="top-bar">
+      <div class="logo">SuperBad</div>
+      <div class="who">Portal — <em>Sarah</em></div>
+    </header>
+    <div class="portal-chat-area">
+      <div class="portal-chat-inner">
+        <div class="chat-opening">
+          <div class="bartender-line">Your invoices are up to date and we've got a shoot booked for Thursday. Anything you need before then?</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px;">
+          <div style="align-self:flex-end;background:var(--neutral-700);padding:12px 16px;border-radius:12px 12px 4px 12px;max-width:80%;font-size:14px;color:var(--neutral-300);">
+            Can I see what's in the next deliverables batch?
+          </div>
+          <div style="align-self:flex-start;background:rgba(178,40,72,0.08);border:1px solid rgba(178,40,72,0.15);padding:12px 16px;border-radius:12px 12px 12px 4px;max-width:80%;font-size:14px;color:var(--neutral-300);">
+            You've got three pieces in the pipeline: two Instagram reels and a Google Business profile update. The reels are in review — should be with you by Tuesday. The GBP update went live yesterday. Want me to pull up the details?
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <input type="text" placeholder="Ask me anything..." />
+        <button class="chat-send-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <button class="menu-bubble">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    Menu
+  </button>
+</div>
+
+<!-- ========== SCENE 9: YOUR MONTH (CLIENT PORTAL) ========== -->
+<div class="scene" id="your-month">
+  <div class="portal-shell">
+    <header class="top-bar">
+      <div class="logo">SuperBad</div>
+      <div class="who">Portal — <em>Sarah</em></div>
+    </header>
+    <div style="flex:1;overflow-y:auto;padding:0 32px 60px;">
+      <div class="centered-wide" style="padding:0;">
+        <div class="month-header">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="month-title">May 2026</div>
+          </div>
+          <div class="month-nav">
+            <button class="month-nav-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="month-nav-btn disabled">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Week 1 -->
+        <div class="week-group">
+          <div class="week-label">Week 1 — May 1–7</div>
+          <div class="deliverable-card">
+            <div class="deliverable-left">
+              <div>
+                <div class="deliverable-title">Instagram Reel — Studio Tour</div>
+                <div class="deliverable-date">Due May 5</div>
+              </div>
+            </div>
+            <span class="status-badge done">Done</span>
+          </div>
+          <div class="deliverable-card">
+            <div class="deliverable-left">
+              <div>
+                <div class="deliverable-title">Google Business Profile Update</div>
+                <div class="deliverable-date">Due May 7</div>
+              </div>
+            </div>
+            <span class="status-badge done">Done</span>
+          </div>
+        </div>
+
+        <!-- Week 2 -->
+        <div class="week-group">
+          <div class="week-label">Week 2 — May 8–14</div>
+          <div class="deliverable-card">
+            <div class="deliverable-left">
+              <div>
+                <div class="deliverable-title">Instagram Reel — Client Transformation</div>
+                <div class="deliverable-date">
+                  Due May 14
+                  <span class="updated-indicator" title="Originally due May 12">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
+                    updated
+                  </span>
+                </div>
+              </div>
+            </div>
+            <span class="status-badge ready-for-you">Ready for You</span>
+          </div>
+        </div>
+
+        <!-- Week 3 -->
+        <div class="week-group">
+          <div class="week-label">Week 3 — May 15–21</div>
+          <div class="deliverable-card">
+            <div class="deliverable-left">
+              <div>
+                <div class="deliverable-title">Email Campaign — May Newsletter</div>
+                <div class="deliverable-date">Due May 19</div>
+              </div>
+            </div>
+            <span class="status-badge in-progress">In Progress</span>
+          </div>
+          <div class="deliverable-card">
+            <div class="deliverable-left">
+              <div>
+                <div class="deliverable-title">Instagram Reel — Behind the Scenes</div>
+                <div class="deliverable-date">Due May 21</div>
+              </div>
+            </div>
+            <span class="status-badge planned">Planned</span>
+          </div>
+        </div>
+
+        <!-- Week 4 -->
+        <div class="week-group">
+          <div class="week-label">Week 4 — May 22–31</div>
+          <div class="deliverable-card">
+            <div class="deliverable-left">
+              <div>
+                <div class="deliverable-title">Monthly Strategy Review</div>
+                <div class="deliverable-date">Due May 28</div>
+              </div>
+            </div>
+            <span class="status-badge planned">Planned</span>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="month-history">
+          <button class="month-history-toggle" onclick="this.classList.toggle('open')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            Previous months
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <button class="menu-bubble">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    Menu
+  </button>
+</div>
+
+<!-- ========== SCENE 10: ADMIN PLAN BATCH REVIEW ========== -->
+<div class="scene" id="admin-plan-review">
+  <div class="review-shell">
+    <div class="review-header">
+      <h2>Monthly Plans</h2>
+      <div class="review-progress-text"><em>2</em> of 5 approved</div>
+    </div>
+    <div class="review-progress-bar">
+      <div class="review-progress-fill" style="width:40%;"></div>
+    </div>
+    <div class="review-body">
+      <div class="review-card">
+        <div class="review-client-header">
+          <div class="review-avatar">S</div>
+          <div>
+            <div class="review-client-name">Sarah Chen</div>
+            <div class="review-client-meta">Richmond Pilates Studio</div>
+          </div>
+          <div class="review-month-badge">Month 3</div>
+        </div>
+
+        <div class="review-items">
+          <div class="review-item">
+            <div>
+              <div class="review-item-title">Instagram Reel — Studio Tour</div>
+              <div class="review-item-date">Suggested: May 5</div>
+            </div>
+          </div>
+          <div class="review-item">
+            <div>
+              <div class="review-item-title">Instagram Reel — Client Transformation</div>
+              <div class="review-item-date">Suggested: May 12</div>
+            </div>
+          </div>
+          <div class="review-item">
+            <div>
+              <div class="review-item-title">Google Business Profile Update</div>
+              <div class="review-item-date">Suggested: May 7</div>
+            </div>
+          </div>
+          <div class="review-item">
+            <div>
+              <div class="review-item-title">Email Campaign — May Newsletter</div>
+              <div class="review-item-date">Suggested: May 19</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-chat">
+          <div class="review-chat-messages">
+            <div class="review-chat-msg andy">Two reels, a GBP update, and let's start her email sequence. Reels by the 10th, rest mid-month. Add a monthly strategy review at the end of the month too.</div>
+            <div class="review-chat-msg claude">Updated. 5 deliverables for May:<br><br>
+              <strong>Reel — Studio Tour</strong> → May 5<br>
+              <strong>GBP Update</strong> → May 7<br>
+              <strong>Reel — Client Transformation</strong> → May 12<br>
+              <strong>Email Campaign — May Newsletter</strong> → May 19<br>
+              <strong>Monthly Strategy Review</strong> → May 28<br><br>
+              That's 5 deliverables against a 4-deliverable retainer. The strategy review is extra — all good?
+            </div>
+            <div class="review-chat-msg andy">Yeah that's fine, the review is part of the service.</div>
+          </div>
+          <div class="review-chat-input">
+            <input type="text" placeholder="Edit this plan..." />
+            <button>Send</button>
+          </div>
+        </div>
+
+        <div class="review-actions">
+          <button class="btn-approve">Approve Plan</button>
+          <button class="btn-skip">Skip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /scene-container -->
+
+<script>
+// Scene switching
+function switchScene(id) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelector(`[data-scene="${id}"]`).classList.add('active');
+
+  // Reset wizard on enter
+  if (id === 'admin-wizard') resetWizard();
+  // Reset tour on enter
+  if (id === 'portal-tour') resetTour();
+}
+
+document.querySelectorAll('.scene-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchScene(btn.dataset.scene));
+});
+
+// Wizard state
+let wizStep = 0;
+const totalSteps = 5;
+
+function updateWizard() {
+  document.querySelectorAll('.wizard-step').forEach((s, i) => {
+    s.classList.toggle('active', i === wizStep);
+  });
+  document.querySelectorAll('.wizard-progress-seg').forEach((s, i) => {
+    s.classList.remove('done', 'active');
+    if (i < wizStep) s.classList.add('done');
+    if (i === wizStep) s.classList.add('active');
+  });
+
+  // Flight tracker
+  const stripeD = document.getElementById('ft-stripe');
+  const resendD = document.getElementById('ft-resend');
+  const graphD = document.getElementById('ft-graph');
+
+  [stripeD, resendD, graphD].forEach(d => { d.classList.remove('done', 'active'); });
+
+  if (wizStep <= 1) { stripeD.classList.add('active'); }
+  if (wizStep >= 2) { stripeD.classList.add('done'); }
+  if (wizStep === 2) { resendD.classList.add('active'); }
+  if (wizStep >= 3) { resendD.classList.add('done'); }
+  if (wizStep === 3) { graphD.classList.add('active'); }
+  if (wizStep >= 4) { graphD.classList.add('done'); }
+
+  // Hide footer on capstone
+  document.getElementById('wiz-footer').style.display = wizStep === 4 ? 'none' : 'flex';
+  // Hide back on first step
+  document.getElementById('wiz-back').style.visibility = wizStep === 0 ? 'hidden' : 'visible';
+  // Change next text
+  document.getElementById('wiz-next').textContent =
+    wizStep === 1 ? 'Waiting...' :
+    wizStep === 3 ? 'Connecting...' : 'Continue';
+}
+
+function wizardNext() {
+  if (wizStep < totalSteps - 1) {
+    wizStep++;
+    updateWizard();
+  }
+}
+
+function wizardBack() {
+  if (wizStep > 0) {
+    wizStep--;
+    updateWizard();
+  }
+}
+
+function resetWizard() {
+  wizStep = 0;
+  updateWizard();
+}
+
+// Tour state
+let tourStep = 0;
+const tourContent = [
+  { title: "This is your space.", text: "Ask me anything about your account — deliverables, invoices, what's coming up. I'm here." },
+  { title: "Everything else is in here.", text: "Deliverables, invoices, your brand profile, messages with Andy — it's all behind that red button." },
+  { title: "That's it. You're in.", text: "Go on then." },
+];
+
+function advanceTour() {
+  tourStep++;
+  if (tourStep >= tourContent.length) {
+    document.getElementById('tour-overlay').style.opacity = '0';
+    document.getElementById('tour-overlay').style.pointerEvents = 'none';
+    // Unblur
+    document.querySelector('#portal-tour .portal-chat-area').style.opacity = '1';
+    document.querySelector('#portal-tour .portal-chat-area').style.filter = 'none';
+    document.querySelector('#portal-tour .chat-input-area').style.opacity = '1';
+    document.querySelector('#portal-tour .chat-input-area').style.filter = 'none';
+    document.querySelector('#portal-tour .menu-bubble').style.opacity = '1';
+    return;
+  }
+  const c = tourContent[tourStep];
+  document.getElementById('tour-content').innerHTML = `<h3>${c.title}</h3><p>${c.text}</p>`;
+  document.querySelectorAll('.tour-dot').forEach((d, i) => d.classList.toggle('active', i === tourStep));
+
+  // On step 2 (menu), highlight the menu bubble
+  if (tourStep === 1) {
+    document.querySelector('#portal-tour .menu-bubble').style.opacity = '1';
+    document.querySelector('#portal-tour .menu-bubble').style.zIndex = '60';
+    document.querySelector('#portal-tour .menu-bubble').style.animation = 'none';
+    document.querySelector('#portal-tour .menu-bubble').style.boxShadow = '0 0 0 4px rgba(178,40,72,0.4), 0 8px 30px rgba(178,40,72,0.35)';
+  } else {
+    document.querySelector('#portal-tour .menu-bubble').style.zIndex = '20';
+    document.querySelector('#portal-tour .menu-bubble').style.boxShadow = '';
+  }
+}
+
+function resetTour() {
+  tourStep = 0;
+  document.getElementById('tour-overlay').style.opacity = '1';
+  document.getElementById('tour-overlay').style.pointerEvents = 'all';
+  document.getElementById('tour-content').innerHTML = `<h3>${tourContent[0].title}</h3><p>${tourContent[0].text}</p>`;
+  document.querySelectorAll('.tour-dot').forEach((d, i) => d.classList.toggle('active', i === 0));
+  document.querySelector('#portal-tour .portal-chat-area').style.opacity = '0.3';
+  document.querySelector('#portal-tour .portal-chat-area').style.filter = 'blur(2px)';
+  document.querySelector('#portal-tour .chat-input-area').style.opacity = '0.3';
+  document.querySelector('#portal-tour .chat-input-area').style.filter = 'blur(2px)';
+  document.querySelector('#portal-tour .menu-bubble').style.opacity = '0.3';
+  document.querySelector('#portal-tour .menu-bubble').style.zIndex = '20';
+  document.querySelector('#portal-tour .menu-bubble').style.boxShadow = '';
+}
+
+// Init
+updateWizard();
+</script>
+</body>
+</html>

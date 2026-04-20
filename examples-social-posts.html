@@ -1,0 +1,1561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Content Engine — Social Post Examples v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@0,9..40,400;1,9..40,500;1,9..40,600&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red:      #B22848;
+    --brand-cream:    #FDF5E6;
+    --brand-pink:     #F4A0B0;
+    --brand-orange:   #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-800:    #22221F;
+    --neutral-700:    #2C2C28;
+    --neutral-600:    #3D3D37;
+    --neutral-500:    #807F73;
+    --neutral-400:    #A8A596;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0F0F0E;
+    color: var(--brand-cream);
+    font-family: "DM Sans", sans-serif;
+    padding: 60px 40px 120px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- grain / noise filter (reused across posts) ---- */
+  svg.filters { position: absolute; width: 0; height: 0; }
+
+  h1.page-title {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 42px; color: var(--brand-cream);
+    margin-bottom: 8px; letter-spacing: -0.5px;
+  }
+  .page-sub {
+    font-size: 16px; color: var(--neutral-500);
+    margin-bottom: 60px; max-width: 640px; line-height: 1.6;
+  }
+  .page-sub em { color: var(--brand-pink); font-style: italic; }
+
+  .section { margin-bottom: 80px; }
+  .section-label {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--brand-pink);
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 28px; color: var(--brand-cream); margin-bottom: 6px;
+  }
+  .section-desc {
+    font-size: 14px; color: var(--neutral-500);
+    margin-bottom: 28px; max-width: 560px; line-height: 1.55;
+  }
+
+  .post-row {
+    display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;
+  }
+  .post-frame { display: flex; flex-direction: column; gap: 10px; }
+  .post-frame .platform-tag {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--neutral-500);
+  }
+  .post-frame .platform-tag .format { color: var(--neutral-600); }
+
+  .post {
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+  }
+  .post.square    { width: 420px; height: 420px; }
+  .post.portrait  { width: 420px; height: 528px; }
+  .post.landscape { width: 560px; height: 315px; }
+  .post.story     { width: 320px; height: 568px; }
+
+  /* ---- shared grain overlay ---- */
+  .post::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* ---- shared corner mark ---- */
+  .corner-mark {
+    position: absolute;
+    font-family: "Pacifico", cursive;
+    font-size: 14px;
+    color: var(--brand-cream);
+    opacity: 0.12;
+    z-index: 5;
+  }
+
+  /* ============================================================
+     POST 1 — ANTI-MOTIVATION: BLEED TYPE + ARC + GRAIN
+     ============================================================ */
+  .post.anti-1 {
+    background: var(--brand-charcoal);
+    padding: 0;
+    justify-content: flex-end;
+    align-items: flex-start;
+  }
+  .anti-1 .bleed-headline {
+    position: absolute;
+    top: -12px; left: -4px;
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 82px;
+    line-height: 0.92;
+    color: var(--brand-cream);
+    letter-spacing: -2px;
+    z-index: 2;
+    max-width: 110%;
+  }
+  .anti-1 .bleed-headline .accent { color: var(--brand-red); }
+  .anti-1 .arc {
+    position: absolute;
+    top: 50%; right: -60px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    border: 2px solid rgba(178, 40, 72, 0.15);
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+  .anti-1 .arc-2 {
+    position: absolute;
+    top: 50%; right: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 1px solid rgba(244, 160, 176, 0.08);
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+  .anti-1 .rule {
+    position: absolute;
+    left: 44px; top: 240px;
+    width: 48px; height: 2px;
+    background: var(--brand-red);
+    z-index: 3;
+  }
+  .anti-1 .bottom-block {
+    position: relative;
+    z-index: 3;
+    padding: 0 44px 40px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .anti-1 .mutter {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--brand-pink);
+    opacity: 0.75;
+  }
+  .anti-1 .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--neutral-600);
+  }
+
+  /* ============================================================
+     POST 2 — ANTI-MOTIVATION: HALFTONE CIRCLE + VERTICAL TEXT
+     ============================================================ */
+  .post.anti-2 {
+    background: var(--brand-charcoal);
+    padding: 44px;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .anti-2 .halftone-circle {
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--brand-red) 0%, transparent 70%);
+    opacity: 0.12;
+    z-index: 1;
+  }
+  .anti-2 .dot-grid {
+    position: absolute;
+    top: 24px; right: 24px;
+    display: grid;
+    grid-template-columns: repeat(5, 6px);
+    gap: 8px;
+    z-index: 1;
+  }
+  .anti-2 .dot-grid span {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--brand-red);
+    opacity: 0.2;
+  }
+  .anti-2 .dot-grid span:nth-child(odd) { opacity: 0.08; }
+  .anti-2 .vertical-label {
+    position: absolute;
+    left: 18px; top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-family: "Righteous", sans-serif;
+    font-size: 8px; letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--neutral-600);
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .anti-2 .main-text {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 36px;
+    line-height: 1.12;
+    color: var(--brand-cream);
+    z-index: 2;
+    padding-left: 20px;
+    max-width: 95%;
+  }
+  .anti-2 .main-text .accent { color: var(--brand-red); }
+  .anti-2 .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    z-index: 2;
+    padding-left: 20px;
+  }
+  .anti-2 .mutter {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--brand-pink);
+    opacity: 0.7;
+    max-width: 240px;
+    line-height: 1.4;
+  }
+  .anti-2 .ruled-lines {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .anti-2 .ruled-lines span {
+    display: block;
+    height: 1px;
+    background: rgba(253, 245, 230, 0.06);
+  }
+
+  /* ============================================================
+     POST 3 — ANTI-MOTIVATION: LANDSCAPE, OFFSET BLOCK
+     ============================================================ */
+  .post.anti-3 {
+    background: var(--brand-charcoal);
+    padding: 0;
+    flex-direction: row;
+  }
+  .anti-3 .left-block {
+    width: 38%;
+    height: 100%;
+    background: var(--brand-red);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .anti-3 .left-block .diagonal {
+    position: absolute;
+    top: 0; right: -60px;
+    width: 120px; height: 100%;
+    background: var(--brand-charcoal);
+    transform: skewX(-8deg);
+  }
+  .anti-3 .left-block .number {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 120px;
+    line-height: 0.8;
+    color: rgba(253, 245, 230, 0.1);
+    position: absolute;
+    top: -10px; left: 16px;
+  }
+  .anti-3 .left-block .label {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(253, 245, 230, 0.5);
+    z-index: 2;
+  }
+  .anti-3 .right-content {
+    flex: 1;
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+  }
+  .anti-3 .right-content .headline {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 28px;
+    line-height: 1.1;
+    color: var(--brand-cream);
+  }
+  .anti-3 .right-content .headline .accent { color: var(--brand-orange); }
+  .anti-3 .right-content .body {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--neutral-400);
+    line-height: 1.5;
+    max-width: 92%;
+  }
+  .anti-3 .stripe {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--brand-red), var(--brand-orange), transparent);
+  }
+
+  /* ============================================================
+     POST 4 — STAT CALLOUT: DUOTONE + OFFSET BLOCK
+     ============================================================ */
+  .post.stat-1 {
+    background: var(--brand-charcoal);
+    padding: 0;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+  .stat-1 .top-band {
+    background: linear-gradient(135deg, var(--brand-red), #8A1E38);
+    padding: 36px 44px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-1 .top-band .circle-cutout {
+    position: absolute;
+    bottom: -80px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 40px solid rgba(253, 245, 230, 0.04);
+  }
+  .stat-1 .top-band .stat-number {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 110px;
+    line-height: 0.85;
+    color: var(--brand-cream);
+    letter-spacing: -4px;
+    position: relative;
+    z-index: 2;
+  }
+  .stat-1 .top-band .stat-unit {
+    font-family: "Righteous", sans-serif;
+    font-size: 12px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(253, 245, 230, 0.55);
+    margin-top: 4px;
+    position: relative;
+    z-index: 2;
+  }
+  .stat-1 .bottom-context {
+    padding: 28px 44px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    justify-content: center;
+  }
+  .stat-1 .bottom-context .rule {
+    width: 36px; height: 2px;
+    background: var(--brand-red);
+  }
+  .stat-1 .bottom-context .text {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--neutral-400);
+    line-height: 1.5;
+    max-width: 300px;
+  }
+  .stat-1 .bottom-context .text strong {
+    color: var(--brand-cream);
+    font-weight: 600;
+  }
+
+  /* ============================================================
+     POST 5 — STAT CALLOUT: FULL RED, KNOCKOUT TYPE
+     ============================================================ */
+  .post.stat-2 {
+    background: linear-gradient(155deg, var(--brand-red) 0%, #6E1830 100%);
+    padding: 44px;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  .stat-2 .bg-arcs {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .stat-2 .bg-arcs .arc {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  .stat-2 .bg-arcs .arc-1 { width: 400px; height: 400px; top: -100px; right: -100px; }
+  .stat-2 .bg-arcs .arc-2 { width: 300px; height: 300px; top: -50px; right: -50px; }
+  .stat-2 .bg-arcs .arc-3 { width: 180px; height: 180px; bottom: -60px; left: -40px; border-color: rgba(253,245,230,0.03); }
+  .stat-2 .stat-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-2 .stat-number {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 140px;
+    line-height: 0.8;
+    color: var(--brand-cream);
+    letter-spacing: -5px;
+  }
+  .stat-2 .stat-label {
+    font-family: "Righteous", sans-serif;
+    font-size: 13px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(253, 245, 230, 0.5);
+  }
+  .stat-2 .divider-line {
+    width: 48px; height: 2px;
+    background: rgba(253, 245, 230, 0.2);
+    margin: 16px 0;
+  }
+  .stat-2 .context {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(253, 245, 230, 0.75);
+    line-height: 1.45;
+    max-width: 280px;
+    z-index: 2;
+    position: relative;
+  }
+
+  /* ============================================================
+     POST 6 — BLOG PROMO: GEOMETRIC + BLEED
+     ============================================================ */
+  .post.blog-1 {
+    background: var(--brand-charcoal);
+    padding: 0;
+    justify-content: flex-start;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  .blog-1 .geo-bg {
+    position: absolute; inset: 0; z-index: 1;
+  }
+  .blog-1 .geo-bg .block-1 {
+    position: absolute;
+    top: 0; right: 0;
+    width: 45%; height: 55%;
+    background: linear-gradient(180deg, rgba(178, 40, 72, 0.12), transparent);
+  }
+  .blog-1 .geo-bg .stripe-1 {
+    position: absolute;
+    top: 72%; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(253, 245, 230, 0.06), transparent);
+  }
+  .blog-1 .geo-bg .circle-1 {
+    position: absolute;
+    top: 30px; left: 30px;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(244, 160, 176, 0.12);
+  }
+  .blog-1 .geo-bg .circle-2 {
+    position: absolute;
+    top: 38px; left: 38px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(178, 40, 72, 0.08);
+  }
+  .blog-1 .content-layer {
+    position: relative; z-index: 2;
+    padding: 44px;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+  .blog-1 .tag-row {
+    display: flex; gap: 8px;
+    align-self: flex-start;
+  }
+  .blog-1 .tag {
+    font-family: "Righteous", sans-serif;
+    font-size: 8px; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    color: var(--neutral-500);
+  }
+  .blog-1 .headline {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 48px; line-height: 0.98;
+    color: var(--brand-cream);
+    margin-right: -20px;
+  }
+  .blog-1 .headline .red { color: var(--brand-red); }
+  .blog-1 .bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .blog-1 .subline {
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px;
+    color: var(--neutral-500);
+    max-width: 260px;
+    line-height: 1.5;
+  }
+  .blog-1 .url {
+    font-family: "Righteous", sans-serif;
+    font-size: 8px; letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--neutral-600);
+  }
+
+  /* ============================================================
+     POST 7 — BLOG PROMO: ACCENT BAR + HALFTONE
+     ============================================================ */
+  .post.blog-2 {
+    background: var(--brand-charcoal);
+    padding: 0;
+    flex-direction: row;
+    overflow: hidden;
+  }
+  .blog-2 .bar {
+    width: 5px;
+    background: linear-gradient(180deg, var(--brand-red), var(--brand-orange));
+    flex-shrink: 0;
+  }
+  .blog-2 .bar-content {
+    padding: 32px 36px;
+    display: flex; flex-direction: column;
+    justify-content: center; gap: 14px;
+    position: relative; z-index: 2;
+    flex: 1;
+  }
+  .blog-2 .bar-eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--brand-red);
+  }
+  .blog-2 .bar-headline {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 30px; line-height: 1.08;
+    color: var(--brand-cream);
+  }
+  .blog-2 .bar-body {
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px; color: var(--neutral-400);
+    line-height: 1.55; max-width: 380px;
+  }
+  .blog-2 .bar-cta {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--brand-pink);
+  }
+  .blog-2 .halftone-corner {
+    position: absolute;
+    bottom: -20px; right: -20px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(178, 40, 72, 0.1) 0%, transparent 70%);
+    z-index: 1;
+  }
+  .blog-2 .line-texture {
+    position: absolute;
+    top: 20px; right: 30px;
+    z-index: 1;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .blog-2 .line-texture span {
+    display: block; height: 1px;
+    background: rgba(253, 245, 230, 0.04);
+  }
+
+  /* ============================================================
+     POST 8 — PULL QUOTE: OVERSIZED MARK + GEOMETRIC
+     ============================================================ */
+  .post.quote-1 {
+    background: var(--brand-charcoal);
+    padding: 48px;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  .quote-1 .bg-quote-mark {
+    position: absolute;
+    top: -30px; left: 20px;
+    font-family: "Playfair Display", serif;
+    font-size: 320px;
+    line-height: 0.7;
+    color: rgba(178, 40, 72, 0.06);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .quote-1 .geo-line-h {
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(253,245,230,0.04) 30%, rgba(253,245,230,0.04) 70%, transparent 100%);
+    z-index: 1;
+  }
+  .quote-1 .geo-circle {
+    position: absolute;
+    bottom: 30px; right: 30px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 1px solid rgba(244, 160, 176, 0.08);
+    z-index: 1;
+  }
+  .quote-1 .geo-circle-inner {
+    position: absolute;
+    bottom: 45px; right: 45px;
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: rgba(178, 40, 72, 0.05);
+    z-index: 1;
+  }
+  .quote-1 .quote-text {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 23px;
+    line-height: 1.45;
+    color: var(--brand-cream);
+    max-width: 88%;
+    position: relative;
+    z-index: 2;
+  }
+  .quote-1 .quote-text .highlight { color: var(--brand-pink); }
+  .quote-1 .attribution-block {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 28px;
+    position: relative;
+    z-index: 2;
+  }
+  .quote-1 .attribution-block .rule {
+    width: 24px; height: 2px;
+    background: var(--brand-red);
+  }
+  .quote-1 .attribution-block .source {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--neutral-600);
+  }
+
+  /* ============================================================
+     POST 9 — BIG WORD: GHOST TYPE + RULED LINES
+     ============================================================ */
+  .post.bigword-1 {
+    background: var(--brand-charcoal);
+    padding: 48px;
+    justify-content: flex-end;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  .bigword-1 .giant {
+    position: absolute;
+    top: -30px; left: -10px;
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 220px;
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(178, 40, 72, 0.1);
+    letter-spacing: -10px;
+    z-index: 1;
+    white-space: nowrap;
+  }
+  .bigword-1 .ruled {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 39px,
+      rgba(253, 245, 230, 0.02) 39px,
+      rgba(253, 245, 230, 0.02) 40px
+    );
+  }
+  .bigword-1 .margin-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 60px;
+    width: 1px;
+    background: rgba(178, 40, 72, 0.06);
+    z-index: 0;
+  }
+  .bigword-1 .text-block {
+    position: relative;
+    z-index: 2;
+    padding-left: 16px;
+  }
+  .bigword-1 .text-block p {
+    font-family: "DM Sans", sans-serif;
+    font-size: 16px;
+    color: var(--neutral-400);
+    line-height: 1.65;
+    max-width: 85%;
+  }
+  .bigword-1 .text-block p strong {
+    color: var(--brand-cream);
+    font-weight: 600;
+  }
+  .bigword-1 .text-block p em {
+    color: var(--brand-pink);
+    font-style: italic;
+  }
+
+  /* ============================================================
+     POST 10 — CAROUSEL COVER: GEOMETRIC + BLEED
+     ============================================================ */
+  .post.carousel-cover {
+    background: linear-gradient(165deg, var(--brand-charcoal) 0%, #1C0D13 100%);
+    padding: 44px;
+    justify-content: space-between;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  .carousel-cover .geo-bg {
+    position: absolute; inset: 0; z-index: 1;
+  }
+  .carousel-cover .geo-bg .tri {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 0; height: 0;
+    border-left: 200px solid transparent;
+    border-bottom: 200px solid rgba(178, 40, 72, 0.06);
+  }
+  .carousel-cover .geo-bg .line-v {
+    position: absolute;
+    top: 0; bottom: 0;
+    right: 120px;
+    width: 1px;
+    background: rgba(253, 245, 230, 0.03);
+  }
+  .carousel-cover .geo-bg .dot-row {
+    position: absolute;
+    top: 28px; right: 28px;
+    display: flex; gap: 6px;
+  }
+  .carousel-cover .geo-bg .dot-row span {
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(244, 160, 176, 0.15);
+  }
+  .carousel-cover .slide-label {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--neutral-600);
+    z-index: 2;
+  }
+  .carousel-cover .slide-headline {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 42px;
+    line-height: 1.0;
+    color: var(--brand-cream);
+    z-index: 2;
+    margin-right: -24px;
+  }
+  .carousel-cover .slide-headline .accent { color: var(--brand-orange); }
+  .carousel-cover .slide-footer {
+    display: flex; align-items: center; gap: 12px;
+    z-index: 2;
+  }
+  .carousel-cover .slide-footer .rule {
+    width: 24px; height: 2px;
+    background: var(--brand-red);
+  }
+  .carousel-cover .slide-footer .hint {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--brand-pink);
+    opacity: 0.6;
+  }
+  .carousel-dots { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
+  .carousel-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neutral-600); }
+  .carousel-dots .dot.active { background: var(--brand-red); }
+
+  /* ============================================================
+     POST 11 — CAROUSEL INNER SLIDE: TEACHING
+     ============================================================ */
+  .post.carousel-inner {
+    background: var(--brand-charcoal);
+    padding: 44px;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  .carousel-inner .step-num {
+    position: absolute;
+    top: 24px; right: 32px;
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 100px;
+    line-height: 0.8;
+    color: rgba(178, 40, 72, 0.07);
+    z-index: 1;
+  }
+  .carousel-inner .slide-counter {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--neutral-600);
+    z-index: 2;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .carousel-inner .heading {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 30px;
+    line-height: 1.1;
+    color: var(--brand-cream);
+    z-index: 2;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .carousel-inner .heading .accent { color: var(--brand-orange); }
+  .carousel-inner .rule {
+    width: 36px; height: 2px;
+    background: var(--brand-red);
+    margin-bottom: 16px;
+    z-index: 2;
+    position: relative;
+  }
+  .carousel-inner .body {
+    font-family: "DM Sans", sans-serif;
+    font-size: 15px;
+    color: var(--neutral-400);
+    line-height: 1.6;
+    max-width: 90%;
+    z-index: 2;
+    position: relative;
+  }
+  .carousel-inner .body strong {
+    color: var(--brand-cream); font-weight: 600;
+  }
+  .carousel-inner .left-stripe {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--brand-red) 0%, transparent 80%);
+    z-index: 1;
+  }
+
+  /* ============================================================
+     POST 12 — STORY COVER: GRADIENT + GEOMETRIC
+     ============================================================ */
+  .post.story-1 {
+    background: linear-gradient(180deg, var(--brand-charcoal) 0%, #1A0C12 45%, var(--brand-red) 100%);
+    padding: 36px 28px;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  .story-1 .geo-overlay {
+    position: absolute; inset: 0; z-index: 1;
+  }
+  .story-1 .geo-overlay .ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .story-1 .geo-overlay .ring-1 { width: 300px; height: 300px; }
+  .story-1 .geo-overlay .ring-2 { width: 220px; height: 220px; }
+  .story-1 .geo-overlay .ring-3 { width: 140px; height: 140px; border-color: rgba(253, 245, 230, 0.06); }
+  .story-1 .story-eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 8px; letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--brand-pink);
+    opacity: 0.6;
+    z-index: 2;
+  }
+  .story-1 .story-main {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 14px;
+    z-index: 2;
+  }
+  .story-1 .story-headline {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 34px; line-height: 1.08;
+    color: var(--brand-cream);
+  }
+  .story-1 .story-rule {
+    width: 28px; height: 2px;
+    background: rgba(253, 245, 230, 0.2);
+  }
+  .story-1 .story-sub {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--brand-pink);
+    max-width: 80%;
+    line-height: 1.4;
+    opacity: 0.8;
+  }
+  .story-1 .story-bottom {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 6px;
+    z-index: 2;
+  }
+  .story-1 .swipe-cta {
+    font-family: "Righteous", sans-serif;
+    font-size: 8px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(253, 245, 230, 0.4);
+  }
+  .story-1 .swipe-arrow {
+    font-size: 16px;
+    color: rgba(253, 245, 230, 0.25);
+    animation: bob 2s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  /* ============================================================
+     POST 13 — NUMBERED LIST: PORTRAIT + RULED
+     ============================================================ */
+  .post.list-1 {
+    background: var(--brand-charcoal);
+    padding: 40px 44px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  .list-1 .bg-ruled {
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 43px,
+      rgba(253, 245, 230, 0.015) 43px,
+      rgba(253, 245, 230, 0.015) 44px
+    );
+    z-index: 0;
+  }
+  .list-1 .left-accent {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--brand-red), var(--brand-orange), transparent);
+    z-index: 1;
+  }
+  .list-1 .list-title {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 26px; line-height: 1.1;
+    color: var(--brand-cream);
+    margin-bottom: 8px;
+    position: relative; z-index: 2;
+  }
+  .list-1 .list-mutter {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--brand-pink);
+    opacity: 0.6;
+    margin-bottom: 24px;
+    position: relative; z-index: 2;
+  }
+  .list-1 .list-items {
+    display: flex; flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    position: relative; z-index: 2;
+  }
+  .list-1 .list-item {
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .list-1 .list-num {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--brand-red);
+    flex-shrink: 0;
+    width: 28px;
+    opacity: 0.7;
+  }
+  .list-1 .list-text {
+    font-family: "DM Sans", sans-serif;
+    font-size: 13.5px;
+    color: var(--neutral-400);
+    line-height: 1.5;
+    padding-top: 6px;
+    border-top: 1px solid rgba(253, 245, 230, 0.03);
+    flex: 1;
+  }
+  .list-1 .list-text strong {
+    color: var(--brand-cream); font-weight: 600;
+  }
+
+  /* ============================================================
+     POST 14 — ANTI-MOTIVATION: CENTERED + RINGS
+     ============================================================ */
+  .post.anti-centered {
+    background: var(--brand-charcoal);
+    padding: 48px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  .anti-centered .rings {
+    position: absolute; inset: 0; z-index: 1;
+  }
+  .anti-centered .rings .r {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(178, 40, 72, 0.06);
+  }
+  .anti-centered .rings .r-1 { width: 360px; height: 360px; }
+  .anti-centered .rings .r-2 { width: 280px; height: 280px; border-color: rgba(178, 40, 72, 0.09); }
+  .anti-centered .rings .r-3 { width: 200px; height: 200px; border-color: rgba(178, 40, 72, 0.04); }
+  .anti-centered .eyebrow {
+    font-family: "Righteous", sans-serif;
+    font-size: 9px; letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--neutral-600);
+    margin-bottom: 20px;
+    z-index: 2;
+    position: relative;
+  }
+  .anti-centered .main-text {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 36px;
+    line-height: 1.12;
+    color: var(--brand-cream);
+    z-index: 2;
+    position: relative;
+    max-width: 340px;
+  }
+  .anti-centered .main-text .accent { color: var(--brand-red); }
+  .anti-centered .divider {
+    width: 36px; height: 2px;
+    background: var(--brand-red);
+    margin: 20px auto;
+    z-index: 2;
+    position: relative;
+  }
+  .anti-centered .mutter {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--brand-pink);
+    opacity: 0.65;
+    z-index: 2;
+    position: relative;
+    max-width: 280px;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">CONTENT ENGINE OUTPUTS</h1>
+<p class="page-sub">
+  v2 — texture, geometry, bleed, analog warmth. What the Content Engine actually renders via Puppeteer
+  from HTML/CSS templates + Brand DNA tokens. <em>One approved blog post fans out into all of these.</em>
+</p>
+
+<!-- ==================== ANTI-MOTIVATION ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">ANTI-MOTIVATION</div>
+  <div class="section-desc">
+    Dry, honest, premium. The grind is the proof.
+    Typography bleeds, geometry creates tension, grain adds warmth.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square anti-1">
+        <div class="bleed-headline">THE BETTER YOUR MARKETING GETS, THE <span class="accent">HARDER</span> YOU HAVE TO WORK.</div>
+        <div class="arc"></div>
+        <div class="arc-2"></div>
+        <div class="rule"></div>
+        <div class="bottom-block">
+          <span class="mutter">that's how you know it's working.</span>
+          <span class="eyebrow">A reminder</span>
+        </div>
+        <span class="corner-mark" style="bottom: 40px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square anti-2">
+        <div class="halftone-circle"></div>
+        <div class="dot-grid">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="vertical-label">Uncomfortable truth #14</div>
+        <div class="main-text">
+          NOBODY EVER<br><span class="accent">WENT VIRAL</span><br>FROM A CONTENT<br>CALENDAR.
+        </div>
+        <div class="footer-row">
+          <div class="mutter">they went viral from being interesting. the calendar just made sure they showed up.</div>
+          <div class="ruled-lines">
+            <span style="width: 40px;"></span>
+            <span style="width: 28px;"></span>
+            <span style="width: 34px;"></span>
+          </div>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">LinkedIn <span class="format">/ Landscape</span></div>
+      <div class="post landscape anti-3">
+        <div class="left-block">
+          <div class="diagonal"></div>
+          <div class="number">#</div>
+          <span class="label">Hard truths</span>
+        </div>
+        <div class="right-content">
+          <div class="headline">YOUR COMPETITOR DIDN'T <span class="accent">OUTSPEND</span> YOU.</div>
+          <div class="body">They just didn't stop. Consistency is the most boring competitive advantage there is.</div>
+        </div>
+        <div class="stripe"></div>
+        <span class="corner-mark" style="bottom: 12px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square anti-centered">
+        <div class="rings">
+          <div class="r r-1"></div>
+          <div class="r r-2"></div>
+          <div class="r r-3"></div>
+        </div>
+        <div class="eyebrow">Noted</div>
+        <div class="main-text">
+          YOU DON'T NEED<br>MORE <span class="accent">IDEAS.</span><br>YOU NEED TO<br>SHIP THE ONE<br>YOU HAD IN<br>JANUARY.
+        </div>
+        <div class="divider"></div>
+        <div class="mutter">it's still good. it's just collecting dust.</div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== STAT CALLOUT ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">STAT CALLOUT</div>
+  <div class="section-desc">
+    Data points from the blog, blown up huge. Split-band layout or full-colour
+    with concentric arcs. The number is the hook.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square stat-1">
+        <div class="top-band">
+          <div class="circle-cutout"></div>
+          <div class="stat-number">73%</div>
+          <div class="stat-unit">of small business blogs</div>
+        </div>
+        <div class="bottom-context">
+          <div class="rule"></div>
+          <div class="text">Haven't published a post in over six months. <strong>The other 27% are the ones you're losing to.</strong></div>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square stat-2">
+        <div class="bg-arcs">
+          <div class="arc arc-1"></div>
+          <div class="arc arc-2"></div>
+          <div class="arc arc-3"></div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">4x</div>
+          <div class="stat-label">More organic traffic</div>
+        </div>
+        <div class="divider-line"></div>
+        <div class="context">From businesses that blog weekly vs. monthly. Not because each post is better — because the algorithm rewards showing up.</div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== BLOG PROMO ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">BLOG PROMOTION</div>
+  <div class="section-desc">
+    Generated on approval. Headline from the post, geometric layering,
+    bleed type. Platform-specific formats.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square blog-1">
+        <div class="geo-bg">
+          <div class="block-1"></div>
+          <div class="stripe-1"></div>
+          <div class="circle-1"></div>
+          <div class="circle-2"></div>
+        </div>
+        <div class="content-layer">
+          <div class="tag-row">
+            <span class="tag">SEO</span>
+            <span class="tag">Strategy</span>
+          </div>
+          <div class="headline">
+            THE 90-DAY<br>CONTENT PLAN<br>THAT <span class="red">WRITES<br>ITSELF.</span>
+          </div>
+          <div class="bottom-row">
+            <div class="subline">How to build a blog that ranks while you sleep. No writers. No agencies.</div>
+            <div class="url">superbadmedia.com.au</div>
+          </div>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">LinkedIn <span class="format">/ Landscape</span></div>
+      <div class="post landscape blog-2">
+        <div class="bar"></div>
+        <div class="bar-content">
+          <div class="bar-eyebrow">New on the blog</div>
+          <div class="bar-headline">WHY YOUR COMPETITOR'S<br>BLOG RANKS AND YOURS<br>COLLECTS DUST.</div>
+          <div class="bar-body">Spoiler: it's not because they have better writers. It's because they have a system.</div>
+          <div class="bar-cta">Read it &rarr;</div>
+        </div>
+        <div class="halftone-corner"></div>
+        <div class="line-texture">
+          <span style="width: 60px;"></span>
+          <span style="width: 44px;"></span>
+          <span style="width: 52px;"></span>
+          <span style="width: 36px;"></span>
+          <span style="width: 48px;"></span>
+        </div>
+        <span class="corner-mark" style="bottom: 12px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== PULL QUOTE ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">PULL QUOTE</div>
+  <div class="section-desc">
+    A sharp line from the blog given room. Oversized ghost quote mark,
+    geometric accents, editorial weight.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square quote-1">
+        <div class="bg-quote-mark">&ldquo;</div>
+        <div class="geo-line-h"></div>
+        <div class="geo-circle"></div>
+        <div class="geo-circle-inner"></div>
+        <div class="quote-text">
+          The best content strategy is the one that <span class="highlight">runs without you</span>. Everything else is just a hobby with a login page.
+        </div>
+        <div class="attribution-block">
+          <div class="rule"></div>
+          <div class="source">From: The 90-day content plan that writes itself</div>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== BIG WORD ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">BIG WORD</div>
+  <div class="section-desc">
+    Ghost outline type as atmosphere. Ruled-paper texture underneath.
+    The word is the mood, the body copy is the content.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square bigword-1">
+        <div class="giant">DUST</div>
+        <div class="ruled"></div>
+        <div class="margin-line"></div>
+        <div class="text-block">
+          <p>
+            Your website has a blog section. It has three posts from 2022. One of them is titled <em>"Welcome to our new website."</em><br><br>
+            <strong>That's not a blog. That's a graveyard with a CMS.</strong>
+          </p>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Square</span></div>
+      <div class="post square bigword-1">
+        <div class="giant">VOICE</div>
+        <div class="ruled"></div>
+        <div class="margin-line"></div>
+        <div class="text-block">
+          <p>
+            AI content doesn't have a voice problem.<br><br>
+            It has a <strong>"nobody told it who it's supposed to sound like"</strong> problem.<br><br>
+            Feed it your Brand DNA and suddenly it sounds like <em>you on a good day.</em>
+          </p>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== CAROUSEL ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">CAROUSEL</div>
+  <div class="section-desc">
+    Blog post broken into swipeable slides. Cover hooks with geometric layering,
+    inner slides teach with ghost step numbers. Each slide rendered individually by Puppeteer.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Slide 1 <span class="format">/ Cover</span></div>
+      <div class="post square carousel-cover">
+        <div class="geo-bg">
+          <div class="tri"></div>
+          <div class="line-v"></div>
+          <div class="dot-row">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="slide-label">1 / 4</div>
+        <div class="slide-headline">
+          YOUR SEO<br>STRATEGY IS<br><span class="accent">PROBABLY</span><br>UPSIDE DOWN.
+        </div>
+        <div class="slide-footer">
+          <div class="rule"></div>
+          <div class="hint">swipe to find out why</div>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+      <div class="carousel-dots">
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">Slide 2 <span class="format">/ Teaching</span></div>
+      <div class="post square carousel-inner">
+        <div class="step-num">02</div>
+        <div class="left-stripe"></div>
+        <div class="slide-counter">2 / 4</div>
+        <div class="heading">
+          MOST PEOPLE START<br>WITH <span class="accent">KEYWORDS.</span>
+        </div>
+        <div class="rule"></div>
+        <div class="body">
+          That's like choosing paint colours before you've built the house.<br><br>
+          <strong>Start with content gaps.</strong> Find what the top 3 results aren't saying — then say it better.
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+      <div class="carousel-dots">
+        <span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">Slide 3 <span class="format">/ Teaching</span></div>
+      <div class="post square carousel-inner">
+        <div class="step-num">03</div>
+        <div class="left-stripe"></div>
+        <div class="slide-counter">3 / 4</div>
+        <div class="heading">
+          THE <span class="accent">CONTENT GAP</span><br>METHOD.
+        </div>
+        <div class="rule"></div>
+        <div class="body">
+          <strong>1.</strong> Search your target keyword<br>
+          <strong>2.</strong> Read the top 3 results<br>
+          <strong>3.</strong> Find what they all skip<br>
+          <strong>4.</strong> Write that post instead<br><br>
+          You're not competing with their content. You're filling the hole they left.
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+      <div class="carousel-dots">
+        <span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== STORY ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">STORY / REEL COVER</div>
+  <div class="section-desc">
+    9:16 for Stories and Reels. Concentric rings create depth behind centered type.
+    Gradient fade into brand red. Built for 2-second scroll capture.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Story</span></div>
+      <div class="post story story-1">
+        <div class="geo-overlay">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+        </div>
+        <div class="story-eyebrow">New post</div>
+        <div class="story-main">
+          <div class="story-headline">YOUR BLOG<br>ISN'T DEAD.<br>IT JUST NEEDS<br>A SYSTEM.</div>
+          <div class="story-rule"></div>
+          <div class="story-sub">the 90-day plan that actually works</div>
+        </div>
+        <div class="story-bottom">
+          <div class="swipe-cta">Read now</div>
+          <div class="swipe-arrow">&uarr;</div>
+        </div>
+        <span class="corner-mark" style="bottom: 16px; right: 16px;">SuperBad</span>
+      </div>
+    </div>
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Story</span></div>
+      <div class="post story story-1" style="background: linear-gradient(180deg, var(--brand-charcoal) 0%, #1A1410 45%, var(--brand-orange) 100%);">
+        <div class="geo-overlay">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+        </div>
+        <div class="story-eyebrow">Content Engine</div>
+        <div class="story-main">
+          <div class="story-headline">WE WROTE<br>47 BLOG POSTS<br>LAST MONTH.</div>
+          <div class="story-rule"></div>
+          <div class="story-sub">for 12 different brands. in 12 different voices. while everyone slept.</div>
+        </div>
+        <div class="story-bottom">
+          <div class="swipe-cta">See how</div>
+          <div class="swipe-arrow">&uarr;</div>
+        </div>
+        <span class="corner-mark" style="bottom: 16px; right: 16px;">SuperBad</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== NUMBERED LIST ==================== -->
+<div class="section">
+  <div class="section-label">Post Style</div>
+  <div class="section-title">NUMBERED LIST</div>
+  <div class="section-desc">
+    Blog takeaways as a scannable list. Ruled-paper texture,
+    gradient left-accent, big semi-transparent numbers.
+  </div>
+  <div class="post-row">
+
+    <div class="post-frame">
+      <div class="platform-tag">Instagram <span class="format">/ Portrait</span></div>
+      <div class="post portrait list-1">
+        <div class="bg-ruled"></div>
+        <div class="left-accent"></div>
+        <div class="list-title">5 SIGNS YOUR<br>CONTENT STRATEGY<br>IS A FICTION.</div>
+        <div class="list-mutter">a diagnostic, not a judgement.</div>
+        <div class="list-items">
+          <div class="list-item">
+            <div class="list-num">1</div>
+            <div class="list-text"><strong>You call it a "strategy"</strong> but it's actually just "post when we remember."</div>
+          </div>
+          <div class="list-item">
+            <div class="list-num">2</div>
+            <div class="list-text"><strong>Your last blog post</strong> starts with "In today's fast-paced world."</div>
+          </div>
+          <div class="list-item">
+            <div class="list-num">3</div>
+            <div class="list-text"><strong>Your newsletter</strong> has been "launching next month" since Q2 2024.</div>
+          </div>
+          <div class="list-item">
+            <div class="list-num">4</div>
+            <div class="list-text"><strong>You hired a content writer</strong> who wrote 4 posts and then became "too busy."</div>
+          </div>
+          <div class="list-item">
+            <div class="list-num">5</div>
+            <div class="list-text"><strong>Your social media</strong> is a link dump with stock photos of people high-fiving.</div>
+          </div>
+        </div>
+        <span class="corner-mark" style="bottom: 20px; right: 24px;">SuperBad</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top: 80px; padding-top: 40px; border-top: 1px solid rgba(253,245,230,0.05);">
+  <div class="section-label">Template system</div>
+  <p style="font-size: 14px; color: var(--neutral-500); max-width: 640px; line-height: 1.7; margin-top: 12px;">
+    Each style above is an HTML/CSS template at <code style="color: var(--neutral-400);">/templates/social/</code>.
+    The Content Engine fills them with blog content + Brand DNA visual tokens (colours, type, spacing, mood),
+    then Puppeteer renders to production-ready PNG. Claude selects the template, format, and platform per draft.
+    Subscribers get the same system, pulling their own Brand DNA — not SuperBad's.
+  </p>
+  <p style="font-size: 13px; color: var(--neutral-600); margin-top: 16px; font-style: italic;">
+    Layers: film grain overlay &middot; geometric shapes (arcs, circles, triangles, ruled lines) &middot; bleed typography &middot; offset colour blocks &middot; ghost type outlines &middot; gradient washes &middot; dot grids.
+  </p>
+</div>
+
+</body>
+</html>

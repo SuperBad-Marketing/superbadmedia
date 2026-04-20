@@ -1,0 +1,1914 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SuperBad — your room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Pacifico&family=Playfair+Display:ital,wght@1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red: #B22848;
+    --brand-cream: #FDF5E6;
+    --brand-pink: #F4A0B0;
+    --brand-orange: #F28C52;
+    --brand-charcoal: #1A1A18;
+    --neutral-900: #1A1A18;
+    --neutral-800: #22221F;
+    --neutral-700: #2C2C28;
+    --neutral-600: #3D3D37;
+    --neutral-500: #807F73;
+    --neutral-300: #D4D2C2;
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --radius-card: 16px;
+    --radius-button: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--neutral-900);
+    color: var(--neutral-300);
+    font-family: "DM Sans", -apple-system, system-ui, sans-serif;
+    font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection { background: var(--brand-red); color: var(--brand-cream); }
+
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242, 140, 82, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178, 40, 72, 0.08), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244, 160, 176, 0.05), transparent 60%);
+  }
+
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.035; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ======== LAYOUT ======== */
+  .app {
+    position: relative; z-index: 2;
+    height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  header.top-bar {
+    padding: 20px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.04);
+  }
+  .logo {
+    font-family: "Pacifico", cursive;
+    font-size: 22px; color: var(--brand-cream);
+    cursor: pointer;
+  }
+  .who {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .who em { color: var(--brand-pink); font-style: normal; }
+
+  .page-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .page {
+    position: absolute; inset: 0;
+    overflow-y: auto;
+    padding: 0;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 500ms var(--spring), transform 500ms var(--spring);
+    pointer-events: none;
+  }
+  .page.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+  .page::-webkit-scrollbar { width: 6px; }
+  .page::-webkit-scrollbar-track { background: transparent; }
+  .page::-webkit-scrollbar-thumb { background: rgba(253, 245, 230, 0.08); border-radius: 3px; }
+
+  .page-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ======== MENU BUBBLE ======== */
+  .menu-btn {
+    position: fixed;
+    bottom: 32px; right: 32px; z-index: 20;
+    height: 52px;
+    padding: 0 20px 0 16px;
+    border-radius: 999px;
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border: none;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    font-family: "Righteous", sans-serif;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    box-shadow: 0 12px 40px rgba(178, 40, 72, 0.35), inset 0 1px 0 rgba(253, 245, 230, 0.12);
+    transition: transform 400ms var(--spring), box-shadow 400ms var(--spring);
+    animation: breathe 3.6s var(--spring) infinite;
+  }
+  .menu-btn::before {
+    content: ""; position: absolute; inset: -4px;
+    border-radius: 999px;
+    border: 1px solid rgba(244, 160, 176, 0.4);
+    opacity: 0;
+    animation: halo 3.6s var(--spring) infinite;
+    pointer-events: none;
+  }
+  .menu-btn:hover {
+    transform: scale(1.04) translateY(-1px);
+    box-shadow: 0 16px 50px rgba(178, 40, 72, 0.45), inset 0 1px 0 rgba(253, 245, 230, 0.18);
+    animation-play-state: paused;
+  }
+  .menu-btn svg { width: 18px; height: 18px; }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 10px 30px rgba(178, 40, 72, 0.3), inset 0 1px 0 rgba(253, 245, 230, 0.1); }
+    50%      { box-shadow: 0 14px 44px rgba(178, 40, 72, 0.5), inset 0 1px 0 rgba(253, 245, 230, 0.14); }
+  }
+  @keyframes halo {
+    0%   { opacity: 0; transform: scale(1); }
+    40%  { opacity: 0.6; }
+    100% { opacity: 0; transform: scale(1.18); }
+  }
+
+  /* ======== CHAT BUBBLE (shows on non-chat pages) ======== */
+  .chat-bubble {
+    position: fixed;
+    bottom: 32px; left: 32px; z-index: 20;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--neutral-700);
+    border: 1px solid rgba(253, 245, 230, 0.1);
+    color: var(--brand-cream);
+    display: none; place-items: center;
+    cursor: pointer;
+    transition: all 300ms var(--spring);
+  }
+  .chat-bubble:hover {
+    background: var(--neutral-600);
+    border-color: rgba(244, 160, 176, 0.3);
+    transform: scale(1.06);
+  }
+  .chat-bubble svg { width: 20px; height: 20px; }
+  body.on-subpage .chat-bubble { display: grid; }
+  body.on-subpage .menu-btn { }
+
+  /* ======== MENU OVERLAY ======== */
+  .overlay {
+    position: fixed; inset: 0; z-index: 30;
+    background: rgba(26, 26, 24, 0.92);
+    backdrop-filter: blur(24px);
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 400ms var(--spring);
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  .overlay .inner {
+    max-width: 900px; margin: 0 auto;
+    padding: 80px 40px;
+    width: 100%;
+    display: flex; flex-direction: column; gap: 40px;
+  }
+  .overlay .greet {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 20px; color: var(--brand-pink);
+    max-width: 480px;
+  }
+  .overlay .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .menu-item {
+    padding: 28px 24px;
+    background: rgba(34, 34, 31, 0.6);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-card);
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: all 300ms var(--spring);
+    position: relative;
+  }
+  .menu-item:hover {
+    background: rgba(34, 34, 31, 0.9);
+    border-color: rgba(244, 160, 176, 0.3);
+    transform: translateY(-2px);
+  }
+  .menu-item .eyebrow {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--brand-orange); text-transform: uppercase;
+  }
+  .menu-item h3 {
+    font-family: "Black Han Sans"; font-size: 26px; color: var(--brand-cream);
+    line-height: 1;
+  }
+  .menu-item p {
+    font-size: 13px; color: var(--neutral-500); font-style: italic;
+  }
+  .menu-item .badge-new {
+    position: absolute; top: 14px; right: 14px;
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--brand-red);
+    background: var(--brand-pink);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .overlay .close-btn {
+    position: absolute; top: 28px; right: 40px;
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2px;
+    color: var(--brand-cream); text-transform: uppercase;
+    cursor: pointer; background: none; border: none;
+    padding: 8px 14px;
+    border: 1px solid rgba(253, 245, 230, 0.2); border-radius: 6px;
+    transition: all 200ms var(--spring);
+  }
+  .overlay .close-btn:hover { border-color: var(--brand-pink); }
+
+  /* ======== ANIMATIONS ======== */
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ======== CHAT PAGE ======== */
+  .chat-page {
+    display: flex; flex-direction: column;
+    height: 100%;
+  }
+  .thread {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px 40px;
+    display: flex; flex-direction: column; gap: 24px;
+    max-width: 780px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .thread::-webkit-scrollbar { width: 6px; }
+  .thread::-webkit-scrollbar-track { background: transparent; }
+  .thread::-webkit-scrollbar-thumb { background: rgba(253, 245, 230, 0.08); border-radius: 3px; }
+
+  .opening {
+    margin-top: 12px;
+    display: flex; flex-direction: column; gap: 16px;
+    animation: rise 900ms var(--spring) both;
+  }
+  .opening .line {
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: 26px; line-height: 1.3;
+    color: var(--brand-cream);
+    max-width: 620px;
+  }
+  .opening .line em { color: var(--brand-pink); font-style: italic; }
+  .opening .under {
+    font-size: 14px; color: var(--neutral-500); font-style: italic;
+  }
+
+  .msg {
+    display: flex; flex-direction: column; gap: 5px;
+    animation: rise 500ms var(--spring) both;
+  }
+  .msg.bartender { max-width: 560px; }
+  .msg.user { max-width: 440px; align-self: flex-end; align-items: flex-end; }
+  .msg .body {
+    padding: 14px 18px;
+    border-radius: 18px;
+    font-size: 15px; line-height: 1.55;
+  }
+  .msg.bartender .body {
+    background: rgba(253, 245, 230, 0.04);
+    color: var(--neutral-300);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-top-left-radius: 6px;
+  }
+  .msg.user .body {
+    background: var(--brand-red);
+    color: var(--brand-cream);
+    border-top-right-radius: 6px;
+  }
+  .msg .stamp {
+    font-size: 10px; font-family: "Righteous"; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+    padding: 0 8px;
+  }
+  .msg.user .stamp { color: var(--brand-pink); }
+
+  .card-attach {
+    margin-top: 8px; padding: 14px;
+    background: rgba(253, 245, 230, 0.04);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 12px;
+    max-width: 400px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .card-attach .label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    color: var(--brand-orange); text-transform: uppercase;
+  }
+  .card-attach .title { color: var(--brand-cream); font-size: 15px; font-weight: 500; }
+  .card-attach .row {
+    display: flex; justify-content: space-between; font-size: 13px;
+    color: var(--neutral-500);
+    padding-top: 8px; border-top: 1px solid rgba(253,245,230,0.05);
+  }
+  .card-attach .row strong { color: var(--neutral-300); font-weight: 500; }
+  .card-attach .actions { display: flex; gap: 8px; margin-top: 6px; }
+
+  .btn {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 8px 14px; border-radius: var(--radius-button);
+    cursor: pointer; border: 1px solid transparent;
+    background: var(--brand-red); color: var(--brand-cream);
+    transition: all 200ms var(--spring);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: #8F1D3A; }
+  .btn.ghost {
+    background: transparent; color: var(--neutral-300);
+    border-color: rgba(253, 245, 230, 0.15);
+  }
+  .btn.ghost:hover { border-color: rgba(253, 245, 230, 0.3); }
+  .btn.approve { background: #2A6B4A; }
+  .btn.approve:hover { background: #1F5538; }
+  .btn.danger { background: transparent; color: var(--brand-orange); border-color: var(--brand-orange); }
+  .btn.danger:hover { background: rgba(242, 140, 82, 0.1); }
+
+  .composer {
+    padding: 14px 32px 24px;
+    max-width: 780px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .input-wrap {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 999px;
+    padding: 6px 6px 6px 22px;
+    transition: border-color 300ms var(--spring);
+  }
+  .input-wrap:focus-within { border-color: rgba(244, 160, 176, 0.35); }
+  .input-wrap input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--brand-cream); font-family: "DM Sans"; font-size: 15px;
+    padding: 12px 0;
+  }
+  .input-wrap input::placeholder { color: var(--neutral-500); font-style: italic; }
+  .input-wrap .send {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--brand-red); color: var(--brand-cream);
+    display: grid; place-items: center;
+    border: none; cursor: pointer;
+    transition: transform 200ms var(--spring);
+  }
+  .input-wrap .send:hover { transform: scale(1.06); }
+
+  .hint {
+    margin-top: 10px; padding: 0 20px;
+    font-size: 12px; font-style: italic; color: var(--neutral-500);
+    display: flex; justify-content: space-between;
+  }
+
+  /* ======== PAGE HEADERS ======== */
+  .page-header {
+    padding: 40px 0 28px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+    margin-bottom: 28px;
+  }
+  .page-header h1 {
+    font-family: "Black Han Sans"; font-size: 36px;
+    color: var(--brand-cream); line-height: 1;
+  }
+  .page-header .subtitle {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 15px; color: var(--neutral-500);
+  }
+  .page-header .eyebrow {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--brand-orange); text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* ======== DELIVERABLES ======== */
+  .deliverable-card {
+    background: rgba(34, 34, 31, 0.6);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    margin-bottom: 14px;
+    transition: all 300ms var(--spring);
+    cursor: pointer;
+  }
+  .deliverable-card:hover {
+    border-color: rgba(253, 245, 230, 0.14);
+  }
+  .deliverable-card.expanded {
+    cursor: default;
+    border-color: rgba(244, 160, 176, 0.25);
+  }
+  .deliverable-card .d-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .deliverable-card .d-title {
+    font-size: 16px; color: var(--brand-cream); font-weight: 500;
+  }
+  .deliverable-card .d-due {
+    font-size: 12px; color: var(--neutral-500); margin-top: 4px;
+  }
+  .status-badge {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 4px;
+    white-space: nowrap;
+  }
+  .status-badge.awaiting { background: rgba(242, 140, 82, 0.15); color: var(--brand-orange); }
+  .status-badge.in-progress { background: rgba(244, 160, 176, 0.12); color: var(--brand-pink); }
+  .status-badge.delivered { background: rgba(42, 107, 74, 0.2); color: #5FBF8A; }
+  .status-badge.overdue { background: rgba(178, 40, 72, 0.15); color: var(--brand-red); }
+
+  .progress-bar {
+    height: 4px; background: rgba(253, 245, 230, 0.06);
+    border-radius: 2px; margin-top: 14px; overflow: hidden;
+  }
+  .progress-bar .fill {
+    height: 100%; border-radius: 2px;
+    background: var(--brand-pink);
+    transition: width 600ms var(--spring);
+  }
+  .deliverable-card .d-checklist {
+    font-size: 13px; color: var(--neutral-500); margin-top: 6px;
+  }
+  .deliverable-card .d-actions {
+    display: flex; gap: 8px; margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(253, 245, 230, 0.05);
+  }
+
+  /* ======== DELIVERABLE PREVIEW PANEL ======== */
+  .d-preview {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 600ms var(--spring), opacity 400ms var(--spring);
+    opacity: 0;
+  }
+  .deliverable-card.expanded .d-preview {
+    max-height: 1200px;
+    opacity: 1;
+  }
+  .d-preview-inner {
+    padding-top: 18px;
+    margin-top: 18px;
+    border-top: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .preview-thumb {
+    aspect-ratio: 1;
+    background: var(--neutral-700);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    transition: all 300ms var(--spring);
+    border: 2px solid transparent;
+    cursor: pointer;
+  }
+  .preview-thumb:hover {
+    transform: scale(1.03);
+    border-color: rgba(244, 160, 176, 0.3);
+  }
+  .preview-thumb.selected {
+    border-color: var(--brand-pink);
+  }
+  .preview-thumb .thumb-inner {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    font-size: 10px; font-family: "Righteous"; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+    gap: 6px;
+  }
+  .preview-thumb .thumb-icon { font-size: 24px; opacity: 0.4; }
+  .preview-thumb .check-mark {
+    position: absolute; top: 6px; right: 6px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--brand-pink);
+    color: var(--neutral-900);
+    display: none; place-items: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .preview-thumb.selected .check-mark { display: grid; }
+
+  .preview-large {
+    background: var(--neutral-700);
+    border-radius: 12px;
+    aspect-ratio: 16/9;
+    margin-bottom: 18px;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-large .thumb-icon { font-size: 48px; opacity: 0.25; }
+  .preview-large .preview-label {
+    font-family: "Righteous"; font-size: 11px; letter-spacing: 2px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .preview-large .preview-caption {
+    font-size: 13px; color: var(--neutral-500); font-style: italic;
+    max-width: 300px; text-align: center;
+  }
+  .preview-nav {
+    position: absolute; bottom: 12px; right: 12px;
+    display: flex; gap: 6px;
+  }
+  .preview-nav button {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(26, 26, 24, 0.7);
+    border: 1px solid rgba(253, 245, 230, 0.15);
+    color: var(--brand-cream);
+    cursor: pointer;
+    display: grid; place-items: center;
+    transition: all 200ms var(--spring);
+  }
+  .preview-nav button:hover {
+    background: rgba(26, 26, 24, 0.9);
+    border-color: rgba(253, 245, 230, 0.3);
+  }
+
+  .checklist-items {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 18px;
+  }
+  .checklist-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: rgba(26, 26, 24, 0.4);
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .checklist-item .ci-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+  .checklist-item .ci-icon.done {
+    background: rgba(42, 107, 74, 0.3); color: #5FBF8A;
+  }
+  .checklist-item .ci-icon.pending {
+    background: rgba(242, 140, 82, 0.15); color: var(--brand-orange);
+  }
+  .checklist-item .ci-text { color: var(--neutral-300); }
+  .checklist-item .ci-text.done-text { color: var(--neutral-500); text-decoration: line-through; }
+
+  .d-reject-input {
+    margin-top: 12px;
+    max-height: 0; overflow: hidden;
+    transition: max-height 400ms var(--spring);
+  }
+  .d-reject-input.open { max-height: 200px; }
+  .d-reject-input textarea {
+    width: 100%;
+    background: rgba(26, 26, 24, 0.6);
+    border: 1px solid rgba(253, 245, 230, 0.1);
+    border-radius: 8px;
+    color: var(--brand-cream); font-family: "DM Sans"; font-size: 14px;
+    padding: 12px; resize: none; height: 80px; outline: none;
+    margin-bottom: 10px;
+  }
+  .d-reject-input textarea::placeholder { color: var(--neutral-500); font-style: italic; }
+  .d-reject-input .reject-send {
+    display: flex; justify-content: flex-end;
+  }
+
+  /* ======== INVOICES ======== */
+  .invoice-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 100px 100px 120px;
+    align-items: center;
+    padding: 18px 20px;
+    background: rgba(34, 34, 31, 0.4);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    transition: all 300ms var(--spring);
+  }
+  .invoice-row:hover {
+    background: rgba(34, 34, 31, 0.7);
+    border-color: rgba(253, 245, 230, 0.12);
+  }
+  .invoice-row .inv-number {
+    color: var(--brand-cream); font-weight: 500;
+  }
+  .invoice-row .inv-amount { color: var(--brand-cream); font-weight: 600; }
+  .invoice-row .inv-date { color: var(--neutral-500); }
+  .invoice-row .inv-actions {
+    display: flex; gap: 6px; justify-content: flex-end;
+  }
+  .invoice-header {
+    display: grid;
+    grid-template-columns: 1fr 100px 100px 100px 120px;
+    padding: 0 20px 12px;
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+
+  /* ======== BRAND DNA ======== */
+  .dna-profile {
+    padding-bottom: 60px;
+  }
+  .dna-section {
+    margin-bottom: 40px;
+  }
+  .dna-section .section-label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--brand-orange); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .first-impression {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 22px; line-height: 1.4;
+    color: var(--brand-cream);
+    padding: 32px;
+    background: rgba(34, 34, 31, 0.5);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-card);
+    margin-bottom: 36px;
+    position: relative;
+  }
+  .first-impression::before {
+    content: "\201C";
+    font-size: 64px;
+    color: var(--brand-pink);
+    opacity: 0.3;
+    position: absolute; top: 8px; left: 20px;
+    font-family: "Playfair Display", serif;
+  }
+  .dna-prose {
+    font-size: 15px; line-height: 1.7;
+    color: var(--neutral-300);
+    max-width: 640px;
+  }
+  .dna-prose p { margin-bottom: 16px; }
+
+  .tag-cloud {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 16px;
+  }
+  .tag {
+    padding: 6px 14px;
+    background: rgba(253, 245, 230, 0.04);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--neutral-300);
+    transition: all 300ms var(--spring);
+  }
+  .tag:hover {
+    border-color: rgba(244, 160, 176, 0.3);
+    background: rgba(244, 160, 176, 0.06);
+  }
+  .tag.aesthetic { border-color: rgba(178, 40, 72, 0.3); }
+  .tag.comm { border-color: rgba(242, 140, 82, 0.3); }
+  .tag.values { border-color: rgba(244, 160, 176, 0.3); }
+  .tag.creative { border-color: rgba(95, 191, 138, 0.3); }
+
+  /* ======== PACKAGE ======== */
+  .package-card {
+    background: rgba(34, 34, 31, 0.6);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: var(--radius-card);
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+  .package-card .pkg-label {
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 2px;
+    color: var(--brand-orange); text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .package-card .pkg-value {
+    color: var(--brand-cream); font-size: 18px; font-weight: 600;
+  }
+  .package-card .pkg-detail {
+    color: var(--neutral-500); font-size: 14px; margin-top: 4px;
+  }
+  .package-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-top: 20px;
+  }
+  .pkg-stat {
+    padding: 20px;
+    background: rgba(26, 26, 24, 0.6);
+    border: 1px solid rgba(253, 245, 230, 0.05);
+    border-radius: 12px;
+  }
+  .pkg-stat .pkg-label { margin-bottom: 4px; }
+  .pkg-stat .pkg-value { font-size: 15px; }
+
+  /* ======== MESSAGES ======== */
+  .msg-thread {
+    display: flex; flex-direction: column; gap: 16px;
+    padding-bottom: 60px;
+  }
+  .msg-email {
+    padding: 20px;
+    background: rgba(34, 34, 31, 0.5);
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    border-radius: 12px;
+    transition: all 300ms var(--spring);
+  }
+  .msg-email:hover { border-color: rgba(253, 245, 230, 0.12); }
+  .msg-email .msg-from {
+    font-size: 13px; color: var(--brand-cream); font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .msg-email .msg-from span { color: var(--neutral-500); font-weight: 400; }
+  .msg-email .msg-subject {
+    font-size: 15px; color: var(--brand-cream); margin-bottom: 8px;
+  }
+  .msg-email .msg-preview {
+    font-size: 14px; color: var(--neutral-500); line-height: 1.5;
+  }
+  .msg-email .msg-time {
+    font-family: "Righteous"; font-size: 9px; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+    margin-top: 10px;
+  }
+  .msg-email.from-you {
+    border-left: 2px solid var(--brand-pink);
+  }
+  .msg-compose {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(34, 34, 31, 0.4);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    border-radius: 12px;
+  }
+  .msg-compose textarea {
+    width: 100%; background: transparent; border: none; outline: none;
+    color: var(--brand-cream); font-family: "DM Sans"; font-size: 14px;
+    resize: none; height: 80px; line-height: 1.5;
+  }
+  .msg-compose textarea::placeholder { color: var(--neutral-500); font-style: italic; }
+  .msg-compose .compose-bar {
+    display: flex; justify-content: flex-end; margin-top: 12px;
+  }
+
+  /* ======== GALLERY ======== */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-bottom: 60px;
+  }
+  .gallery-item {
+    aspect-ratio: 1;
+    background: var(--neutral-700);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: all 300ms var(--spring);
+  }
+  .gallery-item:hover {
+    transform: scale(1.02);
+  }
+  .gallery-item.tall { grid-row: span 2; aspect-ratio: auto; }
+  .gallery-item .placeholder-img {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Righteous"; font-size: 10px; letter-spacing: 1.5px;
+    color: var(--neutral-500); text-transform: uppercase;
+  }
+  .gallery-item .placeholder-img .icon {
+    font-size: 28px; margin-bottom: 8px; display: block;
+    opacity: 0.3;
+  }
+  .gallery-item .dl-overlay {
+    position: absolute; bottom: 8px; right: 8px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(26, 26, 24, 0.75);
+    border: 1px solid rgba(253, 245, 230, 0.15);
+    display: grid; place-items: center;
+    opacity: 0;
+    transition: all 300ms var(--spring);
+    cursor: pointer;
+    z-index: 2;
+  }
+  .gallery-item:hover .dl-overlay { opacity: 1; }
+  .gallery-item .dl-overlay:hover {
+    background: rgba(26, 26, 24, 0.9);
+    border-color: rgba(244, 160, 176, 0.4);
+    transform: scale(1.1);
+  }
+  .gallery-item .dl-overlay svg { width: 14px; height: 14px; color: var(--brand-cream); }
+
+  /* ======== EXPORT PAGE ======== */
+  .export-zone {
+    text-align: center;
+    padding: 80px 0;
+  }
+  .export-zone .export-icon {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(253, 245, 230, 0.04);
+    border: 1px solid rgba(253, 245, 230, 0.08);
+    display: grid; place-items: center;
+    margin: 0 auto 24px;
+  }
+  .export-zone .export-icon svg { width: 32px; height: 32px; color: var(--brand-pink); }
+  .export-zone h2 {
+    font-family: "Black Han Sans"; font-size: 28px;
+    color: var(--brand-cream); margin-bottom: 12px;
+  }
+  .export-zone p {
+    font-size: 14px; color: var(--neutral-500); font-style: italic;
+    max-width: 400px; margin: 0 auto 28px;
+  }
+
+  /* ======== TOAST ======== */
+  .toast {
+    position: fixed;
+    top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px);
+    background: var(--neutral-700);
+    border: 1px solid rgba(244, 160, 176, 0.25);
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: 14px; color: var(--brand-cream);
+    font-style: italic;
+    z-index: 50;
+    opacity: 0;
+    transition: all 500ms var(--spring);
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ======== APPROVAL MODAL ======== */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(26, 26, 24, 0.85);
+    backdrop-filter: blur(12px);
+    display: none; place-items: center;
+    opacity: 0;
+    transition: opacity 400ms var(--spring);
+  }
+  .modal-backdrop.open { display: grid; opacity: 1; }
+  .modal {
+    background: var(--neutral-800);
+    border: 1px solid rgba(253, 245, 230, 0.1);
+    border-radius: var(--radius-card);
+    padding: 32px;
+    max-width: 460px; width: 90%;
+    transform: scale(0.95);
+    transition: transform 400ms var(--spring);
+  }
+  .modal-backdrop.open .modal { transform: scale(1); }
+  .modal h3 {
+    font-family: "Black Han Sans"; font-size: 22px;
+    color: var(--brand-cream); margin-bottom: 12px;
+  }
+  .modal p { font-size: 14px; color: var(--neutral-500); margin-bottom: 20px; }
+  .modal textarea {
+    width: 100%; background: rgba(26, 26, 24, 0.6);
+    border: 1px solid rgba(253, 245, 230, 0.1); border-radius: 8px;
+    color: var(--brand-cream); font-family: "DM Sans"; font-size: 14px;
+    padding: 12px; resize: none; height: 100px; outline: none;
+    margin-bottom: 16px;
+  }
+  .modal textarea::placeholder { color: var(--neutral-500); font-style: italic; }
+  .modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ======== EMPTY STATE ======== */
+  .empty-state {
+    text-align: center;
+    padding: 60px 0;
+  }
+  .empty-state p {
+    font-family: "Playfair Display", serif; font-style: italic;
+    font-size: 18px; color: var(--neutral-500);
+    max-width: 400px; margin: 0 auto;
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="app">
+    <header class="top-bar">
+      <div class="logo" onclick="navigate('chat')">SuperBad</div>
+      <div class="who">signed in as <em>priya ravi</em> · mercer advisory</div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- ==================== CHAT PAGE ==================== -->
+      <div class="page active" id="page-chat">
+        <div class="chat-page">
+          <div class="thread" id="thread">
+
+            <div class="opening">
+              <div class="line">
+                Priya, good to see you. <em>Quieter week than last.</em> Want the short version or the long one?
+              </div>
+              <div class="under">ask me anything about your work with us, or tap the menu for the rest of your room.</div>
+            </div>
+
+            <div class="msg user" style="animation-delay: 400ms">
+              <div class="body">short version, please</div>
+              <div class="stamp">you · 10:42</div>
+            </div>
+
+            <div class="msg bartender" style="animation-delay: 900ms">
+              <div class="body">
+                Bowerbird is locked for Tuesday, 10am. Your April invoice cleared — receipt's under Invoices. The retainer quote from Andy is sitting with you, expires tomorrow evening. I've got nothing else pressing.
+              </div>
+              <div class="card-attach">
+                <div class="label">Quote waiting on you</div>
+                <div class="title">Q1 retainer — Mercer Advisory</div>
+                <div class="row"><span>Expires</span><strong>Tomorrow, 18:00</strong></div>
+                <div class="row"><span>Commitment</span><strong>3 months, monthly</strong></div>
+                <div class="row"><span>Per month</span><strong>$4,400 inc. GST</strong></div>
+                <div class="actions">
+                  <button class="btn" onclick="showToast('Opening quote in a new tab...')">Open quote</button>
+                  <button class="btn ghost">Later</button>
+                </div>
+              </div>
+              <div class="stamp">superbad · 10:42</div>
+            </div>
+
+            <div class="msg user" style="animation-delay: 1400ms">
+              <div class="body">can I push Tuesday's shoot to Thursday? Priya's dentist moved.</div>
+              <div class="stamp">you · 10:44</div>
+            </div>
+
+            <div class="msg bartender" style="animation-delay: 1900ms">
+              <div class="body">
+                Can do. Andy's open Thursday 9am, 11am, or 2pm. Which one works — I'll move the booking, keep your location, send you a confirmation. If none of those fit, I'll loop him in directly.
+              </div>
+              <div class="stamp">superbad · 10:44</div>
+            </div>
+
+            <div class="msg user" style="animation-delay: 2200ms">
+              <div class="body">11am works</div>
+              <div class="stamp">you · 10:45</div>
+            </div>
+
+            <div class="msg bartender" style="animation-delay: 2600ms">
+              <div class="body">
+                Done. Thursday 11am, same location — Bowerbird, 28 Hardware Ln. Confirmation heading to your inbox now.
+              </div>
+              <div class="card-attach">
+                <div class="label">Booking updated</div>
+                <div class="title">Brand shoot — Bowerbird</div>
+                <div class="row"><span>When</span><strong>Thu 24 Apr, 11:00 am</strong></div>
+                <div class="row"><span>Where</span><strong>Bowerbird, 28 Hardware Ln</strong></div>
+                <div class="row"><span>Duration</span><strong>60 min</strong></div>
+              </div>
+              <div class="stamp">superbad · 10:45</div>
+            </div>
+
+          </div>
+
+          <div class="composer">
+            <div class="input-wrap">
+              <input type="text" placeholder="ask, or say thanks, or go on a tangent. it's your room." />
+              <button class="send" aria-label="send">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+            <div class="hint">
+              <span>the bartender reads your whole history. always.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== DELIVERABLES PAGE ==================== -->
+      <div class="page" id="page-deliverables">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">March → April</div>
+              <h1>Deliverables</h1>
+            </div>
+            <div class="subtitle">everything we've made for you</div>
+          </div>
+
+          <!-- Carousel deliverable — awaiting approval -->
+          <div class="deliverable-card" onclick="toggleDeliverable(this, event)" id="del-carousels">
+            <div class="d-top">
+              <div>
+                <div class="d-title">April content package — Instagram carousels</div>
+                <div class="d-due">Due 22 Apr 2026 · 6 items</div>
+              </div>
+              <span class="status-badge awaiting">Awaiting approval</span>
+            </div>
+            <div class="d-checklist">4 of 6 items complete</div>
+            <div class="progress-bar"><div class="fill" style="width: 66%"></div></div>
+            <div class="d-preview">
+              <div class="d-preview-inner">
+
+                <!-- large preview -->
+                <div class="preview-large" id="carousel-preview-large">
+                  <span class="thumb-icon">&#x1f3a8;</span>
+                  <span class="preview-label">Carousel 1 of 6</span>
+                  <span class="preview-caption">"The quiet part of growth nobody photographs"</span>
+                  <div class="preview-nav">
+                    <button onclick="event.stopPropagation(); cyclePreview('carousel', -1)">‹</button>
+                    <button onclick="event.stopPropagation(); cyclePreview('carousel', 1)">›</button>
+                  </div>
+                </div>
+
+                <!-- thumbnail strip -->
+                <div class="preview-grid">
+                  <div class="preview-thumb selected" onclick="event.stopPropagation(); selectThumb(this, 'carousel', 0)">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #2C2C28, #3D3D37);">
+                      <span class="thumb-icon">&#x1f3a8;</span>
+                      Carousel 1
+                    </div>
+                    <div class="check-mark">✓</div>
+                  </div>
+                  <div class="preview-thumb" onclick="event.stopPropagation(); selectThumb(this, 'carousel', 1)">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #22221F, #2C2C28);">
+                      <span class="thumb-icon">&#x1f3a8;</span>
+                      Carousel 2
+                    </div>
+                    <div class="check-mark">✓</div>
+                  </div>
+                  <div class="preview-thumb" onclick="event.stopPropagation(); selectThumb(this, 'carousel', 2)">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #2C2C28, #1A1A18);">
+                      <span class="thumb-icon">&#x1f3a8;</span>
+                      Carousel 3
+                    </div>
+                    <div class="check-mark">✓</div>
+                  </div>
+                  <div class="preview-thumb" onclick="event.stopPropagation(); selectThumb(this, 'carousel', 3)">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #3D3D37, #22221F);">
+                      <span class="thumb-icon">&#x1f3a8;</span>
+                      Carousel 4
+                    </div>
+                    <div class="check-mark">✓</div>
+                  </div>
+                  <div class="preview-thumb" onclick="event.stopPropagation(); selectThumb(this, 'carousel', 4)">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #22221F, #3D3D37);">
+                      <span class="thumb-icon">&#x1f3a8;</span>
+                      Carousel 5
+                    </div>
+                    <div class="check-mark">✓</div>
+                  </div>
+                  <div class="preview-thumb" onclick="event.stopPropagation(); selectThumb(this, 'carousel', 5)">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #1A1A18, #2C2C28);">
+                      <span class="thumb-icon">⏳</span>
+                      Carousel 6
+                    </div>
+                    <div class="check-mark">✓</div>
+                  </div>
+                </div>
+
+                <!-- checklist -->
+                <div class="checklist-items">
+                  <div class="checklist-item">
+                    <div class="ci-icon done">✓</div>
+                    <span class="ci-text done-text">Carousel 1 — "The quiet part of growth"</span>
+                  </div>
+                  <div class="checklist-item">
+                    <div class="ci-icon done">✓</div>
+                    <span class="ci-text done-text">Carousel 2 — "What your competitor's feed won't show"</span>
+                  </div>
+                  <div class="checklist-item">
+                    <div class="ci-icon done">✓</div>
+                    <span class="ci-text done-text">Carousel 3 — "Three things about your brand you already know"</span>
+                  </div>
+                  <div class="checklist-item">
+                    <div class="ci-icon done">✓</div>
+                    <span class="ci-text done-text">Carousel 4 — "The Monday nobody posts about"</span>
+                  </div>
+                  <div class="checklist-item">
+                    <div class="ci-icon pending">○</div>
+                    <span class="ci-text">Carousel 5 — "Your signage says more than you think"</span>
+                  </div>
+                  <div class="checklist-item">
+                    <div class="ci-icon pending">○</div>
+                    <span class="ci-text">Carousel 6 — final concept pending</span>
+                  </div>
+                </div>
+
+                <!-- approve / reject actions -->
+                <div class="d-actions">
+                  <button class="btn approve" onclick="event.stopPropagation(); approveInline(this)">Approve all</button>
+                  <button class="btn ghost" onclick="event.stopPropagation(); toggleRejectInput(this)">Request changes</button>
+                  <button class="btn ghost" onclick="event.stopPropagation(); showToast('Downloading 4 completed carousels...')" style="margin-left: auto;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download
+                  </button>
+                </div>
+                <div class="d-reject-input">
+                  <textarea placeholder="what needs to change? be specific — it goes straight to Andy."></textarea>
+                  <div class="reject-send">
+                    <button class="btn" onclick="event.stopPropagation(); sendReject(this)">Send feedback</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Video deliverable — awaiting approval -->
+          <div class="deliverable-card" onclick="toggleDeliverable(this, event)" id="del-video">
+            <div class="d-top">
+              <div>
+                <div class="d-title">Brand video — 60s cut</div>
+                <div class="d-due">Due 18 Apr 2026</div>
+              </div>
+              <span class="status-badge awaiting">Awaiting approval</span>
+            </div>
+            <div class="d-preview">
+              <div class="d-preview-inner">
+
+                <!-- video preview -->
+                <div class="preview-large">
+                  <span class="thumb-icon">&#x25B6;&#xFE0F;</span>
+                  <span class="preview-label">60s brand cut — final</span>
+                  <span class="preview-caption">Shot at Bowerbird, March 2026. Music: licensed.</span>
+                </div>
+
+                <div class="d-actions">
+                  <button class="btn approve" onclick="event.stopPropagation(); approveInline(this)">Approve</button>
+                  <button class="btn ghost" onclick="event.stopPropagation(); toggleRejectInput(this)">Request changes</button>
+                  <button class="btn ghost" onclick="event.stopPropagation(); showToast('Downloading brand video...')" style="margin-left: auto;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download
+                  </button>
+                </div>
+                <div class="d-reject-input">
+                  <textarea placeholder="what needs to change? be specific — it goes straight to Andy."></textarea>
+                  <div class="reject-send">
+                    <button class="btn" onclick="event.stopPropagation(); sendReject(this)">Send feedback</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- In-progress deliverable — no preview -->
+          <div class="deliverable-card" onclick="toggleDeliverable(this, event)" id="del-hero">
+            <div class="d-top">
+              <div>
+                <div class="d-title">Website hero photography — selects</div>
+                <div class="d-due">Due 25 Apr 2026</div>
+              </div>
+              <span class="status-badge in-progress">In progress</span>
+            </div>
+            <div class="d-checklist">Editing — 12 selects from 48 shots</div>
+            <div class="progress-bar"><div class="fill" style="width: 35%"></div></div>
+            <div class="d-preview">
+              <div class="d-preview-inner">
+                <p style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; color: var(--neutral-500); padding: 20px 0;">
+                  Still in progress. You'll see it here when it's ready for your eyes.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delivered -->
+          <div class="deliverable-card" onclick="toggleDeliverable(this, event)" id="del-linkedin">
+            <div class="d-top">
+              <div>
+                <div class="d-title">LinkedIn thought leadership — March batch</div>
+                <div class="d-due">Delivered 28 Mar 2026</div>
+              </div>
+              <span class="status-badge delivered">Delivered</span>
+            </div>
+            <div class="d-preview">
+              <div class="d-preview-inner">
+                <div class="preview-grid" style="grid-template-columns: repeat(4, 1fr);">
+                  <div class="preview-thumb">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #2C2C28, #3D3D37);">
+                      <span class="thumb-icon">&#x1f4dd;</span>
+                      Article 1
+                    </div>
+                  </div>
+                  <div class="preview-thumb">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #22221F, #2C2C28);">
+                      <span class="thumb-icon">&#x1f4dd;</span>
+                      Article 2
+                    </div>
+                  </div>
+                  <div class="preview-thumb">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #2C2C28, #1A1A18);">
+                      <span class="thumb-icon">&#x1f4dd;</span>
+                      Article 3
+                    </div>
+                  </div>
+                  <div class="preview-thumb">
+                    <div class="thumb-inner" style="background: linear-gradient(135deg, #3D3D37, #22221F);">
+                      <span class="thumb-icon">&#x1f4dd;</span>
+                      Article 4
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <p style="font-size: 13px; color: var(--neutral-500); font-style: italic;">
+                    Approved 28 Mar 2026. All four published to LinkedIn.
+                  </p>
+                  <button class="btn ghost" onclick="event.stopPropagation(); showToast('Downloading 4 articles...')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download all
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delivered -->
+          <div class="deliverable-card" onclick="toggleDeliverable(this, event)" id="del-guidelines">
+            <div class="d-top">
+              <div>
+                <div class="d-title">Brand guidelines PDF v2</div>
+                <div class="d-due">Delivered 14 Mar 2026</div>
+              </div>
+              <span class="status-badge delivered">Delivered</span>
+            </div>
+            <div class="d-preview">
+              <div class="d-preview-inner">
+                <div class="preview-large" style="aspect-ratio: 4/3;">
+                  <span class="thumb-icon">&#x1f4c4;</span>
+                  <span class="preview-label">Brand Guidelines v2</span>
+                  <span class="preview-caption">24 pages · Updated typography + colour specs</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn ghost" onclick="event.stopPropagation(); showToast('Downloading PDF...')">Download PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================== INVOICES PAGE ==================== -->
+      <div class="page" id="page-invoices">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">All paid · one open</div>
+              <h1>Invoices</h1>
+            </div>
+            <div class="subtitle">receipts, upcoming, card on file</div>
+          </div>
+
+          <div class="invoice-header">
+            <span>Invoice</span>
+            <span>Amount</span>
+            <span>Issued</span>
+            <span>Due</span>
+            <span style="text-align: right">Actions</span>
+          </div>
+
+          <div class="invoice-row">
+            <span class="inv-number">INV-0024</span>
+            <span class="inv-amount">$4,400</span>
+            <span class="inv-date">15 Apr</span>
+            <span class="inv-date">29 Apr</span>
+            <span class="inv-actions">
+              <button class="btn" onclick="showToast('Opening payment...')">Pay online</button>
+              <button class="btn ghost">View</button>
+            </span>
+          </div>
+
+          <div class="invoice-row">
+            <span class="inv-number">INV-0019</span>
+            <span class="inv-amount">$4,400</span>
+            <span class="inv-date">15 Mar</span>
+            <span class="inv-date">29 Mar</span>
+            <span class="inv-actions">
+              <span class="status-badge delivered" style="margin-right: 4px">Paid</span>
+              <button class="btn ghost">View</button>
+            </span>
+          </div>
+
+          <div class="invoice-row">
+            <span class="inv-number">INV-0014</span>
+            <span class="inv-amount">$4,400</span>
+            <span class="inv-date">15 Feb</span>
+            <span class="inv-date">28 Feb</span>
+            <span class="inv-actions">
+              <span class="status-badge delivered" style="margin-right: 4px">Paid</span>
+              <button class="btn ghost">View</button>
+            </span>
+          </div>
+
+          <div class="invoice-row">
+            <span class="inv-number">INV-0009</span>
+            <span class="inv-amount">$4,400</span>
+            <span class="inv-date">15 Jan</span>
+            <span class="inv-date">29 Jan</span>
+            <span class="inv-actions">
+              <span class="status-badge delivered" style="margin-right: 4px">Paid</span>
+              <button class="btn ghost">View</button>
+            </span>
+          </div>
+
+          <div class="invoice-row">
+            <span class="inv-number">INV-0003</span>
+            <span class="inv-amount">$297</span>
+            <span class="inv-date">8 Dec</span>
+            <span class="inv-date">8 Dec</span>
+            <span class="inv-actions">
+              <span class="status-badge delivered" style="margin-right: 4px">Paid</span>
+              <button class="btn ghost">View</button>
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================== BRAND DNA PAGE ==================== -->
+      <div class="page" id="page-brand-dna">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">Completed Feb 2026</div>
+              <h1>Brand DNA</h1>
+            </div>
+            <button class="btn ghost" onclick="showToast('Starting Brand DNA reassessment...')">Retake assessment</button>
+          </div>
+
+          <div class="dna-profile">
+            <div class="first-impression">
+              You run a firm that talks like a handshake — direct, calm, a little formal until it isn't. There's a restlessness under the polish. You're not chasing trends, but you're watching who is.
+            </div>
+
+            <div class="dna-section">
+              <div class="section-label">Portrait</div>
+              <div class="dna-prose">
+                <p>Mercer Advisory presents like old money that's spent a decade in startups. The brand leans into restraint — muted colours, considered typography, negative space — but it's the restraint of someone who's looked at the loud option and chosen otherwise. Not minimalist for minimalism's sake. Selective.</p>
+                <p>Your communication style favours precision over warmth, but the warmth is there — it just arrives on its own terms. You write like someone who edits. Clients of yours probably feel handled, in the best sense. Organised. Anticipated. Nobody's chasing invoices.</p>
+                <p>The creative instinct is editorial. You're drawn to work that earns its confidence quietly — a brand that doesn't need to explain itself, a photograph where the crop does half the talking. You'd rather under-promise than over-style.</p>
+              </div>
+            </div>
+
+            <div class="dna-section">
+              <div class="section-label">Aesthetic identity</div>
+              <div class="tag-cloud">
+                <span class="tag aesthetic">Architectural restraint</span>
+                <span class="tag aesthetic">Natural materials</span>
+                <span class="tag aesthetic">Warm neutrals</span>
+                <span class="tag aesthetic">Editorial crop</span>
+                <span class="tag aesthetic">Serif-first</span>
+                <span class="tag aesthetic">Negative space</span>
+              </div>
+            </div>
+
+            <div class="dna-section">
+              <div class="section-label">Communication DNA</div>
+              <div class="tag-cloud">
+                <span class="tag comm">Precision over warmth</span>
+                <span class="tag comm">Direct when it matters</span>
+                <span class="tag comm">Edits before sending</span>
+                <span class="tag comm">Formal opening, human close</span>
+              </div>
+            </div>
+
+            <div class="dna-section">
+              <div class="section-label">Values & instincts</div>
+              <div class="tag-cloud">
+                <span class="tag values">Anti-trend</span>
+                <span class="tag values">Long-game orientation</span>
+                <span class="tag values">Over-preparer</span>
+                <span class="tag values">Quality gatekeeping</span>
+                <span class="tag values">Risk-aware optimist</span>
+              </div>
+            </div>
+
+            <div class="dna-section">
+              <div class="section-label">Creative compass</div>
+              <div class="tag-cloud">
+                <span class="tag creative">Earned confidence</span>
+                <span class="tag creative">Under-promise</span>
+                <span class="tag creative">Let the work talk</span>
+                <span class="tag creative">Photography-first</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PACKAGE PAGE ==================== -->
+      <div class="page" id="page-package">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">3 months · monthly</div>
+              <h1>Package</h1>
+            </div>
+            <div class="subtitle">what you're committed to</div>
+          </div>
+
+          <div class="package-card">
+            <div class="pkg-label">Your retainer</div>
+            <div class="pkg-value">Brand & Content — Mercer Advisory</div>
+            <div class="pkg-detail" style="margin-top: 12px; line-height: 1.6;">
+              Monthly brand shoot · Content creation (6 Instagram posts, 4 LinkedIn articles) · Brand management · Photography retouching · Strategy sessions
+            </div>
+          </div>
+
+          <div class="package-grid">
+            <div class="pkg-stat">
+              <div class="pkg-label">Monthly</div>
+              <div class="pkg-value">$4,400 inc. GST</div>
+            </div>
+            <div class="pkg-stat">
+              <div class="pkg-label">Commitment</div>
+              <div class="pkg-value">3 months</div>
+            </div>
+            <div class="pkg-stat">
+              <div class="pkg-label">Started</div>
+              <div class="pkg-value">15 Jan 2026</div>
+            </div>
+            <div class="pkg-stat">
+              <div class="pkg-label">Next invoice</div>
+              <div class="pkg-value">15 May 2026</div>
+            </div>
+            <div class="pkg-stat">
+              <div class="pkg-label">Billing</div>
+              <div class="pkg-value">Stripe — auto</div>
+            </div>
+            <div class="pkg-stat">
+              <div class="pkg-label">Committed until</div>
+              <div class="pkg-value">14 Apr 2026</div>
+              <div class="pkg-detail" style="margin-top: 4px; font-size: 12px;">honour-based commitment</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; gap: 10px;">
+            <button class="btn ghost" onclick="showToast('Opening Stripe billing portal...')">Update payment method</button>
+            <button class="btn ghost" onclick="navigate('subscription')">Manage subscription</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== MESSAGES PAGE ==================== -->
+      <div class="page" id="page-messages">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">Email · cleared</div>
+              <h1>Messages</h1>
+            </div>
+            <div class="subtitle">every thread with Andy, one place</div>
+          </div>
+
+          <div class="msg-thread">
+            <div class="msg-email from-you">
+              <div class="msg-from">Priya Ravi <span>to Andy</span></div>
+              <div class="msg-subject">Re: April shoot locations</div>
+              <div class="msg-preview">Bowerbird works — I've checked with the manager, we can use the back courtyard if we start before the lunch rush. I'll send through some reference shots from their Instagram that caught my eye.</div>
+              <div class="msg-time">16 Apr 2026 · 2:18 pm</div>
+            </div>
+
+            <div class="msg-email">
+              <div class="msg-from">Andy Robinson <span>to Priya</span></div>
+              <div class="msg-subject">Re: April shoot locations</div>
+              <div class="msg-preview">Perfect — courtyard is exactly what I had in mind. The natural light in there is ideal for what we're going for. I'll bring the 35mm as primary. Let's lock it in for the 22nd.</div>
+              <div class="msg-time">16 Apr 2026 · 11:45 am</div>
+            </div>
+
+            <div class="msg-email from-you">
+              <div class="msg-from">Priya Ravi <span>to Andy</span></div>
+              <div class="msg-subject">April shoot locations</div>
+              <div class="msg-preview">Hey Andy — a couple of options for April. Bowerbird on Hardware Lane, or there's a new wine bar on Flinders that just opened with great interiors. What do you think?</div>
+              <div class="msg-time">15 Apr 2026 · 9:30 am</div>
+            </div>
+
+            <div class="msg-email">
+              <div class="msg-from">Andy Robinson <span>to Priya</span></div>
+              <div class="msg-subject">March deliverables ready</div>
+              <div class="msg-preview">All done — LinkedIn batch is in your portal under Deliverables, photos are in your gallery. Let me know if you want any tweaks on the copy before we schedule them.</div>
+              <div class="msg-time">28 Mar 2026 · 4:12 pm</div>
+            </div>
+
+            <div class="msg-compose">
+              <textarea placeholder="write a message to Andy..."></textarea>
+              <div class="compose-bar">
+                <button class="btn">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GALLERY PAGE ==================== -->
+      <div class="page" id="page-gallery">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">March 2026 shoot</div>
+              <h1>Gallery</h1>
+            </div>
+            <div style="display: flex; align-items: flex-end; gap: 12px; flex-direction: column;">
+              <div class="subtitle">your photos & video</div>
+              <button class="btn" onclick="showToast('Packaging 9 files for download...')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Download all
+              </button>
+            </div>
+          </div>
+
+          <div class="gallery-grid">
+            <div class="gallery-item tall">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #2C2C28, #3D3D37); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Portrait — courtyard
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #22221F, #2C2C28); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Interior wide
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #2C2C28, #1A1A18); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Detail shot
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #3D3D37, #22221F); flex-direction: column;">
+                <span class="icon">&#x1f3ac;</span>
+                60s brand video
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #22221F, #3D3D37); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Team candid
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #1A1A18, #2C2C28); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Service setup
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #2C2C28, #3D3D37); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Exterior signage
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item tall">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #3D3D37, #2C2C28); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Hero — bar portrait
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+            <div class="gallery-item">
+              <div class="placeholder-img" style="background: linear-gradient(135deg, #22221F, #1A1A18); flex-direction: column;">
+                <span class="icon">&#x1f4f7;</span>
+                Product flat-lay
+              </div>
+              <div class="dl-overlay" onclick="event.stopPropagation(); showToast('Downloading...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== EXPORT PAGE ==================== -->
+      <div class="page" id="page-export">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">Ready when you are</div>
+              <h1>Export Everything</h1>
+            </div>
+          </div>
+
+          <div class="export-zone">
+            <div class="export-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            </div>
+            <h2>Your data, your files, one zip</h2>
+            <p>contacts, invoices, brand DNA, deliverables, communications — everything we have. no questions asked.</p>
+            <button class="btn" onclick="triggerExport()" id="export-btn">Generate export</button>
+            <div id="export-progress" style="display: none; margin-top: 20px;">
+              <div class="progress-bar" style="max-width: 300px; margin: 0 auto;">
+                <div class="fill" style="width: 0%; transition: width 2s var(--spring);" id="export-fill"></div>
+              </div>
+              <p style="font-size: 13px; color: var(--neutral-500); font-style: italic; margin-top: 12px;">
+                packaging everything...
+              </p>
+            </div>
+            <div id="export-done" style="display: none; margin-top: 24px;">
+              <p style="font-size: 14px; color: var(--brand-cream); margin-bottom: 12px;">
+                superbad-mercer-advisory-export-2026-04-18.zip
+              </p>
+              <button class="btn">Download</button>
+              <p style="font-size: 12px; color: var(--neutral-500); font-style: italic; margin-top: 12px;">
+                link expires in 7 days
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SUBSCRIPTION / CANCEL PAGE ==================== -->
+      <div class="page" id="page-subscription">
+        <div class="page-inner">
+          <div class="page-header">
+            <div>
+              <div class="eyebrow">Post-term · flexible</div>
+              <h1>Manage Subscription</h1>
+            </div>
+            <button class="btn ghost" onclick="navigate('package')">← Back to package</button>
+          </div>
+
+          <p style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 18px; color: var(--brand-cream); margin-bottom: 32px; max-width: 520px;">
+            Your commitment period has passed. Here are your options — no pressure either way.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+            <div class="menu-item" onclick="showToast('Upgrade options loading...')">
+              <span class="eyebrow">More</span>
+              <h3>Upgrade</h3>
+              <p>see what's available at the next level. Andy will walk you through it.</p>
+            </div>
+            <div class="menu-item" onclick="showToast('Downgrade options loading...')">
+              <span class="eyebrow">Less</span>
+              <h3>Downgrade</h3>
+              <p>scale back to something lighter. keep what matters.</p>
+            </div>
+            <div class="menu-item" onclick="showCancelConfirm()">
+              <span class="eyebrow">Done</span>
+              <h3>Cancel</h3>
+              <p>we'll miss you. here's what you'd be leaving.</p>
+            </div>
+          </div>
+
+          <div id="cancel-confirm" style="display: none; margin-top: 32px; padding: 28px; background: rgba(34,34,31,0.6); border: 1px solid rgba(253,245,230,0.08); border-radius: 16px;">
+            <h3 style="font-family: 'Black Han Sans'; font-size: 22px; color: var(--brand-cream); margin-bottom: 16px;">Here's what you'd be losing</h3>
+            <ul style="list-style: none; padding: 0; margin-bottom: 24px;">
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(253,245,230,0.05); color: var(--neutral-300); font-size: 14px;">✦ Monthly brand shoot (60 min, on-site)</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(253,245,230,0.05); color: var(--neutral-300); font-size: 14px;">✦ 6 Instagram posts per month</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(253,245,230,0.05); color: var(--neutral-300); font-size: 14px;">✦ 4 LinkedIn articles per month</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(253,245,230,0.05); color: var(--neutral-300); font-size: 14px;">✦ Photography retouching & gallery</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(253,245,230,0.05); color: var(--neutral-300); font-size: 14px;">✦ Brand management & strategy sessions</li>
+              <li style="padding: 8px 0; color: var(--neutral-300); font-size: 14px;">✦ Portal access & AI bartender</li>
+            </ul>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn" onclick="document.getElementById('cancel-confirm').style.display='none'">Actually, I'll stay</button>
+              <button class="btn danger" onclick="showToast('Subscription cancelled. We\'ll miss you, Priya.')">Cancel anyway</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MENU BUBBLE ==================== -->
+  <button class="menu-btn" onclick="openMenu()" aria-label="open your room">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <span>Your room</span>
+  </button>
+
+  <!-- ==================== CHAT BUBBLE ==================== -->
+  <button class="chat-bubble" onclick="navigate('chat')" aria-label="back to chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    </svg>
+  </button>
+
+  <!-- ==================== MENU OVERLAY ==================== -->
+  <div class="overlay" id="overlay">
+    <button class="close-btn" onclick="closeMenu()">Close</button>
+    <div class="inner">
+      <p class="greet">
+        Your room. Everything's here — but most days you won't need to leave the front page.
+      </p>
+      <div class="grid">
+        <div class="menu-item" onclick="navigate('chat'); closeMenu();">
+          <span class="eyebrow">Home</span>
+          <h3>Chat</h3>
+          <p>ask me anything about your account.</p>
+        </div>
+        <div class="menu-item" onclick="navigate('deliverables'); closeMenu();">
+          <span class="eyebrow">March → April</span>
+          <h3>Deliverables</h3>
+          <p>everything we've made for you. gallery, files, approvals.</p>
+          <span class="badge-new">New</span>
+        </div>
+        <div class="menu-item" onclick="navigate('invoices'); closeMenu();">
+          <span class="eyebrow">All paid · one open</span>
+          <h3>Invoices</h3>
+          <p>receipts, upcoming, card on file.</p>
+        </div>
+        <div class="menu-item" onclick="navigate('brand-dna'); closeMenu();">
+          <span class="eyebrow">Completed Feb 2026</span>
+          <h3>Brand DNA</h3>
+          <p>your profile. retake when something meaningful shifts.</p>
+        </div>
+        <div class="menu-item" onclick="navigate('package'); closeMenu();">
+          <span class="eyebrow">3 months · monthly</span>
+          <h3>Package</h3>
+          <p>what you're committed to, what's included, when it renews.</p>
+        </div>
+        <div class="menu-item" onclick="navigate('messages'); closeMenu();">
+          <span class="eyebrow">Email · cleared</span>
+          <h3>Messages</h3>
+          <p>every email thread between you and Andy, in one place.</p>
+        </div>
+        <div class="menu-item" onclick="navigate('gallery'); closeMenu();">
+          <span class="eyebrow">March shoot</span>
+          <h3>Gallery</h3>
+          <p>your photos & video from every session.</p>
+        </div>
+        <div class="menu-item" onclick="navigate('export'); closeMenu();">
+          <span class="eyebrow">Ready when you are</span>
+          <h3>Export Everything</h3>
+          <p>your files, your history, a single zip. no questions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST ==================== -->
+  <div class="toast" id="toast"></div>
+
+
+<script>
+  let currentPage = 'chat';
+
+  const carouselData = [
+    { icon: '🎨', label: 'Carousel 1 of 6', caption: '"The quiet part of growth nobody photographs"' },
+    { icon: '🎨', label: 'Carousel 2 of 6', caption: '"What your competitor\'s feed won\'t show you"' },
+    { icon: '🎨', label: 'Carousel 3 of 6', caption: '"Three things about your brand you already know"' },
+    { icon: '🎨', label: 'Carousel 4 of 6', caption: '"The Monday nobody posts about"' },
+    { icon: '🎨', label: 'Carousel 5 of 6', caption: '"Your signage says more than you think"' },
+    { icon: '⏳', label: 'Carousel 6 of 6', caption: 'Final concept pending' },
+  ];
+  let carouselIndex = 0;
+
+  function navigate(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + page);
+    if (target) {
+      target.classList.add('active');
+      target.scrollTop = 0;
+    }
+    currentPage = page;
+
+    if (page === 'chat') {
+      document.body.classList.remove('on-subpage');
+    } else {
+      document.body.classList.add('on-subpage');
+    }
+
+    document.title = page === 'chat'
+      ? 'SuperBad — chat'
+      : 'SuperBad — ' + page.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function openMenu() {
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  function closeMenu() {
+    document.getElementById('overlay').classList.remove('open');
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+
+  function toggleDeliverable(card, e) {
+    if (card.classList.contains('expanded')) return;
+    document.querySelectorAll('.deliverable-card.expanded').forEach(c => c.classList.remove('expanded'));
+    card.classList.add('expanded');
+  }
+
+  function selectThumb(thumb, group, index) {
+    const card = thumb.closest('.deliverable-card');
+    card.querySelectorAll('.preview-thumb').forEach(t => t.classList.remove('selected'));
+    thumb.classList.add('selected');
+    if (group === 'carousel') {
+      carouselIndex = index;
+      updateCarouselPreview();
+    }
+  }
+
+  function cyclePreview(group, dir) {
+    if (group === 'carousel') {
+      carouselIndex = (carouselIndex + dir + carouselData.length) % carouselData.length;
+      updateCarouselPreview();
+      const card = document.getElementById('del-carousels');
+      const thumbs = card.querySelectorAll('.preview-thumb');
+      thumbs.forEach(t => t.classList.remove('selected'));
+      thumbs[carouselIndex].classList.add('selected');
+    }
+  }
+
+  function updateCarouselPreview() {
+    const large = document.getElementById('carousel-preview-large');
+    const data = carouselData[carouselIndex];
+    large.querySelector('.thumb-icon').textContent = data.icon;
+    large.querySelector('.preview-label').textContent = data.label;
+    large.querySelector('.preview-caption').textContent = data.caption;
+  }
+
+  function approveInline(btn) {
+    const card = btn.closest('.deliverable-card');
+    const badge = card.querySelector('.status-badge');
+    badge.className = 'status-badge delivered';
+    badge.textContent = 'Approved';
+    const actions = btn.closest('.d-actions');
+    actions.innerHTML = '<span style="font-family: Playfair Display, serif; font-style: italic; font-size: 14px; color: #5FBF8A;">approved — Andy\'s been notified.</span>';
+    showToast('Approved. Andy\'s been notified.');
+  }
+
+  function toggleRejectInput(btn) {
+    const rejectInput = btn.closest('.d-preview-inner').querySelector('.d-reject-input');
+    rejectInput.classList.toggle('open');
+    if (rejectInput.classList.contains('open')) {
+      setTimeout(() => rejectInput.querySelector('textarea').focus(), 300);
+    }
+  }
+
+  function sendReject(btn) {
+    const card = btn.closest('.deliverable-card');
+    const badge = card.querySelector('.status-badge');
+    badge.className = 'status-badge in-progress';
+    badge.textContent = 'Changes requested';
+    const actions = card.querySelector('.d-actions');
+    actions.innerHTML = '<span style="font-family: Playfair Display, serif; font-style: italic; font-size: 14px; color: var(--brand-orange);">feedback sent — Andy will get back to you.</span>';
+    const rejectInput = btn.closest('.d-reject-input');
+    rejectInput.classList.remove('open');
+    showToast('Feedback sent. Andy will get back to you.');
+  }
+
+  function showCancelConfirm() {
+    const el = document.getElementById('cancel-confirm');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function triggerExport() {
+    document.getElementById('export-btn').style.display = 'none';
+    document.getElementById('export-progress').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('export-fill').style.width = '100%';
+    }, 100);
+    setTimeout(() => {
+      document.getElementById('export-progress').style.display = 'none';
+      document.getElementById('export-done').style.display = 'block';
+    }, 2500);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
+
+  document.getElementById('overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('overlay')) closeMenu();
+  });
+</script>
+
+</body>
+</html>
