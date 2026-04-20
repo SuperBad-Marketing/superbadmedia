@@ -98,6 +98,7 @@ export const SCHEDULED_TASK_TYPES = [
   "finance_stripe_fee_rollup",
   "recurring_expense_book",
   "finance_export_generate",
+  "finance_export_retention_purge",
 ] as const;
 
 export type ScheduledTaskType = (typeof SCHEDULED_TASK_TYPES)[number];

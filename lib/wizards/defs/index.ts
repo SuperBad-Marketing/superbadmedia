@@ -24,3 +24,4 @@ import "./saas-product-setup";
 import "./practical-setup";
 import "./content-engine-onboarding";
 import "./hiring-role-brief";
+import "./finance-tax-rates";

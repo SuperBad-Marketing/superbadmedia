@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `FD-4` — Finance Dashboard: Session D (accountant bundle export + cockpit banners + onboarding step)
-**Brief:** FD-3 landed full dashboard UI (P&L tile + projection chart + narrative card + 4 metric tiles + recent transactions feed), narrative prompt builder + `finance_narrative_regenerate` handler, 6 drill-down routes (mrr, outstanding, expenses, recent, category/[slug], export placeholder), global time-range picker with URL params, mobile responsive layout. 257 files / 2444 tests green.
+**Next session:** `SD-1` — Surprise & Delight: Session A (Wave 20). Check `docs/specs/surprise-and-delight.md` for session grouping and scope.
+**Brief:** FD-4 completed Wave 19 (Finance Dashboard). All 4 sessions done: data model + expenses (FD-1), projection + crons (FD-2), dashboard UI + narrative (FD-3), export bundle + banners + wizard (FD-4). 258 files / 2459 tests green.
 **Model tier:** Sonnet
-**Last closed:** FD-3 (2026-04-20) — see `sessions/fd3-handoff.md`
-**Wave status:** Wave 19 in progress. FD-1 + FD-2 + FD-3 complete, FD-4 next.
+**Last closed:** FD-4 (2026-04-20) — see `sessions/fd4-handoff.md`
+**Wave status:** Wave 19 complete. Wave 20 (Surprise & Delight) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
