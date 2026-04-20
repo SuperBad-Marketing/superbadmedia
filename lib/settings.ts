@@ -239,6 +239,13 @@ const registry = {
   "warmup.week_three_cap": integer,
   "warmup.week_four_cap": integer,
   "warmup.graduated_cap": integer,
+
+  // Surprise & Delight (5 — SD-1)
+  "surprise.hidden_eggs_enabled": boolean,
+  "surprise.public_egg_cadence_per_days": integer,
+  "surprise.admin_egg_cadence_per_days": integer,
+  "surprise.ambient_copy_refresh_interval_days": integer,
+  "surprise.riddle_wrong_answer_fallback_budget_per_riddle": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

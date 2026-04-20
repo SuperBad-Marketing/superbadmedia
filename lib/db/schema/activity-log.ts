@@ -356,6 +356,13 @@ export const ACTIVITY_LOG_KINDS = [
   "task_digest_sent",
   // --- Admin session tracking (TM-7) ---
   "admin_session_started",
+  // --- Surprise & Delight (6) ---
+  "hidden_egg_fired",
+  "hidden_egg_dismissed",
+  "ambient_copy_generated",
+  "ambient_copy_refresh_requested",
+  "riddle_resolved",
+  "riddle_wrong_answered",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

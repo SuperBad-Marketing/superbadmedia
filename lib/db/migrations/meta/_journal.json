@@ -344,6 +344,13 @@
       "when": 1777154400000,
       "tag": "0061_fd1_finance_dashboard",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "6",
+      "when": 1777240800000,
+      "tag": "0063_sd1_surprise_delight_tables",
+      "breakpoints": true
     }
   ]
 }

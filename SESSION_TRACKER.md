@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-1` — Surprise & Delight: Session A (Wave 20). Check `docs/specs/surprise-and-delight.md` for session grouping and scope.
-**Brief:** FD-4 completed Wave 19 (Finance Dashboard). All 4 sessions done: data model + expenses (FD-1), projection + crons (FD-2), dashboard UI + narrative (FD-3), export bundle + banners + wizard (FD-4). 258 files / 2459 tests green.
+**Next session:** `SD-2` — Surprise & Delight: Session B (Wave 20). Wire `generateInVoice()` with real Haiku LLM call + drift check. Register first trigger functions in `lib/eggs/triggers/*.ts`.
+**Brief:** SD-1 completed — data model (4 tables, 3 user columns), egg registry (15 eggs), suppression + cadence engine, trigger evaluator framework, riddle resolver, 5 settings keys seeded, 6 activity kinds. 259 files / 2492 tests green.
 **Model tier:** Sonnet
-**Last closed:** FD-4 (2026-04-20) — see `sessions/fd4-handoff.md`
-**Wave status:** Wave 19 complete. Wave 20 (Surprise & Delight) next.
+**Last closed:** SD-1 (2026-04-20) — see `sessions/sd1-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

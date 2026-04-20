@@ -46,6 +46,17 @@ export const user = sqliteTable("user", {
 
   first_signed_in_at_ms: integer("first_signed_in_at_ms"),
   created_at_ms: integer("created_at_ms").notNull(),
+
+  // --- Surprise & Delight (SD-1) ---
+  last_hidden_egg_fired_at_ms: integer("last_hidden_egg_fired_at_ms"),
+  hidden_egg_tricks_enabled: integer("hidden_egg_tricks_enabled", {
+    mode: "boolean",
+  })
+    .notNull()
+    .default(true),
+  fired_egg_ids_recent: text("fired_egg_ids_recent", { mode: "json" })
+    .notNull()
+    .default("[]"),
 });
 
 export type UserRow = typeof user.$inferSelect;
