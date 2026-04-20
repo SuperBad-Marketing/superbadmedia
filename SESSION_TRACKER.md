@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `TM-4` — Task Manager: `parseBraindump()` Claude primitive
-**Brief:** TM-3 complete. Braindump modal UI live — FAB on all admin surfaces, Cmd+Shift+D shortcut, textarea → parse → proto-task cards → edit → commit flow. Stub parser in place at `lib/ai/parse-braindump.ts` — TM-4 replaces with real Haiku call. 229 files passing.
+**Next session:** `TM-5` — Task Manager: Entity-profile task embedding
+**Brief:** TM-4 complete. Real `parseBraindump()` Haiku call live — entity context injection, date parsing, kind/priority classification, confidence scoring, entity candidate ranking. 230 files passing, 1982 tests green.
 **Model tier:** Sonnet
-**Last closed:** TM-3 (2026-04-20) — see `sessions/tm3-handoff.md`
-**Wave status:** Wave 17 in progress (TM-1..TM-3 done, TM-4..TM-9 remaining).
+**Last closed:** TM-4 (2026-04-20) — see `sessions/tm4-handoff.md`
+**Wave status:** Wave 17 in progress (TM-1..TM-4 done, TM-5..TM-9 remaining).
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

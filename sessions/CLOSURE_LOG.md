@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## TM-4 (2026-04-20) — Task Manager: `parseBraindump()` Claude Primitive
+
+**Phase:** 5 — Build Execution (Wave 17 — session 4/9). Replaced stub line-split parser with real Haiku call via `invokeLlmText` (job: `task-manager-parse-braindump`). Entity context injection: fetches recent contacts (90d) + active clients + recent companies + companies with active deals, formatted as structured list in prompt. Surface context flows through for entity pre-linking. Response parsing: strips markdown fences, validates JSON, maps LLM output to existing `ParsedTask` type. Highest-confidence entity candidate becomes primary; all candidates go to `alternatives.entity`. Checklist strings mapped to `ChecklistItem[]`. Invalid kind→admin, invalid priority→normal, confidence clamped 0–1. Kill-switch gated. Logs `braindump_parsed` activity. 11 new tests (mocked LLM, covers mapping, validation, error paths). See `sessions/tm4-handoff.md`.
+
 ## TM-3 (2026-04-20) — Task Manager: Braindump Modal UI
 
 **Phase:** 5 — Build Execution (Wave 17 — session 3/9). Braindump primitive UI: floating action button (FAB) bottom-right on all admin surfaces via `AdminShellWithNav`, global `Cmd+Shift+D` shortcut, once-per-day pulse. Modal: textarea with italic placeholder "dump it. we'll file it.", Parse button + `Cmd+Enter`, shimmer loading state, review phase with proto-task cards (editable title, kind/priority dropdowns, natural-language due date, entity autocomplete + swap affordance, confidence dots per field, ✗ delete). Commit creates braindump row + tasks + activity log entry, closes silently (no toast). Stub `parseBraindump()` at `lib/ai/parse-braindump.ts` — TM-4 replaces with Haiku. Server actions: `parseBraindumpAction`, `commitBraindumpAction`. Framer Motion throughout (houseSpring, AnimatePresence, reduced-motion). See `sessions/tm3-handoff.md`.
