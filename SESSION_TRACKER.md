@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-2` — Surprise & Delight: Session B (Wave 20). Wire `generateInVoice()` with real Haiku LLM call + drift check. Register first trigger functions in `lib/eggs/triggers/*.ts`.
-**Brief:** SD-1 completed — data model (4 tables, 3 user columns), egg registry (15 eggs), suppression + cadence engine, trigger evaluator framework, riddle resolver, 5 settings keys seeded, 6 activity kinds. 259 files / 2492 tests green.
+**Next session:** `SD-3` — Surprise & Delight: Session C (Wave 20). Register remaining public triggers (melbourne_public_holiday, melbourne_rain, public_crt_turn_off) + ambient copy cache builder scheduled task.
+**Brief:** SD-2 completed — `generateInVoice()` wired with real Haiku LLM + drift check + one-retry pipeline. 9 public trigger functions registered. Model registry updated. 260 files / 2518 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-1 (2026-04-20) — see `sessions/sd1-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 next.
+**Last closed:** SD-2 (2026-04-21) — see `sessions/sd2-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

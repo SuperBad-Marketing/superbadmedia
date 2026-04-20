@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SD-2 (2026-04-21) — Surprise & Delight: generateInVoice LLM Pipeline + First Triggers
+
+**Phase:** 5 — Build Execution (Wave 20 — session 2/14). Replaced `generateInVoice()` stub with full Haiku LLM pipeline: kill-switch gated, slot-aware prompting (6 ambient categories), brand-voice drift check with one-retry on failure. Added `sd-generate-in-voice` job slug to model registry (Haiku tier). Registered 9 public trigger functions in `lib/eggs/triggers/*.ts`: late_night_visitor, sunday_researcher, linkedin_referrer, google_intent_cheap, rapid_scroller, deep_reader, abandoned_tab, fifth_time_visitor, returning_visitor. All pure functions, fail-closed. 11 new files, 2 edited, 26 new tests, 260 files / 2518 green. See `sessions/sd2-handoff.md`.
+
 ## SD-1 (2026-04-20) — Surprise & Delight: Data Model + Schema + Core Engine
 
 **Phase:** 5 — Build Execution (Wave 20 — session 1/14). Foundation layer for S&D: 4 new tables (`hidden_egg_fires`, `ambient_copy_cache`, `riddles`, `riddle_resolutions`), 3 user columns (last_hidden_egg_fired_at_ms, hidden_egg_tricks_enabled, fired_egg_ids_recent). Egg registry with 15 eggs (3 admin-roommate, 12 public-bartender). Suppression gate (7 hard conditions). Cadence model (authenticated + public). Trigger evaluator framework (register + evaluate pattern). `fireEgg()` writes to log + updates user state + logs activity. `generateInVoice()` stub for SD-2. `resolveRiddleAnswer()` with normalise/hash/lookup/log pipeline. 3 scheduled task types, 5 settings keys, 6 activity log kinds. 13 new files, 7 edited, 33 new tests, 259 files / 2492 green. See `sessions/sd1-handoff.md`.
