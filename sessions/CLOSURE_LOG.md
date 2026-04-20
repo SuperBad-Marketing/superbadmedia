@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## FD-3 (2026-04-20) — Finance Dashboard: Dashboard UI + Narrative Prompt + Drill-downs + Tax Provision + Mobile
+
+**Phase:** 5 — Build Execution (Wave 19 — session 3/4). Full dashboard layout per spec §8.1: P&L tile with MoM delta, 90-day SVG projection chart (contracted + pipeline + decay), Claude Haiku narrative card with clickable number-reference links, 4 metric tiles (MRR, Outstanding, Top Expenses, Tax Provision with GST/tax/yours-to-spend), pending review banner, recent transactions feed. `finance_narrative_regenerate` handler + `buildNarrativePrompt()` prompt builder. 6 drill-down routes: `/mrr`, `/outstanding`, `/expenses` (with filters), `/recent`, `/category/[slug]`, `/export` (placeholder). Global time-range picker (This Month default, 6 presets, URL-encoded). Mobile responsive. 11 new files, 3 edited, 6 new tests, 257 files / 2444 green. See `sessions/fd3-handoff.md`.
+
 ## FD-2 (2026-04-21) — Finance Dashboard: Projection Logic + Roll-up Crons + Recurring Expense Booking
 
 **Phase:** 5 — Build Execution (Wave 19 — session 2/4). Projection module (`computeProjection`): contracted MRR + pipeline-weighted + stage-age decay over 90-day horizon. Snapshot metrics module (`computeSnapshotMetrics`): 9-field FinanceMetrics + Stripe Balance API with stale flags. 4 cron handlers: `finance_snapshot_take` (daily metrics + projection upsert), `finance_observatory_rollup` (external_call_log → expenses), `finance_stripe_fee_rollup` (Stripe Balance Transactions API → expenses), `recurring_expense_book` (books due recurring into expenses as pending_review). Recurring expense CRUD actions + `/lite/finance/recurring` management screen with table, add/edit modal, pause/resume. 11 new files, 1 edited file, 22 new tests, 256 files / 2438 green. See `sessions/fd2-handoff.md`.

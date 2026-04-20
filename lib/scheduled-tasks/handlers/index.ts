@@ -43,6 +43,7 @@ import { FINANCE_SNAPSHOT_HANDLERS } from "./finance-snapshot";
 import { FINANCE_OBSERVATORY_ROLLUP_HANDLERS } from "./finance-observatory-rollup";
 import { FINANCE_STRIPE_FEE_ROLLUP_HANDLERS } from "./finance-stripe-fee-rollup";
 import { FINANCE_RECURRING_EXPENSE_BOOK_HANDLERS } from "./finance-recurring-expense-book";
+import { FINANCE_NARRATIVE_HANDLERS } from "./finance-narrative";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -100,4 +101,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...FINANCE_OBSERVATORY_ROLLUP_HANDLERS,
   ...FINANCE_STRIPE_FEE_ROLLUP_HANDLERS,
   ...FINANCE_RECURRING_EXPENSE_BOOK_HANDLERS,
+  ...FINANCE_NARRATIVE_HANDLERS,
 };
