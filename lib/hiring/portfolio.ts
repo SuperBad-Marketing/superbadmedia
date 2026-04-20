@@ -10,9 +10,9 @@
  *   - Generic web: page fetch + OG metadata extraction
  *   - Vision LLM: Sonnet vision on thumbnails → extracted_tags
  *
- * Future (HP-6+): Apify IG, discovery agent sources.
+ * HP-6 additions: Apify IG on-demand handler with graceful fallback.
  *
- * Owner: HP-2 (types), HP-5 (handlers).
+ * Owner: HP-2 (types), HP-5 (handlers), HP-6 (IG Apify).
  * Spec: docs/specs/hiring-pipeline.md §3.2, §6.2, §15.
  */
 
@@ -70,6 +70,123 @@ export function detectPlatform(url: string): PortfolioSignal["platform"] {
 
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_BODY_BYTES = 512_000;
+
+// ---------------------------------------------------------------------------
+// Instagram Apify handler (HP-6)
+// ---------------------------------------------------------------------------
+
+interface ApifyIgPost {
+  displayUrl?: string;
+  caption?: string;
+  type?: string;
+  url?: string;
+}
+
+interface ApifyIgResult {
+  biography?: string;
+  fullName?: string;
+  profilePicUrl?: string;
+  posts?: ApifyIgPost[];
+  latestPosts?: ApifyIgPost[];
+}
+
+function extractIgHandle(url: string): string | null {
+  const match = url.match(
+    /instagram\.com\/([a-zA-Z0-9_.]+)\/?/,
+  );
+  return match?.[1] ?? null;
+}
+
+async function fetchInstagramSignal(
+  url: string,
+): Promise<Partial<PortfolioSignal>> {
+  const enabled = await settings.get("hiring.discovery.ig_on_demand_enabled");
+  if (!enabled) return { confidence: 0.2 };
+
+  const apiToken = process.env.APIFY_API_TOKEN;
+  if (!apiToken) return { confidence: 0.2 };
+
+  const handle = extractIgHandle(url);
+  if (!handle) return { confidence: 0.3 };
+
+  const start = Date.now();
+
+  try {
+    const runUrl =
+      "https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items";
+    const response = await fetch(`${runUrl}?token=${apiToken}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        usernames: [handle],
+        resultsLimit: 12,
+      }),
+      signal: AbortSignal.timeout(60_000),
+    });
+
+    if (!response.ok) {
+      await logExternalCall(
+        "hiring-portfolio-ingest-ig",
+        Date.now() - start,
+        0.02,
+      );
+      return fetchOgSignal(url, "hiring-portfolio-ingest-generic");
+    }
+
+    const results = (await response.json()) as ApifyIgResult[];
+    const profile = results[0];
+
+    if (!profile) {
+      await logExternalCall(
+        "hiring-portfolio-ingest-ig",
+        Date.now() - start,
+        0.02,
+      );
+      return fetchOgSignal(url, "hiring-portfolio-ingest-generic");
+    }
+
+    await logExternalCall(
+      "hiring-portfolio-ingest-ig",
+      Date.now() - start,
+      0.02,
+      { posts_fetched: (profile.posts ?? profile.latestPosts ?? []).length },
+    );
+
+    const posts = profile.posts ?? profile.latestPosts ?? [];
+    const thumbnails: string[] = [];
+    const workSamples: WorkSample[] = [];
+
+    for (const post of posts.slice(0, 12)) {
+      if (post.displayUrl) {
+        thumbnails.push(post.displayUrl);
+        workSamples.push({
+          url: post.url ?? url,
+          title: post.caption?.slice(0, 80) ?? null,
+          thumbnailUrl: post.displayUrl,
+          mediaType: post.type === "Video" ? "video" : "image",
+        });
+      }
+    }
+
+    const bio = [profile.fullName, profile.biography]
+      .filter(Boolean)
+      .join(" — ");
+
+    return {
+      thumbnails: thumbnails.slice(0, 12),
+      bio,
+      work_samples: workSamples.slice(0, 12),
+      confidence: thumbnails.length > 0 ? 0.65 : 0.4,
+    };
+  } catch {
+    await logExternalCall(
+      "hiring-portfolio-ingest-ig",
+      Date.now() - start,
+      0.02,
+    );
+    return fetchOgSignal(url, "hiring-portfolio-ingest-generic");
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Vimeo oEmbed handler
@@ -319,6 +436,9 @@ export async function ingestPortfolioUrl(
       break;
     case "behance":
       partial = await fetchBehanceSignal(url);
+      break;
+    case "instagram":
+      partial = await fetchInstagramSignal(url);
       break;
     case "dribbble":
     case "arena":

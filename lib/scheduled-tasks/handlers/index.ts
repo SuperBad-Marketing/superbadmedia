@@ -31,6 +31,7 @@ import { SIX_WEEK_PLAN_NON_CONVERTER_ARCHIVE_HANDLERS } from "./six-week-plan-no
 import { CONTEXT_ENGINE_HANDLERS } from "./context-engine";
 import { DELIVERABLE_APPROVAL_REMINDER_HANDLERS } from "./deliverable-approval-reminder";
 import { TASK_DIGEST_HANDLERS } from "./task-morning-digest";
+import { HIRING_DISCOVERY_HANDLERS } from "./hiring-discovery";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -76,4 +77,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...CONTEXT_ENGINE_HANDLERS,
   ...DELIVERABLE_APPROVAL_REMINDER_HANDLERS,
   ...TASK_DIGEST_HANDLERS,
+  ...HIRING_DISCOVERY_HANDLERS,
 };

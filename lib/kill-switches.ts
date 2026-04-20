@@ -37,6 +37,7 @@ export type KillSwitchKey =
   | "lead_gen_enabled"
   | "plan_automations_enabled"
   | "tasks_digest_enabled"
+  | "hiring_discovery_enabled"
   | "admin_sse_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
@@ -129,6 +130,10 @@ const defaults: KillSwitchRegistry = {
   // handler exits without sending and does NOT re-enqueue — the bootstrap
   // helper is the entry point when the switch flips back on.
   tasks_digest_enabled: false,
+  // HP-6: gates the hiring discovery pipeline (weekly LLM+search agent,
+  // platform feed sources, IG on-demand). When OFF, all discovery handlers
+  // exit early. Flip ON in Phase 6 after SerpAPI key is configured.
+  hiring_discovery_enabled: false,
   admin_sse_enabled: true,
 };
 

@@ -272,3 +272,59 @@ export async function confirmQuickAddInviteAction(
     };
   }
 }
+
+export interface DiscoveryRunActionResult {
+  ok: true;
+  briefsProcessed: number;
+  candidatesFound: number;
+  totalCost: number;
+  costCapHit: boolean;
+}
+
+export async function runDiscoveryNowAction(
+  roleBriefId?: string,
+): Promise<DiscoveryRunActionResult | { ok: false; error: string }> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const { runDiscoveryForBrief, runDiscoveryForAllOpenBriefs } = await import(
+      "@/lib/hiring/discovery/agent"
+    );
+
+    if (roleBriefId) {
+      const { getRoleBriefById } = await import("@/lib/hiring/queries");
+      const brief = await getRoleBriefById(roleBriefId);
+      if (!brief) return { ok: false, error: "Role Brief not found." };
+
+      const result = await runDiscoveryForBrief(brief);
+      revalidatePath("/lite/admin/hiring");
+      return {
+        ok: true,
+        briefsProcessed: 1,
+        candidatesFound: result.candidates.length,
+        totalCost: result.total_cost_aud,
+        costCapHit: result.cost_cap_hit,
+      };
+    }
+
+    const results = await runDiscoveryForAllOpenBriefs();
+    revalidatePath("/lite/admin/hiring");
+
+    return {
+      ok: true,
+      briefsProcessed: results.length,
+      candidatesFound: results.reduce(
+        (sum, r) => sum + r.candidates.length,
+        0,
+      ),
+      totalCost: results.reduce((sum, r) => sum + r.total_cost_aud, 0),
+      costCapHit: results.some((r) => r.cost_cap_hit),
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Discovery run failed.",
+    };
+  }
+}

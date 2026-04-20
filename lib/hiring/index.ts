@@ -5,3 +5,4 @@ export * from "./queries";
 export * from "./portfolio";
 export * from "./score-candidate";
 export * from "./draft-invite";
+export * from "./discovery";
