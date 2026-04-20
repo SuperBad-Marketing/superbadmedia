@@ -3,6 +3,9 @@ import type { ActionItemRow } from "@/lib/db/schema/action-items";
 
 const SUMMARY_TOKEN_CAP = 4000;
 const EXTRACTION_TOKEN_CAP = 2000;
+const DRAFT_TOKEN_CAP = 8000;
+const NUDGE_TOKEN_CAP = 10000;
+const REFORMAT_TOKEN_CAP = 2000;
 
 function truncateToApproxTokens(text: string, cap: number): string {
   const charBudget = cap * 4;
@@ -124,6 +127,160 @@ export function formatExtractionPrompt(
   parts.push(ctx.messageBody);
 
   const prompt = truncateToApproxTokens(parts.join("\n"), EXTRACTION_TOKEN_CAP);
+
+  return { system, prompt };
+}
+
+function formatContextBlock(ctx: AssembledContext): string {
+  const parts: string[] = [];
+
+  if (ctx.conversationSummary) {
+    parts.push(`RELATIONSHIP SUMMARY:\n${ctx.conversationSummary}`);
+  }
+
+  parts.push(`CONTACT: ${ctx.contact.name}`);
+  if (ctx.contact.role) parts.push(`Role: ${ctx.contact.role}`);
+  if (ctx.company) {
+    parts.push(`Company: ${ctx.company.name}`);
+    if (ctx.company.industry) parts.push(`Industry: ${ctx.company.industry}`);
+    if (ctx.company.location) parts.push(`Location: ${ctx.company.location}`);
+  }
+
+  if (ctx.currentDeal) {
+    parts.push(
+      `Deal: ${ctx.currentDeal.stage}` +
+        (ctx.currentDeal.valueCents
+          ? ` ($${(ctx.currentDeal.valueCents / 100).toFixed(0)})`
+          : ""),
+    );
+  }
+
+  if (ctx.outstandingInvoices.length > 0) {
+    parts.push(
+      `Outstanding invoices: ${ctx.outstandingInvoices.map((i) => `${i.invoiceNumber} (${i.status})`).join(", ")}`,
+    );
+  }
+
+  if (ctx.openActionItems.length > 0) {
+    parts.push("\nACTION ITEMS:");
+    for (const item of ctx.openActionItems) {
+      const due = item.dueDateMs
+        ? ` (due ${new Date(item.dueDateMs).toISOString().slice(0, 10)})`
+        : "";
+      parts.push(`  - [${item.owner}] ${item.description}${due}`);
+    }
+  }
+
+  if (ctx.activeStrategy?.status === "live" && ctx.activeStrategy.payloadJson) {
+    parts.push(`\nACTIVE STRATEGY: live — see payload for current plan details.`);
+  }
+
+  return parts.join("\n");
+}
+
+function formatBrandDnaBlock(ctx: AssembledContext): string {
+  if (!ctx.brandDna) return "";
+  const parts: string[] = ["BRAND DNA:"];
+  if (ctx.brandDna.prosePortrait) parts.push(ctx.brandDna.prosePortrait);
+  if (ctx.brandDna.signalTags) parts.push(`Tags: ${ctx.brandDna.signalTags}`);
+  return parts.join("\n");
+}
+
+function formatRecentMessages(msgs: AssembledContext["recentMessages"]): string {
+  if (msgs.length === 0) return "";
+  const parts = ["RECENT MESSAGES (newest first):"];
+  for (const msg of msgs) {
+    const dir = msg.direction === "inbound" ? "FROM THEM" : "FROM YOU";
+    const subj = msg.subject ? ` — ${msg.subject}` : "";
+    parts.push(`\n[${dir}${subj}]`);
+    parts.push(msg.bodyText.slice(0, 1500));
+  }
+  return parts.join("\n");
+}
+
+export function formatDraftPrompt(ctx: AssembledContext): {
+  system: string;
+  prompt: string;
+} {
+  const isColdProspect = ctx.recentMessages.length === 0 && !ctx.conversationSummary;
+
+  const system = [
+    "You are writing an email on behalf of a marketing professional.",
+    isColdProspect
+      ? "This is a first-touch cold outreach. You have no prior relationship. Write a warm, natural introduction."
+      : "Reply to the message below. Don't recap the conversation. Don't reference context unless the reply naturally requires it. Just respond the way a person who knows all of this would.",
+    `Format for: ${ctx.contact.preferredChannel}.`,
+    ctx.contact.preferredChannel === "email"
+      ? "Include a greeting and sign-off appropriate to the relationship stage."
+      : "Keep it brief — no greeting/sign-off formality.",
+  ].join(" ");
+
+  const parts: string[] = [];
+  parts.push(formatContextBlock(ctx));
+
+  const brandBlock = formatBrandDnaBlock(ctx);
+  if (brandBlock) parts.push(brandBlock);
+
+  const msgBlock = formatRecentMessages(ctx.recentMessages);
+  if (msgBlock) parts.push(msgBlock);
+
+  if (isColdProspect) {
+    parts.push("\nWrite a first-contact email. Be genuine, specific to their business, and concise.");
+  }
+
+  const prompt = truncateToApproxTokens(parts.join("\n\n"), DRAFT_TOKEN_CAP);
+  return { system, prompt };
+}
+
+export function formatNudgePrompt(
+  ctx: AssembledContext,
+  previousDraft: string,
+  nudge: string,
+  nudgeHistory: string[],
+): { system: string; prompt: string } {
+  const system = [
+    "You are revising a draft email based on the sender's feedback.",
+    "Apply the nudge instruction to the previous draft. Keep all context awareness. Don't recap the conversation.",
+    `Format for: ${ctx.contact.preferredChannel}.`,
+  ].join(" ");
+
+  const parts: string[] = [];
+  parts.push(formatContextBlock(ctx));
+
+  const brandBlock = formatBrandDnaBlock(ctx);
+  if (brandBlock) parts.push(brandBlock);
+
+  const msgBlock = formatRecentMessages(ctx.recentMessages);
+  if (msgBlock) parts.push(msgBlock);
+
+  parts.push(`PREVIOUS DRAFT:\n${previousDraft}`);
+
+  if (nudgeHistory.length > 0) {
+    parts.push(`PREVIOUS NUDGES:\n${nudgeHistory.map((n, i) => `${i + 1}. ${n}`).join("\n")}`);
+  }
+
+  parts.push(`CURRENT NUDGE:\n${nudge}`);
+
+  const prompt = truncateToApproxTokens(parts.join("\n\n"), NUDGE_TOKEN_CAP);
+  return { system, prompt };
+}
+
+export function formatReformatPrompt(
+  draftText: string,
+  targetChannel: string,
+): { system: string; prompt: string } {
+  const system = [
+    "You are reformatting an existing draft for a different communication channel.",
+    "Preserve the message content, intent, and tone.",
+    targetChannel === "email"
+      ? "Expand for email: add an appropriate greeting and sign-off. Allow a natural paragraph structure."
+      : "Compress for SMS: remove greeting/sign-off formality. Keep it under 160 characters if possible. Be direct.",
+  ].join(" ");
+
+  const prompt = truncateToApproxTokens(
+    `Reformat the following draft for ${targetChannel}:\n\n${draftText}`,
+    REFORMAT_TOKEN_CAP,
+  );
 
   return { system, prompt };
 }

@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CCE-3 (2026-04-20) — Client Context Engine: Draft Drawer UI + Draft Generation + Action Items Panel + Profile Summary Tile
+
+**Phase:** 5 — Build Execution (Wave 16 — session 3/3, WAVE COMPLETE). Draft generation: `generateDraft()` (Opus), `regenerateDraft()` (Opus + nudge chain), `reformatDraft()` (Haiku channel switch). Three prompt formatters with layered architecture (context in system, reply in user). Draft persistence (getDraft/saveDraft/clearDraft on context_summaries). 9 server actions for drafts + action items (discriminated union pattern). UI: ProfileSummaryTile (narrative + sidebar facts + health chip + unsent-draft indicator), ActionItemsPanel (two groups with inline Done/Edit/Dismiss + manual add + past items toggle), DraftDrawer (Tier 2 motion: slide-from-right 340ms houseSpring, channel switcher, nudge field with history chips, loading pulse, auto-restore). Wired into contact profile page overview tab replacing the placeholder. 19 new tests. See `sessions/cce3-handoff.md`.
+
 ## CCE-2 (2026-04-20) — Client Context Engine: Summary Regen + Action-Item Extraction + Event Map
 
 **Phase:** 5 — Build Execution (Wave 16 — session 2/3). Handler stubs fully wired: `handleContextSummaryRegenerate` (assembleContext → Haiku `client-context-summarise` → upsertContextSummary → logLlmUsage → logActivity) and `handleContextActionItemExtract` (fetch message → assembleContext extraction → Haiku `client-context-extract-action-items` → JSON parse with Zod validation → createActionItem per result → logLlmUsage). Prompt formatters in `lib/context-engine/prompts.ts` (summary: flat factual 2-4 sentences, ~4k cap; extraction: direction-aware ownership rules, existing-item dedup, ~2k cap). Event-to-section mapping in `lib/context-engine/event-map.ts` with typed `MaterialEventType` and `handleMaterialEvent()` dispatch. 21 new tests. See `sessions/cce2-handoff.md`.

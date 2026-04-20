@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `CCE-3` — Client Context Engine: Draft drawer UI (Tier 2 motion) + draft generation (Opus) + nudge/reformat + channel switcher + unsent draft persistence + cold-prospect fallback
-**Brief:** CCE-2 COMPLETE. Summary regen handler wired (assembleContext → Haiku → upsertContextSummary → logLlmUsage → logActivity). Action-item extraction handler wired (fetch message → assembleContext → Haiku → parse JSON → createActionItem per result → logLlmUsage). Prompt formatters in `lib/context-engine/prompts.ts`. Event-to-section mapping in `lib/context-engine/event-map.ts` with `handleMaterialEvent()`. Dedup in extraction prompt. CCE-3 builds the UI + Opus draft prompts.
+**Next session:** `TM-1` — Task Manager: Data model + schema + core CRUD functions
+**Brief:** Wave 16 (CCE) COMPLETE. All 3 sessions done: CCE-1 (data model + core), CCE-2 (summary regen + action-item extraction), CCE-3 (draft drawer UI + draft generation + action items panel + profile summary tile). Full context engine stack operational.
 **Model tier:** Sonnet
-**Last closed:** CCE-2 (2026-04-20) — see `sessions/cce2-handoff.md`
-**Wave status:** Wave 16 in progress. CCE-1 and CCE-2 done, CCE-3 remaining.
+**Last closed:** CCE-3 (2026-04-20) — see `sessions/cce3-handoff.md`
+**Wave status:** Wave 16 complete. Wave 17 (Task Manager) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

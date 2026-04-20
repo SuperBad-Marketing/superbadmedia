@@ -27,7 +27,14 @@ import { ContactCommsTab } from "@/components/lite/admin/contacts/contact-comms-
 import { ContactPortalChatTab } from "@/components/lite/admin/contacts/contact-portal-chat-tab";
 import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
 import { PrivateNotesFeed } from "@/components/lite/admin/contacts/private-notes-feed";
+import { ContextEngineOverview } from "@/components/lite/admin/contacts/context-engine-overview";
 import { addNote, toggleVisibility } from "./actions";
+import {
+  getContextSummary,
+  getSignalsForContact,
+  getActionItems,
+} from "@/lib/context-engine";
+import { context_summaries } from "@/lib/db/schema/context-summaries";
 
 export const metadata: Metadata = {
   title: "SuperBad — Contact",
@@ -179,6 +186,16 @@ export default async function ContactAdminPage({
     ? await db.select().from(activity_log).where(and(eq(activity_log.contact_id, id), eq(activity_log.kind, "note"))).orderBy(desc(activity_log.created_at_ms))
     : null;
 
+  // Context Engine data (overview tab)
+  const [contextSummaryRow, contextSignals, contextActionItems] =
+    activeTab === "overview"
+      ? await Promise.all([
+          db.select().from(context_summaries).where(eq(context_summaries.contact_id, id)).get(),
+          getSignalsForContact(id),
+          getActionItems(id),
+        ])
+      : [null, null, null];
+
   return (
     <div className="mx-auto max-w-4xl">
       {/* ——— breadcrumb ——— */}
@@ -267,6 +284,9 @@ export default async function ContactAdminPage({
           nowMs={nowMs}
           privateNotes={privateNotesData ?? []}
           activityNotes={activityNotesData ?? []}
+          contextSummaryRow={contextSummaryRow ?? null}
+          contextSignals={contextSignals}
+          contextActionItems={contextActionItems ?? []}
         />
       ) : null}
 
@@ -355,6 +375,9 @@ function OverviewTab({
   nowMs,
   privateNotes,
   activityNotes,
+  contextSummaryRow,
+  contextSignals,
+  contextActionItems,
 }: {
   contact: typeof contacts.$inferSelect;
   company: typeof companies.$inferSelect | undefined;
@@ -363,41 +386,50 @@ function OverviewTab({
   nowMs: number;
   privateNotes: (typeof private_notes.$inferSelect)[];
   activityNotes: (typeof activity_log.$inferSelect)[];
+  contextSummaryRow: typeof context_summaries.$inferSelect | null;
+  contextSignals: Awaited<ReturnType<typeof getSignalsForContact>> | null;
+  contextActionItems: Awaited<ReturnType<typeof getActionItems>>;
 }) {
+  const signals = contextSignals ?? {
+    health_label: "stale" as const,
+    days_since_last_contact: Infinity,
+    overdue_action_items_you: 0,
+    overdue_action_items_them: 0,
+    total_open_action_items: 0,
+    has_unsent_draft: false,
+    last_contact_direction: null,
+    deal_stage: primaryDeal?.stage ?? null,
+    outstanding_invoice: false,
+  };
+
+  const actionItemsForPanel = contextActionItems.map((item) => ({
+    id: item.id,
+    description: item.description,
+    owner: item.owner as "you" | "them",
+    due_date_ms: item.due_date_ms,
+    source: item.source as "claude_extract" | "manual",
+    status: item.status as "open" | "done" | "dismissed",
+    created_at_ms: item.created_at_ms,
+    completed_at_ms: item.completed_at_ms,
+  }));
+
   return (
     <div className="space-y-5 px-4 pb-10">
-      {/* Context Engine summary tile — placeholder until Context Engine builds */}
-      <section
-        aria-label="Context summary"
-        className="rounded-[12px] p-5"
-        style={{ background: "var(--color-surface-2)", boxShadow: "var(--surface-highlight)" }}
-      >
-        <p
-          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-          style={{ letterSpacing: "1.8px" }}
-        >
-          Context summary
-        </p>
-        <p className="mt-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.65] text-[color:var(--color-neutral-300)]">
-          {contact.name}
-          {contact.role ? `, ${contact.role}` : ""}
-          {company ? ` at ${company.name}` : ""}
-          .{" "}
-          {primaryDeal ? (
-            <>
-              Current deal: <strong className="text-[color:var(--color-brand-cream)]">{primaryDeal.title}</strong>{" "}
-              at <DealStageChip stage={primaryDeal.stage} />.
-            </>
-          ) : (
-            <span className="italic text-[color:var(--color-neutral-500)]">
-              No active deals.
-            </span>
-          )}
-        </p>
-        <p className="mt-2 font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-brand-pink)]">
-          full context engine coming soon. this is the sketch.
-        </p>
-      </section>
+      {/* Context Engine: summary + action items + draft trigger */}
+      <ContextEngineOverview
+        contactId={contact.id}
+        contextSummary={contextSummaryRow ? {
+          conversation_summary: contextSummaryRow.conversation_summary,
+          summary_generated_at_ms: contextSummaryRow.summary_generated_at_ms,
+          draft_content: contextSummaryRow.draft_content,
+          draft_channel: contextSummaryRow.draft_channel,
+          draft_nudge_history: contextSummaryRow.draft_nudge_history as string[] | null,
+          draft_generated_at_ms: contextSummaryRow.draft_generated_at_ms,
+        } : null}
+        signals={signals}
+        actionItems={actionItemsForPanel}
+        preferredChannel={contact.preferred_channel}
+      />
 
       {/* Deal snapshot */}
       {dealRows.length > 0 ? (
