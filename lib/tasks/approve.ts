@@ -200,8 +200,8 @@ export async function issueApprovalToken(
     });
   }
 
-  // Enqueue 48h reminder
-  const reminderAtMs = now + 48 * 60 * 60 * 1000;
+  const approvalReminderHours = await settings.get("tasks.approval_reminder_hours");
+  const reminderAtMs = now + approvalReminderHours * 60 * 60 * 1000;
   await enqueueTask({
     task_type: "deliverable_approval_reminder",
     runAt: reminderAtMs,

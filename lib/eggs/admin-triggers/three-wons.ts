@@ -15,8 +15,9 @@ import { hidden_egg_fires } from "@/lib/db/schema/hidden-egg-fires";
 import { and, eq, gte } from "drizzle-orm";
 import { auth } from "@/lib/auth/session";
 import { fireEgg } from "../fire-egg";
+import settings from "@/lib/settings";
 
-const COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export async function maybeFireThreeWonsEgg(): Promise<boolean> {
   const session = await auth();
@@ -25,6 +26,8 @@ export async function maybeFireThreeWonsEgg(): Promise<boolean> {
   const now = Date.now();
   const userId = session.user.id;
 
+  const cooldownDays = await settings.get("surprise.per_egg_cooldown_days");
+  const cooldownMs = cooldownDays * MS_PER_DAY;
   const recentFires = await db
     .select({ fired_at_ms: hidden_egg_fires.fired_at_ms })
     .from(hidden_egg_fires)
@@ -32,7 +35,7 @@ export async function maybeFireThreeWonsEgg(): Promise<boolean> {
       and(
         eq(hidden_egg_fires.egg_id, "three_wons"),
         eq(hidden_egg_fires.user_id, userId),
-        gte(hidden_egg_fires.fired_at_ms, now - COOLDOWN_MS),
+        gte(hidden_egg_fires.fired_at_ms, now - cooldownMs),
       ),
     )
     .limit(1);

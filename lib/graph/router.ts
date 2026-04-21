@@ -22,6 +22,7 @@ import { invokeLlmText } from "@/lib/ai/invoke";
 import { normaliseEmail, normaliseCompanyName } from "@/lib/crm/normalise";
 import type { NormalizedMessage } from "./normalize";
 import { loadRouterPromptContext, buildRouterPrompt } from "./router-prompt";
+import settings from "@/lib/settings";
 
 // ── Output schema ────────────────────────────────────────────────────
 
@@ -54,7 +55,7 @@ export interface RouterResult {
   skipped: boolean;
 }
 
-const SPAM_KEEP_DAYS = 7;
+// Spam retention loaded from settings.get("inbox.spam_retention_days") at call site
 
 // ── Main entry point ─────────────────────────────────────────────────
 
@@ -312,7 +313,8 @@ async function handleNewContact(
 }
 
 async function handleSpam(threadId: string): Promise<void> {
-  const keepUntilMs = Date.now() + SPAM_KEEP_DAYS * 24 * 60 * 60 * 1000;
+  const spamRetentionDays = await settings.get("inbox.spam_retention_days");
+  const keepUntilMs = Date.now() + spamRetentionDays * 24 * 60 * 60 * 1000;
   await db
     .update(threads)
     .set({

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { cost_anomalies } from "@/lib/db/schema/cost-anomalies";
 import { eq } from "drizzle-orm";
 import { logActivity } from "@/lib/activity-log";
+import settings from "@/lib/settings";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -40,7 +41,8 @@ export async function POST(request: NextRequest) {
 
   if (action === "acknowledge") {
     const now = Date.now();
-    const suppressUntil = now + 24 * 60 * 60 * 1000;
+    const suppressHours = await settings.get("observatory.anomaly_suppress_hours");
+    const suppressUntil = now + suppressHours * 60 * 60 * 1000;
     await db
       .update(cost_anomalies)
       .set({
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     await logActivity({
       kind: "cost_anomaly_acknowledged",
-      body: `Anomaly ${id} acknowledged and suppressed for 24h`,
+      body: `Anomaly ${id} acknowledged and suppressed for ${suppressHours}h`,
       createdBy: session.user.id,
       meta: { anomaly_id: id, suppressed_until_ms: suppressUntil },
     });

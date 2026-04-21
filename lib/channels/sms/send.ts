@@ -19,6 +19,7 @@ import { twilio_sms_log } from "@/lib/db/schema/twilio-sms-log";
 import { dnc_phones } from "@/lib/db/schema/dnc-phones";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { TWILIO_API_BASE } from "@/lib/integrations/vendors/twilio";
+import settings from "@/lib/settings";
 
 export interface SendSmsParams {
   to: string;
@@ -35,7 +36,7 @@ export interface SendSmsResult {
   reason?: string;
 }
 
-function isSmsQuietHours(): boolean {
+async function isSmsQuietHours(): Promise<boolean> {
   const parts = new Intl.DateTimeFormat("en-AU", {
     timeZone: "Australia/Melbourne",
     hour: "numeric",
@@ -45,7 +46,9 @@ function isSmsQuietHours(): boolean {
     parts.find((p) => p.type === "hour")?.value ?? "0",
     10,
   );
-  return hour < 8 || hour >= 21;
+  const startHour = await settings.get("sms.quiet_window_start_hour");
+  const endHour = await settings.get("sms.quiet_window_end_hour");
+  return hour < startHour || hour >= endHour;
 }
 
 export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
@@ -69,12 +72,11 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
     return { sent: false, skipped: true, reason: `dnc:${dncRows[0].reason}` };
   }
 
-  // SMS quiet hours (8am–9pm Melbourne)
-  if (isSmsQuietHours()) {
+  if (await isSmsQuietHours()) {
     return {
       sent: false,
       skipped: true,
-      reason: "sms_quiet_hours:outside_8am_9pm",
+      reason: "sms_quiet_hours",
     };
   }
 

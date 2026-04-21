@@ -21,15 +21,8 @@ import { scheduled_tasks } from "@/lib/db/schema/scheduled-tasks";
 import { SUPERBAD_SENDER } from "./sender";
 import { and, gte, lt } from "drizzle-orm";
 import { sql } from "drizzle-orm";
+import settings from "@/lib/settings";
 
-// §10.1 — The ramp. Non-overrideable.
-const WARMUP_RAMP: Record<number, number> = {
-  1: 5,
-  2: 10,
-  3: 15,
-  4: 20,
-};
-const GRADUATED_CAP = 30;
 const WARMUP_WEEKS = 4;
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -84,8 +77,17 @@ export async function enforceWarmupCap(
   const currentWeek = Math.min(elapsedWeeks + 1, WARMUP_WEEKS + 1);
   const isGraduated = currentWeek > WARMUP_WEEKS;
 
-  // Compute daily cap from ramp
-  const dailyCap = isGraduated ? GRADUATED_CAP : (WARMUP_RAMP[currentWeek] ?? 5);
+  // Load ramp caps from settings
+  const [w1, w2, w3, w4, graduated] = await Promise.all([
+    settings.get("warmup.week_one_cap"),
+    settings.get("warmup.week_two_cap"),
+    settings.get("warmup.week_three_cap"),
+    settings.get("warmup.week_four_cap"),
+    settings.get("warmup.graduated_cap"),
+  ]);
+  const warmupRamp: Record<number, number> = { 1: w1, 2: w2, 3: w3, 4: w4 };
+
+  const dailyCap = isGraduated ? graduated : (warmupRamp[currentWeek] ?? w1);
 
   // Compute Melbourne midnight boundaries for "today"
   const { todayStartMs, todayEndMs } = getMelbourneDayBounds(now);
@@ -197,6 +199,7 @@ export async function initWarmupState(dbInstance = defaultDb): Promise<void> {
 
   const now = new Date();
   const { todayStartMs } = getMelbourneDayBounds(now.getTime());
+  const weekOneCap = await settings.get("warmup.week_one_cap");
 
   await dbInstance.insert(resendWarmupState).values({
     id: "default",
@@ -204,7 +207,7 @@ export async function initWarmupState(dbInstance = defaultDb): Promise<void> {
     sender_domain: SUPERBAD_SENDER.domain,
     started_at: now,
     current_week: 1,
-    daily_cap: WARMUP_RAMP[1]!,
+    daily_cap: weekOneCap,
     sent_today: 0,
     sent_today_reset_at: new Date(todayStartMs),
     manual_override: false,

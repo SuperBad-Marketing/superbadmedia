@@ -223,24 +223,235 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 ---
 
+## Branded Invoicing (owner: `docs/specs/branded-invoicing.md`; consumer: BI-1..BI-4)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `invoice.review_window_days` | `3` | integer | Days before an auto-generated invoice auto-sends without manual review |
+| `invoice.overdue_reminder_days` | `14` | integer | Days past due before overdue reminder email fires |
+
+---
+
+## SaaS Subscription Billing — additional keys (SB-7, SB-9)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `saas.usage_warn_threshold_percent` | `80` | integer | Percentage of tier limit at which a usage warning fires |
+| `saas.data_loss_warning_days` | `30` | integer | Days before data deletion after subscription cancellation |
+
+---
+
+## Unified Inbox — additional keys (UI-10, UI-12, UI-13)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `inbox.ticket_auto_resolve_idle_days` | `7` | integer | Days of inactivity before a support ticket auto-resolves |
+| `inbox.history_import_months` | `6` | integer | Months of email history to import on initial Graph API sync |
+| `inbox.digest_hour` | `8` | integer | Local hour (Melbourne) for morning inbox digest email |
+| `inbox.digest_silent_window_hours` | `4` | integer | Hours after digest send during which no incremental notifications fire |
+| `inbox.digest_no_send_on_zero` | `false` | boolean | Skip digest email when there are zero actionable items |
+
+---
+
+## Onboarding & Segmentation (owner: `docs/specs/onboarding-segmentation.md`; consumer: OS-2)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `onboarding.retainer_non_start_nudge_hours` | `48` | integer | Hours before nudging a new retainer client who hasn't started onboarding |
+| `onboarding.saas_nudge_first_hours` | `24` | integer | First SaaS nudge after signup |
+| `onboarding.saas_nudge_second_hours` | `72` | integer | Second SaaS nudge |
+| `onboarding.saas_nudge_weekly_hours` | `168` | integer | Recurring weekly SaaS nudge cadence |
+| `onboarding.practical_nudge_first_hours` | `24` | integer | First practical-step nudge |
+| `onboarding.practical_nudge_second_hours` | `72` | integer | Second practical-step nudge |
+| `onboarding.practical_nudge_weekly_hours` | `168` | integer | Recurring weekly practical-step nudge |
+| `onboarding.upsell_revenue_floor` | `"50000"` | string | Minimum annual revenue (AUD) to qualify for upsell targeting |
+| `onboarding.upsell_engagement_login_days` | `5` | integer | Minimum login days in window to qualify for upsell |
+| `onboarding.upsell_engagement_login_window_days` | `14` | integer | Rolling window for login-day counting |
+| `onboarding.upsell_engagement_feature_count` | `3` | integer | Minimum distinct features used to qualify for upsell |
+| `onboarding.upsell_engagement_feature_window_days` | `14` | integer | Rolling window for feature-count measurement |
+| `onboarding.upsell_location_gate` | `"AU"` | string | ISO country code gate for upsell targeting |
+| `onboarding.brand_dna_retake_nudge_months` | `6` | integer | Months since last Brand DNA before nudging a retake |
+
+---
+
+## Lead Generation (owner: `docs/specs/lead-generation.md`; consumer: LG-1..LG-11)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `lead_generation.daily_search_enabled` | `true` | boolean | Master kill switch for daily lead search |
+| `lead_generation.daily_max_per_day` | `10` | integer | Max new leads surfaced per daily run |
+| `lead_generation.dedup_window_days` | `90` | integer | Window for deduplicating previously-surfaced leads |
+| `lead_generation.location_radius_km` | `50` | integer | Search radius from location centre |
+| `lead_generation.location_centre` | `"Melbourne, AU"` | string | Default search centre |
+| `lead_generation.category` | `"restaurant"` | string | Default business category for search |
+| `lead_generation.standing_brief` | `""` | string | Standing brief for LLM-augmented search |
+| `lead_generation.run_time` | `"06:00"` | string | Daily search cron time (Melbourne local) |
+| `lead_generation.auto_send_delay_minutes` | `15` | integer | Delay in minutes before auto-send fires on approved drafts |
+
+---
+
+## Warmup Ramp (owner: LG-6; consumer: LG-8, LG-9)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `warmup.week_one_cap` | `5` | integer | Daily send cap, week 1 |
+| `warmup.week_two_cap` | `10` | integer | Daily send cap, week 2 |
+| `warmup.week_three_cap` | `15` | integer | Daily send cap, week 3 |
+| `warmup.week_four_cap` | `20` | integer | Daily send cap, week 4 |
+| `warmup.graduated_cap` | `30` | integer | Daily send cap, graduated (week 5+) |
+
+---
+
+## Free Audit Tool (owner: `docs/specs/free-audit-tool.md`; consumer: AT-1)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `audit.daily_cap` | `50` | integer | Max audits per day across all IPs |
+| `audit.rate_limit_per_ip` | `3` | integer | Max audits per IP per day |
+| `audit.scoring_boost` | `10` | integer | Score boost for audit leads entering pipeline |
+| `audit.profile_reuse_days` | `7` | integer | Days to cache a business profile before re-fetching |
+
+---
+
+## Surprise & Delight (owner: `docs/specs/surprise-and-delight.md`; consumer: SD-1..SD-14)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `surprise.hidden_eggs_enabled` | `true` | boolean | Master kill switch for hidden eggs |
+| `surprise.public_egg_cadence_per_days` | `30` | integer | Minimum days between public egg fires per user |
+| `surprise.admin_egg_cadence_per_days` | `30` | integer | Minimum days between admin egg fires per user |
+| `surprise.ambient_copy_refresh_interval_days` | `7` | integer | Days between ambient copy rotation |
+| `surprise.riddle_wrong_answer_fallback_budget_per_riddle` | `3` | integer | Max wrong-answer fallback attempts per riddle |
+| `surprise.per_egg_cooldown_days` | `30` | integer | Per-trigger cooldown (days) for individual admin eggs (SAP) |
+| `surprise.milestone_cooldown_days` | `60` | integer | Per-contact cooldown (days) for milestone-spotter egg (SAP) |
+| `surprise.fire_retention_days` | `30` | integer | Days to retain hidden_egg_fires rows before cleanup (SAP) |
+
+---
+
+## Cost & Usage Observatory (owner: `docs/specs/cost-observatory.md`; consumer: COB-1..COB-11)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `observatory.monthly_threshold_1_aud` | `50.00` | decimal | First monthly spend threshold (amber) |
+| `observatory.monthly_threshold_2_aud` | `100.00` | decimal | Second monthly spend threshold (red) |
+| `observatory.monthly_threshold_3_aud` | `200.00` | decimal | Third monthly spend threshold (critical) |
+| `observatory.projection_alert_enabled` | `true` | boolean | Whether projection-based alerts fire |
+| `observatory.weekly_digest_enabled` | `true` | boolean | Whether weekly cost digest email fires |
+| `observatory.anomaly_suppress_hours` | `24` | integer | Hours an acknowledged anomaly stays suppressed (SAP) |
+
+---
+
+## Referral (owner: `docs/specs/client-management.md` CM-E)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `referral.milestone_prompt_cooldown_days` | `90` | integer | Days between referral milestone prompt nudges per client |
+
+---
+
+## Case Snippets (owner: LG-11)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `snippet.auto_approve_hours` | `48` | integer | Hours before an auto-generated case snippet auto-approves |
+
+---
+
+## Retargeting (owner: LG-11)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `retargeting.meta_pixel_id` | `null` | string (nullable) | Meta pixel ID for retargeting clicks |
+| `retargeting.google_conversion_id` | `null` | string (nullable) | Google conversion ID for retargeting clicks |
+
+---
+
+## Autonomy Adjustment (owner: LG-11)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `autonomy.graduation_threshold` | `10` | integer | Clean approvals needed to graduate from manual to probation |
+| `autonomy.minor_edit_char_threshold` | `50` | integer | Max character diff for an edit to count as "minor" |
+| `autonomy.material_edit_ratio_threshold` | `0.3` | decimal | Levenshtein ratio above which an edit counts as "material" |
+
+---
+
+## SMS Transport (owner: SAP; consumer: IF-2)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `sms.quiet_window_start_hour` | `8` | integer | SMS quiet window start (local hour, inclusive) |
+| `sms.quiet_window_end_hour` | `21` | integer | SMS quiet window end (local hour, exclusive) |
+
+---
+
+## Inbox Retention (owner: SAP; consumer: UI-4, UI-7)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `inbox.noise_retention_days_transactional` | `180` | integer | Days to keep noise/transactional messages before soft-delete |
+| `inbox.noise_retention_days_default` | `30` | integer | Days to keep noise (non-transactional) messages before soft-delete |
+| `inbox.spam_retention_days` | `7` | integer | Days to keep spam messages before soft-delete |
+| `inbox.trash_retention_days` | `14` | integer | Days soft-deleted messages survive before hard-delete |
+
+---
+
+## Task Approval (owner: SAP; consumer: TM-6)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `tasks.approval_reminder_hours` | `48` | integer | Hours before a reminder fires for unanswered approval requests |
+
+---
+
+## Wizard Expiry Warning (owner: SAP; consumer: SW-8)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `wizards.expiry_warn_hours_before` | `24` | integer | Hours before wizard expiry to fire the warning notification |
+
+---
+
+## Hiring Trial Archive (owner: SAP; consumer: HP-14)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `hiring.trial.auto_archive_delay_days` | `2` | integer | Days after trial overdue notification before auto-archive |
+
+---
+
 ## Totals
 
 - Finance: 11
-- Wizards: 9
+- Wizards: 10 (was 9; +1 SAP `wizards.expiry_warn_hours_before`)
 - Plan: 10
-- Portal: 5
-- Intro Funnel: 1 (more owed; see Batch C step 15)
-- Email adapter: 4 (added 2026-04-14, A5)
-- Alerts: 3 (added 2026-04-14, A5)
-- Legal: 2 (added 2026-04-13, B3)
-- Hiring: 28
-- Sales Pipeline: 10 (SP-3 seeded 7; SP-7 added 1; SP-8 added 1; SP-9 added 1 — `sd_three_wons_last_fired_ms`)
-- Quote Builder: 4 (QB-1 seeded 2; QB-4b added 2 — `quote.reminder_days`, `quote.intro_paragraph_redraft_hourly_cap`)
-- SaaS Subscription Billing: 1 (SB-2b seeded 1 — `billing.saas.monthly_setup_fee_cents`)
-- Unified Inbox: 3 (UI-1 seeded 3 — `inbox.graph_sync_interval_seconds`, `inbox.graph_subscription_ttl_hours`, `inbox.graph_subscription_renew_buffer_hours`)
-- Content Engine: 5 (CE-1 seeded 5 — `content.tier`, `content.send_window_day`, `content.send_window_hour`, `content.max_posts_per_month`, `content.max_subscribers_per_tier`)
-- Task Manager: 3 (TM-6 seeded 3 — `tasks.deliverable_approval_token_ttl_days`, `tasks.morning_digest_enabled`, `tasks.morning_digest_time`)
-- Daily Cockpit: 3 (DC-2 seeded 3 — `cockpit.quiet_slot_cost_threshold`, `cockpit.material_event_debounce_minutes`, `cockpit.waiting_items_rail_cap`)
-- **Total: 103 keys at v1.0 seed** (was 100 pre-DC-2)
+- Portal: 5 (+1 `subscriber.magic_link_ttl_hours` listed under Subscriber auth)
+- Subscriber auth: 1
+- Intro Funnel: 1
+- Email adapter: 4
+- Alerts: 3
+- Legal: 2
+- Hiring: 29 (was 28; +1 SAP `hiring.trial.auto_archive_delay_days`)
+- Sales Pipeline: 10
+- Quote Builder: 4
+- Branded Invoicing: 2 (BI-1)
+- SaaS Subscription Billing: 5 (was 1; +2 SB-7/SB-9, +2 `saas.headline_window_days` + `saas.near_cap_threshold`)
+- Unified Inbox: 8 (was 3; +5 UI-10/UI-12/UI-13)
+- Content Engine: 5
+- Task Manager: 4 (was 3; +1 SAP `tasks.approval_reminder_hours`)
+- Daily Cockpit: 3
+- Onboarding & Segmentation: 14 (OS-2)
+- Lead Generation: 9 (LG-1)
+- Warmup Ramp: 5 (LG-6)
+- Free Audit Tool: 4 (AT-1)
+- Surprise & Delight: 8 (was 5; +3 SAP per-egg/milestone/retention)
+- Cost & Usage Observatory: 6 (was 5; +1 SAP `observatory.anomaly_suppress_hours`)
+- Referral: 1 (CM-E)
+- Case Snippets: 1 (LG-11)
+- Retargeting: 2 (LG-11)
+- Autonomy Adjustment: 3 (LG-11)
+- SMS Transport: 2 (SAP)
+- Inbox Retention: 4 (SAP)
+- **Total: 178 keys at v1.0 seed** (was 103 pre-SAP; 165 pre-SAP in code; +13 new SAP keys)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SAP` — Settings Audit Pass. Grep full codebase for numeric/string literals in autonomy-sensitive paths. Convert stragglers to `settings.get()`. Verify every `docs/settings-registry.md` key maps to a real `settings` row. Wave 23 (final gates).
-**Brief:** DC-6 complete — mobile PWA layout shipped. PWA manifest with cockpit as start_url, responsive AdminShell (sidebar hidden + bottom nav on mobile), tabbed kanban with house spring animation, responsive cockpit polish. 6 new tests, full suite 2928 tests (1 pre-existing failure in sb10, zero new regressions).
+**Next session:** `DRY` — Synthetic-client dry-run. Full arc on staging: fake prospect → outreach touch → simulated reply → trial shoot booking → Brand DNA → retainer quote → invoice → portal. Every handoff verified manually. Feeds LAUNCH_READY.md. Wave 23 (final gates).
+**Brief:** SAP complete — full codebase literal audit. 12 feature files patched to use `settings.get()`. 13 new settings keys added (178 total). Registry doc reconciled from 107 → 178 documented keys. Migration 0069 seeds new keys. Zero new regressions (2926 passed, 1 pre-existing sb10 failure).
 **Model tier:** Sonnet
-**Last closed:** DC-6 (2026-04-21) — see `sessions/dc6-handoff.md`
-**Wave status:** Wave 22 complete. DC-1 through DC-6 all shipped. Wave 23 (final gates) next.
+**Last closed:** SAP (2026-04-21) — see `sessions/sap-handoff.md`
+**Wave status:** Wave 23 in progress. SAP shipped. DRY (synthetic dry-run) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

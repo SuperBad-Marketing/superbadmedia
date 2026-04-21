@@ -47,7 +47,8 @@ export async function scheduleWizardNudges(
     idempotencyKey: `wizard_resume_nudge:${row.id}:${row.last_active_at_ms}`,
   });
 
-  const warnFireAt = row.expires_at_ms - 24 * 60 * 60 * 1000;
+  const expiryWarnHours = await settings.get("wizards.expiry_warn_hours_before");
+  const warnFireAt = row.expires_at_ms - expiryWarnHours * 60 * 60 * 1000;
   await enqueueTask({
     task_type: "wizard_expiry_warn",
     runAt: warnFireAt,

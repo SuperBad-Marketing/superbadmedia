@@ -29,19 +29,13 @@ import { messages, threads } from "@/lib/db/schema/messages";
 import { contacts } from "@/lib/db/schema/contacts";
 import { killSwitches } from "@/lib/kill-switches";
 import { invokeLlmText } from "@/lib/ai/invoke";
+import settings from "@/lib/settings";
 import type { NormalizedMessage } from "./normalize";
 import {
   loadSignalNoisePromptContext,
   buildSignalNoisePrompt,
 } from "./signal-noise-prompt";
 
-// ── Retention constants ──────────────────────────────────────────────
-// Spec §9.1 values. Lexical spec constants (precedent: UI-2 SPAM_KEEP_DAYS
-// in router.ts). Candidate for settings-table move if tuning is wanted.
-
-const KEEP_DAYS_NOISE_TRANSACTIONAL = 180;
-const KEEP_DAYS_NOISE_DEFAULT = 30;
-const KEEP_DAYS_SPAM = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // ── Output schema ────────────────────────────────────────────────────
@@ -140,7 +134,7 @@ async function persistClassification(
 
   const overrides = await loadOverridesForThread(threadId);
   const baselineMs = msg.sent_at_ms ?? msg.received_at_ms ?? nowMs;
-  const keepUntilMs = computeMessageKeepUntilMs(
+  const keepUntilMs = await computeMessageKeepUntilMs(
     output.priority_class,
     output.noise_subclass,
     baselineMs,
@@ -213,25 +207,26 @@ async function loadOverridesForThread(
  *
  * Returns `null` = keep indefinitely (signal, or override engaged).
  */
-export function computeMessageKeepUntilMs(
+export async function computeMessageKeepUntilMs(
   priorityClass: SignalNoiseOutput["priority_class"],
   noiseSubclass: SignalNoiseOutput["noise_subclass"],
   baselineMs: number,
   overrides: ThreadKeepOverrides,
-): number | null {
+): Promise<number | null> {
   if (priorityClass === "signal") return null;
   if (overrides.keep_pinned) return null;
   if (overrides.always_keep_noise) return null;
 
   if (priorityClass === "spam") {
-    return baselineMs + KEEP_DAYS_SPAM * MS_PER_DAY;
+    const spamDays = await settings.get("inbox.spam_retention_days");
+    return baselineMs + spamDays * MS_PER_DAY;
   }
 
   // priority_class = noise
   const days =
     noiseSubclass === "transactional"
-      ? KEEP_DAYS_NOISE_TRANSACTIONAL
-      : KEEP_DAYS_NOISE_DEFAULT;
+      ? await settings.get("inbox.noise_retention_days_transactional")
+      : await settings.get("inbox.noise_retention_days_default");
   return baselineMs + days * MS_PER_DAY;
 }
 

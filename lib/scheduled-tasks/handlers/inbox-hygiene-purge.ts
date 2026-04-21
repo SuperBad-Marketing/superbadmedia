@@ -24,13 +24,13 @@ import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { recomputeThreadKeepUntil } from "@/lib/graph/signal-noise";
+import settings from "@/lib/settings";
 import {
   melbourneWallDate,
   melbourneWallToUtcMs,
 } from "@/lib/time/melbourne";
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
 
-const TRASH_RETENTION_DAYS = 14;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const INBOX_HYGIENE_TASK_KEY_PREFIX = "inbox_hygiene_purge:";
@@ -174,7 +174,8 @@ async function runSoftDeletePass(nowMs: number): Promise<SoftDeleteCounts> {
 }
 
 async function runHardDeletePass(nowMs: number): Promise<number> {
-  const cutoffMs = nowMs - TRASH_RETENTION_DAYS * MS_PER_DAY;
+  const trashRetentionDays = await settings.get("inbox.trash_retention_days");
+  const cutoffMs = nowMs - trashRetentionDays * MS_PER_DAY;
 
   const expired = await db
     .select({ id: messages.id, thread_id: messages.thread_id })

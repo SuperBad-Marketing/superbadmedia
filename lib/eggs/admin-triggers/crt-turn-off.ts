@@ -16,8 +16,9 @@ import { activity_log } from "@/lib/db/schema/activity-log";
 import { hidden_egg_fires } from "@/lib/db/schema/hidden-egg-fires";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { getMelbourneHour, getMelbourneDateISO } from "../melbourne-holidays";
+import settings from "@/lib/settings";
 
-const COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
 const REQUIRED_LATE_NIGHTS = 3;
 const LATE_HOUR_START = 1; // 01:00 Melbourne (spec says after 01:30, we check >=01:30 via minute)
@@ -40,6 +41,8 @@ export async function evaluateCrtTurnOff(
     evidence: { lateNightDates: [], distinctDayCount: 0 },
   };
 
+  const cooldownDays = await settings.get("surprise.per_egg_cooldown_days");
+  const cooldownMs = cooldownDays * MS_PER_DAY;
   const recentFires = await db
     .select({ fired_at_ms: hidden_egg_fires.fired_at_ms })
     .from(hidden_egg_fires)
@@ -47,7 +50,7 @@ export async function evaluateCrtTurnOff(
       and(
         eq(hidden_egg_fires.egg_id, "crt_turn_off"),
         eq(hidden_egg_fires.user_id, userId),
-        gte(hidden_egg_fires.fired_at_ms, nowMs - COOLDOWN_MS),
+        gte(hidden_egg_fires.fired_at_ms, nowMs - cooldownMs),
       ),
     )
     .limit(1);

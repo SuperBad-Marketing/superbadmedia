@@ -57,7 +57,7 @@ vi.mock("@/lib/lead-gen/autonomy", () => ({
     streak: 0,
     transitioned: false,
   }),
-  AUTO_SEND_DELAY_MS: 15 * 60 * 1000,
+  getAutoSendDelayMs: vi.fn().mockResolvedValue(15 * 60 * 1000),
 }));
 
 vi.mock("@/lib/lead-gen/draft-generator", () => ({
@@ -287,9 +287,10 @@ describe("barrel exports", () => {
   });
 });
 
-describe("AUTO_SEND_DELAY_MS", () => {
-  it("is 15 minutes", async () => {
-    const { AUTO_SEND_DELAY_MS } = await import("@/lib/lead-gen/autonomy");
-    expect(AUTO_SEND_DELAY_MS).toBe(15 * 60 * 1000);
+describe("getAutoSendDelayMs", () => {
+  it("reads from settings and converts to milliseconds", async () => {
+    const { getAutoSendDelayMs } = await import("@/lib/lead-gen/autonomy");
+    const delayMs = await getAutoSendDelayMs();
+    expect(delayMs).toBe(15 * 60 * 1000);
   });
 });

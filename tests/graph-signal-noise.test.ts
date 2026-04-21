@@ -5,8 +5,23 @@ import {
   beforeAll,
   afterAll,
   beforeEach,
+  vi,
 } from "vitest";
 import Database from "better-sqlite3";
+
+vi.mock("@/lib/settings", () => ({
+  default: {
+    get: vi.fn(async (key: string) => {
+      const map: Record<string, unknown> = {
+        "inbox.noise_retention_days_transactional": 180,
+        "inbox.noise_retention_days_default": 30,
+        "inbox.spam_retention_days": 7,
+      };
+      if (key in map) return map[key];
+      throw new Error(`Unexpected settings key: ${key}`);
+    }),
+  },
+}));
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate as drizzleMigrate } from "drizzle-orm/better-sqlite3/migrator";
 import path from "node:path";
@@ -275,16 +290,16 @@ describe("computeMessageKeepUntilMs", () => {
   const baseline = 1_700_000_000_000; // arbitrary fixed instant
   const MS_DAY = 24 * 60 * 60 * 1000;
 
-  it("returns null for signal (never auto-delete)", () => {
-    const result = computeMessageKeepUntilMs("signal", null, baseline, {
+  it("returns null for signal (never auto-delete)", async () => {
+    const result = await computeMessageKeepUntilMs("signal", null, baseline, {
       keep_pinned: false,
       always_keep_noise: false,
     });
     expect(result).toBeNull();
   });
 
-  it("returns baseline + 180 days for noise + transactional", () => {
-    const result = computeMessageKeepUntilMs(
+  it("returns baseline + 180 days for noise + transactional", async () => {
+    const result = await computeMessageKeepUntilMs(
       "noise",
       "transactional",
       baseline,
@@ -293,32 +308,32 @@ describe("computeMessageKeepUntilMs", () => {
     expect(result).toBe(baseline + 180 * MS_DAY);
   });
 
-  it("returns baseline + 30 days for noise + marketing", () => {
-    const result = computeMessageKeepUntilMs("noise", "marketing", baseline, {
+  it("returns baseline + 30 days for noise + marketing", async () => {
+    const result = await computeMessageKeepUntilMs("noise", "marketing", baseline, {
       keep_pinned: false,
       always_keep_noise: false,
     });
     expect(result).toBe(baseline + 30 * MS_DAY);
   });
 
-  it("returns baseline + 30 days for noise with null subclass", () => {
-    const result = computeMessageKeepUntilMs("noise", null, baseline, {
+  it("returns baseline + 30 days for noise with null subclass", async () => {
+    const result = await computeMessageKeepUntilMs("noise", null, baseline, {
       keep_pinned: false,
       always_keep_noise: false,
     });
     expect(result).toBe(baseline + 30 * MS_DAY);
   });
 
-  it("returns baseline + 7 days for spam", () => {
-    const result = computeMessageKeepUntilMs("spam", null, baseline, {
+  it("returns baseline + 7 days for spam", async () => {
+    const result = await computeMessageKeepUntilMs("spam", null, baseline, {
       keep_pinned: false,
       always_keep_noise: false,
     });
     expect(result).toBe(baseline + 7 * MS_DAY);
   });
 
-  it("keep_pinned override returns null even for noise", () => {
-    const result = computeMessageKeepUntilMs(
+  it("keep_pinned override returns null even for noise", async () => {
+    const result = await computeMessageKeepUntilMs(
       "noise",
       "transactional",
       baseline,
@@ -327,8 +342,8 @@ describe("computeMessageKeepUntilMs", () => {
     expect(result).toBeNull();
   });
 
-  it("always_keep_noise override returns null even for spam", () => {
-    const result = computeMessageKeepUntilMs("spam", null, baseline, {
+  it("always_keep_noise override returns null even for spam", async () => {
+    const result = await computeMessageKeepUntilMs("spam", null, baseline, {
       keep_pinned: false,
       always_keep_noise: true,
     });

@@ -30,7 +30,7 @@ import { isWithinQuietWindow } from "@/lib/channels/email/quiet-window";
 import { isBlockedFromOutreach } from "./dnc";
 import { enforceWarmupCap, recordWarmupSend } from "./warmup";
 import { generateDraft, type GenerateDraftInput } from "./draft-generator";
-import { getAutonomyRow, transitionAutonomyState, AUTO_SEND_DELAY_MS } from "./autonomy";
+import { getAutonomyRow, transitionAutonomyState, getAutoSendDelayMs } from "./autonomy";
 import { SUPERBAD_SENDER, SUPERBAD_FROM_STRING } from "./sender";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
@@ -243,10 +243,11 @@ export async function runSequenceScheduler(
       autonomy.mode === "auto_send" ||
       autonomy.mode === "probation"
     ) {
-      // Schedule auto-send with 15-minute delay per §12.H
+      // Schedule auto-send with configurable delay per §12.H
+      const autoSendDelayMs = await getAutoSendDelayMs();
       await enqueueTask({
         task_type: "auto_send_execute",
-        runAt: nowMs + AUTO_SEND_DELAY_MS,
+        runAt: nowMs + autoSendDelayMs,
         payload: {
           draft_id: draftOutcome.draft.draftId,
           sequence_id: seq.id,

@@ -10,12 +10,12 @@ import { lt } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { hidden_egg_fires } from "@/lib/db/schema/hidden-egg-fires";
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
-
-const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+import settings from "@/lib/settings";
 
 export const HIDDEN_EGG_FIRE_CLEANUP_HANDLERS: HandlerMap = {
   hidden_egg_fire_cleanup: async () => {
-    const cutoff = Date.now() - RETENTION_MS;
+    const retentionDays = await settings.get("surprise.fire_retention_days");
+    const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
     await db
       .delete(hidden_egg_fires)
       .where(lt(hidden_egg_fires.fired_at_ms, cutoff));

@@ -83,7 +83,8 @@ export const handleHiringTrialTaskOverdue: TaskHandler = async (task) => {
     },
   });
 
-  const autoArchiveDelayMs = 2 * 24 * 60 * 60 * 1000;
+  const autoArchiveDelayDays = await settings.get("hiring.trial.auto_archive_delay_days");
+  const autoArchiveDelayMs = autoArchiveDelayDays * 24 * 60 * 60 * 1000;
   await enqueueTask({
     task_type: "hiring_trial_task_overdue",
     runAt: Date.now() + autoArchiveDelayMs,

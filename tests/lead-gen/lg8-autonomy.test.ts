@@ -5,6 +5,15 @@ vi.mock("@/lib/activity-log", () => ({
   logActivity: vi.fn().mockResolvedValue({ id: "mock" }),
 }));
 
+vi.mock("@/lib/settings", () => ({
+  default: {
+    get: vi.fn(async (key: string) => {
+      if (key === "lead_generation.auto_send_delay_minutes") return 15;
+      throw new Error(`Unexpected settings key: ${key}`);
+    }),
+  },
+}));
+
 function makeRow(overrides: Record<string, unknown> = {}) {
   return {
     track: "saas" as const,
@@ -344,12 +353,13 @@ describe("Autonomy state machine", () => {
     });
   });
 
-  describe("AUTO_SEND_DELAY_MS", () => {
-    it("is 15 minutes in milliseconds", async () => {
-      const { AUTO_SEND_DELAY_MS } = await import(
+  describe("getAutoSendDelayMs", () => {
+    it("reads from settings and converts to milliseconds", async () => {
+      const { getAutoSendDelayMs } = await import(
         "@/lib/lead-gen/autonomy"
       );
-      expect(AUTO_SEND_DELAY_MS).toBe(15 * 60 * 1000);
+      const delayMs = await getAutoSendDelayMs();
+      expect(delayMs).toBe(15 * 60 * 1000);
     });
   });
 

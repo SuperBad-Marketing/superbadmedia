@@ -24,8 +24,9 @@ import { deals } from "@/lib/db/schema/deals";
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { invokeLlmText } from "@/lib/ai/invoke";
 import { killSwitches } from "@/lib/kill-switches";
+import settings from "@/lib/settings";
 
-const PER_CONTACT_COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const STALE_NOTE_CUTOFF_MS = 12 * 30 * 24 * 60 * 60 * 1000;
 const UPCOMING_WINDOW_DAYS = 14;
 const PAST_GRACE_DAYS = 3;
@@ -71,6 +72,8 @@ export async function scanForMilestones(
     ...new Set(notes.map((n) => n.contact_id).filter(Boolean) as string[]),
   ];
 
+  const milestoneCooldownDays = await settings.get("surprise.milestone_cooldown_days");
+  const milestoneCooldownMs = milestoneCooldownDays * MS_PER_DAY;
   const recentFires = contactIds.length > 0
     ? await db
         .select({
@@ -80,7 +83,7 @@ export async function scanForMilestones(
         .where(
           and(
             eq(hidden_egg_fires.egg_id, "milestone_spotter"),
-            gte(hidden_egg_fires.fired_at_ms, nowMs - PER_CONTACT_COOLDOWN_MS),
+            gte(hidden_egg_fires.fired_at_ms, nowMs - milestoneCooldownMs),
           ),
         )
     : [];

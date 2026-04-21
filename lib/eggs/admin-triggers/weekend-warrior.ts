@@ -15,8 +15,9 @@ import { activity_log } from "@/lib/db/schema/activity-log";
 import { hidden_egg_fires } from "@/lib/db/schema/hidden-egg-fires";
 import { and, eq, gte } from "drizzle-orm";
 import { getMelbourneDateISO } from "../melbourne-holidays";
+import settings from "@/lib/settings";
 
-const COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MIN_SESSIONS = 3; // proxy for ~2h of activity (session pings)
 
 function getMelbourneDayOfWeek(nowMs: number): number {
@@ -51,6 +52,8 @@ export async function evaluateWeekendWarrior(
   const dow = getMelbourneDayOfWeek(nowMs);
   if (dow !== 0 && dow !== 6) return noFire;
 
+  const cooldownDays = await settings.get("surprise.per_egg_cooldown_days");
+  const cooldownMs = cooldownDays * MS_PER_DAY;
   const recentFires = await db
     .select({ fired_at_ms: hidden_egg_fires.fired_at_ms })
     .from(hidden_egg_fires)
@@ -58,7 +61,7 @@ export async function evaluateWeekendWarrior(
       and(
         eq(hidden_egg_fires.egg_id, "weekend_warrior"),
         eq(hidden_egg_fires.user_id, userId),
-        gte(hidden_egg_fires.fired_at_ms, nowMs - COOLDOWN_MS),
+        gte(hidden_egg_fires.fired_at_ms, nowMs - cooldownMs),
       ),
     )
     .limit(1);

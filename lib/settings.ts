@@ -258,6 +258,33 @@ const registry = {
   "cockpit.quiet_slot_cost_threshold": decimal,
   "cockpit.material_event_debounce_minutes": integer,
   "cockpit.waiting_items_rail_cap": integer,
+
+  // SMS transport (2 — SAP)
+  "sms.quiet_window_start_hour": integer,
+  "sms.quiet_window_end_hour": integer,
+
+  // Inbox retention (4 — SAP)
+  "inbox.noise_retention_days_transactional": integer,
+  "inbox.noise_retention_days_default": integer,
+  "inbox.spam_retention_days": integer,
+  "inbox.trash_retention_days": integer,
+
+  // Task approval (1 — SAP)
+  "tasks.approval_reminder_hours": integer,
+
+  // Wizard expiry warning (1 — SAP)
+  "wizards.expiry_warn_hours_before": integer,
+
+  // Egg cooldowns (3 — SAP)
+  "surprise.per_egg_cooldown_days": integer,
+  "surprise.milestone_cooldown_days": integer,
+  "surprise.fire_retention_days": integer,
+
+  // Hiring trial archive (1 — SAP)
+  "hiring.trial.auto_archive_delay_days": integer,
+
+  // Observatory anomaly (1 — SAP)
+  "observatory.anomaly_suppress_hours": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

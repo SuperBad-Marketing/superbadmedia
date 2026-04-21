@@ -86,7 +86,7 @@ export {
   transitionAutonomyState,
   getAutonomyStates,
   getAutonomyRow,
-  AUTO_SEND_DELAY_MS,
+  getAutoSendDelayMs,
 } from "./autonomy";
 export type {
   AutonomyEvent,

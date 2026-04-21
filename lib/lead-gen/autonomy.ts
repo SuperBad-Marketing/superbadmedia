@@ -9,6 +9,7 @@ import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { logActivity } from "@/lib/activity-log";
+import settings from "@/lib/settings";
 
 type Track = "saas" | "retainer";
 
@@ -32,9 +33,10 @@ export interface AutonomyTransitionResult {
   reason?: string;
 }
 
-const AUTO_SEND_DELAY_MS = 15 * 60 * 1000;
-
-export { AUTO_SEND_DELAY_MS };
+export async function getAutoSendDelayMs(): Promise<number> {
+  const minutes = await settings.get("lead_generation.auto_send_delay_minutes");
+  return minutes * 60 * 1000;
+}
 
 export async function getAutonomyRow(
   track: Track,
