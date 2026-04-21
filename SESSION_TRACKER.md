@@ -3,11 +3,18 @@
 ## 🧭 Next Action
 
 **Phase:** 5 → 6 transition
-**Next session:** `DRY-INT` — Integration-level dry-run. Exercise the Stripe payment round-trip (test card → webhook → invoice paid → refund), portal magic-link email flow, Six-Week Plan generation (Opus call), cockpit brief cron trigger, content engine draft, and cancel flow. Requires live external services.
-**Brief:** DRY partial-complete — all 15+ admin surfaces verified rendering with data. Synthetic client "Coastal Brew Co" walked prospect → trial shoot → Brand DNA → quote → invoice → won. `three-wons.ts` server-only build error fixed. Integration flows (Stripe payment, email delivery, LLM generation, cron jobs) still need live verification.
+**Next session:** `DRY-INT` — Integration-level dry-run. Requires live external services + Andy present.
+**Brief:** `sessions/DRY-INT-brief.md`
 **Model tier:** Sonnet
 **Last closed:** DRY (2026-04-21) — see `sessions/dry-handoff.md`
-**Wave status:** Wave 23 in progress. SAP + DRY (UI-level) shipped. DRY-INT (integration-level) next.
+**Wave status:** Wave 23 in progress. SAP + DRY (UI-level) shipped. DRY-INT (integration-level) blocked.
+
+🚨 **VERIFICATION FAILED — human required.** See `sessions/DRY-INT-FAILED-handoff.md`.
+
+**Blockers before re-attempting DRY-INT:**
+1. No external service credentials in CCR (`STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` absent). Must run locally with Andy + Stripe CLI.
+2. LAUNCH regression: `lib/db/migrations/0070_legal_v2.sql` uses `INSERT INTO` not `INSERT OR IGNORE` → breaks `settings.test.ts` idempotency. Fix logged to PATCHES_OWED `legal_v2_seed_not_idempotent`.
+3. HP-2/HP-4 tests need settings mock for fresh-env runs. Fix logged to PATCHES_OWED `hp2_hp4_portfolio_settings_no_mock`.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
