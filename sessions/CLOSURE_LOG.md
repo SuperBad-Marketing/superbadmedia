@@ -4,6 +4,14 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SD-5 (2026-04-21) — Surprise & Delight: Riddle Loop Route + Resolver
+
+**Phase:** 5 — Build Execution (Wave 20 — session 5/14). Built `/say/[answer]` public route — the dedicated URL where riddle answers are submitted as the slug. Created `resolveByAnswer()` function that tries the answer against all active riddles (correct → common wrong → retired → catch-all). Built animated `RiddleResponse` client component with Framer Motion house spring, outcome-differentiated styling (pink border + "found it" for correct, neutral + "try again" for wrong, dimmed for retired). Auth-aware reward asymmetry (public vs logged-in content). 4 new files, 12 new tests, 263 files / 2564 green. See `sessions/sd5-handoff.md`.
+
+## SD-4 (2026-04-21) — Surprise & Delight: Admin Egg Triggers
+
+**Phase:** 5 — Build Execution (Wave 20 — session 4/14). Built 3 admin egg trigger functions: crt_turn_off (3+ late-night sessions in 7 days), milestone_spotter (Haiku extraction + Opus draft for upcoming contact milestones), three_wons (migrated from settings key to hidden_egg_fires table). Wired milestone spotter as scheduled task. 6 new files, 15 new tests, 262 files / 2552 green. See `sessions/sd4-handoff.md`.
+
 ## SD-3 (2026-04-21) — Surprise & Delight: Remaining Public Triggers + Ambient Copy Cache Builder
 
 **Phase:** 5 — Build Execution (Wave 20 — session 3/14). Registered final 3 public triggers: melbourne_public_holiday (holiday JSON lookup), melbourne_rain (Open-Meteo precipitation), public_crt_turn_off (Melbourne 01:00–04:59 + 3min dwell + cross-egg suppression). Extended TriggerContext with 5 optional fields for external/async data (melbourneDateISO, melbourneHour, holidayName, weatherPrecipitationMm, firedEggIdsInSession). Built Melbourne weather helper (Open-Meteo + 15min cache + external_call_log) and holiday helper (lazy-loaded JSON). Wired `ambient_copy_generate` scheduled task handler — iterates all 6 ambient slots, respects refresh interval setting, calls generateInVoice() + writes to ambient_copy_cache. 7 new files, 3 edited, 19 new tests, 261 files / 2537 green. See `sessions/sd3-handoff.md`.
