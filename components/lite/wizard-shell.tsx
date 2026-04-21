@@ -32,7 +32,6 @@ import { motion } from "framer-motion";
 import { XIcon, LifeBuoyIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { houseSpring } from "@/lib/design-tokens";
-import { killSwitches } from "@/lib/kill-switches";
 import { STEP_TYPE_REGISTRY } from "@/components/lite/wizard-steps";
 import type {
   WizardAudience,
@@ -59,6 +58,13 @@ export type WizardShellProps = {
    */
   help?: React.ReactNode;
   /**
+   * Server-resolved kill switch value. When false, the shell shows a
+   * maintenance placeholder. Defaults to true because routing-level gates
+   * (first-run sequencer, admin wizard page) already prevent rendering when
+   * wizards are disabled — this prop is a belt-and-braces visual fallback.
+   */
+  wizardsEnabled?: boolean;
+  /**
    * Step body. Pass `children` for custom rendering, OR pass `step` +
    * `stepState` + `onStepStateChange` + `onNext` to render via
    * `STEP_TYPE_REGISTRY`. The registry path is what SW-3+ real wizards use.
@@ -80,6 +86,7 @@ export function WizardShell({
   expiryDays,
   onCancel,
   help,
+  wizardsEnabled,
   children,
   step,
   stepState,
@@ -90,9 +97,7 @@ export function WizardShell({
   const stepCount = stepLabels.length;
   const safeCurrent = Math.min(Math.max(currentStep, 0), Math.max(stepCount - 1, 0));
 
-  // Kill-switch short-circuit. Every wizard surface refuses to render when
-  // `setup_wizards_enabled` is off — mid-flight wizards safely pause (spec §8).
-  if (!killSwitches.setup_wizards_enabled) {
+  if (wizardsEnabled === false) {
     return (
       <div
         data-wizard-shell-disabled
