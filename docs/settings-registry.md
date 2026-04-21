@@ -213,6 +213,16 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 ---
 
+### Daily Cockpit (DC-2)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `cockpit.quiet_slot_cost_threshold` | `0.50` | decimal | Max estimated Opus cost (AUD) per brief before quiet-slot skip rule considers cost. Source: spec §Quiet-slot skip rule. |
+| `cockpit.material_event_debounce_minutes` | `10` | integer | Debounce window (minutes) for material-event brief regeneration per slot. Source: spec §Material-event regen. |
+| `cockpit.waiting_items_rail_cap` | `6` | integer | Max chips shown on the attention rail before overflow. Source: spec §Attention rail. |
+
+---
+
 ## Totals
 
 - Finance: 11
@@ -230,6 +240,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Unified Inbox: 3 (UI-1 seeded 3 — `inbox.graph_sync_interval_seconds`, `inbox.graph_subscription_ttl_hours`, `inbox.graph_subscription_renew_buffer_hours`)
 - Content Engine: 5 (CE-1 seeded 5 — `content.tier`, `content.send_window_day`, `content.send_window_hour`, `content.max_posts_per_month`, `content.max_subscribers_per_tier`)
 - Task Manager: 3 (TM-6 seeded 3 — `tasks.deliverable_approval_token_ttl_days`, `tasks.morning_digest_enabled`, `tasks.morning_digest_time`)
-- **Total: 100 keys at v1.0 seed** (was 97 pre-TM-6)
+- Daily Cockpit: 3 (DC-2 seeded 3 — `cockpit.quiet_slot_cost_threshold`, `cockpit.material_event_debounce_minutes`, `cockpit.waiting_items_rail_cap`)
+- **Total: 103 keys at v1.0 seed** (was 100 pre-DC-2)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.

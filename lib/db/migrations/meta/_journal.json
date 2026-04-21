@@ -379,6 +379,13 @@
       "when": 1777600000000,
       "tag": "0067_dc1_cockpit_briefs",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "6",
+      "when": 1777700000000,
+      "tag": "0068_dc2_cockpit_settings",
+      "breakpoints": true
     }
   ]
 }

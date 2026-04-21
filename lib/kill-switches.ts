@@ -39,6 +39,7 @@ export type KillSwitchKey =
   | "tasks_digest_enabled"
   | "hiring_discovery_enabled"
   | "observatory_detectors_enabled"
+  | "cockpit_briefs_enabled"
   | "admin_sse_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
@@ -140,6 +141,7 @@ const defaults: KillSwitchRegistry = {
   // exit early and sync-on-insert check is skipped. Flip ON in Phase 6
   // after band values are tuned.
   observatory_detectors_enabled: false,
+  cockpit_briefs_enabled: false,
   admin_sse_enabled: true,
 };
 

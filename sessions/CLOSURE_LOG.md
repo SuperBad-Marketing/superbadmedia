@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## DC-2 (2026-04-21) — Daily Cockpit: Briefs Pipeline + Cron
+
+**Phase:** 5 — Build Execution (Wave 22 — session 2/8). Briefs pipeline shipped: `generateBriefForSlot()` end-to-end (gather signals → quiet-slot skip → build slot prompt → Opus via LLM registry → persist + activity log). Three prompt templates (morning/midday/evening) with chained continuity. Andy-facing activity filter (28 kinds from `activity_log`). Kill switch `cockpit_briefs_enabled` (default false). 3 settings keys seeded (migration 0068). Cron API route at `/api/cron/cockpit-brief?slot=`. Scheduled task handler `cockpit_brief_regenerate` registered. 10 new files, 6 edited files, 284 files / 2896 green (+11 new tests). See `sessions/dc2-handoff.md`.
+
 ## DC-1 (2026-04-21) — Daily Cockpit: Aggregator Scaffold + Banner Strip
 
 **Phase:** 5 — Build Execution (Wave 22 — session 1/8). Cockpit scaffold shipped: `cockpit_briefs` table (migration 0067), aggregation layer (`mergeWaitingItems` + `mergeHealthBanners` with graceful degradation via `Promise.allSettled`), cockpit page at `/lite/cockpit` with brief panel (placeholder copy), attention rail (top 6 + overflow), banner strip (conditional, severity-coded, max 2 + overflow), calendar preview, planning view (kanban/list with localStorage toggle). Overflow pages at `/lite/cockpit/waiting` and `/lite/cockpit/health`. Nav entry activated (`"soon"` → `"live"`). `WaitingItem.scope` widened to `"own" | "fleet"`. 4 live sources wired (tasks, observatory, SaaS banners); remaining sources stubbed. 14 new files, 4 edited files, 283 files / 2885 green (+12 new tests). See `sessions/dc1-handoff.md`.

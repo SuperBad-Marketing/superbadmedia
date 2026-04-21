@@ -1,0 +1,3 @@
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES ('cockpit.quiet_slot_cost_threshold', '0.50', 'decimal', 'Max estimated Opus cost (AUD) per brief before quiet-slot skip considers cost', 0);--> statement-breakpoint
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES ('cockpit.material_event_debounce_minutes', '10', 'integer', 'Debounce window (minutes) for material-event brief regen per slot', 0);--> statement-breakpoint
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES ('cockpit.waiting_items_rail_cap', '6', 'integer', 'Max chips on attention rail before overflow', 0);

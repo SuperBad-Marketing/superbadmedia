@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `DC-2` — Daily Cockpit: briefs data + morning slot + cron. `cockpit_briefs` write pipeline, `generateBriefForSlot('morning')` end-to-end, Opus via LLM registry, drift check, signals snapshot. Depends on content mini-session for prompt templates (stub if not landed).
-**Brief:** DC-1 complete — cockpit scaffold shipped. `cockpit_briefs` table, aggregation layer (`mergeWaitingItems` + `mergeHealthBanners`), cockpit page at `/lite/cockpit` with brief panel, attention rail, banner strip, calendar preview, planning view (kanban/list). Overflow pages at `/lite/cockpit/waiting` and `/lite/cockpit/health`. Nav activated. 4 live sources wired (tasks, observatory, SaaS), rest stubbed. 12 new tests, full suite green (2885 tests, zero regressions). Pre-existing egg build error noted (not cockpit-related).
+**Next session:** `DC-3` — Daily Cockpit: material-event regen. `maybeRegenerateBrief(eventKey, payload)` helper, brief-triggers denylist, debounce logic (10-min per slot), chain anchoring (regen chains off original morning brief, not prior regen). Wire trigger calls into source specs.
+**Brief:** DC-2 complete — briefs pipeline shipped. `generateBriefForSlot()` end-to-end (gather signals → quiet-slot skip → build prompt → Opus call → persist + log). Three prompt templates (morning/midday/evening) with chaining. Andy-facing activity filter (28 kinds). Kill switch `cockpit_briefs_enabled`. 3 settings keys. Cron route at `/api/cron/cockpit-brief`. Scheduled task handler for `cockpit_brief_regenerate`. 11 new tests, full suite green (2896 tests, zero regressions).
 **Model tier:** Sonnet
-**Last closed:** DC-1 (2026-04-21) — see `sessions/dc1-handoff.md`
-**Wave status:** Wave 22 in progress. DC-1 complete, DC-2 next.
+**Last closed:** DC-2 (2026-04-21) — see `sessions/dc2-handoff.md`
+**Wave status:** Wave 22 in progress. DC-1 + DC-2 complete, DC-3 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

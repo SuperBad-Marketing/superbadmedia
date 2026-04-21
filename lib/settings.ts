@@ -253,6 +253,11 @@ const registry = {
   "observatory.monthly_threshold_3_aud": decimal,
   "observatory.projection_alert_enabled": boolean,
   "observatory.weekly_digest_enabled": boolean,
+
+  // Daily Cockpit (3 — DC-2)
+  "cockpit.quiet_slot_cost_threshold": decimal,
+  "cockpit.material_event_debounce_minutes": integer,
+  "cockpit.waiting_items_rail_cap": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;
