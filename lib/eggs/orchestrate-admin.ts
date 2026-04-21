@@ -20,12 +20,14 @@ import { scanForMilestones, generateMilestoneDraft, type DetectedMilestone } fro
 export interface OrchestrateAdminResult {
   fired: boolean;
   eggId: string | null;
+  fireId: string | null;
   evidence: Record<string, unknown> | null;
 }
 
 const NO_FIRE: OrchestrateAdminResult = {
   fired: false,
   eggId: null,
+  fireId: null,
   evidence: null,
 };
 
@@ -97,7 +99,7 @@ export async function orchestrateAdminEggs(
   for (const candidate of candidates) {
     const result = await candidate.evaluate();
     if (result.shouldFire) {
-      await fireEgg({
+      const firedId = await fireEgg({
         eggId: candidate.egg.id,
         actorType: "admin",
         userId,
@@ -106,6 +108,7 @@ export async function orchestrateAdminEggs(
       return {
         fired: true,
         eggId: candidate.egg.id,
+        fireId: firedId,
         evidence: result.evidence,
       };
     }

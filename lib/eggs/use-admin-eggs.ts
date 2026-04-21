@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 export interface AdminEggFired {
   eggId: string;
+  fireId: string | null;
   evidence: Record<string, unknown> | null;
 }
 
@@ -27,7 +28,7 @@ export function useAdminEggs(): AdminEggFired | null {
       })
       .then((data) => {
         if (data?.fired) {
-          setFired({ eggId: data.eggId, evidence: data.evidence });
+          setFired({ eggId: data.eggId, fireId: data.fireId ?? null, evidence: data.evidence });
         }
       })
       .catch(() => {

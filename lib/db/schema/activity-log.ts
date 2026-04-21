@@ -359,6 +359,7 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Surprise & Delight (6) ---
   "hidden_egg_fired",
   "hidden_egg_dismissed",
+  "hidden_egg_acted",
   "ambient_copy_generated",
   "ambient_copy_refresh_requested",
   "riddle_resolved",

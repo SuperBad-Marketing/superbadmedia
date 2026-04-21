@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SD-9 (2026-04-21) — Surprise & Delight: Milestone Spotter Egg Renderer
+
+**Phase:** 5 — Build Execution (Wave 20 — session 9/14). Built `MilestoneSpotterCard` client component listening for `admin-egg-fired` CustomEvent with `eggId: "milestone_spotter"`. Floating notification card (bottom-right, house spring animation) showing contact name, milestone type, event date, source note excerpt, and pre-drafted message. Three action paths: approve & send email, edit & send (email or SMS), or dismiss. API route `/api/lite/eggs/milestone-action` handles all three, updating `hidden_egg_fires.outcome` and logging to `activity_log`. Added `hidden_egg_fire_cleanup` scheduled task handler (30-day retention purge). Added `fireId` passthrough through entire orchestration pipeline (orchestrator → API → hook → CustomEvent → card). Added `milestone_outreach` email classification and `hidden_egg_acted` activity log kind. 4 new files, 8 new tests, 267 files / 2602 green. See `sessions/sd9-handoff.md`.
+
 ## SD-8 (2026-04-21) — Surprise & Delight: CRT Turn-Off Egg Renderer
 
 **Phase:** 5 — Build Execution (Wave 20 — session 8/14). Built `CrtTurnOffOverlay` client component that listens for `admin-egg-fired` CustomEvent with `eggId: "crt_turn_off"`. Four-phase animation sequence: dim (300ms, neutral-950 overlay to 70%) → static (180ms, SVG feTurbulence analog noise flash) → collapse (600ms, CRT horizontal line shrinks to 2px with warm glow then to 0) → frozen (terminal black screen with spec copy: "you've been up until 2am three nights running. I'm pulling the plug." + "close this tab." exit). Scanline texture overlay throughout. z-9999, no dismiss button. Mounted in admin layout alongside orchestrator. 2 new files, 11 new tests, 266 files / 2594 green. See `sessions/sd8-handoff.md`.

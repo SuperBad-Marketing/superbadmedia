@@ -17,7 +17,7 @@ export function AdminEggOrchestrator() {
     if (!egg) return;
     window.dispatchEvent(
       new CustomEvent("admin-egg-fired", {
-        detail: { eggId: egg.eggId, evidence: egg.evidence },
+        detail: { eggId: egg.eggId, fireId: egg.fireId, evidence: egg.evidence },
       }),
     );
   }, [egg]);

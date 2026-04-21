@@ -48,6 +48,7 @@ import { FINANCE_EXPORT_GENERATE_HANDLERS } from "./finance-export-generate";
 import { FINANCE_EXPORT_RETENTION_PURGE_HANDLERS } from "./finance-export-retention-purge";
 import { AMBIENT_COPY_GENERATE_HANDLERS } from "./ambient-copy-generate";
 import { MILESTONE_SPOTTER_SCAN_HANDLERS } from "./milestone-spotter-scan";
+import { HIDDEN_EGG_FIRE_CLEANUP_HANDLERS } from "./hidden-egg-fire-cleanup";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -110,4 +111,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...FINANCE_EXPORT_RETENTION_PURGE_HANDLERS,
   ...AMBIENT_COPY_GENERATE_HANDLERS,
   ...MILESTONE_SPOTTER_SCAN_HANDLERS,
+  ...HIDDEN_EGG_FIRE_CLEANUP_HANDLERS,
 };

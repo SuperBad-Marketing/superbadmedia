@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-9` — Surprise & Delight: Session I (Wave 20). Milestone spotter egg renderer (admin notification card with contact name, milestone, source note, pre-drafted email/SMS, approve/edit/dismiss actions). Check spec + BUILD_PLAN for exact scope.
-**Brief:** SD-8 completed — CRT turn-off egg overlay (`CrtTurnOffOverlay` component listening for `admin-egg-fired` CustomEvent, 4-phase animation: dim → static → collapse → frozen with spec copy + "close this tab" exit). 266 files / 2594 tests green.
+**Next session:** `SD-10` — Surprise & Delight: Session J (Wave 20). Three Wons inline toast renderer + public egg renderers. Check spec + BUILD_PLAN for exact scope.
+**Brief:** SD-9 completed — Milestone spotter egg renderer (`MilestoneSpotterCard` component + `/api/lite/eggs/milestone-action` route + `hidden_egg_fire_cleanup` handler + fireId passthrough through orchestration pipeline). 267 files / 2602 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-8 (2026-04-21) — see `sessions/sd8-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 next.
+**Last closed:** SD-9 (2026-04-21) — see `sessions/sd9-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 done, SD-10 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

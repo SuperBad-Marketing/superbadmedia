@@ -77,6 +77,10 @@ export const EMAIL_CLASSIFICATIONS = [
   // to the admin about his own tasks. Bypasses outreach kill switch + quiet
   // window so it reliably arrives at 08:00.
   "task_morning_digest",
+  // SD-9 — Milestone spotter personal outreach. Admin-initiated to a contact
+  // Andy has a relationship with. Not transactional; respects outreach kill
+  // switch + quiet window.
+  "milestone_outreach",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
