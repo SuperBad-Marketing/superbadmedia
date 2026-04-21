@@ -16,6 +16,9 @@ import { canFireAuthenticatedEgg, type CadenceState } from "./cadence";
 import { fireEgg } from "./fire-egg";
 import { evaluateCrtTurnOff, type CrtTurnOffResult } from "./admin-triggers/crt-turn-off";
 import { scanForMilestones, generateMilestoneDraft, type DetectedMilestone } from "./admin-triggers/milestone-spotter";
+import { evaluateWeekendWarrior } from "./admin-triggers/weekend-warrior";
+import { evaluateInboxZero } from "./admin-triggers/inbox-zero";
+import { evaluateFirstClientWon } from "./admin-triggers/first-client-won";
 
 export interface OrchestrateAdminResult {
   fired: boolean;
@@ -93,6 +96,33 @@ export async function orchestrateAdminEggs(
         });
         break;
       // three_wons is event-driven (fires inline on 3rd Won), not session-load
+      case "weekend_warrior":
+        candidates.push({
+          egg,
+          evaluate: async () => {
+            const result = await evaluateWeekendWarrior(userId, nowMs);
+            return { shouldFire: result.shouldFire, evidence: result.evidence as unknown as Record<string, unknown> };
+          },
+        });
+        break;
+      case "inbox_zero":
+        candidates.push({
+          egg,
+          evaluate: async () => {
+            const result = await evaluateInboxZero(userId, nowMs);
+            return { shouldFire: result.shouldFire, evidence: result.evidence as unknown as Record<string, unknown> };
+          },
+        });
+        break;
+      case "first_client_won":
+        candidates.push({
+          egg,
+          evaluate: async () => {
+            const result = await evaluateFirstClientWon(userId, nowMs);
+            return { shouldFire: result.shouldFire, evidence: result.evidence as unknown as Record<string, unknown> };
+          },
+        });
+        break;
     }
   }
 

@@ -30,6 +30,7 @@ export {
   type GenerateInVoiceParams,
   type GenerateInVoiceResult,
 } from "./generate-in-voice";
+export { getAmbientCopy } from "./get-ambient-copy";
 export {
   evaluateCrtTurnOff,
   scanForMilestones,

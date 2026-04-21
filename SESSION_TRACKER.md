@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-13` — Surprise & Delight: Session M (Wave 20). Ambient copy generation slots + admin egg catalogue expansion. Check spec + BUILD_PLAN for exact scope.
-**Brief:** SD-12 completed — welcome egg safety net (visibilitychange + beforeunload fallback), "No tricks" footer link (public kill switch), CRT cookie re-entry block, novel_wrong outcome fix in RiddleResponse. 269 files / 2628 tests green.
+**Next session:** `SD-14` — Surprise & Delight: Session N (Wave 20). Final S&D integration testing + polish. Check spec + BUILD_PLAN for exact scope.
+**Brief:** SD-13 completed — getAmbientCopy() retrieval helper, 3 new admin eggs (weekend_warrior, inbox_zero, first_client_won), shared AdminEggToast renderer. 271 files / 2654 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-12 (2026-04-21) — see `sessions/sd12-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 done, SD-10 done, SD-11 done, SD-12 done, SD-13 next.
+**Last closed:** SD-13 (2026-04-21) — see `sessions/sd13-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 done, SD-10 done, SD-11 done, SD-12 done, SD-13 done, SD-14 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -155,8 +155,8 @@ describe("SD-1 Schema", () => {
 });
 
 describe("Egg Registry", () => {
-  it("has 3 admin eggs", () => {
-    expect(ADMIN_EGGS).toHaveLength(3);
+  it("has 6 admin eggs", () => {
+    expect(ADMIN_EGGS).toHaveLength(6);
   });
 
   it("has 12 public eggs", () => {
@@ -164,7 +164,7 @@ describe("Egg Registry", () => {
   });
 
   it("ALL_EGGS = admin + public", () => {
-    expect(ALL_EGGS).toHaveLength(15);
+    expect(ALL_EGGS).toHaveLength(18);
   });
 
   it("getEggById finds by id", () => {

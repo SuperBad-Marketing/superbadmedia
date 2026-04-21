@@ -6,6 +6,7 @@ import { AdminEggOrchestrator } from "@/components/lite/admin-egg-orchestrator"
 import { CrtTurnOffOverlay } from "@/components/lite/crt-turn-off-overlay"
 import { MilestoneSpotterCard } from "@/components/lite/milestone-spotter-card"
 import { ThreeWonsToast } from "@/components/lite/three-wons-toast"
+import { AdminEggToast } from "@/components/lite/admin-egg-toast"
 
 /**
  * /lite/admin layout — wraps every admin surface in `AdminShellWithNav`.
@@ -25,6 +26,18 @@ export default function AdminLayout({
       <CrtTurnOffOverlay />
       <MilestoneSpotterCard />
       <ThreeWonsToast />
+      <AdminEggToast
+        eggId="weekend_warrior"
+        copy="It&rsquo;s the weekend. Log off. The leads will still be there Monday."
+      />
+      <AdminEggToast
+        eggId="inbox_zero"
+        copy="Nothing pending. Either you&rsquo;re efficient or something&rsquo;s broken."
+      />
+      <AdminEggToast
+        eggId="first_client_won"
+        copy="First one. Remember this feeling — it gets quieter from here."
+      />
       {children}
     </AdminShellWithNav>
   )

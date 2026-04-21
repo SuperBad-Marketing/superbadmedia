@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SD-13 (2026-04-21) — Surprise & Delight: Ambient Copy Retrieval + Admin Egg Catalogue Expansion
+
+**Phase:** 5 — Build Execution (Wave 20 — session 13/14). Two deliverables: (1) `getAmbientCopy(slot)` retrieval helper — queries `ambient_copy_cache` for most recent non-expired entry, respects refresh interval setting, exported from `lib/eggs/index.ts`. (2) Admin egg catalogue expansion — 3 new admin eggs: `weekend_warrior` (Saturday/Sunday + 3+ session pings → dry nudge to log off), `inbox_zero` (zero pending scheduled tasks → observational toast), `first_client_won` (exactly 1 deal in Won stage → one-shot understated milestone). Shared `AdminEggToast` reusable renderer. All wired into registry (6 admin eggs total), orchestrator switch cases, admin layout. 6 new files, 7 edited files, 16 new tests, 271 files / 2654 green. See `sessions/sd13-handoff.md`.
+
 ## SD-10 (2026-04-21) — Surprise & Delight: Novel Wrong Fallback + Three Wons Toast + Budget Monitor
 
 **Phase:** 5 — Build Execution (Wave 20 — session 10/14). Three deliverables: (1) Riddle novel-wrong live Claude fallback — `resolveNovelWrong()` shared function, `riddle_novel_wrong_cache` table + migration, cache-first then Haiku LLM call with drift-check gate, budget-capped via `settings.get()`. Wired into both `resolve.ts` and `resolve-by-answer.ts`. (2) Three Wons inline toast renderer — `ThreeWonsToast` component listening for `admin-egg-fired` CustomEvent, serif italic copy, 4-second auto-dismiss, house spring animation. Pipeline board updated to dispatch CustomEvent instead of plain `toast()`. (3) `riddle_answer_fallback_budget_monitor` scheduled task handler — monthly check logging warnings at 80%/100% budget. Added `sd-riddle-wrong-fallback` Haiku job slug, 2 activity log kinds. 5 new files, 10 edited files, 8 new tests, 268 files / 2610 green. See `sessions/sd10-handoff.md`.

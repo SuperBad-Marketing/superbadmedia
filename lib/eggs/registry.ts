@@ -36,6 +36,30 @@ export const ADMIN_EGGS: EggDefinition[] = [
     exemptFromBudget: false,
     description: "Dry toast on third deal Won in a session",
   },
+  {
+    id: "weekend_warrior",
+    name: "Weekend Warrior",
+    register: "admin-roommate",
+    cooldownDays: 30,
+    exemptFromBudget: false,
+    description: "Working on a Saturday or Sunday for 2+ hours",
+  },
+  {
+    id: "inbox_zero",
+    name: "Inbox Zero",
+    register: "admin-roommate",
+    cooldownDays: 30,
+    exemptFromBudget: false,
+    description: "All pending tasks cleared in a session",
+  },
+  {
+    id: "first_client_won",
+    name: "First Client Won",
+    register: "admin-roommate",
+    cooldownDays: Infinity, // one-shot, never re-fires
+    exemptFromBudget: false,
+    description: "First-ever deal reaching Won stage",
+  },
 ];
 
 export const PUBLIC_EGGS: EggDefinition[] = [

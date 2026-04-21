@@ -37,6 +37,18 @@ vi.mock("@/lib/eggs/admin-triggers/milestone-spotter", () => ({
   generateMilestoneDraft: vi.fn(),
 }));
 
+vi.mock("@/lib/eggs/admin-triggers/weekend-warrior", () => ({
+  evaluateWeekendWarrior: vi.fn().mockResolvedValue({ shouldFire: false, evidence: { dayOfWeek: -1, sessionCount: 0, earliestMs: null } }),
+}));
+
+vi.mock("@/lib/eggs/admin-triggers/inbox-zero", () => ({
+  evaluateInboxZero: vi.fn().mockResolvedValue({ shouldFire: false, evidence: { clearedAt: null } }),
+}));
+
+vi.mock("@/lib/eggs/admin-triggers/first-client-won", () => ({
+  evaluateFirstClientWon: vi.fn().mockResolvedValue({ shouldFire: false, evidence: { dealId: null, wonAt: null } }),
+}));
+
 vi.mock("@/lib/eggs/fire-egg", () => ({
   fireEgg: vi.fn().mockResolvedValue("mock-fire-id"),
 }));
