@@ -9,10 +9,12 @@ import {
   getTopJobs,
   getKillSwitchedJobs,
 } from "@/lib/observatory/queries/dashboard";
+import { getTierHealth } from "@/lib/observatory/queries/tier-health";
 import { PlatformStatusPanel } from "@/components/lite/observatory/platform-status-panel";
 import { AnomaliesPanel } from "@/components/lite/observatory/anomalies-panel";
 import { TopJobsPanel } from "@/components/lite/observatory/top-jobs-panel";
 import { KillSwitchBar } from "@/components/lite/observatory/kill-switch-bar";
+import { TierHealthPanel } from "@/components/lite/observatory/tier-health-panel";
 
 export const metadata: Metadata = {
   title: "SuperBad — Observatory",
@@ -25,12 +27,13 @@ export default async function ObservatoryPage() {
     redirect("/lite/login");
   }
 
-  const [mtd, active, resolved, topJobs, killSwitched] = await Promise.all([
+  const [mtd, active, resolved, topJobs, killSwitched, tierHealth] = await Promise.all([
     getMtdSummary(),
     getActiveAnomalies(),
     getRecentResolvedAnomalies(),
     getTopJobs(),
     getKillSwitchedJobs(),
+    getTierHealth(),
   ]);
 
   return (
@@ -54,11 +57,21 @@ export default async function ObservatoryPage() {
         >
           Platform spend. Anomalies. Tier health. Everything that costs real money.
         </p>
+        <nav className="mt-3">
+          <a
+            href="/lite/observatory/settings"
+            className="text-[13px] underline decoration-dotted underline-offset-2"
+            style={{ color: "var(--color-neutral-500)" }}
+          >
+            Settings
+          </a>
+        </nav>
       </header>
 
       <div className="flex flex-col gap-6 px-4 pb-8">
         <KillSwitchBar jobs={killSwitched} />
         <PlatformStatusPanel mtd={mtd} />
+        <TierHealthPanel tiers={tierHealth} />
         <AnomaliesPanel active={active} resolved={resolved} />
         <TopJobsPanel jobs={topJobs} />
       </div>

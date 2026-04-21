@@ -6,7 +6,7 @@
  * Spec: `docs/specs/cost-usage-observatory.md` §6.
  * Owner: COB-9 (Wave 21). Consumer: DC-5 (Wave 22).
  */
-import { and, eq, isNull, sql, desc } from "drizzle-orm";
+import { and, eq, isNull, sql, desc, gte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { cost_anomalies, type CostAnomalyTier } from "@/lib/db/schema/cost-anomalies";
@@ -14,6 +14,8 @@ import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { killSwitches } from "@/lib/kill-switches";
 import settings from "@/lib/settings";
 import type { HealthBanner } from "@/lib/tasks/cockpit";
+import { getTierHealth } from "./queries/tier-health";
+import { isJobRegistered } from "./job-registry";
 
 function tierToSeverity(tier: CostAnomalyTier): "warning" | "critical" {
   return tier === "severe" ? "critical" : "warning";
@@ -145,6 +147,44 @@ export async function getObservatoryHealthBanners(
           });
         }
       }
+    }
+  }
+
+  // 4. Tier-health banners (red tiers)
+  try {
+    const tiers = await getTierHealth();
+    for (const tier of tiers) {
+      if (tier.health === "red" && tier.subscriber_count > 0) {
+        banners.push({
+          id: `tier_health:${tier.tier_id}`,
+          severity: "warning",
+          summary: `${tier.tier_name} tier has ${tier.percent_underwater}% of subscribers underwater this month. The tier design may need restructuring.`,
+          href: "/lite/observatory",
+          source: "cost-usage-observatory",
+        });
+      }
+    }
+  } catch {
+    // tier-health query failure should not block other banners
+  }
+
+  // 5. Unknown job detection
+  const recentJobs = await db
+    .select({ job: external_call_log.job })
+    .from(external_call_log)
+    .where(gte(external_call_log.created_at_ms, nowMs - 24 * 60 * 60 * 1000))
+    .groupBy(external_call_log.job)
+    .all();
+
+  for (const row of recentJobs) {
+    if (!isJobRegistered(row.job)) {
+      banners.push({
+        id: `unknown_job:${row.job}`,
+        severity: "warning",
+        summary: `Unknown job "${row.job}" appeared in the last 24 hours. It's not in the registry.`,
+        href: "/lite/observatory/settings",
+        source: "cost-usage-observatory",
+      });
     }
   }
 

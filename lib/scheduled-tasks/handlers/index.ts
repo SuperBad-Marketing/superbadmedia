@@ -54,6 +54,7 @@ import { COST_ANOMALY_DETECTOR_HARD_HANDLERS } from "./cost-anomaly-detector-har
 import { COST_ANOMALY_DETECTOR_RATE_HANDLERS } from "./cost-anomaly-detector-rate";
 import { COST_ANOMALY_DETECTOR_LEARNED_HANDLERS } from "./cost-anomaly-detector-learned";
 import { COST_ANOMALY_DIAGNOSE_HANDLERS } from "./cost-anomaly-diagnose";
+import { WEEKLY_DIGEST_SEND_HANDLERS } from "./weekly-digest-send";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -122,4 +123,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...COST_ANOMALY_DETECTOR_RATE_HANDLERS,
   ...COST_ANOMALY_DETECTOR_LEARNED_HANDLERS,
   ...COST_ANOMALY_DIAGNOSE_HANDLERS,
+  ...WEEKLY_DIGEST_SEND_HANDLERS,
 };

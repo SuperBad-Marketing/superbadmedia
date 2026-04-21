@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-11` — Cost & Usage Observatory: settings page + per-job detail + tier-health panel (Wave 21). Settings at `/lite/observatory/settings` (threshold fields, toggles, job band list). Per-job view at `/lite/observatory/jobs/[key]` (call history, band editor, prompt-version history). Tier-health panel on dashboard (per-tier margin cards, expand to subscriber list). Wire `tier_health` and `unknown_job` banner kinds into `getObservatoryHealthBanners()`. Weekly digest + negative-margin emails if in scope.
-**Brief:** COB-10 complete — observatory dashboard at `/lite/observatory` (4 panels: platform status, kill-switch bar, live anomalies, top jobs) + anomaly detail at `/lite/observatory/anomalies/[id]` (diagnosis card, raw data, band editor, actions). Admin nav entry added. 3 new API routes, 6 client components, 2 query modules. 13 new tests, full suite green (2863 tests, zero regressions). COB-11 is unblocked.
+**Next session:** `DC-1` — Daily Cockpit: aggregator scaffold + banner strip (Wave 22). First session of the final aggregator wave. DC reads from every spec's `getHealthBanners()` + `getWaitingItems()` contracts.
+**Brief:** COB-11 complete — Wave 21 (Cost & Usage Observatory) fully shipped. Settings page at `/lite/observatory/settings`, per-job detail at `/lite/observatory/jobs/[key]`, tier-health panel on dashboard, `tier_health` + `unknown_job` banner kinds wired into `getObservatoryHealthBanners()`, weekly digest email + negative-margin email + scheduled task handler. 3 new query modules, 4 new API routes, 4 new client components, 2 new email modules, 1 scheduled task handler. 10 new tests, full suite green (2873 tests, zero regressions).
 **Model tier:** Sonnet
-**Last closed:** COB-10 (2026-04-21) — see `sessions/cob10-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-10 complete, CMS-6 complete, COB-11 next.
+**Last closed:** COB-11 (2026-04-21) — see `sessions/cob11-handoff.md`
+**Wave status:** Wave 21 complete. Wave 22 (Daily Cockpit) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
