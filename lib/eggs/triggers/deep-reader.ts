@@ -1,3 +1,16 @@
+/**
+ * @egg deep_reader
+ * @register public-bartender
+ * @reads
+ *   - TriggerContext.dwellMs (session dwell, browser-given)
+ *   - TriggerContext.scrollDepth (scroll position ratio, browser-given)
+ * @does_not_read
+ *   - any authenticated-user data
+ *   - IP geolocation or GPS
+ * @cross_client_inference false
+ * @evidence_fields [dwellMs, scrollDepth, reason]
+ */
+
 import { registerTrigger, type TriggerContext, type TriggerEvidence } from "../trigger-evaluator";
 
 function evaluate(ctx: TriggerContext): TriggerEvidence | null {

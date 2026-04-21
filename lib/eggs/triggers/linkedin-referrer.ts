@@ -1,3 +1,15 @@
+/**
+ * @egg linkedin_referrer
+ * @register public-bartender
+ * @reads
+ *   - TriggerContext.referrer (document.referrer, browser-given)
+ * @does_not_read
+ *   - any authenticated-user data
+ *   - IP geolocation or GPS
+ * @cross_client_inference false
+ * @evidence_fields [referrer, reason]
+ */
+
 import { registerTrigger, type TriggerContext, type TriggerEvidence } from "../trigger-evaluator";
 
 const LINKEDIN_PATTERNS = [

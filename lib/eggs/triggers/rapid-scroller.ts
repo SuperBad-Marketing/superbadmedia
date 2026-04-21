@@ -1,3 +1,16 @@
+/**
+ * @egg rapid_scroller
+ * @register public-bartender
+ * @reads
+ *   - TriggerContext.scrollDepth (scroll position ratio, browser-given)
+ *   - TriggerContext.scrollDurationMs (time from first scroll to bottom, browser-given)
+ * @does_not_read
+ *   - any authenticated-user data
+ *   - IP geolocation or GPS
+ * @cross_client_inference false
+ * @evidence_fields [scrollDepth, scrollDurationMs, reason]
+ */
+
 import { registerTrigger, type TriggerContext, type TriggerEvidence } from "../trigger-evaluator";
 
 function evaluate(ctx: TriggerContext): TriggerEvidence | null {

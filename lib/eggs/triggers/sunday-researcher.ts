@@ -1,3 +1,17 @@
+/**
+ * @egg sunday_researcher
+ * @register public-bartender
+ * @reads
+ *   - TriggerContext.dayOfWeek (client-side, freely given)
+ *   - TriggerContext.dwellMs (session dwell, browser-given)
+ *   - TriggerContext.referrer (document.referrer, browser-given)
+ * @does_not_read
+ *   - any authenticated-user data
+ *   - IP geolocation or GPS
+ * @cross_client_inference false
+ * @evidence_fields [dayOfWeek, dwellMs, referrer, reason]
+ */
+
 import { registerTrigger, type TriggerContext, type TriggerEvidence } from "../trigger-evaluator";
 
 const SEARCH_ENGINES = [

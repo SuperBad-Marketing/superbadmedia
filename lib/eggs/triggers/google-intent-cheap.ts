@@ -1,3 +1,15 @@
+/**
+ * @egg google_intent_cheap
+ * @register public-bartender
+ * @reads
+ *   - TriggerContext.referrer (document.referrer URL with query string, browser-given)
+ * @does_not_read
+ *   - any authenticated-user data
+ *   - IP geolocation or GPS
+ * @cross_client_inference false
+ * @evidence_fields [matchedTerm, query, reason]
+ */
+
 import { registerTrigger, type TriggerContext, type TriggerEvidence } from "../trigger-evaluator";
 
 const CHEAP_TERMS = ["cheap", "discount", "affordable", "low cost", "budget", "free"];
