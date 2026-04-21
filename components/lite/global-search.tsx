@@ -9,11 +9,12 @@ import {
   User,
   Briefcase,
   FileCheck,
+  Sparkles,
 } from "lucide-react";
 
 export interface GlobalSearchResult {
   id: string;
-  type: "company" | "contact" | "deal" | "invoice" | "quote";
+  type: "company" | "contact" | "deal" | "invoice" | "quote" | "riddle";
   label: string;
   sublabel: string | null;
 }
@@ -24,6 +25,7 @@ const TYPE_ICONS: Record<GlobalSearchResult["type"], typeof Building2> = {
   deal: Briefcase,
   invoice: FileText,
   quote: FileCheck,
+  riddle: Sparkles,
 };
 
 const TYPE_LABELS: Record<GlobalSearchResult["type"], string> = {
@@ -32,6 +34,7 @@ const TYPE_LABELS: Record<GlobalSearchResult["type"], string> = {
   deal: "Deals",
   invoice: "Invoices",
   quote: "Quotes",
+  riddle: "???",
 };
 
 const TYPE_ROUTES: Record<GlobalSearchResult["type"], (id: string) => string> =
@@ -41,6 +44,7 @@ const TYPE_ROUTES: Record<GlobalSearchResult["type"], (id: string) => string> =
     deal: (id) => `/lite/admin/pipeline?deal=${id}`,
     invoice: (id) => `/lite/admin/invoices?invoice=${id}`,
     quote: (id) => `/lite/quotes/${id}`,
+    riddle: (answer) => `/say/${encodeURIComponent(answer)}`,
   };
 
 export function GlobalSearchTrigger() {
@@ -246,6 +250,7 @@ function GlobalSearchModal({ onClose }: { onClose: () => void }) {
             <div className="py-2">
               {(
                 [
+                  "riddle",
                   "company",
                   "contact",
                   "deal",

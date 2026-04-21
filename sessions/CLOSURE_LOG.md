@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SD-6 (2026-04-21) — Surprise & Delight: Search Bar Riddle Wiring
+
+**Phase:** 5 — Build Execution (Wave 20 — session 6/14). Wired `resolveByAnswer()` into both search surfaces per spec rule #22 (singular resolver). Admin search bar: extended `/api/lite/search` to call riddle resolver in parallel with entity queries, added `riddle` result type to `GlobalSearchResult`, riddle results render first with Sparkles icon and navigate to `/say/[answer]`. Public marketing site: built `PublicSearchBar` component (debounced riddle-check, animated hint dropdown, Enter-to-navigate), new `/api/riddle-check` public endpoint (no auth, no content leak), integrated into Coming Soon page header. 3 new files, 11 new tests, 264 files / 2575 green. See `sessions/sd6-handoff.md`.
+
 ## SD-5 (2026-04-21) — Surprise & Delight: Riddle Loop Route + Resolver
 
 **Phase:** 5 — Build Execution (Wave 20 — session 5/14). Built `/say/[answer]` public route — the dedicated URL where riddle answers are submitted as the slug. Created `resolveByAnswer()` function that tries the answer against all active riddles (correct → common wrong → retired → catch-all). Built animated `RiddleResponse` client component with Framer Motion house spring, outcome-differentiated styling (pink border + "found it" for correct, neutral + "try again" for wrong, dimmed for retired). Auth-aware reward asymmetry (public vs logged-in content). 4 new files, 12 new tests, 263 files / 2564 green. See `sessions/sd5-handoff.md`.

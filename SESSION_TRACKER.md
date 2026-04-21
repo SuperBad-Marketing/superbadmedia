@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-6` — Surprise & Delight: Session F (Wave 20). Wire riddle resolver into marketing site search bar + admin search bar. Check BUILD_PLAN for exact scope.
-**Brief:** SD-5 completed — `/say/[answer]` public route built with `resolveByAnswer()` (tries all active riddles), animated `RiddleResponse` client component with outcome-differentiated rendering, auth-aware reward asymmetry. 263 files / 2564 tests green.
+**Next session:** `SD-7` — Surprise & Delight: Session G (Wave 20). Kill switch ("No tricks" toggle in Settings + public footer cookie) + egg orchestration layer (admin egg evaluation on cockpit/session load). Check spec + BUILD_PLAN for exact scope.
+**Brief:** SD-6 completed — riddle resolver wired into admin search bar (`/api/lite/search` returns riddle results via `resolveByAnswer()`) and marketing site public search bar (new `PublicSearchBar` component on Coming Soon page + `/api/riddle-check` public endpoint). 264 files / 2575 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-5 (2026-04-21) — see `sessions/sd5-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 next.
+**Last closed:** SD-6 (2026-04-21) — see `sessions/sd6-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

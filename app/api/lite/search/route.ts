@@ -8,6 +8,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import { invoices } from "@/lib/db/schema/invoices";
 import { quotes } from "@/lib/db/schema/quotes";
+import { resolveByAnswer } from "@/lib/riddles/resolve-by-answer";
 import type { GlobalSearchResult } from "@/components/lite/global-search";
 
 const MAX_RESULTS_PER_TYPE = 5;
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
   const pattern = `%${q}%`;
   const results: GlobalSearchResult[] = [];
 
-  const [companyRows, contactRows, dealRows, invoiceRows, quoteRows] =
+  const [companyRows, contactRows, dealRows, invoiceRows, quoteRows, riddleResult] =
     await Promise.all([
       db
         .select({ id: companies.id, name: companies.name })
@@ -76,7 +77,21 @@ export async function GET(req: NextRequest) {
         .from(quotes)
         .where(like(quotes.quote_number, pattern))
         .limit(MAX_RESULTS_PER_TYPE),
+
+      resolveByAnswer(q, {
+        actorType: "admin",
+        userId: session.user.id,
+      }),
     ]);
+
+  if (riddleResult.outcome === "correct" || riddleResult.outcome === "common_wrong") {
+    results.push({
+      id: q,
+      type: "riddle",
+      label: riddleResult.outcome === "correct" ? "you found something." : "not quite.",
+      sublabel: null,
+    });
+  }
 
   for (const r of companyRows) {
     results.push({ id: r.id, type: "company", label: r.name, sublabel: null });

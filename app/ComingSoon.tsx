@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { PublicSearchBar } from "@/components/public-search-bar";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -70,7 +71,7 @@ export default function ComingSoon() {
         transition={{ staggerChildren: 0.18, delayChildren: 0.1 }}
       >
         <motion.header
-          className="flex items-start justify-between"
+          className="flex items-start justify-between gap-4"
           variants={fadeUp}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
@@ -96,17 +97,21 @@ export default function ComingSoon() {
             </span>
             Melbourne
           </p>
-          <p
-            style={{
-              fontFamily: "var(--font-label)",
-              fontSize: "var(--text-micro)",
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "var(--neutral-500)",
-            }}
-          >
-            MMXXVI
-          </p>
+          <div className="flex items-center gap-6">
+            <PublicSearchBar />
+            <p
+              className="hidden sm:block"
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: "var(--text-micro)",
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "var(--neutral-500)",
+              }}
+            >
+              MMXXVI
+            </p>
+          </div>
         </motion.header>
 
         <section className="flex max-w-5xl flex-col gap-8 py-16">
