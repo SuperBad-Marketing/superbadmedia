@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { PublicSearchBar } from "@/components/public-search-bar";
+import { NoTricksLink } from "@/components/no-tricks-link";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -211,19 +212,23 @@ export default function ComingSoon() {
           >
             come back later. or don&rsquo;t. we&rsquo;ll be here either way.
           </p>
-          <p
-            style={{
-              fontFamily: "var(--font-label)",
-              fontSize: "var(--text-micro)",
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "var(--neutral-500)",
-            }}
-          >
-            hello
-            <span style={{ color: "var(--neutral-600)" }}>@</span>
-            superbadmedia.com.au
-          </p>
+          <div className="flex items-center gap-4">
+            <p
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: "var(--text-micro)",
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "var(--neutral-500)",
+              }}
+            >
+              hello
+              <span style={{ color: "var(--neutral-600)" }}>@</span>
+              superbadmedia.com.au
+            </p>
+            <span style={{ color: "var(--neutral-700)" }}>·</span>
+            <NoTricksLink />
+          </div>
         </motion.footer>
       </motion.div>
     </main>

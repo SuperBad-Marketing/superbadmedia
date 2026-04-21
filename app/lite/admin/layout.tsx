@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { AdminShellWithNav } from "@/components/lite/admin-shell-with-nav"
 import { AdminEventToasts } from "@/components/lite/admin-event-toasts"
+import { AdminEggOrchestrator } from "@/components/lite/admin-egg-orchestrator"
 
 /**
  * /lite/admin layout — wraps every admin surface in `AdminShellWithNav`.
@@ -17,6 +18,7 @@ export default function AdminLayout({
   return (
     <AdminShellWithNav>
       <AdminEventToasts />
+      <AdminEggOrchestrator />
       {children}
     </AdminShellWithNav>
   )

@@ -38,3 +38,7 @@ export {
   type CrtTurnOffResult,
   type DetectedMilestone,
 } from "./admin-triggers";
+export {
+  orchestrateAdminEggs,
+  type OrchestrateAdminResult,
+} from "./orchestrate-admin";

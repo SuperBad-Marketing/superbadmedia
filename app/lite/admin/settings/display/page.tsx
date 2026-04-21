@@ -39,6 +39,7 @@ export default async function DisplaySettingsPage() {
       text_size_preference: user.text_size_preference,
       theme_preset: user.theme_preset,
       typeface_preset: user.typeface_preset,
+      hidden_egg_tricks_enabled: user.hidden_egg_tricks_enabled,
     })
     .from(user)
     .where(eq(user.id, session.user.id))
@@ -77,6 +78,7 @@ export default async function DisplaySettingsPage() {
           textSize={(row?.text_size_preference as TextSizePreference) ?? DEFAULT_TEXT_SIZE_PREFERENCE}
           theme={(row?.theme_preset as ThemePreset) ?? DEFAULT_THEME_PRESET}
           typeface={(row?.typeface_preset as TypefacePreset) ?? DEFAULT_TYPEFACE_PRESET}
+          tricksEnabled={row?.hidden_egg_tricks_enabled ?? true}
         />
       </div>
     </div>

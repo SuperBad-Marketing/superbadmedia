@@ -115,3 +115,15 @@ export async function updateTypefacePreset(formData: FormData) {
     .run();
   revalidatePath("/lite/admin/settings/display");
 }
+
+export async function updateTricksEnabled(formData: FormData) {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return;
+  const value = formData.get("value");
+  if (value !== "true" && value !== "false") return;
+  db.update(user)
+    .set({ hidden_egg_tricks_enabled: value === "true" })
+    .where(eq(user.id, userId))
+    .run();
+  revalidatePath("/lite/admin/settings/display");
+}

@@ -20,6 +20,7 @@ import {
   updateTextSizePreference,
   updateThemePreset,
   updateTypefacePreset,
+  updateTricksEnabled,
 } from "./actions";
 
 type Props = {
@@ -29,6 +30,7 @@ type Props = {
   textSize: TextSizePreference;
   theme: ThemePreset;
   typeface: TypefacePreset;
+  tricksEnabled: boolean;
 };
 
 const MOTION_LABELS: Record<MotionPreference, string> = {
@@ -115,7 +117,7 @@ function RadioOption({
   );
 }
 
-export function DisplaySettings({ motion, sounds, density, textSize, theme, typeface }: Props) {
+export function DisplaySettings({ motion, sounds, density, textSize, theme, typeface, tricksEnabled }: Props) {
   const [, startTransition] = useTransition();
 
   function submit(action: (fd: FormData) => Promise<void>, value: string) {
@@ -195,6 +197,18 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
           labels={TYPEFACE_LABELS}
           current={typeface}
           onSelect={(v) => submit(updateTypefacePreset, v)}
+        />
+      </SettingRow>
+
+      <SettingRow
+        label="No tricks"
+        description="Turns off hidden eggs and surprises. The ambient voice stays."
+      >
+        <Switch
+          checked={!tricksEnabled}
+          onCheckedChange={(checked: boolean) =>
+            submit(updateTricksEnabled, String(!checked))
+          }
         />
       </SettingRow>
     </div>

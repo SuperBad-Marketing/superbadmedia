@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-7` — Surprise & Delight: Session G (Wave 20). Kill switch ("No tricks" toggle in Settings + public footer cookie) + egg orchestration layer (admin egg evaluation on cockpit/session load). Check spec + BUILD_PLAN for exact scope.
-**Brief:** SD-6 completed — riddle resolver wired into admin search bar (`/api/lite/search` returns riddle results via `resolveByAnswer()`) and marketing site public search bar (new `PublicSearchBar` component on Coming Soon page + `/api/riddle-check` public endpoint). 264 files / 2575 tests green.
+**Next session:** `SD-8` — Surprise & Delight: Session H (Wave 20). CRT turn-off egg renderer (admin overlay component that listens for `admin-egg-fired` CustomEvent, plays the CRT horizontal collapse animation + dry copy + "close this tab" exit). Check spec + BUILD_PLAN for exact scope.
+**Brief:** SD-7 completed — kill switch on both surfaces (admin Settings > Display "No tricks" toggle + public footer cookie link) and admin egg orchestration layer (`orchestrateAdminEggs()` → `/api/lite/eggs/evaluate` → `useAdminEggs()` hook → `AdminEggOrchestrator` in admin layout dispatching `admin-egg-fired` CustomEvent). 265 files / 2583 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-6 (2026-04-21) — see `sessions/sd6-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 next.
+**Last closed:** SD-7 (2026-04-21) — see `sessions/sd7-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
