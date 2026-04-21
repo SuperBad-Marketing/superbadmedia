@@ -9,12 +9,15 @@
 **Last closed:** DRY (2026-04-21) — see `sessions/dry-handoff.md`
 **Wave status:** Wave 23 in progress. SAP + DRY (UI-level) shipped. DRY-INT (integration-level) blocked.
 
-🚨 **VERIFICATION FAILED — human required.** See `sessions/DRY-INT-FAILED-handoff.md`.
+🚨 **BLOCKED — human required.** DRY-INT cannot run in CCR without live external service credentials. Code regressions have been fixed (see below); only the environment credential blocker remains.
 
-**Blockers before re-attempting DRY-INT:**
-1. No external service credentials in CCR (`STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` absent). Must run locally with Andy + Stripe CLI.
-2. LAUNCH regression: `lib/db/migrations/0070_legal_v2.sql` uses `INSERT INTO` not `INSERT OR IGNORE` → breaks `settings.test.ts` idempotency. Fix logged to PATCHES_OWED `legal_v2_seed_not_idempotent`.
-3. HP-2/HP-4 tests need settings mock for fresh-env runs. Fix logged to PATCHES_OWED `hp2_hp4_portfolio_settings_no_mock`.
+**Remaining blocker before re-attempting DRY-INT:**
+1. No external service credentials in CCR (`STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` absent). Must run locally with Andy + Stripe CLI + test email inbox accessible.
+
+**Code regressions fixed by PATCH-PRE-DRY (2026-04-21):**
+- ~~`legal_v2_seed_not_idempotent`~~ — `0070_legal_v2.sql` changed to `INSERT OR IGNORE`. `settings.test.ts` green.
+- ~~`hp2_hp4_portfolio_settings_no_mock`~~ — settings mock added to hp2 + hp4 tests. Both now pass in fresh-env.
+- See `sessions/PATCH-PRE-DRY-handoff.md` for details.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -1,5 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("@/lib/settings", () => ({
+  default: {
+    get: vi.fn(async (key: string) => {
+      if (key === "hiring.discovery.ig_on_demand_enabled") return false;
+      if (key === "hiring.discovery.vimeo_enabled") return false;
+      if (key === "hiring.discovery.behance_enabled") return false;
+      throw new Error(`Unexpected settings key in hp4: ${key}`);
+    }),
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // Mock the LLM layer — scoring + invite drafting call invokeLlmText
 // ---------------------------------------------------------------------------

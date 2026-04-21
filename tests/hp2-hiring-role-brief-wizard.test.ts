@@ -1,4 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/lib/settings", () => ({
+  default: {
+    get: vi.fn(async (key: string) => {
+      if (key === "hiring.discovery.ig_on_demand_enabled") return false;
+      if (key === "hiring.discovery.vimeo_enabled") return false;
+      if (key === "hiring.discovery.behance_enabled") return false;
+      throw new Error(`Unexpected settings key in hp2: ${key}`);
+    }),
+  },
+}));
+
 import {
   ingestPortfolioUrl,
   type PortfolioSignal,
