@@ -15,6 +15,7 @@ import {
 import { MelbourneRainEgg } from "./melbourne-rain-egg";
 import { MelbourneHolidayEgg } from "./melbourne-holiday-egg";
 import { PublicCrtTurnOffEgg } from "./public-crt-turn-off-egg";
+import { WelcomeEggSafetyNet } from "./welcome-egg-safety-net";
 
 export function PublicEggShell() {
   return (
@@ -32,6 +33,7 @@ export function PublicEggShell() {
       <MelbourneRainEgg />
       <MelbourneHolidayEgg />
       <PublicCrtTurnOffEgg />
+      <WelcomeEggSafetyNet />
     </>
   );
 }

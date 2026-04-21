@@ -109,7 +109,7 @@ export function RiddleResponse({ outcome, content, answer }: Props) {
           </motion.p>
         )}
 
-        {(outcome === "common_wrong" || outcome === "catch_all_wrong") && (
+        {(outcome === "common_wrong" || outcome === "novel_wrong" || outcome === "catch_all_wrong") && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}

@@ -12,6 +12,10 @@ const STATIC_MS = 180;
 const COLLAPSE_MS = 600;
 const COOKIE_NAME = "sb_crt_closed";
 
+function hasCrtClosedCookie(): boolean {
+  return document.cookie.split("; ").some((c) => c.startsWith(`${COOKIE_NAME}=`));
+}
+
 function setCrtClosedCookie(): void {
   const melbourneNow = new Date().toLocaleString("en-AU", {
     timeZone: "Australia/Melbourne",
@@ -30,6 +34,7 @@ export function PublicCrtTurnOffEgg() {
   const handleFired = useCallback((e: Event) => {
     const detail = (e as CustomEvent).detail;
     if (detail?.eggId !== "public_crt_turn_off") return;
+    if (hasCrtClosedCookie()) return;
     setPhase("dim");
     setCrtClosedCookie();
   }, []);
