@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## SD-8 (2026-04-21) — Surprise & Delight: CRT Turn-Off Egg Renderer
+
+**Phase:** 5 — Build Execution (Wave 20 — session 8/14). Built `CrtTurnOffOverlay` client component that listens for `admin-egg-fired` CustomEvent with `eggId: "crt_turn_off"`. Four-phase animation sequence: dim (300ms, neutral-950 overlay to 70%) → static (180ms, SVG feTurbulence analog noise flash) → collapse (600ms, CRT horizontal line shrinks to 2px with warm glow then to 0) → frozen (terminal black screen with spec copy: "you've been up until 2am three nights running. I'm pulling the plug." + "close this tab." exit). Scanline texture overlay throughout. z-9999, no dismiss button. Mounted in admin layout alongside orchestrator. 2 new files, 11 new tests, 266 files / 2594 green. See `sessions/sd8-handoff.md`.
+
 ## SD-7 (2026-04-21) — Surprise & Delight: Kill Switch + Egg Orchestration Layer
 
 **Phase:** 5 — Build Execution (Wave 20 — session 7/14). Built kill switch on both surfaces: admin Settings > Display "No tricks" toggle (writes `hidden_egg_tricks_enabled` to user row via server action) and public footer "no tricks" cookie link (`/api/no-tricks` sets/clears `tricks_disabled` cookie, `NoTricksLink` component in Coming Soon footer). Built admin egg orchestration layer: `orchestrateAdminEggs()` checks global setting + user tricks toggle + cadence, evaluates CRT turn-off and milestone spotter triggers sequentially, fires at most one; `/api/lite/eggs/evaluate` admin-only endpoint; `useAdminEggs()` client hook; `AdminEggOrchestrator` component in admin layout dispatches `admin-egg-fired` CustomEvent for downstream renderers. 7 new files, 8 new tests, 265 files / 2583 green. See `sessions/sd7-handoff.md`.
