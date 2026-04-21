@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-1 (2026-04-21) — Cost & Usage Observatory: Schema + Logging Primitives
+
+**Phase:** 5 — Build Execution (Wave 21 — session 1/11). Schema + logging foundation for the observatory. Two new tables: `cost_anomalies` (16 columns, 3 indexes, detector/tier enums) and `deploy_events` (5 columns, status enum). 5 observatory settings keys seeded (monthly thresholds at $250/$500/$1000, projection alerts on, weekly digest on). `logExternalCall()` central helper + `estimateAnthropicCostAud()` pricing module with per-tier token rates. Wired into `invoke.ts` — all 3 Anthropic entry points now log cost tuples fire-and-forget with defensive `safeUsage()`. 7 new files, 6 edited files, 21 new tests, 273 files / 2749 green. See `sessions/cob1-handoff.md`.
+
 ## SD-14 (2026-04-21) — Surprise & Delight: Final Integration Testing + JSDoc Audit
 
 **Phase:** 5 — Build Execution (Wave 20 — session 14/14, WAVE COMPLETE). Two deliverables: (1) JSDoc data-access audit blocks added to all 9 public triggers missing them (late-night-visitor, sunday-researcher, fifth-time-visitor, returning-visitor, linkedin-referrer, google-intent-cheap, rapid-scroller, deep-reader, abandoned-tab). All 18 triggers now have complete audit blocks per spec §Data-access audit checklist. (2) Comprehensive integration test (`tests/sd14-integration.test.ts`) — 74 assertions across 8 groups: JSDoc audit validation, registry ↔ trigger alignment, all 12 public trigger evaluation (match + non-match), cadence budget edge cases, kill switch coverage (all admin + all public eggs), suppression gate completeness (all 7 + boundary), evidence non-null discipline, fail-closed edge cases. Wave 20 (Surprise & Delight) complete: 14 sessions, 18 eggs, 4 tables, 12+6 triggers, full LLM pipeline, riddle loop, renderers, safety nets. 272 files / 2728 green. See `sessions/sd14-handoff.md`.

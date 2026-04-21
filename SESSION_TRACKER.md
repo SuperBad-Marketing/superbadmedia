@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-1` — Cost & Usage Observatory (Wave 21). First session of the aggregator wave. Check spec + BUILD_PLAN for exact scope.
-**Brief:** SD-14 completed — JSDoc data-access audit on 9 public triggers, 74-assertion integration test covering registry alignment, all 12 triggers, cadence, kill switch, suppression, evidence non-null, fail-closed edge cases. Wave 20 (Surprise & Delight) complete. 272 files / 2728 tests green.
+**Next session:** `COB-2` — Cost & Usage Observatory: job band registry (Wave 21). Extend `lib/ai/models.ts` with per-job bands (per_call_ceiling_aud, daily_ceiling_aud, learned_band_multiplier) per spec §4.2.
+**Brief:** COB-1 completed — cost_anomalies + deploy_events tables, observatory settings (5 keys), logExternalCall() helper, Anthropic pricing module, wired into invoke.ts. 273 files / 2749 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-14 (2026-04-21) — see `sessions/sd14-handoff.md`
-**Wave status:** Wave 20 complete. Wave 21 next.
+**Last closed:** COB-1 (2026-04-21) — see `sessions/cob1-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1 complete, COB-2 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
