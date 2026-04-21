@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-6` — Cost & Usage Observatory: learned-band detector (Wave 21). Build the 15-min rolling-p95 detector per spec §3.2 detector (c).
-**Brief:** COB-5 complete — rate detector (loop-catcher) with 1-min sweep, per-{job, actor_id} scoping, min-20-calls gate, 10× trailing-hour median threshold, always-severe tier, 14 tests passing. Severe-alert email still deferred to COB-9. COB-6 is unblocked.
+**Next session:** `COB-7` — Cost & Usage Observatory: band editor (Wave 21). Build the inline band-adjustment form per spec §3.4 — Andy can raise/lower per-call and daily ceilings from the anomaly detail view; changes log to `activity_log` with `band_adjusted` kind.
+**Brief:** COB-6 complete — learned-band detector with 15-min sweep, job-wide scoping, 7-day/50-call warmup gate, rolling p95 × multiplier threshold, low/mid tier assignment, 14 tests passing. All three detectors (hard-threshold, rate, learned-band) now complete, all gated by `observatory_detectors_enabled`. Severe-alert email still deferred to COB-9. COB-7 is unblocked.
 **Model tier:** Sonnet
-**Last closed:** COB-5 (2026-04-21) — see `sessions/cob5-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-5 complete, CMS-6 complete, COB-6 next.
+**Last closed:** COB-6 (2026-04-21) — see `sessions/cob6-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1..COB-6 complete, CMS-6 complete, COB-7 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

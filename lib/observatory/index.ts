@@ -13,6 +13,7 @@ export {
   sweepDailyThresholds,
 } from "./hard-threshold-detector";
 export { sweepRateDetector } from "./rate-detector";
+export { sweepLearnedBandDetector } from "./learned-band-detector";
 export {
   JOB_REGISTRY,
   REGISTERED_JOB_KEYS,

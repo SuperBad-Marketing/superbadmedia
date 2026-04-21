@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-6 (2026-04-21) — Cost & Usage Observatory: Learned-Band Detector
+
+**Phase:** 5 — Build Execution (Wave 21 — session 6/11). Built the learned-band detector per spec §3.2 detector (c). 15-min sweep via scheduled tasks. Iterates all registered jobs; warmup gate requires ≥7 days of history AND ≥50 calls in trailing 14 days. Computes rolling p95 of per-call cost over 14 days; any call in the last 15 min exceeding `p95 × learned_band_multiplier` (default 3) fires an anomaly. Tier: ≥5× threshold = `mid`, else `low` (never `severe`). Dedupe per `{detector, job}` per 24h window, job-wide scoping (no actor_scope). One anomaly per sweep per job even with multiple breaching calls. Activity log on first fire. Registered `cost_anomaly_detector_learned` handler. 3 new files, 2 edited files, 277 files / 2814 green (+14 new tests). See `sessions/cob6-handoff.md`.
+
 ## COB-5 (2026-04-21) — Cost & Usage Observatory: Rate Detector
 
 **Phase:** 5 — Build Execution (Wave 21 — session 5/11). Built the rate detector (loop-catcher) per spec §3.2 detector (b). 1-min sweep via scheduled tasks. For each `{job, actor_id}` pair with ≥20 calls in the last 5 min, compares count against 10× trailing-hour median rate (12 buckets of 5-min counts). Breach always tier `severe`. Dedupe per `{detector, job, actor_scope}` per 24h window — actor-scoped unlike hard threshold, so two actors looping on the same job produce independent anomalies. `rate_override` per-job registry field overrides default 5-min window. Activity log on first fire. Registered `cost_anomaly_detector_rate` handler. 3 new files, 2 edited files, 276 files / 2800 green (+14 new tests). See `sessions/cob5-handoff.md`.

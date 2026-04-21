@@ -52,6 +52,7 @@ import { HIDDEN_EGG_FIRE_CLEANUP_HANDLERS } from "./hidden-egg-fire-cleanup";
 import { RIDDLE_ANSWER_FALLBACK_BUDGET_MONITOR_HANDLERS } from "./riddle-answer-fallback-budget-monitor";
 import { COST_ANOMALY_DETECTOR_HARD_HANDLERS } from "./cost-anomaly-detector-hard";
 import { COST_ANOMALY_DETECTOR_RATE_HANDLERS } from "./cost-anomaly-detector-rate";
+import { COST_ANOMALY_DETECTOR_LEARNED_HANDLERS } from "./cost-anomaly-detector-learned";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -118,4 +119,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...RIDDLE_ANSWER_FALLBACK_BUDGET_MONITOR_HANDLERS,
   ...COST_ANOMALY_DETECTOR_HARD_HANDLERS,
   ...COST_ANOMALY_DETECTOR_RATE_HANDLERS,
+  ...COST_ANOMALY_DETECTOR_LEARNED_HANDLERS,
 };
