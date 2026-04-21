@@ -18,7 +18,7 @@ import { db as defaultDb } from "@/lib/db";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { cost_anomalies } from "@/lib/db/schema/cost-anomalies";
 import type { CostAnomalyTier } from "@/lib/db/schema/cost-anomalies";
-import { getJobBands, isJobRegistered } from "./job-registry";
+import { getEffectiveBands, isJobRegistered } from "./job-registry";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 
@@ -132,7 +132,7 @@ export async function checkPerCallThreshold(
     return { breached: false };
   }
 
-  const bands = getJobBands(input.job);
+  const bands = await getEffectiveBands(input.job);
   if (!bands || input.estimatedCostAud <= bands.per_call_ceiling_aud) {
     return { breached: false };
   }
@@ -181,7 +181,7 @@ export async function sweepDailyThresholds(
   for (const row of dailySpend) {
     if (!isJobRegistered(row.job)) continue;
 
-    const bands = getJobBands(row.job);
+    const bands = await getEffectiveBands(row.job);
     if (!bands || !row.total_aud || row.total_aud <= bands.daily_ceiling_aud) {
       continue;
     }

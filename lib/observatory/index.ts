@@ -19,6 +19,7 @@ export {
   REGISTERED_JOB_KEYS,
   getJobEntry,
   getJobBands,
+  getEffectiveBands,
   isJobRegistered,
   getJobVendor,
   getJobDisabledUntil,
@@ -27,3 +28,4 @@ export {
   type JobRegistryEntry,
   type Vendor,
 } from "./job-registry";
+export { adjustBands, type AdjustBandsInput, type AdjustBandsResult } from "./band-editor";

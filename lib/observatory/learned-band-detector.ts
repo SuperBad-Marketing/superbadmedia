@@ -3,7 +3,7 @@ import { db as defaultDb } from "@/lib/db";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { cost_anomalies } from "@/lib/db/schema/cost-anomalies";
 import type { CostAnomalyTier } from "@/lib/db/schema/cost-anomalies";
-import { getJobBands, isJobRegistered, REGISTERED_JOB_KEYS } from "./job-registry";
+import { getEffectiveBands, isJobRegistered, REGISTERED_JOB_KEYS } from "./job-registry";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 
@@ -122,7 +122,7 @@ export async function sweepLearnedBandDetector(
   for (const jobKey of REGISTERED_JOB_KEYS) {
     if (!isJobRegistered(jobKey)) continue;
 
-    const bands = getJobBands(jobKey);
+    const bands = await getEffectiveBands(jobKey);
     if (!bands) continue;
 
     const multiplier = bands.learned_band_multiplier;

@@ -7,6 +7,9 @@
  * Spec: `docs/specs/cost-usage-observatory.md` §4.2.
  * Owner: COB-2 (Wave 21). Consumers: COB-4..COB-6 (detectors), COB-7 (band editor).
  */
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { band_overrides } from "@/lib/db/schema/band-overrides";
 import { MODELS, type ModelJobSlug, type ModelTier } from "@/lib/ai/models";
 
 // ---------------------------------------------------------------------------
@@ -340,4 +343,30 @@ export function getJobDisabledUntil(job: string): number | null {
 
 export function getRegisteredJobsByVendor(vendor: Vendor): string[] {
   return REGISTERED_JOB_KEYS.filter((k) => JOB_REGISTRY[k]!.vendor === vendor);
+}
+
+/**
+ * Returns effective bands for a job — registry defaults merged with any
+ * runtime overrides from `band_overrides`. Override fields that are null
+ * fall through to the registry default.
+ */
+export async function getEffectiveBands(job: string): Promise<JobBands | undefined> {
+  const entry = JOB_REGISTRY[job];
+  if (!entry) return undefined;
+
+  const rows = await db
+    .select()
+    .from(band_overrides)
+    .where(eq(band_overrides.job, job))
+    .limit(1);
+
+  if (rows.length === 0) return { ...entry.bands };
+
+  const override = rows[0];
+  return {
+    per_call_ceiling_aud: override.per_call_ceiling_aud ?? entry.bands.per_call_ceiling_aud,
+    daily_ceiling_aud: override.daily_ceiling_aud ?? entry.bands.daily_ceiling_aud,
+    learned_band_multiplier: override.learned_band_multiplier ?? entry.bands.learned_band_multiplier,
+    rate_override: entry.bands.rate_override,
+  };
 }

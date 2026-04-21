@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-7 (2026-04-21) — Cost & Usage Observatory: Band Editor
+
+**Phase:** 5 — Build Execution (Wave 21 — session 7/11). Built the runtime band-adjustment system per spec §3.4 + §5.5. New `band_overrides` table stores per-job ceiling overrides (nullable fields fall through to registry defaults). `getEffectiveBands()` async helper merges overrides with code-time defaults. All three detectors (hard-threshold, rate, learned-band) migrated from `getJobBands()` to `getEffectiveBands()` — band adjustments take effect on next sweep. `adjustBands()` function upserts overrides + logs `band_adjusted` to `activity_log`. Admin-only POST endpoint at `/api/admin/observatory/bands`. `BandEditor` React component ready for anomaly detail view + settings page. 6 new files, 10 edited files, 278 files / 2823 green (+9 new tests). See `sessions/cob7-handoff.md`.
+
 ## COB-6 (2026-04-21) — Cost & Usage Observatory: Learned-Band Detector
 
 **Phase:** 5 — Build Execution (Wave 21 — session 6/11). Built the learned-band detector per spec §3.2 detector (c). 15-min sweep via scheduled tasks. Iterates all registered jobs; warmup gate requires ≥7 days of history AND ≥50 calls in trailing 14 days. Computes rolling p95 of per-call cost over 14 days; any call in the last 15 min exceeding `p95 × learned_band_multiplier` (default 3) fires an anomaly. Tier: ≥5× threshold = `mid`, else `low` (never `severe`). Dedupe per `{detector, job}` per 24h window, job-wide scoping (no actor_scope). One anomaly per sweep per job even with multiple breaching calls. Activity log on first fire. Registered `cost_anomaly_detector_learned` handler. 3 new files, 2 edited files, 277 files / 2814 green (+14 new tests). See `sessions/cob6-handoff.md`.

@@ -90,4 +90,5 @@ export * from "./hidden-egg-fires";
 export * from "./ambient-copy-cache";
 export * from "./riddles";
 export * from "./cost-anomalies";
+export * from "./band-overrides";
 export * from "./deploy-events";

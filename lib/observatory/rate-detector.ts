@@ -3,7 +3,7 @@ import { db as defaultDb } from "@/lib/db";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { cost_anomalies } from "@/lib/db/schema/cost-anomalies";
 import type { CostAnomalyTier } from "@/lib/db/schema/cost-anomalies";
-import { getJobBands, isJobRegistered } from "./job-registry";
+import { getEffectiveBands, isJobRegistered } from "./job-registry";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 
@@ -150,7 +150,7 @@ export async function sweepRateDetector(
     if (!isJobRegistered(pair.job)) continue;
     if (pair.call_count < MIN_CALLS) continue;
 
-    const bands = getJobBands(pair.job);
+    const bands = await getEffectiveBands(pair.job);
     if (!bands) continue;
 
     const windowMin = bands.rate_override ?? DEFAULT_WINDOW_MIN;

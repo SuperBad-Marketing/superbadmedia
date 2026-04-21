@@ -38,6 +38,12 @@ vi.mock("@/lib/activity-log", () => ({
   }),
 }));
 
+vi.mock("@/lib/db", () => ({
+  get db() {
+    return testDb;
+  },
+}));
+
 beforeAll(() => {
   if (fs.existsSync(TEST_DB)) fs.unlinkSync(TEST_DB);
   sqlite = new Database(TEST_DB);

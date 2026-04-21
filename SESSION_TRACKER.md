@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-7` — Cost & Usage Observatory: band editor (Wave 21). Build the inline band-adjustment form per spec §3.4 — Andy can raise/lower per-call and daily ceilings from the anomaly detail view; changes log to `activity_log` with `band_adjusted` kind.
-**Brief:** COB-6 complete — learned-band detector with 15-min sweep, job-wide scoping, 7-day/50-call warmup gate, rolling p95 × multiplier threshold, low/mid tier assignment, 14 tests passing. All three detectors (hard-threshold, rate, learned-band) now complete, all gated by `observatory_detectors_enabled`. Severe-alert email still deferred to COB-9. COB-7 is unblocked.
+**Next session:** `COB-8` — Cost & Usage Observatory: diagnosis prompt + task handler (Wave 21). Wire the `diagnose-cost-anomaly` Opus prompt that fires as a scheduled task on anomaly creation, caching the diagnosis JSON on the `cost_anomaly` row per spec §3.3.
+**Brief:** COB-7 complete — band overrides table, `getEffectiveBands()` async lookup, `adjustBands()` with activity logging, admin API route, BandEditor React component, all three detectors migrated to runtime-aware band lookups. 9 new tests, full suite green (2823 tests, zero regressions). COB-8 is unblocked.
 **Model tier:** Sonnet
-**Last closed:** COB-6 (2026-04-21) — see `sessions/cob6-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-6 complete, CMS-6 complete, COB-7 next.
+**Last closed:** COB-7 (2026-04-21) — see `sessions/cob7-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1..COB-7 complete, CMS-6 complete, COB-8 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
