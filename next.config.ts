@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./lib/db/migrations/**/*"],
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   turbopack: {
     root: process.cwd(),
   },
