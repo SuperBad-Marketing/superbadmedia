@@ -10,6 +10,7 @@
  *
  * Owner: LG-10. Spec: lead-generation.md §12.3.
  */
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";

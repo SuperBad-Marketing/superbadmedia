@@ -15,6 +15,8 @@
  *
  * Owner: SP-7. Spec: docs/specs/sales-pipeline.md §§10.1, 12.1.
  */
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import Stripe from "stripe";

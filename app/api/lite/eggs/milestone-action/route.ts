@@ -9,6 +9,8 @@
  * Auth: admin only.
  * Owner: SD-9. Spec: docs/specs/surprise-and-delight.md §2 milestone spotter.
  */
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 

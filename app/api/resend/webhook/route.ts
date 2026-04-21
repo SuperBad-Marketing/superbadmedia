@@ -15,6 +15,8 @@
  *
  * Owner: SP-8. Spec: docs/specs/sales-pipeline.md §§3.4, 10.2, 12.1.
  */
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { Webhook, WebhookVerificationError } from "svix";

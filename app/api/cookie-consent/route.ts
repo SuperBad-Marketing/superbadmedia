@@ -13,6 +13,8 @@
  *
  * Owner: B3. Spec: docs/specs/legal-pages.md §4.
  */
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { createHash, randomUUID } from "node:crypto";
 
