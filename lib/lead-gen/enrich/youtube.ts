@@ -10,8 +10,7 @@
  */
 
 import { getCredential } from "@/lib/integrations/getCredential";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
 const YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
@@ -105,7 +104,7 @@ export async function fetchYouTube(
 
     if (!searchResponse.ok) {
       const duration = Date.now() - start;
-      await logCall(duration, 1);
+      logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
       return {
         subscriber_count: null,
         video_count: null,
@@ -119,7 +118,7 @@ export async function fetchYouTube(
 
     if (searchData.error) {
       const duration = Date.now() - start;
-      await logCall(duration, 1);
+      logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
       return {
         subscriber_count: null,
         video_count: null,
@@ -132,7 +131,7 @@ export async function fetchYouTube(
     const channelId = searchData.items?.[0]?.snippet?.channelId;
     if (!channelId) {
       const duration = Date.now() - start;
-      await logCall(duration, 1);
+      logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
       return {
         subscriber_count: null,
         video_count: null,
@@ -196,7 +195,7 @@ export async function fetchYouTube(
     }
 
     const duration = Date.now() - start;
-    await logCall(duration, 3);
+    logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 3 }, estimatedCostAud: 0 }).catch(() => {});
 
     return {
       subscriber_count: subscriberCount,
@@ -206,7 +205,7 @@ export async function fetchYouTube(
     };
   } catch (err) {
     const duration = Date.now() - start;
-    await logCall(duration, 1);
+    logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
     return {
       subscriber_count: null,
       video_count: null,
@@ -250,20 +249,3 @@ export function applyYouTubeToProfile(
   };
 }
 
-async function logCall(
-  durationMs: number,
-  apiCalls: number,
-): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job: "google.youtube.data_api",
-      actor_type: "internal",
-      units: JSON.stringify({ api_calls: apiCalls }),
-      estimated_cost_aud: 0,
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

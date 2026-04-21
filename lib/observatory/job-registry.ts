@@ -217,6 +217,32 @@ const NON_LLM_ENTRIES: Record<string, JobRegistryEntry> = {
     description: "Vimeo oEmbed lookup for hiring portfolio",
     jobDisabledUntil: null,
   },
+  "hiring-portfolio-ingest-behance": {
+    vendor: "other",
+    bands: { per_call_ceiling_aud: 0, daily_ceiling_aud: 0, learned_band_multiplier: 3, rate_override: null },
+    description: "Behance OG metadata scrape for hiring portfolio",
+    jobDisabledUntil: null,
+  },
+  "hiring-portfolio-ingest-generic": {
+    vendor: "other",
+    bands: { per_call_ceiling_aud: 0, daily_ceiling_aud: 0, learned_band_multiplier: 3, rate_override: null },
+    description: "Generic web OG metadata scrape for hiring portfolio",
+    jobDisabledUntil: null,
+  },
+
+  // Hiring discovery — free scrape endpoints
+  "hiring-discovery-behance-gallery": {
+    vendor: "other",
+    bands: { per_call_ceiling_aud: 0, daily_ceiling_aud: 0, learned_band_multiplier: 3, rate_override: null },
+    description: "Behance gallery scrape for hiring discovery",
+    jobDisabledUntil: null,
+  },
+  "hiring-discovery-vimeo-rss": {
+    vendor: "other",
+    bands: { per_call_ceiling_aud: 0, daily_ceiling_aud: 0, learned_band_multiplier: 3, rate_override: null },
+    description: "Vimeo Staff Picks RSS feed for hiring discovery",
+    jobDisabledUntil: null,
+  },
 
   // Weather API — free tier
   "sd-melbourne-weather": {

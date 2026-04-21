@@ -10,8 +10,7 @@
  */
 
 import * as cheerio from "cheerio";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
 const FETCH_TIMEOUT_MS = 8_000;
@@ -87,7 +86,7 @@ export async function scrapeWebsite(
     }
 
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "website.scrape", actorType: "internal", units: { pages_fetched: 3 }, estimatedCostAud: 0 }).catch(() => {});
 
     return {
       has_about_page: hasAboutPage,
@@ -97,7 +96,7 @@ export async function scrapeWebsite(
     };
   } catch (err) {
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "website.scrape", actorType: "internal", units: { pages_fetched: 3 }, estimatedCostAud: 0 }).catch(() => {});
     return {
       has_about_page: false,
       has_pricing_page: false,
@@ -286,17 +285,3 @@ export function applyWebsiteScrapeToProfile(
   };
 }
 
-async function logCall(durationMs: number): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job: "website.scrape",
-      actor_type: "internal",
-      units: JSON.stringify({ pages_fetched: 3 }),
-      estimated_cost_aud: 0,
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

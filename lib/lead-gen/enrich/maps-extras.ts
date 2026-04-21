@@ -10,8 +10,7 @@
 
 import { getCredential } from "@/lib/integrations/getCredential";
 import { SERPAPI_API_BASE } from "@/lib/integrations/vendors/serpapi";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
 interface SerpApiPhotosResult {
@@ -111,7 +110,7 @@ export async function fetchMapsExtras(
       { signal: AbortSignal.timeout(10_000) },
     );
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "serpapi.google_maps_photos", actorType: "internal", units: { search_queries: 1 }, estimatedCostAud: 0.005 }).catch(() => {});
 
     if (!response.ok) {
       return {
@@ -150,7 +149,7 @@ export async function fetchMapsExtras(
     };
   } catch (err) {
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "serpapi.google_maps_photos", actorType: "internal", units: { search_queries: 1 }, estimatedCostAud: 0.005 }).catch(() => {});
     return {
       photo_count: 0,
       last_photo_date: null,
@@ -182,17 +181,3 @@ export function applyMapsExtrasToProfile(
   };
 }
 
-async function logCall(durationMs: number): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job: "serpapi.google_maps_photos",
-      actor_type: "internal",
-      units: JSON.stringify({ search_queries: 1 }),
-      estimated_cost_aud: 0.005,
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

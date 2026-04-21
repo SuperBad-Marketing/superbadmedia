@@ -9,8 +9,7 @@
  * Owner: LG-3. Consumer: enrichment orchestrator.
  */
 
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
 const RDAP_BOOTSTRAP_BASE = "https://rdap.org/domain";
@@ -46,7 +45,7 @@ export async function fetchWhois(domain: string): Promise<WhoisResult> {
       signal: AbortSignal.timeout(10_000),
     });
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "rdap.domain_lookup", actorType: "internal", units: { lookups: 1 }, estimatedCostAud: 0 }).catch(() => {});
 
     if (!response.ok) {
       return {
@@ -96,7 +95,7 @@ export async function fetchWhois(domain: string): Promise<WhoisResult> {
     };
   } catch (err) {
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "rdap.domain_lookup", actorType: "internal", units: { lookups: 1 }, estimatedCostAud: 0 }).catch(() => {});
     return {
       domain_age_years: null,
       registration_date: null,
@@ -129,17 +128,3 @@ export function applyWhoisToProfile(
   };
 }
 
-async function logCall(durationMs: number): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job: "rdap.domain_lookup",
-      actor_type: "internal",
-      units: JSON.stringify({ lookups: 1 }),
-      estimated_cost_aud: 0,
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

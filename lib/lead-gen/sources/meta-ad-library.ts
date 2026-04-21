@@ -13,8 +13,7 @@
 
 import { getCredential } from "@/lib/integrations/getCredential";
 import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta-ads";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "../types";
 
 const META_AD_LIBRARY_BASE = `https://graph.facebook.com/${META_GRAPH_API_VERSION}/ads_archive`;
@@ -122,7 +121,7 @@ export async function searchMetaAdLibrary(
 
     if (!response.ok) {
       const errorBody = await response.text();
-      await logExternalCall("meta.ad_library.search", duration, 0, params);
+      logExternalCall({ job: "meta.ad_library.search", actorType: "internal", units: { search_queries: 1, results_returned: 0, category: params.category }, estimatedCostAud: 0 }).catch(() => {});
       return {
         candidates: [],
         error: `Meta Ad Library API error: ${response.status} — ${errorBody}`,
@@ -132,7 +131,7 @@ export async function searchMetaAdLibrary(
     const data = (await response.json()) as AdLibraryResponse;
 
     if (data.error) {
-      await logExternalCall("meta.ad_library.search", duration, 0, params);
+      logExternalCall({ job: "meta.ad_library.search", actorType: "internal", units: { search_queries: 1, results_returned: 0, category: params.category }, estimatedCostAud: 0 }).catch(() => {});
       return {
         candidates: [],
         error: `Meta Ad Library API error: ${data.error.message}`,
@@ -140,12 +139,7 @@ export async function searchMetaAdLibrary(
     }
 
     const results = data.data ?? [];
-    await logExternalCall(
-      "meta.ad_library.search",
-      duration,
-      results.length,
-      params,
-    );
+    logExternalCall({ job: "meta.ad_library.search", actorType: "internal", units: { search_queries: 1, results_returned: results.length, category: params.category }, estimatedCostAud: 0 }).catch(() => {});
 
     // Deduplicate by page_id (same advertiser can have multiple ads)
     const seenPageIds = new Set<string>();
@@ -180,7 +174,7 @@ export async function searchMetaAdLibrary(
     return { candidates };
   } catch (err) {
     const duration = Date.now() - start;
-    await logExternalCall("meta.ad_library.search", duration, 0, params);
+    logExternalCall({ job: "meta.ad_library.search", actorType: "internal", units: { search_queries: 1, results_returned: 0, category: params.category }, estimatedCostAud: 0 }).catch(() => {});
     return {
       candidates: [],
       error: `Meta Ad Library fetch failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -188,26 +182,3 @@ export async function searchMetaAdLibrary(
   }
 }
 
-async function logExternalCall(
-  job: string,
-  durationMs: number,
-  resultCount: number,
-  params: DiscoverySearchParams,
-): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job,
-      actor_type: "internal",
-      units: JSON.stringify({
-        search_queries: 1,
-        results_returned: resultCount,
-        category: params.category,
-      }),
-      estimated_cost_aud: 0, // Free API
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging — don't break the pipeline
-  }
-}

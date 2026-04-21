@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-3 (2026-04-21) — Cost & Usage Observatory: Vendor Wiring (Lead-Gen + Hiring)
+
+**Phase:** 5 — Build Execution (Wave 21 — session 3/11). Migrated all direct `external_call_log` inserts across lead-gen (10 files) and hiring (2 files + 1 shared wrapper) to use the central `logExternalCall()` helper. 4 new non-LLM jobs registered in job-registry.ts (hiring-portfolio-ingest-behance, hiring-portfolio-ingest-generic, hiring-discovery-behance-gallery, hiring-discovery-vimeo-rss). Removed vision double-logging in portfolio.ts (invoke.ts already logs LLM calls). Registry total: 104 jobs (80 LLM + 24 vendor). Zero direct inserts remain in lib/lead-gen/ or lib/hiring/. 0 new files, 13 edited files, 274 files / 2775 green. See `sessions/cob3-handoff.md`.
+
 ## COB-2 (2026-04-21) — Cost & Usage Observatory: Job Band Registry
 
 **Phase:** 5 — Build Execution (Wave 21 — session 2/11). Unified job band registry covering all 100 external-call jobs (80 LLM from models.ts + 20 non-LLM vendor). Tier-based band defaults (Opus $1.50/$75, Sonnet $0.25/$25, Haiku $0.05/$10) with surgical overrides for heavy-context Opus jobs (cockpit-brief $5.00/$150, six-week-plan-strategy $5.00/$100) and high-volume Haiku classifiers (daily $25). Unknown-job trap wired into `logExternalCall()`: inserts still succeed but production fires a synthetic severe cost_anomaly; development throws hard. `registerBands()` stub replaced with registry-aware bridge. 2 new files, 3 edited files, 26 new tests, 274 files / 2775 green. See `sessions/cob2-handoff.md`.

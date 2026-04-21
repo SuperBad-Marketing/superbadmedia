@@ -11,8 +11,7 @@
 
 import { getCredential } from "@/lib/integrations/getCredential";
 import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta-ads";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
 export interface InstagramResult {
@@ -100,7 +99,7 @@ export async function fetchInstagram(
       signal: AbortSignal.timeout(10_000),
     });
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "meta.instagram_business_discovery", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
 
     if (!response.ok) {
       return {
@@ -145,7 +144,7 @@ export async function fetchInstagram(
     };
   } catch (err) {
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "meta.instagram_business_discovery", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
     return {
       follower_count: null,
       post_count: null,
@@ -200,17 +199,3 @@ export function applyInstagramToProfile(
   };
 }
 
-async function logCall(durationMs: number): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job: "meta.instagram_business_discovery",
-      actor_type: "internal",
-      units: JSON.stringify({ api_calls: 1 }),
-      estimated_cost_aud: 0,
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

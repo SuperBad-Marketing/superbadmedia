@@ -8,8 +8,7 @@
  */
 
 import { getCredential } from "@/lib/integrations/getCredential";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
 const PAGESPEED_API_BASE =
@@ -59,7 +58,7 @@ export async function fetchPageSpeed(domain: string): Promise<PageSpeedResult> {
     const duration = Date.now() - start;
 
     if (!response.ok) {
-      await logCall(duration);
+      logExternalCall({ job: "google.pagespeed.run", actorType: "internal", units: { analyses: 1 }, estimatedCostAud: 0 }).catch(() => {});
       return {
         performance_score: null,
         error: `PageSpeed API error: ${response.status} ${response.statusText}`,
@@ -67,7 +66,7 @@ export async function fetchPageSpeed(domain: string): Promise<PageSpeedResult> {
     }
 
     const data = (await response.json()) as PageSpeedResponse;
-    await logCall(duration);
+    logExternalCall({ job: "google.pagespeed.run", actorType: "internal", units: { analyses: 1 }, estimatedCostAud: 0 }).catch(() => {});
 
     if (data.error) {
       return {
@@ -83,7 +82,7 @@ export async function fetchPageSpeed(domain: string): Promise<PageSpeedResult> {
     return { performance_score: score };
   } catch (err) {
     const duration = Date.now() - start;
-    await logCall(duration);
+    logExternalCall({ job: "google.pagespeed.run", actorType: "internal", units: { analyses: 1 }, estimatedCostAud: 0 }).catch(() => {});
     return {
       performance_score: null,
       error: `PageSpeed fetch failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -114,17 +113,3 @@ export function applyPageSpeedToProfile(
   };
 }
 
-async function logCall(durationMs: number): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job: "google.pagespeed.run",
-      actor_type: "internal",
-      units: JSON.stringify({ analyses: 1 }),
-      estimated_cost_aud: 0,
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

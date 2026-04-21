@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-3` — Cost & Usage Observatory: vendor wiring (Wave 21). Migrate all direct `external_call_log` inserts across lead-gen + hiring to use the central `logExternalCall()` helper.
-**Brief:** COB-2 completed — unified job band registry (100 jobs: 80 LLM + 20 vendor), unknown-job trap in logExternalCall(), registerBands() stub replaced. 274 files / 2775 tests green.
+**Next session:** `COB-4` — Cost & Usage Observatory: hard-threshold detector (Wave 21). Build the sync-on-insert + 5-min sweep detector per spec §4.3.
+**Brief:** COB-3 completed — all lead-gen + hiring direct `external_call_log` inserts migrated to central `logExternalCall()` helper. 4 new non-LLM jobs registered (104 total: 80 LLM + 24 vendor). 274 files / 2775 tests green.
 **Model tier:** Sonnet
-**Last closed:** COB-2 (2026-04-21) — see `sessions/cob2-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-2 complete, COB-3 next.
+**Last closed:** COB-3 (2026-04-21) — see `sessions/cob3-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1..COB-3 complete, COB-4 next. CMS-6 required before COB-4.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

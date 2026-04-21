@@ -12,8 +12,7 @@
 
 import { getCredential } from "@/lib/integrations/getCredential";
 import { SERPAPI_API_BASE } from "@/lib/integrations/vendors/serpapi";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "../types";
 
 interface SerpApiMapsResult {
@@ -93,7 +92,7 @@ export async function searchGoogleMaps(
     const duration = Date.now() - start;
 
     if (!response.ok) {
-      await logExternalCall("serpapi.google_maps", duration, 0);
+      logExternalCall({ job: "serpapi.google_maps", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
       return {
         candidates: [],
         error: `SerpAPI Google Maps error: ${response.status} ${response.statusText}`,
@@ -103,7 +102,7 @@ export async function searchGoogleMaps(
     const data = (await response.json()) as SerpApiMapsResponse;
 
     if (data.error) {
-      await logExternalCall("serpapi.google_maps", duration, 0);
+      logExternalCall({ job: "serpapi.google_maps", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
       return {
         candidates: [],
         error: `SerpAPI Google Maps error: ${data.error}`,
@@ -111,7 +110,7 @@ export async function searchGoogleMaps(
     }
 
     const results = data.local_results ?? [];
-    await logExternalCall("serpapi.google_maps", duration, results.length);
+    logExternalCall({ job: "serpapi.google_maps", actorType: "internal", units: { search_queries: 1, results_returned: results.length }, estimatedCostAud: 0.005 }).catch(() => {});
 
     const candidates: DiscoveredCandidate[] = results.map((result) => {
       const domain = result.website ? extractDomain(result.website) : null;
@@ -144,7 +143,7 @@ export async function searchGoogleMaps(
     return { candidates };
   } catch (err) {
     const duration = Date.now() - start;
-    await logExternalCall("serpapi.google_maps", duration, 0);
+    logExternalCall({ job: "serpapi.google_maps", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
     return {
       candidates: [],
       error: `Google Maps fetch failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -152,24 +151,3 @@ export async function searchGoogleMaps(
   }
 }
 
-async function logExternalCall(
-  job: string,
-  durationMs: number,
-  resultCount: number,
-): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job,
-      actor_type: "internal",
-      units: JSON.stringify({
-        search_queries: 1,
-        results_returned: resultCount,
-      }),
-      estimated_cost_aud: 0.005, // SerpAPI ~ $50/5000 searches
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

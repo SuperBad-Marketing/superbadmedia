@@ -17,8 +17,7 @@
  */
 
 import * as cheerio from "cheerio";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall as centralLogExternalCall } from "@/lib/observatory";
 import { invokeLlmVision } from "@/lib/ai/invoke";
 import settings from "@/lib/settings";
 
@@ -377,13 +376,6 @@ async function analyzePortfolioVision(
       maxTokens: 300,
     });
 
-    await logExternalCall(
-      "hiring-portfolio-ingest-vision",
-      Date.now() - start,
-      0.01,
-      { images_analyzed: imageUrls.length },
-    );
-
     try {
       const cleaned = result.text.replace(/```json\s*|```/g, "").trim();
       const parsed = JSON.parse(cleaned) as unknown;
@@ -398,12 +390,6 @@ async function analyzePortfolioVision(
 
     return [];
   } catch {
-    await logExternalCall(
-      "hiring-portfolio-ingest-vision",
-      Date.now() - start,
-      0.01,
-      { images_analyzed: 0 },
-    );
     return [];
   }
 }
@@ -480,7 +466,7 @@ export async function ingestPortfolioUrl(
 }
 
 // ---------------------------------------------------------------------------
-// External call logging (best-effort)
+// External call logging (best-effort, delegates to observatory)
 // ---------------------------------------------------------------------------
 
 async function logExternalCall(
@@ -489,19 +475,10 @@ async function logExternalCall(
   estimatedCostAud: number,
   units?: Record<string, number>,
 ): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job,
-      actor_type: "internal",
-      units: JSON.stringify({
-        duration_ms: durationMs,
-        ...units,
-      }),
-      estimated_cost_aud: estimatedCostAud,
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging — never block the ingestion flow
-  }
+  centralLogExternalCall({
+    job,
+    actorType: "internal",
+    units: { duration_ms: durationMs, ...units },
+    estimatedCostAud,
+  }).catch(() => {});
 }

@@ -12,8 +12,7 @@
 
 import { getCredential } from "@/lib/integrations/getCredential";
 import { SERPAPI_API_BASE } from "@/lib/integrations/vendors/serpapi";
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "../types";
 
 interface TransparencyResult {
@@ -88,7 +87,7 @@ export async function searchGoogleAdsTransparency(
     const duration = Date.now() - start;
 
     if (!response.ok) {
-      await logExternalCall("serpapi.google_ads_transparency", duration, 0);
+      logExternalCall({ job: "serpapi.google_ads_transparency", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
       return {
         candidates: [],
         error: `SerpAPI Google Ads Transparency error: ${response.status} ${response.statusText}`,
@@ -98,7 +97,7 @@ export async function searchGoogleAdsTransparency(
     const data = (await response.json()) as TransparencyResponse;
 
     if (data.error) {
-      await logExternalCall("serpapi.google_ads_transparency", duration, 0);
+      logExternalCall({ job: "serpapi.google_ads_transparency", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
       return {
         candidates: [],
         error: `SerpAPI Google Ads Transparency error: ${data.error}`,
@@ -107,11 +106,7 @@ export async function searchGoogleAdsTransparency(
 
     // The API may return results under `advertiser_results` or `ads_results`
     const results = data.advertiser_results ?? data.ads_results ?? [];
-    await logExternalCall(
-      "serpapi.google_ads_transparency",
-      duration,
-      results.length,
-    );
+    logExternalCall({ job: "serpapi.google_ads_transparency", actorType: "internal", units: { search_queries: 1, results_returned: results.length }, estimatedCostAud: 0.005 }).catch(() => {});
 
     // Deduplicate by advertiser_id
     const seenAdvertisers = new Set<string>();
@@ -148,7 +143,7 @@ export async function searchGoogleAdsTransparency(
     return { candidates };
   } catch (err) {
     const duration = Date.now() - start;
-    await logExternalCall("serpapi.google_ads_transparency", duration, 0);
+    logExternalCall({ job: "serpapi.google_ads_transparency", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
     return {
       candidates: [],
       error: `Google Ads Transparency fetch failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -156,24 +151,3 @@ export async function searchGoogleAdsTransparency(
   }
 }
 
-async function logExternalCall(
-  job: string,
-  durationMs: number,
-  resultCount: number,
-): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job,
-      actor_type: "internal",
-      units: JSON.stringify({
-        search_queries: 1,
-        results_returned: resultCount,
-      }),
-      estimated_cost_aud: 0.005, // SerpAPI ~ $50/5000 searches
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}

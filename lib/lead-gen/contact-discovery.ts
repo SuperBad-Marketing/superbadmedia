@@ -5,8 +5,7 @@
  * Owner: LG-5. Consumer: daily search runner.
  */
 
-import { db } from "@/lib/db";
-import { external_call_log } from "@/lib/db/schema/external-call-log";
+import { logExternalCall } from "@/lib/observatory";
 import { getCredential } from "@/lib/integrations/getCredential";
 
 const HUNTER_API_BASE = "https://api.hunter.io/v2";
@@ -65,7 +64,7 @@ export async function discoverContact(
   try {
     const result = await hunterDomainSearch(domain, apiKey);
     const durationMs = Date.now() - startMs;
-    await logHunterCall(durationMs, result.emails?.length ?? 0);
+    logExternalCall({ job: "hunter.domain_search", actorType: "internal", units: { searches: 1, results_returned: result.emails?.length ?? 0 }, estimatedCostAud: 0.03 }).catch(() => {});
 
     if (result.emails && result.emails.length > 0) {
       const match = pickBestContact(result.emails);
@@ -97,7 +96,7 @@ export async function discoverContact(
     return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
   } catch {
     const durationMs = Date.now() - startMs;
-    await logHunterCall(durationMs, 0);
+    logExternalCall({ job: "hunter.domain_search", actorType: "internal", units: { searches: 1, results_returned: 0 }, estimatedCostAud: 0.03 }).catch(() => {});
     return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
   }
 }
@@ -179,23 +178,3 @@ function inferFromPattern(
   return null;
 }
 
-async function logHunterCall(
-  durationMs: number,
-  resultCount: number,
-): Promise<void> {
-  try {
-    await db.insert(external_call_log).values({
-      id: crypto.randomUUID(),
-      job: "hunter.domain_search",
-      actor_type: "internal",
-      units: JSON.stringify({
-        searches: 1,
-        results_returned: resultCount,
-      }),
-      estimated_cost_aud: 0.03, // ~$49/mo for 1000 searches
-      created_at_ms: Date.now(),
-    });
-  } catch {
-    // Best-effort logging
-  }
-}
