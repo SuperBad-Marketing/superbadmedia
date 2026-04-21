@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
+import { mkdirSync } from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
@@ -6,16 +8,19 @@ import { migrate as drizzleMigrate } from "drizzle-orm/better-sqlite3/migrator";
 
 /**
  * Applies schema migrations (via Drizzle's journal) then runs seed SQL
- * files (any `000*_seed_*.sql` or other non-journal SQL).
+ * files (any `000*_seed_*.sql` or other non-journal SQL), then ensures
+ * the admin user exists.
  *
  * Seed files are idempotent (INSERT OR IGNORE) so repeated runs are safe.
- * Used by the dev DB setup, Vitest harness, and the future production
- * migrate step.
+ * Used by the dev DB setup, Vitest harness, and the production startup
+ * via instrumentation.ts.
  */
 export function runMigrations(databaseUrl: string): void {
   const filePath = databaseUrl.startsWith("file:")
     ? databaseUrl.slice("file:".length)
     : databaseUrl;
+
+  mkdirSync(path.dirname(filePath), { recursive: true });
 
   const sqlite = new Database(filePath);
   sqlite.pragma("journal_mode = WAL");
@@ -26,6 +31,7 @@ export function runMigrations(databaseUrl: string): void {
   drizzleMigrate(db, { migrationsFolder });
 
   runSeeds(sqlite, migrationsFolder);
+  seedAdminUser(sqlite);
   sqlite.close();
 }
 
@@ -55,4 +61,19 @@ export function runSeeds(
     });
     tx();
   }
+}
+
+function seedAdminUser(sqlite: Database.Database): void {
+  const ADMIN_EMAIL = "andy@superbadmedia.com.au";
+  const existing = sqlite
+    .prepare("SELECT id FROM user WHERE email = ?")
+    .get(ADMIN_EMAIL);
+  if (existing) return;
+
+  sqlite
+    .prepare(
+      `INSERT INTO user (id, email, name, role, timezone)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .run(randomUUID(), ADMIN_EMAIL, "Andy Robinson", "admin", "Australia/Melbourne");
 }
