@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## DC-1 (2026-04-21) — Daily Cockpit: Aggregator Scaffold + Banner Strip
+
+**Phase:** 5 — Build Execution (Wave 22 — session 1/8). Cockpit scaffold shipped: `cockpit_briefs` table (migration 0067), aggregation layer (`mergeWaitingItems` + `mergeHealthBanners` with graceful degradation via `Promise.allSettled`), cockpit page at `/lite/cockpit` with brief panel (placeholder copy), attention rail (top 6 + overflow), banner strip (conditional, severity-coded, max 2 + overflow), calendar preview, planning view (kanban/list with localStorage toggle). Overflow pages at `/lite/cockpit/waiting` and `/lite/cockpit/health`. Nav entry activated (`"soon"` → `"live"`). `WaitingItem.scope` widened to `"own" | "fleet"`. 4 live sources wired (tasks, observatory, SaaS banners); remaining sources stubbed. 14 new files, 4 edited files, 283 files / 2885 green (+12 new tests). See `sessions/dc1-handoff.md`.
+
 ## COB-11 (2026-04-21) — Cost & Usage Observatory: Settings, Per-Job Detail, Tier Health, Emails
 
 **Phase:** 5 — Build Execution (Wave 21 — session 11/11, final). Five deliverables: (1) Settings page at `/lite/observatory/settings` — three AUD threshold fields, projection/digest toggles, full job registry table with band values + live/paused status; (2) Per-job detail at `/lite/observatory/jobs/[key]` — 30-day bar chart, prompt version history, paginated call history; (3) Tier-health panel on observatory dashboard — per-tier cards with health indicators, expandable subscriber lists, Large-tier recommendation cards for negative-margin subscribers; (4) `tier_health` + `unknown_job` banner kinds wired into `getObservatoryHealthBanners()`; (5) Weekly digest email (posture-adaptive subject, content-pool-sourced sections) + negative-margin email + `weekly_digest_send` scheduled task handler. 15 new files, 4 edited files, 282 files / 2873 green (+10 new tests). Wave 21 complete. See `sessions/cob11-handoff.md`.

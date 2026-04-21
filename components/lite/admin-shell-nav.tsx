@@ -45,10 +45,10 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
   {
     id: "cockpit",
     label: "Cockpit",
-    href: null,
+    href: "/lite/cockpit",
     icon: GaugeCircle,
-    status: "soon",
-    matchPrefix: null,
+    status: "live",
+    matchPrefix: "/lite/cockpit",
   },
   {
     id: "pipeline",

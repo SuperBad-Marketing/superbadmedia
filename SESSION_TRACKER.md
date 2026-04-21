@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `DC-1` — Daily Cockpit: aggregator scaffold + banner strip (Wave 22). First session of the final aggregator wave. DC reads from every spec's `getHealthBanners()` + `getWaitingItems()` contracts.
-**Brief:** COB-11 complete — Wave 21 (Cost & Usage Observatory) fully shipped. Settings page at `/lite/observatory/settings`, per-job detail at `/lite/observatory/jobs/[key]`, tier-health panel on dashboard, `tier_health` + `unknown_job` banner kinds wired into `getObservatoryHealthBanners()`, weekly digest email + negative-margin email + scheduled task handler. 3 new query modules, 4 new API routes, 4 new client components, 2 new email modules, 1 scheduled task handler. 10 new tests, full suite green (2873 tests, zero regressions).
+**Next session:** `DC-2` — Daily Cockpit: briefs data + morning slot + cron. `cockpit_briefs` write pipeline, `generateBriefForSlot('morning')` end-to-end, Opus via LLM registry, drift check, signals snapshot. Depends on content mini-session for prompt templates (stub if not landed).
+**Brief:** DC-1 complete — cockpit scaffold shipped. `cockpit_briefs` table, aggregation layer (`mergeWaitingItems` + `mergeHealthBanners`), cockpit page at `/lite/cockpit` with brief panel, attention rail, banner strip, calendar preview, planning view (kanban/list). Overflow pages at `/lite/cockpit/waiting` and `/lite/cockpit/health`. Nav activated. 4 live sources wired (tasks, observatory, SaaS), rest stubbed. 12 new tests, full suite green (2885 tests, zero regressions). Pre-existing egg build error noted (not cockpit-related).
 **Model tier:** Sonnet
-**Last closed:** COB-11 (2026-04-21) — see `sessions/cob11-handoff.md`
-**Wave status:** Wave 21 complete. Wave 22 (Daily Cockpit) next.
+**Last closed:** DC-1 (2026-04-21) — see `sessions/dc1-handoff.md`
+**Wave status:** Wave 22 in progress. DC-1 complete, DC-2 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -19,7 +19,7 @@ export interface WaitingItem {
     kind: "time_sensitive" | "age_of_wait";
     value: number;
   };
-  scope: "own";
+  scope: "own" | "fleet";
   source: string;
 }
 
