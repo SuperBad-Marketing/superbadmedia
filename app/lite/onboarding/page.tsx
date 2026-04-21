@@ -58,23 +58,35 @@ export default async function OnboardingPage() {
     // shape (dry copy, no broken chrome).
   }
 
-  // Admin path — unchanged from A8 placeholder.
+  // Admin path — Brand DNA gate.
+  const bypassAvailable = process.env.BRAND_DNA_GATE_BYPASS === "true";
+
   return (
     <main
-      className="mx-auto flex min-h-[80dvh] max-w-xl flex-col items-center justify-center gap-4 px-6 py-16 text-center"
+      className="mx-auto flex min-h-[80dvh] max-w-xl flex-col items-center justify-center gap-6 px-6 py-16 text-center"
       data-testid="admin-onboarding"
     >
       <h1 className="font-heading text-2xl font-semibold">
         One thing before we start.
       </h1>
-      <p className="text-foreground/60 max-w-[32ch] text-sm">
-        SuperBad Lite needs to understand your brand before it can help you.
-        The Brand DNA setup is coming soon.
+      <p className="text-foreground/60 max-w-[36ch] text-sm leading-relaxed">
+        SuperBad needs to understand your brand before it can work for you.
+        This takes about ten minutes.
       </p>
-      <p className="text-foreground/40 mt-8 text-xs">
-        Set <code>BRAND_DNA_GATE_BYPASS=true</code> in .env.local to skip this
-        during development.
-      </p>
+      <a
+        href="/lite/brand-dna"
+        className="bg-foreground text-background hover:bg-foreground/90 mt-2 inline-block rounded-md px-6 py-3 text-sm font-medium transition-colors"
+      >
+        Begin Brand DNA
+      </a>
+      {bypassAvailable && (
+        <a
+          href="/lite/admin/pipeline"
+          className="text-foreground/40 hover:text-foreground/60 mt-4 text-xs transition-colors"
+        >
+          Skip for now
+        </a>
+      )}
     </main>
   );
 }
