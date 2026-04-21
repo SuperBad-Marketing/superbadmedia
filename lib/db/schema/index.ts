@@ -89,3 +89,5 @@ export * from "./finance-exports";
 export * from "./hidden-egg-fires";
 export * from "./ambient-copy-cache";
 export * from "./riddles";
+export * from "./cost-anomalies";
+export * from "./deploy-events";

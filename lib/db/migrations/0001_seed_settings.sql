@@ -106,3 +106,12 @@ INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `update
 INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES
   ('legal.dsr_email', 'privacy@superbadmedia.com.au', 'string', 'Privacy Act DSR contact address — disclosed in Privacy Policy', 0),
   ('legal.dsr_response_days', '30', 'integer', 'Statutory DSR response commitment (days) — Privacy Act 1988 (Cth)', 0);
+--> statement-breakpoint
+
+-- Cost & Usage Observatory (5 — COB-1)
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES
+  ('observatory.monthly_threshold_1_aud', '250', 'decimal', 'Lowest monthly spend alert threshold (AUD)', 0),
+  ('observatory.monthly_threshold_2_aud', '500', 'decimal', 'Middle monthly spend alert threshold (AUD)', 0),
+  ('observatory.monthly_threshold_3_aud', '1000', 'decimal', 'Highest monthly spend alert threshold (AUD)', 0),
+  ('observatory.projection_alert_enabled', 'true', 'boolean', 'Fire banners when projected MTD crosses a threshold', 0),
+  ('observatory.weekly_digest_enabled', 'true', 'boolean', 'Send Sunday-evening observatory digest email', 0);

@@ -246,6 +246,13 @@ const registry = {
   "surprise.admin_egg_cadence_per_days": integer,
   "surprise.ambient_copy_refresh_interval_days": integer,
   "surprise.riddle_wrong_answer_fallback_budget_per_riddle": integer,
+
+  // Cost & Usage Observatory (5 — COB-1)
+  "observatory.monthly_threshold_1_aud": decimal,
+  "observatory.monthly_threshold_2_aud": decimal,
+  "observatory.monthly_threshold_3_aud": decimal,
+  "observatory.projection_alert_enabled": boolean,
+  "observatory.weekly_digest_enabled": boolean,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

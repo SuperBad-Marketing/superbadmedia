@@ -358,6 +358,13 @@
       "when": 1777327200000,
       "tag": "0064_sd10_riddle_novel_wrong_cache",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "6",
+      "when": 1777413600000,
+      "tag": "0065_cob1_observatory_tables",
+      "breakpoints": true
     }
   ]
 }
