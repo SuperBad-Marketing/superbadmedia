@@ -91,14 +91,17 @@ export function PipelineBoard({
   );
 
   const onQuickAction = React.useCallback(
-    (kind: "nudge" | "open", _dealId: string) => {
-      const copy: Record<typeof kind, string> = {
-        nudge: "Send nudge lands with Lead Gen.",
-        open: "Deal detail slide-over is on the list.",
-      };
-      toast(copy[kind]);
+    (kind: "nudge" | "open", dealId: string) => {
+      if (kind === "open") {
+        const deal = localDeals.find((d) => d.id === dealId);
+        if (deal) {
+          window.location.href = `/lite/admin/companies/${deal.company_id}`;
+          return;
+        }
+      }
+      toast("Send nudge lands with Lead Gen.");
     },
-    [toast],
+    [toast, localDeals],
   );
 
   const onSnoozed = React.useCallback((dealId: string, _untilMs: number) => {
