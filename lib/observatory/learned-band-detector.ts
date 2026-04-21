@@ -6,6 +6,7 @@ import type { CostAnomalyTier } from "@/lib/db/schema/cost-anomalies";
 import { getEffectiveBands, isJobRegistered, REGISTERED_JOB_KEYS } from "./job-registry";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
+import { enqueueDiagnosis } from "./enqueue-diagnosis";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const MS_14D = 14 * 24 * 60 * 60 * 1000;
@@ -97,6 +98,8 @@ async function upsertLearnedAnomaly(input: UpsertLearnedAnomalyInput): Promise<{
       expected_band: input.expectedBand,
     },
   });
+
+  enqueueDiagnosis(id).catch(() => {});
 
   return { created: true, anomalyId: id };
 }

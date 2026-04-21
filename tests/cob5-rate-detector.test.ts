@@ -21,6 +21,10 @@ vi.mock("@/lib/kill-switches", () => ({
   },
 }));
 
+vi.mock("@/lib/observatory/enqueue-diagnosis", () => ({
+  enqueueDiagnosis: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/lib/activity-log", () => ({
   logActivity: vi.fn().mockResolvedValue({
     id: "test",

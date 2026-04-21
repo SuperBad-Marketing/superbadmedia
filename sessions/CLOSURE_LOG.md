@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-8 (2026-04-21) — Cost & Usage Observatory: Diagnosis Prompt + Task Handler
+
+**Phase:** 5 — Build Execution (Wave 21 — session 8/11). Built the anomaly diagnosis system per spec §3.3 + §7 prompt 1. Core `diagnoseAnomaly()` function assembles context (anomaly row, last 100 calls, registry snapshot, deploy events, prompt version history), calls Opus via model registry, parses structured JSON response (hypothesis/confidence/action/timeline), and caches `diagnosis_json` + `diagnosis_cost_aud` on the anomaly row. Per-hour cap (10 diagnoses/hr) prevents recursive loops per spec §14 scenario 10. New `enqueueDiagnosis()` helper wired into all three detectors on new anomaly creation (fire-and-forget). Scheduled task handler `cost_anomaly_diagnose` registered. 4 new files, 8 edited files, 279 files / 2835 green (+12 new tests). See `sessions/cob8-handoff.md`.
+
 ## COB-7 (2026-04-21) — Cost & Usage Observatory: Band Editor
 
 **Phase:** 5 — Build Execution (Wave 21 — session 7/11). Built the runtime band-adjustment system per spec §3.4 + §5.5. New `band_overrides` table stores per-job ceiling overrides (nullable fields fall through to registry defaults). `getEffectiveBands()` async helper merges overrides with code-time defaults. All three detectors (hard-threshold, rate, learned-band) migrated from `getJobBands()` to `getEffectiveBands()` — band adjustments take effect on next sweep. `adjustBands()` function upserts overrides + logs `band_adjusted` to `activity_log`. Admin-only POST endpoint at `/api/admin/observatory/bands`. `BandEditor` React component ready for anomaly detail view + settings page. 6 new files, 10 edited files, 278 files / 2823 green (+9 new tests). See `sessions/cob7-handoff.md`.

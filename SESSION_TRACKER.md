@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-8` — Cost & Usage Observatory: diagnosis prompt + task handler (Wave 21). Wire the `diagnose-cost-anomaly` Opus prompt that fires as a scheduled task on anomaly creation, caching the diagnosis JSON on the `cost_anomaly` row per spec §3.3.
-**Brief:** COB-7 complete — band overrides table, `getEffectiveBands()` async lookup, `adjustBands()` with activity logging, admin API route, BandEditor React component, all three detectors migrated to runtime-aware band lookups. 9 new tests, full suite green (2823 tests, zero regressions). COB-8 is unblocked.
+**Next session:** `COB-9` — Cost & Usage Observatory: banner contract + severe email + kill-switch toggle (Wave 21). Wire `getHealthBanners()` observatory contract for Daily Cockpit, severe-tier immediate email via `sendEmail({ classification: 'transactional' })`, and kill-switch toggle endpoint for one-click job disable from anomaly detail.
+**Brief:** COB-8 complete — `diagnoseAnomaly()` Opus prompt + scheduled task handler + enqueue-on-create wiring in all three detectors + per-hour cap (10/hr). 12 new tests, full suite green (2835 tests, zero regressions). COB-9 is unblocked.
 **Model tier:** Sonnet
-**Last closed:** COB-7 (2026-04-21) — see `sessions/cob7-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-7 complete, CMS-6 complete, COB-8 next.
+**Last closed:** COB-8 (2026-04-21) — see `sessions/cob8-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1..COB-8 complete, CMS-6 complete, COB-9 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -29,3 +29,5 @@ export {
   type Vendor,
 } from "./job-registry";
 export { adjustBands, type AdjustBandsInput, type AdjustBandsResult } from "./band-editor";
+export { diagnoseAnomaly, type DiagnosisResult, type DiagnoseAnomalyResult } from "./diagnose-anomaly";
+export { enqueueDiagnosis } from "./enqueue-diagnosis";

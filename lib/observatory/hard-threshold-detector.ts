@@ -21,6 +21,7 @@ import type { CostAnomalyTier } from "@/lib/db/schema/cost-anomalies";
 import { getEffectiveBands, isJobRegistered } from "./job-registry";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
+import { enqueueDiagnosis } from "./enqueue-diagnosis";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const DETECTOR = "hard_threshold" as const;
@@ -107,6 +108,8 @@ async function upsertAnomaly(input: UpsertAnomalyInput): Promise<{
       expected_band: input.expectedBand,
     },
   });
+
+  enqueueDiagnosis(id).catch(() => {});
 
   return { created: true, anomalyId: id };
 }
