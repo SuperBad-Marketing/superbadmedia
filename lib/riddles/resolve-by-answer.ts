@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import { db } from "@/lib/db";
 import { riddles, riddle_resolutions, type RiddleOutcome } from "@/lib/db/schema/riddles";
 import { nanoid } from "nanoid";
+import { resolveNovelWrong } from "./novel-wrong-fallback";
 
 export interface ResolveByAnswerResult {
   outcome: RiddleOutcome;
@@ -75,8 +76,18 @@ export async function resolveByAnswer(
     }
   }
 
-  // No match — catch-all from first active riddle or generic
+  // Novel wrong — try live Claude fallback against first active riddle
   if (active.length > 0) {
+    const novelResult = await resolveNovelWrong(active[0], input);
+    if (novelResult.used) {
+      await logResolution(active[0].id, context, normalised, "novel_wrong");
+      return {
+        outcome: "novel_wrong",
+        content: novelResult.content,
+        riddleId: active[0].id,
+      };
+    }
+
     await logResolution(active[0].id, context, normalised, "catch_all_wrong");
     return {
       outcome: "catch_all_wrong",

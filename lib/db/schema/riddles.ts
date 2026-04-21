@@ -58,3 +58,22 @@ export const riddle_resolutions = sqliteTable(
 
 export type RiddleResolutionRow = typeof riddle_resolutions.$inferSelect;
 export type RiddleResolutionInsert = typeof riddle_resolutions.$inferInsert;
+
+export const riddle_novel_wrong_cache = sqliteTable(
+  "riddle_novel_wrong_cache",
+  {
+    id: text("id").primaryKey(),
+    riddle_id: text("riddle_id")
+      .notNull()
+      .references(() => riddles.id, { onDelete: "cascade" }),
+    input_hash: text("input_hash").notNull(),
+    response: text("response").notNull(),
+    drift_check_score: integer("drift_check_score"),
+    created_at_ms: integer("created_at_ms").notNull(),
+  },
+  (t) => ({
+    by_riddle_hash: index("rnwc_riddle_hash_idx").on(t.riddle_id, t.input_hash),
+  }),
+);
+
+export type RiddleNovelWrongCacheRow = typeof riddle_novel_wrong_cache.$inferSelect;

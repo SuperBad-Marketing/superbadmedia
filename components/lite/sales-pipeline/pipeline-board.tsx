@@ -133,11 +133,16 @@ export function PipelineBoard({
         toast(wonMessage, { sound });
         wonsThisSessionRef.current += 1;
         if (wonsThisSessionRef.current >= 3) {
-          // Fire-and-forget; server-side gate enforces the ≤ once/month cap.
           void maybeFireThreeWonsEgg().then((fired) => {
             if (fired) {
-              toast(
-                "That's three. Either you're crushing it or it's a slow Tuesday.",
+              window.dispatchEvent(
+                new CustomEvent("admin-egg-fired", {
+                  detail: {
+                    eggId: "three_wons",
+                    fireId: null,
+                    evidence: { sessionWonCount: 3 },
+                  },
+                }),
               );
               wonsThisSessionRef.current = 0;
             }

@@ -364,6 +364,8 @@ export const ACTIVITY_LOG_KINDS = [
   "ambient_copy_refresh_requested",
   "riddle_resolved",
   "riddle_wrong_answered",
+  "riddle_budget_warning",
+  "riddle_budget_exhausted",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

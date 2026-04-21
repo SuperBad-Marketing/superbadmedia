@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { riddles, riddle_resolutions, type RiddleOutcome } from "@/lib/db/schema/riddles";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { resolveNovelWrong } from "./novel-wrong-fallback";
 
 export interface ResolveResult {
   outcome: RiddleOutcome;
@@ -67,7 +68,12 @@ export async function resolveRiddleAnswer(
     return { outcome: "common_wrong", content: commonMatch.response };
   }
 
-  // Novel wrong — SD-10 adds the live Claude fallback here
+  const novelResult = await resolveNovelWrong(riddle, input);
+  if (novelResult.used) {
+    await logResolution(riddle.id, context, input, "novel_wrong");
+    return { outcome: "novel_wrong", content: novelResult.content };
+  }
+
   await logResolution(riddle.id, context, input, "catch_all_wrong");
   return { outcome: "catch_all_wrong", content: riddle.catch_all_wrong_content };
 }

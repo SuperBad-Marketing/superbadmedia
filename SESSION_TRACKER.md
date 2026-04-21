@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-10` — Surprise & Delight: Session J (Wave 20). Three Wons inline toast renderer + public egg renderers. Check spec + BUILD_PLAN for exact scope.
-**Brief:** SD-9 completed — Milestone spotter egg renderer (`MilestoneSpotterCard` component + `/api/lite/eggs/milestone-action` route + `hidden_egg_fire_cleanup` handler + fireId passthrough through orchestration pipeline). 267 files / 2602 tests green.
+**Next session:** `SD-11` — Surprise & Delight: Session K (Wave 20). Public egg rendering infrastructure + first batch of public egg renderers. Check spec + BUILD_PLAN for exact scope.
+**Brief:** SD-10 completed — Novel-wrong live Claude fallback for riddle resolver (`resolveNovelWrong` + `riddle_novel_wrong_cache` table + `sd-riddle-wrong-fallback` Haiku job), Three Wons inline toast renderer (`ThreeWonsToast` component + CustomEvent dispatch), `riddle_answer_fallback_budget_monitor` scheduled task handler. 268 files / 2610 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-9 (2026-04-21) — see `sessions/sd9-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 done, SD-10 next.
+**Last closed:** SD-10 (2026-04-21) — see `sessions/sd10-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 done, SD-10 done, SD-11 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
