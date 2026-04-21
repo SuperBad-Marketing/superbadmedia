@@ -29,10 +29,10 @@ export async function GET(): Promise<NextResponse> {
       const id = randomUUID();
       sqliteConnection
         .prepare(
-          `INSERT INTO user (id, email, name, role, timezone)
-           VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO user (id, email, name, role, timezone, created_at_ms)
+           VALUES (?, ?, ?, ?, ?, ?)`,
         )
-        .run(id, ADMIN_EMAIL, "Andy Robinson", "admin", "Australia/Melbourne");
+        .run(id, ADMIN_EMAIL, "Andy Robinson", "admin", "Australia/Melbourne", Date.now());
       checks.adminSeeded = true;
       checks.adminId = id;
     } else {

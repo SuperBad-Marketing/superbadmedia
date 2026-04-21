@@ -72,8 +72,8 @@ function seedAdminUser(sqlite: Database.Database): void {
 
   sqlite
     .prepare(
-      `INSERT INTO user (id, email, name, role, timezone)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO user (id, email, name, role, timezone, created_at_ms)
+       VALUES (?, ?, ?, ?, ?, ?)`,
     )
-    .run(randomUUID(), ADMIN_EMAIL, "Andy Robinson", "admin", "Australia/Melbourne");
+    .run(randomUUID(), ADMIN_EMAIL, "Andy Robinson", "admin", "Australia/Melbourne", Date.now());
 }
