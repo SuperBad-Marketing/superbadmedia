@@ -9,6 +9,10 @@ export {
   type AnthropicUsage,
 } from "./pricing";
 export {
+  checkPerCallThreshold,
+  sweepDailyThresholds,
+} from "./hard-threshold-detector";
+export {
   JOB_REGISTRY,
   REGISTERED_JOB_KEYS,
   getJobEntry,

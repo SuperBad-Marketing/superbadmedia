@@ -38,6 +38,7 @@ export type KillSwitchKey =
   | "plan_automations_enabled"
   | "tasks_digest_enabled"
   | "hiring_discovery_enabled"
+  | "observatory_detectors_enabled"
   | "admin_sse_enabled";
 
 type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
@@ -134,6 +135,11 @@ const defaults: KillSwitchRegistry = {
   // platform feed sources, IG on-demand). When OFF, all discovery handlers
   // exit early. Flip ON in Phase 6 after SerpAPI key is configured.
   hiring_discovery_enabled: false,
+  // COB-4: gates all three anomaly detectors (hard-threshold, rate,
+  // learned-band) and the diagnosis task. When OFF, detector handlers
+  // exit early and sync-on-insert check is skipped. Flip ON in Phase 6
+  // after band values are tuned.
+  observatory_detectors_enabled: false,
   admin_sse_enabled: true,
 };
 

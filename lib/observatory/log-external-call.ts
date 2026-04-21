@@ -14,6 +14,7 @@ import { external_call_log } from "@/lib/db/schema/external-call-log";
 import type { ExternalCallActorType } from "@/lib/db/schema/external-call-log";
 import { cost_anomalies } from "@/lib/db/schema/cost-anomalies";
 import { isJobRegistered } from "./job-registry";
+import { checkPerCallThreshold } from "./hard-threshold-detector";
 
 export interface LogExternalCallInput {
   job: string;
@@ -43,6 +44,11 @@ export async function logExternalCall(
     converted_from_candidate_id: null,
     created_at_ms: Date.now(),
   });
+
+  checkPerCallThreshold(
+    { job: input.job, estimatedCostAud: input.estimatedCostAud },
+    d,
+  ).catch(() => {});
 
   if (!isJobRegistered(input.job)) {
     if (process.env.NODE_ENV === "development") {
