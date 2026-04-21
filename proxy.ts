@@ -95,6 +95,7 @@ export default auth((req) => {
   // to prevent a redirect loop. It redirects to the next incomplete wizard.
   if (
     !pathname.startsWith("/lite/first-run") &&
+    !pathname.startsWith("/lite/setup/") &&
     !req.auth.user?.critical_flight_complete
   ) {
     return NextResponse.redirect(new URL("/lite/first-run", req.url));
