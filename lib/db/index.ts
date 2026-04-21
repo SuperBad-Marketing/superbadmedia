@@ -1,4 +1,6 @@
 import "server-only";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
@@ -11,6 +13,8 @@ const filePath = databaseUrl.startsWith("file:")
 const globalForDb = globalThis as unknown as {
   __sblite_sqlite?: Database.Database;
 };
+
+mkdirSync(dirname(filePath), { recursive: true });
 
 const sqlite =
   globalForDb.__sblite_sqlite ?? new Database(filePath);
