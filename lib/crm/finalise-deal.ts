@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/schema/deals";
 import { transitionDealStage } from "./transition-deal-stage";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { createOnboardingCredentials } from "@/lib/onboarding/create-credentials";
 
 type Db = BetterSQLite3Database<Record<string, unknown>> | typeof defaultDb;
 
@@ -86,6 +87,13 @@ export function finaliseDealAsWon(
       runAt: Date.now(),
       payload: { deal_id: dealId, company_id: result.company_id },
       idempotencyKey: `swp_migrate:${dealId}`,
+    }).catch(() => {});
+  }
+
+  if (result.primary_contact_id && result.company_id) {
+    createOnboardingCredentials({
+      contactId: result.primary_contact_id,
+      companyId: result.company_id,
     }).catch(() => {});
   }
 
