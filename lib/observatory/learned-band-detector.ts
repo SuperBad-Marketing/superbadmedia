@@ -7,6 +7,7 @@ import { getEffectiveBands, isJobRegistered, REGISTERED_JOB_KEYS } from "./job-r
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueDiagnosis } from "./enqueue-diagnosis";
+import { maybeSendSevereAlert } from "./enqueue-severe-alert";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const MS_14D = 14 * 24 * 60 * 60 * 1000;
@@ -100,6 +101,9 @@ async function upsertLearnedAnomaly(input: UpsertLearnedAnomalyInput): Promise<{
   });
 
   enqueueDiagnosis(id).catch(() => {});
+  if (input.tier === "severe") {
+    maybeSendSevereAlert(id).catch(() => {});
+  }
 
   return { created: true, anomalyId: id };
 }

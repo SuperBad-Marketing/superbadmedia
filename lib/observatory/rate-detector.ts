@@ -7,6 +7,7 @@ import { getEffectiveBands, isJobRegistered } from "./job-registry";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueDiagnosis } from "./enqueue-diagnosis";
+import { maybeSendSevereAlert } from "./enqueue-severe-alert";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const MS_1H = 60 * 60 * 1000;
@@ -117,6 +118,7 @@ async function upsertRateAnomaly(input: UpsertRateAnomalyInput): Promise<{
   });
 
   enqueueDiagnosis(id).catch(() => {});
+  maybeSendSevereAlert(id).catch(() => {});
 
   return { created: true, anomalyId: id };
 }

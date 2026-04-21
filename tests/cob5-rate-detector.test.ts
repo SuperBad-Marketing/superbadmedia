@@ -25,6 +25,10 @@ vi.mock("@/lib/observatory/enqueue-diagnosis", () => ({
   enqueueDiagnosis: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("@/lib/observatory/enqueue-severe-alert", () => ({
+  maybeSendSevereAlert: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/lib/activity-log", () => ({
   logActivity: vi.fn().mockResolvedValue({
     id: "test",

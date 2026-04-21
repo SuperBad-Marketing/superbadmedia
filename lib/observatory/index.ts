@@ -31,3 +31,7 @@ export {
 export { adjustBands, type AdjustBandsInput, type AdjustBandsResult } from "./band-editor";
 export { diagnoseAnomaly, type DiagnosisResult, type DiagnoseAnomalyResult } from "./diagnose-anomaly";
 export { enqueueDiagnosis } from "./enqueue-diagnosis";
+export { maybeSendSevereAlert } from "./enqueue-severe-alert";
+export { sendSevereAlertEmail } from "./severe-alert-email";
+export { getObservatoryHealthBanners } from "./health-banners";
+export { toggleJobKillSwitch, type ToggleKillSwitchInput, type ToggleKillSwitchResult } from "./kill-switch-toggle";

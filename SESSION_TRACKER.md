@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-9` — Cost & Usage Observatory: banner contract + severe email + kill-switch toggle (Wave 21). Wire `getHealthBanners()` observatory contract for Daily Cockpit, severe-tier immediate email via `sendEmail({ classification: 'transactional' })`, and kill-switch toggle endpoint for one-click job disable from anomaly detail.
-**Brief:** COB-8 complete — `diagnoseAnomaly()` Opus prompt + scheduled task handler + enqueue-on-create wiring in all three detectors + per-hour cap (10/hr). 12 new tests, full suite green (2835 tests, zero regressions). COB-9 is unblocked.
+**Next session:** `COB-10` — Cost & Usage Observatory: dashboard shell + anomaly detail view (Wave 21). Four-panel observatory dashboard at `/lite/observatory` (MTD tile, projection bar, live anomalies list, top jobs table). Anomaly detail view at `/lite/observatory/anomalies/[id]` (diagnosis card, raw-data table, band editor mount, kill-switch CTA). Admin auth gated.
+**Brief:** COB-9 complete — `getObservatoryHealthBanners()` banner contract for Daily Cockpit, `sendSevereAlertEmail()` transactional email on severe anomalies, kill-switch toggle endpoint at `POST /api/admin/observatory/kill-switch`. 15 new tests, full suite green (2850 tests, zero regressions). COB-10 is unblocked.
 **Model tier:** Sonnet
-**Last closed:** COB-8 (2026-04-21) — see `sessions/cob8-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-8 complete, CMS-6 complete, COB-9 next.
+**Last closed:** COB-9 (2026-04-21) — see `sessions/cob9-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1..COB-9 complete, CMS-6 complete, COB-10 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-9 (2026-04-21) — Cost & Usage Observatory: Banner Contract + Severe Email + Kill-Switch Toggle
+
+**Phase:** 5 — Build Execution (Wave 21 — session 9/11). Three deliverables: (1) `getObservatoryHealthBanners()` — observatory's contribution to the Daily Cockpit banner contract, emitting banners for open cost anomalies (tier-mapped severity), monthly threshold crossings, and projection threshold crossings; (2) `sendSevereAlertEmail()` — transactional email to Andy on severe-tier anomaly creation, wired into all three detectors via fire-and-forget `maybeSendSevereAlert()` helper; (3) `toggleJobKillSwitch()` — disable/enable a job's vendor calls via `jobDisabledUntil` registry mutation + anomaly row `kill_switch_triggered_at_ms` stamp + activity log, exposed at `POST /api/admin/observatory/kill-switch`. 5 new files, 7 edited files (including 3 detector test files for mock additions), 280 files / 2850 green (+15 new tests). See `sessions/cob9-handoff.md`.
+
 ## COB-8 (2026-04-21) — Cost & Usage Observatory: Diagnosis Prompt + Task Handler
 
 **Phase:** 5 — Build Execution (Wave 21 — session 8/11). Built the anomaly diagnosis system per spec §3.3 + §7 prompt 1. Core `diagnoseAnomaly()` function assembles context (anomaly row, last 100 calls, registry snapshot, deploy events, prompt version history), calls Opus via model registry, parses structured JSON response (hypothesis/confidence/action/timeline), and caches `diagnosis_json` + `diagnosis_cost_aud` on the anomaly row. Per-hour cap (10 diagnoses/hr) prevents recursive loops per spec §14 scenario 10. New `enqueueDiagnosis()` helper wired into all three detectors on new anomaly creation (fire-and-forget). Scheduled task handler `cost_anomaly_diagnose` registered. 4 new files, 8 edited files, 279 files / 2835 green (+12 new tests). See `sessions/cob8-handoff.md`.
