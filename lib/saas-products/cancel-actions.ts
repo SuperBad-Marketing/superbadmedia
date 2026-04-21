@@ -47,6 +47,7 @@ import {
   cancelSubscriptionImmediately,
   scheduleSubscriptionCancel,
 } from "@/lib/stripe/subscriptions";
+import { maybeRegenerateBrief } from "@/lib/cockpit/brief-triggers";
 import {
   applyProductSwitch,
   TierChangeError,
@@ -219,6 +220,10 @@ export async function cancelSaasSubscriptionAction(
         createdAtMs: nowMs,
       }),
     ]);
+    maybeRegenerateBrief("subscription_cancelled", {
+      deal_id: deal.id,
+      branch: "paid_remainder",
+    }).catch(() => {});
     return { ok: true, branch };
   }
 
@@ -264,6 +269,10 @@ export async function cancelSaasSubscriptionAction(
       createdAtMs: nowMs,
     }),
   ]);
+  maybeRegenerateBrief("subscription_cancelled", {
+    deal_id: deal.id,
+    branch: "buyout",
+  }).catch(() => {});
   return { ok: true, branch: "buyout" };
 }
 
@@ -317,6 +326,10 @@ async function performPostTermCancel(
       createdAtMs: nowMs,
     }),
   ]);
+  maybeRegenerateBrief("subscription_cancelled", {
+    deal_id: deal.id,
+    branch: "post_term",
+  }).catch(() => {});
   return { ok: true, branch: "post_term" };
 }
 

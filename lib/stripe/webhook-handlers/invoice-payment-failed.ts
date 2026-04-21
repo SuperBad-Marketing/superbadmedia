@@ -8,6 +8,7 @@ import { activity_log } from "@/lib/db/schema/activity-log";
 import { scheduled_tasks } from "@/lib/db/schema/scheduled-tasks";
 import settingsRegistry from "@/lib/settings";
 import { emitAdminEvent } from "@/lib/events/admin-event-bus";
+import { maybeRegenerateBrief } from "@/lib/cockpit/brief-triggers";
 import type { DispatchOutcome } from "./types";
 
 type Db = BetterSQLite3Database<Record<string, unknown>> | typeof defaultDb;
@@ -139,6 +140,11 @@ export async function handleInvoicePaymentFailed(
       timestamp: new Date(nowMs).toISOString(),
       meta: { deal_id: deal.id, stripe_subscription_id: subId },
     });
+
+    maybeRegenerateBrief("subscription_payment_failed", {
+      deal_id: deal.id,
+      stripe_subscription_id: subId,
+    }).catch(() => {});
 
     const warningDays = await settingsRegistry.get("saas.data_loss_warning_days");
     const runAtMs = nowMs + warningDays * 24 * 60 * 60 * 1000;

@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## DC-3 (2026-04-21) — Daily Cockpit: Material-Event Regen
+
+**Phase:** 5 — Build Execution (Wave 22 — session 3/8). Material-event regen shipped: `maybeRegenerateBrief(eventKey, payload)` helper with 10-min debounce via `cockpit.material_event_debounce_minutes` setting. 10-event denylist at `lib/cockpit/brief-triggers.ts`. Wired into 7 source files: invoice-payment-failed (`subscription_payment_failed`), cancel-actions ×3 branches (`subscription_cancelled`), booking-actions (`intro_funnel_booking_confirmed`), mark-paid with $500 threshold (`invoice_paid_large`), 3 observatory detectors (`cost_anomaly_detected`). 5 events awaiting source spec implementation (`outreach_reply_positive`, `deal_won`, `deal_lost`, `graph_api_token_expired`, `graph_api_subscription_lapsed`). 2 new files, 7 edited files, 285 files / 2904 green (+8 new tests). See `sessions/dc3-handoff.md`.
+
 ## DC-2 (2026-04-21) — Daily Cockpit: Briefs Pipeline + Cron
 
 **Phase:** 5 — Build Execution (Wave 22 — session 2/8). Briefs pipeline shipped: `generateBriefForSlot()` end-to-end (gather signals → quiet-slot skip → build slot prompt → Opus via LLM registry → persist + activity log). Three prompt templates (morning/midday/evening) with chained continuity. Andy-facing activity filter (28 kinds from `activity_log`). Kill switch `cockpit_briefs_enabled` (default false). 3 settings keys seeded (migration 0068). Cron API route at `/api/cron/cockpit-brief?slot=`. Scheduled task handler `cockpit_brief_regenerate` registered. 10 new files, 6 edited files, 284 files / 2896 green (+11 new tests). See `sessions/dc2-handoff.md`.

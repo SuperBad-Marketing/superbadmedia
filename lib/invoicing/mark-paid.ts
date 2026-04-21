@@ -10,6 +10,7 @@ import {
   transitionInvoiceStatus,
   IllegalInvoiceTransitionError,
 } from "@/lib/invoicing/transitions";
+import { maybeRegenerateBrief } from "@/lib/cockpit/brief-triggers";
 
 type DatabaseLike = typeof defaultDb;
 
@@ -77,6 +78,15 @@ export async function markInvoicePaid(
       },
       createdAtMs: now,
     });
+
+    const LARGE_INVOICE_THRESHOLD_CENTS = 50000;
+    if (updated.total_cents_inc_gst >= LARGE_INVOICE_THRESHOLD_CENTS) {
+      maybeRegenerateBrief("invoice_paid_large", {
+        invoice_id: updated.id,
+        invoice_number: updated.invoice_number,
+        total_cents: updated.total_cents_inc_gst,
+      }).catch(() => {});
+    }
 
     return { ok: true, invoice: updated, alreadyPaid: false };
   } catch (err) {

@@ -23,6 +23,7 @@ import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 import { enqueueDiagnosis } from "./enqueue-diagnosis";
 import { maybeSendSevereAlert } from "./enqueue-severe-alert";
+import { maybeRegenerateBrief } from "@/lib/cockpit/brief-triggers";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const DETECTOR = "hard_threshold" as const;
@@ -114,6 +115,12 @@ async function upsertAnomaly(input: UpsertAnomalyInput): Promise<{
   if (input.tier === "severe") {
     maybeSendSevereAlert(id).catch(() => {});
   }
+  maybeRegenerateBrief("cost_anomaly_detected", {
+    anomaly_id: id,
+    detector: DETECTOR,
+    job: input.job,
+    tier: input.tier,
+  }).catch(() => {});
 
   return { created: true, anomalyId: id };
 }

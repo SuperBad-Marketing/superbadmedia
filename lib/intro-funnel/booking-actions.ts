@@ -13,6 +13,7 @@ import { logActivity } from "@/lib/activity-log";
 import { sendEmail } from "@/lib/channels/email/send";
 import { generateIcs } from "@/lib/intro-funnel/ics";
 import { computeAvailableSlots } from "@/lib/intro-funnel/calendar";
+import { maybeRegenerateBrief } from "@/lib/cockpit/brief-triggers";
 import { generateIntroPortalLink } from "@/lib/intro-funnel/portal-link";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 
@@ -113,6 +114,12 @@ export async function bookSlotAction(
     body: `Trial shoot booked for ${new Date(slotStartMs).toLocaleDateString("en-AU")}`,
     meta: { booking_id: bookingId, slot_start_ms: slotStartMs },
   });
+
+  maybeRegenerateBrief("intro_funnel_booking_confirmed", {
+    submission_id: submission.id,
+    booking_id: bookingId,
+    slot_start_ms: slotStartMs,
+  }).catch(() => {});
 
   // Send confirmation email with .ics
   const contactRows = await db

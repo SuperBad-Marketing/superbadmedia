@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `DC-3` — Daily Cockpit: material-event regen. `maybeRegenerateBrief(eventKey, payload)` helper, brief-triggers denylist, debounce logic (10-min per slot), chain anchoring (regen chains off original morning brief, not prior regen). Wire trigger calls into source specs.
-**Brief:** DC-2 complete — briefs pipeline shipped. `generateBriefForSlot()` end-to-end (gather signals → quiet-slot skip → build prompt → Opus call → persist + log). Three prompt templates (morning/midday/evening) with chaining. Andy-facing activity filter (28 kinds). Kill switch `cockpit_briefs_enabled`. 3 settings keys. Cron route at `/api/cron/cockpit-brief`. Scheduled task handler for `cockpit_brief_regenerate`. 11 new tests, full suite green (2896 tests, zero regressions).
+**Next session:** `DC-4` — Daily Cockpit: attention rail wiring. Wire real `getWaitingItems()` implementations from every source spec into the aggregator (replace stubs). Sort contract enforcement. Chip components per source spec.
+**Brief:** DC-3 complete — material-event regen shipped. `maybeRegenerateBrief(eventKey, payload)` helper with 10-min debounce via `cockpit.material_event_debounce_minutes` setting. 10-event denylist. Wired into 7 source files (invoice-payment-failed, cancel-actions ×3, booking-actions, mark-paid with $500 threshold, 3 observatory detectors). 5 events awaiting source spec implementation. 8 new tests, full suite green (2904 tests, zero regressions).
 **Model tier:** Sonnet
-**Last closed:** DC-2 (2026-04-21) — see `sessions/dc2-handoff.md`
-**Wave status:** Wave 22 in progress. DC-1 + DC-2 complete, DC-3 next.
+**Last closed:** DC-3 (2026-04-21) — see `sessions/dc3-handoff.md`
+**Wave status:** Wave 22 in progress. DC-1 + DC-2 + DC-3 complete, DC-4 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
