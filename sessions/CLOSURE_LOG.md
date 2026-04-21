@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## CMS-6 (2026-04-21) — Content Mini-Session: Cost & Usage Observatory + Surprise & Delight
+
+**Phase:** 5 — Build Execution (Batch C content). 8 content files across 2 subdirectories. **CUO (4 files):** banner copy for 3 severity tiers (10 low, 8 mid, 5 severe + threshold/projection/tier-health/unknown-job/kill-switch variants), dashboard empty-state copy (6 surfaces), weekly digest email framework (7 subject lines, 6 openers, 5 section headings, 4 closers), 10 synthetic anomaly scenarios for Opus diagnosis prompt calibration. **S&D (4 files):** ambient copy seed pools for all 6 closed-list surface categories (empty states×7, errors×3, loading×10, toasts×15, placeholders×10, morning brief×10), final egg copy for all 18 eggs (12 public + 6 admin), 3 seed riddles with answers/common-wrongs/rewards, per-page configs resolving 2 of 3 open PATCHES_OWED items (rapid-scroller summaries + deep-reader link targets). Admin egg catalogue expansion already complete (SD-13). Rain ambient MP3 remains open. COB-4 unblocked. See `sessions/cms6-handoff.md`.
+
 ## COB-3 (2026-04-21) — Cost & Usage Observatory: Vendor Wiring (Lead-Gen + Hiring)
 
 **Phase:** 5 — Build Execution (Wave 21 — session 3/11). Migrated all direct `external_call_log` inserts across lead-gen (10 files) and hiring (2 files + 1 shared wrapper) to use the central `logExternalCall()` helper. 4 new non-LLM jobs registered in job-registry.ts (hiring-portfolio-ingest-behance, hiring-portfolio-ingest-generic, hiring-discovery-behance-gallery, hiring-discovery-vimeo-rss). Removed vision double-logging in portfolio.ts (invoke.ts already logs LLM calls). Registry total: 104 jobs (80 LLM + 24 vendor). Zero direct inserts remain in lib/lead-gen/ or lib/hiring/. 0 new files, 13 edited files, 274 files / 2775 green. See `sessions/cob3-handoff.md`.
