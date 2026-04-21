@@ -10,6 +10,7 @@
 **Wave status:** Wave 23 in progress. SAP + DRY (UI-level) shipped. DRY-INT (integration-level) blocked.
 
 🚨 **BLOCKED — human required.** DRY-INT cannot run in CCR without live external service credentials. Code regressions have been fixed (see below); only the environment credential blocker remains.
+🚨 **VERIFICATION FAILED — human required.** See `sessions/DRY-INT-FAILED-handoff.md`.
 
 **Remaining blocker before re-attempting DRY-INT:**
 1. No external service credentials in CCR (`STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` absent). Must run locally with Andy + Stripe CLI + test email inbox accessible.
