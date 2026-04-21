@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `DC-5` — Daily Cockpit: banner strip wiring. Wire real `getHealthBanners()` implementations from remaining source specs into the aggregator (replace stubs for inbox, content engine, wizards). Calendar preview integration. `/lite/health` detail view.
-**Brief:** DC-4 complete — attention rail wiring shipped. 9 real `getWaitingItems()` implementations replacing stubs (quotes, invoicing, SaaS, inbox, outreach, intro funnel, content, brand DNA, six-week plans). Hiring pipeline properly imported. 2 stubs remain (client management, wizards — need missing state). 8 new tests, full suite green (2912 tests, zero regressions).
+**Next session:** `DC-6` — Daily Cockpit: mobile PWA layout. Responsive stack, horizontal-scroll rail on mobile, tabbed kanban with house motion spring, list toggle icon, mobile banner stacking, PWA default-route wiring.
+**Brief:** DC-5 complete — banner strip wiring shipped. 3 real `getHealthBanners()` implementations replacing stubs (inbox, content engine, wizards). All 8 banner sources now live in aggregator, zero banner stubs remain. 9 new tests, full suite green (2921 tests, zero regressions).
 **Model tier:** Sonnet
-**Last closed:** DC-4 (2026-04-21) — see `sessions/dc4-handoff.md`
-**Wave status:** Wave 22 in progress. DC-1 + DC-2 + DC-3 + DC-4 complete, DC-5 next.
+**Last closed:** DC-5 (2026-04-21) — see `sessions/dc5-handoff.md`
+**Wave status:** Wave 22 in progress. DC-1 through DC-5 complete, DC-6 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

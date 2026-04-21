@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## DC-5 (2026-04-21) — Daily Cockpit: Banner Strip Wiring
+
+**Phase:** 5 — Build Execution (Wave 22 — session 5/8). Banner strip wiring shipped: 3 real `getHealthBanners()` implementations replacing aggregator stubs — inbox (Graph API subscription lapsed, SendAs permission revoked, import stuck >24h), content engine (integration connection degradation for content delivery vendors), setup wizards (admin wizards idle ≥ N days via `wizards.admin_cockpit_banner_days` setting, escalates to critical at 2x threshold). All 8 banner sources now live in aggregator, zero banner stubs remain. Calendar preview and `/lite/cockpit/health` already wired from DC-1. 4 new files, 1 edited file, 287 files / 2921 green (+9 new tests). See `sessions/dc5-handoff.md`.
+
 ## DC-4 (2026-04-21) — Daily Cockpit: Attention Rail Wiring
 
 **Phase:** 5 — Build Execution (Wave 22 — session 4/8). Attention rail wiring shipped: 9 real `getWaitingItems()` implementations replacing aggregator stubs — quotes (draft + expiring 48h), invoicing (draft review + overdue), SaaS (past-due subscriptions, fleet-scoped), inbox (reply-waiting >24h + open tickets >48h), outreach (pending approval drafts, aggregated chip), intro funnel (bookings within 24h + completed questionnaires), content engine (own review + fleet stalled >48h), brand DNA (stuck assessments >7d), six-week plans (pending reviews + unresolved revisions). Hiring pipeline import wired (was stubbed despite existing at `lib/hiring/cockpit.ts`). 2 stubs remain: client management (needs portal escalation state), wizards (needs acknowledgement mechanism). 10 new files, 1 edited file, 286 files / 2912 green (+8 new tests). See `sessions/dc4-handoff.md`.

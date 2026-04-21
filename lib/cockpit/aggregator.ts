@@ -8,11 +8,14 @@ import { getQuoteWaitingItems } from "@/lib/quotes/cockpit";
 import { getInvoiceWaitingItems } from "@/lib/invoicing/cockpit";
 import { getSaasWaitingItems } from "@/lib/saas-products/cockpit-waiting";
 import { getInboxWaitingItems } from "@/lib/inbox/cockpit";
+import { getInboxHealthBanners } from "@/lib/inbox/health-banners";
 import { getLeadGenWaitingItems } from "@/lib/outreach/cockpit";
 import { getIntroFunnelWaitingItems } from "@/lib/intro-funnel/cockpit";
 import { getContentWaitingItems } from "@/lib/content/cockpit";
+import { getContentHealthBanners } from "@/lib/content/health-banners";
 import { getBrandDnaWaitingItems } from "@/lib/brand-dna/cockpit";
 import { getSixWeekPlanWaitingItems } from "@/lib/six-week-plans/cockpit";
+import { getWizardHealthBanners } from "@/lib/wizards/health-banners";
 
 /**
  * Merges waiting items from every source spec in parallel.
@@ -108,17 +111,5 @@ async function getClientManagementWaitingItems(_nowMs: number): Promise<WaitingI
 }
 
 async function getWizardWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
-  return [];
-}
-
-async function getInboxHealthBanners(_nowMs: number): Promise<HealthBanner[]> {
-  return [];
-}
-
-async function getContentHealthBanners(_nowMs: number): Promise<HealthBanner[]> {
-  return [];
-}
-
-async function getWizardHealthBanners(_nowMs: number): Promise<HealthBanner[]> {
   return [];
 }
