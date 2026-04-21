@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Paintbrush, ShoppingBag, FileText } from "lucide-react";
+import { Paintbrush, ShoppingBag, FileText, Plug } from "lucide-react";
 
 import { auth } from "@/lib/auth/session";
 
@@ -16,6 +16,12 @@ const SECTIONS = [
     icon: Paintbrush,
     label: "Display",
     description: "Theme, sounds, motion, density, typeface, text size.",
+  },
+  {
+    href: "/lite/admin/settings/integrations",
+    icon: Plug,
+    label: "Integrations",
+    description: "API keys, webhooks, third-party connections.",
   },
   {
     href: "/lite/admin/settings/catalogue",
