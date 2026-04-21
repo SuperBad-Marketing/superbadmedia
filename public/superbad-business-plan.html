@@ -1,0 +1,1228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SuperBad Marketing — Business Plan & 12-Month Projections</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1A1A18;
+    --bg-card: #222220;
+    --bg-deep: #141412;
+    --ink: #FDF5E6;
+    --ink-dim: #b8b0a0;
+    --ink-muted: #7a7368;
+    --red: #B22848;
+    --red-glow: rgba(178, 40, 72, 0.15);
+    --pink: #F4A0B0;
+    --orange: #F28C52;
+    --line: #2a2a26;
+    --good: #7bd389;
+    --warn: #F28C52;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+  html { scroll-behavior: smooth }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* — Type hierarchy — */
+  .display { font-family: "Black Han Sans", sans-serif; font-weight: 400; letter-spacing: -0.01em; line-height: 1.0 }
+  .heading { font-family: "Playfair Display", serif; font-weight: 500; letter-spacing: -0.015em; line-height: 1.15 }
+  .label { font-family: "Righteous", sans-serif; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase }
+  .mutter { font-family: "DM Sans", sans-serif; font-style: italic; color: var(--pink) }
+  .body { font-family: "DM Sans", sans-serif }
+
+  /* — Layout — */
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 28px }
+  section { padding: 72px 0; border-bottom: 1px solid var(--line) }
+  section:last-of-type { border-bottom: none }
+
+  /* — Cover — */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 0;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    right: -20%;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, var(--red-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover .eyebrow { color: var(--red); margin-bottom: 24px }
+  .cover h1 {
+    font-size: clamp(52px, 8vw, 96px);
+    color: var(--ink);
+    max-width: 14ch;
+  }
+  .cover .lede {
+    font-family: "DM Sans", sans-serif;
+    font-size: 19px;
+    color: var(--ink-dim);
+    max-width: 58ch;
+    margin-top: 28px;
+    line-height: 1.55;
+  }
+  .cover .meta-strip {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+  }
+  .cover .meta-item .label { color: var(--ink-muted); display: block; margin-bottom: 6px; font-size: 10px }
+  .cover .meta-item .value { color: var(--ink); font-size: 15px; font-weight: 500 }
+
+  /* — Eyebrow — */
+  .eyebrow { font-family: "Righteous", sans-serif; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--red); margin-bottom: 16px }
+
+  /* — Headings — */
+  h2.heading { font-size: clamp(30px, 4vw, 48px); margin-bottom: 16px; color: var(--ink) }
+  h3 { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 500; color: var(--ink); margin-bottom: 8px }
+  h4 { font-family: "Righteous", sans-serif; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-bottom: 10px }
+
+  p { color: var(--ink-dim); max-width: 68ch }
+  p + p { margin-top: 12px }
+  strong { color: var(--ink); font-weight: 600 }
+
+  /* — Grid — */
+  .grid { display: grid; gap: 20px }
+  .grid-2 { grid-template-columns: repeat(2, 1fr) }
+  .grid-3 { grid-template-columns: repeat(3, 1fr) }
+  .grid-4 { grid-template-columns: repeat(4, 1fr) }
+  @media (max-width: 860px) { .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr) } }
+  @media (max-width: 580px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr } }
+
+  /* — Cards — */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .card:hover { border-color: #3a3a34; transform: translateY(-2px) }
+  .card p { font-size: 14px; margin-top: 8px }
+  .card.highlight { border-color: var(--red); background: linear-gradient(135deg, rgba(178,40,72,0.08), transparent) }
+
+  /* — Stats — */
+  .stat {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 48px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .stat .unit { font-family: "DM Sans", sans-serif; font-size: 14px; color: var(--ink-dim); margin-left: 4px; letter-spacing: 0; font-weight: 400 }
+  .stat-label {
+    margin-top: 8px;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  /* — KPI row — */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px }
+  @media (max-width: 780px) { .kpi-row { grid-template-columns: repeat(2, 1fr) } }
+  .kpi { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 22px }
+  .kpi .stat { font-size: 36px }
+
+  /* — Use of Funds — */
+  .fund-bar-wrap { margin-top: 32px }
+  .fund-bar {
+    height: 40px;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+  }
+  .fund-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bg);
+    transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+    cursor: help;
+    position: relative;
+  }
+  .fund-seg:first-child { border-radius: 12px 0 0 12px }
+  .fund-seg:last-child { border-radius: 0 12px 12px 0 }
+  .fund-legend { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 16px }
+  .fund-legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-dim) }
+  .fund-legend-item .swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0 }
+
+  /* — Timeline — */
+  .timeline { margin-top: 32px; position: relative }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 24px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--line);
+  }
+  .tl-item {
+    position: relative;
+    padding: 0 0 40px 64px;
+  }
+  .tl-item:last-child { padding-bottom: 0 }
+  .tl-dot {
+    position: absolute;
+    left: 16px;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--line);
+  }
+  .tl-dot.active { border-color: var(--red); background: var(--red) }
+  .tl-dot.future { border-color: var(--ink-muted) }
+  .tl-period {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+  .tl-item h3 { margin-bottom: 6px }
+  .tl-item p { font-size: 14px }
+  .tl-item ul { color: var(--ink-dim); font-size: 14px; padding-left: 18px; margin-top: 8px }
+  .tl-item li { margin-bottom: 4px }
+
+  /* — Scenario tabs — */
+  .scenarios { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px }
+  .scenario-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: "DM Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  .scenario-btn:hover { color: var(--ink); border-color: #3a3a34 }
+  .scenario-btn.active { background: var(--red); border-color: var(--red); color: var(--ink); font-weight: 600 }
+  .scenario-note { color: var(--ink-muted); font-size: 13px; margin-top: -12px; margin-bottom: 24px; font-style: italic }
+
+  /* — Chart — */
+  .chart-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px;
+    height: 440px;
+    position: relative;
+  }
+  .chart-wrap canvas { max-height: 380px }
+
+  /* — Table — */
+  .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px }
+  .data-table th {
+    text-align: left;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    font-weight: 400;
+  }
+  .data-table td { padding: 12px 14px; border-bottom: 1px solid #1f1f1c; color: var(--ink-dim); vertical-align: top }
+  .data-table td:first-child { color: var(--ink); font-weight: 500 }
+  .data-table tr:last-child td { border-bottom: none }
+  .data-table tr:hover td { background: rgba(178, 40, 72, 0.04) }
+
+  /* — Risk cards — */
+  .risk-card { border-left: 3px solid var(--red) }
+  .risk-card .mitigate { color: var(--good); font-size: 13px; margin-top: 10px }
+  .risk-card .mitigate::before { content: "↳ "; font-weight: 600 }
+
+  /* — Verticals — */
+  .vertical-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    padding: 20px 0;
+    border-top: 1px solid var(--line);
+  }
+  .vertical-row:first-child { border-top: none }
+  @media (max-width: 640px) { .vertical-row { grid-template-columns: 1fr; gap: 6px } }
+
+  /* — Nav — */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(26, 26, 24, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 0;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+  }
+  .nav.visible { transform: translateY(0) }
+  .nav-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .nav-brand {
+    font-family: "Black Han Sans", sans-serif;
+    font-size: 16px;
+    color: var(--red);
+    white-space: nowrap;
+  }
+  .nav-links { display: flex; gap: 6px; flex-wrap: wrap }
+  .nav-links a {
+    font-family: "DM Sans", sans-serif;
+    font-size: 12px;
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .nav-links a:hover { color: var(--ink); background: rgba(253, 245, 230, 0.05) }
+  @media (max-width: 640px) { .nav-links { display: none } }
+
+  /* — Footer — */
+  footer {
+    padding: 48px 28px;
+    max-width: 1120px;
+    margin: 0 auto;
+    border-top: 1px solid var(--line);
+  }
+  footer .sig {
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  footer .mutter { margin-top: 8px; font-size: 13px }
+
+  /* — Pill — */
+  .pill {
+    display: inline-block;
+    font-family: "Righteous", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .pill.red { color: var(--red); border-color: rgba(178,40,72,0.4); background: rgba(178,40,72,0.08) }
+  .pill.good { color: var(--good); border-color: rgba(123,211,137,0.3) }
+  .pill.orange { color: var(--orange); border-color: rgba(242,140,82,0.3); background: rgba(242,140,82,0.06) }
+
+  /* — Animate on scroll — */
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease }
+  .reveal.visible { opacity: 1; transform: translateY(0) }
+
+  /* — Mobile responsive — */
+  @media (max-width: 640px) {
+    .container { padding: 0 16px }
+    section { padding: 48px 0 }
+
+    .cover { min-height: auto; padding: 48px 0 }
+    .cover h1 { font-size: clamp(36px, 10vw, 52px) }
+    .cover .lede { font-size: 16px }
+    .cover .meta-strip { gap: 16px 24px }
+
+    .stat { font-size: 32px }
+    .kpi .stat { font-size: 28px }
+    .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px }
+    .kpi { padding: 16px }
+
+    .card { padding: 20px; border-radius: 12px }
+    .card .stat { font-size: 28px }
+
+    h2.heading { font-size: clamp(24px, 6vw, 30px) }
+    h3 { font-size: 17px }
+
+    .fund-seg { font-size: 8px; letter-spacing: 0.05em }
+    .fund-legend { gap: 12px }
+    .fund-legend-item { font-size: 12px }
+
+    .data-table { font-size: 13px }
+    .data-table th, .data-table td { padding: 10px 8px }
+
+    .timeline::before { left: 14px }
+    .tl-item { padding: 0 0 32px 44px }
+    .tl-dot { left: 6px; width: 16px; height: 16px }
+
+    .chart-wrap { height: 300px; padding: 16px }
+    .chart-wrap canvas { max-height: 260px }
+
+    .nav-inner { padding: 0 16px }
+
+    footer { padding: 32px 16px }
+
+    .grid-2 .card .stat, .grid-3 .card .stat { font-size: 26px }
+
+    .scenarios { gap: 6px }
+    .scenario-btn { padding: 8px 14px; font-size: 12px }
+  }
+
+  @media (max-width: 420px) {
+    .kpi-row { grid-template-columns: 1fr }
+    .stat { font-size: 28px }
+    .kpi .stat { font-size: 24px }
+    .cover .meta-strip { flex-direction: column; gap: 12px }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SUPERBAD</div>
+    <div class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#market">Market</a>
+      <a href="#model">Model</a>
+      <a href="#funds">Use of Funds</a>
+      <a href="#projections">Projections</a>
+      <a href="#timeline">Timeline</a>
+      <a href="#risks">Risks</a>
+    </div>
+  </div>
+</nav>
+
+<!-- COVER -->
+<div class="container">
+<header class="cover">
+  <div class="eyebrow">Business Plan · April 2026</div>
+  <h1 class="display">SuperBad<br/>Marketing.</h1>
+  <p class="lede">Business expansion loan application — scaling a creative media agency and automated SaaS platform from early revenue to full commercial operation over the next twelve months.</p>
+  <p class="mutter" style="margin-top: 14px; max-width: 52ch">Storytellers first, marketers second. The rest follows.</p>
+
+  <div class="meta-strip">
+    <div class="meta-item">
+      <span class="label">Entity</span>
+      <span class="value">SuperBad Media</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Location</span>
+      <span class="value">Melbourne, VIC</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Founded</span>
+      <span class="value">2024</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Seeking</span>
+      <span class="value">$50,000 – $100,000</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Purpose</span>
+      <span class="value">Business Expansion</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Founder</span>
+      <span class="value">Andy Robinson</span>
+    </div>
+  </div>
+</header>
+</div>
+
+<!-- EXECUTIVE SUMMARY -->
+<section id="overview">
+  <div class="container reveal">
+    <div class="eyebrow">Executive Summary</div>
+    <h2 class="heading">An existing business,<br/>ready to scale.</h2>
+    <p style="font-size: 17px; color: var(--ink); max-width: 64ch; margin-top: 8px">SuperBad Marketing is a Melbourne-based creative media and marketing agency with 1–2 years of trading history, an active client base generating $5,000–$15,000 per month, and a proprietary operations platform nearing completion.</p>
+    <p style="margin-top: 16px">This loan funds the transition from early operations to full commercial capacity — hiring the first production team member, investing in production equipment, seeding outreach campaigns, and maintaining a working capital buffer during the ramp to steady-state revenue.</p>
+
+    <div class="grid grid-3" style="margin-top: 40px">
+      <div class="card highlight">
+        <div class="stat">$5k–15k<span class="unit">/mo</span></div>
+        <div class="stat-label">Current monthly revenue</div>
+        <p>Existing clients on retainer and ad-hoc engagements, managed through current systems.</p>
+      </div>
+      <div class="card">
+        <div class="stat">2<span class="unit"> arms</span></div>
+        <div class="stat-label">Revenue streams</div>
+        <p>In-person creative retainers ($5k/mo avg) and automated SaaS subscriptions ($250/mo avg).</p>
+      </div>
+      <div class="card">
+        <div class="stat">1<span class="unit"> platform</span></div>
+        <div class="stat-label">Proprietary technology</div>
+        <p>SuperBad Lite — custom-built operations platform handling lead gen, sales, billing, and client management.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKET OPPORTUNITY -->
+<section id="market">
+  <div class="container reveal">
+    <div class="eyebrow">Market Opportunity</div>
+    <h2 class="heading">Three verticals, wide open.</h2>
+    <p>Every target vertical shares one trait: high client lifetime value, strong need for differentiated content, and almost zero personality-led marketing in market today.</p>
+
+    <div style="margin-top: 36px">
+      <div class="vertical-row">
+        <div>
+          <h4>Medical Aesthetics</h4>
+          <span class="pill red">Primary</span>
+        </div>
+        <div>
+          <p>Boutique cosmetic clinics, injectables, laser, skin. Founder-led, 1–3 Melbourne locations. Revenue $800k–$5M. <strong>TGA restrictions on before/after imagery</strong> make storytelling-led content the only compliant approach — a structural advantage for creative agencies.</p>
+          <p style="font-size: 13px; margin-top: 6px"><strong>Client LTV:</strong> $20,000–$60,000+ &nbsp;·&nbsp; <strong>Active prospects:</strong> Glow Aesthetic, Dermaq Aesthetics, ENRICH Clinic</p>
+        </div>
+      </div>
+
+      <div class="vertical-row">
+        <div>
+          <h4>Financial Planning</h4>
+          <span class="pill red">Primary</span>
+        </div>
+        <div>
+          <p>Boutique advisory firms, 3–15 advisors/brokers. Personality-led content is almost non-existent in Melbourne financial services — significant first-mover opportunity in a high-trust industry.</p>
+          <p style="font-size: 13px; margin-top: 6px"><strong>Client LTV:</strong> $10,000–$50,000+ &nbsp;·&nbsp; <strong>Active prospects:</strong> AXTON Finance, Rising Tide Financial, ActOn Wealth, Yield Financial Planning</p>
+        </div>
+      </div>
+
+      <div class="vertical-row">
+        <div>
+          <h4>Allied Health</h4>
+          <span class="pill red">Primary</span>
+        </div>
+        <div>
+          <p>Physio, psychology, specialist allied health. Premium positioning. <strong>Fastest growing industry in Australia</strong> at +6.6% YoY (2024–25). Revenue $800k–$3M per practice.</p>
+          <p style="font-size: 13px; margin-top: 6px"><strong>Active prospects:</strong> Balance North (Melbourne)</p>
+        </div>
+      </div>
+
+      <div class="vertical-row">
+        <div>
+          <h4>Secondary Verticals</h4>
+          <span class="pill orange">Opportunistic</span>
+        </div>
+        <div>
+          <p>Boutique specialist law firms, premium RTOs/education (course fees $3k–$20k+), premium hospitality (Year 2 — show concept "The Table" in development).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUSINESS MODEL -->
+<section id="model">
+  <div class="container reveal">
+    <div class="eyebrow">Business Model</div>
+    <h2 class="heading">Two engines, one operating system.</h2>
+
+    <div class="grid grid-2" style="margin-top: 32px">
+      <div class="card highlight">
+        <h4>Arm 1</h4>
+        <h3>Creative Media Retainers</h3>
+        <div class="stat" style="margin: 16px 0 8px">$5,000<span class="unit">/mo avg</span></div>
+        <p>Full creative production + performance marketing. Custom-quoted per client via the Lite platform's package builder. Trial shoot ($297 wedge) → 6-week marketing plan → retainer conversion.</p>
+        <p style="margin-top: 10px"><strong>Conversion model:</strong> 25% of trial shoots convert to retainer — the plan itself is the pitch.</p>
+      </div>
+      <div class="card">
+        <h4>Arm 2</h4>
+        <h3>Automated SaaS Subscriptions</h3>
+        <div class="stat" style="margin: 16px 0 8px">$250<span class="unit">/mo avg</span></div>
+        <p>Self-serve subscription products for businesses that want the SuperBad operating system without the agency fee. Same Brand DNA engine, same content tooling, automated delivery.</p>
+        <p style="margin-top: 10px"><strong>Three tiers:</strong> Small (capture), Medium (default), Large (small jump, big revenue lift).</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px">
+      <h4>The Client Journey</h4>
+      <div class="grid grid-4" style="margin-top: 16px">
+        <div class="card" style="text-align: center; padding: 20px">
+          <div style="font-family: 'Black Han Sans'; font-size: 28px; color: var(--red)">01</div>
+          <h3 style="font-size: 16px; margin: 8px 0 4px">Discovery</h3>
+          <p style="font-size: 13px; text-align: center">ICP-scored outreach or inbound via content engine</p>
+        </div>
+        <div class="card" style="text-align: center; padding: 20px">
+          <div style="font-family: 'Black Han Sans'; font-size: 28px; color: var(--red)">02</div>
+          <h3 style="font-size: 16px; margin: 8px 0 4px">Trial Shoot</h3>
+          <p style="font-size: 13px; text-align: center">$297 on-site session (60–90 min) + bespoke 6-week marketing plan</p>
+        </div>
+        <div class="card" style="text-align: center; padding: 20px">
+          <div style="font-family: 'Black Han Sans'; font-size: 28px; color: var(--red)">03</div>
+          <h3 style="font-size: 16px; margin: 8px 0 4px">Conversion</h3>
+          <p style="font-size: 13px; text-align: center">Retainer quote or SaaS signup, both via branded portal</p>
+        </div>
+        <div class="card" style="text-align: center; padding: 20px">
+          <div style="font-family: 'Black Han Sans'; font-size: 28px; color: var(--red)">04</div>
+          <h3 style="font-size: 16px; margin: 8px 0 4px">Delivery</h3>
+          <p style="font-size: 13px; text-align: center">Ongoing production + automated billing + client portal</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE OF FUNDS -->
+<section id="funds">
+  <div class="container reveal">
+    <div class="eyebrow">Use of Funds</div>
+    <h2 class="heading">Where the money goes.</h2>
+    <p>Every dollar maps to a specific capability gap. No vanity spend.</p>
+
+    <div class="fund-bar-wrap">
+      <div class="fund-bar" id="fundBar">
+        <div class="fund-seg" style="width: 35%; background: var(--red)" data-label="Equipment · 35%">35%</div>
+        <div class="fund-seg" style="width: 30%; background: var(--orange)" data-label="First Hire · 30%">30%</div>
+        <div class="fund-seg" style="width: 15%; background: var(--pink); color: var(--bg)" data-label="Outreach · 15%">15%</div>
+        <div class="fund-seg" style="width: 20%; background: var(--ink); color: var(--bg)" data-label="Buffer · 20%">20%</div>
+      </div>
+      <div class="fund-legend">
+        <div class="fund-legend-item"><div class="swatch" style="background: var(--red)"></div> Production Equipment</div>
+        <div class="fund-legend-item"><div class="swatch" style="background: var(--orange)"></div> First Hire Runway</div>
+        <div class="fund-legend-item"><div class="swatch" style="background: var(--pink)"></div> Outreach & Marketing</div>
+        <div class="fund-legend-item"><div class="swatch" style="background: var(--ink)"></div> Working Capital Buffer</div>
+      </div>
+    </div>
+
+    <table class="data-table" style="margin-top: 32px">
+      <thead>
+        <tr><th>Category</th><th>Amount (est.)</th><th>What it buys</th><th>Revenue impact</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Production Equipment</td>
+          <td>$17,500 – $35,000</td>
+          <td>Camera bodies, lenses, lighting, audio, stabilisation, edit workstation</td>
+          <td>Enables retainer shoot delivery — direct revenue prerequisite</td>
+        </tr>
+        <tr>
+          <td>First Hire Runway</td>
+          <td>$15,000 – $30,000</td>
+          <td>3–6 month contractor retainer for Shooter/Editor #1</td>
+          <td>Triples production capacity — unlocks 3 flagship clients simultaneously</td>
+        </tr>
+        <tr>
+          <td>Outreach & Marketing</td>
+          <td>$7,500 – $15,000</td>
+          <td>Email warmup infrastructure, ICP-scored prospect lists, SaaS ad spend ($50/day baseline, scaling to 20% of SaaS revenue)</td>
+          <td>Fills the trial shoot pipeline + drives SaaS acquisition from day 1</td>
+        </tr>
+        <tr>
+          <td>Working Capital Buffer</td>
+          <td>$10,000 – $20,000</td>
+          <td>3-month operating buffer (SaaS costs, insurance, accounting, contingency)</td>
+          <td>De-risks the ramp period between current revenue and scale</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- EXISTING ASSETS -->
+<section>
+  <div class="container reveal">
+    <div class="eyebrow">Existing Assets & Equity</div>
+    <h2 class="heading">Skin in the game.</h2>
+
+    <div class="grid grid-3" style="margin-top: 32px">
+      <div class="card">
+        <h4>Software IP</h4>
+        <h3>SuperBad Lite Platform</h3>
+        <p>Custom-built operations platform — lead generation, sales pipeline, branded invoicing, SaaS billing, client portal, Brand DNA engine. ~210 build sessions, ~70% complete. Proprietary to the business.</p>
+      </div>
+      <div class="card">
+        <h4>Production Gear</h4>
+        <h3>Existing Equipment</h3>
+        <p>Current camera, lens, lighting, and audio equipment used for existing client work. Tangible assets on hand.</p>
+      </div>
+      <div class="card">
+        <h4>Revenue</h4>
+        <h3>Active Client Base</h3>
+        <p>Existing retainer and ad-hoc clients generating $5,000–$15,000/mo. Proven demand. Named prospects in pipeline across three verticals.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTIONS -->
+<section id="projections">
+  <div class="container reveal">
+    <div class="eyebrow">12-Month Projections</div>
+    <h2 class="heading">What it looks like when it works.</h2>
+    <p>Trial shoot conversion at 25%. Average retainer $5,000/mo. Average SaaS subscription $250/mo. Retainer churn 3%/mo, SaaS churn 5%/mo.</p>
+
+    <div class="scenarios" style="margin-top: 32px" id="scenarios">
+      <button class="scenario-btn" data-s="A">Conservative</button>
+      <button class="scenario-btn active" data-s="B">Base Case</button>
+      <button class="scenario-btn" data-s="C">Ambitious</button>
+    </div>
+    <div class="scenario-note" id="scenarioNote"></div>
+
+    <div class="chart-wrap">
+      <canvas id="mrrChart"></canvas>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="stat" id="kpiRetainers">—</div><div class="stat-label">Active retainers · Month 12</div></div>
+      <div class="kpi"><div class="stat" id="kpiSaas">—</div><div class="stat-label">Active SaaS subs · Month 12</div></div>
+      <div class="kpi"><div class="stat" id="kpiMrr">—</div><div class="stat-label">Monthly revenue · Month 12</div></div>
+      <div class="kpi"><div class="stat" id="kpiArr">—</div><div class="stat-label">Annualised run-rate</div></div>
+    </div>
+
+    <div class="kpi-row" style="margin-top: 16px">
+      <div class="kpi"><div class="stat" id="kpiCumRev">—</div><div class="stat-label">Total revenue over 12 months</div></div>
+      <div class="kpi"><div class="stat" id="kpiPeak">—</div><div class="stat-label">Peak monthly revenue</div></div>
+      <div class="kpi"><div class="stat" id="kpiMix">—</div><div class="stat-label">Retainer / SaaS mix</div></div>
+      <div class="kpi"><div class="stat" id="kpiPayback">—</div><div class="stat-label">Loan coverage ratio · M12</div></div>
+    </div>
+
+    <!-- Monthly breakdown table -->
+    <div style="margin-top: 40px">
+      <h4>Monthly Breakdown</h4>
+      <div style="overflow-x: auto">
+        <table class="data-table" id="monthlyTable">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>New Shoots</th>
+              <th>Active Retainers</th>
+              <th>Retainer MRR</th>
+              <th>SaaS Subs</th>
+              <th>SaaS MRR</th>
+              <th>Total MRR</th>
+              <th>Cumulative</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="container reveal">
+    <div class="eyebrow">12-Month Roadmap</div>
+    <h2 class="heading">Quarter by quarter.</h2>
+
+    <div class="timeline" style="margin-top: 40px">
+      <div class="tl-item">
+        <div class="tl-dot active"></div>
+        <div class="tl-period">Q3 2026 · Months 1–3</div>
+        <h3>Launch & Activate</h3>
+        <p>Platform goes live. Outreach engine turns on. First hires made. Trial shoot pipeline filling.</p>
+        <ul>
+          <li>SuperBad Lite platform launch + domain cutover from GHL</li>
+          <li>Shooter/Editor #1 onboarded (contractor)</li>
+          <li>Outreach engine activated — ICP-scored, LLM-generated, cold email at volume</li>
+          <li>First 5–10 trial shoots completed</li>
+          <li>Instagram content engine launched</li>
+          <li><strong>Target:</strong> 2–4 retainer clients signed, $10k–$30k MRR</li>
+        </ul>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot future"></div>
+        <div class="tl-period">Q4 2026 · Months 4–6</div>
+        <h3>Establish & Convert</h3>
+        <p>Trial-to-retainer conversion proven. SaaS products live. Case studies publishing.</p>
+        <ul>
+          <li>Steady state trial shoots: 8–15/month</li>
+          <li>SaaS subscription products launched publicly</li>
+          <li>First case studies published — proof of work in 2 verticals</li>
+          <li>Shooter/Editor #2 onboarded for overflow capacity</li>
+          <li>First flagship client signed (The Long Way Round — Thetford)</li>
+          <li><strong>Target:</strong> 5–8 retainer clients, 20–50 SaaS subs, $30k–$55k MRR</li>
+        </ul>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot future"></div>
+        <div class="tl-period">Q1 2027 · Months 7–9</div>
+        <h3>Scale & Produce</h3>
+        <p>Flagship series in production. Instagram generating inbound. Revenue approaching run-rate.</p>
+        <ul>
+          <li>Flagship brand entertainment series in production</li>
+          <li>Instagram generating organic inbound leads</li>
+          <li>Content engine driving SaaS acquisition via organic reach</li>
+          <li>Account manager hire scoped (10-account threshold)</li>
+          <li><strong>Target:</strong> 8–11 retainer clients, 80–130 SaaS subs, $50k–$80k MRR</li>
+        </ul>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot future"></div>
+        <div class="tl-period">Q2 2027 · Months 10–12</div>
+        <h3>Full Capacity</h3>
+        <p>Operating at planned capacity. Revenue targets hit. Expansion options clear.</p>
+        <ul>
+          <li>Retainer portfolio at or near solo-operator capacity</li>
+          <li>SaaS growing organically via content + referrals + outreach spillover</li>
+          <li>WHR proof of concept (The Pursuit) underway</li>
+          <li>Year 2 planning: The Table (hospitality), expanded team, v1.1 features</li>
+          <li><strong>Target:</strong> 10–14 retainer clients, 150–200 SaaS subs, $65k–$110k MRR</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section>
+  <div class="container reveal">
+    <div class="eyebrow">Team Plan</div>
+    <h2 class="heading">Lean by design.</h2>
+    <p>Hiring is sequenced to revenue milestones, not ambition. Every role unlocks specific capacity.</p>
+
+    <table class="data-table" style="margin-top: 28px">
+      <thead>
+        <tr><th>Role</th><th>Type</th><th>Timing</th><th>Unlocks</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Andy Robinson</td>
+          <td>Founder — CEO / BD / Creative Director</td>
+          <td>Now</td>
+          <td>Everything. Strategy, sales, shoots, platform build.</td>
+        </tr>
+        <tr>
+          <td>Shooter/Editor #1</td>
+          <td>Contractor → Employee</td>
+          <td>Month 1–2</td>
+          <td>3× production capacity. Enables flagship + retainer shoots simultaneously.</td>
+        </tr>
+        <tr>
+          <td>Shooter/Editor #2</td>
+          <td>Contractor</td>
+          <td>Month 5–7</td>
+          <td>Overflow retainer shoot days. Triggered at 8+ active retainers.</td>
+        </tr>
+        <tr>
+          <td>Account Manager</td>
+          <td>Employee</td>
+          <td>Month 9–12</td>
+          <td>Client relationship management at 10+ accounts. Frees Andy for BD + creative.</td>
+        </tr>
+        <tr>
+          <td>Ads Specialist</td>
+          <td>Contractor → Employee</td>
+          <td>Month 6–9</td>
+          <td>Performance marketing management for 5–8 accounts.</td>
+        </tr>
+        <tr>
+          <td>Offshore Editors</td>
+          <td>Contractor (as needed)</td>
+          <td>Month 4+</td>
+          <td>Social snippet overflow. Variable cost, scales with volume.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- REPAYMENT -->
+<section>
+  <div class="container reveal">
+    <div class="eyebrow">Repayment Capacity</div>
+    <h2 class="heading">The numbers that matter to a lender.</h2>
+
+    <div class="grid grid-2" style="margin-top: 32px">
+      <div class="card highlight">
+        <h4>Gross Margins</h4>
+        <h3>Retainer: ~70% · SaaS: ~85%</h3>
+        <p>Retainer cost of delivery is primarily contractor labour + travel. SaaS cost is infrastructure (hosting, LLM API calls, Stripe fees). Both are high-margin businesses by design.</p>
+      </div>
+      <div class="card">
+        <h4>Revenue Diversity</h4>
+        <h3>Two independent streams</h3>
+        <p>If retainer acquisition underperforms, SaaS provides a floor. If SaaS ramps slowly, retainers cover loan service. Neither depends on the other to survive.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px; padding: 32px">
+      <h4>Loan Service Illustration</h4>
+      <div class="grid grid-3" style="margin-top: 16px; gap: 32px">
+        <div>
+          <div class="stat" style="font-size: 32px">$100k<span class="unit">loan</span></div>
+          <div class="stat-label">At top of range</div>
+          <p style="margin-top: 8px; font-size: 13px">5-year term, 12.5% interest → ~$2,250/mo repayment</p>
+        </div>
+        <div>
+          <div class="stat" style="font-size: 32px" id="repCovM6">—</div>
+          <div class="stat-label">Coverage ratio · Month 6</div>
+          <p style="margin-top: 8px; font-size: 13px">Monthly revenue ÷ monthly repayment (base case)</p>
+        </div>
+        <div>
+          <div class="stat" style="font-size: 32px" id="repCovM12">—</div>
+          <div class="stat-label">Coverage ratio · Month 12</div>
+          <p style="margin-top: 8px; font-size: 13px">Comfortable coverage = 3× or above</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RISKS -->
+<section id="risks">
+  <div class="container reveal">
+    <div class="eyebrow">Risk Assessment</div>
+    <h2 class="heading">What could go wrong,<br/>and what we've done about it.</h2>
+
+    <div class="grid grid-2" style="margin-top: 32px">
+      <div class="card risk-card">
+        <h3>Outreach Deliverability</h3>
+        <p>Cold email at volume lives or dies on warmup, domain reputation, and targeting precision.</p>
+        <div class="mitigate">ICP-scoring gate cuts 30–40% of bad-fit prospects before send. LLM-generated copy per prospect (no templates). First 90 days are the calibration window.</div>
+      </div>
+      <div class="card risk-card">
+        <h3>Trial-to-Retainer Conversion</h3>
+        <p>25% conversion is a working assumption, not a measured one. If it lands at 15%, services revenue compresses ~40%.</p>
+        <div class="mitigate">The 6-week plan is the pitch — it demonstrates real value before asking for commitment. SaaS revenue is the structural hedge.</div>
+      </div>
+      <div class="card risk-card">
+        <h3>SaaS Ramp Speed</h3>
+        <p>SaaS acquisition depends on paid ads, outreach spillover, content engine, and referrals finding traction simultaneously.</p>
+        <div class="mitigate">Dedicated ad spend from day 1 ($50/day baseline, scaling to 20% of SaaS revenue when that exceeds the baseline). Content engine is automated (LLM-driven). Conservative scenario still models only 80 subs by Month 12.</div>
+      </div>
+      <div class="card risk-card">
+        <h3>Solo Operator Capacity</h3>
+        <p>Andy does the shoots. Retainer count has a human ceiling. Too many clients too fast = quality risk.</p>
+        <div class="mitigate">Hiring pipeline is sequenced to revenue. Tier limits on SaaS protect margin. Shooter/Editor #1 triples capacity from Month 1. Account Manager at 10 clients.</div>
+      </div>
+      <div class="card risk-card">
+        <h3>Platform Completion</h3>
+        <p>SuperBad Lite is ~70% built. Remaining 30% includes key features (Unified Inbox, Content Engine, Lead Generation).</p>
+        <div class="mitigate">Core revenue features (Sales Pipeline, Quote Builder, Invoicing, SaaS Billing) are already shipped. Remaining waves are growth accelerators, not prerequisites.</div>
+      </div>
+      <div class="card risk-card">
+        <h3>Market Competition</h3>
+        <p>Creative agencies exist. Marketing agencies exist. Someone could copy the model.</p>
+        <div class="mitigate">The moat is the combination: proprietary platform + entertainment-first creative + vertical specialisation + AI-driven operations. Competitors would need to build all four.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section>
+  <div class="container reveal" style="text-align: center; padding: 96px 0">
+    <div class="eyebrow">The Ask</div>
+    <h2 class="heading" style="max-width: 18ch; margin: 0 auto 20px">$50k–$100k to<br/>finish what's started.</h2>
+    <p style="margin: 0 auto; text-align: center; font-size: 17px; color: var(--ink)">Existing revenue. Existing clients. Existing platform. Named prospects in three high-value verticals. A clear 12-month plan to full commercial capacity.</p>
+    <p class="mutter" style="margin: 20px auto 0; text-align: center">Not a bet on an idea. A bet on execution that's already underway.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="sig">SuperBad Marketing · Business Plan · April 2026</div>
+  <div class="mutter" style="margin-top: 8px">Projections are targets, not forecasts. But we've done the maths and we're not guessing.</div>
+</footer>
+
+<script>
+/* ============== NAV ============== */
+const nav = document.getElementById("nav");
+let lastScroll = 0;
+window.addEventListener("scroll", () => {
+  const y = window.scrollY;
+  nav.classList.toggle("visible", y > 400);
+  lastScroll = y;
+});
+
+/* ============== REVEAL ON SCROLL ============== */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); observer.unobserve(e.target) } });
+}, { threshold: 0.1 });
+document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+
+/* ============== PROJECTIONS ============== */
+const RETAINER_VALUE = 5000;
+const SAAS_ARPU = 250;
+const CONVERSION = 0.25;
+const RETAINER_CHURN = 0.03;
+const SAAS_CHURN = 0.05;
+const LOAN_REPAYMENT = 2250;
+
+const scenarios = {
+  A: {
+    name: "Conservative",
+    note: "6 trial shoots/mo at steady state · SaaS ramp to 80 subs · cautious conversion",
+    shootsRamp: [1, 2, 3, 4, 5, 6],
+    shootsSteady: 6,
+    saasAnchors: { 0:0, 3:10, 6:30, 9:55, 12:80 }
+  },
+  B: {
+    name: "Base Case",
+    note: "12 trial shoots/mo at steady state · SaaS ramp to 200 subs · 25% conversion holding",
+    shootsRamp: [2, 4, 6, 8, 10, 12],
+    shootsSteady: 12,
+    saasAnchors: { 0:0, 3:25, 6:70, 9:130, 12:200 }
+  },
+  C: {
+    name: "Ambitious",
+    note: "18 trial shoots/mo at steady state · SaaS ramp to 350 subs · strong content engine",
+    shootsRamp: [3, 6, 9, 12, 15, 18],
+    shootsSteady: 18,
+    saasAnchors: { 0:0, 3:40, 6:120, 9:230, 12:350 }
+  }
+};
+
+function shootsAt(s, m) {
+  if (m <= 0) return 0;
+  if (m <= s.shootsRamp.length) return s.shootsRamp[m - 1];
+  return s.shootsSteady;
+}
+
+function saasAt(s, m) {
+  const anchors = Object.keys(s.saasAnchors).map(Number).sort((a, b) => a - b);
+  if (m <= anchors[0]) return s.saasAnchors[anchors[0]];
+  if (m >= anchors[anchors.length - 1]) return s.saasAnchors[anchors[anchors.length - 1]];
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const a = anchors[i], b = anchors[i + 1];
+    if (m >= a && m <= b) {
+      const t = (m - a) / (b - a);
+      return Math.round(s.saasAnchors[a] + t * (s.saasAnchors[b] - s.saasAnchors[a]));
+    }
+  }
+  return 0;
+}
+
+function project(s) {
+  const labels = [], retMrr = [], saasMrr = [], totalMrr = [], cumulative = [];
+  const monthlyData = [];
+  let activeRet = 1, cum = 0, peak = 0;
+
+  for (let m = 1; m <= 12; m++) {
+    labels.push("M" + m);
+    const newShoots = shootsAt(s, m);
+    const newRet = newShoots * CONVERSION;
+    activeRet = activeRet * (1 - RETAINER_CHURN) + newRet;
+    const rMrr = activeRet * RETAINER_VALUE;
+    const saasActive = saasAt(s, m);
+    const sMrr = saasActive * SAAS_ARPU;
+    const total = rMrr + sMrr;
+    retMrr.push(rMrr);
+    saasMrr.push(sMrr);
+    totalMrr.push(total);
+    cum += total;
+    cumulative.push(cum);
+    if (total > peak) peak = total;
+    monthlyData.push({ m, shoots: newShoots, retainers: activeRet, rMrr, saas: saasActive, sMrr, total, cum });
+  }
+
+  const endRet = activeRet;
+  const endSaas = saasAt(s, 12);
+  const endMrr = totalMrr[11];
+  const retEnd = retMrr[11];
+  const saasEnd = saasMrr[11];
+  const retPct = Math.round(retEnd / (retEnd + saasEnd) * 100);
+  const m6Mrr = totalMrr[5];
+  const m12Mrr = totalMrr[11];
+
+  return {
+    labels, retMrr, saasMrr, totalMrr, cumulative, monthlyData,
+    endRet: Math.round(endRet),
+    endSaas: Math.round(endSaas),
+    endMrr, endArr: endMrr * 12,
+    cumRev: cum, peak,
+    retPct, saasPct: 100 - retPct,
+    covM6: m6Mrr / LOAN_REPAYMENT,
+    covM12: m12Mrr / LOAN_REPAYMENT,
+    payback: endMrr > 0 ? `${(endMrr / LOAN_REPAYMENT).toFixed(1)}×` : "—"
+  };
+}
+
+function fmtMoney(n) {
+  if (n >= 1e6) return "$" + (n / 1e6).toFixed(n >= 1e7 ? 1 : 2) + "M";
+  if (n >= 1e3) return "$" + Math.round(n / 1e3) + "k";
+  return "$" + Math.round(n);
+}
+function fmtNum(n) { return Math.round(n).toLocaleString() }
+
+let chart;
+function render(key) {
+  const s = scenarios[key];
+  const p = project(s);
+
+  document.getElementById("scenarioNote").textContent = s.note;
+  document.getElementById("kpiRetainers").innerHTML = `${p.endRet}<span class="unit">clients</span>`;
+  document.getElementById("kpiSaas").innerHTML = `${fmtNum(p.endSaas)}<span class="unit">subs</span>`;
+  document.getElementById("kpiMrr").innerHTML = `${fmtMoney(p.endMrr)}<span class="unit">/mo</span>`;
+  document.getElementById("kpiArr").innerHTML = `${fmtMoney(p.endArr)}<span class="unit">ARR</span>`;
+  document.getElementById("kpiCumRev").innerHTML = `${fmtMoney(p.cumRev)}`;
+  document.getElementById("kpiPeak").innerHTML = `${fmtMoney(p.peak)}<span class="unit">/mo</span>`;
+  document.getElementById("kpiMix").innerHTML = `${p.retPct}<span class="unit">% · ${p.saasPct}%</span>`;
+  document.getElementById("kpiPayback").innerHTML = `${p.payback}`;
+
+  document.getElementById("repCovM6").innerHTML = `${p.covM6.toFixed(1)}×`;
+  document.getElementById("repCovM12").innerHTML = `${p.covM12.toFixed(1)}×`;
+
+  // Monthly table
+  const tbody = document.getElementById("monthlyBody");
+  tbody.innerHTML = p.monthlyData.map(r => `
+    <tr>
+      <td>Month ${r.m}</td>
+      <td>${r.shoots}</td>
+      <td>${r.retainers.toFixed(1)}</td>
+      <td>${fmtMoney(r.rMrr)}</td>
+      <td>${fmtNum(r.saas)}</td>
+      <td>${fmtMoney(r.sMrr)}</td>
+      <td><strong>${fmtMoney(r.total)}</strong></td>
+      <td>${fmtMoney(r.cum)}</td>
+    </tr>
+  `).join("");
+
+  // Chart
+  const ctx = document.getElementById("mrrChart").getContext("2d");
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: p.labels,
+      datasets: [
+        {
+          label: "Retainer MRR",
+          data: p.retMrr,
+          borderColor: "#B22848",
+          backgroundColor: "rgba(178,40,72,0.15)",
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: "#B22848",
+          pointHoverRadius: 5,
+        },
+        {
+          label: "SaaS MRR",
+          data: p.saasMrr,
+          borderColor: "#F28C52",
+          backgroundColor: "rgba(242,140,82,0.12)",
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: "#F28C52",
+          pointHoverRadius: 5,
+        },
+        {
+          label: "Total MRR",
+          data: p.totalMrr,
+          borderColor: "#FDF5E6",
+          borderDash: [4, 4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.35,
+        },
+        {
+          label: "Loan Repayment",
+          data: Array(12).fill(LOAN_REPAYMENT),
+          borderColor: "rgba(244,160,176,0.4)",
+          borderDash: [8, 4],
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          labels: {
+            color: "#FDF5E6",
+            font: { family: "DM Sans", size: 12 },
+            usePointStyle: true,
+            pointStyle: "circle"
+          }
+        },
+        tooltip: {
+          backgroundColor: "#222220",
+          borderColor: "#2a2a26",
+          borderWidth: 1,
+          titleColor: "#FDF5E6",
+          bodyColor: "#FDF5E6",
+          titleFont: { family: "DM Sans", weight: "600" },
+          bodyFont: { family: "DM Sans" },
+          padding: 14,
+          callbacks: {
+            label: (c) => `${c.dataset.label}: ${fmtMoney(c.parsed.y)}/mo`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: "#2a2a26" },
+          ticks: { color: "#7a7368", font: { family: "Righteous", size: 10 } }
+        },
+        y: {
+          grid: { color: "#2a2a26" },
+          ticks: {
+            color: "#7a7368",
+            font: { family: "Righteous", size: 10 },
+            callback: (v) => fmtMoney(v)
+          }
+        }
+      }
+    }
+  });
+}
+
+document.querySelectorAll(".scenario-btn").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".scenario-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    render(b.dataset.s);
+  });
+});
+
+render("B");
+</script>
+
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>SuperBad — Stories Post</title>
+<style>
+  @font-face { font-family: 'Black Han Sans'; src: url('fonts/black-han-sans-400.woff2') format('woff2'); }
+  @font-face { font-family: 'Righteous'; src: url('fonts/righteous-400.woff2') format('woff2'); }
+  @font-face { font-family: 'Playfair Display'; src: url('fonts/playfair-display-italic-var.woff2') format('woff2'); font-style: italic; }
+  @font-face { font-family: 'DM Sans'; src: url('fonts/dm-sans-var.woff2') format('woff2'); }
+  @font-face { font-family: 'Pacifico'; src: url('fonts/pacifico-400.woff2') format('woff2'); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #B22848;
+    --cream: #FDF5E6;
+    --pink: #F4A0B0;
+    --orange: #F28C52;
+    --charcoal: #1A1A18;
+  }
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: var(--charcoal);
+    position: relative;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Grain */
+  .grain {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    opacity: 0.04;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Large red gradient block — top third */
+  .hero-block {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 720px;
+    background: linear-gradient(165deg, var(--red) 0%, #8a1e38 60%, var(--charcoal) 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+    transform: translateY(-100%);
+    animation: blockReveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  }
+
+  @keyframes blockReveal {
+    to { transform: translateY(0); }
+  }
+
+  /* Geometric ring inside hero */
+  .hero-ring {
+    position: absolute;
+    top: 100px;
+    right: -60px;
+    width: 440px;
+    height: 440px;
+    border-radius: 50%;
+    border: 4px solid var(--cream);
+    opacity: 0;
+    animation: ringIn 0.8s ease-out 0.8s forwards;
+  }
+  .hero-ring-inner {
+    position: absolute;
+    top: 140px;
+    right: 20px;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    border: 2px solid var(--pink);
+    opacity: 0;
+    animation: ringIn 0.8s ease-out 1.0s forwards;
+  }
+
+  @keyframes ringIn {
+    to { opacity: 0.2; }
+  }
+
+  /* Top label inside hero block */
+  .top-label {
+    position: absolute;
+    top: 160px;
+    left: 100px;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    font-size: 16px;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateX(-30px);
+    animation: slideRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+  }
+
+  @keyframes slideRight {
+    to { opacity: 0.7; transform: translateX(0); }
+  }
+
+  /* Big number / year — decorative */
+  .big-year {
+    position: absolute;
+    top: 220px;
+    left: 80px;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 260px;
+    line-height: 0.85;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateY(60px);
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+  }
+  .big-year span {
+    opacity: 0.08;
+  }
+
+  /* Centre content area */
+  .centre {
+    position: absolute;
+    top: 760px;
+    left: 100px;
+    right: 100px;
+  }
+
+  .centre .headline {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 96px;
+    line-height: 0.95;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateY(50px);
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
+  }
+
+  .centre .headline .red {
+    color: var(--red);
+  }
+
+  .divider {
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--orange));
+    margin: 48px 0;
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: dividerGrow 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
+  }
+
+  @keyframes dividerGrow {
+    to { opacity: 1; transform: scaleX(1); }
+  }
+
+  .centre .body-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 32px;
+    line-height: 1.5;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
+  }
+
+  .centre .mutter {
+    font-family: 'DM Sans', sans-serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--pink);
+    margin-top: 20px;
+    opacity: 0;
+    animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards;
+    transform: translateY(10px);
+  }
+
+  /* Bottom section */
+  .bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+
+  /* Animated CTA bar */
+  .cta-bar {
+    background: var(--red);
+    padding: 28px 72px;
+    border-radius: 60px;
+    opacity: 0;
+    transform: scale(0.8) translateY(30px);
+    animation: ctaPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 2.3s forwards;
+  }
+
+  .cta-bar span {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 22px;
+    color: var(--cream);
+  }
+
+  @keyframes ctaPop {
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .logo-mark {
+    font-family: 'Pacifico', cursive;
+    font-size: 36px;
+    color: var(--cream);
+    opacity: 0;
+    animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 2.6s forwards;
+    transform: translateY(10px);
+  }
+
+  .handle {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 14px;
+    color: var(--pink);
+    opacity: 0;
+    animation: fadeUp 0.4s ease-out 2.8s forwards;
+    transform: translateY(10px);
+  }
+
+  /* Vertical accent lines */
+  .v-line {
+    position: absolute;
+    width: 2px;
+    background: var(--pink);
+    opacity: 0;
+    height: 0;
+  }
+  .v-line.v1 { left: 60px; top: 800px; animation: vLineGrow 0.8s ease-out 1.2s forwards; }
+  .v-line.v2 { left: 68px; top: 820px; animation: vLineGrow 0.6s ease-out 1.4s forwards; background: var(--orange); }
+
+  @keyframes vLineGrow {
+    to { height: 200px; opacity: 0.3; }
+  }
+
+  /* Dot pattern — bottom right */
+  .dots {
+    position: absolute;
+    bottom: 380px;
+    right: 80px;
+    display: grid;
+    grid-template-columns: repeat(5, 10px);
+    gap: 16px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease-out 2.4s forwards;
+    transform: translateY(10px);
+  }
+  .dots .d {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--pink);
+    opacity: 0.3;
+  }
+
+  /* Looping breathe on CTA */
+  .cta-bar {
+    animation: ctaPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 2.3s forwards,
+               breathe 3s ease-in-out 3.5s infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <div class="hero-block"></div>
+  <div class="hero-ring"></div>
+  <div class="hero-ring-inner"></div>
+
+  <div class="top-label">SuperBad Marketing</div>
+  <div class="big-year"><span>SB</span></div>
+
+  <div class="v-line v1"></div>
+  <div class="v-line v2"></div>
+
+  <div class="centre">
+    <div class="headline">
+      Stop<br>
+      blending<br>
+      <span class="red">in.</span>
+    </div>
+    <div class="divider"></div>
+    <div class="body-text">
+      "If your marketing looks like<br>
+      everyone else's, it's already<br>
+      invisible."
+    </div>
+    <div class="mutter">(...we said what we said.)</div>
+  </div>
+
+  <div class="dots">
+    <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+    <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+    <div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div><div class="d"></div>
+  </div>
+
+  <div class="bottom">
+    <div class="cta-bar"><span>Make it SuperBad</span></div>
+    <div class="logo-mark">SuperBad</div>
+    <div class="handle">@superbadmedia</div>
+  </div>
+</body>
+</html>

@@ -6,6 +6,73 @@ import { useRouter } from "next/navigation";
 import { houseSpring } from "@/lib/design-tokens";
 import { Section1Form } from "./section-1-form";
 
+const QUOTES = {
+  pullquote: {
+    text: "The content itself is exactly what I wanted but would have struggled to physically come up with.",
+    attr: "Melissa, founder",
+  },
+  process: {
+    text: "There was no extra fluff, just down-to-earth and honest.",
+    attr: "Eleni, Melbourne",
+  },
+  experience: {
+    text: "If the boys didn’t have a camera they would have blended into the rest of the session.",
+    attr: "Josh, franchise operator",
+  },
+  strategy: {
+    text: "As a small business owner, I find these strategies often too much to even start — so I appreciated that this was step-by-step.",
+    attr: "Hayley, studio owner",
+  },
+  vibe: {
+    text: "It showed what we are authentically. Our personalities were embedded.",
+    attr: "Marco, Melbourne",
+  },
+};
+
+function PullQuote({
+  text,
+  attr,
+  align = "center",
+}: {
+  text: string;
+  attr: string;
+  align?: "center" | "left";
+}) {
+  return (
+    <blockquote
+      style={{
+        margin: 0,
+        textAlign: align,
+      }}
+    >
+      <p
+        style={{
+          fontFamily: "var(--font-narrative)",
+          fontStyle: "italic",
+          fontSize: "clamp(1.125rem, 2.5vw, 1.375rem)",
+          lineHeight: 1.5,
+          color: "var(--brand-cream)",
+          margin: 0,
+        }}
+      >
+        &ldquo;{text}&rdquo;
+      </p>
+      <footer
+        style={{
+          marginTop: 16,
+          fontFamily: "var(--font-label)",
+          fontSize: 10,
+          letterSpacing: "2px",
+          textTransform: "uppercase",
+          color: "var(--brand-pink)",
+        }}
+      >
+        &mdash; {attr}
+      </footer>
+    </blockquote>
+  );
+}
+
 export function LandingClient() {
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
@@ -24,13 +91,60 @@ export function LandingClient() {
 
   return (
     <main
+      className="landing-page"
       style={{
         minHeight: "100vh",
         background: "var(--neutral-900)",
         position: "relative",
       }}
     >
-      {/* Atmosphere gradients */}
+      <style>{`
+        .landing-page { --lp-px: 40px; }
+        .landing-hero-grid {
+          display: grid;
+          grid-template-columns: 1.1fr 1fr;
+          gap: 80px;
+          align-items: start;
+        }
+        .landing-what-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.5fr;
+          gap: 80px;
+          align-items: start;
+        }
+        @media (max-width: 860px) {
+          .landing-page { --lp-px: 20px; }
+          .landing-hero-grid {
+            grid-template-columns: 1fr;
+            gap: 48px;
+          }
+          .landing-what-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+          }
+        }
+        .landing-cta-btn {
+          width: 100%;
+          padding: 18px;
+          font-family: var(--font-label);
+          font-size: 12px;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          background: var(--brand-red);
+          color: var(--brand-cream);
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .landing-cta-btn:hover {
+          background: #8F1D3A;
+          transform: translateY(-1px);
+          box-shadow: 0 10px 30px rgba(178, 40, 72, 0.3);
+        }
+      `}</style>
+
+      {/* Atmosphere */}
       <div
         style={{
           position: "fixed",
@@ -38,20 +152,19 @@ export function LandingClient() {
           zIndex: 0,
           pointerEvents: "none",
           background: [
-            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242,140,82,0.18), transparent 60%)",
-            "radial-gradient(ellipse 60% 60% at 100% 100%, rgba(178,40,72,0.15), transparent 60%)",
-            "radial-gradient(ellipse 60% 60% at 0% 80%, rgba(244,160,176,0.10), transparent 60%)",
+            "radial-gradient(ellipse 70% 40% at 80% 10%, rgba(242,140,82,0.12), transparent 60%)",
+            "radial-gradient(ellipse 50% 40% at 10% 60%, rgba(178,40,72,0.08), transparent 60%)",
           ].join(","),
         }}
       />
-      {/* Noise texture */}
+      {/* Noise */}
       <div
         style={{
           position: "fixed",
           inset: 0,
           pointerEvents: "none",
           zIndex: 1,
-          opacity: 0.035,
+          opacity: 0.04,
           mixBlendMode: "overlay",
           backgroundImage:
             "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")",
@@ -62,428 +175,671 @@ export function LandingClient() {
         <AnimatePresence mode="wait">
           {!showForm && (
             <motion.div
-              key="hero"
+              key="landing"
               initial={{ opacity: 1 }}
               exit={{ opacity: 0, y: -20 }}
               transition={houseSpring}
             >
-              {/* Block 1 — Understated opener */}
-              <section
+              {/* ---- Nav ---- */}
+              <nav
                 style={{
+                  padding: "24px var(--lp-px)",
                   display: "flex",
-                  flexDirection: "column",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "70vh",
-                  padding: "96px 24px 64px",
-                  textAlign: "center",
                 }}
               >
-                <h1
+                <span
                   style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "clamp(2.5rem, 6vw, 5.5rem)",
-                    lineHeight: 0.95,
-                    letterSpacing: "-1.5px",
+                    fontFamily: "var(--font-logo)",
+                    fontSize: 26,
                     color: "var(--brand-cream)",
-                    margin: 0,
-                    maxWidth: 780,
                   }}
                 >
-                  Most marketing looks like marketing.
-                </h1>
-                <p
-                  style={{
-                    marginTop: 24,
-                    maxWidth: 540,
-                    fontFamily: "var(--font-narrative)",
-                    fontStyle: "italic",
-                    fontSize: "clamp(1rem, 2vw, 1.375rem)",
-                    lineHeight: 1.45,
-                    color: "var(--neutral-300)",
-                  }}
-                >
-                  We make the kind of content people actually stop for. Then we
-                  build a strategy around it.
-                </p>
-              </section>
+                  SuperBad
+                </span>
+              </nav>
 
-              {/* Block 2 — Delight moment */}
-              <section style={{ padding: "0 24px 80px" }}>
-                <div
-                  style={{
-                    maxWidth: 900,
-                    margin: "0 auto",
-                    borderRadius: 16,
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      aspectRatio: "16/9",
-                      background: "var(--neutral-800)",
-                      boxShadow:
-                        "inset 0 1px 0 rgba(253,245,230,0.04)",
-                    }}
-                  />
-                </div>
-                <p
-                  style={{
-                    maxWidth: 900,
-                    margin: "16px auto 0",
-                    fontFamily: "var(--font-narrative)",
-                    fontStyle: "italic",
-                    fontSize: 15,
-                    color: "var(--brand-pink)",
-                  }}
-                >
-                  She didn&rsquo;t know we were rolling. That&rsquo;s sort of the
-                  point.
-                </p>
-              </section>
-
-              {/* Block 3 — Value drop */}
+              {/* ---- Hero (two-column) ---- */}
               <section
+                className="landing-hero-grid"
                 style={{
-                  maxWidth: 520,
+                  maxWidth: 1200,
                   margin: "0 auto",
-                  padding: "0 24px 80px",
+                  padding: "40px var(--lp-px) 100px",
                 }}
               >
-                <div
-                  style={{
-                    borderRadius: 16,
-                    border: "1px solid rgba(253,245,230,0.12)",
-                    background: "rgba(34,34,31,0.7)",
-                    backdropFilter: "blur(24px)",
-                    boxShadow: "inset 0 1px 0 rgba(253,245,230,0.08), 0 2px 12px rgba(0,0,0,0.3)",
-                    padding: "32px 36px",
-                  }}
-                >
-                  <h2
+                {/* Left — editorial */}
+                <div>
+                  <div
                     style={{
                       fontFamily: "var(--font-label)",
                       fontSize: 10,
                       letterSpacing: "3px",
                       textTransform: "uppercase",
                       color: "var(--brand-pink)",
-                      margin: "0 0 24px",
-                      textAlign: "center",
+                      marginBottom: 24,
                     }}
                   >
-                    What you walk away with
-                  </h2>
+                    A $297 trial shoot &middot; Melbourne &middot; we come to you
+                  </div>
+                  <h1
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "clamp(3rem, 7vw, 5.5rem)",
+                      lineHeight: 0.95,
+                      letterSpacing: "-2px",
+                      color: "var(--brand-cream)",
+                      margin: "0 0 32px",
+                    }}
+                  >
+                    Find out if
+                    <br />
+                    we&rsquo;re right
+                    <br />
+                    for each other
+                    <br />
+                    <span
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        fontStyle: "italic",
+                        color: "var(--brand-pink)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      before either of us commits.
+                    </span>
+                  </h1>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-narrative)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(1rem, 2vw, 1.375rem)",
+                      lineHeight: 1.45,
+                      color: "var(--neutral-300)",
+                      maxWidth: 520,
+                      marginBottom: 16,
+                    }}
+                  >
+                    Sixty minutes on-site. Real deliverables you&rsquo;d
+                    actually use.{" "}
+                    <span style={{ color: "var(--brand-cream)" }}>
+                      And a six-week marketing plan written for you
+                    </span>{" "}
+                    &mdash; one you can run yourself if you decide
+                    we&rsquo;re not the right call.
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 14,
+                      fontStyle: "italic",
+                      color: "var(--brand-pink)",
+                      opacity: 0.8,
+                    }}
+                  >
+                    no subscriptions to cancel. no upsell in the follow-up. we
+                    don&rsquo;t do that.
+                  </p>
+                </div>
+
+                {/* Right — price card */}
+                <div
+                  style={{
+                    background: "rgba(34,34,31,0.6)",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(253,245,230,0.08)",
+                    borderRadius: 20,
+                    padding: "40px 36px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 22,
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Gradient overlay */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(135deg, rgba(178,40,72,0.1), transparent 50%)",
+                      borderRadius: 20,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  <div style={{ position: "relative" }}>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-label)",
+                        fontSize: 10,
+                        letterSpacing: "2px",
+                        textTransform: "uppercase",
+                        color: "var(--brand-orange)",
+                      }}
+                    >
+                      The whole thing
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "clamp(3.5rem, 6vw, 4.5rem)",
+                        lineHeight: 1,
+                        letterSpacing: "-1px",
+                        color: "var(--brand-cream)",
+                        marginTop: 8,
+                      }}
+                    >
+                      $297
+                      <sup
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          fontSize: 16,
+                          color: "var(--brand-pink)",
+                          fontWeight: 400,
+                          verticalAlign: "super",
+                          marginLeft: 8,
+                        }}
+                      >
+                        once. nothing recurring.
+                      </sup>
+                    </div>
+                  </div>
+                  <ul
+                    style={{
+                      listStyle: "none",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                      paddingTop: 12,
+                      borderTop: "1px solid rgba(253,245,230,0.08)",
+                      margin: 0,
+                      padding: "12px 0 0",
+                      position: "relative",
+                    }}
+                  >
+                    {[
+                      "A 60-minute on-site shoot at your place",
+                      "Edited hero stills + one short-form video",
+                      "A six-week marketing plan, written for you — yours to run with",
+                      "Everything delivered inside your own private portal",
+                      "Reschedule any time up to 48 hours before — life happens, we get it",
+                    ].map((item) => (
+                      <li
+                        key={item}
+                        style={{
+                          display: "flex",
+                          gap: 12,
+                          alignItems: "flex-start",
+                          fontSize: 15,
+                          lineHeight: 1.5,
+                          fontFamily: "var(--font-body)",
+                          color: "var(--neutral-300)",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "var(--brand-red)",
+                            marginTop: 10,
+                            flexShrink: 0,
+                          }}
+                        />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                   <div
                     style={{
                       display: "flex",
                       flexDirection: "column",
-                      gap: 16,
+                      gap: 8,
+                      paddingTop: 8,
+                      position: "relative",
                     }}
                   >
-                    {[
-                      "1 short-form video",
-                      "10 edited photographs",
-                      "A bespoke 6-week marketing plan",
-                      "60 days of portal access",
-                    ].map((item) => (
-                      <p
-                        key={item}
-                        style={{
-                          margin: 0,
-                          fontFamily: "var(--font-body)",
-                          fontSize: "clamp(1rem, 2vw, 1.125rem)",
-                          color: "var(--brand-cream)",
-                          paddingLeft: 16,
-                          borderLeft: "2px solid rgba(178,40,72,0.5)",
-                        }}
-                      >
-                        {item}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-                <p
-                  style={{
-                    marginTop: 20,
-                    textAlign: "center",
-                    fontFamily: "var(--font-narrative)",
-                    fontStyle: "italic",
-                    fontSize: 16,
-                    lineHeight: 1.5,
-                    color: "var(--neutral-300)",
-                  }}
-                >
-                  That&rsquo;s what you walk away with. Whether you work with us
-                  after or not.
-                </p>
-              </section>
-
-              {/* Block 4 — What happens */}
-              <section
-                style={{
-                  maxWidth: 600,
-                  margin: "0 auto",
-                  padding: "0 24px 80px",
-                }}
-              >
-                <h2
-                  style={{
-                    fontFamily: "var(--font-label)",
-                    fontSize: 10,
-                    letterSpacing: "3px",
-                    textTransform: "uppercase",
-                    color: "var(--neutral-500)",
-                    marginBottom: 32,
-                  }}
-                >
-                  What happens
-                </h2>
-                <ol
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 20,
-                    listStyle: "none",
-                    padding: 0,
-                    margin: 0,
-                  }}
-                >
-                  {[
-                    "You tell us about your business. Takes two minutes.",
-                    "We do our homework — your competitors, your audience, your neighbourhood.",
-                    "We come to you. Sixty minutes, on-site, no studio.",
-                    "You go back to work. We handle the rest.",
-                    "About a week later, everything lands in your portal — photos, video, and a six-week marketing plan, all at once.",
-                  ].map((text, i) => (
-                    <li
-                      key={i}
+                    <button
+                      type="button"
+                      onClick={handleCtaClick}
+                      className="landing-cta-btn"
+                    >
+                      Start &mdash; takes 90 seconds
+                    </button>
+                    <p
                       style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: 16,
-                        lineHeight: 1.6,
-                        color: "var(--neutral-300)",
+                        fontSize: 12,
+                        color: "var(--neutral-500)",
+                        fontStyle: "italic",
+                        textAlign: "center",
+                        margin: 0,
                       }}
                     >
-                      <span
-                        style={{
-                          fontFamily: "var(--font-label)",
-                          fontSize: 12,
-                          color: "var(--brand-cream)",
-                          marginRight: 12,
-                        }}
-                      >
-                        {i + 1}.
-                      </span>
-                      {text}
-                    </li>
-                  ))}
-                </ol>
-              </section>
-
-              {/* Block 5 — Recent work */}
-              <section
-                style={{
-                  maxWidth: 900,
-                  margin: "0 auto",
-                  padding: "0 24px 80px",
-                }}
-              >
-                <h2
-                  style={{
-                    fontFamily: "var(--font-label)",
-                    fontSize: 10,
-                    letterSpacing: "3px",
-                    textTransform: "uppercase",
-                    color: "var(--neutral-500)",
-                    marginBottom: 32,
-                  }}
-                >
-                  Recent work
-                </h2>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                    gap: 24,
-                  }}
-                >
-                  {[
-                    "A mortgage broker who hates talking about mortgages. We found something better.",
-                    "The café that leads with cold brew. We ran with it.",
-                    "Three partners, one story. It took us twenty minutes to find it.",
-                  ].map((caption, i) => (
-                    <div key={i}>
-                      <div
-                        style={{
-                          aspectRatio: "4/5",
-                          borderRadius: 12,
-                          background: "var(--neutral-800)",
-                          boxShadow:
-                            "inset 0 1px 0 rgba(253,245,230,0.04)",
-                          border:
-                            "1px solid rgba(253,245,230,0.06)",
-                        }}
-                      />
-                      <p
-                        style={{
-                          marginTop: 12,
-                          fontFamily: "var(--font-narrative)",
-                          fontStyle: "italic",
-                          fontSize: 14,
-                          lineHeight: 1.5,
-                          color: "var(--brand-pink)",
-                        }}
-                      >
-                        {caption}
-                      </p>
-                    </div>
-                  ))}
+                      we&rsquo;ll ask a few questions, then your contact details,
+                      then you pay.
+                    </p>
+                  </div>
                 </div>
               </section>
 
-              {/* Block 6 — Quiet commitment */}
+              {/* ---- Pullquote ---- */}
               <section
                 style={{
-                  maxWidth: 600,
+                  padding: "80px var(--lp-px)",
+                  maxWidth: 900,
                   margin: "0 auto",
-                  padding: "0 24px 80px",
                   textAlign: "center",
                 }}
               >
-                <p
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "var(--neutral-300)",
-                    margin: 0,
-                  }}
-                >
-                  We take three shoots a week, max.
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "var(--neutral-300)",
-                    margin: "8px 0 0",
-                  }}
-                >
-                  We ask for five business days&rsquo; notice — enough time to do
-                  the research that makes your shoot worth showing up for.
-                </p>
-              </section>
-
-              {/* Block 7 — Price */}
-              <section
-                style={{
-                  maxWidth: 480,
-                  margin: "0 auto",
-                  padding: "0 24px 48px",
-                  textAlign: "center",
-                }}
-              >
-                <div
-                  style={{
-                    display: "inline-block",
-                    padding: "32px 48px",
-                    borderRadius: 16,
-                    background: "rgba(34,34,31,0.6)",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(253,245,230,0.08)",
-                    boxShadow:
-                      "inset 0 1px 0 rgba(253,245,230,0.06)",
-                  }}
-                >
+                <blockquote style={{ margin: 0 }}>
                   <p
                     style={{
+                      fontFamily: "var(--font-narrative)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(1.5rem, 3.5vw, 2.25rem)",
+                      lineHeight: 1.3,
+                      color: "var(--brand-cream)",
+                      letterSpacing: "-0.3px",
+                      margin: 0,
+                    }}
+                  >
+                    &ldquo;{QUOTES.pullquote.text}&rdquo;
+                  </p>
+                  <footer
+                    style={{
+                      marginTop: 24,
+                      fontFamily: "var(--font-label)",
+                      fontSize: 11,
+                      letterSpacing: "2px",
+                      textTransform: "uppercase",
+                      color: "var(--brand-pink)",
+                    }}
+                  >
+                    &mdash; {QUOTES.pullquote.attr}
+                  </footer>
+                </blockquote>
+              </section>
+
+              {/* ---- Editorial explainer ---- */}
+              <section
+                className="landing-what-grid"
+                style={{
+                  maxWidth: 1200,
+                  margin: "0 auto",
+                  padding: "60px var(--lp-px) 100px",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-label)",
+                      fontSize: 10,
+                      letterSpacing: "3px",
+                      textTransform: "uppercase",
+                      color: "var(--brand-orange)",
+                      marginBottom: 16,
+                    }}
+                  >
+                    What a trial shoot actually is
+                  </div>
+                  <h2
+                    style={{
                       fontFamily: "var(--font-display)",
-                      fontSize: "clamp(3rem, 8vw, 4.5rem)",
+                      fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
                       lineHeight: 1,
+                      letterSpacing: "-1px",
                       color: "var(--brand-cream)",
                       margin: 0,
                     }}
                   >
-                    <sup
+                    Not a sales call.
+                    <br />
+                    <span
                       style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: 16,
+                        fontFamily: "var(--font-narrative)",
+                        fontStyle: "italic",
                         color: "var(--brand-pink)",
-                        verticalAlign: "super",
+                        fontWeight: 500,
                       }}
                     >
-                      $
-                    </sup>
-                    297
+                      Not a free sample.
+                    </span>
+                  </h2>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 24,
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 18,
+                      lineHeight: 1.65,
+                      fontFamily: "var(--font-body)",
+                      color: "var(--neutral-300)",
+                      margin: 0,
+                    }}
+                  >
+                    It&rsquo;s a small, paid piece of real work. An hour on-site,
+                    we shoot, we edit, we deliver &mdash; inside a portal
+                    that&rsquo;s yours to keep whether you come back or not.{" "}
+                    <em
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        color: "var(--brand-cream)",
+                      }}
+                    >
+                      The brief is deliberately narrow
+                    </em>{" "}
+                    so we can&rsquo;t fake it with volume.
                   </p>
                   <p
                     style={{
-                      marginTop: 8,
+                      fontSize: 18,
+                      lineHeight: 1.65,
                       fontFamily: "var(--font-body)",
-                      fontSize: 14,
                       color: "var(--neutral-300)",
+                      margin: 0,
                     }}
                   >
-                    GST inclusive. That&rsquo;s the whole number.
+                    A few days later, you&rsquo;ll get a six-week marketing plan
+                    &mdash; written for your business, not a template.{" "}
+                    <em
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        color: "var(--brand-cream)",
+                      }}
+                    >
+                      It&rsquo;s a step-by-step plan we&rsquo;d happily run
+                      ourselves.
+                    </em>{" "}
+                    If you&rsquo;d rather take it and run it in-house,
+                    you&rsquo;re welcome to. It&rsquo;s yours either way.
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 18,
+                      lineHeight: 1.65,
+                      fontFamily: "var(--font-body)",
+                      color: "var(--neutral-300)",
+                      margin: 0,
+                    }}
+                  >
+                    About a third of the people who do a trial shoot end up on a
+                    retainer. About a third take the plan and run it themselves.
+                    About a third disappear entirely.{" "}
+                    <em
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        color: "var(--brand-cream)",
+                      }}
+                    >
+                      All three are fine.
+                    </em>
                   </p>
                 </div>
               </section>
 
-              {/* Block 8 — CTA */}
+              {/* ---- Scattered quote: process ---- */}
               <section
                 style={{
-                  maxWidth: 600,
+                  padding: "0 var(--lp-px) 80px",
+                  maxWidth: 700,
                   margin: "0 auto",
-                  padding: "0 24px 96px",
+                }}
+              >
+                <PullQuote
+                  text={QUOTES.experience.text}
+                  attr={QUOTES.experience.attr}
+                  align="center"
+                />
+              </section>
+
+              {/* ---- Vertical range statement (typography-as-image) ---- */}
+              <section
+                style={{
+                  padding: "80px var(--lp-px)",
+                  maxWidth: 1200,
+                  margin: "0 auto",
                   textAlign: "center",
                 }}
               >
+                <h2
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(2rem, 5vw, 4rem)",
+                    lineHeight: 1.05,
+                    letterSpacing: "-1.5px",
+                    color: "var(--brand-cream)",
+                    margin: 0,
+                  }}
+                >
+                  Cafes. Tradies. Podcasters.
+                  <br />
+                  <span
+                    style={{
+                      fontFamily: "var(--font-narrative)",
+                      fontStyle: "italic",
+                      color: "var(--brand-pink)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    A motorsport team running on vibes.
+                  </span>
+                </h2>
                 <p
                   style={{
-                    marginBottom: 16,
+                    marginTop: 24,
                     fontFamily: "var(--font-body)",
-                    fontSize: 14,
-                    color: "var(--neutral-500)",
+                    fontSize: 18,
+                    lineHeight: 1.6,
+                    color: "var(--neutral-300)",
                   }}
                 >
-                  Takes about two minutes. No obligation after that.
+                  If it&rsquo;s a real business, we&rsquo;ll find the story.
                 </p>
-                <button
-                  type="button"
-                  onClick={handleCtaClick}
+              </section>
+
+              {/* ---- Six-week plan callout ---- */}
+              <section
+                style={{
+                  padding: "0 var(--lp-px) 60px",
+                  maxWidth: 700,
+                  margin: "0 auto",
+                }}
+              >
+                <div
                   style={{
                     fontFamily: "var(--font-label)",
-                    fontSize: 12,
-                    letterSpacing: "2px",
+                    fontSize: 10,
+                    letterSpacing: "3px",
                     textTransform: "uppercase",
-                    background: "var(--brand-red)",
-                    color: "var(--brand-cream)",
-                    border: "none",
-                    borderRadius: 10,
-                    padding: "16px 40px",
-                    cursor: "pointer",
-                    boxShadow:
-                      "0 10px 30px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)",
-                    transition:
-                      "transform 280ms cubic-bezier(0.2,0.8,0.2,1.05), box-shadow 280ms cubic-bezier(0.2,0.8,0.2,1.05)",
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget;
-                    el.style.transform = "translateY(-2px)";
-                    el.style.boxShadow =
-                      "0 14px 40px rgba(178,40,72,0.45), inset 0 1px 0 rgba(253,245,230,0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget;
-                    el.style.transform = "translateY(0)";
-                    el.style.boxShadow =
-                      "0 10px 30px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)";
+                    color: "var(--brand-orange)",
+                    marginBottom: 20,
+                    textAlign: "center",
                   }}
                 >
-                  Book your shoot
-                </button>
+                  The part nobody else does
+                </div>
+                <p
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 18,
+                    lineHeight: 1.7,
+                    color: "var(--neutral-300)",
+                    textAlign: "center",
+                    margin: 0,
+                  }}
+                >
+                  You&rsquo;ll also get a six-week marketing plan. Not a
+                  template. Written for your business, by someone who&rsquo;s
+                  already done the research. Take it and run it yourself if you
+                  want.{" "}
+                  <em
+                    style={{
+                      fontFamily: "var(--font-narrative)",
+                      color: "var(--brand-cream)",
+                    }}
+                  >
+                    It&rsquo;s yours either way.
+                  </em>
+                </p>
               </section>
+
+              {/* ---- Scattered quote: strategy ---- */}
+              <section
+                style={{
+                  padding: "0 var(--lp-px) 100px",
+                  maxWidth: 700,
+                  margin: "0 auto",
+                }}
+              >
+                <PullQuote
+                  text={QUOTES.strategy.text}
+                  attr={QUOTES.strategy.attr}
+                  align="center"
+                />
+              </section>
+
+              {/* ---- Final CTA ---- */}
+              <section
+                style={{
+                  padding: "0 var(--lp-px) 100px",
+                  maxWidth: 520,
+                  margin: "0 auto",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    background: "rgba(34,34,31,0.6)",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(253,245,230,0.08)",
+                    borderRadius: 20,
+                    padding: "40px 36px",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(135deg, rgba(178,40,72,0.08), transparent 50%)",
+                      borderRadius: 20,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  <div style={{ position: "relative" }}>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "clamp(2.5rem, 6vw, 3.5rem)",
+                        lineHeight: 1,
+                        color: "var(--brand-cream)",
+                        margin: "0 0 8px",
+                      }}
+                    >
+                      $297
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 14,
+                        color: "var(--neutral-300)",
+                        margin: "0 0 24px",
+                      }}
+                    >
+                      GST inclusive. That&rsquo;s the whole number.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleCtaClick}
+                      className="landing-cta-btn"
+                    >
+                      Book your shoot
+                    </button>
+                    <p
+                      style={{
+                        marginTop: 12,
+                        fontSize: 12,
+                        fontStyle: "italic",
+                        color: "var(--neutral-500)",
+                      }}
+                    >
+                      takes about two minutes. no obligation after that.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* ---- Footer ---- */}
+              <footer
+                style={{
+                  padding: "80px var(--lp-px) 40px",
+                  textAlign: "center",
+                  borderTop: "1px solid rgba(253,245,230,0.06)",
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "var(--font-logo)",
+                    fontSize: 28,
+                    color: "var(--brand-cream)",
+                    marginBottom: 16,
+                  }}
+                >
+                  SuperBad
+                </div>
+                <p
+                  style={{
+                    fontFamily: "var(--font-narrative)",
+                    fontStyle: "italic",
+                    color: "var(--brand-pink)",
+                    fontSize: 15,
+                    maxWidth: 500,
+                    margin: "0 auto 24px",
+                  }}
+                >
+                  Marketing for people who&rsquo;d rather be doing something
+                  else. Melbourne, Australia.
+                </p>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "var(--neutral-500)",
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 24,
+                  }}
+                >
+                  <a
+                    href="/lite/legal/privacy"
+                    style={{
+                      color: "var(--neutral-500)",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Privacy
+                  </a>
+                  <span>&middot;</span>
+                  <a
+                    href="/lite/legal/terms"
+                    style={{
+                      color: "var(--neutral-500)",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Terms
+                  </a>
+                  <span>&middot;</span>
+                  <span>&copy; 2026 SuperBad Media</span>
+                </div>
+              </footer>
             </motion.div>
           )}
         </AnimatePresence>
@@ -507,42 +863,6 @@ export function LandingClient() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Block 9 — Footer */}
-        <footer
-          style={{
-            padding: "0 24px 32px",
-            textAlign: "center",
-            fontFamily: "var(--font-body)",
-            fontSize: 12,
-            color: "var(--neutral-500)",
-          }}
-        >
-          <p style={{ margin: 0 }}>© SuperBad Media Pty Ltd · Melbourne</p>
-          <p style={{ margin: "4px 0 0" }}>
-            <a
-              href="/lite/legal/privacy"
-              style={{
-                color: "var(--neutral-500)",
-                textDecoration: "underline",
-                textUnderlineOffset: 2,
-              }}
-            >
-              Privacy
-            </a>
-            {" · "}
-            <a
-              href="/lite/legal/terms"
-              style={{
-                color: "var(--neutral-500)",
-                textDecoration: "underline",
-                textUnderlineOffset: 2,
-              }}
-            >
-              Terms
-            </a>
-          </p>
-        </footer>
       </div>
     </main>
   );
