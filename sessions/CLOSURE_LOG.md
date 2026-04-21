@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-2 (2026-04-21) — Cost & Usage Observatory: Job Band Registry
+
+**Phase:** 5 — Build Execution (Wave 21 — session 2/11). Unified job band registry covering all 100 external-call jobs (80 LLM from models.ts + 20 non-LLM vendor). Tier-based band defaults (Opus $1.50/$75, Sonnet $0.25/$25, Haiku $0.05/$10) with surgical overrides for heavy-context Opus jobs (cockpit-brief $5.00/$150, six-week-plan-strategy $5.00/$100) and high-volume Haiku classifiers (daily $25). Unknown-job trap wired into `logExternalCall()`: inserts still succeed but production fires a synthetic severe cost_anomaly; development throws hard. `registerBands()` stub replaced with registry-aware bridge. 2 new files, 3 edited files, 26 new tests, 274 files / 2775 green. See `sessions/cob2-handoff.md`.
+
 ## COB-1 (2026-04-21) — Cost & Usage Observatory: Schema + Logging Primitives
 
 **Phase:** 5 — Build Execution (Wave 21 — session 1/11). Schema + logging foundation for the observatory. Two new tables: `cost_anomalies` (16 columns, 3 indexes, detector/tier enums) and `deploy_events` (5 columns, status enum). 5 observatory settings keys seeded (monthly thresholds at $250/$500/$1000, projection alerts on, weekly digest on). `logExternalCall()` central helper + `estimateAnthropicCostAud()` pricing module with per-tier token rates. Wired into `invoke.ts` — all 3 Anthropic entry points now log cost tuples fire-and-forget with defensive `safeUsage()`. 7 new files, 6 edited files, 21 new tests, 273 files / 2749 green. See `sessions/cob1-handoff.md`.
