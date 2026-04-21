@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { getPortalSession } from "@/lib/portal/guard";
 import { renderPlanPdf } from "@/lib/six-week-plan/render-plan-pdf";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { runIntroFunnelHourlyCron } from "@/lib/intro-funnel/hourly-cron";
 

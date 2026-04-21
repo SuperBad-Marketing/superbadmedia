@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 /**
  * `/api/oauth/google-ads/callback` — Google OAuth 2.0 authorization-code
  * callback endpoint.

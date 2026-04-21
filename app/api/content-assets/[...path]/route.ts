@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 /**
  * Content Engine — serves visual assets from `data/content-assets/`.
  *

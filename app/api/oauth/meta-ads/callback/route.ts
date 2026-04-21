@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 /**
  * `/api/oauth/meta-ads/callback` — Meta OAuth 2.0 authorization-code
  * callback endpoint.

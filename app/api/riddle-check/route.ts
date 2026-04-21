@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { resolveByAnswer } from "@/lib/riddles/resolve-by-answer";
