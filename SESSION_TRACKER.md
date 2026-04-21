@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `DC-6` — Daily Cockpit: mobile PWA layout. Responsive stack, horizontal-scroll rail on mobile, tabbed kanban with house motion spring, list toggle icon, mobile banner stacking, PWA default-route wiring.
-**Brief:** DC-5 complete — banner strip wiring shipped. 3 real `getHealthBanners()` implementations replacing stubs (inbox, content engine, wizards). All 8 banner sources now live in aggregator, zero banner stubs remain. 9 new tests, full suite green (2921 tests, zero regressions).
+**Next session:** `SAP` — Settings Audit Pass. Grep full codebase for numeric/string literals in autonomy-sensitive paths. Convert stragglers to `settings.get()`. Verify every `docs/settings-registry.md` key maps to a real `settings` row. Wave 23 (final gates).
+**Brief:** DC-6 complete — mobile PWA layout shipped. PWA manifest with cockpit as start_url, responsive AdminShell (sidebar hidden + bottom nav on mobile), tabbed kanban with house spring animation, responsive cockpit polish. 6 new tests, full suite 2928 tests (1 pre-existing failure in sb10, zero new regressions).
 **Model tier:** Sonnet
-**Last closed:** DC-5 (2026-04-21) — see `sessions/dc5-handoff.md`
-**Wave status:** Wave 22 in progress. DC-1 through DC-5 complete, DC-6 next.
+**Last closed:** DC-6 (2026-04-21) — see `sessions/dc6-handoff.md`
+**Wave status:** Wave 22 complete. DC-1 through DC-6 all shipped. Wave 23 (final gates) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

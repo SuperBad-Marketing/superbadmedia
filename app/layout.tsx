@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
 
 import { allFontVariables } from "@/lib/fonts";
@@ -15,6 +15,18 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "SuperBad",
   description: "SuperBad operations platform.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "SuperBad",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1A1A18",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({

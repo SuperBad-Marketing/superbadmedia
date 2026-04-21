@@ -28,14 +28,15 @@ export function AdminShell({
     <div
       data-slot="admin-shell"
       className={cn(
-        "grid min-h-svh grid-cols-[240px_1fr] bg-background",
-        "[[data-density='compact']_&]:grid-cols-[200px_1fr]",
+        "min-h-svh bg-background",
+        "md:grid md:grid-cols-[240px_1fr]",
+        "[[data-density='compact']_&]:md:grid-cols-[200px_1fr]",
         className
       )}
     >
       <aside
         data-slot="admin-shell-sidebar"
-        className="sticky top-0 h-svh overflow-y-auto bg-[color:var(--color-surface-1,var(--card))] p-6"
+        className="hidden md:block sticky top-0 h-svh overflow-y-auto bg-[color:var(--color-surface-1,var(--card))] p-6"
         style={{
           boxShadow:
             "var(--surface-highlight), 1px 0 0 rgba(253, 245, 230, 0.06), 4px 0 16px rgba(0, 0, 0, 0.15)",
@@ -45,7 +46,7 @@ export function AdminShell({
       </aside>
       <main
         data-slot="admin-shell-main"
-        className="relative overflow-x-hidden p-8"
+        className="relative overflow-x-hidden p-4 pb-20 md:p-8 md:pb-8"
       >
         {children}
       </main>

@@ -35,7 +35,7 @@ export default async function CockpitPage() {
 
   return (
     <div className="min-h-full">
-      <div className="max-w-[720px] mx-auto px-4 pt-6 pb-8">
+      <div className="max-w-[720px] mx-auto px-0 pt-4 pb-4 md:px-4 md:pt-6 md:pb-8">
         <BriefPanel
           brief={briefResult.brief}
           slot={briefResult.slot}
