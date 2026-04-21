@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-10` — Cost & Usage Observatory: dashboard shell + anomaly detail view (Wave 21). Four-panel observatory dashboard at `/lite/observatory` (MTD tile, projection bar, live anomalies list, top jobs table). Anomaly detail view at `/lite/observatory/anomalies/[id]` (diagnosis card, raw-data table, band editor mount, kill-switch CTA). Admin auth gated.
-**Brief:** COB-9 complete — `getObservatoryHealthBanners()` banner contract for Daily Cockpit, `sendSevereAlertEmail()` transactional email on severe anomalies, kill-switch toggle endpoint at `POST /api/admin/observatory/kill-switch`. 15 new tests, full suite green (2850 tests, zero regressions). COB-10 is unblocked.
+**Next session:** `COB-11` — Cost & Usage Observatory: settings page + per-job detail + tier-health panel (Wave 21). Settings at `/lite/observatory/settings` (threshold fields, toggles, job band list). Per-job view at `/lite/observatory/jobs/[key]` (call history, band editor, prompt-version history). Tier-health panel on dashboard (per-tier margin cards, expand to subscriber list). Wire `tier_health` and `unknown_job` banner kinds into `getObservatoryHealthBanners()`. Weekly digest + negative-margin emails if in scope.
+**Brief:** COB-10 complete — observatory dashboard at `/lite/observatory` (4 panels: platform status, kill-switch bar, live anomalies, top jobs) + anomaly detail at `/lite/observatory/anomalies/[id]` (diagnosis card, raw data, band editor, actions). Admin nav entry added. 3 new API routes, 6 client components, 2 query modules. 13 new tests, full suite green (2863 tests, zero regressions). COB-11 is unblocked.
 **Model tier:** Sonnet
-**Last closed:** COB-9 (2026-04-21) — see `sessions/cob9-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-9 complete, CMS-6 complete, COB-10 next.
+**Last closed:** COB-10 (2026-04-21) — see `sessions/cob10-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1..COB-10 complete, CMS-6 complete, COB-11 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

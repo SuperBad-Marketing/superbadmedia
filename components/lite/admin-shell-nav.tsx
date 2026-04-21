@@ -1,4 +1,5 @@
 import {
+  Activity,
   Building2,
   DollarSign,
   FileText,
@@ -131,6 +132,14 @@ export const ADMIN_NAV_UTILITY: readonly AdminNavItem[] = [
     icon: FileText,
     status: "live",
     matchPrefix: "/lite/admin/invoices",
+  },
+  {
+    id: "observatory",
+    label: "Observatory",
+    href: "/lite/observatory",
+    icon: Activity,
+    status: "live",
+    matchPrefix: "/lite/observatory",
   },
   {
     id: "errors",

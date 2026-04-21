@@ -35,3 +35,15 @@ export { maybeSendSevereAlert } from "./enqueue-severe-alert";
 export { sendSevereAlertEmail } from "./severe-alert-email";
 export { getObservatoryHealthBanners } from "./health-banners";
 export { toggleJobKillSwitch, type ToggleKillSwitchInput, type ToggleKillSwitchResult } from "./kill-switch-toggle";
+export {
+  getMtdSummary,
+  getActiveAnomalies,
+  getRecentResolvedAnomalies,
+  getTopJobs,
+  getKillSwitchedJobs,
+  type MtdSummary,
+  type AnomalyListItem,
+  type TopJobRow,
+  type KillSwitchedJob,
+} from "./queries/dashboard";
+export { getAnomalyDetail, type AnomalyDetail, type RecentCall } from "./queries/anomaly-detail";
