@@ -4,6 +4,10 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## COB-5 (2026-04-21) — Cost & Usage Observatory: Rate Detector
+
+**Phase:** 5 — Build Execution (Wave 21 — session 5/11). Built the rate detector (loop-catcher) per spec §3.2 detector (b). 1-min sweep via scheduled tasks. For each `{job, actor_id}` pair with ≥20 calls in the last 5 min, compares count against 10× trailing-hour median rate (12 buckets of 5-min counts). Breach always tier `severe`. Dedupe per `{detector, job, actor_scope}` per 24h window — actor-scoped unlike hard threshold, so two actors looping on the same job produce independent anomalies. `rate_override` per-job registry field overrides default 5-min window. Activity log on first fire. Registered `cost_anomaly_detector_rate` handler. 3 new files, 2 edited files, 276 files / 2800 green (+14 new tests). See `sessions/cob5-handoff.md`.
+
 ## COB-4 (2026-04-21) — Cost & Usage Observatory: Hard-Threshold Detector
 
 **Phase:** 5 — Build Execution (Wave 21 — session 4/11). Built the hard-threshold anomaly detector per spec §3.2 detector (a). Two modes: sync-on-insert per-call ceiling check (wired into `logExternalCall()` as fire-and-forget) + 5-min sweep of trailing-24h daily spend per job. Tier assignment by ratio (≥5x=severe, ≥2x=mid, >1x=low). Dedupe per {detector, job} per 24h window — subsequent fires update existing anomaly row. Added `observatory_detectors_enabled` kill switch (default: false, gates all 3 detectors + diagnosis). Registered `cost_anomaly_detector_hard` handler. Activity log entry on first fire. Severe-alert email deferred to COB-9 (needs dashboard URL). 3 new files, 4 edited files, 275 files / 2786 green (+11 new tests). See `sessions/cob4-handoff.md`.

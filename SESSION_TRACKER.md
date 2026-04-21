@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `COB-5` — Cost & Usage Observatory: rate detector (Wave 21). Build the 1-min loop-catcher per spec §3.2 detector (b).
-**Brief:** COB-4 complete — hard-threshold detector with sync-on-insert + 5-min sweep, kill switch `observatory_detectors_enabled` added, 11 tests passing. Severe-alert email deferred to COB-9 (needs dashboard URL). COB-5 is unblocked.
+**Next session:** `COB-6` — Cost & Usage Observatory: learned-band detector (Wave 21). Build the 15-min rolling-p95 detector per spec §3.2 detector (c).
+**Brief:** COB-5 complete — rate detector (loop-catcher) with 1-min sweep, per-{job, actor_id} scoping, min-20-calls gate, 10× trailing-hour median threshold, always-severe tier, 14 tests passing. Severe-alert email still deferred to COB-9. COB-6 is unblocked.
 **Model tier:** Sonnet
-**Last closed:** COB-4 (2026-04-21) — see `sessions/cob4-handoff.md`
-**Wave status:** Wave 21 in progress. COB-1..COB-4 complete, CMS-6 complete, COB-5 next.
+**Last closed:** COB-5 (2026-04-21) — see `sessions/cob5-handoff.md`
+**Wave status:** Wave 21 in progress. COB-1..COB-5 complete, CMS-6 complete, COB-6 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

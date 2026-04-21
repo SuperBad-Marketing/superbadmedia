@@ -12,6 +12,7 @@ export {
   checkPerCallThreshold,
   sweepDailyThresholds,
 } from "./hard-threshold-detector";
+export { sweepRateDetector } from "./rate-detector";
 export {
   JOB_REGISTRY,
   REGISTERED_JOB_KEYS,
