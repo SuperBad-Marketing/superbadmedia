@@ -117,7 +117,7 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
   {
     id: "settings",
     label: "Settings",
-    href: "/lite/admin/settings/catalogue",
+    href: "/lite/admin/settings",
     icon: Settings,
     status: "live",
     matchPrefix: "/lite/admin/settings",
@@ -154,7 +154,7 @@ export const ADMIN_NAV_UTILITY: readonly AdminNavItem[] = [
 export const ADMIN_PROFILE_CHIP = {
   name: "Andy",
   role: "admin",
-  href: "/lite/admin/settings/catalogue",
+  href: "/lite/admin/settings",
   icon: User,
 } as const
 
