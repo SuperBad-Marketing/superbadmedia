@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `SD-11` — Surprise & Delight: Session K (Wave 20). Public egg rendering infrastructure + first batch of public egg renderers. Check spec + BUILD_PLAN for exact scope.
-**Brief:** SD-10 completed — Novel-wrong live Claude fallback for riddle resolver (`resolveNovelWrong` + `riddle_novel_wrong_cache` table + `sd-riddle-wrong-fallback` Haiku job), Three Wons inline toast renderer (`ThreeWonsToast` component + CustomEvent dispatch), `riddle_answer_fallback_budget_monitor` scheduled task handler. 268 files / 2610 tests green.
+**Next session:** `SD-12` — Surprise & Delight: Session L (Wave 20). `/say/[answer]` riddle route + welcome egg safety net + remaining public egg polish. Check spec + BUILD_PLAN for exact scope.
+**Brief:** SD-11 completed — full public egg rendering infrastructure (client-side orchestrator + server-side evaluator + API route + state manager) + all 12 public egg renderers (9 margin-note eggs + Melbourne Rain with ambient sound + Melbourne Holiday full-page takeover + Public CRT turn-off). 269 files / 2628 tests green.
 **Model tier:** Sonnet
-**Last closed:** SD-10 (2026-04-21) — see `sessions/sd10-handoff.md`
-**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 done, SD-10 done, SD-11 next.
+**Last closed:** SD-11 (2026-04-21) — see `sessions/sd11-handoff.md`
+**Wave status:** Wave 20 in progress. SD-1 done, SD-2 done, SD-3 done, SD-4 done, SD-5 done, SD-6 done, SD-7 done, SD-8 done, SD-9 done, SD-10 done, SD-11 done, SD-12 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 
@@ -152,6 +152,7 @@ Creative sessions producing copy, question banks, templates, and voice treatment
 
 | 2026-04-19 | 5 | Build (IF-E2E) | **Wave 14 COMPLETE.** Playwright E2E: `tests/e2e/intro-funnel-booking.spec.ts` covering full prospect arc — landing → CTA → section 1 form → redirect to portal → 3-section questionnaire → Stripe Payment Element → payment confirmation → booking page load. `scripts/seed-if-e2e.ts` seeds `intro_funnel_config`. Skips when `STRIPE_TEST_KEY` absent. DB assertions at every stage. 223 test files / 1846 passed. | [if-e2e-handoff.md](sessions/if-e2e-handoff.md) |
 | 2026-04-20 | 5 | Build (SWP-8) | Wave 15 SWP-8 — PDF render overlay. Reusable `PdfRenderOverlay` component consuming Tier-1 `pdfRenderOverlay` motion token. Plan-view "Download as PDF" converted from plain `<a>` to client-side fetch with branded overlay (SuperBad mark + spinner + "Rendering your plan…") that auto-dismisses on completion. Ready for QB-3/BI-2 adoption. 1 new component + 1 test file (5 tests). 224 test files / 1851 passed. No migration. | [swp8-handoff.md](sessions/swp8-handoff.md) |
+| 2026-04-21 | 5 | Build (SD-11) | Wave 20 SD-11 — Public egg rendering infrastructure + all 12 public egg renderers. Client-side orchestrator (context gathering + poll-based evaluation + CustomEvent dispatch), server-side orchestrator (Melbourne time/weather/holiday resolution + trigger evaluation + cadence gates), API route `/api/lite/eggs/evaluate-public`, cookie+localStorage dual-persistence state manager, shared margin-note component (9 eggs), Melbourne Rain with ambient sound, Melbourne Holiday full-page takeover, Public CRT turn-off with cookie-based re-entry block. 12 new files + 2 edited. 269 test files / 2628 passed (+18 new). No migration. | [sd11-handoff.md](sessions/sd11-handoff.md) |
 
 When a session completes, add a row here with a link to its handoff note.
 

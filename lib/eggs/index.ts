@@ -42,3 +42,17 @@ export {
   orchestrateAdminEggs,
   type OrchestrateAdminResult,
 } from "./orchestrate-admin";
+export {
+  orchestratePublicEggs,
+  type PublicEggEvaluateInput,
+  type PublicEggEvaluateResult,
+} from "./orchestrate-public";
+export {
+  readPublicEggState,
+  writePublicEggState,
+  recordVisit,
+  recordEggFired,
+  getVisitCount,
+  setTricksDisabled,
+  type PublicEggClientState,
+} from "./public-egg-state";

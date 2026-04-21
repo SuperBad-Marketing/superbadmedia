@@ -1,0 +1,37 @@
+"use client";
+
+import { PublicEggOrchestrator } from "./public-egg-orchestrator";
+import {
+  LateNightVisitorEgg,
+  SundayResearcherEgg,
+  FifthTimeVisitorEgg,
+  ReturningVisitorEgg,
+  LinkedInReferrerEgg,
+  GoogleIntentCheapEgg,
+  RapidScrollerEgg,
+  DeepReaderEgg,
+  AbandonedTabEgg,
+} from "./public-egg-renderers";
+import { MelbourneRainEgg } from "./melbourne-rain-egg";
+import { MelbourneHolidayEgg } from "./melbourne-holiday-egg";
+import { PublicCrtTurnOffEgg } from "./public-crt-turn-off-egg";
+
+export function PublicEggShell() {
+  return (
+    <>
+      <PublicEggOrchestrator />
+      <LateNightVisitorEgg />
+      <SundayResearcherEgg />
+      <FifthTimeVisitorEgg />
+      <ReturningVisitorEgg />
+      <LinkedInReferrerEgg />
+      <GoogleIntentCheapEgg />
+      <RapidScrollerEgg />
+      <DeepReaderEgg />
+      <AbandonedTabEgg />
+      <MelbourneRainEgg />
+      <MelbourneHolidayEgg />
+      <PublicCrtTurnOffEgg />
+    </>
+  );
+}

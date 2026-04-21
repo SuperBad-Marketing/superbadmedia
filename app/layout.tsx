@@ -7,6 +7,7 @@ import { MotionProvider } from "@/components/lite/motion-provider";
 import { SoundProvider } from "@/components/lite/sound-provider";
 import { ThemeProvider } from "@/components/lite/theme-provider";
 import { ReportIssueButton } from "@/components/lite/report-issue-button";
+import { PublicEggShell } from "@/components/lite/public-egg-shell";
 
 import "./globals.css";
 
@@ -32,6 +33,7 @@ export default async function RootLayout({
           <MotionProvider>
             <SoundProvider>
               {children}
+              <PublicEggShell />
               <Toaster />
               <footer className="mt-auto flex justify-end px-4 pb-3 pt-2">
                 <ReportIssueButton />
