@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 import { signIn } from "@/lib/auth/auth";
 
 export default function LoginPage({
@@ -10,7 +11,14 @@ export default function LoginPage({
     "use server";
     const email = String(formData.get("email") ?? "");
     const callbackUrl = String(formData.get("callbackUrl") ?? "/lite/admin/pipeline");
-    await signIn("credentials", { email, redirectTo: callbackUrl });
+    try {
+      await signIn("credentials", { email, redirectTo: callbackUrl });
+    } catch (err) {
+      if (err instanceof AuthError) {
+        redirect(`/lite/login?error=${err.type}`);
+      }
+      throw err;
+    }
   }
 
   return <LoginForm searchParamsPromise={searchParams} action={loginAction} />;

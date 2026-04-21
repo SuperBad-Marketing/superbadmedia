@@ -1,9 +1,14 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    if (!process.env.AUTH_TRUST_HOST) {
+      process.env.AUTH_TRUST_HOST = "true";
+    }
+
     const { runMigrations } = await import("./lib/db/migrate");
     const dbUrl = process.env.DATABASE_URL ?? "file:./dev.db";
     try {
       runMigrations(dbUrl);
+      console.info("[instrumentation] migrations applied successfully");
     } catch (err) {
       console.error("[instrumentation] migration failed:", err);
     }
