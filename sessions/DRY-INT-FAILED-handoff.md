@@ -1,8 +1,8 @@
 # DRY-INT FAILED Handoff — Integration-Level Dry-Run
 
-**Date:** 2026-04-21 (last updated: 2026-04-21 — attempt #3)
+**Date:** 2026-04-21 (last updated: 2026-04-21 — attempt #4)
 **Wave:** 23 (integration sub-session of DRY)
-**Status:** FAILED — G1 precondition check failed; external service credentials absent (persistent — 3rd consecutive attempt)
+**Status:** FAILED + PAUSED — G1 precondition check failed; external service credentials absent (persistent — 4th consecutive attempt). Loop paused via `.autonomy/PAUSED`.
 
 ---
 
@@ -30,7 +30,8 @@ This matches the DRY handoff's own recommendation: "The remaining items are inte
 |---|---|---|
 | #1 | 2026-04-21 | G1 fail: credentials absent + 3 code regressions found (settings, hp2, hp4) |
 | #2 (PATCH-PRE-DRY) | 2026-04-21 | Fixed code regressions from attempt #1; DRY-INT still blocked on credentials |
-| #3 (current) | 2026-04-21 | G1 fail: credentials still absent; no new code issues found |
+| #3 | 2026-04-21 | G1 fail: credentials still absent; no new code issues found |
+| #4 (current) | 2026-04-21 | G1 fail: credentials still absent; `.autonomy/PAUSED` written to halt loop |
 
 ---
 
