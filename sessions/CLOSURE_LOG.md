@@ -4,6 +4,12 @@ Historical archive of session closure summaries, relocated from `SESSION_TRACKER
 
 This file is **not read by default** at session start. Consult it only when you need to audit historical build output that isn't covered by the relevant handoff note.
 
+## DRY (2026-04-21) — Synthetic-Client Dry-Run (UI-Level)
+
+**Phase:** 5 — Build Execution (Wave 23 — session 2/3). Full-arc synthetic-client walkthrough on localhost. Seeded "Coastal Brew Co" (prospect → trial shoot → Brand DNA → quote → invoice → won → client). All 15+ admin surfaces verified rendering with data: Pipeline, Company detail (8 tabs), Clients, Invoices, Inbox, Tasks, Lead Gen, Content Engine, Products, Finance, Observatory (real data from external_call_log), Errors, Settings, Intro Funnel portal, Portal recover. Bug fix: `three-wons.ts` server-only import chain (pre-existing build error) resolved via server action. Integration-level flows (Stripe payment, email delivery, LLM generation, cron jobs) deferred to DRY-INT session. 288 test files, 2930 passed, 1 pre-existing failure (sb10), zero new regressions. See `sessions/dry-handoff.md`.
+
+---
+
 ## SAP (2026-04-21) — Settings Audit Pass
 
 **Phase:** 5 — Build Execution (Wave 23 — session 1/2). Full codebase literal audit. 2 P0 fixes (warmup ramp caps + auto-send delay — keys existed but weren't wired), 6 P1 fixes (SMS quiet hours, inbox retention, trash retention, approval reminder, wizard expiry warning — new keys), 4 P2 fixes (egg cooldowns, milestone cooldown, fire retention, hiring trial archive, observatory anomaly suppress — new keys). 13 new settings keys (165 → 178 total). Registry doc reconciled from 107 → 178 documented keys. Migration 0069 seeds new keys. 12 feature files + 4 test files + 1 migration + 1 doc patched. 289 test files, 2926 passed, 1 pre-existing failure (sb10), zero new regressions. See `sessions/sap-handoff.md`.

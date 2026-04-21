@@ -18,11 +18,11 @@ import {
   getStageEmptyState,
   type StageColumn,
 } from "./stage-config";
-import { maybeFireThreeWonsEgg } from "@/lib/eggs/admin-triggers/three-wons";
 import {
   transitionDealAction,
   finaliseWonAction,
   finaliseLostAction,
+  checkThreeWonsEggAction,
 } from "@/app/lite/admin/pipeline/actions";
 import { WonConfirmModal } from "./won-confirm-modal";
 import { LossReasonModal } from "./loss-reason-modal";
@@ -133,7 +133,7 @@ export function PipelineBoard({
         toast(wonMessage, { sound });
         wonsThisSessionRef.current += 1;
         if (wonsThisSessionRef.current >= 3) {
-          void maybeFireThreeWonsEgg().then((fired) => {
+          void checkThreeWonsEggAction().then((fired) => {
             if (fired) {
               window.dispatchEvent(
                 new CustomEvent("admin-egg-fired", {

@@ -2,12 +2,12 @@
 
 ## 🧭 Next Action
 
-**Phase:** 5 — Build Execution
-**Next session:** `DRY` — Synthetic-client dry-run. Full arc on staging: fake prospect → outreach touch → simulated reply → trial shoot booking → Brand DNA → retainer quote → invoice → portal. Every handoff verified manually. Feeds LAUNCH_READY.md. Wave 23 (final gates).
-**Brief:** SAP complete — full codebase literal audit. 12 feature files patched to use `settings.get()`. 13 new settings keys added (178 total). Registry doc reconciled from 107 → 178 documented keys. Migration 0069 seeds new keys. Zero new regressions (2926 passed, 1 pre-existing sb10 failure).
+**Phase:** 5 → 6 transition
+**Next session:** `DRY-INT` — Integration-level dry-run. Exercise the Stripe payment round-trip (test card → webhook → invoice paid → refund), portal magic-link email flow, Six-Week Plan generation (Opus call), cockpit brief cron trigger, content engine draft, and cancel flow. Requires live external services.
+**Brief:** DRY partial-complete — all 15+ admin surfaces verified rendering with data. Synthetic client "Coastal Brew Co" walked prospect → trial shoot → Brand DNA → quote → invoice → won. `three-wons.ts` server-only build error fixed. Integration flows (Stripe payment, email delivery, LLM generation, cron jobs) still need live verification.
 **Model tier:** Sonnet
-**Last closed:** SAP (2026-04-21) — see `sessions/sap-handoff.md`
-**Wave status:** Wave 23 in progress. SAP shipped. DRY (synthetic dry-run) next.
+**Last closed:** DRY (2026-04-21) — see `sessions/dry-handoff.md`
+**Wave status:** Wave 23 in progress. SAP + DRY (UI-level) shipped. DRY-INT (integration-level) next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

@@ -8,6 +8,7 @@ import {
   finaliseDealAsWon,
   finaliseDealAsLost,
 } from "@/lib/crm";
+import { maybeFireThreeWonsEgg } from "@/lib/eggs/admin-triggers/three-wons";
 import {
   DEAL_STAGES,
   DEAL_WON_OUTCOMES,
@@ -18,6 +19,14 @@ import {
 } from "@/lib/db/schema/deals";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
+
+export async function checkThreeWonsEggAction(): Promise<boolean> {
+  try {
+    return await maybeFireThreeWonsEgg();
+  } catch {
+    return false;
+  }
+}
 
 async function adminActorTag(): Promise<string | null> {
   const session = await auth();
