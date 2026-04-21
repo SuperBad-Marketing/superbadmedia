@@ -23,9 +23,12 @@ import {
   finaliseWonAction,
   finaliseLostAction,
   checkThreeWonsEggAction,
+  addLeadAction,
+  type AddLeadInput,
 } from "@/app/lite/admin/pipeline/actions";
 import { WonConfirmModal } from "./won-confirm-modal";
 import { LossReasonModal } from "./loss-reason-modal";
+import { AddLeadModal } from "./add-lead-modal";
 
 type PendingFinalise =
   | { kind: "won"; card: PipelineCardDeal }
@@ -47,6 +50,7 @@ export function PipelineBoard({
   const [pending, startTransition] = React.useTransition();
   const [localDeals, setLocalDeals] = React.useState(deals);
   const [finalise, setFinalise] = React.useState<PendingFinalise>(null);
+  const [showAddLead, setShowAddLead] = React.useState(false);
   const toast = useToastWithSound();
   // Session-scoped counter for the "three Wons" admin egg (§11A.4). Resets
   // on page reload; the server-side monthly cooldown is the real gate.
@@ -106,6 +110,25 @@ export function PipelineBoard({
   const closeFinalise = React.useCallback(() => {
     if (!pending) setFinalise(null);
   }, [pending]);
+
+  const onAddLead = React.useCallback(
+    (input: AddLeadInput) => {
+      startTransition(async () => {
+        const result = await addLeadAction(input);
+        if (!result.ok) {
+          toast.error(result.error ?? "Couldn't add that lead.");
+          return;
+        }
+        setShowAddLead(false);
+        const dedupeNote =
+          result.companyReused || result.contactReused
+            ? " (matched existing records)"
+            : "";
+        toast(`Lead added${dedupeNote}.`, { sound: "kanban-drop" });
+      });
+    },
+    [toast],
+  );
 
   const confirmWon = React.useCallback(
     (dealId: string, wonOutcome: DealWonOutcome) => {
@@ -183,6 +206,15 @@ export function PipelineBoard({
       data-density="comfort"
       className="h-[calc(100vh-96px)]"
     >
+      <div className="flex justify-end px-4 pb-3">
+        <button
+          type="button"
+          onClick={() => setShowAddLead(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-neutral-300)] bg-transparent px-3 py-1.5 font-[family-name:var(--font-label)] text-[11px] uppercase tracking-[1.8px] text-[color:var(--color-brand-cream)] transition-colors hover:border-[color:var(--color-brand-pink)] hover:text-[color:var(--color-brand-pink)]"
+        >
+          <span aria-hidden>+</span> Add lead
+        </button>
+      </div>
       <KanbanBoard<StageColumn, PipelineCardDeal>
         columns={[...STAGE_COLUMNS]}
         cards={localDeals}
@@ -268,6 +300,13 @@ export function PipelineBoard({
           }
         />
       ) : null}
+
+      <AddLeadModal
+        open={showAddLead}
+        onOpenChange={setShowAddLead}
+        pending={pending}
+        onSubmit={onAddLead}
+      />
     </div>
   );
 }

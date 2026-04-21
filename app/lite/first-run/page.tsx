@@ -44,7 +44,7 @@ export default async function FirstRunPage() {
   return (
     <Capstone
       line={CAPSTONE_LINE}
-      continueHref="/lite/admin"
+      continueHref="/lite/admin/pipeline"
       continueLabel="Head to cockpit"
     />
   );

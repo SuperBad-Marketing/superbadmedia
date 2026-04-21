@@ -8,6 +8,7 @@ import {
   finaliseDealAsWon,
   finaliseDealAsLost,
 } from "@/lib/crm";
+import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import { maybeFireThreeWonsEgg } from "@/lib/eggs/admin-triggers/three-wons";
 import {
   DEAL_STAGES,
@@ -113,6 +114,64 @@ export async function finaliseLostAction(
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Lost transition failed.",
+    };
+  }
+}
+
+export interface AddLeadInput {
+  companyName: string;
+  contactName: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contactRole?: string;
+  notes?: string;
+  stage?: DealStage;
+}
+
+type AddLeadResult =
+  | { ok: true; dealId: string; companyReused: boolean; contactReused: boolean }
+  | { ok: false; error: string };
+
+export async function addLeadAction(input: AddLeadInput): Promise<AddLeadResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+
+  const companyName = input.companyName.trim();
+  const contactName = input.contactName.trim();
+  if (!companyName) return { ok: false, error: "Company name is required." };
+  if (!contactName) return { ok: false, error: "Contact name is required." };
+
+  const stage = input.stage ?? "lead";
+  if (!DEAL_STAGES.includes(stage)) {
+    return { ok: false, error: "Unknown stage." };
+  }
+
+  try {
+    const result = createDealFromLead({
+      company: { name: companyName },
+      contact: {
+        name: contactName,
+        email: input.contactEmail?.trim() || null,
+        phone: input.contactPhone?.trim() || null,
+        role: input.contactRole?.trim() || null,
+        notes: input.notes?.trim() || null,
+      },
+      source: "manual_admin",
+      stage,
+    });
+    revalidatePath("/lite/admin/pipeline");
+    return {
+      ok: true,
+      dealId: result.deal.id,
+      companyReused: result.companyReused,
+      contactReused: result.contactReused,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to create lead.",
     };
   }
 }
