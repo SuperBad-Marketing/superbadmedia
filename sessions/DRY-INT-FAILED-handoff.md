@@ -1,8 +1,8 @@
 # DRY-INT FAILED Handoff — Integration-Level Dry-Run
 
-**Date:** 2026-04-21
+**Date:** 2026-04-21 (last updated: 2026-04-21 — attempt #3)
 **Wave:** 23 (integration sub-session of DRY)
-**Status:** FAILED — G1 precondition check failed; external service credentials absent
+**Status:** FAILED — G1 precondition check failed; external service credentials absent (persistent — 3rd consecutive attempt)
 
 ---
 
@@ -10,9 +10,9 @@
 
 **G1 hard stop.** Three required external service credentials are missing from the CCR environment:
 
-- `STRIPE_SECRET_KEY` — not set
-- `RESEND_API_KEY` — not set
-- `ANTHROPIC_API_KEY` — not set (only `ANTHROPIC_BASE_URL` is set, which is the Claude Code proxy, not the app-level API key)
+- `STRIPE_SECRET_KEY` — not set (0 bytes)
+- `RESEND_API_KEY` — not set (0 bytes)
+- `ANTHROPIC_API_KEY` — not set (0 bytes)
 
 Stripe CLI is also not installed (`which stripe` → not found).
 
@@ -20,87 +20,93 @@ DRY-INT cannot verify any of its 7 acceptance criteria (Stripe payment round-tri
 
 This matches the DRY handoff's own recommendation: "The remaining items are integration-level verification that happens best during the **Phase 6 shadow period with Andy actively watching**."
 
+**This is the 3rd consecutive autonomy loop firing to hit this same G1 block.** The loop will keep retrying hourly. Andy should create `.autonomy/PAUSED` (any content) and push to halt retries until credentials are available locally.
+
 ---
 
-## What was attempted
+## Attempt history
 
-1. G11.b mop-up: wrote `sessions/DRY-INT-brief.md` (brief did not exist — DRY's partial close skipped brief authoring).
+| Attempt | Date | What happened |
+|---|---|---|
+| #1 | 2026-04-21 | G1 fail: credentials absent + 3 code regressions found (settings, hp2, hp4) |
+| #2 (PATCH-PRE-DRY) | 2026-04-21 | Fixed code regressions from attempt #1; DRY-INT still blocked on credentials |
+| #3 (current) | 2026-04-21 | G1 fail: credentials still absent; no new code issues found |
+
+---
+
+## Code status (post-PATCH-PRE-DRY, current)
+
+- **TypeScript:** `npx tsc --noEmit` → 4 errors (pre-existing dc4/hp19 test-only; zero new)
+- **Test suite:** `npx vitest run` → 3 failed | 2928 passed
+  - `sb10-headline-signals.test.ts` — 1 failure (pre-existing, getSaasHealthBanners assertion)
+  - `hp17-bench-pause-availability.test.ts` — 1 failure (handler registry suite-isolation timeout; pre-existing)
+  - One additional suite-isolation failure (pre-existing)
+- **`npm run build`:** fails — Resend constructor throws `Missing API key` at module initialization without RESEND_API_KEY (pre-existing CCR environment issue; not a new regression)
+
+Code is clean. The remaining failures are all pre-existing and pass individually. No new regressions.
+
+---
+
+## What was attempted (attempt #3)
+
+1. Set up main branch at `c12964b` (post-PATCH-PRE-DRY).
 2. Lock acquired and pushed.
-3. G1 precondition check: all 3 external service env vars confirmed absent.
-4. Mechanical gates run to establish baseline state:
-   - `npx tsc --noEmit`: 4 errors (pre-existing dc4/hp19 test-only errors; zero new)
-   - `npx vitest run`: **7 files failed, 13 tests failed** — see below
-
----
-
-## New regressions found (not introduced by DRY-INT)
-
-### 1. `settings.test.ts` idempotency failure — REGRESSION (LAUNCH commit)
-
-**File:** `lib/db/migrations/0070_legal_v2.sql`
-**Commit:** `deae54a` [LAUNCH] Legal pages v2.0
-**Error:** `SqliteError: UNIQUE constraint failed: legal_doc_versions.id`
-
-`0070_legal_v2.sql` uses plain `INSERT INTO` not `INSERT OR IGNORE`. `runSeeds()` is designed to be idempotent (called twice by settings.test.ts idempotency check). Second call hits UNIQUE constraint.
-**Fix:** Change all four INSERT statements in the file to `INSERT OR IGNORE`.
-**Logged:** `PATCHES_OWED.md` entry `legal_v2_seed_not_idempotent`.
-
-### 2. HP-2/HP-4 `no such table: settings` — environment-dependent (not a new regression)
-
-Tests `hp2-hiring-role-brief-wizard.test.ts` and `hp4-quick-add-scoring.test.ts` call `ingestPortfolioUrl()` which calls `settings.get()` against the real DB. In a fresh CCR environment, dev.db has no migrations. Tests fail with `no such table: settings`.
-
-These tests were passing in the developer's environment because dev.db was pre-seeded. They fail in any fresh environment. Not a regression from LAUNCH commits.
-**Fix:** Add `vi.mock('@/lib/settings', ...)` to both tests.
-**Logged:** `PATCHES_OWED.md` entry `hp2_hp4_portfolio_settings_no_mock`.
-
-### 3. Handler registry tests (CM-9, COB-11, HP-12, HP-17, LG-9) — false positives in full suite
-
-All pass when run individually. Fail only in the full suite run (test isolation issue — DB state race). These were passing in the developer's full suite run presumably because test execution order was different.
-
----
-
-## Mechanical verification baseline
-
-- `npx tsc --noEmit`: 4 pre-existing errors (unchanged from DRY handoff)
-- `npm test` (full suite): 7 files failed, 13 tests failed
-  - Pre-existing: `sb10-headline-signals.test.ts` (1 failure)
-  - New regression: `settings.test.ts` (1 failure — LAUNCH commit bug)
-  - Environment-dependent: `hp2`, `hp4` (10 failures — no mock for settings in fresh env)
-  - Suite isolation: `cm9`, `cob11`, `hp12`, `hp17`, `lg9` handler registry (false positives in parallel run)
+3. G0: read last 2 handoffs (DRY-INT-FAILED, PATCH-PRE-DRY).
+4. G1 precondition check: confirmed all 3 external service env vars absent (0 bytes each). Stripe CLI not found.
+5. Mechanical baseline recorded (see above).
+6. G1 failure path executed.
 
 ---
 
 ## What blocks progress
 
-1. **Primary:** No external service credentials in CCR environment. Cannot fix autonomously — this is an environment configuration issue, not a code issue.
-2. **Secondary:** Two code issues logged to PATCHES_OWED.md require human-authored fixes before next test-suite run is clean.
+**One blocker only (code regressions from attempt #1 are fixed):**
+
+1. No external service credentials in CCR environment:
+   - `STRIPE_SECRET_KEY` (Stripe test key)
+   - `RESEND_API_KEY` (Resend API key)
+   - `ANTHROPIC_API_KEY` (app-level key, not Claude Code proxy)
+   - Stripe CLI (`stripe listen --forward-to localhost:3001/api/stripe/webhook --api-key <test-key>`)
+
+Cannot fix autonomously — this is an environment configuration issue, not a code issue.
 
 ---
 
-## G10.5 fidelity grep (non-UI session)
+## What the next human session must do
 
-- Acceptance-criterion keywords in diff: N/A — no code changes made
-- File whitelist violations: none
-- Memory alignment: N/A
+DRY-INT must run with Andy present during Phase 6 shadow period. Prerequisites:
+
+1. **Halt the autonomy loop** to prevent further useless retries:
+   ```
+   echo "DRY-INT blocked — credentials required. Delete this file + push to resume." > .autonomy/PAUSED
+   git add .autonomy/PAUSED && git commit -m "[AUTONOMY] Pause loop — DRY-INT requires credentials" && git push
+   ```
+
+2. **Configure credentials** in `.env.local`:
+   ```
+   STRIPE_SECRET_KEY=sk_test_...
+   RESEND_API_KEY=re_...
+   ANTHROPIC_API_KEY=sk-ant-...
+   ```
+
+3. **Start Stripe CLI** webhook forwarding:
+   ```
+   stripe listen --forward-to localhost:3001/api/stripe/webhook --api-key sk_test_...
+   ```
+
+4. **Verify Coastal Brew Co test data** is still in dev.db (from DRY session):
+   ```
+   sqlite3 dev.db "SELECT id, name FROM companies WHERE id = 'co-dry-run-01'"
+   ```
+
+5. **Start dev server**: `npm run dev` (port 3001)
+
+6. **Run DRY-INT manually** with Andy present to verify email delivery, click magic link, observe live events.
+
+7. **After DRY-INT passes**: delete `.autonomy/PAUSED`, resume the loop, update SESSION_TRACKER.md to Phase 6.
 
 ---
 
 ## Rollback
 
-Session made no code changes (only new files: this handoff, FAILED-handoff, brief, PATCHES_OWED patch). Git-revertable with no data shape change.
-
----
-
-## What the next session must know
-
-- **DRY-INT must run with Andy present** during Phase 6 shadow period, with:
-  - Stripe CLI running: `stripe listen --forward-to localhost:3001/api/stripe/webhook --api-key <test-key>`
-  - STRIPE_SECRET_KEY, RESEND_API_KEY, ANTHROPIC_API_KEY configured in `.env.local`
-  - Coastal Brew Co test data still in dev.db (from DRY session; confirm before starting)
-  - Dev server running on :3001
-
-- **Before re-attempting DRY-INT**, fix these first (PATCHES_OWED):
-  1. `legal_v2_seed_not_idempotent` — 1-line fix to `0070_legal_v2.sql`
-  2. `hp2_hp4_portfolio_settings_no_mock` — add settings mock to hp2 and hp4 tests
-
-- The autonomy loop **cannot make progress** on DRY-INT. This is a Phase 6 task.
+Session made no code changes. Git-revertable with no data shape change.

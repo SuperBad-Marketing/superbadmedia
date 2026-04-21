@@ -11,6 +11,7 @@
 
 🚨 **BLOCKED — human required.** DRY-INT cannot run in CCR without live external service credentials. Code regressions have been fixed (see below); only the environment credential blocker remains.
 🚨 **VERIFICATION FAILED — human required.** See `sessions/DRY-INT-FAILED-handoff.md`.
+🔁 **Attempt #3 (2026-04-21):** Third consecutive autonomy loop hit same G1 block. Code is clean (3 remaining test failures are all pre-existing). **Recommend:** create `.autonomy/PAUSED` + push to halt loop until Andy can run DRY-INT locally with credentials. See handoff for exact steps.
 
 **Remaining blocker before re-attempting DRY-INT:**
 1. No external service credentials in CCR (`STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` absent). Must run locally with Andy + Stripe CLI + test email inbox accessible.
