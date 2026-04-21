@@ -3,11 +3,11 @@
 ## 🧭 Next Action
 
 **Phase:** 5 — Build Execution
-**Next session:** `DC-4` — Daily Cockpit: attention rail wiring. Wire real `getWaitingItems()` implementations from every source spec into the aggregator (replace stubs). Sort contract enforcement. Chip components per source spec.
-**Brief:** DC-3 complete — material-event regen shipped. `maybeRegenerateBrief(eventKey, payload)` helper with 10-min debounce via `cockpit.material_event_debounce_minutes` setting. 10-event denylist. Wired into 7 source files (invoice-payment-failed, cancel-actions ×3, booking-actions, mark-paid with $500 threshold, 3 observatory detectors). 5 events awaiting source spec implementation. 8 new tests, full suite green (2904 tests, zero regressions).
+**Next session:** `DC-5` — Daily Cockpit: banner strip wiring. Wire real `getHealthBanners()` implementations from remaining source specs into the aggregator (replace stubs for inbox, content engine, wizards). Calendar preview integration. `/lite/health` detail view.
+**Brief:** DC-4 complete — attention rail wiring shipped. 9 real `getWaitingItems()` implementations replacing stubs (quotes, invoicing, SaaS, inbox, outreach, intro funnel, content, brand DNA, six-week plans). Hiring pipeline properly imported. 2 stubs remain (client management, wizards — need missing state). 8 new tests, full suite green (2912 tests, zero regressions).
 **Model tier:** Sonnet
-**Last closed:** DC-3 (2026-04-21) — see `sessions/dc3-handoff.md`
-**Wave status:** Wave 22 in progress. DC-1 + DC-2 + DC-3 complete, DC-4 next.
+**Last closed:** DC-4 (2026-04-21) — see `sessions/dc4-handoff.md`
+**Wave status:** Wave 22 in progress. DC-1 + DC-2 + DC-3 + DC-4 complete, DC-5 next.
 
 > **Historical session closures** have been relocated to `sessions/CLOSURE_LOG.md` to reduce session-start token cost. Consult that file only when auditing historical build output not covered by handoff notes.
 

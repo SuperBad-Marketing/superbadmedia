@@ -2,6 +2,17 @@ import type { WaitingItem, HealthBanner } from "@/lib/tasks/cockpit";
 import { getTaskWaitingItems, getTaskHealthBanners } from "@/lib/tasks/cockpit";
 import { getObservatoryHealthBanners } from "@/lib/observatory/health-banners";
 import { getSaasHealthBanners } from "@/lib/saas-products/headline-signals";
+import { getFinanceHealthBanners } from "@/lib/finance/cockpit";
+import { getHiringWaitingItems, getHiringHealthBanners } from "@/lib/hiring/cockpit";
+import { getQuoteWaitingItems } from "@/lib/quotes/cockpit";
+import { getInvoiceWaitingItems } from "@/lib/invoicing/cockpit";
+import { getSaasWaitingItems } from "@/lib/saas-products/cockpit-waiting";
+import { getInboxWaitingItems } from "@/lib/inbox/cockpit";
+import { getLeadGenWaitingItems } from "@/lib/outreach/cockpit";
+import { getIntroFunnelWaitingItems } from "@/lib/intro-funnel/cockpit";
+import { getContentWaitingItems } from "@/lib/content/cockpit";
+import { getBrandDnaWaitingItems } from "@/lib/brand-dna/cockpit";
+import { getSixWeekPlanWaitingItems } from "@/lib/six-week-plans/cockpit";
 
 /**
  * Merges waiting items from every source spec in parallel.
@@ -20,6 +31,10 @@ export async function mergeWaitingItems(
     getIntroFunnelWaitingItems(nowMs),
     getContentWaitingItems(nowMs),
     getHiringWaitingItems(nowMs),
+    getBrandDnaWaitingItems(nowMs),
+    getSixWeekPlanWaitingItems(nowMs),
+    getClientManagementWaitingItems(nowMs),
+    getWizardWaitingItems(nowMs),
   ]);
 
   const items: WaitingItem[] = [];
@@ -42,11 +57,11 @@ export async function mergeHealthBanners(
     getTaskHealthBanners(nowMs),
     getObservatoryHealthBanners(nowMs),
     getSaasHealthBanners("admin"),
+    getHiringHealthBanners(nowMs),
+    getFinanceHealthBanners(nowMs),
     getInboxHealthBanners(nowMs),
     getContentHealthBanners(nowMs),
-    getFinanceHealthBanners(nowMs),
     getWizardHealthBanners(nowMs),
-    getHiringHealthBanners(nowMs),
   ]);
 
   const banners: HealthBanner[] = [];
@@ -86,37 +101,13 @@ export function sortWaitingItems(items: WaitingItem[]): WaitingItem[] {
   });
 }
 
-// ── Stub sources (return empty until their waves ship) ────────────
+// ── Stub sources (return empty until their waves ship fully) ─────────
 
-async function getQuoteWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
+async function getClientManagementWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
   return [];
 }
 
-async function getInvoiceWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
-  return [];
-}
-
-async function getSaasWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
-  return [];
-}
-
-async function getInboxWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
-  return [];
-}
-
-async function getLeadGenWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
-  return [];
-}
-
-async function getIntroFunnelWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
-  return [];
-}
-
-async function getContentWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
-  return [];
-}
-
-async function getHiringWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
+async function getWizardWaitingItems(_nowMs: number): Promise<WaitingItem[]> {
   return [];
 }
 
@@ -128,14 +119,6 @@ async function getContentHealthBanners(_nowMs: number): Promise<HealthBanner[]> 
   return [];
 }
 
-async function getFinanceHealthBanners(_nowMs: number): Promise<HealthBanner[]> {
-  return [];
-}
-
 async function getWizardHealthBanners(_nowMs: number): Promise<HealthBanner[]> {
-  return [];
-}
-
-async function getHiringHealthBanners(_nowMs: number): Promise<HealthBanner[]> {
   return [];
 }
