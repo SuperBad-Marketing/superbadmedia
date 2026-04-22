@@ -24,6 +24,8 @@ import { CriticalFlightClient } from "./critical-flight-client";
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
 
+export const dynamic = "force-dynamic";
+
 export default async function CriticalFlightWizardPage({
   params,
 }: {
@@ -83,7 +85,9 @@ function buildGraphAuthorizeUrl(): string {
   const scopes = [
     "offline_access",
     "User.Read",
+    "Mail.ReadWrite",
     "Mail.Send",
+    "MailboxSettings.Read",
     "Calendars.Read",
   ].join(" ");
   const params = new URLSearchParams({
