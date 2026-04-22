@@ -37,25 +37,42 @@ function OAuthConsentComponent({
   const label = state.vendorLabel || cfg?.vendorLabel || "vendor";
   const href = cfg?.authorizeUrl ?? "#";
 
+  const notConfigured = !href || href === "#";
+
   return (
     <div data-wizard-step="oauth-consent" className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        You&apos;ll be redirected to {label} to authorise. Come back when
-        you&apos;re done.
-      </p>
-      {state.token ? (
-        <Button type="button" onClick={onNext}>
-          Continue
-        </Button>
+      {notConfigured && !state.token ? (
+        <>
+          <p className="text-sm text-muted-foreground">
+            {label} isn&apos;t configured yet. The environment variables for this
+            integration need to be set before you can connect.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Check your hosting environment for the required client ID and secret,
+            then restart the app and try this wizard again.
+          </p>
+        </>
       ) : (
-        <a
-          href={href}
-          data-wizard-oauth-link
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-        >
-          Continue to {label}
-        </a>
+        <>
+          <p className="text-sm text-muted-foreground">
+            You&apos;ll be redirected to {label} to authorise. Come back when
+            you&apos;re done.
+          </p>
+          {state.token ? (
+            <Button type="button" onClick={onNext}>
+              Continue
+            </Button>
+          ) : (
+            <a
+              href={href}
+              data-wizard-oauth-link
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+            >
+              Continue to {label}
+            </a>
+          )}
+        </>
       )}
     </div>
   );
