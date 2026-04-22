@@ -8,6 +8,7 @@ import { deals, DEAL_STAGES, type DealStage } from "@/lib/db/schema/deals";
 import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
 import { logActivity } from "@/lib/activity-log";
+import { createOnboardingCredentials } from "@/lib/onboarding/create-credentials";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -125,5 +126,24 @@ export async function deleteDealAction(dealId: string): Promise<ActionResult> {
   });
 
   revalidatePath("/lite/admin/pipeline");
+  return { ok: true };
+}
+
+export async function resendPortalLinkAction(
+  contactId: string,
+  companyId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const result = await createOnboardingCredentials({ contactId, companyId });
+  if (!result.ok) {
+    const messages: Record<string, string> = {
+      contact_not_found: "Contact not found.",
+      email_missing: "Contact has no email address.",
+      already_verified: "Already verified — they can log in with their existing link.",
+    };
+    return { ok: false, error: messages[result.reason] ?? "Failed." };
+  }
   return { ok: true };
 }

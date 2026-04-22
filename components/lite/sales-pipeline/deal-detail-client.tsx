@@ -8,6 +8,7 @@ import {
   updateContactAction,
   updateCompanyAction,
   deleteDealAction,
+  resendPortalLinkAction,
 } from "@/app/lite/admin/pipeline/[id]/actions";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -160,6 +161,8 @@ export function DealDetailClient({ deal }: { deal: DealDetailData }) {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
   const [stage, setStage] = React.useState(deal.stage);
+  const [sendingLink, setSendingLink] = React.useState(false);
+  const [linkStatus, setLinkStatus] = React.useState<string | null>(null);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -374,6 +377,30 @@ export function DealDetailClient({ deal }: { deal: DealDetailData }) {
                 await updateContactAction(deal.contact_id!, { role: v || null });
               }}
             />
+
+            {deal.contact_email && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  disabled={sendingLink}
+                  onClick={async () => {
+                    setSendingLink(true);
+                    setLinkStatus(null);
+                    const result = await resendPortalLinkAction(deal.contact_id!, deal.company_id);
+                    setSendingLink(false);
+                    setLinkStatus(result.ok ? "Sent!" : ("error" in result ? result.error : "Failed."));
+                  }}
+                  className="rounded-md px-4 py-2 text-[13px] font-medium text-[color:var(--color-brand-cream)] border border-[color:var(--color-neutral-600)] hover:border-[color:var(--color-neutral-400)] transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {sendingLink ? "Sending..." : "Send portal link"}
+                </button>
+                {linkStatus && (
+                  <p className={`mt-2 text-[12px] ${linkStatus === "Sent!" ? "text-[color:var(--color-success)]" : "text-[color:var(--color-brand-red)]"}`}>
+                    {linkStatus}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </section>
       )}
