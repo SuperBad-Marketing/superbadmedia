@@ -21,8 +21,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { exchangeCodeForTokens, encryptCredentials } from "@/lib/graph";
 
 const WIZARD_PATH = "/lite/setup/critical-flight/graph-api-admin";
-const COOKIE_NAME = "graph_oauth_pending";
-const COOKIE_MAX_AGE = 300;
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -53,15 +51,8 @@ export async function GET(req: NextRequest) {
     const encrypted = encryptCredentials(creds);
 
     redirectUrl.searchParams.set("oauth", "success");
-    const response = NextResponse.redirect(redirectUrl);
-    response.cookies.set(COOKIE_NAME, encrypted, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: COOKIE_MAX_AGE,
-      path: "/",
-    });
-    return response;
+    redirectUrl.searchParams.set("ct", encrypted);
+    return NextResponse.redirect(redirectUrl);
   } catch (err) {
     console.error("[graph-api oauth] Token exchange failed:", err);
     redirectUrl.searchParams.set("oauth", "error");

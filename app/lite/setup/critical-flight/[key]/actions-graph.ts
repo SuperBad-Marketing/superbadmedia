@@ -14,7 +14,6 @@
  * Owner: SW-7.
  */
 import { randomUUID, createHash } from "node:crypto";
-import { cookies } from "next/headers";
 import { auth, unstable_update } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { vault } from "@/lib/crypto/vault";
@@ -51,22 +50,14 @@ export async function getGraphAuthorizeUrlAction(): Promise<string> {
   return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?${params.toString()}`;
 }
 
-const COOKIE_NAME = "graph_oauth_pending";
 const VAULT_CONTEXT = "graph-api.credentials";
 
-export async function claimGraphOAuthTokenAction(): Promise<
-  { ok: true; accessToken: string } | { ok: false; reason: string }
-> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(COOKIE_NAME);
-  if (!cookie?.value) {
-    return { ok: false, reason: "No pending OAuth token found." };
-  }
-
+export async function decryptGraphTokenAction(
+  ct: string,
+): Promise<{ ok: true; accessToken: string } | { ok: false; reason: string }> {
   try {
-    const decrypted = vault.decrypt(cookie.value, VAULT_CONTEXT);
+    const decrypted = vault.decrypt(ct, VAULT_CONTEXT);
     const creds = JSON.parse(decrypted) as { accessToken: string };
-    cookieStore.delete(COOKIE_NAME);
     return { ok: true, accessToken: creds.accessToken };
   } catch {
     return { ok: false, reason: "Failed to decrypt OAuth token." };

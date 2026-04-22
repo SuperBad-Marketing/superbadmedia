@@ -29,7 +29,7 @@ import type {
 import {
   completeGraphAdminAction,
   getGraphAuthorizeUrlAction,
-  claimGraphOAuthTokenAction,
+  decryptGraphTokenAction,
 } from "../actions-graph";
 import type { GraphAdminPayload } from "@/lib/wizards/defs/graph-api-admin";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
@@ -116,7 +116,7 @@ export function GraphAdminClient({
 
   const [oauthError, setOauthError] = React.useState<string | null>(null);
 
-  // Claim the OAuth token from the callback cookie when redirected back
+  // Decrypt the OAuth token passed via URL from the callback redirect
   const advanceRef = React.useRef(advance);
   advanceRef.current = advance;
   React.useEffect(() => {
@@ -126,7 +126,12 @@ export function GraphAdminClient({
       return;
     }
     if (oauthParam !== "success") return;
-    claimGraphOAuthTokenAction().then((result) => {
+    const ct = searchParams.get("ct");
+    if (!ct) {
+      setOauthError("OAuth completed but no token was received. Try again.");
+      return;
+    }
+    decryptGraphTokenAction(ct).then((result) => {
       if (!result.ok) {
         setOauthError(result.reason);
         return;
