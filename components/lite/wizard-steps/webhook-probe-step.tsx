@@ -31,6 +31,8 @@ export type WebhookProbeConfig = {
   timeoutMs: number;
   /** Polls the backend for a matching inbound POST; shell injects. */
   checkReceived: () => Promise<boolean>;
+  /** Allow skipping this step during initial setup. */
+  skippable?: boolean;
 };
 
 function WebhookProbeComponent({
@@ -88,6 +90,17 @@ function WebhookProbeComponent({
         <p className="text-xs text-destructive" data-wizard-webhook-timeout>
           That took longer than expected. Let&apos;s try again.
         </p>
+      ) : null}
+      {cfg?.skippable && !state.received ? (
+        <button
+          type="button"
+          onClick={() => {
+            onChange({ ...state, received: true, receivedAtMs: Date.now() });
+          }}
+          className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors cursor-pointer"
+        >
+          Skip — I&apos;ll set up webhooks later
+        </button>
       ) : null}
     </div>
   );

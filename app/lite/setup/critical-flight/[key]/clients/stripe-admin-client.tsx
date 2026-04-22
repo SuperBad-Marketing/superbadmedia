@@ -167,6 +167,7 @@ export function StripeAdminClient({
           timeoutMs: webhookProbeTimeoutMs,
           checkReceived: async () =>
             checkStripeWebhookReceivedAction(webhookSince),
+          skippable: true,
         },
       };
     }
