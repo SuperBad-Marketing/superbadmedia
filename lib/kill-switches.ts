@@ -51,7 +51,7 @@ const defaults: KillSwitchRegistry = {
   drift_check_enabled: false,
   sentry_enabled: false,
   brand_dna_assessment_enabled: false,
-  setup_wizards_enabled: false,
+  setup_wizards_enabled: true,
   wizards_nudges_enabled: false,
   // QB-6: gate for `manual_invoice_generate` enqueue in
   // `lib/quote-builder/accept.ts`. Flipped ON 2026-04-15 at end of BI-1b
