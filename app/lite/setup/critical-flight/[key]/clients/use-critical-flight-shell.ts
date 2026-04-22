@@ -15,7 +15,7 @@
  * Owner: SW-7.
  */
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { WizardStepDefinition } from "@/lib/wizards/types";
 
 export type StepStates = Record<string, unknown>;
@@ -30,6 +30,10 @@ export function useCriticalFlightShell({
   initialStates,
 }: UseCriticalFlightShellOpts) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("from") === "settings"
+    ? "/lite/admin/settings/integrations"
+    : "/lite/first-run";
   const [index, setIndex] = React.useState(0);
   const [states, setStates] = React.useState<StepStates>(() => initialStates);
 
@@ -48,13 +52,13 @@ export function useCriticalFlightShell({
   }, [steps.length]);
 
   const handleCancel = React.useCallback(() => {
-    router.push("/lite/first-run");
-  }, [router]);
+    router.push(returnTo);
+  }, [router, returnTo]);
 
   const onDone = React.useCallback(() => {
     router.refresh();
-    router.push("/lite/first-run");
-  }, [router]);
+    router.push(returnTo);
+  }, [router, returnTo]);
 
   return {
     index,

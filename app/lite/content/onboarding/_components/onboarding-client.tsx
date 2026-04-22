@@ -12,6 +12,7 @@
  * Owner: CE-12.
  */
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { WizardShell } from "@/components/lite/wizard-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,7 @@ export function ContentEngineOnboardingClient({
   expiryDays: number;
   companyId?: string;
 }) {
+  const router = useRouter();
   const [state, setState] = React.useState<OnboardingState>({
     ...INITIAL_STATE,
     companyId: initialCompanyId ?? "",
@@ -107,9 +109,7 @@ export function ContentEngineOnboardingClient({
   }, [state.companyId, state.configId]);
 
   const handleCancel = () => {
-    // In a real implementation this would persist wizard_progress and close
-    // the slideover. For now, reset to step 0.
-    setState(INITIAL_STATE);
+    router.push("/lite/content");
   };
 
   const handleNext = () => {
@@ -148,6 +148,9 @@ export function ContentEngineOnboardingClient({
           Your content engine is live. First draft incoming — we&apos;ll let you
           know when it&apos;s ready for review.
         </p>
+        <Button type="button" onClick={() => router.push("/lite/content")}>
+          Back to Content
+        </Button>
       </div>
     );
   }

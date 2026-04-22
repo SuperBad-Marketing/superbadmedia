@@ -13,6 +13,7 @@
  * Owner: UI-12.
  */
 import { useEffect, useState, useTransition, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion, type Transition } from "framer-motion";
 import { houseSpring } from "@/lib/design-tokens";
 import type { ImportProgress } from "@/lib/graph/history-import";
@@ -39,6 +40,7 @@ type Props = {
 const POLL_INTERVAL_MS = 3000;
 
 export function HistoryImportClient({ initialState, initialProgress }: Props) {
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const transition = reduceMotion
     ? ({ duration: 0.15, ease: "linear" } as const)
@@ -278,7 +280,7 @@ export function HistoryImportClient({ initialState, initialProgress }: Props) {
             exit={{ opacity: 0, y: -8 }}
             transition={transition}
           >
-            <DonePhase purgedCount={purgedCount} progress={progress} />
+            <DonePhase purgedCount={purgedCount} progress={progress} onContinue={() => router.push("/lite/inbox")} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -600,9 +602,11 @@ function CleanupPhase({
 function DonePhase({
   purgedCount,
   progress,
+  onContinue,
 }: {
   purgedCount: number | null;
   progress: ImportProgress | null;
+  onContinue: () => void;
 }) {
   const imported = progress?.imported ?? 0;
   const signal = progress?.signal ?? 0;
@@ -633,6 +637,17 @@ function DonePhase({
       >
         Your inbox is ready. Morning digest arrives at 8am.
       </p>
+      <button
+        type="button"
+        onClick={onContinue}
+        className="mt-6 rounded-lg px-5 py-2.5 font-[family-name:var(--font-label)] text-[11px] uppercase tracking-[1.5px] transition-colors"
+        style={{
+          background: "var(--color-brand-pink)",
+          color: "var(--color-neutral-900)",
+        }}
+      >
+        Head to inbox
+      </button>
     </>
   );
 }
