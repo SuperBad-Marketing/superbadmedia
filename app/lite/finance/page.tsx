@@ -208,7 +208,7 @@ export default async function FinancePage(props: {
           >
             <div className="flex gap-3">
               <a
-                href="/lite/setup/admin/stripe"
+                href="/lite/setup/critical-flight/stripe-admin"
                 className={cn(buttonVariants({ variant: "outline" }))}
               >
                 Connect Stripe

@@ -86,11 +86,13 @@ function SettingRow({
 }
 
 function RadioOption({
+  name,
   values,
   labels,
   current,
   onSelect,
 }: {
+  name: string;
   values: readonly string[];
   labels: Record<string, string>;
   current: string;
@@ -102,17 +104,21 @@ function RadioOption({
       onValueChange={onSelect}
       className="flex gap-3"
     >
-      {values.map((v) => (
-        <label
-          key={v}
-          className="flex items-center gap-2 cursor-pointer"
-        >
-          <RadioGroupItem value={v} />
-          <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-300)]">
-            {labels[v]}
-          </span>
-        </label>
-      ))}
+      {values.map((v) => {
+        const id = `${name}-${v}`;
+        return (
+          <label
+            key={v}
+            htmlFor={id}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <RadioGroupItem id={id} value={v} />
+            <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-300)]">
+              {labels[v]}
+            </span>
+          </label>
+        );
+      })}
     </RadioGroup>
   );
 }
@@ -133,6 +139,7 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         description="Controls how much animation you see. Reduced keeps the essentials, off disables all motion."
       >
         <RadioOption
+          name="motion"
           values={MOTION_PREFERENCES}
           labels={MOTION_LABELS}
           current={motion}
@@ -157,6 +164,7 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         description="How much space between elements. Compact fits more on screen."
       >
         <RadioOption
+          name="density"
           values={DENSITY_PREFERENCES}
           labels={DENSITY_LABELS}
           current={density}
@@ -169,6 +177,7 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         description="Increase body text for readability."
       >
         <RadioOption
+          name="text-size"
           values={TEXT_SIZE_PREFERENCES}
           labels={TEXT_SIZE_LABELS}
           current={textSize}
@@ -181,6 +190,7 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         description="Colour mood. Late Shift dims for night work, Quiet Hours strips back further."
       >
         <RadioOption
+          name="theme"
           values={THEME_PRESETS}
           labels={THEME_LABELS}
           current={theme}
@@ -193,6 +203,7 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         description="Font pairing for body and narrative text."
       >
         <RadioOption
+          name="typeface"
           values={TYPEFACE_PRESETS}
           labels={TYPEFACE_LABELS}
           current={typeface}

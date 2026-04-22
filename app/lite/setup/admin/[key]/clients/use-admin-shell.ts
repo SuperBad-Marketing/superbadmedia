@@ -47,12 +47,12 @@ export function useAdminShell({ steps, initialStates }: UseAdminShellOpts) {
   }, [steps.length]);
 
   const handleCancel = React.useCallback(() => {
-    router.push("/lite");
+    router.push("/lite/admin/settings/integrations");
   }, [router]);
 
   const onDone = React.useCallback(() => {
     router.refresh();
-    router.push("/lite");
+    router.push("/lite/admin/settings/integrations");
   }, [router]);
 
   return {
