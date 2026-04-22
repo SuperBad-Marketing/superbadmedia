@@ -49,7 +49,7 @@ export function AdminShellWithNav({
   const sidebar = (
     <div className="flex h-full flex-col gap-8">
       <Link
-        href="/lite"
+        href="/lite/admin/pipeline"
         className="block outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] rounded-sm"
         aria-label="SuperBad — back to cockpit"
       >
