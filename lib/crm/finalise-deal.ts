@@ -57,15 +57,18 @@ export function finaliseDealAsWon(
       typeof payload.value_cents === "number"
         ? { value_cents: payload.value_cents, value_estimated: false }
         : {};
+    const subscriptionUpdate =
+      typeof payload.value_cents !== "number"
+        ? { subscription_state: "active_current" as const }
+        : {};
     txDb
       .update(deals)
       .set({
         won_outcome: payload.won_outcome,
-        // Clear any stale loss fields in case of an earlier Lost that got
-        // reversed in a prior session. Terminal-state hygiene.
         loss_reason: null,
         loss_notes: null,
         ...valueUpdate,
+        ...subscriptionUpdate,
       })
       .where(eq(deals.id, dealId))
       .run();

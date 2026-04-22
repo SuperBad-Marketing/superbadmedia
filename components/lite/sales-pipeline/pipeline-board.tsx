@@ -93,11 +93,8 @@ export function PipelineBoard({
   const onQuickAction = React.useCallback(
     (kind: "nudge" | "open", dealId: string) => {
       if (kind === "open") {
-        const deal = localDeals.find((d) => d.id === dealId);
-        if (deal) {
-          window.location.href = `/lite/admin/companies/${deal.company_id}`;
-          return;
-        }
+        window.location.href = `/lite/admin/pipeline/${dealId}`;
+        return;
       }
       toast("Send nudge lands with Lead Gen.");
     },

@@ -1,0 +1,144 @@
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import { eq } from "drizzle-orm";
+import type { Metadata } from "next";
+
+import { auth } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { deals } from "@/lib/db/schema/deals";
+import { companies } from "@/lib/db/schema/companies";
+import { contacts } from "@/lib/db/schema/contacts";
+import {
+  DealDetailClient,
+  type DealDetailData,
+} from "@/components/lite/sales-pipeline/deal-detail-client";
+
+export const metadata: Metadata = {
+  title: "SuperBad — Deal Detail",
+  robots: { index: false, follow: false },
+};
+
+export default async function DealDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    redirect("/api/auth/signin");
+  }
+
+  const { id } = await params;
+
+  const [row] = db
+    .select({
+      id: deals.id,
+      title: deals.title,
+      stage: deals.stage,
+      value_cents: deals.value_cents,
+      value_estimated: deals.value_estimated,
+      next_action_text: deals.next_action_text,
+      won_outcome: deals.won_outcome,
+      loss_reason: deals.loss_reason,
+      loss_notes: deals.loss_notes,
+      source: deals.source,
+      created_at_ms: deals.created_at_ms,
+      company_id: deals.company_id,
+      company_name: companies.name,
+      contact_id: deals.primary_contact_id,
+      contact_name: contacts.name,
+      contact_email: contacts.email,
+      contact_phone: contacts.phone,
+      contact_role: contacts.role,
+    })
+    .from(deals)
+    .innerJoin(companies, eq(deals.company_id, companies.id))
+    .leftJoin(contacts, eq(deals.primary_contact_id, contacts.id))
+    .where(eq(deals.id, id))
+    .limit(1)
+    .all();
+
+  if (!row) notFound();
+
+  const deal: DealDetailData = {
+    id: row.id,
+    title: row.title,
+    stage: row.stage,
+    value_cents: row.value_cents,
+    value_estimated: row.value_estimated,
+    next_action_text: row.next_action_text,
+    won_outcome: row.won_outcome,
+    loss_reason: row.loss_reason,
+    loss_notes: row.loss_notes,
+    source: row.source,
+    created_at_ms: row.created_at_ms,
+    company_id: row.company_id,
+    company_name: row.company_name,
+    contact_id: row.contact_id,
+    contact_name: row.contact_name,
+    contact_email: row.contact_email,
+    contact_phone: row.contact_phone,
+    contact_role: row.contact_role,
+  };
+
+  const stageBadgeStyles: Record<string, { bg: string; color: string }> = {
+    won: { bg: "rgba(123,174,126,0.14)", color: "var(--color-success)" },
+    lost: { bg: "rgba(200,49,43,0.12)", color: "var(--color-brand-red)" },
+  };
+  const badge = stageBadgeStyles[deal.stage];
+
+  return (
+    <div className="mx-auto max-w-[680px] px-4 py-8">
+      <header className="px-4 pt-6 pb-5">
+        <Link
+          href="/lite/admin/pipeline"
+          className="inline-flex items-center gap-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)] transition-colors"
+          style={{ letterSpacing: "2px" }}
+        >
+          <span aria-hidden>&larr;</span> Pipeline
+        </Link>
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <div>
+            <h1
+              className="font-[family-name:var(--font-display)] text-[32px] leading-none text-[color:var(--color-brand-cream)]"
+              style={{ letterSpacing: "-0.3px" }}
+            >
+              {deal.title}
+            </h1>
+            <p className="mt-2 font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-400)]">
+              {deal.company_name}
+              {deal.contact_name && (
+                <>
+                  {" "}
+                  <span className="text-[color:var(--color-neutral-600)]">&middot;</span>{" "}
+                  {deal.contact_name}
+                </>
+              )}
+            </p>
+          </div>
+          {badge && (
+            <span
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-[3px] font-[family-name:var(--font-label)] text-[10px] uppercase leading-none"
+              style={{
+                letterSpacing: "1.5px",
+                background: badge.bg,
+                color: badge.color,
+              }}
+            >
+              <span
+                aria-hidden
+                className="h-1 w-1 rounded-full"
+                style={{ background: "currentColor", opacity: 0.85 }}
+              />
+              {deal.stage === "won" ? "Won" : "Lost"}
+            </span>
+          )}
+        </div>
+      </header>
+
+      <div className="mt-6 px-4">
+        <DealDetailClient deal={deal} />
+      </div>
+    </div>
+  );
+}

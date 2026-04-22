@@ -90,12 +90,11 @@ export async function createOnboardingCredentials(
 
   const magicLinkUrl = `${rawUrl}&redirect=/lite/portal/welcome`;
 
-  // Send the credential confirmation email
   const firstName = contact.name?.split(" ")[0] ?? "there";
   await sendEmail({
     to: contact.email,
-    subject: "Confirm your email — this is how you'll log in",
-    body: `<p>Hey ${firstName},</p><p>One last thing — tap the link below to confirm your email. This is how you'll log in from now on.</p><p><a href="${magicLinkUrl}">Confirm and log in</a></p><p>The link expires in 7 days. If you need a fresh one, just visit the portal and request a new login link.</p>`,
+    subject: `${firstName}, here's your login`,
+    body: buildCredentialsEmailHtml(firstName, magicLinkUrl),
     classification: "transactional",
     purpose: "onboarding_credentials",
     tags: [
@@ -114,4 +113,25 @@ export async function createOnboardingCredentials(
   });
 
   return { ok: true, userId, magicLinkUrl };
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function escAttr(s: string): string {
+  return esc(s).replace(/"/g, "&quot;");
+}
+
+function buildCredentialsEmailHtml(firstName: string, url: string): string {
+  return `<div style="font-family: ui-sans-serif, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 24px; color: #fdf5e6; background: #1a1a18;">
+<p style="margin: 0 0 4px; font-size: 28px; font-weight: 700; letter-spacing: -0.3px; color: #fdf5e6;">SuperBad</p>
+<p style="margin: 0 0 32px; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #807f73;">Marketing that doesn't apologise</p>
+<p style="margin: 0 0 16px; font-size: 16px; line-height: 1.55; color: #c8c6ba;">Hey ${esc(firstName)},</p>
+<p style="margin: 0 0 16px; font-size: 16px; line-height: 1.55; color: #c8c6ba;">One last thing — tap the button below to confirm your email. This is how you'll log in from now on.</p>
+<p style="margin: 24px 0;"><a href="${escAttr(url)}" style="display: inline-block; padding: 14px 28px; background: #c8312b; color: #fdf5e6; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">Log in to your portal</a></p>
+<p style="margin: 0 0 16px; font-size: 14px; line-height: 1.55; color: #807f73;">The link expires in 7 days. If you need a fresh one, just ask.</p>
+<p style="margin: 32px 0 0; font-size: 14px; color: #c8c6ba;">Andy</p>
+<p style="margin: 4px 0 0; font-size: 12px; color: #807f73;">SuperBad Marketing</p>
+</div>`;
 }

@@ -366,6 +366,9 @@ export const ACTIVITY_LOG_KINDS = [
   "riddle_wrong_answered",
   "riddle_budget_warning",
   "riddle_budget_exhausted",
+  // --- Deal admin (2) ---
+  "deal_updated",
+  "deal_deleted",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

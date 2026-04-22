@@ -46,7 +46,7 @@ function ApiKeyPasteComponent({
     if (!cfg?.testCall) return;
     setTesting(true);
     try {
-      const result = await cfg.testCall(state.key);
+      const result = await cfg.testCall(state.key.trim());
       if (result.ok) {
         onChange({
           ...state,

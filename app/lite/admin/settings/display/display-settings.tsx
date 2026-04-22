@@ -1,10 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import type { MotionPreference, DensityPreference, TextSizePreference, ThemePreset, TypefacePreset } from "@/lib/design-tokens";
 import {
   MOTION_PREFERENCES,
@@ -85,7 +82,7 @@ function SettingRow({
   );
 }
 
-function RadioOption({
+function NativeRadioGroup({
   name,
   values,
   labels,
@@ -99,32 +96,82 @@ function RadioOption({
   onSelect: (value: string) => void;
 }) {
   return (
-    <RadioGroup
-      value={current}
-      onValueChange={onSelect}
-      className="flex gap-3"
-    >
+    <div className="flex gap-4" role="radiogroup">
       {values.map((v) => {
         const id = `${name}-${v}`;
+        const selected = v === current;
         return (
           <label
             key={v}
             htmlFor={id}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer select-none"
           >
-            <RadioGroupItem id={id} value={v} />
+            <span className="relative flex items-center justify-center">
+              <input
+                type="radio"
+                id={id}
+                name={name}
+                value={v}
+                checked={selected}
+                onChange={() => onSelect(v)}
+                className="peer sr-only"
+              />
+              <span
+                className="block size-4 rounded-full border-2 transition-colors peer-checked:border-[color:var(--color-brand-pink)] border-[color:var(--color-neutral-500)]"
+              />
+              {selected && (
+                <span className="absolute size-2 rounded-full bg-[color:var(--color-brand-pink)]" />
+              )}
+            </span>
             <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-300)]">
               {labels[v]}
             </span>
           </label>
         );
       })}
-    </RadioGroup>
+    </div>
+  );
+}
+
+function NativeToggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors"
+      style={{
+        backgroundColor: checked
+          ? "var(--color-brand-pink)"
+          : "var(--color-neutral-600)",
+      }}
+    >
+      <span
+        className="block size-4 rounded-full bg-white transition-transform"
+        style={{
+          transform: checked ? "translateX(24px)" : "translateX(4px)",
+        }}
+      />
+    </button>
   );
 }
 
 export function DisplaySettings({ motion, sounds, density, textSize, theme, typeface, tricksEnabled }: Props) {
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
+  const [localMotion, setLocalMotion] = useState(motion);
+  const [localSounds, setLocalSounds] = useState(sounds);
+  const [localDensity, setLocalDensity] = useState(density);
+  const [localTextSize, setLocalTextSize] = useState(textSize);
+  const [localTheme, setLocalTheme] = useState(theme);
+  const [localTypeface, setLocalTypeface] = useState(typeface);
+  const [localTricks, setLocalTricks] = useState(tricksEnabled);
 
   function submit(action: (fd: FormData) => Promise<void>, value: string) {
     const fd = new FormData();
@@ -138,12 +185,15 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         label="Motion"
         description="Controls how much animation you see. Reduced keeps the essentials, off disables all motion."
       >
-        <RadioOption
+        <NativeRadioGroup
           name="motion"
           values={MOTION_PREFERENCES}
           labels={MOTION_LABELS}
-          current={motion}
-          onSelect={(v) => submit(updateMotionPreference, v)}
+          current={localMotion}
+          onSelect={(v) => {
+            setLocalMotion(v as MotionPreference);
+            submit(updateMotionPreference, v);
+          }}
         />
       </SettingRow>
 
@@ -151,11 +201,12 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         label="Sounds"
         description="Toggle interface sounds on or off."
       >
-        <Switch
-          checked={sounds}
-          onCheckedChange={(checked: boolean) =>
-            submit(updateSoundsEnabled, String(checked))
-          }
+        <NativeToggle
+          checked={localSounds}
+          onChange={(next) => {
+            setLocalSounds(next);
+            submit(updateSoundsEnabled, String(next));
+          }}
         />
       </SettingRow>
 
@@ -163,12 +214,15 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         label="Density"
         description="How much space between elements. Compact fits more on screen."
       >
-        <RadioOption
+        <NativeRadioGroup
           name="density"
           values={DENSITY_PREFERENCES}
           labels={DENSITY_LABELS}
-          current={density}
-          onSelect={(v) => submit(updateDensityPreference, v)}
+          current={localDensity}
+          onSelect={(v) => {
+            setLocalDensity(v as DensityPreference);
+            submit(updateDensityPreference, v);
+          }}
         />
       </SettingRow>
 
@@ -176,12 +230,15 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         label="Text size"
         description="Increase body text for readability."
       >
-        <RadioOption
+        <NativeRadioGroup
           name="text-size"
           values={TEXT_SIZE_PREFERENCES}
           labels={TEXT_SIZE_LABELS}
-          current={textSize}
-          onSelect={(v) => submit(updateTextSizePreference, v)}
+          current={localTextSize}
+          onSelect={(v) => {
+            setLocalTextSize(v as TextSizePreference);
+            submit(updateTextSizePreference, v);
+          }}
         />
       </SettingRow>
 
@@ -189,12 +246,15 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         label="Theme"
         description="Colour mood. Late Shift dims for night work, Quiet Hours strips back further."
       >
-        <RadioOption
+        <NativeRadioGroup
           name="theme"
           values={THEME_PRESETS}
           labels={THEME_LABELS}
-          current={theme}
-          onSelect={(v) => submit(updateThemePreset, v)}
+          current={localTheme}
+          onSelect={(v) => {
+            setLocalTheme(v as ThemePreset);
+            submit(updateThemePreset, v);
+          }}
         />
       </SettingRow>
 
@@ -202,12 +262,15 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         label="Typeface"
         description="Font pairing for body and narrative text."
       >
-        <RadioOption
+        <NativeRadioGroup
           name="typeface"
           values={TYPEFACE_PRESETS}
           labels={TYPEFACE_LABELS}
-          current={typeface}
-          onSelect={(v) => submit(updateTypefacePreset, v)}
+          current={localTypeface}
+          onSelect={(v) => {
+            setLocalTypeface(v as TypefacePreset);
+            submit(updateTypefacePreset, v);
+          }}
         />
       </SettingRow>
 
@@ -215,11 +278,12 @@ export function DisplaySettings({ motion, sounds, density, textSize, theme, type
         label="No tricks"
         description="Turns off hidden eggs and surprises. The ambient voice stays."
       >
-        <Switch
-          checked={!tricksEnabled}
-          onCheckedChange={(checked: boolean) =>
-            submit(updateTricksEnabled, String(!checked))
-          }
+        <NativeToggle
+          checked={!localTricks}
+          onChange={(checked) => {
+            setLocalTricks(!checked);
+            submit(updateTricksEnabled, String(!checked));
+          }}
         />
       </SettingRow>
     </div>
