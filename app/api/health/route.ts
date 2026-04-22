@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { sqliteConnection } from "@/lib/db";
-import { verifyPassword } from "@/lib/auth/password";
 
 const ADMIN_EMAIL = "andy@superbadmedia.com.au";
 
@@ -22,19 +21,9 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
-    const cols = sqliteConnection
-      .prepare("PRAGMA table_info(user)")
-      .all() as { name: string }[];
-    checks.userColumns = cols.map((c) => c.name);
-    checks.hasPasswordHashColumn = cols.some((c) => c.name === "password_hash");
-  } catch (err) {
-    checks.columnsError = String(err);
-  }
-
-  try {
     const existing = sqliteConnection
-      .prepare("SELECT id, email, role, password_hash FROM user WHERE email = ?")
-      .get(ADMIN_EMAIL) as { id: string; email: string; role: string; password_hash: string | null } | undefined;
+      .prepare("SELECT id, email, role FROM user WHERE email = ?")
+      .get(ADMIN_EMAIL) as { id: string; email: string; role: string } | undefined;
 
     if (!existing) {
       const id = randomUUID();
@@ -50,41 +39,10 @@ export async function GET(): Promise<NextResponse> {
       checks.adminExists = true;
       checks.adminId = existing.id;
       checks.adminRole = existing.role;
-      checks.passwordHashSet = !!existing.password_hash;
-      checks.passwordHashLength = existing.password_hash?.length ?? 0;
-
-      const envPw = process.env.ADMIN_PASSWORD?.trim();
-      checks.envPasswordSet = !!envPw;
-      checks.envPasswordLength = envPw?.length ?? 0;
-
-      if (existing.password_hash && envPw) {
-        try {
-          checks.envPasswordMatchesHash = verifyPassword(envPw, existing.password_hash);
-        } catch (err) {
-          checks.verifyError = String(err);
-        }
-      }
-
-      checks.hashPreview = existing.password_hash
-        ? `${existing.password_hash.slice(0, 8)}...${existing.password_hash.slice(-8)}`
-        : null;
     }
   } catch (err) {
     checks.adminSeedError = String(err);
   }
-
-  try {
-    const settingRow = sqliteConnection
-      .prepare("SELECT key, value FROM settings WHERE key = ?")
-      .get("wizards.critical_flight_wizards") as { key: string; value: string } | undefined;
-    checks.criticalFlightSetting = settingRow ? settingRow.value : "MISSING";
-  } catch (err) {
-    checks.criticalFlightSettingError = String(err);
-  }
-
-  checks.authSecretSet = !!(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET);
-  checks.nextauthUrlSet = !!process.env.NEXTAUTH_URL;
-  checks.authTrustHost = process.env.AUTH_TRUST_HOST;
 
   return NextResponse.json(checks);
 }
