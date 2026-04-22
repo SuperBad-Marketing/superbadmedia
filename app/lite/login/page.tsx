@@ -37,7 +37,7 @@ async function LoginForm({
   return (
     <main style={{ maxWidth: 420, margin: "10vh auto", padding: "2rem", fontFamily: "system-ui" }}>
       <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>SuperBad — sign in</h1>
-      {sp.error && <p style={{ color: "crimson" }}>Sign-in failed. Check the email.</p>}
+      {sp.error && <p style={{ color: "crimson" }}>Sign-in failed ({sp.error})</p>}
       <form action={action}>
         <input type="hidden" name="callbackUrl" value={sp.callbackUrl ?? "/lite/admin/pipeline"} />
         <label style={{ display: "block", marginBottom: "0.5rem" }}>Email</label>

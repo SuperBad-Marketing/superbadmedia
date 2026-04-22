@@ -82,5 +82,9 @@ export async function GET(): Promise<NextResponse> {
     checks.criticalFlightSettingError = String(err);
   }
 
+  checks.authSecretSet = !!(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET);
+  checks.nextauthUrlSet = !!process.env.NEXTAUTH_URL;
+  checks.authTrustHost = process.env.AUTH_TRUST_HOST;
+
   return NextResponse.json(checks);
 }
