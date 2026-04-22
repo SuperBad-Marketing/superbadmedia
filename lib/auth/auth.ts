@@ -1,21 +1,3 @@
-/**
- * NextAuth v5 full configuration — Node.js only.
- *
- * Imports `db` (better-sqlite3) so it MUST NOT be imported in middleware.ts
- * or any Edge-runtime path. Server Components, API routes, and Server Actions
- * should import from `@/lib/auth/session` (which re-exports `auth()` here).
- *
- * Middleware imports from `@/lib/auth/auth.config` instead (Edge-safe split).
- *
- * PATCHES_OWED: The Credentials `authorize` function currently validates
- * email existence without a password check — no `password_hash` column
- * exists on the `user` table in A8. The admin login UI + password seeding
- * lands in a later Wave 2 session (B-series). Until then, the gate is the
- * BRAND_DNA_GATE_BYPASS env var. Track under PATCHES_OWED
- * `a8_credentials_provider_no_password`.
- *
- * Owner: A8.
- */
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { eq } from "drizzle-orm";
@@ -25,6 +7,7 @@ import { authConfig } from "./auth.config";
 import { isBrandDnaCompleteForUser } from "./brand-dna-complete-check";
 import { hasCompletedCriticalFlight } from "./has-completed-critical-flight";
 import { redeemSubscriberMagicLink } from "./subscriber-magic-link";
+import { verifyPassword } from "./password";
 import { logActivity } from "@/lib/activity-log";
 import { ensureTaskDigestEnqueued } from "@/lib/scheduled-tasks/handlers/task-morning-digest";
 
@@ -77,6 +60,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       name: "Email",
       credentials: {
         email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
         subscriberLoginToken: { label: "Token", type: "text" },
       },
       async authorize(credentials) {
@@ -111,7 +95,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           };
         }
 
-        // --- Admin email-only branch (original A8 behaviour) ---
+        // --- Admin email + password branch ---
         if (!credentials?.email || typeof credentials.email !== "string") {
           return null;
         }
@@ -122,12 +106,21 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
             email: userTable.email,
             name: userTable.name,
             role: userTable.role,
+            password_hash: userTable.password_hash,
           })
           .from(userTable)
           .where(eq(userTable.email, credentials.email))
           .get();
 
         if (!found || found.role !== "admin") return null;
+
+        if (found.password_hash) {
+          const password =
+            typeof credentials.password === "string"
+              ? credentials.password
+              : "";
+          if (!verifyPassword(password, found.password_hash)) return null;
+        }
 
         return {
           id: found.id,

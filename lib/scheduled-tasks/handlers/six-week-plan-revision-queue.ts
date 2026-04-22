@@ -55,11 +55,7 @@ export const handlePlanRevisionReviewQueue: TaskHandler = async (task) => {
   const businessName = company?.name ?? deal?.title ?? "their business";
   const preview = note_preview ?? plan.revision_note?.slice(0, 120) ?? "";
 
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) {
-    console.warn("plan_revision_review_queue: ADMIN_EMAIL not set");
-    return;
-  }
+  const adminEmail = process.env.ADMIN_EMAIL ?? "andy@superbadmedia.com.au";
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
   const reviewUrl = `${baseUrl}/lite/six-week-plans/${plan_id}/revision-review`;

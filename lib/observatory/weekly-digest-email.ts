@@ -2,7 +2,7 @@ import { getMtdSummary, getActiveAnomalies, getTopJobs } from "./queries/dashboa
 import { getTierHealth } from "./queries/tier-health";
 import settings from "@/lib/settings";
 
-const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL ?? "andy@superbadmedia.com.au";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "andy@superbadmedia.com.au";
 
 function formatAud(value: number): string {
   return value.toLocaleString("en-AU", {

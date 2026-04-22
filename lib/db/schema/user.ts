@@ -15,6 +15,8 @@ export const user = sqliteTable("user", {
   emailVerified: integer("email_verified_ms"),
   image: text("image"),
 
+  password_hash: text("password_hash"),
+
   role: text("role", {
     enum: ["admin", "client", "prospect", "anonymous"],
   })

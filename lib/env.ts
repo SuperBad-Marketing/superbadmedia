@@ -6,6 +6,8 @@ const envSchema = z.object({
   NEXTAUTH_URL: z.url(),
   NEXTAUTH_SECRET: z.string().min(1).optional(),
   DATABASE_URL: z.string().min(1).default("file:./dev.db"),
+  ADMIN_EMAIL: z.string().email().default("andy@superbadmedia.com.au"),
+  ADMIN_PASSWORD: z.string().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

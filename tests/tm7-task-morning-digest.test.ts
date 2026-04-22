@@ -311,7 +311,7 @@ describe("TM-7: Task Morning Digest", () => {
       );
     });
 
-    it("skips when ADMIN_EMAIL is not set", async () => {
+    it("falls back to default email when ADMIN_EMAIL is not set", async () => {
       delete process.env.ADMIN_EMAIL;
       const { sendTaskDigestEmail } = await import(
         "@/lib/tasks/digest"
@@ -326,8 +326,7 @@ describe("TM-7: Task Morning Digest", () => {
       };
 
       const result = await sendTaskDigestEmail(content);
-      expect(result.sent).toBe(false);
-      expect(result.skipped).toBe(true);
+      expect(result.sent).toBe(true);
     });
   });
 

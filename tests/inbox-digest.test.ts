@@ -120,7 +120,7 @@ describe("inbox-digest", () => {
       process.env.ADMIN_EMAIL = originalEnv;
     });
 
-    it("skips when ADMIN_EMAIL is not set", async () => {
+    it("falls back to default email when ADMIN_EMAIL is not set", async () => {
       const originalEnv = process.env.ADMIN_EMAIL;
       delete process.env.ADMIN_EMAIL;
 
@@ -133,8 +133,7 @@ describe("inbox-digest", () => {
       };
 
       const result = await sendDigestEmail(content);
-      expect(result.sent).toBe(false);
-      expect(result.reason).toBe("ADMIN_EMAIL not set");
+      expect(result.sent).toBe(true);
 
       process.env.ADMIN_EMAIL = originalEnv;
     });

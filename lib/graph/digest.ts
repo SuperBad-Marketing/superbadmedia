@@ -122,11 +122,7 @@ export async function buildDigestContent(
 export async function sendDigestEmail(
   content: DigestContent,
 ): Promise<{ sent: boolean; skipped?: boolean; reason?: string }> {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) {
-    return { sent: false, skipped: true, reason: "ADMIN_EMAIL not set" };
-  }
-
+  const adminEmail = process.env.ADMIN_EMAIL ?? "andy@superbadmedia.com.au";
   return sendEmail({
     to: adminEmail,
     subject: content.subject,

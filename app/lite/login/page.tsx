@@ -10,9 +10,10 @@ export default function LoginPage({
   async function loginAction(formData: FormData) {
     "use server";
     const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
     const callbackUrl = String(formData.get("callbackUrl") ?? "/lite/admin/pipeline");
     try {
-      await signIn("credentials", { email, redirectTo: callbackUrl });
+      await signIn("credentials", { email, password, redirectTo: callbackUrl });
     } catch (err) {
       if (err instanceof AuthError) {
         redirect(`/lite/login?error=${err.type}`);
@@ -45,6 +46,13 @@ async function LoginForm({
           name="email"
           required
           autoFocus
+          style={{ width: "100%", padding: "0.5rem", border: "1px solid #ccc", borderRadius: 4 }}
+        />
+        <label style={{ display: "block", marginBottom: "0.5rem", marginTop: "1rem" }}>Password</label>
+        <input
+          type="password"
+          name="password"
+          required
           style={{ width: "100%", padding: "0.5rem", border: "1px solid #ccc", borderRadius: 4 }}
         />
         <button

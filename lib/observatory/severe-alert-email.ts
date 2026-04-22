@@ -8,7 +8,7 @@
  */
 import type { CostAnomalyRow } from "@/lib/db/schema/cost-anomalies";
 
-const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL ?? "andy@superbadmedia.com.au";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "andy@superbadmedia.com.au";
 
 function formatAud(value: number): string {
   return value.toLocaleString("en-AU", {
