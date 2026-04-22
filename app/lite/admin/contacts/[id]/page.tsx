@@ -29,6 +29,7 @@ import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
 import { PrivateNotesFeed } from "@/components/lite/admin/contacts/private-notes-feed";
 import { ContextEngineOverview } from "@/components/lite/admin/contacts/context-engine-overview";
 import { addNote, toggleVisibility } from "./actions";
+import { ResendPortalLinkButton } from "@/components/lite/admin/contacts/resend-portal-link-button";
 import {
   getContextSummary,
   getSignalsForContact,
@@ -272,6 +273,13 @@ export default async function ContactAdminPage({
                 value={formatDate(contact.created_at_ms)}
               />
             </dl>
+          </div>
+          <div className="shrink-0 pt-1">
+            <ResendPortalLinkButton
+              contactId={contact.id}
+              companyId={contact.company_id}
+              hasEmail={!!contact.email}
+            />
           </div>
         </div>
       </header>
