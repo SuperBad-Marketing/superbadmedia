@@ -115,6 +115,8 @@ export function GraphAdminClient({
   }, []);
 
   // Claim the OAuth token from the callback cookie when redirected back
+  const advanceRef = React.useRef(advance);
+  advanceRef.current = advance;
   React.useEffect(() => {
     const oauthParam = searchParams.get("oauth");
     if (oauthParam !== "success") return;
@@ -128,6 +130,7 @@ export function GraphAdminClient({
           consent: { ...current, token: result.accessToken },
         };
       });
+      setTimeout(() => advanceRef.current(), 100);
     });
   }, [searchParams, setStates]);
 
