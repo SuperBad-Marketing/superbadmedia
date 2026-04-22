@@ -35,8 +35,18 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       const userId =
         (token.id as string | undefined) ?? (token.sub as string | undefined);
       if (!userId) return token;
-      token.brand_dna_complete = await isBrandDnaCompleteForUser(userId);
-      token.critical_flight_complete = await hasCompletedCriticalFlight(userId);
+      try {
+        token.brand_dna_complete = await isBrandDnaCompleteForUser(userId);
+      } catch (err) {
+        console.error("[auth] jwt: isBrandDnaCompleteForUser failed:", err);
+        token.brand_dna_complete = false;
+      }
+      try {
+        token.critical_flight_complete = await hasCompletedCriticalFlight(userId);
+      } catch (err) {
+        console.error("[auth] jwt: hasCompletedCriticalFlight failed:", err);
+        token.critical_flight_complete = false;
+      }
       return token;
     },
   },

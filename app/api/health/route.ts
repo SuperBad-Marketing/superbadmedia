@@ -73,5 +73,14 @@ export async function GET(): Promise<NextResponse> {
     checks.adminSeedError = String(err);
   }
 
+  try {
+    const settingRow = sqliteConnection
+      .prepare("SELECT key, value FROM settings WHERE key = ?")
+      .get("wizards.critical_flight_wizards") as { key: string; value: string } | undefined;
+    checks.criticalFlightSetting = settingRow ? settingRow.value : "MISSING";
+  } catch (err) {
+    checks.criticalFlightSettingError = String(err);
+  }
+
   return NextResponse.json(checks);
 }
