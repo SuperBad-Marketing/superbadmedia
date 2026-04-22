@@ -21,7 +21,7 @@ import { db as defaultDb } from "@/lib/db";
 import { integration_connections } from "@/lib/db/schema/integration-connections";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import settings from "@/lib/settings";
-import type { WizardDefinition } from "@/lib/wizards/types";
+import type { VendorManifest, WizardDefinition } from "@/lib/wizards/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DbLike = typeof defaultDb | any;
@@ -58,6 +58,7 @@ export async function verifyCompletion<T extends object>(
   payload: T,
   ctx?: VerifyOwnerCtx,
   dbArg?: DbLike,
+  vendorManifestOverride?: VendorManifest,
 ): Promise<VerifyResult> {
   const db = dbArg ?? defaultDb;
   const contract = definition.completionContract;
@@ -82,7 +83,8 @@ export async function verifyCompletion<T extends object>(
   if (!verifyResult.ok) return verifyResult;
 
   if (contract.artefacts.integrationConnections) {
-    if (!definition.vendorManifest) {
+    const manifest = vendorManifestOverride ?? definition.vendorManifest;
+    if (!manifest) {
       return {
         ok: false,
         reason:
@@ -103,7 +105,7 @@ export async function verifyCompletion<T extends object>(
         and(
           eq(
             integration_connections.vendor_key,
-            definition.vendorManifest.vendorKey,
+            manifest.vendorKey,
           ),
           eq(integration_connections.owner_type, ctx.ownerType),
           eq(integration_connections.owner_id, ctx.ownerId),
@@ -114,7 +116,7 @@ export async function verifyCompletion<T extends object>(
     if (rows.length === 0) {
       return {
         ok: false,
-        reason: `No active integration_connections row for vendor=${definition.vendorManifest.vendorKey}, owner=${ctx.ownerType}:${ctx.ownerId}.`,
+        reason: `No active integration_connections row for vendor=${manifest.vendorKey}, owner=${ctx.ownerType}:${ctx.ownerId}.`,
       };
     }
   }

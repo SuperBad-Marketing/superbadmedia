@@ -84,7 +84,7 @@ export async function completeApiKeyAction(
       ownerId,
     });
 
-    const verified = await verifyCompletion(apiKeyWizard, payload, ctx);
+    const verified = await verifyCompletion(apiKeyWizard, payload, ctx, undefined, profile.manifest);
     if (!verified.ok) {
       return { ok: false, reason: verified.reason };
     }
