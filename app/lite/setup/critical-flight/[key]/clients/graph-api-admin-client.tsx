@@ -26,7 +26,11 @@ import type {
   WizardStepDefinition,
   WizardAudience,
 } from "@/lib/wizards/types";
-import { completeGraphAdminAction, getGraphAuthorizeUrlAction } from "../actions-graph";
+import {
+  completeGraphAdminAction,
+  getGraphAuthorizeUrlAction,
+  claimGraphOAuthTokenAction,
+} from "../actions-graph";
 import type { GraphAdminPayload } from "@/lib/wizards/defs/graph-api-admin";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import {
@@ -109,6 +113,23 @@ export function GraphAdminClient({
       if (url && url !== "#") setResolvedAuthorizeUrl(url);
     });
   }, []);
+
+  // Claim the OAuth token from the callback cookie when redirected back
+  React.useEffect(() => {
+    const oauthParam = searchParams.get("oauth");
+    if (oauthParam !== "success") return;
+    claimGraphOAuthTokenAction().then((result) => {
+      if (!result.ok) return;
+      setStates((prev) => {
+        const current = prev.consent as OAuthConsentState;
+        if (current.token) return prev;
+        return {
+          ...prev,
+          consent: { ...current, token: result.accessToken },
+        };
+      });
+    });
+  }, [searchParams, setStates]);
 
   // Test-only direct-token injection. Only honoured when the server page
   // flagged the environment as safe (dev/test). Production pages never set
