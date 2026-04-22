@@ -34,7 +34,7 @@ import { isBlockedFromOutreach } from "./dnc";
 import { createCandidate } from "./candidate";
 import { discoverContact } from "./contact-discovery";
 import { generateDraft } from "./draft-generator";
-import { enforceWarmupCap } from "./warmup";
+import { enforceWarmupCap, initWarmupState } from "./warmup";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "./types";
 import type { LeadRunTrigger } from "@/lib/db/schema/lead-runs";
 
@@ -97,6 +97,7 @@ export async function runDailySearch(
     // effective_cap = warmup_daily_cap − scheduled_sequence_touches_today
     // Then clamp to settings.max_per_day (user-configured upper bound).
     const maxPerDay = await settings.get("lead_generation.daily_max_per_day");
+    await initWarmupState(dbInstance);
     const warmupState = await enforceWarmupCap(dbInstance);
     const warmupCap = warmupState.cap;
     const effectiveCap = Math.min(maxPerDay, warmupState.remaining);
