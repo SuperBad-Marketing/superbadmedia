@@ -26,7 +26,7 @@ import type {
   WizardStepDefinition,
   WizardAudience,
 } from "@/lib/wizards/types";
-import { completeGraphAdminAction } from "../actions-graph";
+import { completeGraphAdminAction, getGraphAuthorizeUrlAction } from "../actions-graph";
 import type { GraphAdminPayload } from "@/lib/wizards/defs/graph-api-admin";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import {
@@ -102,6 +102,13 @@ export function GraphAdminClient({
   });
 
   const searchParams = useSearchParams();
+  const [resolvedAuthorizeUrl, setResolvedAuthorizeUrl] = React.useState(authorizeUrl);
+
+  React.useEffect(() => {
+    getGraphAuthorizeUrlAction().then((url) => {
+      if (url && url !== "#") setResolvedAuthorizeUrl(url);
+    });
+  }, []);
 
   // Test-only direct-token injection. Only honoured when the server page
   // flagged the environment as safe (dev/test). Production pages never set
@@ -167,7 +174,7 @@ export function GraphAdminClient({
         config: {
           ...(step.config ?? {}),
           vendorLabel: "Microsoft",
-          authorizeUrl,
+          authorizeUrl: resolvedAuthorizeUrl,
         },
       };
     }

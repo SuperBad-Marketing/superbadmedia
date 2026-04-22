@@ -25,6 +25,30 @@ import {
 } from "@/lib/wizards/defs/graph-api-admin";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 
+export async function getGraphAuthorizeUrlAction(): Promise<string> {
+  const clientId = process.env.MS_GRAPH_CLIENT_ID;
+  const tenantId = process.env.MS_GRAPH_TENANT_ID ?? "common";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  if (!clientId) return "#";
+  const redirectUri = `${appUrl}/api/oauth/graph-api/callback`;
+  const scopes = [
+    "offline_access",
+    "User.Read",
+    "Mail.ReadWrite",
+    "Mail.Send",
+    "MailboxSettings.Read",
+    "Calendars.Read",
+  ].join(" ");
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: "code",
+    redirect_uri: redirectUri,
+    response_mode: "query",
+    scope: scopes,
+  });
+  return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?${params.toString()}`;
+}
+
 function contractVersion(): string {
   const keys = graphApiAdminWizard.completionContract.required
     .map((k) => String(k))
