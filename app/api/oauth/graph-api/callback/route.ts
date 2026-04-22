@@ -31,7 +31,8 @@ export async function GET(req: NextRequest) {
   const errorDescription = url.searchParams.get("error_description");
   const code = url.searchParams.get("code");
 
-  const redirect = new URL(WIZARD_PATH, url.origin);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
+  const redirect = new URL(WIZARD_PATH, appUrl);
 
   if (error) {
     redirect.searchParams.set("oauth", "error");
