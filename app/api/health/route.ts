@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { sqliteConnection } from "@/lib/db";
+import { verifyPassword } from "@/lib/auth/password";
 
 const ADMIN_EMAIL = "andy@superbadmedia.com.au";
 
@@ -51,6 +52,22 @@ export async function GET(): Promise<NextResponse> {
       checks.adminRole = existing.role;
       checks.passwordHashSet = !!existing.password_hash;
       checks.passwordHashLength = existing.password_hash?.length ?? 0;
+
+      const envPw = process.env.ADMIN_PASSWORD?.trim();
+      checks.envPasswordSet = !!envPw;
+      checks.envPasswordLength = envPw?.length ?? 0;
+
+      if (existing.password_hash && envPw) {
+        try {
+          checks.envPasswordMatchesHash = verifyPassword(envPw, existing.password_hash);
+        } catch (err) {
+          checks.verifyError = String(err);
+        }
+      }
+
+      checks.hashPreview = existing.password_hash
+        ? `${existing.password_hash.slice(0, 8)}...${existing.password_hash.slice(-8)}`
+        : null;
     }
   } catch (err) {
     checks.adminSeedError = String(err);
