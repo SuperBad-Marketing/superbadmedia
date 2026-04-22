@@ -114,14 +114,23 @@ export function GraphAdminClient({
     });
   }, []);
 
+  const [oauthError, setOauthError] = React.useState<string | null>(null);
+
   // Claim the OAuth token from the callback cookie when redirected back
   const advanceRef = React.useRef(advance);
   advanceRef.current = advance;
   React.useEffect(() => {
     const oauthParam = searchParams.get("oauth");
+    if (oauthParam === "error") {
+      setOauthError(searchParams.get("reason") ?? "OAuth failed — Microsoft returned an error.");
+      return;
+    }
     if (oauthParam !== "success") return;
     claimGraphOAuthTokenAction().then((result) => {
-      if (!result.ok) return;
+      if (!result.ok) {
+        setOauthError(result.reason);
+        return;
+      }
       setStates((prev) => {
         const current = prev.consent as OAuthConsentState;
         if (current.token) return prev;
@@ -209,17 +218,25 @@ export function GraphAdminClient({
   }, [step, authorizeUrl, onComplete, onDone]);
 
   return (
-    <WizardShell
-      wizardKey="graph-api-admin"
-      currentStep={index}
-      stepLabels={steps.map((s) => s.label)}
-      audience={audience}
-      expiryDays={expiryDays}
-      onCancel={handleCancel}
-      step={configuredStep}
-      stepState={stepState}
-      onStepStateChange={onStepStateChange}
-      onNext={advance}
-    />
+    <>
+      {oauthError && (
+        <div className="mx-auto max-w-lg rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive mb-4">
+          <p className="font-medium">Microsoft connection failed</p>
+          <p className="mt-1 text-xs opacity-80">{oauthError}</p>
+        </div>
+      )}
+      <WizardShell
+        wizardKey="graph-api-admin"
+        currentStep={index}
+        stepLabels={steps.map((s) => s.label)}
+        audience={audience}
+        expiryDays={expiryDays}
+        onCancel={handleCancel}
+        step={configuredStep}
+        stepState={stepState}
+        onStepStateChange={onStepStateChange}
+        onNext={advance}
+      />
+    </>
   );
 }

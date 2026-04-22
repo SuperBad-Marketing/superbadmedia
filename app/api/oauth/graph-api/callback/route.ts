@@ -18,7 +18,6 @@
  * Owner: SW-7 (skeleton) → UI-1 (real exchange).
  */
 import { NextResponse, type NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import { exchangeCodeForTokens, encryptCredentials } from "@/lib/graph";
 
 const WIZARD_PATH = "/lite/setup/critical-flight/graph-api-admin";
@@ -32,45 +31,44 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get("code");
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
-  const redirect = new URL(WIZARD_PATH, appUrl);
+  const redirectUrl = new URL(WIZARD_PATH, appUrl);
 
   if (error) {
-    redirect.searchParams.set("oauth", "error");
-    redirect.searchParams.set("reason", errorDescription ?? error);
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set("reason", errorDescription ?? error);
     console.warn(
       `[graph-api oauth] callback error: ${error}${errorDescription ? ` — ${errorDescription}` : ""}`,
     );
-    return NextResponse.redirect(redirect);
+    return NextResponse.redirect(redirectUrl);
   }
 
   if (!code) {
-    redirect.searchParams.set("oauth", "error");
-    redirect.searchParams.set("reason", "No authorization code received");
-    return NextResponse.redirect(redirect);
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set("reason", "No authorization code received");
+    return NextResponse.redirect(redirectUrl);
   }
 
   try {
     const creds = await exchangeCodeForTokens(code);
     const encrypted = encryptCredentials(creds);
 
-    const cookieStore = await cookies();
-    cookieStore.set(COOKIE_NAME, encrypted, {
+    redirectUrl.searchParams.set("oauth", "success");
+    const response = NextResponse.redirect(redirectUrl);
+    response.cookies.set(COOKIE_NAME, encrypted, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: COOKIE_MAX_AGE,
       path: "/",
     });
-
-    redirect.searchParams.set("oauth", "success");
-    return NextResponse.redirect(redirect);
+    return response;
   } catch (err) {
     console.error("[graph-api oauth] Token exchange failed:", err);
-    redirect.searchParams.set("oauth", "error");
-    redirect.searchParams.set(
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set(
       "reason",
       err instanceof Error ? err.message.slice(0, 200) : "Token exchange failed",
     );
-    return NextResponse.redirect(redirect);
+    return NextResponse.redirect(redirectUrl);
   }
 }
