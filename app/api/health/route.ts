@@ -21,9 +21,19 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
+    const cols = sqliteConnection
+      .prepare("PRAGMA table_info(user)")
+      .all() as { name: string }[];
+    checks.userColumns = cols.map((c) => c.name);
+    checks.hasPasswordHashColumn = cols.some((c) => c.name === "password_hash");
+  } catch (err) {
+    checks.columnsError = String(err);
+  }
+
+  try {
     const existing = sqliteConnection
-      .prepare("SELECT id, email, role FROM user WHERE email = ?")
-      .get(ADMIN_EMAIL) as { id: string; email: string; role: string } | undefined;
+      .prepare("SELECT id, email, role, password_hash FROM user WHERE email = ?")
+      .get(ADMIN_EMAIL) as { id: string; email: string; role: string; password_hash: string | null } | undefined;
 
     if (!existing) {
       const id = randomUUID();
@@ -39,6 +49,8 @@ export async function GET(): Promise<NextResponse> {
       checks.adminExists = true;
       checks.adminId = existing.id;
       checks.adminRole = existing.role;
+      checks.passwordHashSet = !!existing.password_hash;
+      checks.passwordHashLength = existing.password_hash?.length ?? 0;
     }
   } catch (err) {
     checks.adminSeedError = String(err);
