@@ -263,6 +263,29 @@ export async function removeDncDomainAction(
   return { ok: true };
 }
 
+// ── Manual run ──────────────────────────────────────────────────────
+
+export async function triggerManualRunAction(): Promise<
+  | { ok: true; runId: string; candidatesCreated: number }
+  | { ok: false; error: string }
+> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const { runDailySearch } = await import("@/lib/lead-gen/daily-search");
+  const result = await runDailySearch({ trigger: "run_now" });
+
+  if (result.error) return { ok: false, error: result.error };
+
+  revalidatePath(LEAD_GEN_PATH);
+  revalidatePath("/lite/admin/lead-gen/runs");
+  return {
+    ok: true,
+    runId: result.runId,
+    candidatesCreated: result.candidatesCreated,
+  };
+}
+
 // ── Inline edit ─────────────────────────────────────────────────────
 
 export async function updateDraftAction(

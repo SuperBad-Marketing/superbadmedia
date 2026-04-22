@@ -6,6 +6,7 @@ import { killSwitches } from "@/lib/kill-switches";
 import { LeadGenTabs } from "./_components/lead-gen-tabs";
 import { QueueHeader } from "./_components/queue-header";
 import { QueueList } from "./_components/queue-list";
+import { LeadGenRunButton } from "./_components/lead-gen-run-button";
 
 export const metadata: Metadata = {
   title: "Lead Gen — SuperBad",
@@ -33,12 +34,15 @@ export default async function LeadGenQueuePage() {
         >
           Admin · Lead Gen
         </div>
-        <h1
-          className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
-          style={{ letterSpacing: "-0.4px" }}
-        >
-          Lead Generation
-        </h1>
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <h1
+            className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.4px" }}
+          >
+            Lead Generation
+          </h1>
+          <LeadGenRunButton />
+        </div>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
           Draft queue, run history, the whole pipeline.{" "}
           <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">

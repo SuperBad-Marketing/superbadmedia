@@ -14,6 +14,7 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
 import { ContentTabs } from "./_components/content-tabs";
+import { ContentGenerateButton } from "./_components/content-generate-button";
 
 // SuperBad's own company ID — in production this comes from settings or config.
 // For now, list all companies' posts since this is an admin view.
@@ -60,12 +61,15 @@ export default async function ContentPage() {
         >
           Admin · Content
         </div>
-        <h1
-          className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
-          style={{ letterSpacing: "-0.4px" }}
-        >
-          Content Engine
-        </h1>
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <h1
+            className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.4px" }}
+          >
+            Content Engine
+          </h1>
+          <ContentGenerateButton />
+        </div>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
           What&apos;s been written, what&apos;s waiting.{" "}
           <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
