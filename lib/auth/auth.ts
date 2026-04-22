@@ -97,29 +97,48 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
 
         // --- Admin email + password branch ---
         if (!credentials?.email || typeof credentials.email !== "string") {
+          console.warn("[auth] authorize: no email provided");
           return null;
         }
 
-        const found = await db
-          .select({
-            id: userTable.id,
-            email: userTable.email,
-            name: userTable.name,
-            role: userTable.role,
-            password_hash: userTable.password_hash,
-          })
-          .from(userTable)
-          .where(eq(userTable.email, credentials.email))
-          .get();
+        let found;
+        try {
+          found = await db
+            .select({
+              id: userTable.id,
+              email: userTable.email,
+              name: userTable.name,
+              role: userTable.role,
+              password_hash: userTable.password_hash,
+            })
+            .from(userTable)
+            .where(eq(userTable.email, credentials.email))
+            .get();
+        } catch (err) {
+          console.error("[auth] authorize: DB query failed:", err);
+          return null;
+        }
 
-        if (!found || found.role !== "admin") return null;
+        if (!found) {
+          console.warn("[auth] authorize: no user found for", credentials.email);
+          return null;
+        }
+        if (found.role !== "admin") {
+          console.warn("[auth] authorize: user role is", found.role, "not admin");
+          return null;
+        }
 
         if (found.password_hash) {
           const password =
             typeof credentials.password === "string"
-              ? credentials.password
+              ? credentials.password.trim()
               : "";
-          if (!verifyPassword(password, found.password_hash)) return null;
+          if (!verifyPassword(password, found.password_hash)) {
+            console.warn("[auth] authorize: password mismatch for", found.email);
+            return null;
+          }
+        } else {
+          console.warn("[auth] authorize: no password_hash set, skipping check");
         }
 
         return {

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
-import { hashPassword } from "../auth/password";
+import { hashPassword, verifyPassword } from "../auth/password";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate as drizzleMigrate } from "drizzle-orm/better-sqlite3/migrator";
 
@@ -66,13 +66,14 @@ export function runSeeds(
 
 function seedAdminUser(sqlite: Database.Database): void {
   const ADMIN_EMAIL = "andy@superbadmedia.com.au";
-  const pw = process.env.ADMIN_PASSWORD;
+  const pw = process.env.ADMIN_PASSWORD?.trim() || undefined;
 
   const existing = sqlite
     .prepare("SELECT id, password_hash FROM user WHERE email = ?")
     .get(ADMIN_EMAIL) as { id: string; password_hash: string | null } | undefined;
 
   if (!existing) {
+    const hasHash = !!pw;
     sqlite
       .prepare(
         `INSERT INTO user (id, email, name, role, timezone, created_at_ms, password_hash)
@@ -87,12 +88,22 @@ function seedAdminUser(sqlite: Database.Database): void {
         Date.now(),
         pw ? hashPassword(pw) : null,
       );
+    console.info(`[seed] Created admin user (password_hash: ${hasHash})`);
     return;
   }
 
-  if (!existing.password_hash && pw) {
-    sqlite
-      .prepare("UPDATE user SET password_hash = ? WHERE id = ?")
-      .run(hashPassword(pw), existing.id);
+  if (pw) {
+    const needsUpdate =
+      !existing.password_hash || !verifyPassword(pw, existing.password_hash);
+    if (needsUpdate) {
+      sqlite
+        .prepare("UPDATE user SET password_hash = ? WHERE id = ?")
+        .run(hashPassword(pw), existing.id);
+      console.info("[seed] Updated admin password_hash");
+    } else {
+      console.info("[seed] Admin password_hash already current");
+    }
+  } else {
+    console.info("[seed] Admin user exists, no ADMIN_PASSWORD env var to seed");
   }
 }
