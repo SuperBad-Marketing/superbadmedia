@@ -88,8 +88,7 @@ export async function createOnboardingCredentials(
     database,
   );
 
-  // Append redirect param so redeem lands at /lite/portal instead of /lite/onboarding
-  const magicLinkUrl = `${rawUrl}&redirect=/lite/portal`;
+  const magicLinkUrl = `${rawUrl}&redirect=/lite/portal/welcome`;
 
   // Send the credential confirmation email
   const firstName = contact.name?.split(" ")[0] ?? "there";
