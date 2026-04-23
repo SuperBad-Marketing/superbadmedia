@@ -28,6 +28,7 @@ import { fetchYouTube, applyYouTubeToProfile } from "./youtube";
 import {
   scrapeWebsite,
   applyWebsiteScrapeToProfile,
+  type ScrapedContact,
 } from "./website-scrape";
 import {
   fetchMapsExtras,
@@ -39,6 +40,7 @@ export interface EnrichmentResult {
   enrichment_duration_ms: number;
   signals_attempted: number;
   signals_succeeded: number;
+  scraped_contacts: ScrapedContact[];
 }
 
 /**
@@ -59,6 +61,7 @@ export async function enrichCandidate(
   let profile: Partial<ViabilityProfile> = { ...candidate.partial_profile };
   let signalsAttempted = 0;
   let signalsSucceeded = 0;
+  let scrapedContacts: ScrapedContact[] = [];
 
   const hasDomain = !!candidate.domain;
   const placeId = (candidate.raw_source_data as Record<string, unknown>)
@@ -115,6 +118,7 @@ export async function enrichCandidate(
       run: async () => {
         const result = await scrapeWebsite(candidate.domain!);
         profile = applyWebsiteScrapeToProfile(profile, result);
+        scrapedContacts = result.scraped_contacts;
         if (result.has_about_page || result.has_pricing_page) signalsSucceeded++;
       },
     },
@@ -144,6 +148,7 @@ export async function enrichCandidate(
     enrichment_duration_ms: Date.now() - start,
     signals_attempted: signalsAttempted,
     signals_succeeded: signalsSucceeded,
+    scraped_contacts: scrapedContacts,
   };
 }
 
@@ -162,6 +167,7 @@ export {
   inferPricingTier,
   applyWebsiteScrapeToProfile,
 } from "./website-scrape";
+export type { ScrapedContact } from "./website-scrape";
 export {
   fetchMapsExtras,
   parseRelativeDate,

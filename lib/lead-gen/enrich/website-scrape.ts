@@ -10,17 +10,26 @@
  */
 
 import * as cheerio from "cheerio";
+import type { AnyNode } from "domhandler";
 import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
 const FETCH_TIMEOUT_MS = 8_000;
 const MAX_BODY_BYTES = 512_000; // 500KB cap per page
 
+export interface ScrapedContact {
+  email: string;
+  name: string | null;
+  role: string | null;
+  source_page: string;
+}
+
 export interface WebsiteScrapeResult {
   has_about_page: boolean;
   has_pricing_page: boolean;
   team_size_signal: "solo" | "small" | "medium" | "large" | "unknown";
   stated_pricing_tier: "unknown" | "budget" | "mid" | "premium";
+  scraped_contacts: ScrapedContact[];
   error?: string;
 }
 
@@ -40,35 +49,39 @@ export async function scrapeWebsite(
   let hasPricingPage = false;
   let teamSizeSignal: WebsiteScrapeResult["team_size_signal"] = "unknown";
   let pricingTier: WebsiteScrapeResult["stated_pricing_tier"] = "unknown";
+  const allContacts: ScrapedContact[] = [];
 
   try {
-    // Fetch homepage to discover nav links
     const homepage = await safeFetch(baseUrl);
 
     if (homepage) {
       const $ = cheerio.load(homepage);
       const links = extractNavLinks($, baseUrl);
 
-      // Check for about and pricing pages in navigation
       const aboutUrl = links.find((l) =>
         /\b(about|team|our-team|who-we-are|about-us)\b/i.test(l),
       );
       const pricingUrl = links.find((l) =>
         /\b(pricing|prices|plans|packages|rates|cost)\b/i.test(l),
       );
+      const contactUrl = links.find((l) =>
+        /\b(contact|get-in-touch|reach-us|enquire|enquiry|connect)\b/i.test(l),
+      );
 
       hasAboutPage = !!aboutUrl;
       hasPricingPage = !!pricingUrl;
 
-      // Scrape about page for team size signals
+      extractContacts($, homepage, "homepage", domain, allContacts);
+
       if (aboutUrl) {
         const aboutHtml = await safeFetch(aboutUrl);
         if (aboutHtml) {
           teamSizeSignal = inferTeamSize(aboutHtml);
+          const $about = cheerio.load(aboutHtml);
+          extractContacts($about, aboutHtml, "about", domain, allContacts);
         }
       }
 
-      // Scrape pricing page for pricing tier signals
       if (pricingUrl) {
         const pricingHtml = await safeFetch(pricingUrl);
         if (pricingHtml) {
@@ -76,7 +89,14 @@ export async function scrapeWebsite(
         }
       }
 
-      // Fallback: check homepage text for team and pricing signals
+      if (contactUrl) {
+        const contactHtml = await safeFetch(contactUrl);
+        if (contactHtml) {
+          const $contact = cheerio.load(contactHtml);
+          extractContacts($contact, contactHtml, "contact", domain, allContacts);
+        }
+      }
+
       if (teamSizeSignal === "unknown") {
         teamSizeSignal = inferTeamSize(homepage);
       }
@@ -85,23 +105,23 @@ export async function scrapeWebsite(
       }
     }
 
-    const duration = Date.now() - start;
-    logExternalCall({ job: "website.scrape", actorType: "internal", units: { pages_fetched: 3 }, estimatedCostAud: 0 }).catch(() => {});
+    logExternalCall({ job: "website.scrape", actorType: "internal", units: { pages_fetched: 4 }, estimatedCostAud: 0 }).catch(() => {});
 
     return {
       has_about_page: hasAboutPage,
       has_pricing_page: hasPricingPage,
       team_size_signal: teamSizeSignal,
       stated_pricing_tier: pricingTier,
+      scraped_contacts: dedupeContacts(allContacts),
     };
   } catch (err) {
-    const duration = Date.now() - start;
-    logExternalCall({ job: "website.scrape", actorType: "internal", units: { pages_fetched: 3 }, estimatedCostAud: 0 }).catch(() => {});
+    logExternalCall({ job: "website.scrape", actorType: "internal", units: { pages_fetched: 4 }, estimatedCostAud: 0 }).catch(() => {});
     return {
       has_about_page: false,
       has_pricing_page: false,
       team_size_signal: "unknown",
       stated_pricing_tier: "unknown",
+      scraped_contacts: [],
       error: `Website scrape failed: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
@@ -247,6 +267,111 @@ export function inferPricingTier(
   }
 
   return "unknown";
+}
+
+const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+
+const JUNK_EMAIL_PREFIXES = new Set([
+  "noreply", "no-reply", "support", "help", "billing", "sales",
+  "admin", "webmaster", "postmaster", "mailer-daemon", "donotreply",
+  "unsubscribe", "newsletter", "notifications", "updates",
+]);
+
+const ROLE_KEYWORDS: Record<string, string> = {
+  founder: "Founder",
+  "co-founder": "Co-Founder",
+  ceo: "CEO",
+  owner: "Owner",
+  director: "Director",
+  "managing director": "Managing Director",
+  principal: "Principal",
+  manager: "Manager",
+  "marketing manager": "Marketing Manager",
+  "general manager": "General Manager",
+};
+
+function extractContacts(
+  $: cheerio.CheerioAPI,
+  html: string,
+  sourcePage: string,
+  domain: string,
+  out: ScrapedContact[],
+): void {
+  // 1. mailto: links — best signal, often paired with a name
+  $("a[href^='mailto:']").each((_, el) => {
+    const href = $(el).attr("href") ?? "";
+    const email = href.replace(/^mailto:/i, "").split("?")[0].trim().toLowerCase();
+    if (!email || !email.includes("@")) return;
+    if (isJunkEmail(email)) return;
+
+    const surroundingText = $(el).parent().text().trim();
+    const name = inferNameNearEmail($, el, surroundingText);
+    const role = inferRoleFromContext(surroundingText);
+    out.push({ email, name, role, source_page: sourcePage });
+  });
+
+  // 2. Emails in visible text (not in scripts/styles)
+  const bodyText = stripHtml(html);
+  const textEmails = bodyText.match(EMAIL_RE) ?? [];
+  for (const raw of textEmails) {
+    const email = raw.toLowerCase();
+    if (isJunkEmail(email)) continue;
+    if (out.some((c) => c.email === email)) continue;
+    out.push({ email, name: null, role: null, source_page: sourcePage });
+  }
+}
+
+function isJunkEmail(email: string): boolean {
+  const local = email.split("@")[0];
+  if (JUNK_EMAIL_PREFIXES.has(local)) return true;
+  if (/^(info|hello|contact|enquir|team|office|reception)@/i.test(email)) return false;
+  if (/\.(png|jpg|svg|gif|webp|css|js)$/i.test(email)) return true;
+  return false;
+}
+
+function inferNameNearEmail(
+  $: cheerio.CheerioAPI,
+  el: AnyNode,
+  surroundingText: string,
+): string | null {
+  const parent = $(el).closest("div, li, td, section, article");
+  const heading = parent.find("h1, h2, h3, h4, h5, h6, strong, b").first().text().trim();
+  if (heading && heading.length < 60 && !heading.includes("@")) {
+    const cleaned = heading.replace(/[^a-zA-Z\s'-]/g, "").trim();
+    if (cleaned.split(/\s+/).length >= 2 && cleaned.split(/\s+/).length <= 4) {
+      return cleaned;
+    }
+  }
+
+  // Check surrounding text for a name pattern (2-4 capitalised words before the email)
+  const before = surroundingText.split("@")[0];
+  const nameMatch = before.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\s*$/);
+  if (nameMatch) return nameMatch[1];
+
+  return null;
+}
+
+function inferRoleFromContext(text: string): string | null {
+  const lower = text.toLowerCase();
+  for (const [keyword, label] of Object.entries(ROLE_KEYWORDS)) {
+    if (lower.includes(keyword)) return label;
+  }
+  return null;
+}
+
+function dedupeContacts(contacts: ScrapedContact[]): ScrapedContact[] {
+  const seen = new Map<string, ScrapedContact>();
+  for (const c of contacts) {
+    const existing = seen.get(c.email);
+    if (!existing) {
+      seen.set(c.email, c);
+    } else {
+      // Prefer the entry with more data
+      if (!existing.name && c.name) existing.name = c.name;
+      if (!existing.role && c.role) existing.role = c.role;
+    }
+  }
+  return [...seen.values()];
 }
 
 /**

@@ -158,6 +158,7 @@ export async function runDailySearch(
       discovered: DiscoveredCandidate;
       assignment: ReturnType<typeof assignTrack>;
       enrichedProfile: Awaited<ReturnType<typeof enrichCandidate>>["profile"];
+      scrapedContacts: Awaited<ReturnType<typeof enrichCandidate>>["scraped_contacts"];
     }> = [];
 
     for (const candidate of survivors) {
@@ -172,6 +173,7 @@ export async function runDailySearch(
         discovered: candidate,
         assignment,
         enrichedProfile: enrichResult.profile,
+        scrapedContacts: enrichResult.scraped_contacts,
       });
     }
 
@@ -187,7 +189,7 @@ export async function runDailySearch(
     let candidatesCreated = 0;
     let draftedCount = 0;
     for (const entry of topCandidates) {
-      // Step 8: Discover contact email via Hunter.io (§7.1)
+      // Step 8: Discover contact email — Hunter.io primary, website scrape fallback
       const domain = entry.discovered.domain;
       let contactResult = {
         email: null as string | null,
@@ -206,6 +208,17 @@ export async function runDailySearch(
           name: hunterResult.name,
           role: hunterResult.role,
           confidence: hunterResult.confidence,
+        };
+      }
+
+      // Fallback: use contacts scraped from the website during enrichment
+      if (!contactResult.email && entry.scrapedContacts.length > 0) {
+        const best = entry.scrapedContacts[0];
+        contactResult = {
+          email: best.email,
+          name: best.name,
+          role: best.role,
+          confidence: "inferred",
         };
       }
 
