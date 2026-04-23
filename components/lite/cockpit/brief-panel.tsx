@@ -56,14 +56,14 @@ export function BriefPanel({
         {fallback || !brief ? (
           <p
             className="font-[family-name:var(--font-serif)] text-[18px] italic leading-relaxed"
-            style={{ color: "var(--color-neutral-600)" }}
+            style={{ color: "var(--color-neutral-500)" }}
           >
             {pseudoRandomPick(QUIET_FALLBACK_LINES, nowMs, 1)}
           </p>
         ) : (
           <p
             className="font-[family-name:var(--font-serif)] text-[18px] leading-relaxed"
-            style={{ color: "var(--color-neutral-800)" }}
+            style={{ color: "var(--color-neutral-300)" }}
           >
             {brief.prose}
           </p>

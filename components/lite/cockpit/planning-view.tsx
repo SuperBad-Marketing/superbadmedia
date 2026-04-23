@@ -209,7 +209,7 @@ function KanbanView({ kanban }: { kanban: CockpitKanban }) {
                 className="rounded-full px-1.5 py-0.5 text-[10px]"
                 style={{
                   backgroundColor: "var(--color-surface-1)",
-                  color: "var(--color-neutral-600)",
+                  color: "var(--color-neutral-500)",
                 }}
               >
                 {col.tasks.length}
@@ -259,7 +259,7 @@ function TaskCard({
       className="rounded-[var(--radius-default)] px-3 py-2.5 text-[13px] font-[family-name:var(--font-body)] transition-colors block"
       style={{
         backgroundColor: "var(--color-surface-0)",
-        color: "var(--color-neutral-800)",
+        color: "var(--color-neutral-100)",
       }}
     >
       {task.title}

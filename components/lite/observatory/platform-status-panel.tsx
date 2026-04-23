@@ -92,7 +92,7 @@ export function PlatformStatusPanel({ mtd }: { mtd: MtdSummary }) {
           </div>
           <div
             className="mt-1 font-[family-name:var(--font-display)] text-[28px] leading-none"
-            style={{ color: "var(--color-neutral-700)" }}
+            style={{ color: "var(--color-neutral-500)" }}
           >
             {formatAud(mtd.projection_aud)}
           </div>

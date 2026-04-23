@@ -65,7 +65,7 @@ export default async function WelcomePage() {
 
   // Already seen → skip to portal home
   if (contact.onboarding_welcome_seen_at_ms != null) {
-    redirect("/lite/portal");
+    redirect("/lite/portal/home");
   }
 
   const company = db
@@ -79,7 +79,7 @@ export default async function WelcomePage() {
     .get();
 
   if (!company) {
-    redirect("/lite/portal");
+    redirect("/lite/portal/home");
   }
 
   // ── Entry-path branch (F4.c) ──────────────────────────────────────
@@ -108,7 +108,7 @@ export default async function WelcomePage() {
   if (isTrialShootGraduate) {
     // Trial-shoot graduates bypass welcome — their portal experience is
     // continuous per feedback_felt_experience_wins.
-    redirect("/lite/portal");
+    redirect("/lite/portal/home");
   }
 
   // ── Determine audience ─────────────────────────────────────────────

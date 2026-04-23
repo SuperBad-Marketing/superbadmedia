@@ -80,7 +80,7 @@ export async function GET(
     destination =
       contact?.onboarding_welcome_seen_at_ms == null
         ? "/lite/portal/welcome"
-        : "/lite/portal";
+        : "/lite/portal/home";
   }
 
   const response = NextResponse.redirect(new URL(destination, request.url));

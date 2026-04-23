@@ -54,7 +54,7 @@ function AnomalyRow({ anomaly }: { anomaly: AnomalyListItem }) {
         <div className="flex items-baseline gap-2">
           <span
             className="truncate font-[family-name:var(--font-mono)] text-[13px]"
-            style={{ color: "var(--color-neutral-900)" }}
+            style={{ color: "var(--color-neutral-100)" }}
           >
             {anomaly.job}
           </span>
@@ -77,7 +77,7 @@ function AnomalyRow({ anomaly }: { anomaly: AnomalyListItem }) {
       <div className="shrink-0 text-right">
         <div
           className="font-[family-name:var(--font-mono)] text-[13px]"
-          style={{ color: "var(--color-neutral-700)" }}
+          style={{ color: "var(--color-neutral-500)" }}
         >
           {formatAud(anomaly.observed_value)}
         </div>

@@ -34,7 +34,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { htmlClassNames, theme, typeface } = await getActivePresets();
+  const { htmlClassNames, theme, typeface, motion, density, textSize, soundsEnabled } = await getActivePresets();
 
   return (
     <html
@@ -42,7 +42,7 @@ export default async function RootLayout({
       className={`${htmlClassNames} ${allFontVariables} h-full antialiased`}
     >
       <body className="bg-background text-foreground min-h-full flex flex-col">
-        <ThemeProvider value={{ theme, typeface }}>
+        <ThemeProvider value={{ theme, typeface, motion, density, textSize, soundsEnabled }}>
           <MotionProvider>
             <SoundProvider>
               {children}

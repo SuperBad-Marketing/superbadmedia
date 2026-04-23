@@ -60,7 +60,7 @@ function KillSwitchRow({ job }: { job: KillSwitchedJob }) {
       <div>
         <span
           className="font-[family-name:var(--font-mono)] text-[13px]"
-          style={{ color: "var(--color-neutral-900)" }}
+          style={{ color: "var(--color-neutral-100)" }}
         >
           {job.job}
         </span>
@@ -81,7 +81,7 @@ function KillSwitchRow({ job }: { job: KillSwitchedJob }) {
         style={{
           letterSpacing: "1.5px",
           background: "var(--color-surface-2)",
-          color: "var(--color-neutral-700)",
+          color: "var(--color-neutral-500)",
         }}
       >
         {loading ? "Resuming…" : "Resume"}

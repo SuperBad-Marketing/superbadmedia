@@ -47,7 +47,7 @@ export function WelcomeClient({
 
   async function handleStart() {
     await markWelcomeSeen();
-    router.push("/lite/portal");
+    router.push("/lite/portal/home");
   }
 
   return (

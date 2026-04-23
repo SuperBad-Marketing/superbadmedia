@@ -119,7 +119,7 @@ export function AnomalyActions({
             style={{
               letterSpacing: "1.5px",
               background: "var(--color-surface-2)",
-              color: "var(--color-neutral-700)",
+              color: "var(--color-neutral-500)",
             }}
           >
             {loading === "ack" ? "…" : "Acknowledge & suppress 24h"}
@@ -148,7 +148,7 @@ export function AnomalyActions({
             style={{
               letterSpacing: "1.5px",
               background: "var(--color-surface-2)",
-              color: "var(--color-neutral-700)",
+              color: "var(--color-neutral-500)",
             }}
           >
             {loading === "kill"
@@ -167,7 +167,7 @@ export function AnomalyActions({
             style={{
               letterSpacing: "1.5px",
               background: "var(--color-surface-2)",
-              color: "var(--color-neutral-700)",
+              color: "var(--color-neutral-500)",
             }}
           >
             {bandEditorOpen ? "Close band editor" : "Adjust bands"}
@@ -216,7 +216,7 @@ function BandEditor({
     >
       <p
         className="text-[13px] font-[family-name:var(--font-serif)] italic"
-        style={{ color: "var(--color-neutral-600)" }}
+        style={{ color: "var(--color-neutral-500)" }}
       >
         If this is a new normal, raise the band.
       </p>
@@ -232,7 +232,7 @@ function BandEditor({
               value={perCall}
               onChange={(e) => setPerCall(e.target.value)}
               className={inputClass}
-              style={{ color: "var(--color-neutral-800)" }}
+              style={{ color: "var(--color-neutral-300)" }}
             />
             <button
               onClick={() => onUpdate("per_call_ceiling_aud", Number(perCall))}
@@ -259,7 +259,7 @@ function BandEditor({
               value={daily}
               onChange={(e) => setDaily(e.target.value)}
               className={inputClass}
-              style={{ color: "var(--color-neutral-800)" }}
+              style={{ color: "var(--color-neutral-300)" }}
             />
             <button
               onClick={() => onUpdate("daily_ceiling_aud", Number(daily))}

@@ -26,6 +26,7 @@ import { sendEmail } from "@/lib/channels/email/send";
 import { logActivity } from "@/lib/activity-log";
 import settingsRegistry from "@/lib/settings";
 import { killSwitches } from "@/lib/kill-switches";
+import { getAppUrl } from "@/lib/env/app-url";
 
 // ── Payload types ─────────────────────────────────────────────────────
 
@@ -159,11 +160,11 @@ async function handleOnboardingNudge(task: ScheduledTaskRow): Promise<void> {
 
   if (!bdDone) {
     subject = "Pick up where you left off";
-    body = `<p>You started getting to know SuperBad — and we're keen to finish the conversation.</p><p>The Brand DNA setup takes about 30 minutes. It's the foundation everything else builds on.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/lite/portal">Continue your setup</a></p>`;
+    body = `<p>You started getting to know SuperBad — and we're keen to finish the conversation.</p><p>The Brand DNA setup takes about 30 minutes. It's the foundation everything else builds on.</p><p><a href="${getAppUrl()}/lite/portal">Continue your setup</a></p>`;
   } else {
     // Brand DNA done but rev seg not done (SaaS only)
     subject = "Almost there — five quick questions left";
-    body = `<p>Brand DNA is done — nice work. Five quick questions about your business and you're through to the product.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/lite/portal/onboarding/segmentation">Finish setup</a></p>`;
+    body = `<p>Brand DNA is done — nice work. Five quick questions about your business and you're through to the product.</p><p><a href="${getAppUrl()}/lite/portal/onboarding/segmentation">Finish setup</a></p>`;
   }
 
   await sendEmail({
@@ -238,8 +239,8 @@ async function handlePracticalSetupReminder(task: ScheduledTaskRow): Promise<voi
     : "A few quick things left";
 
   const body = incomplete.length === 1
-    ? `<p>Quick one — we still need your ${stepNames}. Takes about 2 minutes.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/lite/portal">Complete it here</a></p>`
-    : `<p>A few practical bits left to sort: ${stepNames}. Each one takes about 2 minutes.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/lite/portal">Complete them here</a></p>`;
+    ? `<p>Quick one — we still need your ${stepNames}. Takes about 2 minutes.</p><p><a href="${getAppUrl()}/lite/portal">Complete it here</a></p>`
+    : `<p>A few practical bits left to sort: ${stepNames}. Each one takes about 2 minutes.</p><p><a href="${getAppUrl()}/lite/portal">Complete them here</a></p>`;
 
   await sendEmail({
     to: email,

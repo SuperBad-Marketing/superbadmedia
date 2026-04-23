@@ -45,8 +45,8 @@ function CallHistoryTable({ calls }: { calls: JobCallRow[] }) {
         <thead>
           <tr
             style={{
-              backgroundColor: "var(--color-neutral-100)",
-              color: "var(--color-neutral-600)",
+              backgroundColor: "var(--color-surface-1)",
+              color: "var(--color-neutral-500)",
             }}
           >
             <th className="px-4 py-2 text-left font-medium">Time</th>
@@ -63,7 +63,7 @@ function CallHistoryTable({ calls }: { calls: JobCallRow[] }) {
             <tr key={c.id}>
               <td
                 className="px-4 py-2 whitespace-nowrap"
-                style={{ color: "var(--color-neutral-700)" }}
+                style={{ color: "var(--color-neutral-500)" }}
               >
                 <span title={formatTimestamp(c.created_at_ms)}>
                   {relativeTime(c.created_at_ms)}
@@ -71,14 +71,14 @@ function CallHistoryTable({ calls }: { calls: JobCallRow[] }) {
               </td>
               <td
                 className="px-4 py-2 font-mono"
-                style={{ color: "var(--color-neutral-700)" }}
+                style={{ color: "var(--color-neutral-500)" }}
               >
                 {c.actor_type}
                 {c.actor_id ? ` / ${c.actor_id.slice(0, 8)}` : ""}
               </td>
               <td
                 className="px-4 py-2 text-right font-mono"
-                style={{ color: "var(--color-neutral-900)" }}
+                style={{ color: "var(--color-neutral-100)" }}
               >
                 {formatAud(c.estimated_cost_aud)}
               </td>
@@ -127,8 +127,8 @@ function PromptVersionTable({
           <thead>
             <tr
               style={{
-                backgroundColor: "var(--color-neutral-100)",
-                color: "var(--color-neutral-600)",
+                backgroundColor: "var(--color-surface-1)",
+                color: "var(--color-neutral-500)",
               }}
             >
               <th className="px-4 py-2 text-left font-medium">Hash</th>
@@ -146,31 +146,31 @@ function PromptVersionTable({
               <tr key={v.hash}>
                 <td
                   className="px-4 py-2 font-mono"
-                  style={{ color: "var(--color-neutral-900)" }}
+                  style={{ color: "var(--color-neutral-100)" }}
                 >
                   {v.hash.slice(0, 12)}
                 </td>
                 <td
                   className="px-4 py-2"
-                  style={{ color: "var(--color-neutral-700)" }}
+                  style={{ color: "var(--color-neutral-500)" }}
                 >
                   {formatTimestamp(v.first_seen_ms)}
                 </td>
                 <td
                   className="px-4 py-2"
-                  style={{ color: "var(--color-neutral-700)" }}
+                  style={{ color: "var(--color-neutral-500)" }}
                 >
                   {formatTimestamp(v.last_seen_ms)}
                 </td>
                 <td
                   className="px-4 py-2 text-right font-mono"
-                  style={{ color: "var(--color-neutral-700)" }}
+                  style={{ color: "var(--color-neutral-500)" }}
                 >
                   {v.call_count}
                 </td>
                 <td
                   className="px-4 py-2 text-right font-mono"
-                  style={{ color: "var(--color-neutral-900)" }}
+                  style={{ color: "var(--color-neutral-100)" }}
                 >
                   {formatAud(v.total_cost_aud)}
                 </td>
@@ -205,7 +205,7 @@ export function JobDetailView({
           <div>
             <h2
               className="font-mono text-[18px] font-medium"
-              style={{ color: "var(--color-neutral-900)" }}
+              style={{ color: "var(--color-neutral-100)" }}
             >
               {detail.job}
             </h2>
@@ -220,7 +220,7 @@ export function JobDetailView({
           </div>
           <div
             className="text-right text-[13px]"
-            style={{ color: "var(--color-neutral-600)" }}
+            style={{ color: "var(--color-neutral-500)" }}
           >
             <div>{detail.call_count_total} total calls</div>
             {detail.registry?.bands && (
@@ -293,7 +293,7 @@ export function JobDetailView({
           {totalPages > 1 && (
             <div
               className="flex items-center gap-2 text-[12px]"
-              style={{ color: "var(--color-neutral-600)" }}
+              style={{ color: "var(--color-neutral-500)" }}
             >
               <button
                 type="button"

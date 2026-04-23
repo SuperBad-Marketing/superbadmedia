@@ -45,7 +45,7 @@ function ThresholdField({
           style={{
             borderColor: "var(--color-neutral-300)",
             backgroundColor: "var(--color-white)",
-            color: "var(--color-neutral-900)",
+            color: "var(--color-neutral-100)",
           }}
         />
       </div>
@@ -76,7 +76,7 @@ function ToggleField({
       <div>
         <span
           className="text-[14px] font-medium"
-          style={{ color: "var(--color-neutral-900)" }}
+          style={{ color: "var(--color-neutral-100)" }}
         >
           {label}
         </span>
@@ -225,8 +225,8 @@ export function ObservatorySettingsForm({
             <thead>
               <tr
                 style={{
-                  backgroundColor: "var(--color-neutral-100)",
-                  color: "var(--color-neutral-600)",
+                  backgroundColor: "var(--color-surface-1)",
+                  color: "var(--color-neutral-500)",
                 }}
               >
                 <th className="px-4 py-2 text-left font-medium">Job</th>
@@ -242,37 +242,37 @@ export function ObservatorySettingsForm({
                 <tr key={j.job}>
                   <td
                     className="px-4 py-2 font-mono"
-                    style={{ color: "var(--color-neutral-900)" }}
+                    style={{ color: "var(--color-neutral-100)" }}
                   >
                     <a
                       href={`/lite/observatory/jobs/${encodeURIComponent(j.job)}`}
                       className="underline decoration-dotted underline-offset-2"
-                      style={{ color: "var(--color-neutral-900)" }}
+                      style={{ color: "var(--color-neutral-100)" }}
                     >
                       {j.job}
                     </a>
                   </td>
                   <td
                     className="px-4 py-2"
-                    style={{ color: "var(--color-neutral-600)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {j.vendor}
                   </td>
                   <td
                     className="px-4 py-2 text-right font-mono"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {formatAud(j.per_call_ceiling_aud)}
                   </td>
                   <td
                     className="px-4 py-2 text-right font-mono"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {formatAud(j.daily_ceiling_aud)}
                   </td>
                   <td
                     className="px-4 py-2 text-right font-mono"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {j.learned_band_multiplier}×
                   </td>

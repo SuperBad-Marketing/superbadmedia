@@ -49,7 +49,7 @@ function SubscriberList({
           <div className="flex items-center justify-between">
             <span
               className="text-[14px] font-medium"
-              style={{ color: "var(--color-neutral-900)" }}
+              style={{ color: "var(--color-neutral-100)" }}
             >
               {s.company_name}
             </span>
@@ -92,7 +92,7 @@ function SubscriberList({
                   <div
                     key={j.job}
                     className="flex justify-between text-[13px] font-mono"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     <span>{j.job}</span>
                     <span>{formatAud(j.cost_aud)}</span>
@@ -101,7 +101,7 @@ function SubscriberList({
               </div>
               <div
                 className="mt-3 text-[12px]"
-                style={{ color: "var(--color-neutral-600)" }}
+                style={{ color: "var(--color-neutral-500)" }}
               >
                 Options: cap conversation · renegotiate to custom · accept as goodwill
               </div>
@@ -193,7 +193,7 @@ export function TierHealthPanel({ tiers }: { tiers: TierHealthCard[] }) {
                 <div className="flex items-center justify-between">
                   <span
                     className="text-[16px] font-medium"
-                    style={{ color: "var(--color-neutral-900)" }}
+                    style={{ color: "var(--color-neutral-100)" }}
                   >
                     {tier.tier_name}
                   </span>
@@ -204,7 +204,7 @@ export function TierHealthPanel({ tiers }: { tiers: TierHealthCard[] }) {
                 </div>
                 <div
                   className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[13px]"
-                  style={{ color: "var(--color-neutral-600)" }}
+                  style={{ color: "var(--color-neutral-500)" }}
                 >
                   <span>{tier.subscriber_count} subscribers</span>
                   <span>{formatAud(tier.monthly_revenue_aud)} rev</span>

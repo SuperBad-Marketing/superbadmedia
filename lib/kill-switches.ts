@@ -46,11 +46,11 @@ type KillSwitchRegistry = Record<KillSwitchKey, boolean>;
 
 const defaults: KillSwitchRegistry = {
   outreach_send_enabled: false,
-  scheduled_tasks_enabled: false,
-  llm_calls_enabled: false,
+  scheduled_tasks_enabled: true,
+  llm_calls_enabled: true,
   drift_check_enabled: false,
   sentry_enabled: false,
-  brand_dna_assessment_enabled: false,
+  brand_dna_assessment_enabled: true,
   setup_wizards_enabled: true,
   wizards_nudges_enabled: false,
   // QB-6: gate for `manual_invoice_generate` enqueue in
@@ -92,13 +92,13 @@ const defaults: KillSwitchRegistry = {
   // sync, outbound send, subscription management). When OFF, sync handlers
   // return early, webhook route returns 200 without processing, sendViaGraph
   // throws. Flip ON in Phase 6 after Graph connection is verified live.
-  inbox_sync_enabled: false,
+  inbox_sync_enabled: true,
   // UI-6: gates the outbound compose-send path specifically. When OFF,
   // `sendCompose` throws before touching Graph so Andy can disable sends
   // while debugging the inbound pipeline without also disabling delta sync.
   // `inbox_sync_enabled` still gates the Graph HTTP call itself (belt and
   // braces — turning either OFF is a hard stop on outbound mail).
-  inbox_send_enabled: false,
+  inbox_send_enabled: true,
   // UI-13: gates the daily 08:00 morning digest email. When OFF, the
   // handler exits without sending and does NOT re-enqueue — the
   // bootstrap helper is the entry point when the switch flips back on.
@@ -127,7 +127,7 @@ const defaults: KillSwitchRegistry = {
   // SWP-3: gates the six-week plan generator pipeline, expiry jobs, and
   // migrate-on-Won handler. When OFF, all SWP scheduled-task handlers
   // exit early. Flip ON in Phase 6 after prompts are tuned.
-  plan_automations_enabled: false,
+  plan_automations_enabled: true,
   // TM-7: gates the daily 08:00 morning task digest email. When OFF, the
   // handler exits without sending and does NOT re-enqueue — the bootstrap
   // helper is the entry point when the switch flips back on.
@@ -141,7 +141,7 @@ const defaults: KillSwitchRegistry = {
   // exit early and sync-on-insert check is skipped. Flip ON in Phase 6
   // after band values are tuned.
   observatory_detectors_enabled: false,
-  cockpit_briefs_enabled: false,
+  cockpit_briefs_enabled: true,
   admin_sse_enabled: true,
 };
 

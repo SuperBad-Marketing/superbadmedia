@@ -23,7 +23,7 @@ export function AttentionRail({ items }: { items: WaitingItem[] }) {
           className="flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-[family-name:var(--font-body)] transition-colors"
           style={{
             backgroundColor: "var(--color-surface-1)",
-            color: "var(--color-neutral-800)",
+            color: "var(--color-neutral-100)",
           }}
         >
           {item.scope === "fleet" && (

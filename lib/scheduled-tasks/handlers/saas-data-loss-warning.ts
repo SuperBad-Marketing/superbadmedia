@@ -20,6 +20,7 @@ import { saas_products } from "@/lib/db/schema/saas-products";
 import type { ScheduledTaskRow } from "@/lib/db/schema/scheduled-tasks";
 import { logActivity } from "@/lib/activity-log";
 import { sendSaasDataLossWarningEmail } from "@/lib/emails/saas-payment-recovery";
+import { getAppUrl } from "@/lib/env/app-url";
 
 interface DataLossWarningPayload {
   deal_id: string;
@@ -27,9 +28,7 @@ interface DataLossWarningPayload {
 }
 
 function dashboardUrl(): string {
-  const base =
-    process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://superbadmedia.com.au";
-  return `${base.replace(/\/$/, "")}/lite/onboarding`;
+  return `${getAppUrl()}/lite/onboarding`;
 }
 
 export async function handleSaasDataLossWarning(

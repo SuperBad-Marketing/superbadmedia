@@ -16,6 +16,15 @@ export async function register() {
     }
 
     await import("./sentry.server.config");
+
+    if (process.env.NEXT_PHASE !== "phase-production-build") {
+      const { startWorker } = await import("./lib/scheduled-tasks/worker");
+      const { HANDLER_REGISTRY } = await import(
+        "./lib/scheduled-tasks/handlers"
+      );
+      startWorker({ handlers: HANDLER_REGISTRY });
+      console.info("[instrumentation] scheduled-tasks worker started");
+    }
   }
 
   if (process.env.NEXT_RUNTIME === "edge") {

@@ -36,6 +36,7 @@ import {
 import { withdrawQuote } from "@/lib/quote-builder/withdraw";
 import { paragraphsToHtml } from "@/lib/quote-builder/compose-send-email";
 import { logActivity } from "@/lib/activity-log";
+import { getAppUrl } from "@/lib/env/app-url";
 import { settingsRegistry } from "@/lib/settings";
 import { inArray, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
@@ -101,7 +102,7 @@ export async function prepareSendQuoteAction(input: {
   }
   try {
     const composed = await composeQuoteSendEmail({ quote_id: input.quote_id });
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+    const baseUrl = getAppUrl();
     const quote = await db
       .select({ token: quotes.token })
       .from(quotes)
@@ -336,7 +337,7 @@ export async function sendQuoteAction(input: {
     return { ok: false, error: "Subject, recipient, and body are required." };
   }
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+    const baseUrl = getAppUrl();
     const row = await db
       .select({
         token: quotes.token,

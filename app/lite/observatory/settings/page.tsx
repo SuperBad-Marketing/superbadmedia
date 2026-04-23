@@ -35,13 +35,13 @@ export default async function ObservatorySettingsPage() {
         </div>
         <h1
           className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none"
-          style={{ color: "var(--color-neutral-950)" }}
+          style={{ color: "var(--color-neutral-100)" }}
         >
           Settings
         </h1>
         <p
           className="mt-3 max-w-[640px] font-[family-name:var(--font-serif)] text-[16px] italic leading-relaxed"
-          style={{ color: "var(--color-neutral-600)" }}
+          style={{ color: "var(--color-neutral-500)" }}
         >
           Thresholds, toggles, and the full job registry.
         </p>

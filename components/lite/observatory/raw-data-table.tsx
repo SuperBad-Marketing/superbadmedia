@@ -63,7 +63,7 @@ export function RawDataTable({ calls }: { calls: RecentCall[] }) {
                 >
                   <td
                     className="py-2 pr-3 font-[family-name:var(--font-mono)]"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {formatTimestamp(call.created_at_ms, undefined, {
                       format: "datetime",
@@ -71,20 +71,20 @@ export function RawDataTable({ calls }: { calls: RecentCall[] }) {
                   </td>
                   <td
                     className="py-2 pr-3"
-                    style={{ color: "var(--color-neutral-600)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {call.actor_type}
                     {call.actor_id ? ` · ${call.actor_id.slice(0, 8)}` : ""}
                   </td>
                   <td
                     className="py-2 pr-3 font-[family-name:var(--font-mono)]"
-                    style={{ color: "var(--color-neutral-600)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {formatUnits(call.units)}
                   </td>
                   <td
                     className="py-2 pr-3 font-[family-name:var(--font-mono)]"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {formatAud(call.estimated_cost_aud)}
                   </td>

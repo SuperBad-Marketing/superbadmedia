@@ -1,25 +1,32 @@
 /**
  * Theme + typeface preset selection (server-side).
  *
- * The real source of truth for a signed-in user's preferences is the
- * `user` table (landing in A5 / post-A8). Until that lands, presets are
- * driven by cookies so the /lite/_design playground can exercise every
- * variant and any unauthenticated surface picks a sensible default.
- *
- * Cookie names are stable — when the user-table read lands, the cookie
- * becomes a fallback for logged-out visitors only.
+ * For authenticated users, reads preferences from the `user` table.
+ * Falls back to cookies for unauthenticated visitors and the design
+ * playground.
  */
 import { cookies } from "next/headers";
+import { eq } from "drizzle-orm";
 
+import { auth } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { user } from "@/lib/db/schema/user";
 import {
   DEFAULT_THEME_PRESET,
   DEFAULT_TYPEFACE_PRESET,
+  DEFAULT_MOTION_PREFERENCE,
+  DEFAULT_DENSITY_PREFERENCE,
+  DEFAULT_TEXT_SIZE_PREFERENCE,
+  DEFAULT_SOUNDS_ENABLED,
   THEME_PRESETS,
   TYPEFACE_PRESETS,
   themePresetClass,
   typefacePresetClass,
   type ThemePreset,
   type TypefacePreset,
+  type MotionPreference,
+  type DensityPreference,
+  type TextSizePreference,
 } from "./design-tokens";
 
 export const THEME_COOKIE = "sb_theme_preset";
@@ -37,15 +44,56 @@ function parseTypefacePreset(value: string | undefined): TypefacePreset {
     : DEFAULT_TYPEFACE_PRESET;
 }
 
-export async function getActivePresets(): Promise<{
+export type ActivePresets = {
   theme: ThemePreset;
   typeface: TypefacePreset;
-  /** Space-separated class list safe to paste onto <html>. */
+  motion: MotionPreference;
+  density: DensityPreference;
+  textSize: TextSizePreference;
+  soundsEnabled: boolean;
   htmlClassNames: string;
-}> {
-  const jar = await cookies();
-  const theme = parseThemePreset(jar.get(THEME_COOKIE)?.value);
-  const typeface = parseTypefacePreset(jar.get(TYPEFACE_COOKIE)?.value);
+};
+
+export async function getActivePresets(): Promise<ActivePresets> {
+  let theme: ThemePreset = DEFAULT_THEME_PRESET;
+  let typeface: TypefacePreset = DEFAULT_TYPEFACE_PRESET;
+  let motion: MotionPreference = DEFAULT_MOTION_PREFERENCE;
+  let density: DensityPreference = DEFAULT_DENSITY_PREFERENCE;
+  let textSize: TextSizePreference = DEFAULT_TEXT_SIZE_PREFERENCE;
+  let soundsEnabled: boolean = DEFAULT_SOUNDS_ENABLED;
+  let foundUser = false;
+
+  const session = await auth();
+  if (session?.user?.id) {
+    const row = db
+      .select({
+        theme_preset: user.theme_preset,
+        typeface_preset: user.typeface_preset,
+        motion_preference: user.motion_preference,
+        density_preference: user.density_preference,
+        text_size_preference: user.text_size_preference,
+        sounds_enabled: user.sounds_enabled,
+      })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .get();
+
+    if (row) {
+      foundUser = true;
+      theme = parseThemePreset(row.theme_preset);
+      typeface = parseTypefacePreset(row.typeface_preset);
+      motion = row.motion_preference as MotionPreference;
+      density = row.density_preference as DensityPreference;
+      textSize = row.text_size_preference as TextSizePreference;
+      soundsEnabled = row.sounds_enabled;
+    }
+  }
+
+  if (!foundUser) {
+    const jar = await cookies();
+    theme = parseThemePreset(jar.get(THEME_COOKIE)?.value);
+    typeface = parseTypefacePreset(jar.get(TYPEFACE_COOKIE)?.value);
+  }
 
   const classes = [
     "dark",
@@ -56,6 +104,10 @@ export async function getActivePresets(): Promise<{
   return {
     theme,
     typeface,
+    motion,
+    density,
+    textSize,
+    soundsEnabled,
     htmlClassNames: classes.join(" "),
   };
 }

@@ -72,7 +72,7 @@ export function DiagnosisCard({
       {d.hypothesis && (
         <p
           className="mt-4 text-[15px] leading-relaxed"
-          style={{ color: "var(--color-neutral-800)" }}
+          style={{ color: "var(--color-neutral-300)" }}
         >
           {d.hypothesis}
         </p>
@@ -88,7 +88,7 @@ export function DiagnosisCard({
           </div>
           <p
             className="mt-1 text-[14px]"
-            style={{ color: "var(--color-neutral-700)" }}
+            style={{ color: "var(--color-neutral-500)" }}
           >
             {d.recommended_action}
           </p>
@@ -105,7 +105,7 @@ export function DiagnosisCard({
           </div>
           <p
             className="mt-1 whitespace-pre-wrap font-[family-name:var(--font-mono)] text-[12px] leading-relaxed"
-            style={{ color: "var(--color-neutral-600)" }}
+            style={{ color: "var(--color-neutral-500)" }}
           >
             {d.timeline_markdown}
           </p>

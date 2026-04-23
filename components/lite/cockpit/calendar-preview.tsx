@@ -54,7 +54,7 @@ export function CalendarPreview({ events }: { events: CalendarEvent[] }) {
             key={ev.id}
             href="/lite/calendar"
             className="flex items-center gap-2 flex-shrink-0 text-[13px] font-[family-name:var(--font-body)]"
-            style={{ color: "var(--color-neutral-700)" }}
+            style={{ color: "var(--color-neutral-300)" }}
           >
             <span style={{ color: "var(--color-neutral-500)" }}>
               {formatTimestamp(ev.start_at_ms, "Australia/Melbourne", {

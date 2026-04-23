@@ -11,6 +11,7 @@ import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import settings from "@/lib/settings";
 import type { TaskRow, TaskStatus, TaskKind } from "@/lib/db/schema/tasks";
 import type { SendEmailParams } from "@/lib/channels/email/send";
+import { getAppUrl } from "@/lib/env/app-url";
 
 async function lazySendEmail(params: SendEmailParams) {
   const { sendEmail } = await import("@/lib/channels/email/send");
@@ -188,7 +189,7 @@ export async function issueApprovalToken(
   });
 
   if (contact?.email) {
-    const approvalUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/lite/portal/approve/${raw}`;
+    const approvalUrl = `${getAppUrl()}/lite/portal/approve/${raw}`;
 
     await lazySendEmail({
       to: contact.email,
@@ -267,7 +268,7 @@ export async function handleApprovalReminder(payload: {
   });
   if (!contact?.email) return;
 
-  const approvalUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/lite/portal/approve/recover`;
+  const approvalUrl = `${getAppUrl()}/lite/portal/approve/recover`;
 
   await lazySendEmail({
     to: contact.email,

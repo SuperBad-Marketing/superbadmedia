@@ -37,7 +37,7 @@ export function BannerStrip({ banners }: { banners: HealthBanner[] }) {
           )}
           <span
             className="text-[13px] font-[family-name:var(--font-body)]"
-            style={{ color: "var(--color-neutral-800)" }}
+            style={{ color: "var(--color-neutral-300)" }}
           >
             {b.summary}
           </span>

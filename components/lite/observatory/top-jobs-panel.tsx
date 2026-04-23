@@ -101,7 +101,7 @@ export function TopJobsPanel({ jobs }: { jobs: TopJobRow[] }) {
                 >
                   <td
                     className="py-2.5 pr-4 font-[family-name:var(--font-mono)] text-[13px]"
-                    style={{ color: "var(--color-neutral-900)" }}
+                    style={{ color: "var(--color-neutral-100)" }}
                   >
                     {job.job}
                   </td>
@@ -113,13 +113,13 @@ export function TopJobsPanel({ jobs }: { jobs: TopJobRow[] }) {
                   </td>
                   <td
                     className="py-2.5 pr-4 text-right font-[family-name:var(--font-mono)]"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {job.total_calls.toLocaleString()}
                   </td>
                   <td
                     className="py-2.5 pr-4 text-right font-[family-name:var(--font-mono)]"
-                    style={{ color: "var(--color-neutral-700)" }}
+                    style={{ color: "var(--color-neutral-500)" }}
                   >
                     {formatAud(job.total_aud)}
                   </td>
