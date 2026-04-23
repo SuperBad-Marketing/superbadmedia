@@ -14,12 +14,17 @@ import type { InvoiceDetail } from "@/lib/invoicing/detail-query";
 import {
   createManualInvoiceAction,
   updateCompanyPaymentTermsAction,
+  updateBillingModeAction,
+  updateDealValueAction,
 } from "@/app/lite/admin/invoices/actions";
 
 interface Props {
   companyId: string;
   companyName: string;
   paymentTermsDays: number;
+  billingMode: "stripe" | "manual";
+  retainerValueCents: number | null;
+  dealId: string | null;
   bankDetails: {
     account_name: string;
     bsb: string;
@@ -37,6 +42,9 @@ export function BillingTab(props: Props) {
     companyId,
     companyName,
     paymentTermsDays,
+    billingMode,
+    retainerValueCents,
+    dealId,
     bankDetails,
     rows,
     focusedInvoiceId,
@@ -44,8 +52,15 @@ export function BillingTab(props: Props) {
   } = props;
   const router = useRouter();
   const [terms, setTerms] = React.useState(paymentTermsDays);
+  const [mode, setMode] = React.useState(billingMode);
   const [saving, setSaving] = React.useState(false);
+  const [savingMode, setSavingMode] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
+  const [editingValue, setEditingValue] = React.useState(false);
+  const [valueDollars, setValueDollars] = React.useState(
+    retainerValueCents != null ? String(retainerValueCents / 100) : "",
+  );
+  const [savingValue, setSavingValue] = React.useState(false);
 
   async function onTermsChange(next: number) {
     const prior = terms;
@@ -62,6 +77,49 @@ export function BillingTab(props: Props) {
       return;
     }
     toast.success(`Payment terms updated to ${next} days.`);
+    router.refresh();
+  }
+
+  async function onBillingModeToggle() {
+    const next = mode === "stripe" ? "manual" : "stripe";
+    const prior = mode;
+    setMode(next);
+    setSavingMode(true);
+    const res = await updateBillingModeAction({ companyId, billingMode: next });
+    setSavingMode(false);
+    if (!res.ok) {
+      setMode(prior);
+      toast.error(res.error);
+      return;
+    }
+    toast.success(
+      next === "manual"
+        ? "Switched to manual billing. Invoices generate but payments won't be triggered."
+        : "Switched to Stripe billing. Payments will be triggered automatically.",
+    );
+    router.refresh();
+  }
+
+  async function onSaveValue() {
+    if (!dealId) return;
+    const cents = Math.round(Number(valueDollars) * 100);
+    if (isNaN(cents) || cents < 0) {
+      toast.error("Enter a valid dollar amount.");
+      return;
+    }
+    setSavingValue(true);
+    const res = await updateDealValueAction({
+      dealId,
+      companyId,
+      valueCents: cents,
+    });
+    setSavingValue(false);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
+    setEditingValue(false);
+    toast.success("Retainer value updated.");
     router.refresh();
   }
 
@@ -96,6 +154,91 @@ export function BillingTab(props: Props) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2">
+        <Card className="p-4">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">
+            Billing mode
+          </div>
+          <div className="mt-2 flex items-center gap-3">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={mode === "manual"}
+              disabled={savingMode}
+              onClick={onBillingModeToggle}
+              className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors disabled:opacity-50"
+              style={{
+                backgroundColor: mode === "manual"
+                  ? "var(--color-brand-orange)"
+                  : "var(--color-neutral-600)",
+              }}
+            >
+              <span
+                className="block size-4 rounded-full bg-white transition-transform"
+                style={{
+                  transform: mode === "manual" ? "translateX(24px)" : "translateX(4px)",
+                }}
+              />
+            </button>
+            <span className="text-sm">
+              {mode === "manual" ? "Manual billing" : "Stripe billing"}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {mode === "manual"
+              ? "Invoices generate but payments aren't triggered automatically."
+              : "Payments are triggered via Stripe when invoices are sent."}
+          </p>
+        </Card>
+
+        {dealId && (
+          <Card className="p-4">
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              Retainer / package value
+            </div>
+            {editingValue ? (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-sm">$</span>
+                <input
+                  type="number"
+                  value={valueDollars}
+                  onChange={(e) => setValueDollars(e.target.value)}
+                  className="w-32 rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                  placeholder="0"
+                  min={0}
+                  step={1}
+                />
+                <span className="text-xs text-muted-foreground">/mo</span>
+                <Button size="sm" onClick={onSaveValue} disabled={savingValue}>
+                  {savingValue ? "Saving…" : "Save"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setEditingValue(false);
+                    setValueDollars(
+                      retainerValueCents != null ? String(retainerValueCents / 100) : "",
+                    );
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-2 flex items-center gap-3">
+                <span className="text-lg font-medium">
+                  {retainerValueCents != null
+                    ? `$${(retainerValueCents / 100).toLocaleString("en-AU")} /mo`
+                    : "Not set"}
+                </span>
+                <Button size="sm" variant="ghost" onClick={() => setEditingValue(true)}>
+                  Edit
+                </Button>
+              </div>
+            )}
+          </Card>
+        )}
+
         <Card className="p-4">
           <div className="text-xs uppercase tracking-wider text-muted-foreground">
             Payment terms

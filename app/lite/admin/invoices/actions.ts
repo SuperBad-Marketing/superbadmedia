@@ -296,3 +296,39 @@ export async function updateCompanyPaymentTermsAction(input: {
   revalidatePath(`/lite/admin/companies/${input.companyId}`);
   return { ok: true };
 }
+
+export async function updateBillingModeAction(input: {
+  companyId: string;
+  billingMode: "stripe" | "manual";
+}): Promise<ActionResult> {
+  const gate = await requireAdmin();
+  if (!gate.ok) return gate;
+  if (!["stripe", "manual"].includes(input.billingMode)) {
+    return { ok: false, error: "billing_mode_invalid" };
+  }
+  await db
+    .update(companies)
+    .set({ billing_mode: input.billingMode, updated_at_ms: Date.now() })
+    .where(eq(companies.id, input.companyId));
+  revalidatePath(`/lite/admin/companies/${input.companyId}`);
+  return { ok: true };
+}
+
+export async function updateDealValueAction(input: {
+  dealId: string;
+  companyId: string;
+  valueCents: number;
+}): Promise<ActionResult> {
+  const gate = await requireAdmin();
+  if (!gate.ok) return gate;
+  if (input.valueCents < 0) {
+    return { ok: false, error: "value_invalid" };
+  }
+  const { deals } = await import("@/lib/db/schema/deals");
+  await db
+    .update(deals)
+    .set({ value_cents: input.valueCents })
+    .where(eq(deals.id, input.dealId));
+  revalidatePath(`/lite/admin/companies/${input.companyId}`);
+  return { ok: true };
+}

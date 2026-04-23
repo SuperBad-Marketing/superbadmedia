@@ -562,17 +562,23 @@ export default async function CompanyAdminPage({
         />
       ) : null}
 
-      {activeTab === "billing" ? (
-        <BillingTab
-          companyId={company.id}
-          companyName={company.name}
-          paymentTermsDays={company.payment_terms_days}
-          bankDetails={bankDetailsFromEnv()}
-          rows={billingRows}
-          focusedInvoiceId={sp.invoice ?? null}
-          focusedDetail={focusedDetail}
-        />
-      ) : null}
+      {activeTab === "billing" ? (() => {
+        const wonDeal = dealRows.find((d) => d.stage === "won") ?? null;
+        return (
+          <BillingTab
+            companyId={company.id}
+            companyName={company.name}
+            paymentTermsDays={company.payment_terms_days}
+            billingMode={company.billing_mode as "stripe" | "manual"}
+            retainerValueCents={wonDeal?.value_cents ?? null}
+            dealId={wonDeal?.id ?? null}
+            bankDetails={bankDetailsFromEnv()}
+            rows={billingRows}
+            focusedInvoiceId={sp.invoice ?? null}
+            focusedDetail={focusedDetail}
+          />
+        );
+      })() : null}
 
       {activeTab === "brand-dna" && brandDnaData ? (
         <BrandDnaTab
@@ -982,7 +988,7 @@ function LinkedDealsPanel({
               { label: "Stage" },
               { label: "Value", align: "right" },
               { label: "Next action" },
-              { label: "Last change" },
+              { label: "" },
             ]}
           />
           <tbody>
@@ -992,7 +998,12 @@ function LinkedDealsPanel({
                   style={{ ...TD_BASE, color: "var(--color-brand-cream)" }}
                   className="font-[family-name:var(--font-body)] text-[13px] font-medium"
                 >
-                  {d.title}
+                  <Link
+                    href={`/lite/admin/pipeline/${d.id}`}
+                    className="underline decoration-dotted underline-offset-2 hover:decoration-solid"
+                  >
+                    {d.title}
+                  </Link>
                 </td>
                 <td style={TD_BASE}>
                   <DealStageChip stage={d.stage} />
@@ -1021,11 +1032,17 @@ function LinkedDealsPanel({
                     </span>
                   )}
                 </td>
-                <td
-                  style={{ ...TD_BASE, color: "var(--color-neutral-500)" }}
-                  className="font-[family-name:var(--font-body)] text-[12px] italic"
-                >
-                  {relativeLabel(d.last_stage_change_at_ms, nowMs)}
+                <td style={TD_BASE} className="text-right">
+                  <Link
+                    href={`/lite/admin/deals/${d.id}/quotes/new`}
+                    className="font-[family-name:var(--font-label)] text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full transition-colors"
+                    style={{
+                      color: "var(--color-brand-pink)",
+                      background: "rgba(244, 160, 176, 0.10)",
+                    }}
+                  >
+                    New quote
+                  </Link>
                 </td>
               </tr>
             ))}
