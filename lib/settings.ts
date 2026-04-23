@@ -196,7 +196,7 @@ const registry = {
   "content.max_posts_per_month": integer,
   "content.max_subscribers_per_tier": str,
 
-  // Lead Generation (9 — LG-1)
+  // Lead Generation (13 — LG-1)
   "lead_generation.daily_search_enabled": boolean,
   "lead_generation.daily_max_per_day": integer,
   "lead_generation.dedup_window_days": integer,
@@ -206,6 +206,10 @@ const registry = {
   "lead_generation.standing_brief": str,
   "lead_generation.run_time": str,
   "lead_generation.auto_send_delay_minutes": integer,
+  "lead_generation.track_priority": str,
+  "lead_generation.target_revenue": str,
+  "lead_generation.target_team_size": str,
+  "lead_generation.target_industry": str,
 
   // Referral (1 — CM-E)
   "referral.milestone_prompt_cooldown_days": integer,

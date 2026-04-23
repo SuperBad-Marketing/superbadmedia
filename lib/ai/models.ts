@@ -79,10 +79,11 @@ export const MODELS = {
   "finance-draft-narrative": "haiku",
   // daily-cockpit (1)
   "cockpit-brief": "opus",
-  // lead-generation (3)
+  // lead-generation (4)
   "lead-gen-outreach-draft": "opus",
   "lead-gen-nudge-rewrite": "opus",
   "lead-gen-case-snippet": "haiku",
+  "lead-gen-suggest-search": "haiku",
   // client-management (3)
   "client-mgmt-bartender-opening-line": "haiku",
   "client-mgmt-chat-response": "opus",

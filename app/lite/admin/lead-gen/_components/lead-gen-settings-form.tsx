@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   updateLeadGenSettingsAction,
+  suggestSearchParamsAction,
   type LeadGenSettings,
 } from "../actions";
 
@@ -35,6 +36,19 @@ function SettingRow({
   );
 }
 
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-10 mb-2 pt-6" style={{ borderTop: "1px solid rgba(253, 245, 230, 0.08)" }}>
+      <span
+        className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "2px" }}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
 const inputClass =
   "w-full sm:w-[280px] rounded-md border px-3 py-2 text-[14px] font-[family-name:var(--font-body)] bg-[color:var(--color-neutral-800)] text-[color:var(--color-brand-cream)] border-[color:var(--color-neutral-600)] placeholder:text-[color:var(--color-neutral-500)] focus:outline-none focus:border-[color:var(--color-brand-pink)]";
 
@@ -44,6 +58,9 @@ const textareaClass =
 const numberClass =
   "w-full sm:w-[120px] rounded-md border px-3 py-2 text-[14px] font-[family-name:var(--font-body)] font-mono bg-[color:var(--color-neutral-800)] text-[color:var(--color-brand-cream)] border-[color:var(--color-neutral-600)] focus:outline-none focus:border-[color:var(--color-brand-pink)]";
 
+const selectClass =
+  "w-full sm:w-[280px] rounded-md border px-3 py-2 text-[14px] font-[family-name:var(--font-body)] bg-[color:var(--color-neutral-800)] text-[color:var(--color-brand-cream)] border-[color:var(--color-neutral-600)] focus:outline-none focus:border-[color:var(--color-brand-pink)]";
+
 export function LeadGenSettingsForm({
   initial,
 }: {
@@ -52,6 +69,7 @@ export function LeadGenSettingsForm({
   const router = useRouter();
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
 
   async function handleSave() {
     setSaving(true);
@@ -65,11 +83,118 @@ export function LeadGenSettingsForm({
     router.refresh();
   }
 
+  async function handleSuggest() {
+    setSuggesting(true);
+    const res = await suggestSearchParamsAction({
+      targetRevenue: form.targetRevenue,
+      targetTeamSize: form.targetTeamSize,
+      targetIndustry: form.targetIndustry,
+      locationCentre: form.locationCentre,
+      trackPriority: form.trackPriority,
+    });
+    setSuggesting(false);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
+    setForm((f) => ({
+      ...f,
+      category: res.category,
+      standingBrief: res.standingBrief,
+    }));
+    toast.success("Search params suggested — review and save.");
+  }
+
   return (
     <div className="px-4">
+      <SectionHeading>Targeting</SectionHeading>
+
+      <SettingRow
+        label="Track priority"
+        description="Which type of lead to prioritise. SaaS = small teams who'd use a self-serve tool. Retainer = established businesses ready for a full-service agency."
+      >
+        <select
+          value={form.trackPriority}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, trackPriority: e.target.value }))
+          }
+          className={selectClass}
+        >
+          <option value="both">Both equally</option>
+          <option value="saas">SaaS leads only</option>
+          <option value="retainer">Retainer leads only</option>
+        </select>
+      </SettingRow>
+
+      <SettingRow
+        label="Target industry"
+        description="What kind of businesses you're looking for. Leave blank for any."
+      >
+        <input
+          type="text"
+          value={form.targetIndustry}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, targetIndustry: e.target.value }))
+          }
+          placeholder="e.g. hospitality, health & fitness"
+          className={inputClass}
+        />
+      </SettingRow>
+
+      <SettingRow
+        label="Target revenue"
+        description="Rough annual revenue range of businesses you want to find."
+      >
+        <input
+          type="text"
+          value={form.targetRevenue}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, targetRevenue: e.target.value }))
+          }
+          placeholder="e.g. $100k–$500k"
+          className={inputClass}
+        />
+      </SettingRow>
+
+      <SettingRow
+        label="Target team size"
+        description="How many people work at the businesses you're targeting."
+      >
+        <input
+          type="text"
+          value={form.targetTeamSize}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, targetTeamSize: e.target.value }))
+          }
+          placeholder="e.g. 1–10, 10–50"
+          className={inputClass}
+        />
+      </SettingRow>
+
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={handleSuggest}
+          disabled={suggesting}
+          className="rounded-lg px-5 py-2 font-[family-name:var(--font-body)] text-[13px] font-medium transition-opacity"
+          style={{
+            backgroundColor: "var(--color-neutral-700)",
+            color: "var(--color-brand-cream)",
+            opacity: suggesting ? 0.5 : 1,
+          }}
+        >
+          {suggesting ? "Thinking…" : "Suggest search from targeting"}
+        </button>
+        <span className="ml-3 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          AI generates a category + brief from the fields above
+        </span>
+      </div>
+
+      <SectionHeading>Search parameters</SectionHeading>
+
       <SettingRow
         label="Category"
-        description="Business type to search for on Google Maps and the Meta Ad Library. e.g. 'cafes', 'dental clinics', 'fitness studios'."
+        description="Business type to search for on Google Maps. e.g. 'cafes', 'dental clinics', 'fitness studios'."
       >
         <input
           type="text"
@@ -82,7 +207,7 @@ export function LeadGenSettingsForm({
 
       <SettingRow
         label="Standing brief"
-        description="Describes your ideal prospect. Fed to the AI draft generator and shapes which search terms are used across all discovery sources."
+        description="Describes your ideal prospect. Fed to the AI draft generator and shapes outreach tone."
       >
         <textarea
           value={form.standingBrief}
@@ -128,6 +253,8 @@ export function LeadGenSettingsForm({
           className={numberClass}
         />
       </SettingRow>
+
+      <SectionHeading>Run behaviour</SectionHeading>
 
       <SettingRow
         label="Max per day"

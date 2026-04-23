@@ -1,0 +1,4 @@
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES ('lead_generation.track_priority', 'both', 'string', 'Which track to prioritise: both, saas, or retainer', 0);--> statement-breakpoint
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES ('lead_generation.target_revenue', '', 'string', 'Target business revenue range (e.g. $100k-$500k)', 0);--> statement-breakpoint
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES ('lead_generation.target_team_size', '', 'string', 'Target team size (e.g. 1-10, 10-50)', 0);--> statement-breakpoint
+INSERT OR IGNORE INTO `settings` (`key`, `value`, `type`, `description`, `updated_at_ms`) VALUES ('lead_generation.target_industry', '', 'string', 'Target industry or vertical (e.g. hospitality, health & fitness)', 0);--> statement-breakpoint

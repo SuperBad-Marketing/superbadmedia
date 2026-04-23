@@ -459,6 +459,10 @@ export async function getLeadGenSettingsAction(): Promise<{
   runTime: string;
   autoSendDelayMinutes: number;
   dedupWindowDays: number;
+  trackPriority: string;
+  targetRevenue: string;
+  targetTeamSize: string;
+  targetIndustry: string;
 }> {
   const [
     category,
@@ -469,6 +473,10 @@ export async function getLeadGenSettingsAction(): Promise<{
     runTime,
     autoSendDelayMinutes,
     dedupWindowDays,
+    trackPriority,
+    targetRevenue,
+    targetTeamSize,
+    targetIndustry,
   ] = await Promise.all([
     settings.get("lead_generation.category"),
     settings.get("lead_generation.standing_brief"),
@@ -478,6 +486,10 @@ export async function getLeadGenSettingsAction(): Promise<{
     settings.get("lead_generation.run_time"),
     settings.get("lead_generation.auto_send_delay_minutes"),
     settings.get("lead_generation.dedup_window_days"),
+    settings.get("lead_generation.track_priority"),
+    settings.get("lead_generation.target_revenue"),
+    settings.get("lead_generation.target_team_size"),
+    settings.get("lead_generation.target_industry"),
   ]);
   return {
     category,
@@ -488,6 +500,10 @@ export async function getLeadGenSettingsAction(): Promise<{
     runTime,
     autoSendDelayMinutes,
     dedupWindowDays,
+    trackPriority,
+    targetRevenue,
+    targetTeamSize,
+    targetIndustry,
   };
 }
 
@@ -502,6 +518,10 @@ export async function updateLeadGenSettingsAction(input: {
   runTime: string;
   autoSendDelayMinutes: number;
   dedupWindowDays: number;
+  trackPriority: string;
+  targetRevenue: string;
+  targetTeamSize: string;
+  targetIndustry: string;
 }): Promise<ActionResult> {
   const by = await adminActorTag();
   if (!by) return { ok: false, error: "Not authorised." };
@@ -515,8 +535,80 @@ export async function updateLeadGenSettingsAction(input: {
     settings.set("lead_generation.run_time", input.runTime),
     settings.set("lead_generation.auto_send_delay_minutes", String(input.autoSendDelayMinutes)),
     settings.set("lead_generation.dedup_window_days", String(input.dedupWindowDays)),
+    settings.set("lead_generation.track_priority", input.trackPriority),
+    settings.set("lead_generation.target_revenue", input.targetRevenue),
+    settings.set("lead_generation.target_team_size", input.targetTeamSize),
+    settings.set("lead_generation.target_industry", input.targetIndustry),
   ]);
 
   revalidatePath("/lite/admin/lead-gen/settings");
   return { ok: true };
+}
+
+// ── AI Search Suggestions ────────────────────────────────────────────
+
+export async function suggestSearchParamsAction(input: {
+  targetRevenue: string;
+  targetTeamSize: string;
+  targetIndustry: string;
+  locationCentre: string;
+  trackPriority: string;
+}): Promise<
+  | { ok: true; category: string; standingBrief: string }
+  | { ok: false; error: string }
+> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  if (!killSwitches.llm_calls_enabled) {
+    return { ok: false, error: "LLM calls are paused." };
+  }
+
+  const trackDesc =
+    input.trackPriority === "saas"
+      ? "SaaS subscribers — small teams who'd use a self-serve marketing tool"
+      : input.trackPriority === "retainer"
+        ? "retainer clients — established businesses ready for a full-service creative agency"
+        : "both SaaS subscribers and retainer clients";
+
+  const prompt = `You are helping configure a lead generation search for SuperBad Marketing, a creative marketing agency in Melbourne, Australia.
+
+Based on the targeting criteria below, suggest:
+1. A Google Maps search category (short, 1-3 words, what you'd type into Google Maps to find these businesses — e.g. "cafes", "dental clinics", "fitness studios", "hair salons")
+2. A standing brief (2-3 sentences describing the ideal prospect — this gets fed to an AI that writes personalised cold outreach emails)
+
+TARGETING CRITERIA:
+- Location: ${input.locationCentre || "Melbourne"}
+- Industry: ${input.targetIndustry || "any"}
+- Revenue range: ${input.targetRevenue || "not specified"}
+- Team size: ${input.targetTeamSize || "not specified"}
+- Looking for: ${trackDesc}
+
+Respond in exactly this format (no other text):
+CATEGORY: <category>
+BRIEF: <brief>`;
+
+  try {
+    const result = await invokeLlmText({
+      job: "lead-gen-suggest-search",
+      system: "You are a concise marketing strategist. Respond only in the requested format.",
+      prompt,
+      maxTokens: 300,
+    });
+
+    const categoryMatch = result.match(/CATEGORY:\s*(.+)/i);
+    const briefMatch = result.match(/BRIEF:\s*([\s\S]+)/i);
+
+    if (!categoryMatch || !briefMatch) {
+      return { ok: false, error: "Unexpected response format — try again." };
+    }
+
+    return {
+      ok: true,
+      category: categoryMatch[1].trim(),
+      standingBrief: briefMatch[1].trim(),
+    };
+  } catch {
+    return { ok: false, error: "Suggestion failed — try again." };
+  }
 }

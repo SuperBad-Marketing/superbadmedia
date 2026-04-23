@@ -152,6 +152,8 @@ export async function runDailySearch(
     );
 
     // ── Steps 4–6: Enrich + score + qualify ──────────────────────────
+    const trackPriority = await settings.get("lead_generation.track_priority");
+
     const scoredCandidates: Array<{
       discovered: DiscoveredCandidate;
       assignment: ReturnType<typeof assignTrack>;
@@ -162,13 +164,15 @@ export async function runDailySearch(
       const enrichResult = await enrichCandidate(candidate);
       const assignment = assignTrack(enrichResult.profile);
 
-      if (assignment.track !== null) {
-        scoredCandidates.push({
-          discovered: candidate,
-          assignment,
-          enrichedProfile: enrichResult.profile,
-        });
-      }
+      if (assignment.track === null) continue;
+      if (trackPriority === "saas" && assignment.track !== "saas") continue;
+      if (trackPriority === "retainer" && assignment.track !== "retainer") continue;
+
+      scoredCandidates.push({
+        discovered: candidate,
+        assignment,
+        enrichedProfile: enrichResult.profile,
+      });
     }
 
     // ── Step 7: Take top `target` by score ───────────────────────────
