@@ -173,6 +173,7 @@ export const ACTIVITY_LOG_KINDS = [
   "candidate_track_changed",
   "candidate_track_change_suppressed",
   "candidate_below_floor",
+  "lead_candidate_skipped",
   // --- Content Engine (15) ---
   "content_topic_researched",
   "content_topic_vetoed",

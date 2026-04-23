@@ -1,4 +1,5 @@
 export { getRecentRuns, getCandidatesForRun } from "./runs";
+export { getAllCandidates, getCandidateById } from "./candidates";
 export { getPendingDrafts } from "./queue";
 export type { QueueDraft } from "./queue";
 export {

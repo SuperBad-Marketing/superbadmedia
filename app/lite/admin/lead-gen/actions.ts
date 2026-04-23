@@ -264,6 +264,86 @@ export async function removeDncDomainAction(
   return { ok: true };
 }
 
+// ── Candidate management ────────────────────────────────────────────
+
+export async function skipCandidateAction(
+  candidateId: string,
+  reason: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [candidate] = await db
+    .select()
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+  if (candidate.skipped_at) return { ok: false, error: "Already skipped." };
+
+  await db
+    .update(leadCandidates)
+    .set({ skipped_at: new Date(), skipped_reason: reason || "Manual skip" })
+    .where(eq(leadCandidates.id, candidateId));
+
+  await logActivity({
+    kind: "lead_candidate_skipped",
+    body: `Skipped candidate ${candidate.company_name}`,
+    createdBy: by,
+    meta: { candidate_id: candidateId, reason },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
+export async function unskipCandidateAction(
+  candidateId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  await db
+    .update(leadCandidates)
+    .set({ skipped_at: null, skipped_reason: null })
+    .where(eq(leadCandidates.id, candidateId));
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
+export async function updateCandidateTrackAction(
+  candidateId: string,
+  track: "saas" | "retainer",
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [candidate] = await db
+    .select()
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+
+  await db
+    .update(leadCandidates)
+    .set({ qualified_track: track })
+    .where(eq(leadCandidates.id, candidateId));
+
+  await logActivity({
+    kind: "candidate_track_changed",
+    body: `Changed ${candidate.company_name} track to ${track}`,
+    createdBy: by,
+    meta: { candidate_id: candidateId, from: candidate.qualified_track, to: track },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
 // ── Manual run ──────────────────────────────────────────────────────
 
 export async function triggerManualRunAction(): Promise<
