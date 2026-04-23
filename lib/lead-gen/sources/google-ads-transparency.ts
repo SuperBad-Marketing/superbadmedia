@@ -87,10 +87,11 @@ export async function searchGoogleAdsTransparency(
     const duration = Date.now() - start;
 
     if (!response.ok) {
+      const errorBody = await response.text().catch(() => "");
       logExternalCall({ job: "serpapi.google_ads_transparency", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
       return {
         candidates: [],
-        error: `SerpAPI Google Ads Transparency error: ${response.status} ${response.statusText}`,
+        error: `SerpAPI Google Ads Transparency error: ${response.status} — ${errorBody.slice(0, 200) || response.statusText}`,
       };
     }
 

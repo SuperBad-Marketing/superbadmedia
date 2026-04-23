@@ -79,11 +79,11 @@ export async function searchGoogleMaps(
     api_key: apiKey,
     type: "search",
     hl: "en",
-    ll: "", // Empty — let SerpAPI resolve from the text location
   });
 
-  // If location is provided, use it as the location param for more accurate results
-  queryParams.set("location", params.location);
+  if (params.location) {
+    queryParams.set("location", params.location);
+  }
 
   try {
     const response = await fetch(
@@ -92,10 +92,11 @@ export async function searchGoogleMaps(
     const duration = Date.now() - start;
 
     if (!response.ok) {
+      const errorBody = await response.text().catch(() => "");
       logExternalCall({ job: "serpapi.google_maps", actorType: "internal", units: { search_queries: 1, results_returned: 0 }, estimatedCostAud: 0.005 }).catch(() => {});
       return {
         candidates: [],
-        error: `SerpAPI Google Maps error: ${response.status} ${response.statusText}`,
+        error: `SerpAPI Google Maps error: ${response.status} — ${errorBody.slice(0, 200) || response.statusText}`,
       };
     }
 
