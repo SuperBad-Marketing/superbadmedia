@@ -202,21 +202,17 @@ export async function runDailySearch(
         };
       }
 
-      // §7.1 step 5: No contact email → skip candidate
-      if (!contactResult.email) {
-        continue;
-      }
-
-      // Step 11: Insert candidate with contact info
+      // Step 11: Insert candidate with contact info (even without email —
+      // candidates without emails are created but won't get drafts)
       const candidateResult = await createCandidate(
         {
           discovered: entry.discovered,
           enrichedProfile: entry.enrichedProfile,
           trackAssignment: entry.assignment,
           leadRunId: runId,
-          contactEmail: contactResult.email,
-          contactName: contactResult.name,
-          contactRole: contactResult.role,
+          contactEmail: contactResult.email ?? undefined,
+          contactName: contactResult.name ?? undefined,
+          contactRole: contactResult.role ?? undefined,
           emailConfidence: contactResult.confidence,
         },
         dbInstance,
@@ -224,29 +220,32 @@ export async function runDailySearch(
       candidatesCreated++;
 
       // Steps 9–10: Generate draft + drift check (§8, §8.4)
-      const draftOutcome = await generateDraft(
-        {
-          track: entry.assignment.track!,
-          touchKind: "first_touch",
-          touchIndex: 1,
-          viabilityProfile: entry.enrichedProfile,
-          standingBrief,
-          manualBriefOverride: input.manualBriefText,
-          priorTouches: [],
-          recentBlogPosts: [], // v1 — Content Engine populates in v1.1
-          contactInfo: {
-            name: contactResult.name ?? undefined,
-            email: contactResult.email,
-            role: contactResult.role ?? undefined,
-            company: entry.discovered.company_name,
+      // Only generate drafts for candidates with a contact email
+      if (contactResult.email) {
+        const draftOutcome = await generateDraft(
+          {
+            track: entry.assignment.track!,
+            touchKind: "first_touch",
+            touchIndex: 1,
+            viabilityProfile: entry.enrichedProfile,
+            standingBrief,
+            manualBriefOverride: input.manualBriefText,
+            priorTouches: [],
+            recentBlogPosts: [],
+            contactInfo: {
+              name: contactResult.name ?? undefined,
+              email: contactResult.email,
+              role: contactResult.role ?? undefined,
+              company: entry.discovered.company_name,
+            },
+            candidateId: candidateResult.candidateId,
           },
-          candidateId: candidateResult.candidateId,
-        },
-        dbInstance,
-      );
+          dbInstance,
+        );
 
-      if (draftOutcome.ok) {
-        draftedCount++;
+        if (draftOutcome.ok) {
+          draftedCount++;
+        }
       }
     }
 

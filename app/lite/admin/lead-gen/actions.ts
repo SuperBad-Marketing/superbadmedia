@@ -267,7 +267,15 @@ export async function removeDncDomainAction(
 // ── Manual run ──────────────────────────────────────────────────────
 
 export async function triggerManualRunAction(): Promise<
-  | { ok: true; runId: string; candidatesCreated: number }
+  | {
+      ok: true;
+      runId: string;
+      candidatesCreated: number;
+      foundCount: number;
+      qualifiedCount: number;
+      dncFilteredCount: number;
+      cappedReason: string | null;
+    }
   | { ok: false; error: string }
 > {
   const by = await adminActorTag();
@@ -284,6 +292,10 @@ export async function triggerManualRunAction(): Promise<
     ok: true,
     runId: result.runId,
     candidatesCreated: result.candidatesCreated,
+    foundCount: result.foundCount,
+    qualifiedCount: result.qualifiedCount,
+    dncFilteredCount: result.dncFilteredCount,
+    cappedReason: result.cappedReason,
   };
 }
 
