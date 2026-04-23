@@ -11,6 +11,15 @@ export function LeadGenRunButton() {
       onRun={async () => {
         const result = await triggerManualRunAction();
         if (result.ok) {
+          if (result.sourceErrors) {
+            const errLines = Object.entries(result.sourceErrors)
+              .map(([src, msg]) => `• ${src}: ${msg}`)
+              .join("\n");
+            return {
+              ok: false,
+              error: `Sources failed:\n${errLines}`,
+            };
+          }
           const parts = [
             `${result.foundCount} discovered`,
             `${result.qualifiedCount} qualified`,

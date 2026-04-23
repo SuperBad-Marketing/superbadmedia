@@ -51,6 +51,7 @@ export interface DailySearchResult {
   cappedReason: string | null;
   candidatesCreated: number;
   error: string | null;
+  perSourceErrors: Record<string, string> | null;
 }
 
 /**
@@ -89,6 +90,7 @@ export async function runDailySearch(
       cappedReason: "kill_switch_disabled",
       candidatesCreated: 0,
       error: null,
+      perSourceErrors: null,
     };
   }
 
@@ -126,6 +128,7 @@ export async function runDailySearch(
         cappedReason: "effective_cap_zero",
         candidatesCreated: 0,
         error: null,
+        perSourceErrors: null,
       };
     }
 
@@ -282,6 +285,8 @@ export async function runDailySearch(
         scoredCandidates.length > effectiveCap ? "warmup_cap" : null,
       candidatesCreated,
       error: null,
+      perSourceErrors:
+        Object.keys(perSourceErrors).length > 0 ? perSourceErrors : null,
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
@@ -310,6 +315,7 @@ export async function runDailySearch(
       cappedReason: null,
       candidatesCreated: 0,
       error: errorMsg,
+      perSourceErrors: null,
     };
   }
 }

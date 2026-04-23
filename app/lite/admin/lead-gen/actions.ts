@@ -275,6 +275,7 @@ export async function triggerManualRunAction(): Promise<
       qualifiedCount: number;
       dncFilteredCount: number;
       cappedReason: string | null;
+      sourceErrors: Record<string, string> | null;
     }
   | { ok: false; error: string }
 > {
@@ -296,6 +297,7 @@ export async function triggerManualRunAction(): Promise<
     qualifiedCount: result.qualifiedCount,
     dncFilteredCount: result.dncFilteredCount,
     cappedReason: result.cappedReason,
+    sourceErrors: result.perSourceErrors,
   };
 }
 
