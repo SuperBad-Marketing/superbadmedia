@@ -11,10 +11,16 @@
  * Requires an app access token (long-lived page token or app-id|app-secret).
  */
 
-import { getCredential } from "@/lib/integrations/getCredential";
 import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta-ads";
 import { logExternalCall } from "@/lib/observatory";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "../types";
+
+function getAppAccessToken(): string | null {
+  const id = process.env.META_ADS_CLIENT_ID;
+  const secret = process.env.META_ADS_CLIENT_SECRET;
+  if (!id || !secret) return null;
+  return `${id}|${secret}`;
+}
 
 const META_AD_LIBRARY_BASE = `https://graph.facebook.com/${META_GRAPH_API_VERSION}/ads_archive`;
 
@@ -92,11 +98,11 @@ function extractDomainFromCreatives(result: AdLibraryResult): string | null {
 export async function searchMetaAdLibrary(
   params: DiscoverySearchParams,
 ): Promise<{ candidates: DiscoveredCandidate[]; error?: string }> {
-  const accessToken = await getCredential("meta-ads");
+  const accessToken = getAppAccessToken();
   if (!accessToken) {
     return {
       candidates: [],
-      error: "Meta Ads credential not found — complete the setup wizard first.",
+      error: "META_ADS_CLIENT_ID or META_ADS_CLIENT_SECRET env var not set.",
     };
   }
 
