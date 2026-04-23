@@ -22,6 +22,7 @@ import { canSendTo } from "@/lib/channels/email/can-send-to";
 import { isWithinQuietWindow } from "@/lib/channels/email/quiet-window";
 import type { EmailClassification } from "@/lib/channels/email/classifications";
 import { isTransactional } from "@/lib/channels/email/classifications";
+import { wrapEmailHtml } from "@/lib/channels/email/email-layout";
 
 // Resend client singleton
 const globalForResend = globalThis as unknown as { _resend?: Resend };
@@ -107,11 +108,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     ? `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM ?? "noreply@superbadmedia.com.au"}>`
     : (process.env.EMAIL_FROM ?? "noreply@superbadmedia.com.au");
 
+  const html = wrapEmailHtml(body);
+
   const { data, error } = await resend.emails.send({
     from,
     to: recipients,
     subject,
-    html: body,
+    html,
     replyTo: replyTo ?? process.env.EMAIL_FROM,
     tags,
     ...(headers ? { headers } : {}),

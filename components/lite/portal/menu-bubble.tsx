@@ -44,6 +44,8 @@ export function MenuBubble({
       setOpen(false);
       if (key === "chat") {
         window.location.href = `/lite/portal/${portalToken}`;
+      } else if (key === "brand-dna") {
+        window.location.href = `/lite/portal/brand-dna`;
       } else {
         window.location.href = `/lite/portal/${portalToken}/${key}`;
       }
