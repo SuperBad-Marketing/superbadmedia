@@ -8,6 +8,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { companies } from "@/lib/db/schema/companies";
 import { sendEmail } from "@/lib/channels/email/send";
 import type { HandlerMap, TaskHandler } from "@/lib/scheduled-tasks/worker";
+import { getAppUrl } from "@/lib/env/app-url";
 
 const PayloadSchema = z.object({
   plan_id: z.string().min(1),
@@ -57,8 +58,7 @@ export const handlePlanRevisionReviewQueue: TaskHandler = async (task) => {
 
   const adminEmail = process.env.ADMIN_EMAIL ?? "andy@superbadmedia.com.au";
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  const reviewUrl = `${baseUrl}/lite/six-week-plans/${plan_id}/revision-review`;
+  const reviewUrl = `${getAppUrl()}/lite/six-week-plans/${plan_id}/revision-review`;
 
   await sendEmail({
     to: adminEmail,

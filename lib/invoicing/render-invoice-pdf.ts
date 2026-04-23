@@ -6,6 +6,7 @@ import { contacts, type ContactRow } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import { quotes } from "@/lib/db/schema/quotes";
 import { renderToPdf } from "@/lib/pdf/render";
+import { getAppUrl } from "@/lib/env/app-url";
 import { buildInvoicePdfHtml, invoicePdfFilename } from "./pdf-template";
 
 type DatabaseLike = typeof defaultDb;
@@ -60,10 +61,7 @@ export async function renderInvoicePdf(
         .get()) as ContactRow | undefined) ?? null;
   }
 
-  const baseUrl =
-    options.appUrlOverride ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3001";
+  const baseUrl = options.appUrlOverride ?? getAppUrl();
   const trimmedBase = baseUrl.replace(/\/$/, "");
   const invoiceUrl = `${trimmedBase}/lite/invoices/${invoice.token}`;
   const termsUrl = `${trimmedBase}/lite/legal/terms`;

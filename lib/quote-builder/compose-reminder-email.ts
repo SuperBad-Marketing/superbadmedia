@@ -13,6 +13,7 @@ import {
 } from "@/lib/ai/prompts/quote-builder/draft-reminder-3d";
 import { getSuperbadBrandProfile } from "./superbad-brand-profile";
 import { paragraphsToHtml } from "./compose-send-email";
+import { getAppUrl } from "@/lib/env/app-url";
 import type { QuoteContent } from "./content-shape";
 
 type DatabaseLike = typeof defaultDb;
@@ -100,10 +101,7 @@ export async function composeQuoteReminder3d(
   const recipientName = contact?.name?.split(/\s+/)[0] ?? company.name;
   const content = (quote.content_json ?? null) as QuoteContent | null;
 
-  const baseUrl =
-    input.appUrlOverride ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3001";
+  const baseUrl = input.appUrlOverride ?? getAppUrl();
   const quoteUrl = `${baseUrl.replace(/\/$/, "")}/lite/quotes/${quote.token}`;
 
   const sentAt = quote.sent_at_ms ?? Date.now();

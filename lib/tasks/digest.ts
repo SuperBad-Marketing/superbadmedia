@@ -12,6 +12,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { sendEmail } from "@/lib/channels/email/send";
 import settingsRegistry from "@/lib/settings";
+import { getAppUrl } from "@/lib/env/app-url";
 import { melbourneStartAndEndOfDay } from "@/lib/time/melbourne";
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -261,8 +262,7 @@ function buildDigestBodyHtml(
   outcomes: ApprovalOutcomeItem[],
   nowMs: number,
 ): string {
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const appUrl = getAppUrl();
   const lines: string[] = [];
 
   lines.push(

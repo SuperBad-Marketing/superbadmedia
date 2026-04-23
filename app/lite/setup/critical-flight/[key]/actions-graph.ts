@@ -24,12 +24,13 @@ import {
   graphApiAdminWizard,
   type GraphAdminPayload,
 } from "@/lib/wizards/defs/graph-api-admin";
+import { getAppUrl } from "@/lib/env/app-url";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 
 export async function getGraphAuthorizeUrlAction(): Promise<string> {
   const clientId = process.env.MS_GRAPH_CLIENT_ID;
   const tenantId = process.env.MS_GRAPH_TENANT_ID ?? "common";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const appUrl = getAppUrl();
   if (!clientId) return "#";
   const redirectUri = `${appUrl}/api/oauth/graph-api/callback`;
   const scopes = [

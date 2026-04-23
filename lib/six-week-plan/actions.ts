@@ -13,6 +13,7 @@ import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { sendEmail } from "@/lib/channels/email/send";
 import { generateWeeksFromStrategy } from "./generate";
 import settingsRegistry from "@/lib/settings";
+import { getAppUrl } from "@/lib/env/app-url";
 import { auth } from "@/lib/auth/session";
 import { issueMagicLink } from "@/lib/portal/issue-magic-link";
 
@@ -250,7 +251,6 @@ async function sendRevisionRegeneratedEmail(
   });
   if (!contact?.email) return;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
   const planPath = "/lite/portal/plan";
 
   const { url: magicLinkUrl } = await issueMagicLink({

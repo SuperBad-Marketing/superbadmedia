@@ -12,6 +12,7 @@ import {
   type QuoteSendEmailInput,
 } from "@/lib/ai/prompts/quote-builder/draft-send-email";
 import { getSuperbadBrandProfile } from "./superbad-brand-profile";
+import { getAppUrl } from "@/lib/env/app-url";
 import type { QuoteContent } from "./content-shape";
 
 type DatabaseLike = typeof defaultDb;
@@ -176,10 +177,7 @@ export async function composeQuoteSendEmail(
     supersedesQuoteNumber = source?.quote_number ?? null;
   }
 
-  const baseUrl =
-    input.appUrlOverride ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3001";
+  const baseUrl = input.appUrlOverride ?? getAppUrl();
   const quoteUrl = `${baseUrl.replace(/\/$/, "")}/lite/quotes/${quote.token}`;
 
   const promptInput: QuoteSendEmailInput = {

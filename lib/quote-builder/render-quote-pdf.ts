@@ -5,6 +5,7 @@ import { companies, type CompanyRow } from "@/lib/db/schema/companies";
 import { contacts, type ContactRow } from "@/lib/db/schema/contacts";
 import { deals } from "@/lib/db/schema/deals";
 import { renderToPdf } from "@/lib/pdf/render";
+import { getAppUrl } from "@/lib/env/app-url";
 import { buildQuotePdfHtml, quotePdfFilename } from "./pdf-template";
 import type { QuoteContent } from "./content-shape";
 
@@ -65,10 +66,7 @@ export async function renderQuotePdf(
   const content = (quote.content_json ?? null) as QuoteContent | null;
   if (!content) throw new Error(`renderQuotePdf: quote ${quoteId} has no content_json`);
 
-  const baseUrl =
-    options.appUrlOverride ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3001";
+  const baseUrl = options.appUrlOverride ?? getAppUrl();
   const trimmedBase = baseUrl.replace(/\/$/, "");
   const quoteUrl = `${trimmedBase}/lite/quotes/${quote.token}`;
   const termsUrl = `${trimmedBase}/lite/legal/terms`;

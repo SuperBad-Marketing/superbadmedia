@@ -19,6 +19,7 @@ import { auth } from "@/lib/auth/session";
 import { getWizard } from "@/lib/wizards/registry";
 import { getWizardShellConfig } from "@/lib/wizards/shell-config";
 import settings from "@/lib/settings";
+import { getAppUrl } from "@/lib/env/app-url";
 import { CriticalFlightClient } from "./critical-flight-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
@@ -79,7 +80,7 @@ export default async function CriticalFlightWizardPage({
 function buildGraphAuthorizeUrl(): string {
   const clientId = process.env.MS_GRAPH_CLIENT_ID;
   const tenantId = process.env.MS_GRAPH_TENANT_ID ?? "common";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const appUrl = getAppUrl();
   if (!clientId) return "#";
   const redirectUri = `${appUrl}/api/oauth/graph-api/callback`;
   const scopes = [

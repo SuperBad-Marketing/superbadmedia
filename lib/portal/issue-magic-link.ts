@@ -13,6 +13,7 @@
 import { randomBytes, createHash } from "node:crypto";
 import { randomUUID } from "node:crypto";
 import { db as globalDb } from "@/lib/db";
+import { getAppUrl } from "@/lib/env/app-url";
 import { portal_magic_links } from "@/lib/db/schema/portal-magic-links";
 import settings from "@/lib/settings";
 import { logActivity } from "@/lib/activity-log";
@@ -73,9 +74,7 @@ export async function issueMagicLink(
     },
   });
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  const url = `${baseUrl}/lite/portal/r/${rawToken}`;
+  const url = `${getAppUrl()}/lite/portal/r/${rawToken}`;
 
   return { url, rawToken };
 }

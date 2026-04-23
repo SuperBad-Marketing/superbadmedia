@@ -14,6 +14,7 @@ import { randomBytes, createHash, randomUUID } from "node:crypto";
 import { eq, and, isNull, gte } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { db as globalDb } from "@/lib/db";
+import { getAppUrl } from "@/lib/env/app-url";
 import { subscriber_magic_link_tokens } from "@/lib/db/schema/subscriber-magic-link-tokens";
 import { user as userTable } from "@/lib/db/schema/user";
 import { activity_log } from "@/lib/db/schema/activity-log";
@@ -49,9 +50,7 @@ export async function issueSubscriberMagicLink(
     created_at_ms: now,
   });
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  const url = `${baseUrl}/api/auth/magic-link?token=${rawToken}`;
+  const url = `${getAppUrl()}/api/auth/magic-link?token=${rawToken}`;
 
   return { url, rawToken, tokenId };
 }

@@ -29,6 +29,7 @@ import type {
 } from "@/lib/wizards/types";
 import { getWizardShellConfig } from "@/lib/wizards/shell-config";
 import settings from "@/lib/settings";
+import { getAppUrl } from "@/lib/env/app-url";
 import { META_OAUTH_SCOPES } from "@/lib/integrations/vendors/meta-ads";
 import {
   GOOGLE_OAUTH_SCOPES,
@@ -188,7 +189,7 @@ export default async function AdminWizardPage({
  */
 function buildMetaAuthorizeUrl(): string {
   const clientId = process.env.META_ADS_CLIENT_ID;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const appUrl = getAppUrl();
   if (!clientId) return "#";
   const redirectUri = `${appUrl}/api/oauth/meta-ads/callback`;
   const params = new URLSearchParams({
@@ -211,7 +212,7 @@ function buildMetaAuthorizeUrl(): string {
  */
 function buildGoogleAuthorizeUrl(): string {
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const appUrl = getAppUrl();
   if (!clientId) return "#";
   const redirectUri = `${appUrl}/api/oauth/google-ads/callback`;
   const params = new URLSearchParams({

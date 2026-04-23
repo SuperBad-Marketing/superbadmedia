@@ -8,6 +8,7 @@ import { transitionQuoteStatus } from "@/lib/quote-builder/transitions";
 import { logActivity } from "@/lib/activity-log";
 import { sendEmail } from "@/lib/channels/email/send";
 import { buildQuoteExpiredEmail } from "@/lib/quote-builder/emails/quote-expired-email";
+import { getAppUrl } from "@/lib/env/app-url";
 
 type DatabaseLike = typeof defaultDb;
 
@@ -100,9 +101,7 @@ export async function handleQuoteExpire(
 
   const recipientEmail = contact?.email ?? "";
   const recipientName = contact?.name ?? company?.name ?? "there";
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  const quoteUrl = `${baseUrl.replace(/\/$/, "")}/lite/quotes/${quote.token}`;
+  const quoteUrl = `${getAppUrl()}/lite/quotes/${quote.token}`;
 
   let emailSkipped = false;
   let emailSkippedReason: string | undefined;

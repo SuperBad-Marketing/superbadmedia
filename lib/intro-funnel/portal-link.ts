@@ -9,6 +9,7 @@
  * Owner: IF-4.
  */
 import { issueMagicLink } from "@/lib/portal/issue-magic-link";
+import { getAppUrl } from "@/lib/env/app-url";
 
 export async function generateIntroPortalLink(opts: {
   contactId: string;
@@ -16,7 +17,6 @@ export async function generateIntroPortalLink(opts: {
   introToken: string;
   issuedFor: string;
 }): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
   const callbackUrl = `/lite/intro/${opts.introToken}`;
 
   const { url } = await issueMagicLink({
