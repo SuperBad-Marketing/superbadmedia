@@ -10,8 +10,8 @@ import type { ViabilityProfile } from "./types";
 // ── Qualification floors (§6.2) ────────────────────────────────────────
 // Changes are deploys, not config (§12.C).
 
-export const SAAS_FLOOR = 40;
-export const RETAINER_FLOOR = 55;
+export const SAAS_FLOOR = 8;
+export const RETAINER_FLOOR = 14;
 
 // ── Reactive adjustment bounds (§12.X) ─────────────────────────────────
 

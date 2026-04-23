@@ -24,11 +24,13 @@ import {
 } from "@/lib/integrations/vendors/anthropic";
 import { serpapiManifest, SERPAPI_API_BASE } from "@/lib/integrations/vendors/serpapi";
 import { hunterIoManifest, HUNTER_API_BASE } from "@/lib/integrations/vendors/hunter-io";
+import { googlePagespeedManifest, PAGESPEED_API_BASE } from "@/lib/integrations/vendors/google-pagespeed";
+import { googleYoutubeManifest, YOUTUBE_API_BASE } from "@/lib/integrations/vendors/google-youtube";
 import { remotionManifest } from "@/lib/integrations/vendors/remotion";
 import { registerWizard } from "@/lib/wizards/registry";
 import type { VendorManifest, WizardDefinition } from "@/lib/wizards/types";
 
-export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "hunter-io" | "remotion";
+export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "hunter-io" | "google-pagespeed" | "google-youtube" | "remotion";
 
 export type ApiKeyPayload = {
   vendor: ApiKeyVendor;
@@ -155,6 +157,71 @@ async function pingHunterIo(
   }
 }
 
+async function pingGooglePagespeed(
+  key: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  try {
+    const params = new URLSearchParams({
+      url: "https://example.com",
+      key,
+      category: "performance",
+      strategy: "mobile",
+    });
+    const res = await fetch(`${PAGESPEED_API_BASE}?${params.toString()}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      return {
+        ok: false,
+        reason: `PageSpeed rejected that key: ${res.status} ${body.slice(0, 140) || res.statusText}`,
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      reason:
+        err instanceof Error
+          ? `PageSpeed ping failed: ${err.message}`
+          : "PageSpeed ping failed.",
+    };
+  }
+}
+
+async function pingGoogleYoutube(
+  key: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  try {
+    const params = new URLSearchParams({
+      part: "snippet",
+      q: "test",
+      type: "channel",
+      maxResults: "1",
+      key,
+    });
+    const res = await fetch(`${YOUTUBE_API_BASE}/search?${params.toString()}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      return {
+        ok: false,
+        reason: `YouTube rejected that key: ${res.status} ${body.slice(0, 140) || res.statusText}`,
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      reason:
+        err instanceof Error
+          ? `YouTube ping failed: ${err.message}`
+          : "YouTube ping failed.",
+    };
+  }
+}
+
 /**
  * Remotion has no live verify endpoint — licence keys are local-only.
  * Format-only check: non-empty, minimum plausible length. Documented in
@@ -198,6 +265,18 @@ export const API_KEY_VENDOR_PROFILES: Record<ApiKeyVendor, ApiKeyVendorProfile> 
     manifest: hunterIoManifest,
     verify: pingHunterIo,
   },
+  "google-pagespeed": {
+    vendor: "google-pagespeed",
+    label: "Google PageSpeed",
+    manifest: googlePagespeedManifest,
+    verify: pingGooglePagespeed,
+  },
+  "google-youtube": {
+    vendor: "google-youtube",
+    label: "YouTube Data API",
+    manifest: googleYoutubeManifest,
+    verify: pingGoogleYoutube,
+  },
   remotion: {
     vendor: "remotion",
     label: "Remotion",
@@ -207,7 +286,7 @@ export const API_KEY_VENDOR_PROFILES: Record<ApiKeyVendor, ApiKeyVendorProfile> 
 };
 
 export function isApiKeyVendor(v: string | undefined | null): v is ApiKeyVendor {
-  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "hunter-io" || v === "remotion";
+  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "hunter-io" || v === "google-pagespeed" || v === "google-youtube" || v === "remotion";
 }
 
 export function getApiKeyVendorProfile(
