@@ -20,7 +20,7 @@ import type {
   WizardStepDefinition,
   WizardAudience,
 } from "@/lib/wizards/types";
-import { completeMetaAdsAction } from "../actions-meta-ads";
+import { completeMetaAdsAction, decryptMetaTokenAction } from "../actions-meta-ads";
 import type { MetaAdsPayload } from "@/lib/wizards/defs/meta-ads";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import { useAdminShell, type StepStates } from "./use-admin-shell";
@@ -93,7 +93,42 @@ export function MetaAdsClient({
   });
 
   const searchParams = useSearchParams();
+  const [oauthError, setOauthError] = React.useState<string | null>(null);
 
+  const advanceRef = React.useRef(advance);
+  advanceRef.current = advance;
+
+  // Handle OAuth callback return: decrypt the encrypted token from the URL
+  React.useEffect(() => {
+    const oauthParam = searchParams.get("oauth");
+    if (oauthParam === "error") {
+      setOauthError(searchParams.get("reason") ?? "OAuth failed — Meta returned an error.");
+      return;
+    }
+    if (oauthParam !== "success") return;
+    const ct = searchParams.get("ct");
+    if (!ct) {
+      setOauthError("OAuth completed but no token was received. Try again.");
+      return;
+    }
+    decryptMetaTokenAction(ct).then((result) => {
+      if (!result.ok) {
+        setOauthError(result.reason);
+        return;
+      }
+      setStates((prev) => {
+        const current = prev.consent as OAuthConsentState;
+        if (current.token) return prev;
+        return {
+          ...prev,
+          consent: { ...current, token: result.accessToken },
+        };
+      });
+      setTimeout(() => advanceRef.current(), 100);
+    });
+  }, [searchParams, setStates]);
+
+  // Test-only direct-token injection (dev/test only)
   React.useEffect(() => {
     if (!allowTestTokenInjection) return;
     const injected = searchParams.get("testToken");

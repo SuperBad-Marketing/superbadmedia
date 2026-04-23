@@ -119,11 +119,7 @@ const defaults: KillSwitchRegistry = {
   // CE-1: gates content-to-outreach matching pipeline. When OFF, publish
   // does not queue content-match prospecting emails. SuperBad-only.
   content_outreach_enabled: false,
-  // LG-1: gates the entire Lead Generation pipeline (daily search, draft
-  // generation, sequence scheduling, engagement evaluation). When OFF, all
-  // Lead Gen cron handlers exit early. Flip ON in Phase 6 after warmup
-  // DNS is verified and Hunter.io key is configured.
-  lead_gen_enabled: false,
+  lead_gen_enabled: true,
   // SWP-3: gates the six-week plan generator pipeline, expiry jobs, and
   // migrate-on-Won handler. When OFF, all SWP scheduled-task handlers
   // exit early. Flip ON in Phase 6 after prompts are tuned.

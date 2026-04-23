@@ -4,40 +4,137 @@ export const dynamic = "force-dynamic";
  * `/api/oauth/meta-ads/callback` — Meta OAuth 2.0 authorization-code
  * callback endpoint.
  *
- * **SW-10-a scope (this session):** skeleton only. The real code→token
- * exchange + signed-cookie handoff ships in SW-10-b, paired with Andy
- * registering a Meta app (app id + secret + redirect whitelist). Until
- * then, this route mirrors the graph-api callback pattern:
- *   - accepts the ?code / ?state / ?error params Meta returns,
- *   - logs error attempts so incidents don't silently disappear,
- *   - redirects back to the wizard with `oauth=pending` (or `oauth=error`)
- *     so the celebration doesn't fire off a missing token.
+ * Flow:
+ *   1. Meta redirects here with ?code=<auth_code>&state=<csrf_state>.
+ *   2. Exchange the code for a short-lived access token.
+ *   3. Exchange the short-lived token for a long-lived token (~60 days).
+ *   4. Encrypt the token payload and redirect to the wizard with
+ *      `?oauth=success&ct=<encrypted>`.
  *
- * The Playwright E2E hits the wizard via `?testToken=…` direct injection
- * (gated server-side on NODE_ENV !== "production"), so this route being
- * skeletal does not block the arc smoke.
+ * Error case: Meta redirects with ?error=<code>&error_description=<msg>.
+ * We redirect back to the wizard with `oauth=error` params.
  *
- * SW-10-b turns this into a real exchange (see graph-api/callback for
- * the shape).
- *
- * Owner: SW-10 (skeleton) → SW-10-b (hardening).
+ * Owner: SW-10.
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { vault } from "@/lib/crypto/vault";
+import {
+  META_GRAPH_API_VERSION,
+  META_OAUTH_SCOPES,
+} from "@/lib/integrations/vendors/meta-ads";
+import { getAppUrl } from "@/lib/env/app-url";
+
+const WIZARD_PATH = "/lite/setup/admin/meta-ads";
+const VAULT_CONTEXT = "meta-ads.credentials";
+
+function getClientId(): string {
+  const v = process.env.META_ADS_CLIENT_ID;
+  if (!v) throw new Error("META_ADS_CLIENT_ID env var is not set");
+  return v;
+}
+
+function getClientSecret(): string {
+  const v = process.env.META_ADS_CLIENT_SECRET;
+  if (!v) throw new Error("META_ADS_CLIENT_SECRET env var is not set");
+  return v;
+}
+
+function getRedirectUri(): string {
+  return `${getAppUrl()}/api/oauth/meta-ads/callback`;
+}
+
+interface MetaTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in?: number;
+}
+
+async function exchangeCodeForToken(code: string): Promise<string> {
+  const params = new URLSearchParams({
+    client_id: getClientId(),
+    client_secret: getClientSecret(),
+    redirect_uri: getRedirectUri(),
+    code,
+  });
+
+  const res = await fetch(
+    `https://graph.facebook.com/${META_GRAPH_API_VERSION}/oauth/access_token?${params.toString()}`,
+  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Token exchange failed: ${res.status} ${text.slice(0, 300)}`);
+  }
+
+  const data = (await res.json()) as MetaTokenResponse;
+  return data.access_token;
+}
+
+async function exchangeForLongLived(shortLivedToken: string): Promise<{ accessToken: string; expiresAtMs: number }> {
+  const params = new URLSearchParams({
+    grant_type: "fb_exchange_token",
+    client_id: getClientId(),
+    client_secret: getClientSecret(),
+    fb_exchange_token: shortLivedToken,
+  });
+
+  const res = await fetch(
+    `https://graph.facebook.com/${META_GRAPH_API_VERSION}/oauth/access_token?${params.toString()}`,
+  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Long-lived token exchange failed: ${res.status} ${text.slice(0, 300)}`);
+  }
+
+  const data = (await res.json()) as MetaTokenResponse;
+  return {
+    accessToken: data.access_token,
+    expiresAtMs: Date.now() + (data.expires_in ?? 5184000) * 1000,
+  };
+}
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const error = url.searchParams.get("error");
   const errorDescription = url.searchParams.get("error_description");
+  const code = url.searchParams.get("code");
 
-  const redirect = new URL("/lite/setup/admin/meta-ads", url.origin);
+  const appUrl = getAppUrl();
+  const redirectUrl = new URL(WIZARD_PATH, appUrl);
+
   if (error) {
-    redirect.searchParams.set("oauth", "error");
-    redirect.searchParams.set("reason", errorDescription ?? error);
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set("reason", errorDescription ?? error);
     console.warn(
       `[meta-ads oauth] callback error: ${error}${errorDescription ? ` — ${errorDescription}` : ""}`,
     );
-  } else {
-    redirect.searchParams.set("oauth", "pending");
+    return NextResponse.redirect(redirectUrl);
   }
-  return NextResponse.redirect(redirect);
+
+  if (!code) {
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set("reason", "No authorization code received");
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  try {
+    const shortLived = await exchangeCodeForToken(code);
+    const { accessToken, expiresAtMs } = await exchangeForLongLived(shortLived);
+
+    const encrypted = vault.encrypt(
+      JSON.stringify({ accessToken, expiresAtMs }),
+      VAULT_CONTEXT,
+    );
+
+    redirectUrl.searchParams.set("oauth", "success");
+    redirectUrl.searchParams.set("ct", encrypted);
+    return NextResponse.redirect(redirectUrl);
+  } catch (err) {
+    console.error("[meta-ads oauth] Token exchange failed:", err);
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set(
+      "reason",
+      err instanceof Error ? err.message.slice(0, 200) : "Token exchange failed",
+    );
+    return NextResponse.redirect(redirectUrl);
+  }
 }

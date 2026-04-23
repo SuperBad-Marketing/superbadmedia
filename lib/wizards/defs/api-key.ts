@@ -23,11 +23,12 @@ import {
   ANTHROPIC_VERSION_HEADER,
 } from "@/lib/integrations/vendors/anthropic";
 import { serpapiManifest, SERPAPI_API_BASE } from "@/lib/integrations/vendors/serpapi";
+import { hunterIoManifest, HUNTER_API_BASE } from "@/lib/integrations/vendors/hunter-io";
 import { remotionManifest } from "@/lib/integrations/vendors/remotion";
 import { registerWizard } from "@/lib/wizards/registry";
 import type { VendorManifest, WizardDefinition } from "@/lib/wizards/types";
 
-export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "remotion";
+export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "hunter-io" | "remotion";
 
 export type ApiKeyPayload = {
   vendor: ApiKeyVendor;
@@ -127,6 +128,33 @@ async function pingSerpApi(
   }
 }
 
+async function pingHunterIo(
+  key: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  try {
+    const res = await fetch(
+      `${HUNTER_API_BASE}/account?api_key=${encodeURIComponent(key)}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      return {
+        ok: false,
+        reason: `Hunter.io rejected that key: ${res.status} ${body.slice(0, 140) || res.statusText}`,
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      reason:
+        err instanceof Error
+          ? `Hunter.io ping failed: ${err.message}`
+          : "Hunter.io ping failed.",
+    };
+  }
+}
+
 /**
  * Remotion has no live verify endpoint — licence keys are local-only.
  * Format-only check: non-empty, minimum plausible length. Documented in
@@ -164,6 +192,12 @@ export const API_KEY_VENDOR_PROFILES: Record<ApiKeyVendor, ApiKeyVendorProfile> 
     manifest: serpapiManifest,
     verify: pingSerpApi,
   },
+  "hunter-io": {
+    vendor: "hunter-io",
+    label: "Hunter.io",
+    manifest: hunterIoManifest,
+    verify: pingHunterIo,
+  },
   remotion: {
     vendor: "remotion",
     label: "Remotion",
@@ -173,7 +207,7 @@ export const API_KEY_VENDOR_PROFILES: Record<ApiKeyVendor, ApiKeyVendorProfile> 
 };
 
 export function isApiKeyVendor(v: string | undefined | null): v is ApiKeyVendor {
-  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "remotion";
+  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "hunter-io" || v === "remotion";
 }
 
 export function getApiKeyVendorProfile(

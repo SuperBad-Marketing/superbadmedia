@@ -16,6 +16,7 @@
 import { randomUUID, createHash } from "node:crypto";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
+import { vault } from "@/lib/crypto/vault";
 import { wizard_completions } from "@/lib/db/schema/wizard-completions";
 import { registerIntegration } from "@/lib/integrations/registerIntegration";
 import { verifyCompletion } from "@/lib/wizards/verify-completion";
@@ -24,6 +25,20 @@ import {
   type MetaAdsPayload,
 } from "@/lib/wizards/defs/meta-ads";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
+
+const META_VAULT_CONTEXT = "meta-ads.credentials";
+
+export async function decryptMetaTokenAction(
+  ct: string,
+): Promise<{ ok: true; accessToken: string } | { ok: false; reason: string }> {
+  try {
+    const decrypted = vault.decrypt(ct, META_VAULT_CONTEXT);
+    const creds = JSON.parse(decrypted) as { accessToken: string };
+    return { ok: true, accessToken: creds.accessToken };
+  } catch {
+    return { ok: false, reason: "Failed to decrypt OAuth token." };
+  }
+}
 
 function contractVersion(): string {
   const keys = metaAdsWizard.completionContract.required
