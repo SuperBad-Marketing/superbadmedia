@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import settings from "@/lib/settings";
 import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { dncEmails } from "@/lib/db/schema/dnc";
@@ -430,5 +431,78 @@ export async function applyNudgeAction(
   });
 
   revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
+// ── Settings ──────────────────────────────────────────────────────────
+
+export async function getLeadGenSettingsAction(): Promise<{
+  category: string;
+  standingBrief: string;
+  locationCentre: string;
+  locationRadiusKm: number;
+  dailyMaxPerDay: number;
+  runTime: string;
+  autoSendDelayMinutes: number;
+  dedupWindowDays: number;
+}> {
+  const [
+    category,
+    standingBrief,
+    locationCentre,
+    locationRadiusKm,
+    dailyMaxPerDay,
+    runTime,
+    autoSendDelayMinutes,
+    dedupWindowDays,
+  ] = await Promise.all([
+    settings.get("lead_generation.category"),
+    settings.get("lead_generation.standing_brief"),
+    settings.get("lead_generation.location_centre"),
+    settings.get("lead_generation.location_radius_km"),
+    settings.get("lead_generation.daily_max_per_day"),
+    settings.get("lead_generation.run_time"),
+    settings.get("lead_generation.auto_send_delay_minutes"),
+    settings.get("lead_generation.dedup_window_days"),
+  ]);
+  return {
+    category,
+    standingBrief,
+    locationCentre,
+    locationRadiusKm,
+    dailyMaxPerDay,
+    runTime,
+    autoSendDelayMinutes,
+    dedupWindowDays,
+  };
+}
+
+export type LeadGenSettings = Awaited<ReturnType<typeof getLeadGenSettingsAction>>;
+
+export async function updateLeadGenSettingsAction(input: {
+  category: string;
+  standingBrief: string;
+  locationCentre: string;
+  locationRadiusKm: number;
+  dailyMaxPerDay: number;
+  runTime: string;
+  autoSendDelayMinutes: number;
+  dedupWindowDays: number;
+}): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  await Promise.all([
+    settings.set("lead_generation.category", input.category),
+    settings.set("lead_generation.standing_brief", input.standingBrief),
+    settings.set("lead_generation.location_centre", input.locationCentre),
+    settings.set("lead_generation.location_radius_km", String(input.locationRadiusKm)),
+    settings.set("lead_generation.daily_max_per_day", String(input.dailyMaxPerDay)),
+    settings.set("lead_generation.run_time", input.runTime),
+    settings.set("lead_generation.auto_send_delay_minutes", String(input.autoSendDelayMinutes)),
+    settings.set("lead_generation.dedup_window_days", String(input.dedupWindowDays)),
+  ]);
+
+  revalidatePath("/lite/admin/lead-gen/settings");
   return { ok: true };
 }
