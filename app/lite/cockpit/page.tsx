@@ -35,31 +35,98 @@ export default async function CockpitPage() {
 
   return (
     <div className="min-h-full">
-      <div className="max-w-[720px] mx-auto px-0 pt-4 pb-4 md:px-4 md:pt-6 md:pb-8">
-        <BriefPanel
-          brief={briefResult.brief}
-          slot={briefResult.slot}
-          fallback={briefResult.fallback}
-        />
+      <div className="max-w-[720px] mx-auto px-4 pt-6 pb-8">
+        {/* Page header */}
+        <header className="pb-6">
+          <div
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none"
+            style={{ letterSpacing: "2px", color: "var(--color-neutral-500)" }}
+          >
+            Admin · Cockpit
+          </div>
+          <h1
+            className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none"
+            style={{ letterSpacing: "-0.4px", color: "var(--color-brand-cream)" }}
+          >
+            Cockpit
+          </h1>
+        </header>
 
+        {/* Brief card */}
+        <div
+          className="rounded-xl p-6"
+          style={{
+            background: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight), 0 2px 8px rgba(0,0,0,0.2)",
+            border: "1px solid rgba(253, 245, 230, 0.06)",
+          }}
+        >
+          <BriefPanel
+            brief={briefResult.brief}
+            slot={briefResult.slot}
+            fallback={briefResult.fallback}
+          />
+        </div>
+
+        {/* Attention rail */}
+        {waitingItems.length > 0 && (
+          <div className="mt-6">
+            <div
+              className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
+              style={{ letterSpacing: "2px", color: "var(--color-brand-orange)" }}
+            >
+              Needs Attention
+            </div>
+            <AttentionRail items={waitingItems} />
+          </div>
+        )}
+
+        {/* Health banners */}
+        {banners.length > 0 && (
+          <div className="mt-5">
+            <BannerStrip banners={banners} />
+          </div>
+        )}
+
+        {/* Calendar */}
         <div className="mt-6">
-          <AttentionRail items={waitingItems} />
+          <div
+            className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
+            style={{ letterSpacing: "2px", color: "var(--color-neutral-500)" }}
+          >
+            Calendar
+          </div>
+          <div
+            className="rounded-xl px-5 py-4"
+            style={{
+              background: "var(--color-surface-2)",
+              boxShadow: "var(--surface-highlight)",
+              border: "1px solid rgba(253, 245, 230, 0.03)",
+            }}
+          >
+            <CalendarPreview events={calendarEvents} />
+          </div>
         </div>
 
-        <div className="mt-5">
-          <BannerStrip banners={banners} />
+        {/* Planning */}
+        <div className="mt-8">
+          <div
+            className="mb-4 font-[family-name:var(--font-label)] text-[10px] uppercase"
+            style={{ letterSpacing: "2px", color: "var(--color-neutral-500)" }}
+          >
+            Planning
+          </div>
+          <div
+            className="rounded-xl p-5"
+            style={{
+              background: "var(--color-surface-2)",
+              boxShadow: "var(--surface-highlight)",
+              border: "1px solid rgba(253, 245, 230, 0.03)",
+            }}
+          >
+            <PlanningView kanban={kanban} />
+          </div>
         </div>
-
-        <div className="mt-5">
-          <CalendarPreview events={calendarEvents} />
-        </div>
-
-        <hr
-          className="my-6"
-          style={{ borderColor: "var(--color-surface-1)" }}
-        />
-
-        <PlanningView kanban={kanban} />
       </div>
     </div>
   );

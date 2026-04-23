@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
@@ -8,10 +8,12 @@ import { db } from "@/lib/db";
 import { deals } from "@/lib/db/schema/deals";
 import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
+import { quotes } from "@/lib/db/schema/quotes";
 import {
   DealDetailClient,
   type DealDetailData,
 } from "@/components/lite/sales-pipeline/deal-detail-client";
+import { DealQuotesSection } from "@/components/lite/sales-pipeline/deal-quotes-section";
 
 export const metadata: Metadata = {
   title: "SuperBad — Deal Detail",
@@ -59,6 +61,12 @@ export default async function DealDetailPage({
     .all();
 
   if (!row) notFound();
+
+  const dealQuotes = await db
+    .select()
+    .from(quotes)
+    .where(eq(quotes.deal_id, id))
+    .orderBy(desc(quotes.created_at_ms));
 
   const deal: DealDetailData = {
     id: row.id,
@@ -138,6 +146,14 @@ export default async function DealDetailPage({
 
       <div className="mt-6 px-4">
         <DealDetailClient deal={deal} />
+      </div>
+
+      <div className="mt-8 px-4">
+        <DealQuotesSection
+          dealId={deal.id}
+          companyId={deal.company_id}
+          quotes={dealQuotes}
+        />
       </div>
     </div>
   );

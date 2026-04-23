@@ -1,12 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { deals, DEAL_STAGES, type DealStage } from "@/lib/db/schema/deals";
 import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
+import { quotes } from "@/lib/db/schema/quotes";
 import { logActivity } from "@/lib/activity-log";
 import { resendPortalLink } from "@/lib/onboarding/create-credentials";
 
@@ -145,4 +146,109 @@ export async function resendPortalLinkAction(
     return { ok: false, error: messages[result.reason] ?? "Failed." };
   }
   return { ok: true };
+}
+
+// ── Quote actions ─────────────────────────────────────────────────────────
+
+export async function getQuotesForDealAction(dealId: string) {
+  const by = await adminActorTag();
+  if (!by) return [];
+
+  return db
+    .select()
+    .from(quotes)
+    .where(eq(quotes.deal_id, dealId))
+    .orderBy(desc(quotes.created_at_ms));
+}
+
+export async function createQuoteAction(
+  dealId: string,
+  companyId: string,
+): Promise<{ ok: true; quoteId: string } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+
+  const { createDraftQuote } = await import("@/lib/quote-builder/draft");
+
+  try {
+    const row = await createDraftQuote({
+      deal_id: dealId,
+      company_id: companyId,
+      user_id: session.user.id!,
+    });
+
+    void logActivity({
+      kind: "quote_drafted",
+      body: `Created draft quote ${row.quote_number} for deal ${dealId}`,
+      createdBy: `user:${session.user.id}`,
+      meta: { deal_id: dealId, quote_id: row.id },
+    });
+
+    revalidatePath(`/lite/admin/pipeline/${dealId}`);
+    return { ok: true, quoteId: row.id };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to create quote.",
+    };
+  }
+}
+
+export async function sendQuoteAction(
+  quoteId: string,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+
+  const { transitionQuoteStatus } = await import(
+    "@/lib/quote-builder/transitions"
+  );
+  const { composeQuoteSendEmail } = await import(
+    "@/lib/quote-builder/compose-send-email"
+  );
+
+  try {
+    const [quote] = await db
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, quoteId))
+      .limit(1);
+    if (!quote) return { ok: false, error: "Quote not found." };
+
+    if (quote.status !== "draft") {
+      return { ok: false, error: `Quote is already ${quote.status}.` };
+    }
+
+    await transitionQuoteStatus({
+      quote_id: quoteId,
+      from: "draft",
+      to: "sent",
+      patch: { sent_at_ms: Date.now() },
+    });
+
+    try {
+      await composeQuoteSendEmail({ quote_id: quoteId });
+    } catch (emailErr) {
+      console.error("[quote-send] Email failed:", emailErr);
+    }
+
+    void logActivity({
+      kind: "quote_sent",
+      body: `Sent quote ${quote.quote_number}`,
+      createdBy: `user:${session.user.id}`,
+      meta: { quote_id: quoteId },
+    });
+
+    revalidatePath(`/lite/admin/pipeline/${quote.deal_id}`);
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to send quote.",
+    };
+  }
 }

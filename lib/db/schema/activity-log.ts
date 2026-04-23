@@ -370,6 +370,9 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Deal admin (2) ---
   "deal_updated",
   "deal_deleted",
+  // --- Quotes (2) ---
+  "quote_drafted",
+  "quote_sent",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

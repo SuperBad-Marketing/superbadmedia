@@ -154,6 +154,37 @@ export async function vetoTopicAction(topicId: string) {
   return { ok: true as const };
 }
 
+// ── Run Keyword Research (on-demand) ──────────────────────────────────────
+
+export async function runKeywordResearchAction(companyId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsedCompany = z.string().uuid().safeParse(companyId);
+  if (!parsedCompany.success)
+    return { ok: false as const, error: "invalid_company_id" };
+
+  const { runKeywordResearch } = await import(
+    "@/lib/content-engine/research"
+  );
+
+  try {
+    const result = await runKeywordResearch(parsedCompany.data);
+    revalidatePath("/lite/content/topics");
+    return {
+      ok: true as const,
+      topicsQueued: result.topicsQueued,
+      skipped: result.skipped,
+    };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Keyword research failed.";
+    return { ok: false as const, error: message };
+  }
+}
+
 // ── Add Seed Keyword (CE-10) ───────────────────────────────────────────────
 
 const seedKeywordSchema = z.string().min(1).max(200).trim();

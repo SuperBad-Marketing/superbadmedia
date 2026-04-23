@@ -18,6 +18,7 @@ import { auth, unstable_update } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { vault } from "@/lib/crypto/vault";
 import { wizard_completions } from "@/lib/db/schema/wizard-completions";
+import { graph_api_state } from "@/lib/db/schema/graph-api-state";
 import { registerIntegration } from "@/lib/integrations/registerIntegration";
 import { verifyCompletion } from "@/lib/wizards/verify-completion";
 import {
@@ -39,7 +40,7 @@ export async function getGraphAuthorizeUrlAction(): Promise<string> {
     "Mail.ReadWrite",
     "Mail.Send",
     "MailboxSettings.Read",
-    "Calendars.Read",
+    "Calendars.ReadWrite",
   ].join(" ");
   const params = new URLSearchParams({
     client_id: clientId,
@@ -90,7 +91,7 @@ export async function completeGraphAdminAction(
   const wizardCompletionId = randomUUID();
 
   try {
-    const { bandsRegistered } = await registerIntegration({
+    const { connectionId, bandsRegistered } = await registerIntegration({
       wizardCompletionId,
       manifest: graphApiAdminWizard.vendorManifest!,
       credentials: { plaintext: payload.accessToken },
@@ -99,6 +100,20 @@ export async function completeGraphAdminAction(
       },
       ownerType: "admin",
       ownerId,
+    });
+
+    const tenantId = process.env.MS_GRAPH_TENANT_ID ?? "common";
+    const clientId = process.env.MS_GRAPH_CLIENT_ID ?? "";
+    const now = Date.now();
+    await db.insert(graph_api_state).values({
+      id: randomUUID(),
+      integration_connection_id: connectionId,
+      user_id: ownerId,
+      tenant_id: tenantId,
+      client_id: clientId,
+      initial_import_status: "not_started",
+      created_at_ms: now,
+      updated_at_ms: now,
     });
 
     const verified = await verifyCompletion(

@@ -46,24 +46,38 @@ export function BriefPanel({
 
   return (
     <div>
+      <div className="flex items-center justify-between">
+        <p
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase"
+          style={{ letterSpacing: "2px", color: "var(--color-brand-orange)" }}
+        >
+          Daily Brief
+        </p>
+        <p
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase"
+          style={{ letterSpacing: "1.5px", color: "var(--color-neutral-600)" }}
+        >
+          {slot}
+        </p>
+      </div>
       <p
-        className="text-[12px] font-[family-name:var(--font-label)]"
+        className="mt-3 font-[family-name:var(--font-body)] text-[13px]"
         style={{ color: "var(--color-neutral-500)" }}
       >
         {greeting}
       </p>
-      <div className="mt-3">
+      <div className="mt-2">
         {fallback || !brief ? (
           <p
-            className="font-[family-name:var(--font-serif)] text-[18px] italic leading-relaxed"
+            className="font-[family-name:var(--font-narrative)] text-[18px] italic leading-relaxed"
             style={{ color: "var(--color-neutral-500)" }}
           >
             {pseudoRandomPick(QUIET_FALLBACK_LINES, nowMs, 1)}
           </p>
         ) : (
           <p
-            className="font-[family-name:var(--font-serif)] text-[18px] leading-relaxed"
-            style={{ color: "var(--color-neutral-300)" }}
+            className="font-[family-name:var(--font-narrative)] text-[18px] leading-relaxed"
+            style={{ color: "var(--color-neutral-200)" }}
           >
             {brief.prose}
           </p>

@@ -16,6 +16,7 @@ import { listQueuedTopics } from "@/lib/content-engine/topic-queue";
 import { ContentTabs } from "../_components/content-tabs";
 import { TopicQueueList } from "../_components/topic-queue-list";
 import { SeedKeywordManager } from "../_components/seed-keyword-manager";
+import { RunResearchButton } from "../_components/run-research-button";
 
 export const metadata: Metadata = {
   title: "Topics — SuperBad",
@@ -97,10 +98,15 @@ export default async function TopicsPage() {
           Seed keywords feed the weekly research pipeline. Add keywords relevant to your business — the engine finds rankable topics from them.
         </p>
         {companyId ? (
-          <SeedKeywordManager
-            companyId={companyId}
-            initialKeywords={seedKeywords}
-          />
+          <div className="space-y-5">
+            <SeedKeywordManager
+              companyId={companyId}
+              initialKeywords={seedKeywords}
+            />
+            {seedKeywords.length > 0 && (
+              <RunResearchButton companyId={companyId} />
+            )}
+          </div>
         ) : (
           <div
             className="rounded-[12px] px-8 py-10 text-center"

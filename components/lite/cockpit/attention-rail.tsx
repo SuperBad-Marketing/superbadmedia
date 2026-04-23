@@ -15,23 +15,25 @@ export function AttentionRail({ items }: { items: WaitingItem[] }) {
   const chips = showOverflow ? visible.slice(0, MAX_CHIPS - 1) : visible;
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
+    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
       {chips.map((item) => (
         <Link
           key={item.id}
           href={item.href}
-          className="flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-[family-name:var(--font-body)] transition-colors"
+          className="flex-shrink-0 rounded-lg px-4 py-2.5 text-[13px] font-[family-name:var(--font-body)] transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px"
           style={{
-            backgroundColor: "var(--color-surface-1)",
+            backgroundColor: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight)",
+            border: "1px solid rgba(253, 245, 230, 0.03)",
             color: "var(--color-neutral-100)",
           }}
         >
           {item.scope === "fleet" && (
             <span
-              className="mr-1 text-[11px]"
-              style={{ color: "var(--color-neutral-500)" }}
+              className="mr-1.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+              style={{ letterSpacing: "1px", color: "var(--color-neutral-500)" }}
             >
-              [Fleet]
+              Fleet
             </span>
           )}
           {item.label}
@@ -40,9 +42,10 @@ export function AttentionRail({ items }: { items: WaitingItem[] }) {
       {showOverflow && (
         <Link
           href="/lite/cockpit/waiting"
-          className="flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-[family-name:var(--font-body)] transition-colors"
+          className="flex-shrink-0 rounded-lg px-4 py-2.5 text-[13px] font-[family-name:var(--font-body)] transition-colors"
           style={{
-            backgroundColor: "var(--color-surface-0)",
+            backgroundColor: "var(--color-surface-1)",
+            border: "1px solid rgba(253, 245, 230, 0.03)",
             color: "var(--color-neutral-500)",
           }}
         >
