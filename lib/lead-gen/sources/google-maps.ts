@@ -81,10 +81,6 @@ export async function searchGoogleMaps(
     hl: "en",
   });
 
-  if (params.location) {
-    queryParams.set("location", params.location);
-  }
-
   try {
     const response = await fetch(
       `${SERPAPI_API_BASE}/search.json?${queryParams.toString()}`,

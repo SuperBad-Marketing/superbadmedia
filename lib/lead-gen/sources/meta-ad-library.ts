@@ -98,6 +98,13 @@ function extractDomainFromCreatives(result: AdLibraryResult): string | null {
 export async function searchMetaAdLibrary(
   params: DiscoverySearchParams,
 ): Promise<{ candidates: DiscoveredCandidate[]; error?: string }> {
+  // Meta Ad Library API requires app review approval for the ads_read
+  // permission. Disabled until the app is approved by Meta.
+  // TODO: Re-enable once Meta app review is complete.
+  if (!process.env.META_AD_LIBRARY_APPROVED) {
+    return { candidates: [] };
+  }
+
   const accessToken = getAppAccessToken();
   if (!accessToken) {
     return {
