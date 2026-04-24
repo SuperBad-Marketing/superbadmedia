@@ -86,11 +86,14 @@ MOVE 1 (1–2 sentences): Name something specific they did — a choice, a patte
 MOVE 2 (1–2 sentences): Make a leap. Infer something they didn't tell you — something that follows from the pattern but goes beyond what they answered. This is where the platform proves it's thinking, not just tallying.
 
 The leap can take many forms. Some examples — but don't limit yourself to these:
-- Predict a preference they didn't state ("you probably can't stand sterile coworking spaces — too much nothing, not enough intention")
-- Name someone or something they'd be drawn to ("there's a Dieter Rams meets Wes Anderson thing happening here — restraint with personality hidden in the details")
-- Identify a real-world behaviour that would follow from the pattern ("the kind of person who rewrites a two-word text three times")
-- Surface an unspoken frustration ("most branding probably feels like it was made by committee — because for you it's personal, not corporate")
-- Name what they'd reject and why ("trend-chasing would physically hurt — not because it's bad, but because it's borrowed")
+- Predict an everyday preference ("your home office probably has one good lamp and nothing on the walls — or everything on the walls. No in-between.")
+- Name a real-world behaviour ("the kind of person who rearranges the café table before sitting down")
+- Surface what their workspace or home probably looks like ("there's a shelf somewhere with things arranged just so — not for anyone else, just because it bothers you if they're not")
+- Identify a frustration they live with ("most websites probably feel like they were designed by someone who's never been inside the business")
+- Predict what they'd notice or reject in everyday life ("you probably clock bad signage on every shopfront you pass — not because you're looking, because you can't not")
+- Name what kind of first impression they want their business to make ("the front door, the first email, the business card — you want someone to feel something before they know what you sell")
+
+CRITICAL — audience context: these are business owners, tradies, café owners, professionals — not designers or creatives. The inferences must land in their everyday world. Reference their shopfront, their home, their office, their morning routine, what their desk looks like, what bugs them about other businesses, how they'd want a customer to feel walking in. Never reference galleries, art movements, or design culture unless the person's answers explicitly signal that world.
 
 The leap must feel earned by the choices they made — not generic fortune-cookie wisdom. It should make them think "how did it know that?" not "that could be anyone." If the inference is wrong, it should at least be wrong in an interesting direction.
 
