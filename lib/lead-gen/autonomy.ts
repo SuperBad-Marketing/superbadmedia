@@ -10,6 +10,7 @@ import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { logActivity } from "@/lib/activity-log";
 import settings from "@/lib/settings";
+import { killSwitches } from "@/lib/kill-switches";
 
 type Track = "saas" | "retainer";
 
@@ -64,6 +65,10 @@ export async function transitionAutonomyState(
   event: AutonomyEvent,
   dbInstance = defaultDb,
 ): Promise<AutonomyTransitionResult> {
+  if (!killSwitches.lead_gen_enabled) {
+    const row = await getAutonomyRow(track, dbInstance);
+    return { previousMode: row.mode as AutonomyMode, newMode: row.mode as AutonomyMode, streak: row.clean_approval_streak, transitioned: false, reason: "lead_gen disabled" };
+  }
   const row = await getAutonomyRow(track, dbInstance);
   const previousMode = row.mode as AutonomyMode;
 

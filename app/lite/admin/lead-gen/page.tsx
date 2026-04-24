@@ -4,8 +4,7 @@ import { auth } from "@/lib/auth/session";
 import { getPendingDrafts, getQueueHeaderData } from "@/lib/lead-gen/queries";
 import { killSwitches } from "@/lib/kill-switches";
 import { LeadGenTabs } from "./_components/lead-gen-tabs";
-import { QueueHeader } from "./_components/queue-header";
-import { QueueList } from "./_components/queue-list";
+import { QueueTab } from "./QueueTab";
 import { LeadGenRunButton } from "./_components/lead-gen-run-button";
 import { DiscoverySuggestions } from "./_components/discovery-suggestions";
 
@@ -64,8 +63,7 @@ export default async function LeadGenQueuePage() {
       </header>
       <LeadGenTabs currentPath="/lite/admin/lead-gen" />
       <DiscoverySuggestions />
-      <QueueHeader data={headerData} />
-      <QueueList drafts={drafts} llmEnabled={llmEnabled} />
+      <QueueTab drafts={drafts} headerData={headerData} llmEnabled={llmEnabled} />
     </div>
   );
 }

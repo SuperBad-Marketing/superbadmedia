@@ -9,6 +9,8 @@
 **Last closed:** DRY (2026-04-21) — see `sessions/dry-handoff.md`
 **Wave status:** Wave 23 in progress. SAP + DRY (UI-level) shipped. DRY-INT (integration-level) blocked.
 
+📋 **LG-10 autonomy loop completed (2026-04-24):** Session ran against stale tracker (local main had LG-10 as next; origin/main was at Wave 23). LG-10 work committed regardless — see `sessions/lg-10-queue-autonomy-handoff.md`. Added kill-switch guard to `transitionAutonomyState`, QueueTab.tsx wrapper, and autonomy tests. DRY-INT remains the correct next action per origin/main tracker state.
+
 🚨 **BLOCKED — human required.** DRY-INT cannot run in CCR without live external service credentials. Code regressions have been fixed (see below); only the environment credential blocker remains.
 🚨 **VERIFICATION FAILED — human required.** See `sessions/DRY-INT-FAILED-handoff.md`.
 🔁 **Attempt #3 (2026-04-21):** Third consecutive autonomy loop hit same G1 block. Code is clean (3 remaining test failures are all pre-existing). **Recommend:** create `.autonomy/PAUSED` + push to halt loop until Andy can run DRY-INT locally with credentials. See handoff for exact steps.
