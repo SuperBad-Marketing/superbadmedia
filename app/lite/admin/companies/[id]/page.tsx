@@ -21,6 +21,7 @@ import { brand_dna_blends } from "@/lib/db/schema/brand-dna-blends";
 import { threads, messages } from "@/lib/db/schema/messages";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 import { trial_shoot_notes } from "@/lib/db/schema/trial-shoot-notes";
+import { briefs } from "@/lib/db/schema/briefs";
 import { six_week_plans } from "@/lib/db/schema/six-week-plans";
 import { loadInvoiceDetail } from "@/lib/invoicing/detail-query";
 import settings from "@/lib/settings";
@@ -47,6 +48,8 @@ import {
   type ShootDayNotesData,
   type PlanStatusData,
 } from "@/components/lite/company/shoot-day-notes-panel";
+import { LinkedContactsPanel } from "@/components/lite/admin/companies/linked-contacts-panel";
+import { CompanyBriefsTab } from "@/components/lite/admin/companies/company-briefs-tab";
 
 export const metadata: Metadata = {
   title: "SuperBad — Company",
@@ -54,7 +57,7 @@ export const metadata: Metadata = {
 };
 
 const VALID_TABS: CompanyTab[] = [
-  "overview", "tasks", "deliverables", "billing", "brand-dna", "comms", "portal-chat", "activity",
+  "overview", "tasks", "deliverables", "briefs", "billing", "brand-dna", "comms", "portal-chat", "activity",
 ];
 
 function parseTab(raw: string | undefined): CompanyTab {
@@ -434,6 +437,10 @@ export default async function CompanyAdminPage({
     ? await db.select().from(portal_chat_messages).where(inArray(portal_chat_messages.contact_id, contactIds)).orderBy(desc(portal_chat_messages.created_at_ms)).limit(200)
     : null;
 
+  const briefsData = activeTab === "briefs"
+    ? await db.select().from(briefs).where(eq(briefs.company_id, id)).orderBy(desc(briefs.created_at_ms))
+    : null;
+
   const activityData = activeTab === "activity"
     ? await db.select().from(activity_log).where(eq(activity_log.company_id, id)).orderBy(desc(activity_log.created_at_ms)).limit(200)
     : null;
@@ -560,6 +567,10 @@ export default async function CompanyAdminPage({
           emptyHero="No deliverables yet."
           emptyMutter="nothing owed. nothing pending."
         />
+      ) : null}
+
+      {activeTab === "briefs" && briefsData !== null ? (
+        <CompanyBriefsTab companyId={company.id} briefs={briefsData} />
       ) : null}
 
       {activeTab === "billing" ? (() => {
@@ -703,7 +714,7 @@ function OverviewTab({
         companyId={company.id}
       />
 
-      <LinkedContactsPanel contacts={contactRows} nowMs={nowMs} />
+      <LinkedContactsPanel companyId={company.id} initialContacts={contactRows} nowMs={nowMs} />
     </div>
   );
 }
@@ -1147,92 +1158,3 @@ function LinkedInvoicesPanel({
   );
 }
 
-function LinkedContactsPanel({
-  contacts: contactRows,
-  nowMs,
-}: {
-  contacts: (typeof contacts.$inferSelect)[];
-  nowMs: number;
-}) {
-  return (
-    <PanelShell title="Contacts" count={contactRows.length}>
-      {contactRows.length === 0 ? (
-        <VoicedEmpty hero="One lonely contact." mutter="orgs are made of people." />
-      ) : (
-        <table className="w-full text-left">
-          <TableHead
-            cols={[
-              { label: "Name" },
-              { label: "Role" },
-              { label: "Email" },
-              { label: "Last touch" },
-            ]}
-          />
-          <tbody>
-            {contactRows.map((c) => (
-              <tr key={c.id}>
-                <td
-                  style={{ ...TD_BASE, color: "var(--color-brand-cream)" }}
-                  className="font-[family-name:var(--font-body)] text-[13px] font-medium"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    {c.name}
-                    {c.is_primary ? <PrimaryPill /> : null}
-                  </span>
-                </td>
-                <td
-                  style={{ ...TD_BASE, color: "var(--color-neutral-300)" }}
-                  className="text-[12px]"
-                >
-                  {c.role ?? (
-                    <span className="italic text-[color:var(--color-neutral-500)]">
-                      —
-                    </span>
-                  )}
-                </td>
-                <td
-                  style={{ ...TD_BASE, color: "var(--color-neutral-300)" }}
-                  className="text-[12px]"
-                >
-                  {c.email ? (
-                    <a
-                      href={`mailto:${c.email}`}
-                      className="transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-cream)]"
-                    >
-                      {c.email}
-                    </a>
-                  ) : (
-                    <span className="italic text-[color:var(--color-neutral-500)]">
-                      —
-                    </span>
-                  )}
-                </td>
-                <td
-                  style={{ ...TD_BASE, color: "var(--color-neutral-500)" }}
-                  className="font-[family-name:var(--font-body)] text-[12px] italic"
-                >
-                  {relativeLabel(c.updated_at_ms, nowMs)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </PanelShell>
-  );
-}
-
-function PrimaryPill() {
-  return (
-    <span
-      className="inline-flex items-center rounded-full px-2 py-[1px] font-[family-name:var(--font-label)] text-[9px] uppercase"
-      style={{
-        letterSpacing: "1.5px",
-        background: "rgba(244, 160, 176, 0.10)",
-        color: "var(--color-brand-pink)",
-      }}
-    >
-      primary
-    </span>
-  );
-}

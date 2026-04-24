@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { trial_shoot_notes } from "@/lib/db/schema/trial-shoot-notes";
 import { six_week_plans } from "@/lib/db/schema/six-week-plans";
 import { deals } from "@/lib/db/schema/deals";
+import { contacts } from "@/lib/db/schema/contacts";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import { logActivity } from "@/lib/activity-log";
 import {
@@ -230,4 +231,147 @@ export async function updateTrialShootPlanAction(
       error: err instanceof Error ? err.message : "Save failed.",
     };
   }
+}
+
+// ── Contact CRUD ──────────────────────────────────────────────────────
+
+export interface ContactInput {
+  name: string;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+function normaliseEmail(raw: string): string {
+  return raw.trim().toLowerCase();
+}
+
+function normalisePhone(raw: string): string {
+  return raw.replace(/[^+\d]/g, "");
+}
+
+export async function createContactAction(
+  companyId: string,
+  input: ContactInput,
+): Promise<ActionResult<{ id: string }>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required." };
+
+  const nowMs = Date.now();
+  const id = randomUUID();
+  const existingContacts = await db
+    .select({ id: contacts.id })
+    .from(contacts)
+    .where(eq(contacts.company_id, companyId));
+  const isFirst = existingContacts.length === 0;
+
+  await db.insert(contacts).values({
+    id,
+    company_id: companyId,
+    name,
+    role: input.role?.trim() || null,
+    email: input.email?.trim() || null,
+    email_normalised: input.email ? normaliseEmail(input.email) : null,
+    phone: input.phone?.trim() || null,
+    phone_normalised: input.phone ? normalisePhone(input.phone) : null,
+    is_primary: isFirst,
+    created_at_ms: nowMs,
+    updated_at_ms: nowMs,
+  });
+
+  revalidatePath(`/lite/admin/companies/${companyId}`);
+  return { ok: true, value: { id } };
+}
+
+export async function updateContactAction(
+  companyId: string,
+  contactId: string,
+  input: ContactInput,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Name is required." };
+
+  await db
+    .update(contacts)
+    .set({
+      name,
+      role: input.role?.trim() || null,
+      email: input.email?.trim() || null,
+      email_normalised: input.email ? normaliseEmail(input.email) : null,
+      phone: input.phone?.trim() || null,
+      phone_normalised: input.phone ? normalisePhone(input.phone) : null,
+      updated_at_ms: Date.now(),
+    })
+    .where(eq(contacts.id, contactId));
+
+  revalidatePath(`/lite/admin/companies/${companyId}`);
+  return { ok: true };
+}
+
+export async function deleteContactAction(
+  companyId: string,
+  contactId: string,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+
+  const contact = await db
+    .select({ is_primary: contacts.is_primary })
+    .from(contacts)
+    .where(eq(contacts.id, contactId))
+    .get();
+  if (!contact) return { ok: false, error: "Contact not found." };
+
+  await db.delete(contacts).where(eq(contacts.id, contactId));
+
+  if (contact.is_primary) {
+    const remaining = await db
+      .select({ id: contacts.id })
+      .from(contacts)
+      .where(eq(contacts.company_id, companyId))
+      .limit(1);
+    if (remaining.length > 0) {
+      await db
+        .update(contacts)
+        .set({ is_primary: true, updated_at_ms: Date.now() })
+        .where(eq(contacts.id, remaining[0].id));
+    }
+  }
+
+  revalidatePath(`/lite/admin/companies/${companyId}`);
+  return { ok: true };
+}
+
+export async function setPrimaryContactAction(
+  companyId: string,
+  contactId: string,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+
+  const nowMs = Date.now();
+  await db
+    .update(contacts)
+    .set({ is_primary: false, updated_at_ms: nowMs })
+    .where(eq(contacts.company_id, companyId));
+
+  await db
+    .update(contacts)
+    .set({ is_primary: true, updated_at_ms: nowMs })
+    .where(eq(contacts.id, contactId));
+
+  revalidatePath(`/lite/admin/companies/${companyId}`);
+  return { ok: true };
 }
