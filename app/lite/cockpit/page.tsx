@@ -10,6 +10,7 @@ import { AttentionRail } from "@/components/lite/cockpit/attention-rail";
 import { BannerStrip } from "@/components/lite/cockpit/banner-strip";
 import { CalendarPreview } from "@/components/lite/cockpit/calendar-preview";
 import { PlanningView } from "@/components/lite/cockpit/planning-view";
+import { AiChatFab } from "@/components/lite/cockpit/ai-chat-panel";
 
 export const metadata: Metadata = {
   title: "SuperBad — Cockpit",
@@ -35,6 +36,7 @@ export default async function CockpitPage() {
 
   return (
     <div className="min-h-full">
+      <AiChatFab />
       <div className="max-w-[720px] mx-auto px-4 pt-6 pb-8">
         {/* Page header */}
         <header className="pb-6">

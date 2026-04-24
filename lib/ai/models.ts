@@ -117,6 +117,8 @@ export const MODELS = {
   "onboarding-welcome-summary": "opus",
   // setup-wizards (1) — CMS-2
   "admin-setup-assistant": "opus",
+  // cockpit-assistant (1)
+  "cockpit-assistant": "sonnet",
   // email-adapter / drift-check (1) — A7
   "drift-check-grader": "haiku",
   // surprise-and-delight (4) — SD-2 + SD-4 + SD-10
