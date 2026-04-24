@@ -15,11 +15,18 @@
  * calibration lives in the Brand DNA content mini-session (post-BDA-3).
  */
 
+export type AnswerTrace = {
+  question: string;
+  chosen: string;
+  rejected: string[];
+};
+
 export type SectionInsightInput = {
   subjectName: string;
   sectionNumber: 1 | 2 | 3 | 4;
   sectionTitle: string;
   topTags: string;
+  answerTraces: AnswerTrace[];
   priorInsights: string[];
   track: string;
 };
@@ -42,7 +49,7 @@ const SECTION_CONTEXT: Record<number, string> = {
  * which reads `brand_dna_answers` and `brand_dna_profiles` before calling this.
  */
 export function buildSectionInsightPrompt(input: SectionInsightInput): string {
-  const { subjectName, sectionNumber, sectionTitle, topTags, priorInsights, track } = input;
+  const { subjectName, sectionNumber, sectionTitle, topTags, answerTraces, priorInsights, track } = input;
 
   const context = SECTION_CONTEXT[sectionNumber] ?? sectionTitle;
 
@@ -54,26 +61,36 @@ export function buildSectionInsightPrompt(input: SectionInsightInput): string {
     ? `They're answering in business mode — "the brand", not "I". Address the brand, not the person.`
     : `They're answering as a founder. Address them personally.`;
 
+  const choicesBlock = answerTraces.length
+    ? `Here's what they actually chose — and what they walked past:\n${answerTraces.map((t) => `Q: "${t.question}"\n  → Chose: "${t.chosen}"\n  → Passed on: ${t.rejected.map((r) => `"${r}"`).join(", ")}`).join("\n\n")}`
+    : "";
+
   return `You're revealing the brand DNA of ${subjectName}.
 
 They just completed "${sectionTitle}" — ${context}
 
 ${trackNote}
 
-Their strongest signal tags from this section: ${topTags || "no tags yet"}.
+${choicesBlock}
+
+Aggregate signal pattern: ${topTags || "no tags yet"}.
 
 ${priorBlock}
 
-Write 2–3 sentences. This appears as a transition card between sections — a small, specific observation that names something the person already knew but hadn't articulated.
+Write 2–3 sentences. This appears as a transition card between sections — a moment that makes the person feel genuinely seen. Not summarised. Seen.
+
+Your job is to name something specific they did — a choice, a pattern across choices, a telling rejection — and say what it reveals. Reference their actual decisions, not abstract traits. "Every room you picked had warm light in it" hits harder than "you gravitate toward warmth." "You chose the hand-drawn logo but the sans-serif typeface — that's not a contradiction, that's a hierarchy" hits harder than "you balance polish with personality."
+
+The best insight names something the person already felt but hadn't put words to. The second-best names a tension between two of their choices that they haven't reconciled yet. The worst is a personality summary that could apply to anyone.
 
 Voice — non-negotiable:
-- Flat delivery. Perceptive, slightly warm. Like a sharp friend, not a therapist.
-- Never "I notice", "it seems like", "what stands out", "it's interesting that".
+- Flat delivery. Perceptive, slightly warm. Like a sharp friend who just watched you make fourteen decisions in a row and has something to say about it.
+- Never "I notice", "it seems like", "what stands out", "it's interesting that", "your answers suggest", "there's a clear pattern".
 - Never start with "You". Vary sentence structure.
-- No hedging. No qualifiers. No marketing speak.
-- Short sentences welcome. One observation per sentence.
-- Name the tension if there is one ("precision and warmth don't usually share a room — but here they do").
-- Name what's absent if the absence is revealing ("not a single answer reached for safety").
+- No hedging. No qualifiers. No marketing speak. No praise.
+- Short sentences. One observation per sentence.
+- Name the tension if there is one. Name what's absent if the absence is revealing.
+- You can reference specific choices directly — "the concrete floors but the warm music" — when the juxtaposition reveals something.
 
 Return only the 2–3 sentences. No preamble, no quotes, no header.`;
 }

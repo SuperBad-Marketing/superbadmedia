@@ -22,8 +22,15 @@ import { brand_dna_answers } from "@/lib/db/schema/brand-dna-answers";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { killSwitches } from "@/lib/kill-switches";
 import { modelFor } from "@/lib/ai/models";
-import { buildSectionInsightPrompt } from "@/lib/ai/prompts/brand-dna-assessment/generate-section-insight";
-import { SECTION_TITLES } from "./question-bank";
+import {
+  buildSectionInsightPrompt,
+  type AnswerTrace,
+} from "@/lib/ai/prompts/brand-dna-assessment/generate-section-insight";
+import {
+  SECTION_TITLES,
+  getQuestionById,
+  resolveQuestionText,
+} from "./question-bank";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyDb = BetterSQLite3Database<any>;
@@ -101,6 +108,25 @@ export async function generateSectionInsight(
   const sectionTitle =
     SECTION_TITLES[section as 1 | 2 | 3 | 4 | 5] ?? `Section ${section}`;
   const subjectName = profile.subject_display_name ?? "this brand";
+  const track = (profile.track as "founder" | "business") ?? "founder";
+
+  const answerTraces: AnswerTrace[] = [];
+  for (const answer of answers) {
+    const question = getQuestionById(answer.question_id);
+    if (!question) continue;
+    const qText = resolveQuestionText(question, track);
+    const opts = question.options;
+    const selected = answer.selected_option as "a" | "b" | "c" | "d";
+    const chosenText = opts[selected]?.text ?? "";
+    const rejectedTexts = (["a", "b", "c", "d"] as const)
+      .filter((k) => k !== selected)
+      .map((k) => opts[k].text);
+    answerTraces.push({
+      question: qText,
+      chosen: chosenText,
+      rejected: rejectedTexts,
+    });
+  }
 
   // ── Gather prior insights for context continuity ────────────────────────
   const priorInsights: string[] = [];
@@ -126,8 +152,9 @@ export async function generateSectionInsight(
           sectionNumber: section as 1 | 2 | 3 | 4,
           sectionTitle,
           topTags,
+          answerTraces,
           priorInsights,
-          track: profile.track ?? "founder",
+          track,
         }),
       },
     ],
