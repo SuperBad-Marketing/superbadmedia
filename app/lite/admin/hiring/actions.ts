@@ -609,6 +609,66 @@ export async function runDiscoveryNowAction(
 }
 
 // ---------------------------------------------------------------------------
+// Update Role Brief Search Settings (position, skills, discovery hints)
+// ---------------------------------------------------------------------------
+
+export type UpdateRoleBriefInput = {
+  role_name?: string;
+  engagement_type?: "contractor" | "employee";
+  rate_min_aud?: number | null;
+  rate_max_aud?: number | null;
+  rate_unit?: "per_hour" | "per_day" | "per_project" | null;
+  target_hours_per_week?: number | null;
+  location_pref_city?: string | null;
+  remote_ok?: boolean;
+  extracted_tags?: string[];
+  discovery_search_hints?: string[];
+  andy_overrides?: string | null;
+};
+
+export async function updateRoleBriefAction(
+  roleBriefId: string,
+  input: UpdateRoleBriefInput,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  try {
+    const { eq } = await import("drizzle-orm");
+    const { db } = await import("@/lib/db");
+    const { role_briefs } = await import("@/lib/db/schema/role-briefs");
+
+    const set: Record<string, unknown> = { updated_at_ms: Date.now() };
+    if (input.role_name !== undefined) set.role_name = input.role_name;
+    if (input.engagement_type !== undefined) set.engagement_type = input.engagement_type;
+    if (input.rate_min_aud !== undefined) set.rate_min_aud = input.rate_min_aud;
+    if (input.rate_max_aud !== undefined) set.rate_max_aud = input.rate_max_aud;
+    if (input.rate_unit !== undefined) set.rate_unit = input.rate_unit;
+    if (input.target_hours_per_week !== undefined) set.target_hours_per_week = input.target_hours_per_week;
+    if (input.location_pref_city !== undefined) set.location_pref_city = input.location_pref_city;
+    if (input.remote_ok !== undefined) set.remote_ok = input.remote_ok;
+    if (input.extracted_tags !== undefined) set.extracted_tags_json = input.extracted_tags;
+    if (input.discovery_search_hints !== undefined) set.discovery_search_hints_json = input.discovery_search_hints;
+    if (input.andy_overrides !== undefined) set.andy_overrides = input.andy_overrides;
+
+    await db
+      .update(role_briefs)
+      .set(set)
+      .where(eq(role_briefs.id, roleBriefId))
+      .run();
+
+    revalidatePath("/lite/admin/hiring");
+    revalidatePath(`/lite/admin/hiring/briefs/${roleBriefId}`);
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Update failed.",
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Retune Role Brief (§6.3 manual trigger)
 // ---------------------------------------------------------------------------
 
