@@ -741,6 +741,9 @@ export async function getLeadGenSettingsAction(): Promise<{
   standingBrief: string;
   locationCentre: string;
   locationRadiusKm: number;
+  locationMode: "local" | "global";
+  locationCountry: string;
+  locationCountryCode: string;
   dailyMaxPerDay: number;
   runTime: string;
   autoSendDelayMinutes: number;
@@ -755,6 +758,9 @@ export async function getLeadGenSettingsAction(): Promise<{
     standingBrief,
     locationCentre,
     locationRadiusKm,
+    locationMode,
+    locationCountry,
+    locationCountryCode,
     dailyMaxPerDay,
     runTime,
     autoSendDelayMinutes,
@@ -768,6 +774,9 @@ export async function getLeadGenSettingsAction(): Promise<{
     settings.get("lead_generation.standing_brief"),
     settings.get("lead_generation.location_centre"),
     settings.get("lead_generation.location_radius_km"),
+    settings.get("lead_generation.location_mode"),
+    settings.get("lead_generation.location_country"),
+    settings.get("lead_generation.location_country_code"),
     settings.get("lead_generation.daily_max_per_day"),
     settings.get("lead_generation.run_time"),
     settings.get("lead_generation.auto_send_delay_minutes"),
@@ -782,6 +791,9 @@ export async function getLeadGenSettingsAction(): Promise<{
     standingBrief,
     locationCentre,
     locationRadiusKm,
+    locationMode,
+    locationCountry,
+    locationCountryCode,
     dailyMaxPerDay,
     runTime,
     autoSendDelayMinutes,
@@ -800,6 +812,9 @@ export async function updateLeadGenSettingsAction(input: {
   standingBrief: string;
   locationCentre: string;
   locationRadiusKm: number;
+  locationMode: string;
+  locationCountry: string;
+  locationCountryCode: string;
   dailyMaxPerDay: number;
   runTime: string;
   autoSendDelayMinutes: number;
@@ -817,6 +832,9 @@ export async function updateLeadGenSettingsAction(input: {
     settings.set("lead_generation.standing_brief", input.standingBrief),
     settings.set("lead_generation.location_centre", input.locationCentre),
     settings.set("lead_generation.location_radius_km", String(input.locationRadiusKm)),
+    settings.set("lead_generation.location_mode", input.locationMode as "local" | "global"),
+    settings.set("lead_generation.location_country", input.locationCountry),
+    settings.set("lead_generation.location_country_code", input.locationCountryCode),
     settings.set("lead_generation.daily_max_per_day", String(input.dailyMaxPerDay)),
     settings.set("lead_generation.run_time", input.runTime),
     settings.set("lead_generation.auto_send_delay_minutes", String(input.autoSendDelayMinutes)),

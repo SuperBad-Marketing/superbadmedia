@@ -61,6 +61,47 @@ const numberClass =
 const selectClass =
   "w-full sm:w-[280px] rounded-md border px-3 py-2 text-[14px] font-[family-name:var(--font-body)] bg-[color:var(--color-neutral-800)] text-[color:var(--color-brand-cream)] border-[color:var(--color-neutral-600)] focus:outline-none focus:border-[color:var(--color-brand-pink)]";
 
+const COUNTRIES = [
+  { code: "AU", name: "Australia" },
+  { code: "US", name: "United States" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "CA", name: "Canada" },
+  { code: "NZ", name: "New Zealand" },
+  { code: "IE", name: "Ireland" },
+  { code: "SG", name: "Singapore" },
+  { code: "AE", name: "United Arab Emirates" },
+  { code: "DE", name: "Germany" },
+  { code: "FR", name: "France" },
+  { code: "NL", name: "Netherlands" },
+  { code: "SE", name: "Sweden" },
+  { code: "NO", name: "Norway" },
+  { code: "DK", name: "Denmark" },
+  { code: "FI", name: "Finland" },
+  { code: "AT", name: "Austria" },
+  { code: "CH", name: "Switzerland" },
+  { code: "BE", name: "Belgium" },
+  { code: "IT", name: "Italy" },
+  { code: "ES", name: "Spain" },
+  { code: "PT", name: "Portugal" },
+  { code: "JP", name: "Japan" },
+  { code: "KR", name: "South Korea" },
+  { code: "IN", name: "India" },
+  { code: "ZA", name: "South Africa" },
+  { code: "BR", name: "Brazil" },
+  { code: "MX", name: "Mexico" },
+  { code: "IL", name: "Israel" },
+  { code: "HK", name: "Hong Kong" },
+  { code: "MY", name: "Malaysia" },
+  { code: "PH", name: "Philippines" },
+  { code: "TH", name: "Thailand" },
+  { code: "PL", name: "Poland" },
+  { code: "CZ", name: "Czech Republic" },
+  { code: "RO", name: "Romania" },
+  { code: "CL", name: "Chile" },
+  { code: "CO", name: "Colombia" },
+  { code: "AR", name: "Argentina" },
+];
+
 export function LeadGenSettingsForm({
   initial,
 }: {
@@ -221,38 +262,93 @@ export function LeadGenSettingsForm({
       </SettingRow>
 
       <SettingRow
-        label="Location"
-        description="Centre point for location-based discovery (Google Maps)."
+        label="Location mode"
+        description="Local targets a specific city. Global auto-identifies the best regions for SaaS signups."
       >
-        <input
-          type="text"
-          value={form.locationCentre}
+        <select
+          value={form.locationMode}
           onChange={(e) =>
-            setForm((f) => ({ ...f, locationCentre: e.target.value }))
+            setForm((f) => ({ ...f, locationMode: e.target.value as "local" | "global" }))
           }
-          placeholder="Melbourne"
-          className={inputClass}
-        />
+          className={selectClass}
+        >
+          <option value="local">Local — target a specific city</option>
+          <option value="global">Global — auto-target best regions for SaaS</option>
+        </select>
       </SettingRow>
 
-      <SettingRow
-        label="Radius (km)"
-        description="How far from the location centre to search."
-      >
-        <input
-          type="number"
-          value={form.locationRadiusKm}
-          onChange={(e) =>
-            setForm((f) => ({
-              ...f,
-              locationRadiusKm: parseInt(e.target.value) || 0,
-            }))
-          }
-          min={1}
-          max={500}
-          className={numberClass}
-        />
-      </SettingRow>
+      {form.locationMode === "local" && (
+        <>
+          <SettingRow
+            label="Country"
+            description="Disambiguates the city — 'Melbourne' in Australia vs Florida."
+          >
+            <select
+              value={form.locationCountryCode}
+              onChange={(e) => {
+                const option = COUNTRIES.find((c) => c.code === e.target.value);
+                setForm((f) => ({
+                  ...f,
+                  locationCountryCode: e.target.value,
+                  locationCountry: option?.name ?? "",
+                }));
+              }}
+              className={selectClass}
+            >
+              <option value="">Select a country</option>
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </SettingRow>
+
+          <SettingRow
+            label="City"
+            description="Centre point for location-based discovery (Google Maps)."
+          >
+            <input
+              type="text"
+              value={form.locationCentre}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, locationCentre: e.target.value }))
+              }
+              placeholder="e.g. Melbourne"
+              className={inputClass}
+            />
+          </SettingRow>
+
+          <SettingRow
+            label="Radius (km)"
+            description="How far from the city centre to search."
+          >
+            <input
+              type="number"
+              value={form.locationRadiusKm}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  locationRadiusKm: parseInt(e.target.value) || 0,
+                }))
+              }
+              min={1}
+              max={500}
+              className={numberClass}
+            />
+          </SettingRow>
+        </>
+      )}
+
+      {form.locationMode === "global" && (
+        <div className="py-4 px-1">
+          <p className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)] italic">
+            Global mode analyses enrichment signal density to identify high-potential regions automatically.
+            The platform recommends target-rich locations and cycles through them across daily runs.
+            You can pin or exclude specific regions from the metrics panel.
+          </p>
+        </div>
+      )}
 
       <SectionHeading>Run behaviour</SectionHeading>
 
