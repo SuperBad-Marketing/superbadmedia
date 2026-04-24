@@ -13,6 +13,7 @@ const TABS = [
   { label: "Topics", href: "/lite/content/topics", active: true },
   { label: "List", href: "/lite/content/list", active: true },
   { label: "Video Studio", href: "/lite/content/video-studio", active: true },
+  { label: "Content Studio", href: "/lite/content/studio", active: true },
 ] as const;
 
 interface ContentTabsProps {

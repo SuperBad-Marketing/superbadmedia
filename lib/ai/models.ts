@@ -132,6 +132,10 @@ export const MODELS = {
   // free-audit-tool (2)
   "audit-category-explanation": "haiku",
   "audit-followup-draft": "opus",
+  // content-studio (3)
+  "content-studio-generate-copy": "sonnet",
+  "content-studio-correct-copy": "sonnet",
+  "content-studio-pick-template": "haiku",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;

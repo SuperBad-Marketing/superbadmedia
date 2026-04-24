@@ -58,7 +58,15 @@ export function runSeeds(
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
     const tx = sqlite.transaction(() => {
-      for (const stmt of statements) sqlite.exec(stmt);
+      for (const stmt of statements) {
+        try {
+          sqlite.exec(stmt);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          if (msg.includes("duplicate column name")) continue;
+          throw err;
+        }
+      }
     });
     tx();
   }
