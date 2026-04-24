@@ -85,6 +85,9 @@ export const MODELS = {
   "lead-gen-case-snippet": "haiku",
   "lead-gen-candidate-summary": "haiku",
   "lead-gen-suggest-search": "haiku",
+  "lead-gen-discovery-suggestions": "haiku",
+  // video-studio (1)
+  "video-brief-builder": "haiku",
   // client-management (3)
   "client-mgmt-bartender-opening-line": "haiku",
   "client-mgmt-chat-response": "opus",

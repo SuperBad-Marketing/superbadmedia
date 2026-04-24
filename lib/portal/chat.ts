@@ -182,9 +182,17 @@ export async function generateOpeningLine(
   contactId: string,
   options?: { kickoffVariant?: boolean },
 ): Promise<string> {
+  const isKickoff = options?.kickoffVariant ?? false;
+
+  // Don't send back-to-back assistant messages. If the most recent message
+  // is already from the assistant, return it instead of generating another.
+  const recent = await getChatHistory(contactId, 1);
+  if (recent.length > 0 && recent[recent.length - 1].role === "assistant") {
+    return recent[recent.length - 1].content;
+  }
+
   const ctx = await assemblePortalContext(contactId);
   const contextBlock = buildContextBlock(ctx);
-  const isKickoff = options?.kickoffVariant ?? false;
 
   const prompt = isKickoff
     ? `Generate a single warm opening line for ${ctx.contactName} who just became a retainer client. This is their first login after Brand DNA completion and deal close. Acknowledge the new chapter in one breath. Surface first-shoot scheduling as the single primary next action${ctx.pendingInvoiceCount > 0 ? ' — add "once your first invoice clears" since they have a pending invoice' : ""}. Never pitch services already paid for. Never re-walk Brand DNA. Bartender register, no slogan, no exclamation marks. One to two sentences max.

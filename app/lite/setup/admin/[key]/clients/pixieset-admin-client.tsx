@@ -18,6 +18,7 @@ import { completePixiesetAction } from "../actions-pixieset";
 import {
   type PixiesetAdminPayload,
   extractPixiesetSlug,
+  pixiesetGalleryUrlSchema,
 } from "@/lib/wizards/defs/pixieset-admin";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import { useAdminShell, type StepStates } from "./use-admin-shell";
@@ -118,6 +119,9 @@ export function PixiesetAdminClient({
   const configuredStep: WizardStepDefinition = React.useMemo(() => {
     if (step.type === "celebration") {
       return { ...step, config: { onDone, onComplete } };
+    }
+    if (step.type === "form") {
+      return { ...step, config: { ...step.config, schema: pixiesetGalleryUrlSchema } };
     }
     return step;
   }, [step, onComplete, onDone]);

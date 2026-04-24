@@ -22,6 +22,7 @@ import {
   type TwilioPayload,
   maskTwilioSid,
   maskTwilioToken,
+  twilioCredentialsSchema,
 } from "@/lib/wizards/defs/twilio";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import { useAdminShell, type StepStates } from "./use-admin-shell";
@@ -126,6 +127,9 @@ export function TwilioClient({
   const configuredStep: WizardStepDefinition = React.useMemo(() => {
     if (step.type === "celebration") {
       return { ...step, config: { onDone, onComplete } };
+    }
+    if (step.type === "form") {
+      return { ...step, config: { ...step.config, schema: twilioCredentialsSchema } };
     }
     return step;
   }, [step, onComplete, onDone]);

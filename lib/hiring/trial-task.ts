@@ -258,25 +258,23 @@ function buildTrialEmailBody(
   budgetCapAud: number,
   dueDate: string,
 ): string {
-  return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a; line-height: 1.6;">
-<p>Hey ${firstName},</p>
+  return `<p style="margin: 0 0 18px; line-height: 1.65; color: #e8e0d0;">Hey ${firstName},</p>
 
-<p>Got a piece of real work for you — not a made-up test. If it's good enough, it goes live.</p>
+<p style="margin: 0 0 18px; line-height: 1.65; color: #e8e0d0;">Got a piece of real work for you — not a made-up test. If it's good enough, it goes live.</p>
 
-<h3 style="margin: 24px 0 8px; font-size: 15px; font-weight: 600;">The brief</h3>
-<p>${taskDescription}</p>
+<h3 style="margin: 24px 0 8px; font-size: 15px; font-weight: 600; color: #FDF5E6;">The brief</h3>
+<p style="margin: 0 0 18px; line-height: 1.65; color: #e8e0d0;">${taskDescription}</p>
 
-<h3 style="margin: 24px 0 8px; font-size: 15px; font-weight: 600;">The deal</h3>
-<ul style="padding-left: 20px;">
-  <li>Budget cap: <strong>$${budgetCapAud} AUD</strong></li>
-  <li>Due: <strong>${dueDate}</strong></li>
+<h3 style="margin: 24px 0 8px; font-size: 15px; font-weight: 600; color: #FDF5E6;">The deal</h3>
+<ul style="padding-left: 20px; color: #e8e0d0; line-height: 1.65;">
+  <li>Budget cap: <strong style="color: #FDF5E6;">$${budgetCapAud} AUD</strong></li>
+  <li>Due: <strong style="color: #FDF5E6;">${dueDate}</strong></li>
   <li>Deliver via reply to this email with a link (Dropbox, Google Drive, WeTransfer — whatever works)</li>
 </ul>
 
-<p>If you need to bail or need more time, just reply and say so. No drama.</p>
+<p style="margin: 0 0 18px; line-height: 1.65; color: #e8e0d0;">If you need to bail or need more time, just reply and say so. No drama.</p>
 
-<p style="color: #666; font-size: 13px; margin-top: 32px;">— SuperBad</p>
-</div>`;
+<p style="margin: 0; line-height: 1.55; color: rgba(253,245,230,0.5); font-size: 13px;">— SuperBad</p>`;
 }
 
 function safeJsonArray(val: unknown): string[] {

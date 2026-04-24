@@ -27,10 +27,11 @@ import { hunterIoManifest, HUNTER_API_BASE } from "@/lib/integrations/vendors/hu
 import { googlePagespeedManifest, PAGESPEED_API_BASE } from "@/lib/integrations/vendors/google-pagespeed";
 import { googleYoutubeManifest, YOUTUBE_API_BASE } from "@/lib/integrations/vendors/google-youtube";
 import { remotionManifest } from "@/lib/integrations/vendors/remotion";
+import { higgsFieldManifest, HIGGSFIELD_API_BASE } from "@/lib/integrations/vendors/higgsfield";
 import { registerWizard } from "@/lib/wizards/registry";
 import type { VendorManifest, WizardDefinition } from "@/lib/wizards/types";
 
-export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "hunter-io" | "google-pagespeed" | "google-youtube" | "remotion";
+export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "hunter-io" | "google-pagespeed" | "google-youtube" | "remotion" | "higgsfield";
 
 export type ApiKeyPayload = {
   vendor: ApiKeyVendor;
@@ -222,6 +223,33 @@ async function pingGoogleYoutube(
   }
 }
 
+async function pingHiggsfield(
+  key: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  try {
+    const res = await fetch(`${HIGGSFIELD_API_BASE}/account`, {
+      headers: { Authorization: `Bearer ${key}` },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      return {
+        ok: false,
+        reason: `Higgsfield rejected that key: ${res.status} ${body.slice(0, 140) || res.statusText}`,
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      reason:
+        err instanceof Error
+          ? `Higgsfield ping failed: ${err.message}`
+          : "Higgsfield ping failed.",
+    };
+  }
+}
+
 /**
  * Remotion has no live verify endpoint — licence keys are local-only.
  * Format-only check: non-empty, minimum plausible length. Documented in
@@ -283,10 +311,16 @@ export const API_KEY_VENDOR_PROFILES: Record<ApiKeyVendor, ApiKeyVendorProfile> 
     manifest: remotionManifest,
     verify: checkRemotion,
   },
+  higgsfield: {
+    vendor: "higgsfield",
+    label: "Higgsfield",
+    manifest: higgsFieldManifest,
+    verify: pingHiggsfield,
+  },
 };
 
 export function isApiKeyVendor(v: string | undefined | null): v is ApiKeyVendor {
-  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "hunter-io" || v === "google-pagespeed" || v === "google-youtube" || v === "remotion";
+  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "hunter-io" || v === "google-pagespeed" || v === "google-youtube" || v === "remotion" || v === "higgsfield";
 }
 
 export function getApiKeyVendorProfile(

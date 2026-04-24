@@ -898,3 +898,90 @@ BRIEF: <brief>`;
     return { ok: false, error: "Suggestion failed — try again." };
   }
 }
+
+// ── Discovery suggestions ──────────────────────────────────────────────
+
+export type DiscoverySuggestion = {
+  track: "retainer" | "saas";
+  category: string;
+  rationale: string;
+  standingBrief: string;
+};
+
+export async function getDiscoverySuggestionsAction(): Promise<
+  | { ok: true; suggestions: DiscoverySuggestion[] }
+  | { ok: false; error: string }
+> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  if (!killSwitches.llm_calls_enabled) {
+    return { ok: false, error: "LLM calls are paused." };
+  }
+
+  const prompt = `You are a marketing strategist helping SuperBad Marketing (Melbourne, Australia) find new prospects.
+
+SuperBad offers two tracks:
+
+RETAINER TRACK (full-service creative agency):
+- Target: established businesses with >$500k annual revenue
+- Have existing brand presence but need better execution
+- Can afford $2k–$8k/month for creative + performance marketing
+- Typically local/regional businesses with real marketing budgets
+- Verticals that benefit most: hospitality, health/wellness, professional services, retail, property
+
+SAAS TRACK (self-serve marketing tools):
+- Target: smaller teams, 1-20 people
+- DIY marketing, price-sensitive, tech-comfortable
+- $19–$99/month subscription
+- Global reach, any English-speaking market
+- Verticals: freelancers, small e-commerce, local services, creators, startups
+
+Generate exactly 3 discovery suggestions — at least 1 retainer and 1 SaaS. For each:
+- Pick a specific business category (what you'd search on Google Maps)
+- Write a one-sentence rationale explaining WHY this category is a good fit for the track
+- Write a 2-sentence standing brief for the AI outreach generator
+
+Be specific and varied. Don't repeat categories from common defaults like "cafes" — find underserved niches.
+
+Respond as JSON array only — no prose, no markdown fences:
+[{"track":"retainer"|"saas","category":"...","rationale":"...","standing_brief":"..."}]`;
+
+  try {
+    const result = await invokeLlmText({
+      job: "lead-gen-discovery-suggestions",
+      system: "You are a concise marketing strategist. Respond only in the requested JSON format.",
+      prompt,
+      maxTokens: 800,
+    });
+
+    const cleaned = result
+      .replace(/^```(?:json)?\s*/, "")
+      .replace(/\s*```$/, "")
+      .trim();
+
+    const parsed = JSON.parse(cleaned) as Array<{
+      track: string;
+      category: string;
+      rationale: string;
+      standing_brief: string;
+    }>;
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return { ok: false, error: "Unexpected response — try again." };
+    }
+
+    const suggestions: DiscoverySuggestion[] = parsed
+      .filter((s) => s.track === "retainer" || s.track === "saas")
+      .map((s) => ({
+        track: s.track as "retainer" | "saas",
+        category: s.category,
+        rationale: s.rationale,
+        standingBrief: s.standing_brief,
+      }));
+
+    return { ok: true, suggestions };
+  } catch {
+    return { ok: false, error: "Suggestion failed — try again." };
+  }
+}

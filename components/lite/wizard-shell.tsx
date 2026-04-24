@@ -30,7 +30,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { XIcon, LifeBuoyIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { houseSpring } from "@/lib/design-tokens";
 import { STEP_TYPE_REGISTRY } from "@/components/lite/wizard-steps";
 import type {
@@ -102,7 +101,7 @@ export function WizardShell({
       <div
         data-wizard-shell-disabled
         data-wizard-key={wizardKey}
-        className="flex min-h-full items-center justify-center px-6 py-12 text-center text-sm text-muted-foreground"
+        className="flex min-h-full items-center justify-center px-6 py-12 text-center font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-500)]"
       >
         Setup is paused for maintenance. Come back shortly — we&apos;ll hold
         your progress.
@@ -136,10 +135,13 @@ export function WizardShell({
       data-wizard-shell
       data-wizard-key={wizardKey}
       data-audience={audience}
-      className="flex min-h-full flex-col"
+      className="flex min-h-full flex-col bg-[color:var(--color-neutral-900)]"
     >
       {/* Top chrome: progress bar + cancel + help */}
-      <header className="flex items-center gap-4 border-b px-6 py-3">
+      <header
+        className="flex items-center gap-4 px-6 py-4"
+        style={{ borderBottom: "1px solid rgba(253, 245, 230, 0.06)" }}
+      >
         <ProgressBar
           currentStep={safeCurrent}
           stepCount={stepCount}
@@ -149,47 +151,53 @@ export function WizardShell({
 
         {help ? (
           <div className="relative">
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="icon"
               aria-label="Get help"
               aria-expanded={helpOpen}
               data-wizard-help-trigger
               onClick={() => setHelpOpen((v) => !v)}
+              className="rounded-lg p-2 text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-brand-cream)]"
             >
               <LifeBuoyIcon className="h-4 w-4" />
-            </Button>
+            </button>
             {helpOpen ? (
               <div
                 data-wizard-help-panel
-                className="absolute right-0 top-full z-10 mt-2 w-80 rounded-md border bg-popover p-4 shadow-md"
+                className="absolute right-0 top-full z-10 mt-2 w-80 rounded-xl border border-[color:var(--color-neutral-700)] bg-[color:var(--color-neutral-800)] p-4 shadow-lg"
               >
-                {help}
+                <div className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-300)]">
+                  {help}
+                </div>
               </div>
             ) : null}
           </div>
         ) : null}
 
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
           aria-label="Cancel wizard"
           data-wizard-cancel-trigger
           onClick={onCancel}
+          className="rounded-lg p-2 text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-brand-cream)]"
         >
           <XIcon className="h-4 w-4" />
-        </Button>
+        </button>
       </header>
 
       {/* Step body */}
-      <div className="flex-1 px-6 py-6">{stepBody}</div>
+      <div className="flex-1 px-6 py-8">{stepBody}</div>
 
       {/* Bottom chrome: expiry hint (dry, terse) */}
-      <footer className="border-t px-6 py-2 text-xs text-muted-foreground">
-        <span data-wizard-expiry-hint>
-          Save for later — we&apos;ll hold this for {expiryDays} days of quiet.
+      <footer
+        className="px-6 py-3"
+        style={{ borderTop: "1px solid rgba(253, 245, 230, 0.06)" }}
+      >
+        <span
+          data-wizard-expiry-hint
+          className="font-[family-name:var(--font-narrative)] text-[12px] italic text-[color:var(--color-neutral-500)]"
+        >
+          save for later — we&apos;ll hold this for {expiryDays} days of quiet.
         </span>
       </footer>
     </div>
@@ -205,37 +213,47 @@ type ProgressBarProps = {
 
 function ProgressBar({ currentStep, stepCount, stepLabels, audience }: ProgressBarProps) {
   return (
-    <div
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={stepCount}
-      aria-valuenow={currentStep + 1}
-      aria-label={`Step ${currentStep + 1} of ${stepCount}`}
-      data-wizard-progress
-      data-audience={audience}
-      className="flex flex-1 items-center gap-1"
-    >
-      {stepLabels.map((label, i) => {
-        const isDone = i < currentStep;
-        const isActive = i === currentStep;
-        return (
-          <motion.div
-            key={i}
-            title={label}
-            data-wizard-progress-segment
-            data-state={isDone ? "done" : isActive ? "active" : "pending"}
-            className={
-              "h-1 flex-1 rounded-full " +
-              (isDone || isActive
-                ? "bg-foreground"
-                : "bg-muted")
-            }
-            initial={false}
-            animate={{ opacity: isDone || isActive ? 1 : 0.5 }}
-            transition={houseSpring}
-          />
-        );
-      })}
+    <div className="flex flex-1 flex-col gap-2">
+      <div
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={stepCount}
+        aria-valuenow={currentStep + 1}
+        aria-label={`Step ${currentStep + 1} of ${stepCount}`}
+        data-wizard-progress
+        data-audience={audience}
+        className="flex flex-1 items-center gap-1"
+      >
+        {stepLabels.map((label, i) => {
+          const isDone = i < currentStep;
+          const isActive = i === currentStep;
+          return (
+            <motion.div
+              key={i}
+              title={label}
+              data-wizard-progress-segment
+              data-state={isDone ? "done" : isActive ? "active" : "pending"}
+              className="h-1 flex-1 rounded-full"
+              style={{
+                backgroundColor: isDone
+                  ? "var(--color-brand-pink)"
+                  : isActive
+                    ? "var(--color-brand-cream)"
+                    : "var(--color-neutral-700)",
+              }}
+              initial={false}
+              animate={{ opacity: isDone || isActive ? 1 : 0.4 }}
+              transition={houseSpring}
+            />
+          );
+        })}
+      </div>
+      <span
+        className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "1.5px" }}
+      >
+        {stepLabels[currentStep]} — {currentStep + 1} of {stepCount}
+      </span>
     </div>
   );
 }

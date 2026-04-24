@@ -31,13 +31,13 @@ export function buildQuoteExpiredEmail(input: QuoteExpiredEmailInput): {
     `If the timing's wrong, no harm done. If it's still on the cards, reply to this email and we'll put something fresh together — usually the shape shifts a little anyway.`,
     `Andy`,
   ];
-  const bodyHtml = `<div style="font-family: ui-sans-serif, system-ui, sans-serif; color: #1a1a1a; max-width: 560px;">
+  const bodyHtml = `<div style="font-family: ui-sans-serif, system-ui, sans-serif; max-width: 560px;">
 ${bodyParagraphs
   .map(
-    (p) => `<p style="margin: 0 0 16px; line-height: 1.55;">${escapeHtml(p)}</p>`,
+    (p) => `<p style="margin: 0 0 18px; line-height: 1.65; color: #e8e0d0;">${escapeHtml(p)}</p>`,
   )
   .join("\n")}
-<p style="margin: 24px 0 0; font-size: 13px; color: #666;">The original quote link: <a href="${escapeAttr(quoteUrl)}" style="color: #666;">${escapeHtml(quoteUrl)}</a></p>
+<p style="margin: 24px 0 0; font-size: 13px; color: rgba(253,245,230,0.35);">The original quote link: <a href="${escapeAttr(quoteUrl)}" style="color: rgba(253,245,230,0.35);">${escapeHtml(quoteUrl)}</a></p>
 </div>`;
 
   return { subject, bodyParagraphs, bodyHtml };

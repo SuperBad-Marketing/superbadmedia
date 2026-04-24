@@ -205,6 +205,13 @@ export async function runSequenceScheduler(
       "lead_generation.standing_brief",
     );
 
+    const engagementHistory = priorSends.map((s, i) => ({
+      touchIndex: i + 1,
+      opened: s.open_count > 0,
+      openCount: s.open_count,
+      clicked: s.click_count > 0,
+    }));
+
     const draftInput: GenerateDraftInput = {
       track: seq.track as "saas" | "retainer",
       touchKind: "follow_up",
@@ -213,6 +220,7 @@ export async function runSequenceScheduler(
         candidate.viability_profile_json as ViabilityProfile,
       standingBrief: typeof standingBrief === "string" ? standingBrief : "",
       priorTouches,
+      engagementHistory,
       recentBlogPosts: [],
       contactInfo: {
         name: candidate.contact_name ?? undefined,

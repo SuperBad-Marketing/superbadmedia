@@ -19,6 +19,7 @@ import "./cloudinary";
 import "./meta-ads";
 import "./google-ads";
 import "./twilio";
+import "./pixieset-admin";
 import "./api-key";
 import "./saas-product-setup";
 import "./practical-setup";

@@ -46,6 +46,7 @@ import { TwilioClient } from "./clients/twilio-client";
 import { ApiKeyClient } from "./clients/api-key-client";
 import { SaasProductSetupClient } from "./clients/saas-product-setup-client";
 import { HiringRoleBriefClient } from "./clients/hiring-role-brief-client";
+import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -87,6 +88,7 @@ const CLIENT_MAP: Record<string, ClientRenderer> = {
     />
   ),
   twilio: ({ common }) => <TwilioClient {...common} />,
+  "pixieset-admin": ({ common }) => <PixiesetAdminClient {...common} />,
   "saas-product-setup": ({ common, saasSetupFeeCentsDefault }) => (
     <SaasProductSetupClient
       {...common}
@@ -148,9 +150,23 @@ export default async function AdminWizardPage({
   // that support it read `?testToken=…` from the URL only when this is true.
   const allowTestTokenInjection = process.env.NODE_ENV !== "production";
 
+  const serializableSteps = def.steps.map((s) => {
+    if (!s.config) return s;
+    const safeConfig: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(s.config)) {
+      if (v === null || v === undefined || typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+        safeConfig[k] = v;
+      } else if (Array.isArray(v)) {
+        safeConfig[k] = v;
+      }
+      // Skip class instances (Zod schemas), functions, etc. — client imports directly
+    }
+    return { ...s, config: safeConfig };
+  });
+
   const common: CommonClientProps = {
     audience: def.audience,
-    steps: def.steps,
+    steps: serializableSteps as typeof def.steps,
     outroCopy,
     expiryDays,
   };

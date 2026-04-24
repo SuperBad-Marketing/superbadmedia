@@ -46,7 +46,7 @@ export async function exchangeCodeForTokens(
     code,
     redirect_uri: getRedirectUri(),
     grant_type: "authorization_code",
-    scope: "offline_access User.Read Mail.ReadWrite Mail.Send MailboxSettings.Read Calendars.ReadWrite",
+    scope: "offline_access User.Read Mail.ReadWrite Mail.Send MailboxSettings.Read Calendars.Read",
   });
 
   const res = await fetch(tokenUrl, {
@@ -76,7 +76,7 @@ async function refreshAccessToken(
     client_secret: getClientSecret(),
     refresh_token: refreshToken,
     grant_type: "refresh_token",
-    scope: "offline_access User.Read Mail.ReadWrite Mail.Send MailboxSettings.Read Calendars.ReadWrite",
+    scope: "offline_access User.Read Mail.ReadWrite Mail.Send MailboxSettings.Read Calendars.Read",
   });
 
   const res = await fetch(tokenUrl, {

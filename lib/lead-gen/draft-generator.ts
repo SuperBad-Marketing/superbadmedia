@@ -32,6 +32,12 @@ export interface GenerateDraftInput {
   standingBrief: string;
   manualBriefOverride?: string;
   priorTouches: Array<{ subject: string; body: string; sent_at?: string }>;
+  engagementHistory: Array<{
+    touchIndex: number;
+    opened: boolean;
+    openCount: number;
+    clicked: boolean;
+  }>;
   recentBlogPosts: Array<{ title: string; url: string }>; // always [] in v1
   contactInfo: {
     name?: string;
@@ -188,6 +194,24 @@ export async function generateDraft(
 
 // ── Prompt construction ─────────────────────────────────────────────────
 
+function buildLengthGuidance(input: GenerateDraftInput): string {
+  if (input.touchKind === "first_touch") {
+    return "FIRST TOUCH: 2-3 sentences only. One observation about their business, one value prop, one soft CTA. Respect their time — earn the right to exist in their inbox.";
+  }
+
+  const hasEngagement = input.engagementHistory.some((e) => e.opened || e.clicked);
+
+  if (hasEngagement) {
+    const clicked = input.engagementHistory.some((e) => e.clicked);
+    if (clicked) {
+      return "ENGAGED FOLLOW-UP (clicked prior email): 2-3 short paragraphs. They've shown real interest — reference what they engaged with, add substance, make the next step concrete.";
+    }
+    return "ENGAGED FOLLOW-UP (opened prior email): 1-2 short paragraphs. They read your last one — build on it with a new angle or specific insight. Still concise but you've earned a bit more room.";
+  }
+
+  return "COLD FOLLOW-UP (no opens detected): 2-3 sentences max. Different angle, different hook, same brevity. If the last approach didn't land, try a completely different entry point.";
+}
+
 function buildSystemPrompt(
   brandProfile: Awaited<ReturnType<typeof getSuperbadBrandProfile>>,
   input: GenerateDraftInput,
@@ -216,8 +240,10 @@ RULES:
   Andy Robinson · SuperBad Media · Melbourne, Australia
   You're receiving this because your business appeared in public advertising directories.
   Unsubscribe: ${unsubLink}
-- Keep emails concise — 3-5 short paragraphs max.
 - No attachments, no images, no HTML formatting beyond basic markdown.
+
+LENGTH — adapts to touch type and engagement:
+${buildLengthGuidance(input)}
 
 OUTPUT FORMAT:
 Respond with a JSON object only — no prose, no markdown fences:
@@ -246,6 +272,17 @@ function buildUserPrompt(
     sections.push(`\nPRIOR TOUCHES (${input.priorTouches.length}):`);
     for (const touch of input.priorTouches) {
       sections.push(`Subject: ${touch.subject}\n${touch.body}\n---`);
+    }
+  }
+
+  if (input.engagementHistory.length > 0) {
+    sections.push(`\nENGAGEMENT SIGNALS:`);
+    for (const e of input.engagementHistory) {
+      const signals: string[] = [];
+      if (e.opened) signals.push(`opened ${e.openCount}x`);
+      if (e.clicked) signals.push("clicked");
+      if (signals.length === 0) signals.push("no engagement");
+      sections.push(`Touch #${e.touchIndex}: ${signals.join(", ")}`);
     }
   }
 

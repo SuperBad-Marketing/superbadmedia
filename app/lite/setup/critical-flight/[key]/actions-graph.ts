@@ -40,7 +40,7 @@ export async function getGraphAuthorizeUrlAction(): Promise<string> {
     "Mail.ReadWrite",
     "Mail.Send",
     "MailboxSettings.Read",
-    "Calendars.ReadWrite",
+    "Calendars.Read",
   ].join(" ");
   const params = new URLSearchParams({
     client_id: clientId,

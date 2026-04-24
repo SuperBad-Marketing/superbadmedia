@@ -29,13 +29,29 @@ export default async function ContentPage() {
     redirect("/api/auth/signin");
   }
 
-  // For admin view, show all posts in review across all companies
-  // A company filter will be added when subscriber fleet overview ships (CE-11)
   const { db } = await import("@/lib/db");
   const { blogPosts: blogPostsTable } = await import(
     "@/lib/db/schema/blog-posts"
   );
-  const { desc, eq } = await import("drizzle-orm");
+  const { contentEngineConfig } = await import(
+    "@/lib/db/schema/content-engine-config"
+  );
+  const { companies: companiesTable } = await import(
+    "@/lib/db/schema/companies"
+  );
+  const { desc, eq, inArray } = await import("drizzle-orm");
+
+  const configs = await db
+    .select({ company_id: contentEngineConfig.company_id })
+    .from(contentEngineConfig);
+  const configCompanyIds = configs.map((c) => c.company_id);
+  const contentCompanies =
+    configCompanyIds.length > 0
+      ? await db
+          .select({ id: companiesTable.id, name: companiesTable.name })
+          .from(companiesTable)
+          .where(inArray(companiesTable.id, configCompanyIds))
+      : [];
 
   const reviewPosts = await db
     .select()
@@ -68,7 +84,7 @@ export default async function ContentPage() {
           >
             Content Engine
           </h1>
-          <ContentGenerateButton />
+          <ContentGenerateButton companies={contentCompanies} />
         </div>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
           What&apos;s been written, what&apos;s waiting.{" "}

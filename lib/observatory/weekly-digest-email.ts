@@ -104,10 +104,10 @@ export async function buildWeeklyDigest(): Promise<{
       ? top5
           .map(
             (j) =>
-              `<tr><td style="padding:4px 12px 4px 0;font-family:monospace;font-size:13px;color:#333;">${j.job}</td><td style="padding:4px 0;text-align:right;font-family:monospace;font-size:13px;color:#333;">$${formatAud(j.total_aud)}</td></tr>`,
+              `<tr><td style="padding:4px 12px 4px 0;font-family:monospace;font-size:13px;color:rgba(253,245,230,0.5);">${j.job}</td><td style="padding:4px 0;text-align:right;font-family:monospace;font-size:13px;color:#e8e0d0;">$${formatAud(j.total_aud)}</td></tr>`,
           )
           .join("")
-      : `<tr><td style="padding:4px 0;font-size:13px;color:#999;">No job data this week.</td></tr>`;
+      : `<tr><td style="padding:4px 0;font-size:13px;color:rgba(253,245,230,0.35);">No job data this week.</td></tr>`;
 
   const tierHtml =
     tiers.length > 0
@@ -119,37 +119,33 @@ export async function buildWeeklyDigest(): Promise<{
                 : t.health === "amber"
                   ? "#d97706"
                   : "#16a34a";
-            return `<p style="margin:0 0 4px;font-size:13px;color:#333;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:6px;vertical-align:middle;"></span>${t.tier_name}: ${t.subscriber_count} subs, ${t.percent_underwater}% underwater, avg margin $${formatAud(t.avg_margin_per_subscriber)}</p>`;
+            return `<p style="margin:0 0 4px;font-size:13px;color:#e8e0d0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:6px;vertical-align:middle;"></span>${t.tier_name}: ${t.subscriber_count} subs, ${t.percent_underwater}% underwater, avg margin $${formatAud(t.avg_margin_per_subscriber)}</p>`;
           })
           .join("")
-      : `<p style="font-size:13px;color:#999;">No SaaS tiers configured.</p>`;
+      : `<p style="font-size:13px;color:rgba(253,245,230,0.35);">No SaaS tiers configured.</p>`;
 
   const anomalyCount = anomalies.length;
   const anomalyHtml =
     anomalyCount > 0
-      ? `<p style="font-size:13px;color:#333;">${anomalyCount} open anomal${anomalyCount === 1 ? "y" : "ies"}. Check the observatory for details.</p>`
-      : `<p style="font-size:13px;color:#999;">None this week.</p>`;
+      ? `<p style="font-size:13px;color:#e8e0d0;">${anomalyCount} open anomal${anomalyCount === 1 ? "y" : "ies"}. Check the observatory for details.</p>`
+      : `<p style="font-size:13px;color:rgba(253,245,230,0.35);">None this week.</p>`;
 
-  const body = `
-    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;padding:24px 0;">
-      <p style="font-size:15px;color:#1a1a1a;line-height:1.5;margin:0 0 20px;">${opener}</p>
+  const body = `<p style="font-size:15px;color:#e8e0d0;line-height:1.65;margin:0 0 20px;">${opener}</p>
 
-      <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin:24px 0 8px;">The number</h3>
-      <p style="font-size:22px;font-weight:600;color:#1a1a1a;margin:0;">$${formatAud(mtd.total_aud)} <span style="font-size:13px;font-weight:400;color:#666;">MTD (day ${mtd.days_elapsed}/${mtd.days_in_month})</span></p>
-      ${projectionNote ? `<p style="font-size:13px;color:#666;margin:4px 0 0;">${projectionNote}</p>` : ""}
+<h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(253,245,230,0.35);margin:24px 0 8px;">The number</h3>
+<p style="font-size:22px;font-weight:600;color:#FDF5E6;margin:0;">$${formatAud(mtd.total_aud)} <span style="font-size:13px;font-weight:400;color:rgba(253,245,230,0.4);">MTD (day ${mtd.days_elapsed}/${mtd.days_in_month})</span></p>
+${projectionNote ? `<p style="font-size:13px;color:rgba(253,245,230,0.4);margin:4px 0 0;">${projectionNote}</p>` : ""}
 
-      <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin:24px 0 8px;">Tier check</h3>
-      ${tierHtml}
+<h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(253,245,230,0.35);margin:24px 0 8px;">Tier check</h3>
+${tierHtml}
 
-      <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin:24px 0 8px;">Top jobs</h3>
-      <table style="border-collapse:collapse;">${topJobsHtml}</table>
+<h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(253,245,230,0.35);margin:24px 0 8px;">Top jobs</h3>
+<table style="border-collapse:collapse;">${topJobsHtml}</table>
 
-      <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin:24px 0 8px;">Anomalies</h3>
-      ${anomalyHtml}
+<h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(253,245,230,0.35);margin:24px 0 8px;">Anomalies</h3>
+${anomalyHtml}
 
-      <p style="font-size:13px;color:#999;margin:32px 0 0;border-top:1px solid #eee;padding-top:16px;">${closer}</p>
-    </div>
-  `.trim();
+<p style="font-size:13px;color:rgba(253,245,230,0.35);margin:32px 0 0;border-top:1px solid rgba(253,245,230,0.08);padding-top:16px;">${closer}</p>`;
 
   return { subject, body };
 }

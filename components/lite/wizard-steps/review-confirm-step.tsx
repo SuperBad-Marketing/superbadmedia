@@ -6,7 +6,6 @@
  */
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import {
   type StepComponentProps,
   type StepTypeDefinition,
@@ -35,29 +34,41 @@ function ReviewConfirmComponent({
 }: StepComponentProps<ReviewConfirmState>) {
   const cfg = config as ReviewConfirmConfig | undefined;
   return (
-    <div data-wizard-step="review-and-confirm" className="space-y-4">
-      <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
+    <div data-wizard-step="review-and-confirm" className="space-y-6">
+      <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-3 text-sm">
         {state.summary.map((row, i) => (
           <React.Fragment key={i}>
             <dt
-              className="text-muted-foreground"
+              className="text-xs uppercase tracking-wider"
+              style={{ color: "var(--color-neutral-400)", fontFamily: "var(--font-label)" }}
               data-wizard-review-label
             >
               {row.label}
             </dt>
-            <dd data-wizard-review-value>{row.value}</dd>
+            <dd
+              style={{ color: "var(--color-brand-cream)" }}
+              data-wizard-review-value
+            >
+              {row.value}
+            </dd>
           </React.Fragment>
         ))}
       </dl>
-      <Button
+      <button
         type="button"
+        className="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+        style={{
+          backgroundColor: "var(--color-brand-pink)",
+          color: "var(--color-neutral-950)",
+          fontFamily: "var(--font-label)",
+        }}
         onClick={() => {
           onChange({ ...state, confirmed: true });
           onNext();
         }}
       >
         {cfg?.ctaLabel ?? "Looks good — confirm"}
-      </Button>
+      </button>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { activity_log } from "@/lib/db/schema/activity-log";
 import settingsRegistry from "@/lib/settings";
 
 import { HiringBoard } from "@/components/lite/hiring-pipeline/hiring-board";
+import { DiscoveryRunButton } from "@/components/lite/hiring-pipeline/discovery-run-button";
 import type { HiringCardCandidate } from "@/components/lite/hiring-pipeline/candidate-card";
 
 export const metadata: Metadata = {
@@ -234,12 +235,15 @@ export default async function HiringPage() {
         >
           Admin · Hiring
         </div>
-        <h1
-          className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
-          style={{ letterSpacing: "-0.4px" }}
-        >
-          Hiring Pipeline
-        </h1>
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <h1
+            className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.4px" }}
+          >
+            Hiring Pipeline
+          </h1>
+          <DiscoveryRunButton />
+        </div>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
           Every candidate, every stage, every stall.{" "}
           <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">

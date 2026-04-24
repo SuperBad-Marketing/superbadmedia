@@ -7,7 +7,7 @@ import type {
   WizardAudience,
 } from "@/lib/wizards/types";
 import { completeCloudinaryAction } from "../actions-cloudinary";
-import type { CloudinaryPayload } from "@/lib/wizards/defs/cloudinary";
+import { cloudinaryCredentialsSchema, type CloudinaryPayload } from "@/lib/wizards/defs/cloudinary-schema";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import { useAdminShell, type StepStates } from "./use-admin-shell";
 
@@ -120,6 +120,9 @@ export function CloudinaryAdminClient({
   const configuredStep: WizardStepDefinition = React.useMemo(() => {
     if (step.type === "celebration") {
       return { ...step, config: { onDone, onComplete } };
+    }
+    if (step.type === "form") {
+      return { ...step, config: { ...step.config, schema: cloudinaryCredentialsSchema } };
     }
     return step;
   }, [step, onComplete, onDone]);

@@ -91,6 +91,13 @@ const INTEGRATIONS: IntegrationDef[] = [
     wizardPath: "/lite/setup/admin/api-key?vendor=serpapi",
     envHint: "SERPAPI_API_KEY",
   },
+  {
+    vendorKey: "higgsfield",
+    label: "Higgsfield",
+    description: "AI video generation — cinematic, motion design, social.",
+    wizardPath: "/lite/setup/admin/api-key?vendor=higgsfield",
+    envHint: null,
+  },
 ];
 
 export default async function IntegrationsPage() {
@@ -187,7 +194,12 @@ export default async function IntegrationsPage() {
                 {integration.wizardPath ? (
                   <Link
                     href={integration.wizardPath}
-                    className="rounded-lg border border-[color:var(--color-neutral-600)] bg-transparent px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-300)] transition-colors hover:border-[color:var(--color-brand-pink)] hover:text-[color:var(--color-brand-pink)]"
+                    className={
+                      "rounded-lg px-4 py-2 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-all " +
+                      (isActive
+                        ? "border border-[color:var(--color-neutral-600)] bg-transparent text-[color:var(--color-neutral-400)] hover:border-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]"
+                        : "border border-[color:var(--color-brand-pink)] bg-[color:var(--color-brand-pink)]/10 text-[color:var(--color-brand-pink)] hover:bg-[color:var(--color-brand-pink)]/20")
+                    }
                   >
                     {isActive ? "Reconfigure" : "Set up"}
                   </Link>

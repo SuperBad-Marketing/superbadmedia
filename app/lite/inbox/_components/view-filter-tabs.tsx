@@ -95,15 +95,19 @@ export function ViewFilterTabs({
       aria-label="Inbox views"
       className="flex h-full flex-col gap-6 p-5"
     >
-      <Link
-        href="/lite"
-        className="block outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] rounded-sm"
-        aria-label="SuperBad — back to cockpit"
-      >
+      <div className="flex flex-col gap-2">
+        <Link
+          href="/lite"
+          className="inline-flex items-center gap-1.5 rounded-sm py-1 outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] font-[family-name:var(--font-dm-sans)] text-[12px] text-[color:var(--color-neutral-400)] transition-colors hover:text-[color:var(--color-neutral-100)]"
+          aria-label="Back to cockpit"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Cockpit
+        </Link>
         <span className="block font-[family-name:var(--font-pacifico)] text-[1.75rem] leading-none text-[color:var(--color-neutral-100)]">
           SuperBad
         </span>
-      </Link>
+      </div>
 
       <button
         type="button"

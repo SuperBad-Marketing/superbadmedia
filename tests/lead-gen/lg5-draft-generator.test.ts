@@ -68,6 +68,7 @@ const BASE_INPUT: GenerateDraftInput = {
   },
   standingBrief: "Looking for businesses that could benefit from creative marketing",
   priorTouches: [],
+  engagementHistory: [],
   recentBlogPosts: [],
   contactInfo: {
     name: "Jane Smith",

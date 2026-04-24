@@ -278,6 +278,7 @@ export async function runDailySearch(
             standingBrief,
             manualBriefOverride: input.manualBriefText,
             priorTouches: [],
+            engagementHistory: [],
             recentBlogPosts: [],
             contactInfo: {
               name: contactResult.name ?? undefined,

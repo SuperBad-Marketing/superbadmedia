@@ -46,16 +46,12 @@ function buildBody(anomaly: CostAnomalyRow): string {
     headline = `Hard ceiling breached on <strong>${anomaly.job}</strong>: $${formatAud(anomaly.observed_value)} vs ${bandLabel} ceiling.`;
   }
 
-  return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 520px; margin: 0 auto; padding: 24px 0;">
-      <p style="font-size: 15px; color: #1a1a1a; line-height: 1.5; margin: 0 0 16px;">${headline}</p>
-      <p style="font-size: 13px; color: #666; margin: 0 0 24px;">Fired at ${time} (Melbourne).</p>
-      <a href="${process.env.NEXT_PUBLIC_BASE_URL ?? "https://superbadmedia.com.au"}/lite/observatory/anomalies/${anomaly.id}"
-         style="display: inline-block; background: #dc2626; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500;">
-        Investigate
-      </a>
-    </div>
-  `.trim();
+  return `<p style="font-size: 15px; color: #e8e0d0; line-height: 1.65; margin: 0 0 16px;">${headline}</p>
+<p style="font-size: 13px; color: rgba(253,245,230,0.4); margin: 0 0 24px;">Fired at ${time} (Melbourne).</p>
+<a href="${process.env.NEXT_PUBLIC_BASE_URL ?? "https://superbadmedia.com.au"}/lite/observatory/anomalies/${anomaly.id}"
+   style="display: inline-block; background: #B22848; color: #FDF5E6; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 700; letter-spacing: 0.5px;">
+  Investigate
+</a>`;
 }
 
 export async function sendSevereAlertEmail(

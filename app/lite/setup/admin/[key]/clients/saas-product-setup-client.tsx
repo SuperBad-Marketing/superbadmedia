@@ -37,6 +37,7 @@ import type { StepComponentProps } from "@/lib/wizards/step-types";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import {
   suggestSlugFromName,
+  saasProductNameSlugSchema,
   type SaasProductSetupPayload,
 } from "@/lib/wizards/defs/saas-product-setup";
 import {
@@ -403,6 +404,9 @@ export function SaasProductSetupClient({
           onComplete: runPublish,
         },
       };
+    }
+    if (step.type === "form") {
+      return { ...step, config: { ...step.config, schema: saasProductNameSlugSchema } };
     }
     return step;
   }, [

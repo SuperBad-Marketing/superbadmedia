@@ -19,7 +19,6 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { tier2 } from "@/lib/motion/choreographies";
 import {
   type StepComponentProps,
@@ -105,32 +104,57 @@ function CelebrationComponent({
       variants={entry.variants}
       transition={entry.transition}
     >
-      <p className="text-lg">{state.outroCopy}</p>
+      <p
+        className="text-lg"
+        style={{ color: "var(--color-brand-cream)", fontFamily: "var(--font-display)" }}
+      >
+        {state.outroCopy}
+      </p>
       {summaryText ? (
         <p
-          className="text-xs text-muted-foreground"
+          className="text-xs"
+          style={{ color: "var(--color-neutral-400)" }}
           data-wizard-observatory-summary
         >
           {summaryText}
         </p>
       ) : null}
       {phase.kind === "error" ? (
-        <p className="text-xs text-destructive" data-wizard-completion-error>
+        <p
+          className="text-xs"
+          style={{ color: "var(--color-brand-red)" }}
+          data-wizard-completion-error
+        >
           {phase.reason}
         </p>
       ) : null}
       {phase.kind === "error" ? (
-        <Button type="button" onClick={() => void run()}>
-          Try again
-        </Button>
-      ) : (
-        <Button
+        <button
           type="button"
+          className="rounded-md px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+          style={{
+            backgroundColor: "var(--color-neutral-700)",
+            color: "var(--color-brand-cream)",
+            fontFamily: "var(--font-label)",
+          }}
+          onClick={() => void run()}
+        >
+          Try again
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="rounded-md px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+          style={{
+            backgroundColor: "var(--color-brand-pink)",
+            color: "var(--color-neutral-950)",
+            fontFamily: "var(--font-label)",
+          }}
           disabled={phase.kind === "pending"}
           onClick={() => cfg?.onDone?.()}
         >
           {phase.kind === "pending" ? "Finishing up…" : "Done"}
-        </Button>
+        </button>
       )}
     </motion.div>
   );
