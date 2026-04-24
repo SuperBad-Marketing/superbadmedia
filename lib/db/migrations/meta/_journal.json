@@ -407,6 +407,13 @@
       "when": 1778000000000,
       "tag": "0073_lg_candidate_notes_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "6",
+      "when": 1778100000000,
+      "tag": "0074_lg_candidate_contact_phone",
+      "breakpoints": true
     }
   ]
 }

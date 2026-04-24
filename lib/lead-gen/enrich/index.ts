@@ -29,6 +29,7 @@ import {
   scrapeWebsite,
   applyWebsiteScrapeToProfile,
   type ScrapedContact,
+  type ScrapedPhone,
 } from "./website-scrape";
 import {
   fetchMapsExtras,
@@ -41,6 +42,7 @@ export interface EnrichmentResult {
   signals_attempted: number;
   signals_succeeded: number;
   scraped_contacts: ScrapedContact[];
+  scraped_phones: ScrapedPhone[];
 }
 
 /**
@@ -62,6 +64,7 @@ export async function enrichCandidate(
   let signalsAttempted = 0;
   let signalsSucceeded = 0;
   let scrapedContacts: ScrapedContact[] = [];
+  let scrapedPhones: ScrapedPhone[] = [];
 
   const hasDomain = !!candidate.domain;
   const placeId = (candidate.raw_source_data as Record<string, unknown>)
@@ -119,6 +122,7 @@ export async function enrichCandidate(
         const result = await scrapeWebsite(candidate.domain!);
         profile = applyWebsiteScrapeToProfile(profile, result);
         scrapedContacts = result.scraped_contacts;
+        scrapedPhones = result.scraped_phones;
         if (result.has_about_page || result.has_pricing_page) signalsSucceeded++;
       },
     },
@@ -149,6 +153,7 @@ export async function enrichCandidate(
     signals_attempted: signalsAttempted,
     signals_succeeded: signalsSucceeded,
     scraped_contacts: scrapedContacts,
+    scraped_phones: scrapedPhones,
   };
 }
 
@@ -167,7 +172,7 @@ export {
   inferPricingTier,
   applyWebsiteScrapeToProfile,
 } from "./website-scrape";
-export type { ScrapedContact } from "./website-scrape";
+export type { ScrapedContact, ScrapedPhone } from "./website-scrape";
 export {
   fetchMapsExtras,
   parseRelativeDate,

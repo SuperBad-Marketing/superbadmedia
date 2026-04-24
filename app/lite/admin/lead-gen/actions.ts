@@ -377,6 +377,7 @@ export async function updateCandidateDetailsAction(
     contact_email?: string | null;
     contact_name?: string | null;
     contact_role?: string | null;
+    contact_phone?: string | null;
     notes?: string | null;
   },
 ): Promise<ActionResult> {
@@ -397,6 +398,7 @@ export async function updateCandidateDetailsAction(
       contact_email: details.contact_email ?? null,
       contact_name: details.contact_name ?? null,
       contact_role: details.contact_role ?? null,
+      contact_phone: details.contact_phone ?? null,
       notes: details.notes ?? null,
     })
     .where(eq(leadCandidates.id, candidateId));

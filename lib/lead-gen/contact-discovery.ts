@@ -46,13 +46,23 @@ interface HunterDomainSearchResponse {
   errors?: Array<{ details: string }>;
 }
 
+export interface KnownContactName {
+  first: string;
+  last: string;
+  role: string | null;
+}
+
 /**
  * Discover a contact email for the given domain. Hunter.io is primary;
- * pattern inference is fallback (§7.1 steps 1–5).
+ * pattern inference with known names is the secondary fallback.
+ *
+ * @param knownNames Names scraped from the website — used to fill Hunter's
+ *   email pattern when Hunter doesn't return a direct match.
  */
 export async function discoverContact(
   domain: string,
   companyName: string,
+  knownNames: KnownContactName[] = [],
 ): Promise<ContactDiscoveryResult> {
   const apiKey = await getCredential("hunter-io");
 
@@ -63,7 +73,6 @@ export async function discoverContact(
   const startMs = Date.now();
   try {
     const result = await hunterDomainSearch(domain, apiKey);
-    const durationMs = Date.now() - startMs;
     logExternalCall({ job: "hunter.domain_search", actorType: "internal", units: { searches: 1, results_returned: result.emails?.length ?? 0 }, estimatedCostAud: 0.03 }).catch(() => {});
 
     if (result.emails && result.emails.length > 0) {
@@ -81,6 +90,20 @@ export async function discoverContact(
 
     // Hunter returned no usable match — try pattern inference
     if (result.pattern) {
+      // First try with known names from website scrape
+      if (knownNames.length > 0) {
+        const inferred = inferFromPatternWithName(result.pattern, domain, knownNames[0]);
+        if (inferred) {
+          return {
+            email: inferred,
+            name: `${knownNames[0].first} ${knownNames[0].last}`,
+            role: knownNames[0].role,
+            confidence: "inferred",
+            source: "pattern_inference",
+          };
+        }
+      }
+
       const inferred = inferFromPattern(result.pattern, domain);
       if (inferred) {
         return {
@@ -95,7 +118,6 @@ export async function discoverContact(
 
     return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
   } catch {
-    const durationMs = Date.now() - startMs;
     logExternalCall({ job: "hunter.domain_search", actorType: "internal", units: { searches: 1, results_returned: 0 }, estimatedCostAud: 0.03 }).catch(() => {});
     return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
   }
@@ -153,24 +175,43 @@ function formatName(first: string | null, last: string | null): string | null {
 }
 
 /**
- * Pattern inference fallback (§7.1 step 4). Uses Hunter's detected
- * pattern for the domain, or falls back to common patterns.
+ * Fill a Hunter pattern using a known contact name from website scraping.
+ * e.g. pattern "{first}.{last}" + name "Jane Smith" → jane.smith@domain.com
+ */
+function inferFromPatternWithName(
+  pattern: string,
+  domain: string,
+  name: KnownContactName,
+): string | null {
+  const first = name.first.toLowerCase().replace(/[^a-z]/g, "");
+  const last = name.last.toLowerCase().replace(/[^a-z]/g, "");
+  if (!first || !last) return null;
+
+  const local = pattern
+    .replace(/\{first\}/g, first)
+    .replace(/\{last\}/g, last)
+    .replace(/\{f\}/g, first[0])
+    .replace(/\{l\}/g, last[0])
+    .replace(/\{fi\}/g, first[0]);
+
+  // Verify all template vars were resolved
+  if (local.includes("{")) return null;
+
+  return `${local}@${domain}`;
+}
+
+/**
+ * Pattern inference fallback without a known name. Only works for
+ * generic patterns like info@, contact@, hello@.
  */
 function inferFromPattern(
   pattern: string,
   domain: string,
 ): string | null {
-  // Hunter patterns look like "{first}" or "{first}.{last}" or "{f}{last}"
-  // Without a known contact name, we can't fill patterns that need names.
-  // Return null — the candidate will be skipped with no_contact_email.
-  // Pattern inference with a real name would require a different input
-  // (e.g. from website scrape's team page). For v1, only Hunter's direct
-  // matches populate contacts.
   if (pattern.includes("{first}") || pattern.includes("{f}")) {
     return null;
   }
 
-  // Some rare patterns are just "info@" or "contact@"
   if (pattern === "info" || pattern === "contact" || pattern === "hello") {
     return `${pattern}@${domain}`;
   }

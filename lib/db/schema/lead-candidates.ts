@@ -42,6 +42,7 @@ export const leadCandidates = sqliteTable(
     contact_email: text("contact_email"),
     contact_name: text("contact_name"),
     contact_role: text("contact_role"),
+    contact_phone: text("contact_phone"),
     email_confidence: text("email_confidence", {
       enum: CANDIDATE_EMAIL_CONFIDENCES,
     }),

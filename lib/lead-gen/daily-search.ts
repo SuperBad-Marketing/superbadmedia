@@ -32,7 +32,7 @@ import { enrichCandidate } from "./enrich";
 import { assignTrack } from "./scoring";
 import { isBlockedFromOutreach } from "./dnc";
 import { createCandidate } from "./candidate";
-import { discoverContact } from "./contact-discovery";
+import { discoverContact, type KnownContactName } from "./contact-discovery";
 import { generateDraft } from "./draft-generator";
 import { enforceWarmupCap, initWarmupState } from "./warmup";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "./types";
@@ -159,6 +159,7 @@ export async function runDailySearch(
       assignment: ReturnType<typeof assignTrack>;
       enrichedProfile: Awaited<ReturnType<typeof enrichCandidate>>["profile"];
       scrapedContacts: Awaited<ReturnType<typeof enrichCandidate>>["scraped_contacts"];
+      scrapedPhones: Awaited<ReturnType<typeof enrichCandidate>>["scraped_phones"];
     }> = [];
 
     for (const candidate of survivors) {
@@ -174,6 +175,7 @@ export async function runDailySearch(
         assignment,
         enrichedProfile: enrichResult.profile,
         scrapedContacts: enrichResult.scraped_contacts,
+        scrapedPhones: enrichResult.scraped_phones,
       });
     }
 
@@ -195,18 +197,34 @@ export async function runDailySearch(
         email: null as string | null,
         name: null as string | null,
         role: null as string | null,
+        phone: null as string | null,
         confidence: "unknown" as "verified" | "inferred" | "unknown",
       };
+
+      // Build known names from website scrape for Hunter pattern cross-pollination
+      const knownNames: KnownContactName[] = entry.scrapedContacts
+        .filter((c) => c.name)
+        .map((c) => {
+          const parts = c.name!.split(/\s+/);
+          return {
+            first: parts[0],
+            last: parts.slice(1).join(" "),
+            role: c.role,
+          };
+        })
+        .filter((n) => n.first && n.last);
 
       if (domain) {
         const hunterResult = await discoverContact(
           domain,
           entry.discovered.company_name,
+          knownNames,
         );
         contactResult = {
           email: hunterResult.email,
           name: hunterResult.name,
           role: hunterResult.role,
+          phone: null,
           confidence: hunterResult.confidence,
         };
       }
@@ -218,8 +236,16 @@ export async function runDailySearch(
           email: best.email,
           name: best.name,
           role: best.role,
+          phone: best.phone,
           confidence: "inferred",
         };
+      }
+
+      // Attach phone from scraped contacts or standalone phone list
+      if (!contactResult.phone) {
+        const phoneFromContact = entry.scrapedContacts.find((c) => c.phone)?.phone;
+        const phoneFromPhones = entry.scrapedPhones?.[0]?.number;
+        contactResult.phone = phoneFromContact ?? phoneFromPhones ?? null;
       }
 
       // Step 11: Insert candidate with contact info (even without email —
@@ -233,6 +259,7 @@ export async function runDailySearch(
           contactEmail: contactResult.email ?? undefined,
           contactName: contactResult.name ?? undefined,
           contactRole: contactResult.role ?? undefined,
+          contactPhone: contactResult.phone,
           emailConfidence: contactResult.confidence,
         },
         dbInstance,

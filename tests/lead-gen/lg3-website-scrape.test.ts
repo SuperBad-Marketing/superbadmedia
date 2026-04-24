@@ -82,6 +82,8 @@ describe("applyWebsiteScrapeToProfile", () => {
       has_pricing_page: true,
       team_size_signal: "small",
       stated_pricing_tier: "mid",
+      scraped_contacts: [],
+      scraped_phones: [],
     };
     const profile = applyWebsiteScrapeToProfile({}, result);
 
@@ -110,6 +112,8 @@ describe("applyWebsiteScrapeToProfile", () => {
       has_pricing_page: false,
       team_size_signal: "medium",
       stated_pricing_tier: "premium",
+      scraped_contacts: [],
+      scraped_phones: [],
     };
     const profile = applyWebsiteScrapeToProfile(existing, result);
 
@@ -125,6 +129,8 @@ describe("applyWebsiteScrapeToProfile", () => {
       has_pricing_page: false,
       team_size_signal: "unknown",
       stated_pricing_tier: "unknown",
+      scraped_contacts: [],
+      scraped_phones: [],
       error: "Website scrape failed: timeout",
     };
     const profile = applyWebsiteScrapeToProfile({}, result);

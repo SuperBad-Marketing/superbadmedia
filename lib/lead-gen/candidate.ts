@@ -20,6 +20,7 @@ export interface CreateCandidateInput {
   contactEmail?: string;
   contactName?: string | null;
   contactRole?: string | null;
+  contactPhone?: string | null;
   emailConfidence?: "verified" | "inferred" | "unknown";
 }
 
@@ -57,6 +58,7 @@ export async function createCandidate(
     contact_email: input.contactEmail ?? null,
     contact_name: input.contactName ?? null,
     contact_role: input.contactRole ?? null,
+    contact_phone: input.contactPhone ?? null,
     email_confidence: input.emailConfidence ?? null,
     viability_profile_json: enrichedProfile,
     saas_score: trackAssignment.saas.score,
