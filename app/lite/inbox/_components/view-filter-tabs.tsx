@@ -97,7 +97,7 @@ export function ViewFilterTabs({
     >
       <div className="flex flex-col gap-2">
         <Link
-          href="/lite"
+          href="/lite/cockpit"
           className="inline-flex items-center gap-1.5 rounded-sm py-1 outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] font-[family-name:var(--font-dm-sans)] text-[12px] text-[color:var(--color-neutral-400)] transition-colors hover:text-[color:var(--color-neutral-100)]"
           aria-label="Back to cockpit"
         >
