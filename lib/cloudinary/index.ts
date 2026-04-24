@@ -106,12 +106,15 @@ export async function testConnection(
     return { ok: true };
   } catch (err) {
     configured = false;
+    const msg =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : String(err);
     return {
       ok: false,
-      reason:
-        err instanceof Error
-          ? `Cloudinary rejected those credentials: ${err.message}`
-          : "Cloudinary credential check failed.",
+      reason: `Cloudinary credential check failed: ${msg}`,
     };
   }
 }

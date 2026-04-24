@@ -5,11 +5,11 @@ import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { wizard_completions } from "@/lib/db/schema/wizard-completions";
 import { registerIntegration } from "@/lib/integrations/registerIntegration";
-import { verifyCompletion } from "@/lib/wizards/verify-completion";
 import {
   cloudinaryWizard,
   type CloudinaryPayload,
 } from "@/lib/wizards/defs/cloudinary";
+import { testConnection } from "@/lib/cloudinary";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 
 function contractVersion(): string {
@@ -30,11 +30,19 @@ export async function completeCloudinaryAction(
     return { ok: false, reason: "Session expired — sign in again." };
   }
   const ownerId = session.user.id;
-  const ctx = { ownerType: "admin" as const, ownerId };
 
   const wizardCompletionId = randomUUID();
 
   try {
+    const ping = await testConnection(
+      payload.cloudName,
+      payload.apiKey,
+      payload.apiSecret,
+    );
+    if (!ping.ok) {
+      return { ok: false, reason: ping.reason };
+    }
+
     const { bandsRegistered } = await registerIntegration({
       wizardCompletionId,
       manifest: cloudinaryWizard.vendorManifest!,
@@ -51,11 +59,6 @@ export async function completeCloudinaryAction(
       ownerType: "admin",
       ownerId,
     });
-
-    const verified = await verifyCompletion(cloudinaryWizard, payload, ctx);
-    if (!verified.ok) {
-      return { ok: false, reason: verified.reason };
-    }
 
     await db.insert(wizard_completions).values({
       id: wizardCompletionId,
