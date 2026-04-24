@@ -28,6 +28,7 @@ import type { WizardDefinition } from "@/lib/wizards/types";
 
 export type GraphAdminPayload = {
   accessToken: string;
+  credentialsJson: string;
   verifiedAt: number;
   confirmedAt: number;
 };
@@ -87,7 +88,7 @@ export const graphApiAdminWizard: WizardDefinition<GraphAdminPayload> = {
     },
   ],
   completionContract: {
-    required: ["accessToken", "verifiedAt", "confirmedAt"],
+    required: ["accessToken", "credentialsJson", "verifiedAt", "confirmedAt"],
     verify: async (p) => pingGraphMe(p.accessToken),
     artefacts: { integrationConnections: true },
   },

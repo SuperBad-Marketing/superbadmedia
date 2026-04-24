@@ -40,6 +40,7 @@ import {
 
 type OAuthConsentState = {
   token: string | null;
+  credentialsJson: string | null;
   vendorLabel: string;
 };
 
@@ -61,6 +62,7 @@ function initialGraphStates(outroCopy: string): StepStates {
   return {
     consent: {
       token: null,
+      credentialsJson: null,
       vendorLabel: "Microsoft",
     } satisfies OAuthConsentState,
     review: { summary: [], confirmed: false } satisfies ReviewState,
@@ -141,7 +143,11 @@ export function GraphAdminClient({
         if (current.token) return prev;
         return {
           ...prev,
-          consent: { ...current, token: result.accessToken },
+          consent: {
+            ...current,
+            token: result.accessToken,
+            credentialsJson: result.credentialsJson,
+          },
         };
       });
       setTimeout(() => advanceRef.current(), 100);
@@ -194,11 +200,12 @@ export function GraphAdminClient({
   const onComplete = React.useCallback(async (): Promise<CelebrationCompleteResult> => {
     const consent = states.consent as OAuthConsentState;
     const reviewed = states.review as ReviewState;
-    if (!consent.token) {
+    if (!consent.token || !consent.credentialsJson) {
       return { ok: false, reason: "Microsoft consent never returned a token." };
     }
     const payload: GraphAdminPayload = {
       accessToken: consent.token,
+      credentialsJson: consent.credentialsJson,
       verifiedAt: consent.token ? Date.now() : 0,
       confirmedAt: reviewed.confirmed ? Date.now() : 0,
     };

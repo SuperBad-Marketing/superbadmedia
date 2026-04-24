@@ -42,6 +42,7 @@ describe("graph-api-admin wizard", () => {
     ).toBe(true);
     expect(graphApiAdminWizard.completionContract.required).toEqual([
       "accessToken",
+      "credentialsJson",
       "verifiedAt",
       "confirmedAt",
     ]);
@@ -64,6 +65,7 @@ describe("graph-api-admin wizard", () => {
   it("verify() rejects an obviously bad token with a branded reason", async () => {
     const result = await graphApiAdminWizard.completionContract.verify({
       accessToken: "not.a.real.token",
+      credentialsJson: "{}",
       verifiedAt: 0,
       confirmedAt: 0,
     });

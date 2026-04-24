@@ -18,9 +18,12 @@ import { auth, unstable_update } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { vault } from "@/lib/crypto/vault";
 import { wizard_completions } from "@/lib/db/schema/wizard-completions";
+import { eq } from "drizzle-orm";
 import { graph_api_state } from "@/lib/db/schema/graph-api-state";
 import { registerIntegration } from "@/lib/integrations/registerIntegration";
 import { verifyCompletion } from "@/lib/wizards/verify-completion";
+import { createGraphClient, createGraphSubscription } from "@/lib/graph/client";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import {
   graphApiAdminWizard,
   type GraphAdminPayload,
@@ -56,11 +59,14 @@ const VAULT_CONTEXT = "graph-api.credentials";
 
 export async function decryptGraphTokenAction(
   ct: string,
-): Promise<{ ok: true; accessToken: string } | { ok: false; reason: string }> {
+): Promise<
+  | { ok: true; accessToken: string; credentialsJson: string }
+  | { ok: false; reason: string }
+> {
   try {
     const decrypted = vault.decrypt(ct, VAULT_CONTEXT);
     const creds = JSON.parse(decrypted) as { accessToken: string };
-    return { ok: true, accessToken: creds.accessToken };
+    return { ok: true, accessToken: creds.accessToken, credentialsJson: decrypted };
   } catch {
     return { ok: false, reason: "Failed to decrypt OAuth token." };
   }
@@ -94,7 +100,7 @@ export async function completeGraphAdminAction(
     const { connectionId, bandsRegistered } = await registerIntegration({
       wizardCompletionId,
       manifest: graphApiAdminWizard.vendorManifest!,
-      credentials: { plaintext: payload.accessToken },
+      credentials: { plaintext: payload.credentialsJson },
       metadata: {
         verified_at_ms: payload.verifiedAt,
       },
@@ -105,8 +111,9 @@ export async function completeGraphAdminAction(
     const tenantId = process.env.MS_GRAPH_TENANT_ID ?? "common";
     const clientId = process.env.MS_GRAPH_CLIENT_ID ?? "";
     const now = Date.now();
+    const graphStateId = randomUUID();
     await db.insert(graph_api_state).values({
-      id: randomUUID(),
+      id: graphStateId,
       integration_connection_id: connectionId,
       user_id: ownerId,
       tenant_id: tenantId,
@@ -136,6 +143,33 @@ export async function completeGraphAdminAction(
     });
 
     await unstable_update({});
+
+    // Create webhook subscription so Microsoft pushes mail notifications
+    try {
+      const client = await createGraphClient(connectionId);
+      const appUrl = getAppUrl();
+      const webhookUrl = `${appUrl}/api/webhooks/graph`;
+      const clientState = randomUUID();
+      const sub = await createGraphSubscription(client, webhookUrl, clientState);
+      await db
+        .update(graph_api_state)
+        .set({
+          subscription_id: sub.id,
+          subscription_expires_at_ms: new Date(sub.expirationDateTime).getTime(),
+          updated_at_ms: Date.now(),
+        })
+        .where(eq(graph_api_state.id, graphStateId));
+    } catch (subErr) {
+      console.error("[graph-wizard] Webhook subscription failed (non-fatal):", subErr);
+    }
+
+    // Enqueue initial email history import
+    await enqueueTask({
+      task_type: "inbox_initial_import",
+      runAt: Date.now(),
+      payload: { graph_state_id: graphStateId },
+      idempotencyKey: `inbox_initial_import|${graphStateId}|start`,
+    });
 
     return {
       ok: true,

@@ -134,21 +134,42 @@ export function VideoCreateForm({ onCreated }: { onCreated: () => void }) {
               >
                 Video brief
               </span>
-              <span
-                className="rounded-md px-2 py-0.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px]"
-                style={{
-                  backgroundColor:
-                    brief.engine === "remotion"
-                      ? "rgba(253, 245, 230, 0.08)"
-                      : "rgba(204, 43, 94, 0.15)",
-                  color:
-                    brief.engine === "remotion"
-                      ? "var(--color-brand-cream)"
-                      : "var(--color-brand-pink)",
-                }}
-              >
-                {brief.engine === "remotion" ? "Template" : "AI Generate"}
-              </span>
+              <div className="flex items-center gap-1 rounded-lg border border-[color:var(--color-neutral-700)] p-0.5">
+                <button
+                  type="button"
+                  onClick={() => updateBrief({ engine: "higgsfield" })}
+                  className="rounded-md px-2.5 py-1 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-all"
+                  style={{
+                    backgroundColor:
+                      brief.engine === "higgsfield"
+                        ? "rgba(204, 43, 94, 0.15)"
+                        : "transparent",
+                    color:
+                      brief.engine === "higgsfield"
+                        ? "var(--color-brand-pink)"
+                        : "var(--color-neutral-500)",
+                  }}
+                >
+                  Higgsfield
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateBrief({ engine: "remotion" })}
+                  className="rounded-md px-2.5 py-1 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-all"
+                  style={{
+                    backgroundColor:
+                      brief.engine === "remotion"
+                        ? "rgba(253, 245, 230, 0.08)"
+                        : "transparent",
+                    color:
+                      brief.engine === "remotion"
+                        ? "var(--color-brand-cream)"
+                        : "var(--color-neutral-500)",
+                  }}
+                >
+                  Remotion
+                </button>
+              </div>
             </div>
 
             {/* Video type selector */}
