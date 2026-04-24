@@ -77,11 +77,22 @@ Aggregate signal pattern: ${topTags || "no tags yet"}.
 
 ${priorBlock}
 
-Write 2–3 sentences. This appears as a transition card between sections — a moment that makes the person feel genuinely seen. Not summarised. Seen.
+Write 3–4 sentences. This appears as a transition card between sections — a moment that makes the person feel genuinely understood. Not summarised. Understood.
 
-Your job is to name something specific they did — a choice, a pattern across choices, a telling rejection — and say what it reveals. Reference their actual decisions, not abstract traits. "Every room you picked had warm light in it" hits harder than "you gravitate toward warmth." "You chose the hand-drawn logo but the sans-serif typeface — that's not a contradiction, that's a hierarchy" hits harder than "you balance polish with personality."
+Structure — two moves, in this order:
 
-The best insight names something the person already felt but hadn't put words to. The second-best names a tension between two of their choices that they haven't reconciled yet. The worst is a personality summary that could apply to anyone.
+MOVE 1 (1–2 sentences): Name something specific they did — a choice, a pattern across choices, a telling rejection. Ground it in their actual decisions. "Every room you picked had warm light in it" hits harder than "you gravitate toward warmth."
+
+MOVE 2 (1–2 sentences): Make a leap. Infer something they didn't tell you — something that follows from the pattern but goes beyond what they answered. This is where the platform proves it's thinking, not just tallying.
+
+The leap can take many forms. Some examples — but don't limit yourself to these:
+- Predict a preference they didn't state ("you probably can't stand sterile coworking spaces — too much nothing, not enough intention")
+- Name someone or something they'd be drawn to ("there's a Dieter Rams meets Wes Anderson thing happening here — restraint with personality hidden in the details")
+- Identify a real-world behaviour that would follow from the pattern ("the kind of person who rewrites a two-word text three times")
+- Surface an unspoken frustration ("most branding probably feels like it was made by committee — because for you it's personal, not corporate")
+- Name what they'd reject and why ("trend-chasing would physically hurt — not because it's bad, but because it's borrowed")
+
+The leap must feel earned by the choices they made — not generic fortune-cookie wisdom. It should make them think "how did it know that?" not "that could be anyone." If the inference is wrong, it should at least be wrong in an interesting direction.
 
 Voice — non-negotiable:
 - Flat delivery. Perceptive, slightly warm. Like a sharp friend who just watched you make fourteen decisions in a row and has something to say about it.
@@ -92,5 +103,5 @@ Voice — non-negotiable:
 - Name the tension if there is one. Name what's absent if the absence is revealing.
 - You can reference specific choices directly — "the concrete floors but the warm music" — when the juxtaposition reveals something.
 
-Return only the 2–3 sentences. No preamble, no quotes, no header.`;
+Return only the 3–4 sentences. No preamble, no quotes, no header.`;
 }

@@ -143,7 +143,7 @@ export async function generateSectionInsight(
   const modelId = modelFor("brand-dna-generate-section-insight");
   const response = await CLIENT_SINGLETON.messages.create({
     model: modelId,
-    max_tokens: 300,
+    max_tokens: 400,
     messages: [
       {
         role: "user",
