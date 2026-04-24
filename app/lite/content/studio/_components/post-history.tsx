@@ -67,8 +67,12 @@ export function PostHistory() {
         <div className="space-y-3">
           {filtered.map((post) => {
             const template = getTemplate(post.template_id);
-            const copy = (post.generated_copy_json ?? {}) as Record<string, string>;
-            const headline = copy.headline || copy.detail || post.brief;
+            const rawCopy = post.generated_copy_json;
+            const firstSlide = Array.isArray(rawCopy)
+              ? (rawCopy[0] as Record<string, string> | undefined) ?? {}
+              : (rawCopy as Record<string, string>) ?? {};
+            const headline = firstSlide.headline || firstSlide.detail || post.brief;
+            const slideCount = post.slide_count ?? 1;
             const renderedCount = post.renders.filter(
               (r) => r.render_status === "rendered",
             ).length;
@@ -116,6 +120,12 @@ export function PostHistory() {
                   </div>
                   <div className="mt-1 flex items-center gap-3 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
                     <span>{post.content_type.replace(/_/g, " ")}</span>
+                    {slideCount > 1 && (
+                      <>
+                        <span>·</span>
+                        <span>{slideCount} slides</span>
+                      </>
+                    )}
                     {template && (
                       <>
                         <span>·</span>

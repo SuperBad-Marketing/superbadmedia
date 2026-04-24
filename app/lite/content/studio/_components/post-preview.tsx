@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
   ASPECT_RATIOS,
   type AspectRatio,
-  type ContentType,
 } from "@/lib/db/schema/content-studio";
 import {
-  ALL_TEMPLATES,
   getTemplate,
   getTemplatesForType,
   getDimensions,
 } from "@/lib/content-studio/templates";
+import type { ActivePost } from "./studio-client";
 
 const RATIO_LABELS: Record<AspectRatio, string> = {
   portrait: "Portrait 9:16",
@@ -31,21 +30,13 @@ const PLATFORM_OPTIONS = [
   "X (Twitter)",
 ] as const;
 
-interface ActivePost {
-  id: string;
-  templateId: string;
-  copy: Record<string, string>;
-  contentType: ContentType;
-  brief: string;
-}
-
 interface PostPreviewProps {
   post: ActivePost;
-  onCorrect: (correction: string) => Promise<void>;
+  onCorrect: (correction: string, slideIndex?: number) => Promise<void>;
   onRender: (
     ratios: AspectRatio[],
     platforms: string,
-  ) => Promise<{ id: string; ratio: AspectRatio; url: string }[] | undefined>;
+  ) => Promise<{ id: string; slideIndex: number; ratio: AspectRatio; url: string }[] | undefined>;
   onChangeTemplate: (templateId: string) => Promise<void>;
   onNewPost: () => void;
 }
@@ -57,9 +48,12 @@ export function PostPreview({
   onChangeTemplate,
   onNewPost,
 }: PostPreviewProps) {
+  const isCarousel = post.slides.length > 1;
+  const [activeSlide, setActiveSlide] = useState(0);
   const [previewRatio, setPreviewRatio] = useState<AspectRatio>("portrait");
   const [correction, setCorrection] = useState("");
   const [correcting, setCorrecting] = useState(false);
+  const [correctionScope, setCorrectionScope] = useState<"slide" | "all">("slide");
   const [selectedRatios, setSelectedRatios] = useState<Set<AspectRatio>>(
     new Set(["portrait", "square", "landscape"]),
   );
@@ -68,9 +62,11 @@ export function PostPreview({
   );
   const [rendering, setRendering] = useState(false);
   const [renders, setRenders] = useState<
-    { id: string; ratio: AspectRatio; url: string }[]
+    { id: string; slideIndex: number; ratio: AspectRatio; url: string }[]
   >([]);
   const [showTemplateDrawer, setShowTemplateDrawer] = useState(false);
+
+  const currentCopy = post.slides[activeSlide] ?? {};
 
   const template = useMemo(
     () => getTemplate(post.templateId),
@@ -79,8 +75,8 @@ export function PostPreview({
 
   const previewHtml = useMemo(() => {
     if (!template) return "";
-    return template.renderHtml(post.copy, previewRatio);
-  }, [template, post.copy, previewRatio]);
+    return template.renderHtml(currentCopy, previewRatio);
+  }, [template, currentCopy, previewRatio]);
 
   const { width: nativeW, height: nativeH } = getDimensions(previewRatio);
 
@@ -95,7 +91,8 @@ export function PostPreview({
   async function handleCorrect() {
     if (!correction.trim()) return;
     setCorrecting(true);
-    await onCorrect(correction.trim());
+    const slideIdx = correctionScope === "slide" ? activeSlide : undefined;
+    await onCorrect(correction.trim(), slideIdx);
     setCorrection("");
     setCorrecting(false);
   }
@@ -135,8 +132,47 @@ export function PostPreview({
   const maxPreviewH = previewRatio === "portrait" ? 480 : previewRatio === "square" ? 360 : 260;
   const scale = Math.min(1, maxPreviewH / nativeH, 360 / nativeW);
 
+  const totalRenderCount = isCarousel
+    ? post.slides.length * selectedRatios.size
+    : selectedRatios.size;
+
   return (
     <div className="space-y-8">
+      {/* Slide navigator */}
+      {isCarousel && (
+        <div>
+          <span
+            className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            Slide {activeSlide + 1} of {post.slides.length}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {post.slides.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActiveSlide(i)}
+                className="flex h-8 w-8 items-center justify-center rounded-md font-[family-name:var(--font-body)] text-[13px] font-medium transition-all"
+                style={{
+                  backgroundColor:
+                    activeSlide === i
+                      ? "var(--color-brand-red)"
+                      : "var(--color-neutral-800)",
+                  color: "var(--color-brand-cream)",
+                  border:
+                    activeSlide === i
+                      ? "1px solid var(--color-brand-red)"
+                      : "1px solid rgba(253, 245, 230, 0.08)",
+                }}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Live preview */}
       <div>
         <div className="mb-3 flex items-center gap-2">
@@ -229,16 +265,16 @@ export function PostPreview({
         )}
       </div>
 
-      {/* Copy slots */}
+      {/* Copy slots for active slide */}
       <div>
         <span
           className="mb-3 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
           style={{ letterSpacing: "1.5px" }}
         >
-          Generated copy
+          {isCarousel ? `Slide ${activeSlide + 1} copy` : "Generated copy"}
         </span>
         <div className="space-y-2">
-          {Object.entries(post.copy).map(([slot, value]) => (
+          {Object.entries(currentCopy).map(([slot, value]) => (
             <div
               key={slot}
               className="flex items-start gap-3 rounded-md p-3"
@@ -263,12 +299,54 @@ export function PostPreview({
 
       {/* Correction */}
       <div>
-        <span
-          className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-          style={{ letterSpacing: "1.5px" }}
-        >
-          Corrections
-        </span>
+        <div className="mb-2 flex items-center gap-3">
+          <span
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            Corrections
+          </span>
+          {isCarousel && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCorrectionScope("slide")}
+                className="rounded px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase transition-colors"
+                style={{
+                  letterSpacing: "1px",
+                  backgroundColor:
+                    correctionScope === "slide"
+                      ? "rgba(178, 40, 72, 0.25)"
+                      : "transparent",
+                  color:
+                    correctionScope === "slide"
+                      ? "var(--color-brand-pink)"
+                      : "var(--color-neutral-500)",
+                }}
+              >
+                This slide
+              </button>
+              <button
+                type="button"
+                onClick={() => setCorrectionScope("all")}
+                className="rounded px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase transition-colors"
+                style={{
+                  letterSpacing: "1px",
+                  backgroundColor:
+                    correctionScope === "all"
+                      ? "rgba(178, 40, 72, 0.25)"
+                      : "transparent",
+                  color:
+                    correctionScope === "all"
+                      ? "var(--color-brand-pink)"
+                      : "var(--color-neutral-500)",
+                }}
+              >
+                All slides
+              </button>
+            </div>
+          )}
+        </div>
         <div className="flex gap-3">
           <input
             type="text"
@@ -277,7 +355,11 @@ export function PostPreview({
             onKeyDown={(e) => {
               if (e.key === "Enter" && !correcting) handleCorrect();
             }}
-            placeholder="e.g. headline is too long, make it punchier"
+            placeholder={
+              isCarousel && correctionScope === "slide"
+                ? `e.g. slide ${activeSlide + 1} headline is too long`
+                : "e.g. headline is too long, make it punchier"
+            }
             className="flex-1 rounded-lg border px-4 py-2.5 font-[family-name:var(--font-body)] text-[14px] placeholder:text-[color:var(--color-neutral-500)] focus:outline-none"
             style={{
               backgroundColor: "var(--color-neutral-800)",
@@ -385,7 +467,7 @@ export function PostPreview({
         >
           {rendering
             ? "Rendering…"
-            : `Render ${selectedRatios.size} variation${selectedRatios.size === 1 ? "" : "s"}`}
+            : `Render ${totalRenderCount} image${totalRenderCount === 1 ? "" : "s"}`}
         </button>
       </div>
 
@@ -396,45 +478,38 @@ export function PostPreview({
             className="mb-3 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
             style={{ letterSpacing: "1.5px" }}
           >
-            Rendered
+            Rendered{isCarousel ? ` — ${post.slides.length} slides × ${selectedRatios.size} ratio${selectedRatios.size === 1 ? "" : "s"}` : ""}
           </span>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {renders
-              .filter((r) => r.url)
-              .map((r) => (
-                <div
-                  key={r.id}
-                  className="overflow-hidden rounded-lg"
-                  style={{
-                    border: "1px solid rgba(253, 245, 230, 0.06)",
-                  }}
-                >
-                  <img
-                    src={r.url}
-                    alt={`${r.ratio} render`}
-                    className="w-full"
-                  />
-                  <div className="flex items-center justify-between p-2"
-                    style={{ backgroundColor: "var(--color-neutral-800)" }}
+
+          {isCarousel ? (
+            Array.from(new Set(renders.map((r) => r.slideIndex)))
+              .sort((a, b) => a - b)
+              .map((si) => (
+                <div key={si} className="mb-6">
+                  <span
+                    className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-400)]"
+                    style={{ letterSpacing: "1px" }}
                   >
-                    <span className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-                      style={{ letterSpacing: "1px" }}
-                    >
-                      {RATIO_LABELS[r.ratio]}
-                    </span>
-                    <a
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)] hover:opacity-70"
-                      style={{ letterSpacing: "1px" }}
-                    >
-                      Open
-                    </a>
+                    Slide {si + 1}
+                  </span>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {renders
+                      .filter((r) => r.slideIndex === si && r.url)
+                      .map((r) => (
+                        <RenderCard key={r.id} r={r} />
+                      ))}
                   </div>
                 </div>
-              ))}
-          </div>
+              ))
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {renders
+                .filter((r) => r.url)
+                .map((r) => (
+                  <RenderCard key={r.id} r={r} />
+                ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -448,6 +523,43 @@ export function PostPreview({
         >
           + New post
         </button>
+      </div>
+    </div>
+  );
+}
+
+function RenderCard({ r }: { r: { id: string; ratio: AspectRatio; url: string } }) {
+  return (
+    <div
+      className="overflow-hidden rounded-lg"
+      style={{
+        border: "1px solid rgba(253, 245, 230, 0.06)",
+      }}
+    >
+      <img
+        src={r.url}
+        alt={`${r.ratio} render`}
+        className="w-full"
+      />
+      <div
+        className="flex items-center justify-between p-2"
+        style={{ backgroundColor: "var(--color-neutral-800)" }}
+      >
+        <span
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "1px" }}
+        >
+          {RATIO_LABELS[r.ratio]}
+        </span>
+        <a
+          href={r.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)] hover:opacity-70"
+          style={{ letterSpacing: "1px" }}
+        >
+          Open
+        </a>
       </div>
     </div>
   );

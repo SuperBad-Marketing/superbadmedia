@@ -2,10 +2,12 @@ import { invokeLlmText } from "@/lib/ai/invoke";
 import { getTemplate, getTemplatesForType, ALL_TEMPLATES, type TemplateDef } from "./templates";
 import type { ContentType } from "@/lib/db/schema/content-studio";
 
+export type SlideCopy = Record<string, string>;
+
 interface GenerateCopyResult {
   ok: true;
   templateId: string;
-  copy: Record<string, string>;
+  slides: SlideCopy[];
 }
 
 interface GenerateCopyError {
@@ -16,6 +18,7 @@ interface GenerateCopyError {
 export async function generateCopy(
   brief: string,
   contentType: ContentType,
+  slideCount: number = 1,
   templateId?: string,
 ): Promise<GenerateCopyResult | GenerateCopyError> {
   const template = templateId
@@ -30,61 +33,142 @@ export async function generateCopy(
     .map((slot) => `"${slot}": string`)
     .join(", ");
 
+  const isCarousel = slideCount > 1;
+
+  const prompt = isCarousel
+    ? [
+        `Content type: ${contentType}`,
+        `Template: ${template.name}`,
+        `Copy slots per slide: { ${slotsDescription} }`,
+        `Number of slides: ${slideCount}`,
+        `Brief: ${brief}`,
+        "",
+        "This is a carousel post. Each slide should build on the narrative — not repeat the same idea.",
+        "Slide 1 hooks, middle slides develop, final slide lands.",
+        "",
+        `Return ONLY a valid JSON array of ${slideCount} objects, each with the copy slots filled. No markdown, no explanation.`,
+      ].join("\n")
+    : [
+        `Content type: ${contentType}`,
+        `Template: ${template.name}`,
+        `Copy slots to fill: { ${slotsDescription} }`,
+        `Brief: ${brief}`,
+        "",
+        "Return ONLY valid JSON with the copy slots filled. No markdown, no explanation.",
+      ].join("\n");
+
   const raw = await invokeLlmText({
     job: "content-studio-generate-copy",
     system: COPY_SYSTEM_PROMPT,
-    prompt: [
-      `Content type: ${contentType}`,
-      `Template: ${template.name}`,
-      `Copy slots to fill: { ${slotsDescription} }`,
-      `Brief: ${brief}`,
-      "",
-      "Return ONLY valid JSON with the copy slots filled. No markdown, no explanation.",
-    ].join("\n"),
-    maxTokens: 1024,
+    prompt,
+    maxTokens: isCarousel ? 2048 : 1024,
   });
 
   try {
     const parsed = JSON.parse(raw);
-    const copy: Record<string, string> = {};
+
+    if (isCarousel) {
+      if (!Array.isArray(parsed) || parsed.length < 1) {
+        return { ok: false, error: "AI returned invalid carousel format." };
+      }
+      const slides: SlideCopy[] = parsed.slice(0, slideCount).map((slide: Record<string, unknown>) => {
+        const copy: SlideCopy = {};
+        for (const slot of template.copySlots) {
+          copy[slot] = typeof slide[slot] === "string" ? slide[slot] as string : "";
+        }
+        return copy;
+      });
+      while (slides.length < slideCount) {
+        const empty: SlideCopy = {};
+        for (const slot of template.copySlots) empty[slot] = "";
+        slides.push(empty);
+      }
+      return { ok: true, templateId: template.id, slides };
+    }
+
+    const copy: SlideCopy = {};
     for (const slot of template.copySlots) {
       copy[slot] = typeof parsed[slot] === "string" ? parsed[slot] : "";
     }
-    return { ok: true, templateId: template.id, copy };
+    return { ok: true, templateId: template.id, slides: [copy] };
   } catch {
     return { ok: false, error: "Failed to parse AI response as JSON." };
   }
 }
 
 export async function correctCopy(
-  currentCopy: Record<string, string>,
+  currentSlides: SlideCopy[],
   correction: string,
   template: TemplateDef,
+  slideIndex?: number,
 ): Promise<GenerateCopyResult | GenerateCopyError> {
-  const slotsDescription = template.copySlots
-    .map((slot) => `"${slot}": "${currentCopy[slot] ?? ""}"`)
-    .join(", ");
+  const isCarousel = currentSlides.length > 1;
+  const targetSlideIdx = slideIndex ?? (isCarousel ? undefined : 0);
+
+  let prompt: string;
+
+  if (targetSlideIdx !== undefined) {
+    const slide = currentSlides[targetSlideIdx] ?? {};
+    const slotsDescription = template.copySlots
+      .map((slot) => `"${slot}": "${slide[slot] ?? ""}"`)
+      .join(", ");
+    prompt = [
+      `Template: ${template.name}`,
+      `Current copy for slide ${targetSlideIdx + 1}: { ${slotsDescription} }`,
+      `Correction request: ${correction}`,
+      "",
+      "Apply the correction to this slide. Return ONLY valid JSON with all copy slots. No markdown, no explanation.",
+    ].join("\n");
+  } else {
+    const slidesJson = JSON.stringify(currentSlides, null, 2);
+    prompt = [
+      `Template: ${template.name}`,
+      `Current carousel copy (${currentSlides.length} slides):`,
+      slidesJson,
+      `Correction request: ${correction}`,
+      "",
+      `Apply the correction across the carousel. Return ONLY a valid JSON array of ${currentSlides.length} objects. No markdown, no explanation.`,
+    ].join("\n");
+  }
 
   const raw = await invokeLlmText({
     job: "content-studio-correct-copy",
     system: COPY_SYSTEM_PROMPT,
-    prompt: [
-      `Template: ${template.name}`,
-      `Current copy: { ${slotsDescription} }`,
-      `Correction request: ${correction}`,
-      "",
-      "Apply the correction to the copy. Return ONLY valid JSON with all copy slots. No markdown, no explanation.",
-    ].join("\n"),
-    maxTokens: 1024,
+    prompt,
+    maxTokens: isCarousel ? 2048 : 1024,
   });
 
   try {
     const parsed = JSON.parse(raw);
-    const copy: Record<string, string> = {};
-    for (const slot of template.copySlots) {
-      copy[slot] = typeof parsed[slot] === "string" ? parsed[slot] : currentCopy[slot] ?? "";
+
+    if (targetSlideIdx !== undefined && !Array.isArray(parsed)) {
+      const corrected: SlideCopy = {};
+      for (const slot of template.copySlots) {
+        corrected[slot] = typeof parsed[slot] === "string"
+          ? parsed[slot]
+          : currentSlides[targetSlideIdx]?.[slot] ?? "";
+      }
+      const newSlides = [...currentSlides];
+      newSlides[targetSlideIdx] = corrected;
+      return { ok: true, templateId: template.id, slides: newSlides };
     }
-    return { ok: true, templateId: template.id, copy };
+
+    if (Array.isArray(parsed)) {
+      const slides: SlideCopy[] = parsed.slice(0, currentSlides.length).map(
+        (slide: Record<string, unknown>, i: number) => {
+          const copy: SlideCopy = {};
+          for (const slot of template.copySlots) {
+            copy[slot] = typeof slide[slot] === "string"
+              ? slide[slot] as string
+              : currentSlides[i]?.[slot] ?? "";
+          }
+          return copy;
+        },
+      );
+      return { ok: true, templateId: template.id, slides };
+    }
+
+    return { ok: false, error: "Unexpected correction response format." };
   } catch {
     return { ok: false, error: "Failed to parse AI correction response." };
   }

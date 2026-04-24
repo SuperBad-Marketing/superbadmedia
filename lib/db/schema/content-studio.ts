@@ -33,6 +33,7 @@ export const contentStudioPosts = sqliteTable(
     content_type: text("content_type", { enum: CONTENT_TYPES }).notNull(),
     template_id: text("template_id").notNull(),
 
+    slide_count: integer("slide_count").notNull().default(1),
     generated_copy_json: text("generated_copy_json", { mode: "json" }),
     correction_history_json: text("correction_history_json", { mode: "json" }),
 
@@ -60,6 +61,7 @@ export const contentStudioRenders = sqliteTable(
     post_id: text("post_id")
       .notNull()
       .references(() => contentStudioPosts.id, { onDelete: "cascade" }),
+    slide_index: integer("slide_index").notNull().default(0),
     aspect_ratio: text("aspect_ratio", { enum: ASPECT_RATIOS }).notNull(),
     platforms: text("platforms").notNull(),
     width: integer("width").notNull(),

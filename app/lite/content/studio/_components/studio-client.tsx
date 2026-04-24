@@ -3,12 +3,12 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
+import type { SlideCopy } from "@/lib/content-studio/generate-copy";
 import {
   createPostAction,
   correctCopyAction,
   renderPostAction,
   changeTemplateAction,
-  listPostsAction,
 } from "../actions";
 import { PostPreview } from "./post-preview";
 import { PostHistory } from "./post-history";
@@ -22,12 +22,14 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   behind_the_scenes: "Behind the Scenes",
 };
 
+const SLIDE_OPTIONS = [1, 2, 3, 4, 5, 6, 8, 10] as const;
+
 type StudioView = "create" | "preview" | "history";
 
-interface ActivePost {
+export interface ActivePost {
   id: string;
   templateId: string;
-  copy: Record<string, string>;
+  slides: SlideCopy[];
   contentType: ContentType;
   brief: string;
 }
@@ -36,6 +38,7 @@ export function StudioClient() {
   const [view, setView] = useState<StudioView>("create");
   const [brief, setBrief] = useState("");
   const [contentType, setContentType] = useState<ContentType>("announcement");
+  const [slideCount, setSlideCount] = useState(1);
   const [generating, setGenerating] = useState(false);
   const [activePost, setActivePost] = useState<ActivePost | null>(null);
 
@@ -45,7 +48,11 @@ export function StudioClient() {
       return;
     }
     setGenerating(true);
-    const result = await createPostAction({ brief: brief.trim(), contentType });
+    const result = await createPostAction({
+      brief: brief.trim(),
+      contentType,
+      slideCount,
+    });
     setGenerating(false);
     if (!result.ok) {
       toast.error(result.error);
@@ -54,26 +61,31 @@ export function StudioClient() {
     setActivePost({
       id: result.postId,
       templateId: result.templateId,
-      copy: result.copy,
+      slides: result.slides,
       contentType,
       brief: brief.trim(),
     });
     setView("preview");
-    toast.success("Copy generated.");
-  }, [brief, contentType]);
+    toast.success(
+      result.slideCount > 1
+        ? `${result.slideCount}-slide carousel generated.`
+        : "Copy generated.",
+    );
+  }, [brief, contentType, slideCount]);
 
   const handleCorrect = useCallback(
-    async (correction: string) => {
+    async (correction: string, slideIndex?: number) => {
       if (!activePost) return;
       const result = await correctCopyAction({
         postId: activePost.id,
         correction,
+        slideIndex,
       });
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      setActivePost((prev) => (prev ? { ...prev, copy: result.copy } : null));
+      setActivePost((prev) => (prev ? { ...prev, slides: result.slides } : null));
       toast.success("Copy updated.");
     },
     [activePost],
@@ -231,12 +243,51 @@ export function StudioClient() {
                 className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
                 style={{ letterSpacing: "1.5px" }}
               >
+                Slides
+              </label>
+              <div className="flex items-center gap-2">
+                {SLIDE_OPTIONS.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setSlideCount(n)}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg font-[family-name:var(--font-body)] text-[13px] font-medium transition-all"
+                    style={{
+                      backgroundColor:
+                        slideCount === n
+                          ? "var(--color-brand-red)"
+                          : "var(--color-neutral-800)",
+                      color: "var(--color-brand-cream)",
+                      border:
+                        slideCount === n
+                          ? "1px solid var(--color-brand-red)"
+                          : "1px solid rgba(253, 245, 230, 0.08)",
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <span className="ml-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+                  {slideCount === 1 ? "Single post" : `${slideCount}-slide carousel`}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label
+                className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                style={{ letterSpacing: "1.5px" }}
+              >
                 Brief
               </label>
               <textarea
                 value={brief}
                 onChange={(e) => setBrief(e.target.value)}
-                placeholder="e.g. Announce our new pricing tiers. Punchy, confident, a bit cheeky."
+                placeholder={
+                  slideCount > 1
+                    ? "e.g. 5-slide carousel breaking down our content creation process. Each slide builds on the last."
+                    : "e.g. Announce our new pricing tiers. Punchy, confident, a bit cheeky."
+                }
                 rows={4}
                 className="w-full resize-y rounded-lg border px-4 py-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.6] placeholder:text-[color:var(--color-neutral-500)] focus:outline-none"
                 style={{
@@ -258,7 +309,11 @@ export function StudioClient() {
                 opacity: generating || !brief.trim() ? 0.5 : 1,
               }}
             >
-              {generating ? "Generating…" : "Generate"}
+              {generating
+                ? "Generating…"
+                : slideCount > 1
+                  ? `Generate ${slideCount} slides`
+                  : "Generate"}
             </button>
           </div>
         )}
@@ -271,6 +326,7 @@ export function StudioClient() {
             onChangeTemplate={handleChangeTemplate}
             onNewPost={() => {
               setBrief("");
+              setSlideCount(1);
               setActivePost(null);
               setView("create");
             }}
