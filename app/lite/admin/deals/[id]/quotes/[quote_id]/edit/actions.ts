@@ -500,3 +500,39 @@ export async function withdrawQuoteAction(input: {
     };
   }
 }
+
+export async function addToCatalogueAction(input: {
+  name: string;
+  category: string;
+  unit: string;
+  base_price_cents_inc_gst: number;
+}): Promise<ActionResult<{ id: string }>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Item name is required." };
+  if (input.base_price_cents_inc_gst < 0) {
+    return { ok: false, error: "Price must be non-negative." };
+  }
+
+  const id = randomUUID();
+  const now = Date.now();
+  db.insert(catalogue_items)
+    .values({
+      id,
+      name,
+      category: input.category || "custom",
+      unit: input.unit as "hour" | "day" | "project" | "month" | "piece",
+      base_price_cents_inc_gst: input.base_price_cents_inc_gst,
+      tier_rank: null,
+      description: null,
+      created_at_ms: now,
+      updated_at_ms: now,
+      deleted_at_ms: null,
+    })
+    .run();
+
+  return { ok: true, value: { id } };
+}

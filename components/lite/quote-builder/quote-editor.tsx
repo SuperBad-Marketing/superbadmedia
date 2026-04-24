@@ -289,7 +289,7 @@ export function QuoteEditor(props: EditorProps) {
           </div>
         </DataCard>
 
-        {/* §2 What we'll do — line items table */}
+        {/* §2 What we'll do — line items */}
         <DataCard>
           <SectionHeader num="02" title="What we'll do" />
           {lineItems.length === 0 ? (
@@ -298,32 +298,42 @@ export function QuoteEditor(props: EditorProps) {
               body="Pull from the catalogue, or drop in a blank row."
             />
           ) : (
-            <div className="overflow-hidden rounded-[8px] border border-[rgba(253,245,230,0.05)]">
-              <table className="w-full text-[13px]">
-                <thead>
-                  <tr>
-                    <Th>Item</Th>
-                    <Th className="w-[80px]">Qty</Th>
-                    <Th className="w-[120px]">Unit $</Th>
-                    <Th className="w-[120px]">Kind</Th>
-                    <Th className="w-[36px]" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {lineItems.map((item) => (
-                    <LineItemRow
-                      key={item.id}
-                      item={item}
-                      locked={locked}
-                      onChange={(patch) => updateLineItem(item.id, patch)}
-                      onChangeSnapshot={(patch) =>
-                        updateLineItemSnapshot(item.id, patch)
-                      }
-                      onRemove={() => removeLineItem(item.id)}
-                    />
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex flex-col gap-2">
+              {lineItems.map((item) => (
+                <LineItemCard
+                  key={item.id}
+                  item={item}
+                  locked={locked}
+                  onChange={(patch) => updateLineItem(item.id, patch)}
+                  onChangeSnapshot={(patch) =>
+                    updateLineItemSnapshot(item.id, patch)
+                  }
+                  onRemove={() => removeLineItem(item.id)}
+                  onSaveToCatalogue={
+                    !item.snapshot.catalogue_item_id && item.snapshot.name.trim()
+                      ? async () => {
+                          const { addToCatalogueAction } = await import(
+                            "@/app/lite/admin/deals/[id]/quotes/[quote_id]/edit/actions"
+                          );
+                          const res = await addToCatalogueAction({
+                            name: item.snapshot.name,
+                            category: item.snapshot.category || "custom",
+                            unit: item.snapshot.unit,
+                            base_price_cents_inc_gst: item.unit_price_cents_inc_gst,
+                          });
+                          if (res.ok) {
+                            updateLineItemSnapshot(item.id, {
+                              catalogue_item_id: res.value.id,
+                            });
+                            toast.success(`"${item.snapshot.name}" added to catalogue.`);
+                          } else {
+                            toast.error(res.error);
+                          }
+                        }
+                      : undefined
+                  }
+                />
+              ))}
             </div>
           )}
           <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -696,28 +706,6 @@ function SectionHeader({
   );
 }
 
-function Th({
-  children,
-  className,
-}: {
-  children?: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <th
-      className={`px-3 py-2 text-left font-[family-name:var(--font-label)] text-[10px] uppercase ${className ?? ""}`}
-      style={{
-        letterSpacing: "2px",
-        color: "var(--color-neutral-500)",
-        borderBottom: "1px solid rgba(253,245,230,0.05)",
-        background: "rgba(15,15,14,0.25)",
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
 function EmptyRow({
   headline,
   body,
@@ -871,68 +859,110 @@ function PrimaryButton({
   );
 }
 
-function LineItemRow(props: {
+function LineItemCard(props: {
   item: QuoteLineItem;
   locked: boolean;
   onChange: (patch: Partial<QuoteLineItem>) => void;
   onChangeSnapshot: (patch: Partial<QuoteLineItem["snapshot"]>) => void;
   onRemove: () => void;
+  onSaveToCatalogue?: () => void;
 }) {
   const { item, locked } = props;
+  const isFromCatalogue = !!item.snapshot.catalogue_item_id;
   return (
-    <tr
-      className="transition-colors duration-[160ms]"
+    <div
+      className="group rounded-[8px] p-3 transition-colors duration-[160ms]"
       style={{
         transitionTimingFunction: EASE,
-        borderBottom: "1px solid rgba(253,245,230,0.03)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "rgba(253, 245, 230, 0.025)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "transparent";
+        background: "rgba(253, 245, 230, 0.02)",
+        border: "1px solid rgba(253, 245, 230, 0.05)",
       }}
     >
-      <td className="px-2 py-2 align-middle">
+      <div className="flex items-center gap-2 mb-2">
         <Input
           value={item.snapshot.name}
           placeholder="Item name"
           onChange={(e) => props.onChangeSnapshot({ name: e.target.value })}
           disabled={locked}
-          className="h-8 border-transparent bg-transparent focus-visible:border-[rgba(244,160,176,0.25)]"
+          className="h-8 flex-1 border-transparent bg-transparent text-[14px] font-medium text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-600)] focus-visible:border-[rgba(244,160,176,0.25)]"
         />
-      </td>
-      <td className="px-2 py-2 align-middle">
-        <Input
-          type="number"
-          min={0}
-          value={item.qty}
-          onChange={(e) =>
-            props.onChange({ qty: Math.max(0, Number(e.target.value) || 0) })
-          }
-          disabled={locked}
-          className="h-8 border-transparent bg-transparent tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
-        />
-      </td>
-      <td className="px-2 py-2 align-middle">
-        <Input
-          type="number"
-          min={0}
-          value={item.unit_price_cents_inc_gst / 100}
-          step={0.01}
-          onChange={(e) =>
-            props.onChange({
-              unit_price_cents_inc_gst: Math.max(
-                0,
-                Math.round((Number(e.target.value) || 0) * 100),
-              ),
-            })
-          }
-          disabled={locked}
-          className="h-8 border-transparent bg-transparent tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
-        />
-      </td>
-      <td className="px-2 py-2 align-middle">
+        <div className="flex items-center gap-1 shrink-0">
+          {props.onSaveToCatalogue && !locked && (
+            <button
+              type="button"
+              onClick={props.onSaveToCatalogue}
+              aria-label="Save to catalogue"
+              title="Save to catalogue"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-neutral-500)] opacity-0 transition-all duration-[160ms] hover:text-[color:var(--color-brand-orange)] group-hover:opacity-100"
+              style={{ transitionTimingFunction: EASE }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </button>
+          )}
+          {isFromCatalogue && (
+            <span
+              className="font-[family-name:var(--font-label)] text-[8px] uppercase text-[color:var(--color-neutral-600)]"
+              style={{ letterSpacing: "1px" }}
+              title="From catalogue"
+            >
+              Cat
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={props.onRemove}
+            disabled={locked}
+            aria-label="Remove line item"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-neutral-500)] opacity-0 transition-all duration-[160ms] hover:text-[color:var(--color-brand-pink)] group-hover:opacity-100 disabled:opacity-40"
+            style={{ transitionTimingFunction: EASE }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          <label
+            className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)]"
+            style={{ letterSpacing: "1.2px" }}
+          >
+            Qty
+          </label>
+          <Input
+            type="number"
+            min={0}
+            value={item.qty}
+            onChange={(e) =>
+              props.onChange({ qty: Math.max(0, Number(e.target.value) || 0) })
+            }
+            disabled={locked}
+            className="h-7 w-[60px] border-transparent bg-transparent text-[13px] tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
+          />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <label
+            className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)]"
+            style={{ letterSpacing: "1.2px" }}
+          >
+            Unit&nbsp;$
+          </label>
+          <Input
+            type="number"
+            min={0}
+            value={item.unit_price_cents_inc_gst / 100}
+            step={0.01}
+            onChange={(e) =>
+              props.onChange({
+                unit_price_cents_inc_gst: Math.max(
+                  0,
+                  Math.round((Number(e.target.value) || 0) * 100),
+                ),
+              })
+            }
+            disabled={locked}
+            className="h-7 w-[90px] border-transparent bg-transparent text-[13px] tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
+          />
+        </div>
         <Select
           value={item.kind}
           onValueChange={(v) =>
@@ -940,7 +970,7 @@ function LineItemRow(props: {
           }
           disabled={locked}
         >
-          <SelectTrigger className="h-8">
+          <SelectTrigger className="h-7 w-[110px] text-[12px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -948,19 +978,13 @@ function LineItemRow(props: {
             <SelectItem value="retainer">Retainer</SelectItem>
           </SelectContent>
         </Select>
-      </td>
-      <td className="px-2 py-2 align-middle text-right">
-        <button
-          type="button"
-          onClick={props.onRemove}
-          disabled={locked}
-          aria-label="Remove line item"
-          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-neutral-500)] transition-colors duration-[160ms] hover:text-[color:var(--color-brand-pink)] disabled:opacity-40"
-          style={{ transitionTimingFunction: EASE }}
+        <span
+          className="ml-auto font-mono text-[13px] tabular-nums text-[color:var(--color-brand-cream)]"
+          style={{ opacity: 0.7 }}
         >
-          ×
-        </button>
-      </td>
-    </tr>
+          {formatMoney(item.qty * item.unit_price_cents_inc_gst)}
+        </span>
+      </div>
+    </div>
   );
 }

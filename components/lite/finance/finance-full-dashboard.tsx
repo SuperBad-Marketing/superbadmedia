@@ -607,7 +607,7 @@ export function FinanceFullDashboard({
           setModalOpen(true);
         }}
         aria-label="Add expense"
-        className="fixed right-6 bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
+        className="fixed right-6 bottom-24 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
         whileHover={reducedMotion ? {} : { scale: 1.08 }}
         whileTap={reducedMotion ? {} : { scale: 0.95 }}
         transition={houseSpring}

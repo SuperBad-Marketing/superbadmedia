@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { FileText, Send, Plus, Eye } from "lucide-react";
+import { FileText, Send, Plus, Eye, Trash2 } from "lucide-react";
 import {
   createQuoteAction,
   sendQuoteAction,
+  deleteQuoteAction,
 } from "@/app/lite/admin/pipeline/[id]/actions";
 import type { QuoteRow } from "@/lib/db/schema/quotes";
 
@@ -151,6 +152,7 @@ export function DealQuotesSection({
 function QuoteCard({ quote, dealId }: { quote: QuoteRow; dealId: string }) {
   const [isPending, startTransition] = useTransition();
   const [sendError, setSendError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const status = STATUS_STYLES[quote.status] ?? STATUS_STYLES.draft;
 
   function handleSend() {
@@ -158,6 +160,19 @@ function QuoteCard({ quote, dealId }: { quote: QuoteRow; dealId: string }) {
       setSendError(null);
       const result = await sendQuoteAction(quote.id);
       if (!result.ok) setSendError(result.error);
+    });
+  }
+
+  function handleDelete() {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    startTransition(async () => {
+      setSendError(null);
+      const result = await deleteQuoteAction(quote.id, dealId);
+      if (!result.ok) setSendError(result.error);
+      setConfirmDelete(false);
     });
   }
 
@@ -252,6 +267,25 @@ function QuoteCard({ quote, dealId }: { quote: QuoteRow; dealId: string }) {
             >
               <Send size={13} />
               {isPending ? "Sending…" : "Send"}
+            </button>
+          )}
+
+          {quote.status !== "accepted" && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isPending}
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors disabled:opacity-50 cursor-pointer"
+              style={{
+                backgroundColor: confirmDelete
+                  ? "rgba(239, 68, 68, 0.2)"
+                  : "rgba(239, 68, 68, 0.08)",
+                color: confirmDelete ? "#fca5a5" : "var(--color-neutral-400)",
+                border: `1px solid ${confirmDelete ? "rgba(239, 68, 68, 0.4)" : "rgba(239, 68, 68, 0.15)"}`,
+              }}
+            >
+              <Trash2 size={13} />
+              {confirmDelete ? "Confirm" : "Delete"}
             </button>
           )}
         </div>

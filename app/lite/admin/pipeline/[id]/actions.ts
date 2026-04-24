@@ -196,6 +196,38 @@ export async function createQuoteAction(
   }
 }
 
+export async function deleteQuoteAction(
+  quoteId: string,
+  dealId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [quote] = db
+    .select({ id: quotes.id, status: quotes.status, quote_number: quotes.quote_number })
+    .from(quotes)
+    .where(eq(quotes.id, quoteId))
+    .limit(1)
+    .all();
+  if (!quote) return { ok: false, error: "Quote not found." };
+
+  if (quote.status === "accepted") {
+    return { ok: false, error: "Cannot delete an accepted quote." };
+  }
+
+  db.delete(quotes).where(eq(quotes.id, quoteId)).run();
+
+  void logActivity({
+    kind: "quote_deleted",
+    body: `Deleted quote ${quote.quote_number}`,
+    createdBy: by,
+    meta: { deal_id: dealId, quote_id: quoteId },
+  });
+
+  revalidatePath(`/lite/admin/pipeline/${dealId}`);
+  return { ok: true };
+}
+
 export async function sendQuoteAction(
   quoteId: string,
 ): Promise<ActionResult> {
