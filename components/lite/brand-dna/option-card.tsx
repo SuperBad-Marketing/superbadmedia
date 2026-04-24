@@ -36,13 +36,13 @@ export function OptionCard({
       data-selected={selected || undefined}
       className="bda-opt"
       style={{
-        background: selected ? "var(--brand-red)" : "rgba(34, 34, 31, 0.7)",
+        background: selected ? "var(--brand-red)" : "rgba(34, 34, 31, 0.5)",
         border: "1px solid",
         borderColor: selected
           ? "var(--brand-red)"
-          : "rgba(253, 245, 230, 0.1)",
-        borderRadius: 12,
-        padding: "22px 24px",
+          : "rgba(253, 245, 230, 0.08)",
+        borderRadius: 14,
+        padding: "24px 26px",
         cursor: disabled ? "default" : "pointer",
         textAlign: "left",
         fontFamily: "var(--font-body)",
@@ -51,8 +51,12 @@ export function OptionCard({
         color: selected ? "var(--brand-cream)" : "var(--neutral-300)",
         position: "relative",
         overflow: "hidden",
+        backdropFilter: "blur(8px)",
+        boxShadow: selected
+          ? "0 0 24px rgba(178, 40, 72, 0.2), inset 0 1px 0 rgba(253, 245, 230, 0.08)"
+          : "inset 0 1px 0 rgba(253, 245, 230, 0.04)",
         transition:
-          "background 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1), color 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+          "background 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1), color 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1)",
         width: "100%",
       }}
     >
@@ -74,10 +78,11 @@ export function OptionCard({
 
       <style jsx>{`
         .bda-opt:hover:not(:disabled):not([data-selected]) {
-          background: rgba(34, 34, 31, 0.95) !important;
-          border-color: rgba(244, 160, 176, 0.4) !important;
+          background: rgba(34, 34, 31, 0.85) !important;
+          border-color: rgba(244, 160, 176, 0.3) !important;
           transform: translateY(-2px);
           color: var(--brand-cream) !important;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(253, 245, 230, 0.06) !important;
         }
         .bda-opt:focus-visible {
           outline: 2px solid var(--brand-pink);

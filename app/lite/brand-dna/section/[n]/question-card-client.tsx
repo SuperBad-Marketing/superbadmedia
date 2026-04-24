@@ -40,6 +40,7 @@ interface QuestionCardClientProps {
   sectionTitle: string;
   track: string | null;
   submitAction: (formData: FormData) => Promise<void>;
+  goBackAction?: (formData: FormData) => Promise<void>;
 }
 
 const OPTION_KEYS = ["a", "b", "c", "d"] as const;
@@ -53,9 +54,11 @@ export function QuestionCardClient({
   sectionTitle,
   track,
   submitAction,
+  goBackAction,
 }: QuestionCardClientProps) {
   const [selected, setSelected] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
+  const canGoBack = goBackAction && (questionIndex > 0 || section > 1);
 
   // Defect-fix: when the page redirects to the next question, the layout is
   // preserved and this client component is reconciled with a new `question`
@@ -81,6 +84,19 @@ export function QuestionCardClient({
 
     await submitAction(fd);
     // redirect() runs server-side — unreachable on success.
+    setPending(false);
+  }
+
+  async function handleGoBack() {
+    if (pending || !goBackAction) return;
+    setPending(true);
+
+    const fd = new FormData();
+    fd.set("profileId", profileId);
+    fd.set("section", String(section));
+    fd.set("questionIndex", String(questionIndex));
+
+    await goBackAction(fd);
     setPending(false);
   }
 
@@ -128,20 +144,32 @@ export function QuestionCardClient({
           />
         </div>
 
-        <h2
-          style={{
-            fontFamily: "var(--font-body)",
-            fontWeight: 500,
-            fontSize: 38,
-            lineHeight: 1.25,
-            color: "var(--brand-cream)",
-            letterSpacing: "-0.8px",
-            maxWidth: 680,
-            margin: 0,
-          }}
-        >
-          {resolveQuestionText(question, (track === "business" ? "business" : "founder") as "founder" | "business")}
-        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-body)",
+              fontWeight: 500,
+              fontSize: 38,
+              lineHeight: 1.25,
+              color: "var(--brand-cream)",
+              letterSpacing: "-0.8px",
+              maxWidth: 680,
+              margin: 0,
+            }}
+          >
+            {resolveQuestionText(question, (track === "business" ? "business" : "founder") as "founder" | "business")}
+          </h2>
+          <div
+            aria-hidden="true"
+            style={{
+              width: 48,
+              height: 2,
+              borderRadius: 2,
+              background: "linear-gradient(90deg, var(--brand-pink), transparent)",
+              opacity: 0.5,
+            }}
+          />
+        </div>
 
         <div
           className="bda-options-grid"
@@ -165,6 +193,35 @@ export function QuestionCardClient({
             );
           })}
         </div>
+
+        {canGoBack && (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => void handleGoBack()}
+            className="bda-back-btn"
+            style={{
+              alignSelf: "flex-start",
+              fontFamily: "var(--font-label)",
+              fontSize: 11,
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              color: "var(--neutral-500)",
+              background: "transparent",
+              border: "none",
+              cursor: pending ? "default" : "pointer",
+              padding: "8px 0",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              opacity: pending ? 0.4 : 1,
+              transition: "color 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+          >
+            <span aria-hidden="true" style={{ fontSize: 14 }}>←</span>
+            Back
+          </button>
+        )}
       </motion.div>
 
       <style jsx>{`
@@ -175,6 +232,9 @@ export function QuestionCardClient({
           h2 {
             font-size: 28px !important;
           }
+        }
+        :global(.bda-back-btn:hover:not(:disabled)) {
+          color: var(--brand-pink) !important;
         }
       `}</style>
     </main>

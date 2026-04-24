@@ -32,28 +32,39 @@ export function InsightRevealClient({ insight, attribution }: InsightRevealClien
         gap: 28,
       }}
     >
-      <blockquote
+      <div
         style={{
-          fontFamily: "var(--font-narrative)",
-          fontStyle: "italic",
-          fontSize: 36,
-          lineHeight: 1.35,
-          color: "var(--brand-cream)",
-          letterSpacing: "-0.3px",
-          margin: 0,
+          padding: "40px 32px",
+          borderRadius: 16,
+          background: "rgba(34, 34, 31, 0.5)",
+          border: "1px solid rgba(244, 160, 176, 0.1)",
+          backdropFilter: "blur(12px)",
         }}
       >
-        &ldquo;{insight}&rdquo;
-      </blockquote>
+        <blockquote
+          style={{
+            fontFamily: "var(--font-narrative)",
+            fontStyle: "italic",
+            fontSize: 36,
+            lineHeight: 1.35,
+            color: "var(--brand-cream)",
+            letterSpacing: "-0.3px",
+            margin: 0,
+          }}
+        >
+          &ldquo;{insight}&rdquo;
+        </blockquote>
+      </div>
 
       {attribution && (
         <p
           style={{
             fontFamily: "var(--font-body)",
             fontStyle: "italic",
-            fontSize: 13,
+            fontSize: 14,
             color: "var(--brand-pink)",
-            opacity: 0.7,
+            opacity: 0.85,
+            letterSpacing: "0.2px",
           }}
         >
           {attribution}

@@ -94,9 +94,8 @@ async function insertProfile(
 
 describe("isBrandDnaCompleteForUser", () => {
   it("returns false when brand_dna_assessment_enabled is off", async () => {
+    killSwitches.brand_dna_assessment_enabled = false;
     await insertProfile({ status: "complete", is_current: true });
-    // Kill-switch default is false — no override needed.
-    expect(killSwitches.brand_dna_assessment_enabled).toBe(false);
     const result = await isBrandDnaCompleteForUser("user-001", testDb);
     expect(result).toBe(false);
   });

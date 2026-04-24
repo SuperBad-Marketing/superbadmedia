@@ -222,8 +222,12 @@ function QuoteCard({ quote }: { quote: QuoteRow }) {
 
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            href={`/lite/quotes/${quote.token}`}
-            target="_blank"
+            href={
+              quote.status === "draft"
+                ? `/lite/admin/deals/${dealId}/quotes/${quote.id}/edit`
+                : `/lite/quotes/${quote.token}`
+            }
+            target={quote.status === "draft" ? undefined : "_blank"}
             className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors border"
             style={{
               borderColor: "var(--color-neutral-600)",
@@ -231,7 +235,7 @@ function QuoteCard({ quote }: { quote: QuoteRow }) {
             }}
           >
             <Eye size={13} />
-            Preview
+            {quote.status === "draft" ? "Edit" : "Preview"}
           </Link>
 
           {quote.status === "draft" && (

@@ -77,7 +77,7 @@ async function hasStripeAdmin(): Promise<boolean> {
     .from(integration_connections)
     .where(
       and(
-        eq(integration_connections.vendor_key, "stripe"),
+        eq(integration_connections.vendor_key, "stripe-admin"),
         eq(integration_connections.owner_type, "admin"),
         eq(integration_connections.status, "active"),
       ),

@@ -83,6 +83,7 @@ export const MODELS = {
   "lead-gen-outreach-draft": "opus",
   "lead-gen-nudge-rewrite": "opus",
   "lead-gen-case-snippet": "haiku",
+  "lead-gen-candidate-summary": "haiku",
   "lead-gen-suggest-search": "haiku",
   // client-management (3)
   "client-mgmt-bartender-opening-line": "haiku",

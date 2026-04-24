@@ -101,6 +101,7 @@ describe("scheduled_tasks schema + worker", () => {
   });
 
   it("worker skips all processing when kill-switch is off, still writes heartbeat", async () => {
+    killSwitches.scheduled_tasks_enabled = false;
     const { enqueueTask } = await import("@/lib/scheduled-tasks/enqueue");
     const { tick } = await import("@/lib/scheduled-tasks/worker");
     await enqueueTask({

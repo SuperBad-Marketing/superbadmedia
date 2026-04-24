@@ -201,9 +201,10 @@ function RevealInner({
                   <p
                     style={{
                       fontFamily: "var(--font-body)",
-                      fontSize: 17,
-                      lineHeight: 1.7,
-                      color: "var(--neutral-300)",
+                      fontSize: 19,
+                      lineHeight: 1.75,
+                      color: "var(--brand-cream)",
+                      opacity: 0.85,
                       margin: 0,
                     }}
                   >
@@ -247,9 +248,10 @@ function RevealInner({
                 key={i}
                 style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: 17,
-                  lineHeight: 1.7,
-                  color: "var(--neutral-300)",
+                  fontSize: 19,
+                  lineHeight: 1.75,
+                  color: "var(--brand-cream)",
+                    opacity: 0.85,
                   margin: 0,
                 }}
               >

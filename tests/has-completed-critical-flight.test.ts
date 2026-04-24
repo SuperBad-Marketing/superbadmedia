@@ -80,7 +80,7 @@ async function seedCompletion(userId: string, key: string): Promise<void> {
 
 describe("hasCompletedCriticalFlight", () => {
   it("short-circuits to true when setup_wizards_enabled is false", async () => {
-    // defaults: setup_wizards_enabled = false
+    killSwitches.setup_wizards_enabled = false;
     expect(await hasCompletedCriticalFlight("user-andy", db)).toBe(true);
   });
 

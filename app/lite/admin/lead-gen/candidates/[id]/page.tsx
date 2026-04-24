@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth/session";
 import { getCandidateById } from "@/lib/lead-gen/queries";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { CandidateActions } from "./candidate-actions";
+import { CandidateContactEdit } from "./candidate-contact-edit";
 
 export const metadata: Metadata = {
   title: "Candidate Detail — Lead Gen — SuperBad",
@@ -176,20 +177,23 @@ export default async function CandidateDetailPage({
         </div>
       </div>
 
-      {/* Contact */}
+      {/* Contact + AI Summary + Draft Email */}
       <div className="mt-8 px-4">
         <div
           className="mb-4 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
           style={{ letterSpacing: "2px" }}
         >
-          Contact
+          Contact & Outreach
         </div>
-        <SignalCard title="Contact info">
-          <SignalRow label="Email" value={candidate.contact_email} />
-          <SignalRow label="Name" value={candidate.contact_name} />
-          <SignalRow label="Role" value={candidate.contact_role} />
-          <SignalRow label="Confidence" value={candidate.email_confidence} />
-        </SignalCard>
+        <CandidateContactEdit
+          candidateId={candidate.id}
+          contactEmail={candidate.contact_email}
+          contactName={candidate.contact_name}
+          contactRole={candidate.contact_role}
+          emailConfidence={candidate.email_confidence}
+          notes={candidate.notes}
+          aiSummary={candidate.ai_summary}
+        />
       </div>
 
       {/* Enrichment signals */}

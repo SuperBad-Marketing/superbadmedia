@@ -24,11 +24,12 @@ import type { EmailClassification } from "@/lib/channels/email/classifications";
 import { isTransactional } from "@/lib/channels/email/classifications";
 import { wrapEmailHtml } from "@/lib/channels/email/email-layout";
 
-// Resend client singleton
+// Resend client singleton — use a dummy key outside production so the
+// constructor doesn't throw when tests import this module transitively.
 const globalForResend = globalThis as unknown as { _resend?: Resend };
 const resend: Resend =
   globalForResend._resend ??
-  new Resend(process.env.RESEND_API_KEY ?? "");
+  new Resend(process.env.RESEND_API_KEY || "re_test_placeholder");
 
 if (process.env.NODE_ENV !== "production") {
   globalForResend._resend = resend;

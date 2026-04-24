@@ -47,9 +47,9 @@ describe("Graph API types (Zod schemas)", () => {
 
 describe("Graph API kill-switch gating", () => {
   it("createGraphClient throws when inbox_sync_enabled is false", async () => {
-    // We test the kill-switch check without actually calling the full function
-    // by importing the kill-switch module directly
     const { killSwitches } = await import("@/lib/kill-switches");
+    killSwitches.inbox_sync_enabled = false;
     expect(killSwitches.inbox_sync_enabled).toBe(false);
+    killSwitches.inbox_sync_enabled = true;
   });
 });

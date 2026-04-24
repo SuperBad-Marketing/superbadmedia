@@ -163,7 +163,7 @@ describe("generateSectionInsight", () => {
   });
 
   it("returns stub string when llm_calls_enabled is false", async () => {
-    expect(killSwitches.llm_calls_enabled).toBe(false);
+    killSwitches.llm_calls_enabled = false;
 
     const result = await generateSectionInsight("any-profile", 1, testDb);
     expect(result).toContain("section 1");

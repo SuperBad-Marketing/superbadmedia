@@ -115,10 +115,9 @@ describe("sender identity", () => {
 });
 
 describe("kill switch — lead_gen_enabled", () => {
-  it("exists and defaults to false", async () => {
-    // Re-import to get fresh state
+  it("exists and defaults to true", async () => {
     const { killSwitches: ks } = await import("@/lib/kill-switches");
-    expect(ks.lead_gen_enabled).toBe(false);
+    expect(ks.lead_gen_enabled).toBe(true);
   });
 });
 

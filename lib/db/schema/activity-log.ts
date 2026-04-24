@@ -174,6 +174,8 @@ export const ACTIVITY_LOG_KINDS = [
   "candidate_track_change_suppressed",
   "candidate_below_floor",
   "lead_candidate_skipped",
+  "lead_candidate_deleted",
+  "lead_candidate_updated",
   // --- Content Engine (15) ---
   "content_topic_researched",
   "content_topic_vetoed",
@@ -370,9 +372,8 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Deal admin (2) ---
   "deal_updated",
   "deal_deleted",
-  // --- Quotes (2) ---
+  // --- Quotes (1 — quote_sent already listed above) ---
   "quote_drafted",
-  "quote_sent",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

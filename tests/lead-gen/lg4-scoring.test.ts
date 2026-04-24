@@ -460,12 +460,12 @@ describe("rescoreCandidate", () => {
 // ── Floor constants ────────────────────────────────────────────────────
 
 describe("scoring constants", () => {
-  it("SaaS floor is 40", () => {
-    expect(SAAS_FLOOR).toBe(40);
+  it("SaaS floor is 8", () => {
+    expect(SAAS_FLOOR).toBe(8);
   });
 
-  it("retainer floor is 55", () => {
-    expect(RETAINER_FLOOR).toBe(55);
+  it("retainer floor is 14", () => {
+    expect(RETAINER_FLOOR).toBe(14);
   });
 
   it("reactive bounds are [-20, +25]", () => {

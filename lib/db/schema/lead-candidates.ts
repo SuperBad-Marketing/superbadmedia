@@ -67,6 +67,10 @@ export const leadCandidates = sqliteTable(
       enum: CANDIDATE_SOURCES,
     }).notNull(),
 
+    // Admin notes + AI summary
+    notes: text("notes"),
+    ai_summary: text("ai_summary"),
+
     // Draft state
     pending_draft_id: text("pending_draft_id"),
 

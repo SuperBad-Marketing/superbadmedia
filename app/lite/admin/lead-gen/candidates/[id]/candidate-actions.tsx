@@ -6,6 +6,7 @@ import {
   skipCandidateAction,
   unskipCandidateAction,
   updateCandidateTrackAction,
+  deleteCandidateAction,
 } from "../../actions";
 
 interface CandidateActionsProps {
@@ -28,6 +29,7 @@ export function CandidateActions({
   const [showSkipInput, setShowSkipInput] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   function handleSkip() {
     if (!showSkipInput) {
@@ -57,6 +59,19 @@ export function CandidateActions({
       const res = await updateCandidateTrackAction(candidateId, track);
       if (!res.ok) setError(res.error);
       else router.refresh();
+    });
+  }
+
+  function handleDelete() {
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+    startTransition(async () => {
+      setError(null);
+      const res = await deleteCandidateAction(candidateId);
+      if (!res.ok) setError(res.error);
+      else router.push("/lite/admin/lead-gen/candidates");
     });
   }
 
@@ -193,6 +208,37 @@ export function CandidateActions({
             )}
           </div>
         )}
+
+        <div className="h-5 w-px" style={{ backgroundColor: "rgba(253, 245, 230, 0.06)" }} />
+
+        {/* Delete */}
+        <div className="flex items-center gap-2">
+          {showDeleteConfirm && (
+            <span className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-400)]">
+              Are you sure?
+            </span>
+          )}
+          <button
+            disabled={pending}
+            onClick={handleDelete}
+            className="rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors hover:brightness-110"
+            style={{
+              letterSpacing: "1.2px",
+              backgroundColor: showDeleteConfirm ? "rgba(239, 68, 68, 0.25)" : "rgba(239, 68, 68, 0.08)",
+              color: "#fca5a5",
+            }}
+          >
+            {pending ? "..." : showDeleteConfirm ? "Confirm Delete" : "Delete"}
+          </button>
+          {showDeleteConfirm && (
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (

@@ -40,7 +40,8 @@ const DEFAULT_PARAMS: DiscoverySearchParams = {
   max_candidates: 8,
 };
 
-describe("searchMetaAdLibrary", () => {
+// Source disabled until Meta app review grants ads_read permission.
+describe.skip("searchMetaAdLibrary", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue(undefined);

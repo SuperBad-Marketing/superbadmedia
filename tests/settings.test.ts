@@ -47,11 +47,11 @@ describe("settings registry + seed migration", () => {
     }
   });
 
-  it("seeds 178 keys total (165 pre-SAP + 13 SAP audit keys)", () => {
+  it("seeds 182 keys total", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(178);
+    expect(count.n).toBe(182);
   });
 
   it("stores portal.magic_link_ttl_hours = 168", () => {
@@ -87,7 +87,7 @@ describe("settings registry + seed migration", () => {
     const count = sqlite
       .prepare("SELECT count(*) AS n FROM settings")
       .get() as { n: number };
-    expect(count.n).toBe(178);
+    expect(count.n).toBe(182);
   });
 
   it("every SETTINGS_KEYS entry is a string matching the feature.rule shape", () => {

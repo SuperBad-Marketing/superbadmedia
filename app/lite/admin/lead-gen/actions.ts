@@ -344,6 +344,210 @@ export async function updateCandidateTrackAction(
   return { ok: true };
 }
 
+export async function deleteCandidateAction(
+  candidateId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [candidate] = await db
+    .select({ id: leadCandidates.id, company_name: leadCandidates.company_name })
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+
+  await db.delete(leadCandidates).where(eq(leadCandidates.id, candidateId));
+
+  await logActivity({
+    kind: "lead_candidate_deleted",
+    body: `Deleted candidate ${candidate.company_name}`,
+    createdBy: by,
+    meta: { candidate_id: candidateId },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
+export async function updateCandidateDetailsAction(
+  candidateId: string,
+  details: {
+    contact_email?: string | null;
+    contact_name?: string | null;
+    contact_role?: string | null;
+    notes?: string | null;
+  },
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [candidate] = await db
+    .select({ id: leadCandidates.id, company_name: leadCandidates.company_name })
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+
+  await db
+    .update(leadCandidates)
+    .set({
+      contact_email: details.contact_email ?? null,
+      contact_name: details.contact_name ?? null,
+      contact_role: details.contact_role ?? null,
+      notes: details.notes ?? null,
+    })
+    .where(eq(leadCandidates.id, candidateId));
+
+  await logActivity({
+    kind: "lead_candidate_updated",
+    body: `Updated details for ${candidate.company_name}`,
+    createdBy: by,
+    meta: { candidate_id: candidateId },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  revalidatePath(`${LEAD_GEN_PATH}/candidates/${candidateId}`);
+  return { ok: true };
+}
+
+export async function generateCandidateSummaryAction(
+  candidateId: string,
+): Promise<{ ok: true; summary: string } | { ok: false; error: string }> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  if (!killSwitches.llm_calls_enabled) {
+    return { ok: false, error: "LLM calls are paused." };
+  }
+
+  const [candidate] = await db
+    .select()
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+
+  const profile = candidate.viability_profile_json as Record<string, unknown>;
+
+  const prompt = `Summarise this lead generation candidate in 2-3 concise sentences for an agency owner reviewing prospects. Focus on what makes them interesting or not, their marketing maturity, and any red flags.
+
+CANDIDATE:
+- Company: ${candidate.company_name}
+- Domain: ${candidate.domain || "unknown"}
+- Track: ${candidate.qualified_track}
+- SaaS Score: ${candidate.saas_score} / Retainer Score: ${candidate.retainer_score}
+- Source: ${candidate.sourced_from.replace(/_/g, " ")}
+- Contact: ${candidate.contact_name || "unknown"} (${candidate.contact_email || "no email"})
+
+ENRICHMENT DATA:
+${JSON.stringify(profile, null, 2)}
+
+Write the summary in a direct, matter-of-fact tone. No fluff. Start with what they do, then their marketing posture.`;
+
+  try {
+    const summary = await invokeLlmText({
+      job: "lead-gen-candidate-summary",
+      system: "You are a concise marketing strategist. Write short, direct candidate summaries.",
+      prompt,
+      maxTokens: 300,
+    });
+
+    if (!summary) return { ok: false, error: "Empty response — try again." };
+
+    await db
+      .update(leadCandidates)
+      .set({ ai_summary: summary })
+      .where(eq(leadCandidates.id, candidateId));
+
+    revalidatePath(`${LEAD_GEN_PATH}/candidates/${candidateId}`);
+    return { ok: true, summary };
+  } catch {
+    return { ok: false, error: "Summary generation failed — try again." };
+  }
+}
+
+export async function generateDraftEmailAction(
+  candidateId: string,
+): Promise<{ ok: true; subject: string; body: string } | { ok: false; error: string }> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  if (!killSwitches.llm_calls_enabled) {
+    return { ok: false, error: "LLM calls are paused." };
+  }
+
+  const [candidate] = await db
+    .select()
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+
+  if (!candidate.contact_email) {
+    return { ok: false, error: "No contact email — add one first." };
+  }
+
+  const profile = candidate.viability_profile_json as Record<string, unknown>;
+  const brandProfile = await getSuperbadBrandProfile();
+
+  const systemPrompt = `You are drafting a cold outreach email on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia).
+
+BRAND VOICE:
+${brandProfile.voiceDescription}
+Tone markers: ${brandProfile.toneMarkers.join(", ")}
+${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}
+
+Respond in exactly this format:
+SUBJECT: <subject line>
+BODY:
+<email body in markdown>`;
+
+  const userPrompt = `Write a personalised cold outreach email for this prospect.
+
+PROSPECT:
+- Company: ${candidate.company_name}
+- Domain: ${candidate.domain || "unknown"}
+- Contact: ${candidate.contact_name || "the owner"}
+- Role: ${candidate.contact_role || "unknown"}
+- Track: ${candidate.qualified_track}
+
+ENRICHMENT:
+${JSON.stringify(profile, null, 2)}
+
+${candidate.notes ? `NOTES:\n${candidate.notes}` : ""}
+
+The email should feel personal, reference something specific about their business, and be genuinely useful. No hard sell. Keep it under 150 words.`;
+
+  try {
+    const result = await invokeLlmText({
+      job: "lead-gen-outreach-draft",
+      system: systemPrompt,
+      prompt: userPrompt,
+      maxTokens: 600,
+    });
+
+    const subjectMatch = result.match(/SUBJECT:\s*(.+)/i);
+    const bodyMatch = result.match(/BODY:\s*([\s\S]+)/i);
+
+    if (!subjectMatch || !bodyMatch) {
+      return { ok: false, error: "Unexpected format — try again." };
+    }
+
+    return {
+      ok: true,
+      subject: subjectMatch[1].trim(),
+      body: bodyMatch[1].trim(),
+    };
+  } catch {
+    return { ok: false, error: "Draft generation failed — try again." };
+  }
+}
+
 // ── Manual run ──────────────────────────────────────────────────────
 
 export async function triggerManualRunAction(): Promise<

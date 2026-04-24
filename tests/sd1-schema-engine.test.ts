@@ -30,6 +30,7 @@ import {
 import {
   generateInVoice,
 } from "@/lib/eggs/generate-in-voice";
+import { killSwitches, resetKillSwitchesToDefaults } from "@/lib/kill-switches";
 import { AMBIENT_SLOTS } from "@/lib/db/schema/ambient-copy-cache";
 import { RIDDLE_OUTCOMES } from "@/lib/db/schema/riddles";
 
@@ -374,7 +375,10 @@ describe("Trigger Evaluator", () => {
 });
 
 describe("generateInVoice stub", () => {
+  afterAll(() => resetKillSwitchesToDefaults());
+
   it("returns placeholder text", async () => {
+    killSwitches.llm_calls_enabled = false;
     const result = await generateInVoice({
       slot: "empty_state",
       context: { page: "pipeline" },

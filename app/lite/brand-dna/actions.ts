@@ -360,6 +360,109 @@ export async function markProfileComplete(profileId: string): Promise<void> {
   });
 }
 
+// ── helpers ─────────────────────────────────────────────────────────────────
+
+async function deleteAnswerAndTags(profileId: string, questionId: string): Promise<void> {
+  const [answer] = await db
+    .select({ id: brand_dna_answers.id, tags_awarded: brand_dna_answers.tags_awarded })
+    .from(brand_dna_answers)
+    .where(
+      and(
+        eq(brand_dna_answers.profile_id, profileId),
+        eq(brand_dna_answers.question_id, questionId),
+      ),
+    )
+    .limit(1);
+
+  if (!answer) return;
+
+  let removedTags: string[] = [];
+  try {
+    removedTags = JSON.parse(answer.tags_awarded ?? "[]") as string[];
+  } catch {}
+
+  if (removedTags.length > 0) {
+    const profiles = await db
+      .select({ signal_tags: brand_dna_profiles.signal_tags })
+      .from(brand_dna_profiles)
+      .where(eq(brand_dna_profiles.id, profileId))
+      .limit(1);
+
+    if (profiles[0]?.signal_tags) {
+      const tagMap = JSON.parse(profiles[0].signal_tags) as Record<string, number>;
+      for (const tag of removedTags) {
+        if (tagMap[tag]) {
+          tagMap[tag]--;
+          if (tagMap[tag] <= 0) delete tagMap[tag];
+        }
+      }
+      await db
+        .update(brand_dna_profiles)
+        .set({ signal_tags: JSON.stringify(tagMap), updated_at_ms: Date.now() })
+        .where(eq(brand_dna_profiles.id, profileId));
+    }
+  }
+
+  await db
+    .delete(brand_dna_answers)
+    .where(eq(brand_dna_answers.id, answer.id));
+}
+
+// ── goBack ──────────────────────────────────────────────────────────────────
+
+/**
+ * Delete the most recent answer in the given section and redirect back to
+ * the section page so the question reappears. Used by the "Back" button.
+ */
+export async function goBack(formData: FormData): Promise<void> {
+  if (!isAssessmentEnabled()) {
+    redirect("/lite/onboarding");
+  }
+
+  const profileId = formData.get("profileId");
+  const sectionRaw = formData.get("section");
+  const questionIndexRaw = formData.get("questionIndex");
+
+  if (
+    !profileId ||
+    typeof profileId !== "string" ||
+    !sectionRaw ||
+    typeof sectionRaw !== "string"
+  ) {
+    redirect("/lite/brand-dna");
+  }
+
+  const section = parseInt(sectionRaw, 10);
+  if (isNaN(section) || section < 1 || section > 5) {
+    redirect("/lite/brand-dna");
+  }
+
+  const questionIndex = questionIndexRaw ? parseInt(String(questionIndexRaw), 10) : -1;
+
+  // Get the question bank for this section to find the previous question
+  const questions = getQuestionsForSection(section as 1 | 2 | 3 | 4 | 5);
+
+  if (questionIndex === 0 && section > 1) {
+    // Cross-section: go back to last question of previous section
+    const prevSection = (section - 1) as 1 | 2 | 3 | 4 | 5;
+    const prevQuestions = getQuestionsForSection(prevSection);
+    const lastQuestion = prevQuestions[prevQuestions.length - 1];
+    if (lastQuestion) {
+      await deleteAnswerAndTags(profileId, lastQuestion.id);
+    }
+    redirect(`/lite/brand-dna/section/${prevSection}?profileId=${profileId}`);
+  }
+
+  if (questionIndex > 0) {
+    const prevQuestion = questions[questionIndex - 1];
+    if (prevQuestion) {
+      await deleteAnswerAndTags(profileId, prevQuestion.id);
+    }
+  }
+
+  redirect(`/lite/brand-dna/section/${section}?profileId=${profileId}`);
+}
+
 // ── Exported helpers (for section page to read profile ID without auth) ───────
 
 /**

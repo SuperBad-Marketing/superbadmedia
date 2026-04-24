@@ -143,6 +143,7 @@ describe("generateFirstImpression", () => {
   afterEach(() => resetKillSwitchesToDefaults());
 
   it("returns a stub string when llm_calls_enabled is false", async () => {
+    killSwitches.llm_calls_enabled = false;
     const profileId = await insertProfile();
     const result = await generateFirstImpression(profileId, testDb);
     expect(result).toContain("LLM calls");
@@ -203,6 +204,7 @@ describe("generateProsePortrait", () => {
   afterEach(() => resetKillSwitchesToDefaults());
 
   it("returns a stub string when llm_calls_enabled is false", async () => {
+    killSwitches.llm_calls_enabled = false;
     const profileId = await insertProfile();
     const result = await generateProsePortrait(profileId, testDb);
     expect(result).toContain("LLM calls");

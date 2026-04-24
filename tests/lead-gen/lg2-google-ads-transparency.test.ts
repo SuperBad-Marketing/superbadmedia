@@ -40,7 +40,8 @@ const DEFAULT_PARAMS: DiscoverySearchParams = {
   max_candidates: 8,
 };
 
-describe("searchGoogleAdsTransparency", () => {
+// Source stubbed — SerpAPI does not support google_ads_transparencycenter.
+describe.skip("searchGoogleAdsTransparency", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue(undefined);

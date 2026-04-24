@@ -522,13 +522,13 @@ describe("SB-10 getSaasHealthBanners", () => {
     });
     seedActivity("d_pd", "saas_data_loss_warning_sent", NOW - 1 * DAY);
 
-    const banners = await getSaasHealthBanners("user-1");
+    const banners = await getSaasHealthBanners("user-1", { nowMs: NOW });
     const severities = banners.map((b) => b.severity);
     expect(severities).toContain("critical");
     expect(severities).toContain("warning");
 
     killSwitches.saas_headlines_enabled = false;
-    const off = await getSaasHealthBanners("user-1");
+    const off = await getSaasHealthBanners("user-1", { nowMs: NOW });
     expect(off).toEqual([]);
   });
 

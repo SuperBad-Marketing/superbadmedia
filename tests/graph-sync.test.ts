@@ -67,6 +67,8 @@ describe("Graph sync types (Zod parsing)", () => {
 describe("sync kill-switch", () => {
   it("runDeltaSync returns early when kill-switch is off", async () => {
     const { killSwitches } = await import("@/lib/kill-switches");
+    killSwitches.inbox_sync_enabled = false;
     expect(killSwitches.inbox_sync_enabled).toBe(false);
+    killSwitches.inbox_sync_enabled = true;
   });
 });

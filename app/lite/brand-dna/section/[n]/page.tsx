@@ -24,7 +24,7 @@ import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { brand_dna_answers } from "@/lib/db/schema/brand-dna-answers";
 import { getQuestionsForSection, SECTION_TITLES } from "@/lib/brand-dna/question-bank";
 
-import { submitAnswer } from "../../actions";
+import { submitAnswer, goBack } from "../../actions";
 import { QuestionCardClient } from "./question-card-client";
 
 export const metadata: Metadata = {
@@ -128,6 +128,7 @@ export default async function SectionPage({
       sectionTitle={SECTION_TITLES[sectionNum]}
       track={profile?.track ?? null}
       submitAction={submitAnswer}
+      goBackAction={goBack}
     />
   );
 }

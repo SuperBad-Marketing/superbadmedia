@@ -65,6 +65,13 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
+import { killSwitches, resetKillSwitchesToDefaults } from "@/lib/kill-switches";
+
+beforeEach(() => {
+  killSwitches.llm_calls_enabled = false;
+});
+afterAll(() => resetKillSwitchesToDefaults());
+
 describe("Admin search API — riddle integration", () => {
   let GET: typeof import("@/app/api/lite/search/route").GET;
 

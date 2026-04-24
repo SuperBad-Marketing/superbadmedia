@@ -317,10 +317,11 @@ export async function getSaasHeadlineSignalsForProduct(
 
 export async function getSaasHealthBanners(
   _userId: string,
+  opts: { nowMs?: number } = {},
 ): Promise<HealthBanner[]> {
   if (!killSwitches.saas_headlines_enabled) return [];
 
-  const signals = await computeSignals(null);
+  const signals = await computeSignals(null, opts);
   const banners: HealthBanner[] = [];
 
   if (signals.dataLossWarningsSent7d > 0) {
