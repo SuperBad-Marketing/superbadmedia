@@ -54,7 +54,7 @@ describe("twilio wizard", () => {
     expect(keys).toContain("resend");
     expect(keys).toContain("graph-api-admin");
     expect(keys).toContain("cloudinary");
-    expect(keys).toContain("meta-ads");
+    expect(keys).toContain("meta");
     expect(keys).toContain("google-ads");
   });
 

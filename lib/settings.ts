@@ -296,6 +296,27 @@ const registry = {
 
   // Observatory anomaly (1 — SAP)
   "observatory.anomaly_suppress_hours": integer,
+
+  // Instagram channel (19)
+  "instagram.sync.daily_account_metrics_enabled": boolean,
+  "instagram.sync.aggressive_polling_hours": integer,
+  "instagram.post.default_aspect_ratio": z.string(),
+  "instagram.post.caption_llm_enabled": boolean,
+  "instagram.post.max_hashtags": integer,
+  "instagram.strategy.weekly_digest_enabled": boolean,
+  "instagram.strategy.weekly_digest_day": z.string(),
+  "instagram.strategy.realtime_alerts_enabled": boolean,
+  "instagram.strategy.boost_score_threshold": decimal,
+  "instagram.strategy.content_ideas_count": integer,
+  "instagram.boost.default_budget_aud": integer,
+  "instagram.boost.default_duration_days": integer,
+  "instagram.boost.auto_kill_cpe_threshold_aud": decimal,
+  "instagram.reply.comment_mode": z.string(),
+  "instagram.reply.dm_mode": z.string(),
+  "instagram.reply.graduation_threshold": decimal,
+  "instagram.reply.graduation_window": integer,
+  "instagram.reply.poll_interval_seconds": integer,
+  "instagram.token.refresh_at_day": integer,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

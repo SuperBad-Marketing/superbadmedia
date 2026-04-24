@@ -30,7 +30,7 @@ import type {
 import { getWizardShellConfig } from "@/lib/wizards/shell-config";
 import settings from "@/lib/settings";
 import { getAppUrl } from "@/lib/env/app-url";
-import { META_OAUTH_SCOPES } from "@/lib/integrations/vendors/meta-ads";
+import { META_OAUTH_SCOPES } from "@/lib/integrations/vendors/meta";
 import {
   GOOGLE_OAUTH_SCOPES,
   GOOGLE_OAUTH_AUTHORIZE_URL,
@@ -40,7 +40,7 @@ import {
   getApiKeyVendorProfile,
 } from "@/lib/wizards/defs/api-key";
 import { CloudinaryAdminClient } from "./clients/cloudinary-admin-client";
-import { MetaAdsClient } from "./clients/meta-ads-client";
+import { MetaClient } from "./clients/meta-client";
 import { GoogleAdsClient } from "./clients/google-ads-client";
 import { TwilioClient } from "./clients/twilio-client";
 import { ApiKeyClient } from "./clients/api-key-client";
@@ -73,8 +73,8 @@ type ClientRenderer = (args: DispatcherArgs) => ReactNode;
 
 const CLIENT_MAP: Record<string, ClientRenderer> = {
   cloudinary: ({ common }) => <CloudinaryAdminClient {...common} />,
-  "meta-ads": ({ common, allowTestTokenInjection }) => (
-    <MetaAdsClient
+  meta: ({ common, allowTestTokenInjection }) => (
+    <MetaClient
       {...common}
       authorizeUrl={buildMetaAuthorizeUrl()}
       allowTestTokenInjection={allowTestTokenInjection}
@@ -198,23 +198,21 @@ export default async function AdminWizardPage({
 }
 
 /**
- * meta-ads-only: compute the Meta authorize URL from env. If
- * `META_ADS_CLIENT_ID` is unset (common in dev until Andy registers a Meta
- * app) the URL is a harmless "#". SW-10-b hardens the real oauth flow;
- * until then, the E2E testToken path bypasses this entirely.
+ * Compute the Meta authorize URL from env. If `META_ADS_CLIENT_ID` is unset
+ * the URL is a harmless "#". The E2E testToken path bypasses this in dev.
  */
 function buildMetaAuthorizeUrl(): string {
   const clientId = process.env.META_ADS_CLIENT_ID;
   const appUrl = getAppUrl();
   if (!clientId) return "#";
-  const redirectUri = `${appUrl}/api/oauth/meta-ads/callback`;
+  const redirectUri = `${appUrl}/api/oauth/meta/callback`;
   const params = new URLSearchParams({
     client_id: clientId,
     response_type: "code",
     redirect_uri: redirectUri,
     scope: META_OAUTH_SCOPES.join(","),
   });
-  return `https://www.facebook.com/v20.0/dialog/oauth?${params.toString()}`;
+  return `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 }
 
 /**

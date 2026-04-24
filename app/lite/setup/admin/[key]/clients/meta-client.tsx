@@ -1,17 +1,14 @@
 "use client";
 
 /**
- * meta-ads per-wizard client. Three-step arc:
+ * meta per-wizard client. Three-step arc:
  *   oauth-consent → review-and-confirm → celebration.
  *
- * Mirrors `graph-api-admin-client` on the critical tree: the oauth-consent
- * step redirects to Meta's consent screen; the callback at
- * `/api/oauth/meta-ads/callback` hands the access token back. SW-10-b
- * hardens that flow once Andy registers a Meta app; this session ships
- * the skeleton + the same `?testToken=` direct-injection path the graph
- * E2E uses so the arc stays testable in dev.
+ * Renamed from meta-ads-client. Same OAuth flow but scopes now include
+ * Instagram permissions. On completion, the server action auto-discovers
+ * and connects the Instagram Business Account.
  *
- * Owner: SW-10.
+ * Owner: SW-10. Extended by Instagram channel session.
  */
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
@@ -20,8 +17,8 @@ import type {
   WizardStepDefinition,
   WizardAudience,
 } from "@/lib/wizards/types";
-import { completeMetaAdsAction, decryptMetaTokenAction } from "../actions-meta-ads";
-import type { MetaAdsPayload } from "@/lib/wizards/defs/meta-ads";
+import { completeMetaAction, decryptMetaTokenAction } from "../actions-meta";
+import type { MetaPayload } from "@/lib/wizards/defs/meta";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import { useAdminShell, type StepStates } from "./use-admin-shell";
 
@@ -35,7 +32,7 @@ type ReviewState = {
   confirmed: boolean;
 };
 
-export type MetaAdsClientProps = {
+export type MetaClientProps = {
   audience: WizardAudience;
   steps: WizardStepDefinition[];
   outroCopy: string;
@@ -64,19 +61,20 @@ function tokenSuffix(token: string | null): string {
 function buildReviewSummary(states: StepStates) {
   const consent = states.consent as OAuthConsentState;
   return [
-    { label: "Meta account", value: consent.token ? "Authorised ✓" : "Not yet" },
+    { label: "Meta account", value: consent.token ? "Authorised" : "Not yet" },
     { label: "Access token", value: tokenSuffix(consent.token) },
+    { label: "Instagram", value: consent.token ? "Will auto-discover on confirm" : "Pending" },
   ];
 }
 
-export function MetaAdsClient({
+export function MetaClient({
   audience,
   steps,
   outroCopy,
   expiryDays,
   authorizeUrl,
   allowTestTokenInjection,
-}: MetaAdsClientProps) {
+}: MetaClientProps) {
   const {
     index,
     step,
@@ -98,7 +96,6 @@ export function MetaAdsClient({
   const advanceRef = React.useRef(advance);
   advanceRef.current = advance;
 
-  // Handle OAuth callback return: decrypt the encrypted token from the URL
   React.useEffect(() => {
     const oauthParam = searchParams.get("oauth");
     if (oauthParam === "error") {
@@ -128,7 +125,6 @@ export function MetaAdsClient({
     });
   }, [searchParams, setStates]);
 
-  // Test-only direct-token injection (dev/test only)
   React.useEffect(() => {
     if (!allowTestTokenInjection) return;
     const injected = searchParams.get("testToken");
@@ -175,12 +171,12 @@ export function MetaAdsClient({
     if (!consent.token) {
       return { ok: false, reason: "Meta consent never returned a token." };
     }
-    const payload: MetaAdsPayload = {
+    const payload: MetaPayload = {
       accessToken: consent.token,
       verifiedAt: consent.token ? Date.now() : 0,
       confirmedAt: reviewed.confirmed ? Date.now() : 0,
     };
-    return completeMetaAdsAction(payload);
+    return completeMetaAction(payload);
   }, [states]);
 
   const configuredStep: WizardStepDefinition = React.useMemo(() => {
@@ -202,7 +198,7 @@ export function MetaAdsClient({
 
   return (
     <WizardShell
-      wizardKey="meta-ads"
+      wizardKey="meta"
       currentStep={index}
       stepLabels={steps.map((s) => s.label)}
       audience={audience}

@@ -136,6 +136,15 @@ export const MODELS = {
   "content-studio-generate-copy": "sonnet",
   "content-studio-correct-copy": "sonnet",
   "content-studio-pick-template": "haiku",
+  // instagram-channel (8)
+  "instagram-draft-caption": "sonnet",
+  "instagram-classify-inbound": "haiku",
+  "instagram-draft-comment-reply": "sonnet",
+  "instagram-draft-dm-reply": "sonnet",
+  "instagram-escalation-summary": "haiku",
+  "instagram-strategy-digest": "sonnet",
+  "instagram-realtime-alert": "haiku",
+  "instagram-boost-rationale": "haiku",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;

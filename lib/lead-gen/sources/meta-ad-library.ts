@@ -11,7 +11,7 @@
  * Requires an app access token (long-lived page token or app-id|app-secret).
  */
 
-import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta-ads";
+import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta";
 import { logExternalCall } from "@/lib/observatory";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "../types";
 

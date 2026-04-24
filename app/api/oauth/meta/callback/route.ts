@@ -1,31 +1,23 @@
 export const dynamic = "force-dynamic";
 
 /**
- * `/api/oauth/meta-ads/callback` — Meta OAuth 2.0 authorization-code
- * callback endpoint.
+ * `/api/oauth/meta/callback` — Meta OAuth 2.0 authorization-code callback.
  *
- * Flow:
+ * Renamed from `/api/oauth/meta-ads/callback`. Same flow:
  *   1. Meta redirects here with ?code=<auth_code>&state=<csrf_state>.
  *   2. Exchange the code for a short-lived access token.
  *   3. Exchange the short-lived token for a long-lived token (~60 days).
- *   4. Encrypt the token payload and redirect to the wizard with
- *      `?oauth=success&ct=<encrypted>`.
+ *   4. Encrypt and redirect to the wizard with `?oauth=success&ct=<encrypted>`.
  *
- * Error case: Meta redirects with ?error=<code>&error_description=<msg>.
- * We redirect back to the wizard with `oauth=error` params.
- *
- * Owner: SW-10.
+ * Owner: SW-10. Extended by Instagram channel session.
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { vault } from "@/lib/crypto/vault";
-import {
-  META_GRAPH_API_VERSION,
-  META_OAUTH_SCOPES,
-} from "@/lib/integrations/vendors/meta-ads";
+import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta";
 import { getAppUrl } from "@/lib/env/app-url";
 
-const WIZARD_PATH = "/lite/setup/admin/meta-ads";
-const VAULT_CONTEXT = "meta-ads.credentials";
+const WIZARD_PATH = "/lite/setup/admin/meta";
+const VAULT_CONTEXT = "meta.credentials";
 
 function getClientId(): string {
   const v = process.env.META_ADS_CLIENT_ID;
@@ -40,7 +32,7 @@ function getClientSecret(): string {
 }
 
 function getRedirectUri(): string {
-  return `${getAppUrl()}/api/oauth/meta-ads/callback`;
+  return `${getAppUrl()}/api/oauth/meta/callback`;
 }
 
 interface MetaTokenResponse {
@@ -105,7 +97,7 @@ export async function GET(req: NextRequest) {
     redirectUrl.searchParams.set("oauth", "error");
     redirectUrl.searchParams.set("reason", errorDescription ?? error);
     console.warn(
-      `[meta-ads oauth] callback error: ${error}${errorDescription ? ` — ${errorDescription}` : ""}`,
+      `[meta oauth] callback error: ${error}${errorDescription ? ` — ${errorDescription}` : ""}`,
     );
     return NextResponse.redirect(redirectUrl);
   }
@@ -129,7 +121,7 @@ export async function GET(req: NextRequest) {
     redirectUrl.searchParams.set("ct", encrypted);
     return NextResponse.redirect(redirectUrl);
   } catch (err) {
-    console.error("[meta-ads oauth] Token exchange failed:", err);
+    console.error("[meta oauth] Token exchange failed:", err);
     redirectUrl.searchParams.set("oauth", "error");
     redirectUrl.searchParams.set(
       "reason",

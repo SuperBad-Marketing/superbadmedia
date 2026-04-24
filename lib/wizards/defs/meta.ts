@@ -1,31 +1,22 @@
 /**
- * `meta-ads` — second non-critical admin integration wizard (SW-10).
+ * `meta` — admin integration wizard for Meta (Instagram + Ads).
  *
- * Structurally mirrors `graph-api-admin`: oauth-consent → review-and-confirm
- * → celebration. Meta Ads exposes a standard OAuth 2.0 flow; the access
- * token arrives via the callback route at `/api/oauth/meta-ads/callback`.
+ * Renamed from `meta-ads`. OAuth flow connects a Meta app, discovers
+ * linked Instagram Business Account, and creates an `instagram_accounts`
+ * row on completion.
  *
- * `completionContract.verify` pings `GET /v20.0/me?fields=id,name` — the
- * cheapest authenticated identity check Meta exposes. Any other call
- * requires picking an ad account up front, which we defer to feature
- * sessions.
+ * Steps: oauth-consent → review-and-confirm → celebration.
  *
- * Artefact gate `integrationConnections: true` ensures the row written by
- * `registerIntegration()` exists before `wizard_completions` inserts.
- *
- * `capstone` is `undefined` — Meta Ads is non-critical, lives outside the
- * first-run flight's capstone arc.
- *
- * Owner: SW-10. Consumer: /lite/setup/admin/[key].
+ * Owner: SW-10. Extended by Instagram channel session.
  */
 import {
-  metaAdsManifest,
+  metaManifest,
   META_GRAPH_API_VERSION,
-} from "@/lib/integrations/vendors/meta-ads";
+} from "@/lib/integrations/vendors/meta";
 import { registerWizard } from "@/lib/wizards/registry";
 import type { WizardDefinition } from "@/lib/wizards/types";
 
-export type MetaAdsPayload = {
+export type MetaPayload = {
   accessToken: string;
   verifiedAt: number;
   confirmedAt: number;
@@ -60,8 +51,8 @@ async function pingMetaMe(
   }
 }
 
-export const metaAdsWizard: WizardDefinition<MetaAdsPayload> = {
-  key: "meta-ads",
+export const metaWizard: WizardDefinition<MetaPayload> = {
+  key: "meta",
   audience: "admin",
   renderMode: "dedicated-route",
   steps: [
@@ -91,11 +82,11 @@ export const metaAdsWizard: WizardDefinition<MetaAdsPayload> = {
     verify: async (p) => pingMetaMe(p.accessToken),
     artefacts: { integrationConnections: true },
   },
-  vendorManifest: metaAdsManifest,
+  vendorManifest: metaManifest,
   voiceTreatment: {
     introCopy:
-      "Meta next. Tap through the consent screen, we'll ping your profile, and the ad account's live.",
-    outroCopy: "Meta's hooked in. Campaigns can read and write from here.",
+      "Meta next. Tap through the consent screen, we'll hook up Instagram and the ad account in one pass.",
+    outroCopy: "Meta's hooked in. Instagram publishing, insights, and ads — all live.",
     tabTitlePool: {
       setup: ["Setup — Meta"],
       connecting: ["Connecting Meta…"],
@@ -107,4 +98,4 @@ export const metaAdsWizard: WizardDefinition<MetaAdsPayload> = {
   },
 };
 
-registerWizard(metaAdsWizard);
+registerWizard(metaWizard);

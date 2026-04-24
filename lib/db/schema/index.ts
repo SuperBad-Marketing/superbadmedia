@@ -94,3 +94,4 @@ export * from "./band-overrides";
 export * from "./deploy-events";
 export * from "./cockpit-briefs";
 export * from "./content-studio";
+export * from "./instagram";

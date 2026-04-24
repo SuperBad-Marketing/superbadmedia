@@ -21,8 +21,8 @@ vi.mock("@/lib/db/schema/external-call-log", () => ({
   external_call_log: {},
 }));
 
-vi.mock("@/lib/integrations/vendors/meta-ads", () => ({
-  META_GRAPH_API_VERSION: "v20.0",
+vi.mock("@/lib/integrations/vendors/meta", () => ({
+  META_GRAPH_API_VERSION: "v21.0",
 }));
 
 const mockFetch = vi.fn();

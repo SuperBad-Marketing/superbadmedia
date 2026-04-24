@@ -1,5 +1,5 @@
 /**
- * SW-10 — `meta-ads` wizard definition tests.
+ * SW-10 — `meta` wizard definition tests (renamed from meta-ads).
  * Mirrors `graph-api-admin-wizard.test.ts` — oauth-consent arc, live-ping
  * verify(), registry membership via the defs barrel.
  */
@@ -9,19 +9,16 @@ beforeAll(() => {
   process.env.CREDENTIAL_VAULT_KEY = "a".repeat(64);
 });
 
-// Import via the barrel to assert the second non-critical admin wizard
-// registers alongside the critical trio + cloudinary from the one
-// entrypoint.
+// Import via the barrel to assert the meta wizard registers alongside
+// the critical trio + cloudinary from the one entrypoint.
 await import("@/lib/wizards/defs");
-const { metaAdsWizard } = await import("@/lib/wizards/defs/meta-ads");
+const { metaWizard } = await import("@/lib/wizards/defs/meta");
 const { getWizard, listWizardKeys } = await import("@/lib/wizards/registry");
-const { metaAdsManifest } = await import(
-  "@/lib/integrations/vendors/meta-ads"
-);
+const { metaManifest } = await import("@/lib/integrations/vendors/meta");
 
-describe("meta-ads wizard", () => {
+describe("meta wizard", () => {
   it("composes oauth-consent + review-and-confirm + celebration", () => {
-    const types = metaAdsWizard.steps.map((s) => s.type);
+    const types = metaWizard.steps.map((s) => s.type);
     expect(types).toEqual([
       "oauth-consent",
       "review-and-confirm",
@@ -29,12 +26,12 @@ describe("meta-ads wizard", () => {
     ]);
   });
 
-  it("wires completionContract to the meta-ads vendor manifest", () => {
-    expect(metaAdsWizard.vendorManifest).toBe(metaAdsManifest);
+  it("wires completionContract to the meta vendor manifest", () => {
+    expect(metaWizard.vendorManifest).toBe(metaManifest);
     expect(
-      metaAdsWizard.completionContract.artefacts.integrationConnections,
+      metaWizard.completionContract.artefacts.integrationConnections,
     ).toBe(true);
-    expect(metaAdsWizard.completionContract.required).toEqual([
+    expect(metaWizard.completionContract.required).toEqual([
       "accessToken",
       "verifiedAt",
       "confirmedAt",
@@ -42,15 +39,15 @@ describe("meta-ads wizard", () => {
   });
 
   it("renders as a dedicated route for admins with no per-wizard capstone", () => {
-    expect(metaAdsWizard.audience).toBe("admin");
-    expect(metaAdsWizard.renderMode).toBe("dedicated-route");
-    expect(metaAdsWizard.voiceTreatment.capstone).toBeUndefined();
+    expect(metaWizard.audience).toBe("admin");
+    expect(metaWizard.renderMode).toBe("dedicated-route");
+    expect(metaWizard.voiceTreatment.capstone).toBeUndefined();
   });
 
-  it("is registered under key `meta-ads` via the defs barrel alongside the rest", () => {
-    expect(getWizard("meta-ads")).toBe(metaAdsWizard);
+  it("is registered under key `meta` via the defs barrel alongside the rest", () => {
+    expect(getWizard("meta")).toBe(metaWizard);
     const keys = listWizardKeys();
-    expect(keys).toContain("meta-ads");
+    expect(keys).toContain("meta");
     expect(keys).toContain("cloudinary");
     expect(keys).toContain("stripe-admin");
     expect(keys).toContain("resend");
@@ -58,7 +55,7 @@ describe("meta-ads wizard", () => {
   });
 
   it("verify() rejects an obviously bad token with a branded reason", async () => {
-    const result = await metaAdsWizard.completionContract.verify({
+    const result = await metaWizard.completionContract.verify({
       accessToken: "not.a.real.token",
       verifiedAt: 0,
       confirmedAt: 0,

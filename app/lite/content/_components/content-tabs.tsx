@@ -14,6 +14,7 @@ const TABS = [
   { label: "List", href: "/lite/content/list", active: true },
   { label: "Video Studio", href: "/lite/content/video-studio", active: true },
   { label: "Content Studio", href: "/lite/content/studio", active: true },
+  { label: "Instagram", href: "/lite/content/instagram", active: true },
 ] as const;
 
 interface ContentTabsProps {

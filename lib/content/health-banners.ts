@@ -18,7 +18,7 @@ export async function getContentHealthBanners(
     .from(integration_connections)
     .where(
       and(
-        sql`${integration_connections.vendor_key} IN ('cloudinary', 'meta-ads', 'google-ads')`,
+        sql`${integration_connections.vendor_key} IN ('cloudinary', 'meta', 'google-ads')`,
         sql`${integration_connections.status} IN ('revoked', 'lapsed')`,
       ),
     )

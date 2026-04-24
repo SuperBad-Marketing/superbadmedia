@@ -10,7 +10,7 @@
  */
 
 import { getCredential } from "@/lib/integrations/getCredential";
-import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta-ads";
+import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta";
 import { logExternalCall } from "@/lib/observatory";
 import type { ViabilityProfile } from "../types";
 
@@ -57,7 +57,7 @@ export async function fetchInstagram(
   domain: string,
   instagramHandle?: string,
 ): Promise<InstagramResult> {
-  const accessToken = await getCredential("meta-ads");
+  const accessToken = await getCredential("meta");
   if (!accessToken) {
     return {
       follower_count: null,

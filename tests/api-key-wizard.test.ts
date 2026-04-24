@@ -72,7 +72,7 @@ describe("api-key wizard", () => {
       "resend",
       "graph-api-admin",
       "cloudinary",
-      "meta-ads",
+      "meta",
       "google-ads",
       "twilio",
       "api-key",

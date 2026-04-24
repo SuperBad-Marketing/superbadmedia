@@ -71,11 +71,11 @@ const INTEGRATIONS: IntegrationDef[] = [
     envHint: null,
   },
   {
-    vendorKey: "meta-ads",
-    label: "Meta Ads",
-    description: "Facebook and Instagram ad campaigns.",
-    wizardPath: "/lite/setup/admin/meta-ads",
-    envHint: null,
+    vendorKey: "meta",
+    label: "Meta",
+    description: "Instagram publishing, insights, ads, and audience management.",
+    wizardPath: "/lite/setup/admin/meta",
+    envHint: "INSTAGRAM_APP_ID",
   },
   {
     vendorKey: "google-ads",

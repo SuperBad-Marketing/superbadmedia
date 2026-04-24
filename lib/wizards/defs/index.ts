@@ -16,7 +16,7 @@ import "./stripe-admin";
 import "./resend";
 import "./graph-api-admin";
 import "./cloudinary";
-import "./meta-ads";
+import "./meta";
 import "./google-ads";
 import "./twilio";
 import "./pixieset-admin";
