@@ -20,6 +20,7 @@
 import { randomUUID, createHash } from "node:crypto";
 import { db as defaultDb } from "@/lib/db";
 import { integration_connections } from "@/lib/db/schema/integration-connections";
+import { eq, and } from "drizzle-orm";
 import { vault } from "@/lib/crypto/vault";
 import { killSwitches } from "@/lib/kill-switches";
 import type { VendorManifest } from "@/lib/wizards/types";
@@ -79,8 +80,36 @@ export async function registerIntegration(
   const bandsRegistered = await registerBands(manifest.jobs);
 
   const now = Date.now();
-  const connectionId = randomUUID();
 
+  const existing = await db
+    .select({ id: integration_connections.id })
+    .from(integration_connections)
+    .where(
+      and(
+        eq(integration_connections.vendor_key, manifest.vendorKey),
+        eq(integration_connections.owner_type, ownerType),
+        eq(integration_connections.status, "active"),
+      ),
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    const connectionId = existing[0].id;
+    await db
+      .update(integration_connections)
+      .set({
+        credentials: ciphertext,
+        metadata,
+        connection_verified_at_ms: now,
+        band_registration_hash: hashBands(manifest),
+        connected_via_wizard_completion_id: wizardCompletionId,
+        updated_at_ms: now,
+      })
+      .where(eq(integration_connections.id, connectionId));
+    return { connectionId, bandsRegistered };
+  }
+
+  const connectionId = randomUUID();
   await db.insert(integration_connections).values({
     id: connectionId,
     vendor_key: manifest.vendorKey,
