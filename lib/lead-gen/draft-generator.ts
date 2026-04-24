@@ -10,10 +10,11 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
 import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
+import { brand_voice_examples } from "@/lib/db/schema/brand-voice-examples";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 import { invokeLlmText } from "@/lib/ai/invoke";
@@ -78,7 +79,8 @@ export async function generateDraft(
   }
 
   const brandProfile = await getSuperbadBrandProfile(dbInstance);
-  const systemPrompt = buildSystemPrompt(brandProfile, input);
+  const voiceExamples = await loadVoiceExamples(dbInstance);
+  const systemPrompt = buildSystemPrompt(brandProfile, input, voiceExamples);
   const userPrompt = buildUserPrompt(input);
 
   const startMs = Date.now();
@@ -192,6 +194,24 @@ export async function generateDraft(
   };
 }
 
+// ── Voice examples ──────────────────────────────────────────────────────
+
+type VoiceExample = { title: string; body_markdown: string };
+
+async function loadVoiceExamples(
+  dbInstance: typeof defaultDb,
+): Promise<VoiceExample[]> {
+  const rows = await dbInstance
+    .select({
+      title: brand_voice_examples.title,
+      body_markdown: brand_voice_examples.body_markdown,
+    })
+    .from(brand_voice_examples)
+    .where(eq(brand_voice_examples.surface, "outreach"))
+    .orderBy(asc(brand_voice_examples.sort_order));
+  return rows;
+}
+
 // ── Prompt construction ─────────────────────────────────────────────────
 
 function buildLengthGuidance(input: GenerateDraftInput): string {
@@ -215,21 +235,33 @@ function buildLengthGuidance(input: GenerateDraftInput): string {
 function buildSystemPrompt(
   brandProfile: Awaited<ReturnType<typeof getSuperbadBrandProfile>>,
   input: GenerateDraftInput,
+  voiceExamples: VoiceExample[],
 ): string {
   const unsubLink = `https://superbadmedia.com.au/unsubscribe?email={{EMAIL}}`;
+
+  let voiceExamplesBlock = "";
+  if (voiceExamples.length > 0) {
+    const exampleBlocks = voiceExamples
+      .map((ex) => `### ${ex.title}\n${ex.body_markdown}`)
+      .join("\n\n");
+    voiceExamplesBlock = `\n\nVOICE EXAMPLES — these are real emails Andy has written or approved. Match this tone, structure, and energy. Do not copy them verbatim — use them as a reference for how SuperBad actually sounds:\n\n${exampleBlocks}`;
+  }
 
   return `You are writing cold outreach emails on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia).
 
 BRAND VOICE:
 ${brandProfile.voiceDescription}
 Tone markers: ${brandProfile.toneMarkers.join(", ")}
-${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}
+${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}${voiceExamplesBlock}
 
 SENDER IDENTITY:
 Name: ${SUPERBAD_SENDER.display_name}
 Email: ${SUPERBAD_SENDER.local_part}@${SUPERBAD_SENDER.domain}
 
 PROSPECT TRACK: ${input.track === "saas" ? "SaaS subscription products" : "Creative + performance retainer"}
+
+TRIAL SHOOT OFFER:
+SuperBad offers a $297 trial shoot — 60 minutes on-site, plus a bespoke 6-week marketing plan. This is the primary offer for the retainer track. Mention it naturally when relevant — it's the low-risk entry point. Don't be salesy about it, but don't hide it either. It's a real thing, worth mentioning.
 
 RULES:
 - Write as Andy, first person. Dry, observational, never corporate.

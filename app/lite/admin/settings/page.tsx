@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Paintbrush, ShoppingBag, FileText, Plug } from "lucide-react";
+import { Paintbrush, ShoppingBag, FileText, Plug, Mic } from "lucide-react";
 
 import { auth } from "@/lib/auth/session";
 
@@ -16,6 +16,12 @@ const SECTIONS = [
     icon: Paintbrush,
     label: "Display",
     description: "Theme, sounds, motion, density, typeface, text size.",
+  },
+  {
+    href: "/lite/admin/settings/brand-voice",
+    icon: Mic,
+    label: "Brand Voice",
+    description: "Voice examples, Brand DNA, how the AI sounds.",
   },
   {
     href: "/lite/admin/settings/integrations",
