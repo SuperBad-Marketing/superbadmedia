@@ -227,7 +227,7 @@ async function pingHiggsfield(
   key: string,
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   try {
-    const res = await fetch(`${HIGGSFIELD_API_BASE}/account`, {
+    const res = await fetch(`${HIGGSFIELD_API_BASE}/v1/generations?limit=1`, {
       headers: { Authorization: `Bearer ${key}` },
       cache: "no-store",
     });

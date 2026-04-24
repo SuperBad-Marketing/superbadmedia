@@ -39,7 +39,7 @@ export async function submitVideoJob(
 ): Promise<HiggsFieldSubmitResult> {
   const apiKey = await getApiKey();
 
-  const res = await fetch(`${getBaseUrl()}/generations`, {
+  const res = await fetch(`${getBaseUrl()}/v1/generations`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -72,7 +72,7 @@ export async function getVideoJobStatus(
 ): Promise<HiggsFieldStatusResult> {
   const apiKey = await getApiKey();
 
-  const res = await fetch(`${getBaseUrl()}/generations/${jobId}`, {
+  const res = await fetch(`${getBaseUrl()}/v1/generations/${jobId}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
 

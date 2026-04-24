@@ -15,4 +15,4 @@ export const higgsFieldManifest: VendorManifest = {
     "Higgsfield — AI video generation. Admin pastes API key from cloud.higgsfield.ai.",
 };
 
-export const HIGGSFIELD_API_BASE = "https://cloud.higgsfield.ai/api/v1";
+export const HIGGSFIELD_API_BASE = "https://api.higgsfield.ai";
