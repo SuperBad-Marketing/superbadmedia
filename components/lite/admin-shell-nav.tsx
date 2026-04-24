@@ -11,6 +11,7 @@ import {
   Newspaper,
   Package,
   Radar,
+  Radio,
   Settings,
   TriangleAlert,
   User,
@@ -114,6 +115,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Package,
     status: "live",
     matchPrefix: "/lite/admin/products",
+  },
+  {
+    id: "channels",
+    label: "Channels",
+    href: "/lite/admin/channels/instagram",
+    icon: Radio,
+    status: "soon",
+    matchPrefix: "/lite/admin/channels",
   },
   {
     id: "finance",
