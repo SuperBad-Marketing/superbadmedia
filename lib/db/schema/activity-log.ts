@@ -375,6 +375,10 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Quotes (quote_sent already listed above) ---
   "quote_drafted",
   "quote_deleted",
+  // --- Briefs ---
+  "brief_submitted",
+  "brief_matched",
+  "brief_status_changed",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

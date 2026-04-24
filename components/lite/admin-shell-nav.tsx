@@ -1,6 +1,7 @@
 import {
   Activity,
   Building2,
+  ClipboardList,
   DollarSign,
   FileText,
   GaugeCircle,
@@ -75,6 +76,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Building2,
     status: "live",
     matchPrefix: "/lite/admin/clients",
+  },
+  {
+    id: "briefs",
+    label: "Briefs",
+    href: "/lite/admin/briefs",
+    icon: ClipboardList,
+    status: "live",
+    matchPrefix: "/lite/admin/briefs",
   },
   {
     id: "tasks",

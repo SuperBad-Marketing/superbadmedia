@@ -7,6 +7,7 @@ export type CompanyTab =
   | "overview"
   | "tasks"
   | "deliverables"
+  | "briefs"
   | "billing"
   | "brand-dna"
   | "comms"
@@ -17,6 +18,7 @@ const TABS: { id: CompanyTab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "tasks", label: "Tasks" },
   { id: "deliverables", label: "Deliverables" },
+  { id: "briefs", label: "Briefs" },
   { id: "billing", label: "Billing" },
   { id: "brand-dna", label: "Brand DNA" },
   { id: "comms", label: "Comms" },
