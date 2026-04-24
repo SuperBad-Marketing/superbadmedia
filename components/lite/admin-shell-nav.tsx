@@ -14,6 +14,7 @@ import {
   Settings,
   TriangleAlert,
   User,
+  Users,
 } from "lucide-react"
 
 export type AdminNavItem = {
@@ -89,6 +90,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Radar,
     status: "live",
     matchPrefix: "/lite/admin/lead-gen",
+  },
+  {
+    id: "hiring",
+    label: "Hiring",
+    href: "/lite/admin/hiring",
+    icon: Users,
+    status: "live",
+    matchPrefix: "/lite/admin/hiring",
   },
   {
     id: "content",

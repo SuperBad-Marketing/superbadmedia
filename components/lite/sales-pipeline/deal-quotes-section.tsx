@@ -140,7 +140,7 @@ export function DealQuotesSection({
       ) : (
         <div className="flex flex-col gap-3">
           {quotes.map((q) => (
-            <QuoteCard key={q.id} quote={q} />
+            <QuoteCard key={q.id} quote={q} dealId={dealId} />
           ))}
         </div>
       )}
@@ -148,7 +148,7 @@ export function DealQuotesSection({
   );
 }
 
-function QuoteCard({ quote }: { quote: QuoteRow }) {
+function QuoteCard({ quote, dealId }: { quote: QuoteRow; dealId: string }) {
   const [isPending, startTransition] = useTransition();
   const [sendError, setSendError] = useState<string | null>(null);
   const status = STATUS_STYLES[quote.status] ?? STATUS_STYLES.draft;
