@@ -6,11 +6,11 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { intro_funnel_submissions } from "@/lib/db/schema/intro-funnel-submissions";
 import { intro_funnel_payments } from "@/lib/db/schema/intro-funnel-payments";
-import { intro_funnel_config } from "@/lib/db/schema/intro-funnel-config";
 import { deals } from "@/lib/db/schema/deals";
 import { ensureStripeCustomer } from "@/lib/stripe/customer";
 import { getStripe } from "@/lib/stripe/client";
 import { logActivity } from "@/lib/activity-log";
+import settings from "@/lib/settings";
 
 const createPaymentIntentSchema = z.object({
   submissionId: z.string().min(1),
@@ -59,13 +59,13 @@ export async function createPaymentIntentAction(
     }
   }
 
-  // Load price from config
-  const configRows = await db
-    .select()
-    .from(intro_funnel_config)
-    .limit(1);
-  const priceCents = configRows[0]?.price_cents ?? 29700;
-  const currency = configRows[0]?.currency ?? "aud";
+  // Load tier-specific price from settings
+  const tier = submission.selected_tier ?? "session";
+  const settingsKey = tier === "production"
+    ? "trial_shoot.production_price_cents"
+    : "trial_shoot.session_price_cents";
+  const priceCents = await settings.get(settingsKey) as number;
+  const currency = "aud";
 
   // Ensure Stripe customer
   const { customerId } = await ensureStripeCustomer(submission.contact_id);

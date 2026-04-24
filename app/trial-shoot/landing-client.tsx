@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { houseSpring } from "@/lib/design-tokens";
+import type { TrialShootTier } from "@/lib/db/schema/intro-funnel-submissions";
 import { Section1Form } from "./section-1-form";
 
 const QUOTES = {
@@ -16,7 +17,7 @@ const QUOTES = {
     attr: "Eleni, Melbourne",
   },
   experience: {
-    text: "If the boys didn’t have a camera they would have blended into the rest of the session.",
+    text: "If the boys didn't have a camera they would have blended into the rest of the session.",
     attr: "Josh, franchise operator",
   },
   strategy: {
@@ -29,6 +30,46 @@ const QUOTES = {
   },
 };
 
+interface TierDef {
+  id: TrialShootTier;
+  name: string;
+  price: number;
+  recommended: boolean;
+  duration: string;
+  deliverables: string[];
+}
+
+const TIERS: TierDef[] = [
+  {
+    id: "session",
+    name: "Session",
+    price: 397,
+    recommended: false,
+    duration: "60–90 min on-site",
+    deliverables: [
+      "1 short-form video",
+      "10–15 edited photographs",
+      "A six-week marketing plan, written for you",
+      "Everything delivered inside your own private portal",
+      "Reschedule any time up to 48 hours before",
+    ],
+  },
+  {
+    id: "production",
+    name: "Production",
+    price: 597,
+    recommended: true,
+    duration: "Up to 2 hours on-site",
+    deliverables: [
+      "2 short-form videos (1 × under 60s, 1 × under 30s)",
+      "20–25 edited photographs",
+      "A six-week marketing plan, written for you",
+      "Everything delivered inside your own private portal",
+      "Reschedule any time up to 48 hours before",
+    ],
+  },
+];
+
 function PullQuote({
   text,
   attr,
@@ -39,12 +80,7 @@ function PullQuote({
   align?: "center" | "left";
 }) {
   return (
-    <blockquote
-      style={{
-        margin: 0,
-        textAlign: align,
-      }}
-    >
+    <blockquote style={{ margin: 0, textAlign: align }}>
       <p
         style={{
           fontFamily: "var(--font-narrative)",
@@ -73,12 +109,176 @@ function PullQuote({
   );
 }
 
+function TierCard({
+  tier,
+  onSelect,
+}: {
+  tier: TierDef;
+  onSelect: () => void;
+}) {
+  return (
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={houseSpring}
+      style={{
+        flex: 1,
+        minWidth: 280,
+        background: "rgba(34,34,31,0.6)",
+        backdropFilter: "blur(10px)",
+        border: tier.recommended
+          ? "1px solid rgba(178,40,72,0.5)"
+          : "1px solid rgba(253,245,230,0.08)",
+        borderRadius: 20,
+        padding: "40px 32px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 20,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: tier.recommended
+            ? "linear-gradient(135deg, rgba(178,40,72,0.15), transparent 50%)"
+            : "linear-gradient(135deg, rgba(178,40,72,0.05), transparent 50%)",
+          borderRadius: 20,
+          pointerEvents: "none",
+        }}
+      />
+
+      <div style={{ position: "relative" }}>
+        {tier.recommended && (
+          <div
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 9,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "var(--brand-red)",
+              background: "rgba(178,40,72,0.15)",
+              border: "1px solid rgba(178,40,72,0.3)",
+              borderRadius: 6,
+              padding: "4px 10px",
+              display: "inline-block",
+              marginBottom: 16,
+            }}
+          >
+            Recommended
+          </div>
+        )}
+        <div
+          style={{
+            fontFamily: "var(--font-label)",
+            fontSize: 10,
+            letterSpacing: "2px",
+            textTransform: "uppercase",
+            color: "var(--brand-orange)",
+          }}
+        >
+          {tier.name}
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(3rem, 5vw, 4rem)",
+            lineHeight: 1,
+            letterSpacing: "-1px",
+            color: "var(--brand-cream)",
+            marginTop: 8,
+          }}
+        >
+          ${tier.price}
+          <sup
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 14,
+              color: "var(--brand-pink)",
+              fontWeight: 400,
+              verticalAlign: "super",
+              marginLeft: 8,
+            }}
+          >
+            once. nothing recurring.
+          </sup>
+        </div>
+        <p
+          style={{
+            marginTop: 12,
+            fontFamily: "var(--font-narrative)",
+            fontStyle: "italic",
+            fontSize: 15,
+            color: "var(--neutral-300)",
+          }}
+        >
+          {tier.duration}
+        </p>
+      </div>
+
+      <ul
+        style={{
+          listStyle: "none",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          borderTop: "1px solid rgba(253,245,230,0.08)",
+          margin: 0,
+          padding: "16px 0 0",
+          position: "relative",
+          flex: 1,
+        }}
+      >
+        {tier.deliverables.map((item) => (
+          <li
+            key={item}
+            style={{
+              display: "flex",
+              gap: 12,
+              alignItems: "flex-start",
+              fontSize: 15,
+              lineHeight: 1.5,
+              fontFamily: "var(--font-body)",
+              color: "var(--neutral-300)",
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "var(--brand-red)",
+                marginTop: 10,
+                flexShrink: 0,
+              }}
+            />
+            {item}
+          </li>
+        ))}
+      </ul>
+
+      <div style={{ position: "relative", paddingTop: 8 }}>
+        <button
+          type="button"
+          onClick={onSelect}
+          className="landing-cta-btn"
+        >
+          Choose {tier.name}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 export function LandingClient() {
+  const [selectedTier, setSelectedTier] = useState<TrialShootTier | null>(null);
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  function handleCtaClick() {
+  function handleTierSelect(tier: TrialShootTier) {
+    setSelectedTier(tier);
     setShowForm(true);
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -100,11 +300,11 @@ export function LandingClient() {
     >
       <style>{`
         .landing-page { --lp-px: 40px; }
-        .landing-hero-grid {
+        .landing-tier-grid {
           display: grid;
-          grid-template-columns: 1.1fr 1fr;
-          gap: 80px;
-          align-items: start;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          align-items: stretch;
         }
         .landing-what-grid {
           display: grid;
@@ -114,9 +314,9 @@ export function LandingClient() {
         }
         @media (max-width: 860px) {
           .landing-page { --lp-px: 20px; }
-          .landing-hero-grid {
+          .landing-tier-grid {
             grid-template-columns: 1fr;
-            gap: 48px;
+            gap: 20px;
           }
           .landing-what-grid {
             grid-template-columns: 1fr;
@@ -200,227 +400,114 @@ export function LandingClient() {
                 </span>
               </nav>
 
-              {/* ---- Hero (two-column) ---- */}
+              {/* ---- Hero ---- */}
               <section
-                className="landing-hero-grid"
                 style={{
-                  maxWidth: 1200,
+                  maxWidth: 900,
                   margin: "0 auto",
-                  padding: "40px var(--lp-px) 100px",
+                  padding: "40px var(--lp-px) 60px",
+                  textAlign: "center",
                 }}
               >
-                {/* Left — editorial */}
-                <div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: 10,
-                      letterSpacing: "3px",
-                      textTransform: "uppercase",
-                      color: "var(--brand-pink)",
-                      marginBottom: 24,
-                    }}
-                  >
-                    A $297 trial shoot &middot; Melbourne &middot; we come to you
-                  </div>
-                  <h1
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "clamp(3rem, 7vw, 5.5rem)",
-                      lineHeight: 0.95,
-                      letterSpacing: "-2px",
-                      color: "var(--brand-cream)",
-                      margin: "0 0 32px",
-                    }}
-                  >
-                    Find out if
-                    <br />
-                    we&rsquo;re right
-                    <br />
-                    for each other
-                    <br />
-                    <span
-                      style={{
-                        fontFamily: "var(--font-narrative)",
-                        fontStyle: "italic",
-                        color: "var(--brand-pink)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      before either of us commits.
-                    </span>
-                  </h1>
-                  <p
+                <div
+                  style={{
+                    fontFamily: "var(--font-label)",
+                    fontSize: 10,
+                    letterSpacing: "3px",
+                    textTransform: "uppercase",
+                    color: "var(--brand-pink)",
+                    marginBottom: 24,
+                  }}
+                >
+                  Trial shoots &middot; Melbourne &middot; we come to you
+                </div>
+                <h1
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(3rem, 7vw, 5.5rem)",
+                    lineHeight: 0.95,
+                    letterSpacing: "-2px",
+                    color: "var(--brand-cream)",
+                    margin: "0 0 24px",
+                  }}
+                >
+                  Find out if
+                  <br />
+                  we&rsquo;re right
+                  <br />
+                  for each other
+                  <br />
+                  <span
                     style={{
                       fontFamily: "var(--font-narrative)",
                       fontStyle: "italic",
-                      fontSize: "clamp(1rem, 2vw, 1.375rem)",
-                      lineHeight: 1.45,
-                      color: "var(--neutral-300)",
-                      maxWidth: 520,
-                      marginBottom: 16,
-                    }}
-                  >
-                    Sixty minutes on-site. Real deliverables you&rsquo;d
-                    actually use.{" "}
-                    <span style={{ color: "var(--brand-cream)" }}>
-                      And a six-week marketing plan written for you
-                    </span>{" "}
-                    &mdash; one you can run yourself if you decide
-                    we&rsquo;re not the right call.
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      fontStyle: "italic",
                       color: "var(--brand-pink)",
-                      opacity: 0.8,
+                      fontWeight: 500,
                     }}
                   >
-                    no subscriptions to cancel. no upsell in the follow-up. we
-                    don&rsquo;t do that.
-                  </p>
-                </div>
-
-                {/* Right — price card */}
-                <div
+                    before either of us commits.
+                  </span>
+                </h1>
+                <p
                   style={{
-                    background: "rgba(34,34,31,0.6)",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(253,245,230,0.08)",
-                    borderRadius: 20,
-                    padding: "40px 36px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 22,
-                    position: "relative",
-                    overflow: "hidden",
+                    fontFamily: "var(--font-narrative)",
+                    fontStyle: "italic",
+                    fontSize: "clamp(1rem, 2vw, 1.375rem)",
+                    lineHeight: 1.45,
+                    color: "var(--neutral-300)",
+                    maxWidth: 600,
+                    margin: "0 auto 12px",
                   }}
                 >
-                  {/* Gradient overlay */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "linear-gradient(135deg, rgba(178,40,72,0.1), transparent 50%)",
-                      borderRadius: 20,
-                      pointerEvents: "none",
-                    }}
-                  />
-                  <div style={{ position: "relative" }}>
-                    <div
-                      style={{
-                        fontFamily: "var(--font-label)",
-                        fontSize: 10,
-                        letterSpacing: "2px",
-                        textTransform: "uppercase",
-                        color: "var(--brand-orange)",
-                      }}
-                    >
-                      The whole thing
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: "clamp(3.5rem, 6vw, 4.5rem)",
-                        lineHeight: 1,
-                        letterSpacing: "-1px",
-                        color: "var(--brand-cream)",
-                        marginTop: 8,
-                      }}
-                    >
-                      $297
-                      <sup
-                        style={{
-                          fontFamily: "var(--font-body)",
-                          fontSize: 16,
-                          color: "var(--brand-pink)",
-                          fontWeight: 400,
-                          verticalAlign: "super",
-                          marginLeft: 8,
-                        }}
-                      >
-                        once. nothing recurring.
-                      </sup>
-                    </div>
-                  </div>
-                  <ul
-                    style={{
-                      listStyle: "none",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 12,
-                      paddingTop: 12,
-                      borderTop: "1px solid rgba(253,245,230,0.08)",
-                      margin: 0,
-                      padding: "12px 0 0",
-                      position: "relative",
-                    }}
-                  >
-                    {[
-                      "A 60-minute on-site shoot at your place",
-                      "Edited hero stills + one short-form video",
-                      "A six-week marketing plan, written for you — yours to run with",
-                      "Everything delivered inside your own private portal",
-                      "Reschedule any time up to 48 hours before — life happens, we get it",
-                    ].map((item) => (
-                      <li
-                        key={item}
-                        style={{
-                          display: "flex",
-                          gap: 12,
-                          alignItems: "flex-start",
-                          fontSize: 15,
-                          lineHeight: 1.5,
-                          fontFamily: "var(--font-body)",
-                          color: "var(--neutral-300)",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background: "var(--brand-red)",
-                            marginTop: 10,
-                            flexShrink: 0,
-                          }}
-                        />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      paddingTop: 8,
-                      position: "relative",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={handleCtaClick}
-                      className="landing-cta-btn"
-                    >
-                      Start &mdash; takes 90 seconds
-                    </button>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: "var(--neutral-500)",
-                        fontStyle: "italic",
-                        textAlign: "center",
-                        margin: 0,
-                      }}
-                    >
-                      we&rsquo;ll ask a few questions, then your contact details,
-                      then you pay.
-                    </p>
-                  </div>
+                  Real deliverables you&rsquo;d actually use.{" "}
+                  <span style={{ color: "var(--brand-cream)" }}>
+                    And a six-week marketing plan written for you
+                  </span>{" "}
+                  &mdash; one you can run yourself if you decide
+                  we&rsquo;re not the right call.
+                </p>
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontStyle: "italic",
+                    color: "var(--brand-pink)",
+                    opacity: 0.8,
+                  }}
+                >
+                  no subscriptions to cancel. no upsell in the follow-up. we
+                  don&rsquo;t do that.
+                </p>
+              </section>
+
+              {/* ---- Tier cards (side by side) ---- */}
+              <section
+                style={{
+                  maxWidth: 900,
+                  margin: "0 auto",
+                  padding: "0 var(--lp-px) 100px",
+                }}
+              >
+                <div className="landing-tier-grid">
+                  {TIERS.map((tier) => (
+                    <TierCard
+                      key={tier.id}
+                      tier={tier}
+                      onSelect={() => handleTierSelect(tier.id)}
+                    />
+                  ))}
                 </div>
+                <p
+                  style={{
+                    marginTop: 16,
+                    textAlign: "center",
+                    fontSize: 13,
+                    color: "var(--neutral-500)",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Both include the same six-week plan. The difference is what
+                  you walk away with from the shoot itself.
+                </p>
               </section>
 
               {/* ---- Pullquote ---- */}
@@ -523,7 +610,7 @@ export function LandingClient() {
                       margin: 0,
                     }}
                   >
-                    It&rsquo;s a small, paid piece of real work. An hour on-site,
+                    It&rsquo;s a small, paid piece of real work. We come to you,
                     we shoot, we edit, we deliver &mdash; inside a portal
                     that&rsquo;s yours to keep whether you come back or not.{" "}
                     <em
@@ -583,7 +670,7 @@ export function LandingClient() {
                 </div>
               </section>
 
-              {/* ---- Scattered quote: process ---- */}
+              {/* ---- Scattered quote ---- */}
               <section
                 style={{
                   padding: "0 var(--lp-px) 80px",
@@ -598,7 +685,7 @@ export function LandingClient() {
                 />
               </section>
 
-              {/* ---- Vertical range statement (typography-as-image) ---- */}
+              {/* ---- Vertical range statement ---- */}
               <section
                 style={{
                   padding: "80px var(--lp-px)",
@@ -708,73 +795,94 @@ export function LandingClient() {
               <section
                 style={{
                   padding: "0 var(--lp-px) 100px",
-                  maxWidth: 520,
+                  maxWidth: 900,
                   margin: "0 auto",
-                  textAlign: "center",
                 }}
               >
-                <div
+                <div className="landing-tier-grid">
+                  {TIERS.map((tier) => (
+                    <div
+                      key={tier.id}
+                      style={{
+                        background: "rgba(34,34,31,0.6)",
+                        backdropFilter: "blur(10px)",
+                        border: tier.recommended
+                          ? "1px solid rgba(178,40,72,0.5)"
+                          : "1px solid rgba(253,245,230,0.08)",
+                        borderRadius: 20,
+                        padding: "32px 28px",
+                        textAlign: "center",
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: tier.recommended
+                            ? "linear-gradient(135deg, rgba(178,40,72,0.12), transparent 50%)"
+                            : "linear-gradient(135deg, rgba(178,40,72,0.05), transparent 50%)",
+                          borderRadius: 20,
+                          pointerEvents: "none",
+                        }}
+                      />
+                      <div style={{ position: "relative" }}>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-label)",
+                            fontSize: 10,
+                            letterSpacing: "2px",
+                            textTransform: "uppercase",
+                            color: "var(--brand-orange)",
+                            marginBottom: 8,
+                          }}
+                        >
+                          {tier.name}
+                        </div>
+                        <p
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "clamp(2.5rem, 6vw, 3.5rem)",
+                            lineHeight: 1,
+                            color: "var(--brand-cream)",
+                            margin: "0 0 4px",
+                          }}
+                        >
+                          ${tier.price}
+                        </p>
+                        <p
+                          style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: 13,
+                            color: "var(--neutral-500)",
+                            margin: "0 0 20px",
+                          }}
+                        >
+                          GST inclusive
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleTierSelect(tier.id)}
+                          className="landing-cta-btn"
+                        >
+                          Choose {tier.name}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p
                   style={{
-                    background: "rgba(34,34,31,0.6)",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(253,245,230,0.08)",
-                    borderRadius: 20,
-                    padding: "40px 36px",
-                    position: "relative",
-                    overflow: "hidden",
+                    marginTop: 16,
+                    textAlign: "center",
+                    fontSize: 12,
+                    fontStyle: "italic",
+                    color: "var(--neutral-500)",
                   }}
                 >
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "linear-gradient(135deg, rgba(178,40,72,0.08), transparent 50%)",
-                      borderRadius: 20,
-                      pointerEvents: "none",
-                    }}
-                  />
-                  <div style={{ position: "relative" }}>
-                    <p
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: "clamp(2.5rem, 6vw, 3.5rem)",
-                        lineHeight: 1,
-                        color: "var(--brand-cream)",
-                        margin: "0 0 8px",
-                      }}
-                    >
-                      $297
-                    </p>
-                    <p
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: 14,
-                        color: "var(--neutral-300)",
-                        margin: "0 0 24px",
-                      }}
-                    >
-                      GST inclusive. That&rsquo;s the whole number.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleCtaClick}
-                      className="landing-cta-btn"
-                    >
-                      Book your shoot
-                    </button>
-                    <p
-                      style={{
-                        marginTop: 12,
-                        fontSize: 12,
-                        fontStyle: "italic",
-                        color: "var(--neutral-500)",
-                      }}
-                    >
-                      takes about two minutes. no obligation after that.
-                    </p>
-                  </div>
-                </div>
+                  takes about two minutes. no obligation after that.
+                </p>
               </section>
 
               {/* ---- Footer ---- */}
@@ -844,9 +952,9 @@ export function LandingClient() {
           )}
         </AnimatePresence>
 
-        {/* Section 1 Form — slides in when CTA clicked */}
+        {/* Section 1 Form — slides in when tier CTA clicked */}
         <AnimatePresence>
-          {showForm && (
+          {showForm && selectedTier && (
             <motion.div
               key="form"
               ref={formRef}
@@ -859,7 +967,10 @@ export function LandingClient() {
                 padding: "96px 24px",
               }}
             >
-              <Section1Form onSuccess={handleFormSuccess} />
+              <Section1Form
+                selectedTier={selectedTier}
+                onSuccess={handleFormSuccess}
+              />
             </motion.div>
           )}
         </AnimatePresence>

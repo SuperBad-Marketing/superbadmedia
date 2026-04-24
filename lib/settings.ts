@@ -75,8 +75,12 @@ const registry = {
   // Subscriber auth (SB-6a, 1)
   "subscriber.magic_link_ttl_hours": integer,
 
-  // Intro Funnel (1)
+  // Intro Funnel (5)
   "intro_funnel.reflection_delay_hours_after_deliverables": integer,
+  "trial_shoot.session_price_cents": integer,
+  "trial_shoot.production_price_cents": integer,
+  "trial_shoot.session_duration_minutes": integer,
+  "trial_shoot.production_duration_minutes": integer,
 
   // Hiring (28)
   "hiring.discovery.llm_run_cadence": z.enum([
@@ -202,6 +206,9 @@ const registry = {
   "lead_generation.dedup_window_days": integer,
   "lead_generation.location_radius_km": integer,
   "lead_generation.location_centre": str,
+  "lead_generation.location_mode": z.enum(["local", "global"]),
+  "lead_generation.location_country": str,
+  "lead_generation.location_country_code": str,
   "lead_generation.category": str,
   "lead_generation.standing_brief": str,
   "lead_generation.run_time": str,

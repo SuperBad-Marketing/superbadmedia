@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { houseSpring } from "@/lib/design-tokens";
+import type { TrialShootTier } from "@/lib/db/schema/intro-funnel-submissions";
 import { submitSection1Action, type Section1Input } from "./actions";
 
 const SHAPES = [
@@ -14,16 +15,31 @@ const SHAPES = [
   },
 ];
 
+const INTENTS = [
+  { value: "stand_out", label: "Stand out from competitors" },
+  { value: "show_up_consistently", label: "Start showing up consistently" },
+  { value: "more_enquiries", label: "Get more enquiries coming in" },
+  { value: "look_the_part", label: "Finally look as good as we actually are" },
+  { value: "not_sure", label: "Not sure yet, just curious" },
+];
+
+const TIER_LABELS: Record<TrialShootTier, string> = {
+  session: "Session",
+  production: "Production",
+};
+
 interface Section1FormProps {
+  selectedTier: TrialShootTier;
   onSuccess: (token: string) => void;
 }
 
-export function Section1Form({ onSuccess }: Section1FormProps) {
+export function Section1Form({ selectedTier, onSuccess }: Section1FormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [selectedShape, setSelectedShape] = useState<
     Section1Input["shape"] | null
   >(null);
+  const [selectedIntent, setSelectedIntent] = useState<string | null>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,6 +51,7 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
     const businessName = (fd.get("businessName") as string)?.trim();
     const email = (fd.get("email") as string)?.trim();
     const phone = (fd.get("phone") as string)?.trim();
+    const websiteUrl = (fd.get("websiteUrl") as string)?.trim() || undefined;
     const smsOptIn = fd.get("smsOptIn") === "on";
 
     if (!name || !businessName || !email || !phone || !selectedShape) {
@@ -48,8 +65,11 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
         businessName,
         email,
         phone,
+        websiteUrl,
         smsOptIn,
         shape: selectedShape,
+        selectedTier,
+        intent: selectedIntent ?? undefined,
       });
       if (result.ok) {
         onSuccess(result.token);
@@ -62,17 +82,30 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <div>
-        <span
+        <div
           style={{
-            fontFamily: "var(--font-label)",
-            fontSize: 10,
-            letterSpacing: "3px",
-            textTransform: "uppercase",
-            color: "var(--brand-pink)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "6px 14px",
+            borderRadius: 8,
+            background: "rgba(178,40,72,0.12)",
+            border: "1px solid rgba(178,40,72,0.25)",
+            marginBottom: 16,
           }}
         >
-          Step 1 of 4
-        </span>
+          <span
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 10,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "var(--brand-red)",
+            }}
+          >
+            {TIER_LABELS[selectedTier]}
+          </span>
+        </div>
         <h2
           style={{
             fontFamily: "var(--font-narrative)",
@@ -81,7 +114,7 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
             lineHeight: 1.15,
             letterSpacing: "-0.5px",
             color: "var(--brand-cream)",
-            margin: "12px 0 0",
+            margin: "0 0 0",
           }}
         >
           Let&rsquo;s start
@@ -126,6 +159,12 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
           placeholder="For day-of coordination. We won't cold call you."
           type="tel"
           required
+        />
+        <Field
+          name="websiteUrl"
+          label="Website"
+          placeholder="If you've got one — no judgement either way."
+          type="url"
         />
       </div>
 
@@ -181,56 +220,36 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {SHAPES.map((shape) => (
-            <motion.button
+            <SelectableButton
               key={shape.value}
-              type="button"
-              onClick={() => setSelectedShape(shape.value)}
-              whileTap={{ scale: 0.98 }}
-              transition={houseSpring}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: "14px 20px",
-                borderRadius: 12,
-                border:
-                  selectedShape === shape.value
-                    ? "1px solid var(--brand-red)"
-                    : "1px solid rgba(253,245,230,0.08)",
-                background:
-                  selectedShape === shape.value
-                    ? "var(--brand-red)"
-                    : "var(--neutral-800)",
-                color:
-                  selectedShape === shape.value
-                    ? "var(--brand-cream)"
-                    : "var(--neutral-300)",
-                fontFamily: "var(--font-body)",
-                fontSize: 15,
-                cursor: "pointer",
-                boxShadow:
-                  selectedShape === shape.value
-                    ? "0 4px 16px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)"
-                    : "inset 0 1px 0 rgba(253,245,230,0.04)",
-                transition:
-                  "background 250ms cubic-bezier(0.16,1,0.3,1), border-color 250ms cubic-bezier(0.16,1,0.3,1), box-shadow 250ms cubic-bezier(0.16,1,0.3,1)",
-              }}
-              onMouseEnter={(e) => {
-                if (selectedShape !== shape.value) {
-                  e.currentTarget.style.background = "var(--neutral-700)";
-                  e.currentTarget.style.borderColor =
-                    "rgba(244,160,176,0.3)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedShape !== shape.value) {
-                  e.currentTarget.style.background = "var(--neutral-800)";
-                  e.currentTarget.style.borderColor =
-                    "rgba(253,245,230,0.08)";
-                }
-              }}
-            >
-              {shape.label}
-            </motion.button>
+              label={shape.label}
+              selected={selectedShape === shape.value}
+              onSelect={() => setSelectedShape(shape.value)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Intent question */}
+      <div>
+        <p
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: 15,
+            color: "var(--brand-cream)",
+            marginBottom: 12,
+          }}
+        >
+          What are you hoping to get out of this?
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {INTENTS.map((intent) => (
+            <SelectableButton
+              key={intent.value}
+              label={intent.label}
+              selected={selectedIntent === intent.value}
+              onSelect={() => setSelectedIntent(intent.value)}
+            />
           ))}
         </div>
       </div>
@@ -291,6 +310,58 @@ export function Section1Form({ onSuccess }: Section1FormProps) {
   );
 }
 
+function SelectableButton({
+  label,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onSelect}
+      whileTap={{ scale: 0.98 }}
+      transition={houseSpring}
+      style={{
+        width: "100%",
+        textAlign: "left",
+        padding: "14px 20px",
+        borderRadius: 12,
+        border: selected
+          ? "1px solid var(--brand-red)"
+          : "1px solid rgba(253,245,230,0.08)",
+        background: selected ? "var(--brand-red)" : "var(--neutral-800)",
+        color: selected ? "var(--brand-cream)" : "var(--neutral-300)",
+        fontFamily: "var(--font-body)",
+        fontSize: 15,
+        cursor: "pointer",
+        boxShadow: selected
+          ? "0 4px 16px rgba(178,40,72,0.3), inset 0 1px 0 rgba(253,245,230,0.1)"
+          : "inset 0 1px 0 rgba(253,245,230,0.04)",
+        transition:
+          "background 250ms cubic-bezier(0.16,1,0.3,1), border-color 250ms cubic-bezier(0.16,1,0.3,1), box-shadow 250ms cubic-bezier(0.16,1,0.3,1)",
+      }}
+      onMouseEnter={(e) => {
+        if (!selected) {
+          e.currentTarget.style.background = "var(--neutral-700)";
+          e.currentTarget.style.borderColor = "rgba(244,160,176,0.3)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) {
+          e.currentTarget.style.background = "var(--neutral-800)";
+          e.currentTarget.style.borderColor = "rgba(253,245,230,0.08)";
+        }
+      }}
+    >
+      {label}
+    </motion.button>
+  );
+}
+
 function Field({
   name,
   label,
@@ -337,8 +408,7 @@ function Field({
           fontSize: 16,
           color: "var(--brand-cream)",
           outline: "none",
-          transition:
-            "border-color 250ms cubic-bezier(0.16,1,0.3,1)",
+          transition: "border-color 250ms cubic-bezier(0.16,1,0.3,1)",
         }}
         onFocus={(e) => {
           e.currentTarget.style.borderColor = "rgba(244,160,176,0.4)";

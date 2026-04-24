@@ -20,14 +20,18 @@ import { sendEmail } from "@/lib/channels/email/send";
 import settings from "@/lib/settings";
 
 const FUNNEL_SHAPES = ["solo_founder", "founder_led_team", "multi_stakeholder_company"] as const;
+const TRIAL_SHOOT_TIERS = ["session", "production"] as const;
 
 const section1Schema = z.object({
   name: z.string().trim().min(1).max(200),
   businessName: z.string().trim().min(1).max(200),
   email: z.string().email().max(200),
   phone: z.string().trim().min(6).max(30),
+  websiteUrl: z.string().url().max(500).optional(),
   smsOptIn: z.boolean(),
   shape: z.enum(FUNNEL_SHAPES),
+  selectedTier: z.enum(TRIAL_SHOOT_TIERS),
+  intent: z.string().max(100).optional(),
 });
 
 export type Section1Input = z.infer<typeof section1Schema>;
@@ -106,9 +110,12 @@ export async function submitSection1Action(
       submitted_business_name: input.businessName,
       submitted_email: input.email,
       submitted_phone: input.phone,
+      submitted_website_url: input.websiteUrl ?? null,
+      submitted_intent: input.intent ?? null,
       sms_opt_in: input.smsOptIn,
       sms_consent_at_ms: input.smsOptIn ? now : null,
       shape: input.shape,
+      selected_tier: input.selectedTier,
       funnel_state: "contact_submitted",
       questionnaire_sections_completed: 0,
       abandon_sequence_state: "pending",

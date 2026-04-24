@@ -6,6 +6,8 @@
 import { eq, and, gte, lte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { calendar_bookings, calendar_config } from "@/lib/db/schema/calendar";
+import type { TrialShootTier } from "@/lib/db/schema/intro-funnel-submissions";
+import settings from "@/lib/settings";
 
 export interface Slot {
   startMs: number;
@@ -21,7 +23,13 @@ interface CalendarConfigData {
   perWeekCap: number;
 }
 
-const SLOT_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours — v1 hardcoded per spec §12.2
+async function getSlotDurationMs(tier?: TrialShootTier): Promise<number> {
+  const key = tier === "session"
+    ? "trial_shoot.session_duration_minutes"
+    : "trial_shoot.production_duration_minutes";
+  const minutes = await settings.get(key) as number;
+  return minutes * 60 * 1000;
+}
 
 async function loadCalendarConfig(): Promise<CalendarConfigData> {
   const rows = await db
@@ -176,6 +184,7 @@ async function getExistingBookingsInRange(
 export async function computeAvailableSlots(
   fromDate: Date,
   toDate: Date,
+  tier?: TrialShootTier,
 ): Promise<Slot[]> {
   const cfg = await loadCalendarConfig();
   const tz = cfg.timezone;
@@ -224,10 +233,13 @@ export async function computeAvailableSlots(
     const dayStartMinutes = startH * 60 + startM;
     const dayEndMinutes = endH * 60 + endM;
 
+    const slotDurationMs = await getSlotDurationMs(tier);
+    const slotDurationMinutes = slotDurationMs / (60 * 1000);
+
     for (
       let mins = dayStartMinutes;
-      mins + 120 <= dayEndMinutes;
-      mins += 120
+      mins + slotDurationMinutes <= dayEndMinutes;
+      mins += slotDurationMinutes
     ) {
       const slotDate = new Date(cursor);
       const parts = getDatePartsInTz(slotDate, tz);
@@ -236,7 +248,7 @@ export async function computeAvailableSlots(
       const utcMs = Date.UTC(parts.year, parts.month - 1, parts.day, h, m, 0);
       const targetOffset = getTimezoneOffsetMs(new Date(utcMs), tz);
       const startMs = utcMs + targetOffset;
-      const endMs = startMs + SLOT_DURATION_MS;
+      const endMs = startMs + slotDurationMs;
 
       if (startMs < effectiveFrom.getTime()) {
         continue;

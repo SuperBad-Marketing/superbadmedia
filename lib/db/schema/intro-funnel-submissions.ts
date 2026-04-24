@@ -25,6 +25,9 @@ export const FUNNEL_SHAPES = [
 ] as const;
 export type FunnelShape = (typeof FUNNEL_SHAPES)[number];
 
+export const TRIAL_SHOOT_TIERS = ["session", "production"] as const;
+export type TrialShootTier = (typeof TRIAL_SHOOT_TIERS)[number];
+
 export const ABANDON_SEQUENCE_STATES = [
   "pending",
   "t_15m_sent",
@@ -57,6 +60,12 @@ export const intro_funnel_submissions = sqliteTable(
     sms_consent_at_ms: integer("sms_consent_at_ms"),
 
     shape: text("shape", { enum: FUNNEL_SHAPES }).notNull(),
+
+    selected_tier: text("selected_tier", { enum: TRIAL_SHOOT_TIERS })
+      .notNull()
+      .default("session"),
+    submitted_website_url: text("submitted_website_url"),
+    submitted_intent: text("submitted_intent"),
 
     funnel_state: text("funnel_state", { enum: FUNNEL_STATES })
       .notNull()
