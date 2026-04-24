@@ -136,6 +136,8 @@ export const MODELS = {
   "content-studio-generate-copy": "sonnet",
   "content-studio-correct-copy": "sonnet",
   "content-studio-pick-template": "haiku",
+  // catalogue-chat (1)
+  "catalogue-chat-recommend": "sonnet",
   // instagram-channel (8)
   "instagram-draft-caption": "sonnet",
   "instagram-classify-inbound": "haiku",

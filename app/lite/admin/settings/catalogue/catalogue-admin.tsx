@@ -34,6 +34,7 @@ import {
   softDeleteCatalogueItemAction,
   restoreCatalogueItemAction,
 } from "./actions";
+import { CatalogueChat } from "./catalogue-chat";
 
 const HOUSE_SPRING = {
   type: "spring" as const,
@@ -259,6 +260,9 @@ export function CatalogueAdmin({
           New item
         </button>
       </div>
+
+      {/* AI Chat panel */}
+      <CatalogueChat />
 
       {/* Table or empty */}
       {filtered.length === 0 ? (
