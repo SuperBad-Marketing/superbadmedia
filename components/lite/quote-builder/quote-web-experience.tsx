@@ -90,7 +90,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
 
   return (
     <div
-      className="quote-surface min-h-screen w-full"
+      className={`quote-surface w-full ${isPreview ? "" : "min-h-screen"}`}
       style={{
         backgroundColor: "var(--brand-cream)",
         color: "var(--brand-charcoal)",
@@ -110,7 +110,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
       <div
         className={
           isPreview
-            ? "mx-auto max-w-3xl"
+            ? "mx-auto"
             : "mx-auto max-w-3xl snap-y snap-proximity overflow-y-auto"
         }
         style={isPreview ? undefined : { height: "100vh", scrollSnapType: "y proximity" }}
@@ -119,24 +119,24 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
         {/* Hero */}
         <header
           className={
-            (isPreview ? "px-6 py-8" : "snap-start px-6 pt-16 pb-8 md:pt-24")
+            isPreview ? "px-4 py-5" : "snap-start px-6 pt-16 pb-8 md:pt-24"
           }
         >
           <div
-            className="text-[10px] uppercase tracking-[0.24em]"
+            className={`uppercase tracking-[0.24em] ${isPreview ? "text-[8px]" : "text-[10px]"}`}
             style={{ color: "color-mix(in srgb, var(--brand-charcoal) 55%, transparent)" }}
           >
             SuperBad · {props.quoteNumber}
           </div>
           <h1
-            className="mt-3 text-4xl leading-[1.05] md:text-5xl"
+            className={`mt-2 leading-[1.05] ${isPreview ? "text-xl" : "text-4xl md:text-5xl"}`}
             style={{ fontFamily: "var(--font-display)" }}
             data-bhs-location="quote_page_hero"
           >
             For {props.companyName}
           </h1>
           <p
-            className="mt-3 text-lg italic"
+            className={`mt-2 italic ${isPreview ? "text-sm" : "text-lg"}`}
             style={{
               fontFamily: "var(--font-narrative)",
               color: "color-mix(in srgb, var(--brand-charcoal) 70%, transparent)",
@@ -389,7 +389,7 @@ const Section = React.forwardRef<
       data-section-index={index}
       className={
         (isPreview
-          ? "border-t px-6 py-10"
+          ? "border-t px-4 py-5"
           : "snap-start px-6 py-16 md:py-20") +
         " transition-all duration-300"
       }
@@ -400,7 +400,7 @@ const Section = React.forwardRef<
       }}
     >
       <div
-        className="mb-6 flex items-baseline gap-3 text-[10px] uppercase tracking-[0.24em]"
+        className={`flex items-baseline gap-3 uppercase tracking-[0.24em] ${isPreview ? "mb-3 text-[8px]" : "mb-6 text-[10px]"}`}
         style={{ color: "color-mix(in srgb, var(--brand-charcoal) 50%, transparent)" }}
       >
         <span>§{index}</span>

@@ -158,11 +158,13 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
             className="hidden max-h-[60vh] overflow-y-auto rounded-md border border-border lg:block"
             aria-label="Preview of what the client will see"
           >
-            <QuoteWebExperience
-              mode="modal-preview"
-              token=""
-              {...preview}
-            />
+            <div style={{ zoom: 0.6 }}>
+              <QuoteWebExperience
+                mode="modal-preview"
+                token=""
+                {...preview}
+              />
+            </div>
           </aside>
 
           <div>
