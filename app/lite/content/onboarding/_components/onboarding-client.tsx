@@ -71,9 +71,11 @@ const INITIAL_STATE: OnboardingState = {
 export function ContentEngineOnboardingClient({
   expiryDays,
   companyId: initialCompanyId,
+  companies,
 }: {
   expiryDays: number;
   companyId?: string;
+  companies?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const [state, setState] = React.useState<OnboardingState>({
@@ -151,6 +153,67 @@ export function ContentEngineOnboardingClient({
         <Button type="button" onClick={() => router.push("/lite/content")}>
           Back to Content
         </Button>
+      </div>
+    );
+  }
+
+  if (!state.companyId && companies && companies.length > 0) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+        <h2
+          className="font-[family-name:var(--font-display)] text-[28px] leading-none text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "-0.3px" }}
+        >
+          Which company?
+        </h2>
+        <p className="mt-3 font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-400)]">
+          Pick the company to set up the content engine for.
+        </p>
+        <div className="mt-6 space-y-2">
+          {companies.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="w-full rounded-md px-4 py-3 text-left text-sm transition-colors"
+              style={{
+                background: "var(--color-neutral-800)",
+                color: "var(--color-brand-cream)",
+                border: "1px solid var(--color-neutral-700)",
+              }}
+              onClick={() => setState((s) => ({ ...s, companyId: c.id }))}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!state.companyId) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+        <h2
+          className="font-[family-name:var(--font-display)] text-[28px] leading-none text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "-0.3px" }}
+        >
+          No companies yet
+        </h2>
+        <p className="mt-3 font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-400)]">
+          Create a company in Clients first, then come back.
+        </p>
+        <button
+          type="button"
+          className="mt-6 rounded-md px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+          style={{
+            backgroundColor: "var(--color-brand-pink)",
+            color: "var(--color-neutral-950)",
+            fontFamily: "var(--font-label)",
+          }}
+          onClick={() => router.push("/lite/admin/clients")}
+        >
+          Go to Clients
+        </button>
       </div>
     );
   }

@@ -118,6 +118,38 @@ export default async function ContentPage() {
 
       <ContentTabs currentPath="/lite/content" />
 
+      {contentCompanies.length === 0 && (
+        <div
+          className="mb-8 rounded-[12px] px-8 py-8 text-center"
+          style={{
+            background: "var(--color-surface-2)",
+            boxShadow: "var(--surface-highlight)",
+            border: "1px solid rgba(244, 160, 176, 0.12)",
+          }}
+        >
+          <p
+            className="font-[family-name:var(--font-display)] text-[22px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.2px" }}
+          >
+            No content engine running yet.
+          </p>
+          <p className="mt-2 font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-400)]">
+            Set up a company to start generating blog posts and newsletters.
+          </p>
+          <Link
+            href="/lite/content/onboarding"
+            className="mt-4 inline-block rounded-md px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{
+              backgroundColor: "var(--color-brand-pink)",
+              color: "var(--color-neutral-950)",
+              fontFamily: "var(--font-label)",
+            }}
+          >
+            Run onboarding
+          </Link>
+        </div>
+      )}
+
       {/* Posts awaiting review */}
       <section className="mb-12">
         <div
