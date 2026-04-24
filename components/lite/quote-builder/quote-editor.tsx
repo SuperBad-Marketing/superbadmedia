@@ -884,7 +884,7 @@ function LineItemCard(props: {
           placeholder="Item name"
           onChange={(e) => props.onChangeSnapshot({ name: e.target.value })}
           disabled={locked}
-          className="h-8 flex-1 border-transparent bg-transparent text-[14px] font-medium text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-600)] focus-visible:border-[rgba(244,160,176,0.25)]"
+          className="h-8 flex-1 border-transparent bg-[color:var(--color-neutral-800)] text-[14px] font-medium text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-600)] focus-visible:border-[rgba(244,160,176,0.25)]"
         />
         <div className="flex items-center gap-1 shrink-0">
           {props.onSaveToCatalogue && !locked && (
@@ -936,7 +936,7 @@ function LineItemCard(props: {
               props.onChange({ qty: Math.max(0, Number(e.target.value) || 0) })
             }
             disabled={locked}
-            className="h-7 w-[60px] border-transparent bg-transparent text-[13px] tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
+            className="h-7 w-[60px] border-transparent bg-[color:var(--color-neutral-800)] text-[13px] tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
           />
         </div>
         <div className="flex items-center gap-1.5">
@@ -960,7 +960,7 @@ function LineItemCard(props: {
               })
             }
             disabled={locked}
-            className="h-7 w-[90px] border-transparent bg-transparent text-[13px] tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
+            className="h-7 w-[90px] border-transparent bg-[color:var(--color-neutral-800)] text-[13px] tabular-nums focus-visible:border-[rgba(244,160,176,0.25)]"
           />
         </div>
         <Select

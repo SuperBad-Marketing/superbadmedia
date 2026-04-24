@@ -153,12 +153,12 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
           <DialogTitle>Send quote</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <aside
             className="hidden max-h-[60vh] overflow-y-auto rounded-md border border-border lg:block"
             aria-label="Preview of what the client will see"
           >
-            <div style={{ zoom: 0.6 }}>
+            <div style={{ zoom: 0.75 }}>
               <QuoteWebExperience
                 mode="modal-preview"
                 token=""
