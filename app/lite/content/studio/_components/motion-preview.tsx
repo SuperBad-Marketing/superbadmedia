@@ -10,6 +10,8 @@ import { BRAND_PALETTES, getPalette } from "@/lib/content-studio/motion/palettes
 import type { ColourPalette } from "@/lib/content-studio/motion/types";
 import { MOTION_ASPECT_RATIOS, MOTION_RATIO_LABELS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
+import { toast } from "sonner";
+import { exportMotionPostAction } from "../actions";
 
 export interface MotionPostData {
   id: string;
@@ -48,6 +50,14 @@ export function MotionPreview({
     post.primaryAspectRatio,
   );
   const [transparent, setTransparent] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"mp4" | "webm">("mp4");
+  const [exportRatios, setExportRatios] = useState<Set<MotionAspectRatio>>(
+    () => new Set([post.primaryAspectRatio]),
+  );
+  const [exporting, setExporting] = useState(false);
+  const [exportResults, setExportResults] = useState<
+    { ratio: string; format: string; url: string }[]
+  >([]);
 
   const durationInFrames = template?.defaultDuration ?? 90;
   const fps = 30;
@@ -78,6 +88,39 @@ export function MotionPreview({
     },
     [onAspectRatioChange],
   );
+
+  const handleExport = useCallback(async () => {
+    if (exportRatios.size === 0) {
+      toast.error("Select at least one aspect ratio.");
+      return;
+    }
+    setExporting(true);
+    const result = await exportMotionPostAction({
+      postId: post.id,
+      ratios: Array.from(exportRatios),
+      format: exportFormat,
+      transparent: transparent && exportFormat === "webm",
+    });
+    setExporting(false);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    const successful = result.renders.filter((r) => r.url);
+    setExportResults(successful);
+    toast.success(
+      `${successful.length} render${successful.length === 1 ? "" : "s"} complete.`,
+    );
+  }, [post.id, exportRatios, exportFormat, transparent]);
+
+  const toggleExportRatio = useCallback((r: MotionAspectRatio) => {
+    setExportRatios((prev) => {
+      const next = new Set(prev);
+      if (next.has(r)) next.delete(r);
+      else next.add(r);
+      return next;
+    });
+  }, []);
 
   if (!template) {
     return (
@@ -197,6 +240,139 @@ export function MotionPreview({
             Overlay preview (transparent background)
           </label>
         )}
+
+        {/* Export section */}
+        <div
+          style={{
+            marginTop: 20,
+            padding: "16px 0",
+            borderTop: "1px solid rgba(253,245,230,0.06)",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 11,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              color: "rgba(253,245,230,0.4)",
+              marginBottom: 10,
+            }}
+          >
+            Export
+          </div>
+
+          {/* Format toggle */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+            {(["mp4", "webm"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setExportFormat(f)}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: 6,
+                  border:
+                    exportFormat === f
+                      ? "1px solid var(--color-brand-red)"
+                      : "1px solid rgba(253,245,230,0.1)",
+                  background:
+                    exportFormat === f
+                      ? "rgba(178,40,72,0.15)"
+                      : "rgba(253,245,230,0.03)",
+                  color: "var(--color-brand-cream)",
+                  fontFamily: "var(--font-label)",
+                  fontSize: 11,
+                  letterSpacing: 1,
+                  cursor: "pointer",
+                }}
+              >
+                {f === "mp4" ? "Video (MP4)" : "Overlay (WebM alpha)"}
+              </button>
+            ))}
+          </div>
+
+          {/* Ratio checkboxes */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+            {MOTION_ASPECT_RATIOS.map((r) => (
+              <label
+                key={r}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  border: "1px solid rgba(253,245,230,0.08)",
+                  background: exportRatios.has(r)
+                    ? "rgba(253,245,230,0.06)"
+                    : "transparent",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-label)",
+                  fontSize: 11,
+                  color: "var(--color-brand-cream)",
+                  letterSpacing: 0.5,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={exportRatios.has(r)}
+                  onChange={() => toggleExportRatio(r)}
+                  style={{ accentColor: "var(--color-brand-red)" }}
+                />
+                {MOTION_RATIO_LABELS[r]}
+              </label>
+            ))}
+          </div>
+
+          <button
+            onClick={handleExport}
+            disabled={exporting || exportRatios.size === 0}
+            style={{
+              padding: "8px 20px",
+              borderRadius: 6,
+              border: "none",
+              background: "var(--color-brand-red)",
+              color: "var(--color-brand-cream)",
+              fontFamily: "var(--font-label)",
+              fontSize: 12,
+              letterSpacing: 1,
+              cursor: "pointer",
+              opacity: exporting || exportRatios.size === 0 ? 0.5 : 1,
+            }}
+          >
+            {exporting
+              ? "Rendering…"
+              : `Export ${exportRatios.size} ratio${exportRatios.size === 1 ? "" : "s"}`}
+          </button>
+
+          {/* Export results */}
+          {exportResults.length > 0 && (
+            <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {exportResults.map((r, i) => (
+                <a
+                  key={i}
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "block",
+                    padding: "6px 12px",
+                    borderRadius: 6,
+                    background: "rgba(253,245,230,0.04)",
+                    border: "1px solid rgba(253,245,230,0.1)",
+                    fontFamily: "var(--font-label)",
+                    fontSize: 11,
+                    color: "var(--color-brand-cream)",
+                    textDecoration: "none",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  {r.ratio} · {r.format.toUpperCase()} ↗
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Right: Text editing panel */}

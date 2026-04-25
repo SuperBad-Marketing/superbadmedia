@@ -15,7 +15,8 @@ import {
 import { generateCopy, correctCopy, type SlideCopy } from "@/lib/content-studio/generate-copy";
 import { getTemplate } from "@/lib/content-studio/templates";
 import { getMotionTemplate } from "@/lib/content-studio/motion/registry";
-import { BRAND_PALETTES } from "@/lib/content-studio/motion/palettes";
+import { BRAND_PALETTES, getPalette } from "@/lib/content-studio/motion/palettes";
+import { MOTION_DIMENSIONS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
 
 const createSchema = z.object({
   brief: z.string().min(1).max(2000),
@@ -434,6 +435,119 @@ export async function updateMotionPostAction(
     .where(eq(contentStudioPosts.id, parsed.data.postId));
 
   return { ok: true as const };
+}
+
+// --- Motion export action ---
+
+const exportMotionSchema = z.object({
+  postId: z.string().uuid(),
+  ratios: z.array(z.string()).min(1),
+  format: z.enum(["mp4", "webm"]),
+  transparent: z.boolean().default(false),
+});
+
+export async function exportMotionPostAction(
+  input: z.infer<typeof exportMotionSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = exportMotionSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const post = await db.query.contentStudioPosts.findFirst({
+    where: eq(contentStudioPosts.id, parsed.data.postId),
+  });
+  if (!post || !post.motion_enabled) {
+    return { ok: false as const, error: "post_not_found" };
+  }
+
+  const motionTemplate = getMotionTemplate(post.motion_template_id ?? "");
+  if (!motionTemplate) {
+    return { ok: false as const, error: "template_not_found" };
+  }
+
+  const palette = getPalette(post.palette_id ?? "") ?? BRAND_PALETTES[0];
+  const slides = normaliseSlideCopy(post.generated_copy_json);
+  const copy = slides[0] ?? {};
+  const animationParams = post.animation_params_json
+    ? JSON.parse(post.animation_params_json as string)
+    : {};
+
+  const { renderAndUploadMotion } = await import(
+    "@/lib/content-studio/render-motion"
+  );
+  const now = Date.now();
+  const results: {
+    id: string;
+    ratio: string;
+    format: string;
+    url: string;
+  }[] = [];
+
+  for (const ratio of parsed.data.ratios) {
+    const motionRatio = ratio as MotionAspectRatio;
+    const dims = MOTION_DIMENSIONS[motionRatio];
+    if (!dims) continue;
+
+    try {
+      const result = await renderAndUploadMotion(
+        {
+          templateId: motionTemplate.id,
+          copy,
+          palette,
+          aspectRatio: motionRatio,
+          transparent: parsed.data.transparent,
+          animationParams,
+          durationInFrames: motionTemplate.defaultDuration,
+          format: parsed.data.format,
+        },
+        parsed.data.postId,
+        ratio,
+      );
+
+      const renderId = crypto.randomUUID();
+      await db.insert(contentStudioRenders).values({
+        id: renderId,
+        post_id: parsed.data.postId,
+        slide_index: 0,
+        aspect_ratio: "square",
+        platforms: "motion-export",
+        width: result.width,
+        height: result.height,
+        cloudinary_public_id: result.publicId,
+        cloudinary_url: result.url,
+        render_status: "rendered",
+        render_type: "motion",
+        format: result.format,
+        created_at_ms: now,
+      });
+
+      results.push({
+        id: renderId,
+        ratio,
+        format: result.format,
+        url: result.url,
+      });
+    } catch {
+      results.push({
+        id: "",
+        ratio,
+        format: parsed.data.format,
+        url: "",
+      });
+    }
+  }
+
+  await db
+    .update(contentStudioPosts)
+    .set({ status: "rendered", updated_at_ms: Date.now() })
+    .where(eq(contentStudioPosts.id, parsed.data.postId));
+
+  revalidatePath("/lite/content/studio");
+  return { ok: true as const, renders: results };
 }
 
 function normaliseSlideCopy(json: unknown): SlideCopy[] {
