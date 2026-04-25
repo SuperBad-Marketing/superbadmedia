@@ -14,6 +14,9 @@ export const ASPECT_RATIOS = [
   "portrait",
   "square",
   "landscape",
+  "portrait_3x4",
+  "portrait_4x5",
+  "landscape_16x9",
 ] as const;
 export type AspectRatio = (typeof ASPECT_RATIOS)[number];
 
@@ -24,6 +27,12 @@ export const RENDER_STATUSES = [
   "failed",
 ] as const;
 export type RenderStatus = (typeof RENDER_STATUSES)[number];
+
+export const RENDER_TYPES = ["static", "motion"] as const;
+export type RenderType = (typeof RENDER_TYPES)[number];
+
+export const RENDER_FORMATS = ["png", "mp4", "webm"] as const;
+export type RenderFormat = (typeof RENDER_FORMATS)[number];
 
 export const contentStudioPosts = sqliteTable(
   "content_studio_posts",
@@ -40,6 +49,13 @@ export const contentStudioPosts = sqliteTable(
     status: text("status", { enum: RENDER_STATUSES })
       .notNull()
       .default("draft"),
+
+    motion_enabled: integer("motion_enabled").notNull().default(0),
+    motion_template_id: text("motion_template_id"),
+    palette_id: text("palette_id"),
+    animation_params_json: text("animation_params_json"),
+    primary_aspect_ratio: text("primary_aspect_ratio"),
+    inspiration_refs_json: text("inspiration_refs_json"),
 
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
@@ -71,6 +87,13 @@ export const contentStudioRenders = sqliteTable(
     render_status: text("render_status", { enum: RENDER_STATUSES })
       .notNull()
       .default("rendering"),
+    render_type: text("render_type", { enum: RENDER_TYPES })
+      .notNull()
+      .default("static"),
+    format: text("format", { enum: RENDER_FORMATS })
+      .notNull()
+      .default("png"),
+    video_job_id: text("video_job_id"),
     created_at_ms: integer("created_at_ms").notNull(),
   },
   (t) => ({

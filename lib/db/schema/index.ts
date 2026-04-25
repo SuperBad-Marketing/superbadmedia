@@ -94,6 +94,8 @@ export * from "./band-overrides";
 export * from "./deploy-events";
 export * from "./cockpit-briefs";
 export * from "./content-studio";
+export * from "./video-jobs";
+export * from "./inspiration-library";
 export * from "./instagram";
 export * from "./brand-voice-examples";
 export * from "./briefs";

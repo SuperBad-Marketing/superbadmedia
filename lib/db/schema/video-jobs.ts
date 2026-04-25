@@ -55,6 +55,8 @@ export const videoJobs = sqliteTable(
     queued_at: integer("queued_at", { mode: "timestamp_ms" }),
     completed_at: integer("completed_at", { mode: "timestamp_ms" }),
     generation_ms: integer("generation_ms"),
+
+    content_studio_post_id: text("content_studio_post_id"),
   },
   (t) => ({
     by_status: index("video_jobs_status_idx").on(t.status, t.created_at),

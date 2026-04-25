@@ -15,6 +15,9 @@ const ASPECT_DIMENSIONS: Record<AspectRatio, { width: number; height: number }> 
   portrait: { width: 1080, height: 1920 },
   square: { width: 1080, height: 1080 },
   landscape: { width: 1200, height: 630 },
+  portrait_3x4: { width: 1080, height: 1440 },
+  portrait_4x5: { width: 1080, height: 1350 },
+  landscape_16x9: { width: 1920, height: 1080 },
 };
 
 export function getDimensions(ratio: AspectRatio) {

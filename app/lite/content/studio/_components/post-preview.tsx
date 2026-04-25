@@ -17,6 +17,9 @@ const RATIO_LABELS: Record<AspectRatio, string> = {
   portrait: "Portrait 9:16",
   square: "Square 1:1",
   landscape: "Landscape 2:1",
+  portrait_3x4: "Portrait 3:4",
+  portrait_4x5: "Tall Portrait 4:5",
+  landscape_16x9: "Landscape 16:9",
 };
 
 const PLATFORM_OPTIONS = [
