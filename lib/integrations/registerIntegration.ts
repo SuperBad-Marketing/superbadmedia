@@ -88,6 +88,7 @@ export async function registerIntegration(
       and(
         eq(integration_connections.vendor_key, manifest.vendorKey),
         eq(integration_connections.owner_type, ownerType),
+        eq(integration_connections.owner_id, ownerId),
         eq(integration_connections.status, "active"),
       ),
     )

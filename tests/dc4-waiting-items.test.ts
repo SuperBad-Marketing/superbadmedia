@@ -96,11 +96,13 @@ describe("source spec contracts", () => {
       ...base,
       id: "fleet_1",
       scope: "fleet",
+      urgency: { kind: "age_of_wait", value: 0 },
     };
     const ownItem: WaitingItem = {
       ...base,
       id: "own_1",
       scope: "own",
+      urgency: { kind: "age_of_wait", value: 0 },
     };
     expect(fleetItem.scope).toBe("fleet");
     expect(ownItem.scope).toBe("own");

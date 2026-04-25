@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { houseSpring } from "@/lib/design-tokens";
 import { Pencil, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,8 +63,14 @@ export function QueueList({ drafts, llmEnabled }: QueueListProps) {
         ))}
       </div>
 
+      <AnimatePresence mode="wait" initial={false}>
       {filtered.length === 0 ? (
-        <div
+        <motion.div
+          key="empty"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={houseSpring}
           className="rounded-[12px] px-8 py-10 text-center"
           style={{
             background: "var(--color-surface-2)",
@@ -79,18 +86,29 @@ export function QueueList({ drafts, llmEnabled }: QueueListProps) {
           <p className="mt-3 font-[family-name:var(--font-narrative)] text-[14px] italic text-[color:var(--color-brand-pink)]">
             nothing waiting on you.
           </p>
-        </div>
+        </motion.div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((draft) => (
-            <QueueRow
-              key={draft.id}
-              draft={draft}
-              onNudge={() => setNudgeDraftId(draft.id)}
-            />
-          ))}
+          <AnimatePresence initial={false} mode="popLayout">
+            {filtered.map((draft) => (
+              <motion.div
+                key={draft.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={houseSpring}
+                layout
+              >
+                <QueueRow
+                  draft={draft}
+                  onNudge={() => setNudgeDraftId(draft.id)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {nudgeDraft && (

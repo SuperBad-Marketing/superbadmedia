@@ -15,6 +15,7 @@
 🚨 **VERIFICATION FAILED — human required.** See `sessions/DRY-INT-FAILED-handoff.md`.
 🔁 **Attempt #3 (2026-04-21):** Third consecutive autonomy loop hit same G1 block. Code is clean (3 remaining test failures are all pre-existing). **Recommend:** create `.autonomy/PAUSED` + push to halt loop until Andy can run DRY-INT locally with credentials. See handoff for exact steps.
 ⏸️ **LOOP PAUSED (2026-04-21 — attempt #4):** Fourth consecutive G1 failure. `.autonomy/PAUSED` created. Autonomy loop is now halted. **Andy must run DRY-INT locally** per the steps in `sessions/DRY-INT-FAILED-handoff.md`, then delete `.autonomy/PAUSED` and push to resume.
+⚠️ **Autonomy loop re-trigger (2026-04-25 — stale local main):** PAUSED file was absent; loop re-triggered, ran LG-10 against stale local tracker. Lint gate: 208 errors (pre-existing from waves 14–23, not LG-10 regression). Useful fixes landed: registerIntegration owner_id bug, test mock fixes, vitest timeout raised, houseSpring motion on queue-list rows. See `sessions/lg-10-FAILED-handoff.md`. PAUSED recreated. Two blockers remain: (1) lint debt across ~30 files, (2) DRY-INT needs live credentials.
 
 **Remaining blocker before re-attempting DRY-INT:**
 1. No external service credentials in CCR (`STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` absent). Must run locally with Andy + Stripe CLI + test email inbox accessible.

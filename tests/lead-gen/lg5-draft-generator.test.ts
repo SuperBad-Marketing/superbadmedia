@@ -30,6 +30,13 @@ vi.mock("@/lib/activity-log", () => ({
 }));
 
 vi.mock("@/lib/db", () => {
+  const selectChain = {
+    from: vi.fn(),
+    where: vi.fn(),
+    orderBy: vi.fn().mockResolvedValue([]),
+  };
+  selectChain.from.mockReturnValue(selectChain);
+  selectChain.where.mockReturnValue(selectChain);
   const mockInsert = vi.fn().mockReturnValue({
     values: vi.fn().mockResolvedValue([]),
   });
@@ -40,6 +47,7 @@ vi.mock("@/lib/db", () => {
   });
   return {
     db: {
+      select: vi.fn().mockReturnValue(selectChain),
       insert: mockInsert,
       update: mockUpdate,
     },

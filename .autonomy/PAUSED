@@ -1,6 +1,10 @@
-DRY-INT blocked — persistent G1 failure (4th consecutive attempt). STRIPE_SECRET_KEY, RESEND_API_KEY, and ANTHROPIC_API_KEY are not configured in the CCR environment. This session requires live credentials and must run locally with Andy present during Phase 6 shadow period.
+DRY-INT blocked — live credentials required. Two additional blockers found by 2026-04-25 re-trigger:
+1. Lint debt: 208 ESLint errors across ~30 files from waves 14–23 commits (npm run build is clean; npm run lint is not). Needs a dedicated lint-fix session.
+2. DRY-INT still requires STRIPE_SECRET_KEY + RESEND_API_KEY + ANTHROPIC_API_KEY + Andy present.
 
-To resume the loop:
-1. Run DRY-INT locally with credentials configured (see sessions/DRY-INT-FAILED-handoff.md for exact steps)
-2. After DRY-INT passes locally, update SESSION_TRACKER.md Next Action to Phase 6
-3. Delete this file and push: git rm .autonomy/PAUSED && git commit -m "[AUTONOMY] Resume loop — DRY-INT completed locally" && git push
+To resume:
+  a) Run lint-fix session to clear 208 errors across app/ components/ lib/ files.
+  b) Ensure live credentials are in env.
+  c) Delete this file + push to continue.
+
+Created: 2026-04-25T01:36:59Z

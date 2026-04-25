@@ -27,8 +27,8 @@ describe("SAP — Settings Audit Pass", () => {
     }
   });
 
-  it("registry total is 182 keys", () => {
-    expect(SETTINGS_KEYS.length).toBe(182);
+  it("registry total is 208 keys", () => {
+    expect(SETTINGS_KEYS.length).toBe(208);
   });
 
   it("warmup module no longer exports hardcoded constants", async () => {

@@ -47,7 +47,7 @@ describe("HP-19 — getHiringBriefingSignals", () => {
     const nowMs = Date.now();
 
     let callCount = 0;
-    vi.mocked(db.all).mockImplementation(async () => {
+    vi.mocked(db.all).mockImplementation((_q) => {
       callCount++;
       if (callCount === 1) {
         return [
@@ -94,7 +94,7 @@ describe("HP-19 — getHiringBriefingSignals", () => {
     const runAt = nowMs - 86_400_000;
 
     let getAllCount = 0;
-    vi.mocked(db.all).mockImplementation(async () => {
+    vi.mocked(db.all).mockImplementation((_q) => {
       getAllCount++;
       return [];
     });
