@@ -132,8 +132,9 @@ export const MODELS = {
   // free-audit-tool (2)
   "audit-category-explanation": "haiku",
   "audit-followup-draft": "opus",
-  // content-studio (3)
+  // content-studio (4)
   "content-studio-generate-copy": "sonnet",
+  "content-studio-generate-motion-copy": "sonnet",
   "content-studio-correct-copy": "sonnet",
   "content-studio-pick-template": "haiku",
   // catalogue-chat (1)

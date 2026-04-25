@@ -12,6 +12,7 @@ import {
   ASPECT_RATIOS,
   type AspectRatio,
 } from "@/lib/db/schema/content-studio";
+import { videoJobs } from "@/lib/db/schema/video-jobs";
 import { generateCopy, correctCopy, type SlideCopy } from "@/lib/content-studio/generate-copy";
 import { getTemplate } from "@/lib/content-studio/templates";
 import { getMotionTemplate } from "@/lib/content-studio/motion/registry";
@@ -509,6 +510,8 @@ export async function exportMotionPostAction(
       );
 
       const renderId = crypto.randomUUID();
+      const videoJobId = crypto.randomUUID();
+
       await db.insert(contentStudioRenders).values({
         id: renderId,
         post_id: parsed.data.postId,
@@ -522,7 +525,21 @@ export async function exportMotionPostAction(
         render_status: "rendered",
         render_type: "motion",
         format: result.format,
+        video_job_id: videoJobId,
         created_at_ms: now,
+      });
+
+      await db.insert(videoJobs).values({
+        id: videoJobId,
+        video_type: "motion_design",
+        engine: "remotion",
+        status: "ready",
+        initial_prompt: post.brief,
+        aspect_ratio: ratio,
+        output_url: result.url,
+        content_studio_post_id: parsed.data.postId,
+        created_at: new Date(now),
+        completed_at: new Date(),
       });
 
       results.push({
