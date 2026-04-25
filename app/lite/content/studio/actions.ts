@@ -14,6 +14,8 @@ import {
 } from "@/lib/db/schema/content-studio";
 import { generateCopy, correctCopy, type SlideCopy } from "@/lib/content-studio/generate-copy";
 import { getTemplate } from "@/lib/content-studio/templates";
+import { getMotionTemplate } from "@/lib/content-studio/motion/registry";
+import { BRAND_PALETTES } from "@/lib/content-studio/motion/palettes";
 
 const createSchema = z.object({
   brief: z.string().min(1).max(2000),
@@ -322,6 +324,116 @@ export async function getPostAction(postId: string) {
     .where(eq(contentStudioRenders.post_id, postId));
 
   return { ok: true as const, post, renders };
+}
+
+// --- Motion post actions ---
+
+const createMotionSchema = z.object({
+  brief: z.string().min(1).max(2000),
+  contentType: z.enum(CONTENT_TYPES),
+  motionTemplateId: z.string().min(1),
+  paletteId: z.string().optional(),
+  primaryAspectRatio: z.string().optional(),
+});
+
+export async function createMotionPostAction(
+  input: z.infer<typeof createMotionSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = createMotionSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const { brief, contentType, motionTemplateId, paletteId, primaryAspectRatio } =
+    parsed.data;
+
+  const motionTemplate = getMotionTemplate(motionTemplateId);
+  if (!motionTemplate) return { ok: false as const, error: "template_not_found" };
+
+  const result = await generateCopy(brief, contentType, 1);
+  if (!result.ok) return { ok: false as const, error: result.error };
+
+  const now = Date.now();
+  const id = crypto.randomUUID();
+  const resolvedPalette = paletteId ?? BRAND_PALETTES[0].id;
+  const resolvedRatio = primaryAspectRatio ?? "square";
+  const defaultParams = Object.fromEntries(
+    motionTemplate.animationParams.map((p) => [p.key, p.default]),
+  );
+
+  await db.insert(contentStudioPosts).values({
+    id,
+    brief,
+    content_type: contentType,
+    template_id: motionTemplate.staticCounterpart ?? motionTemplateId,
+    slide_count: 1,
+    generated_copy_json: result.slides as SlideCopy[],
+    correction_history_json: [] as unknown[],
+    status: "draft",
+    motion_enabled: 1,
+    motion_template_id: motionTemplateId,
+    palette_id: resolvedPalette,
+    animation_params_json: JSON.stringify(defaultParams),
+    primary_aspect_ratio: resolvedRatio,
+    created_at_ms: now,
+    updated_at_ms: now,
+  });
+
+  revalidatePath("/lite/content/studio");
+  return {
+    ok: true as const,
+    postId: id,
+    slides: result.slides,
+    motionTemplateId,
+    paletteId: resolvedPalette,
+    animationParams: defaultParams,
+    primaryAspectRatio: resolvedRatio,
+  };
+}
+
+const updateMotionSchema = z.object({
+  postId: z.string().uuid(),
+  slides: z.array(z.record(z.string(), z.string())).optional(),
+  paletteId: z.string().optional(),
+  animationParams: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+  primaryAspectRatio: z.string().optional(),
+});
+
+export async function updateMotionPostAction(
+  input: z.infer<typeof updateMotionSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = updateMotionSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const updates: Record<string, unknown> = { updated_at_ms: Date.now() };
+
+  if (parsed.data.slides) {
+    updates.generated_copy_json = parsed.data.slides;
+  }
+  if (parsed.data.paletteId) {
+    updates.palette_id = parsed.data.paletteId;
+  }
+  if (parsed.data.animationParams) {
+    updates.animation_params_json = JSON.stringify(parsed.data.animationParams);
+  }
+  if (parsed.data.primaryAspectRatio) {
+    updates.primary_aspect_ratio = parsed.data.primaryAspectRatio;
+  }
+
+  await db
+    .update(contentStudioPosts)
+    .set(updates)
+    .where(eq(contentStudioPosts.id, parsed.data.postId));
+
+  return { ok: true as const };
 }
 
 function normaliseSlideCopy(json: unknown): SlideCopy[] {

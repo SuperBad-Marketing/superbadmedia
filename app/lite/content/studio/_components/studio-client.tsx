@@ -5,13 +5,24 @@ import { toast } from "sonner";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
 import {
+  ALL_MOTION_TEMPLATES,
+  getPairedMotionTemplates,
+  getMotionOnlyTemplates,
+  getMotionTemplatesForStatic,
+} from "@/lib/content-studio/motion/registry";
+import { getTemplatesForType } from "@/lib/content-studio/templates";
+import type { MotionAspectRatio } from "@/lib/content-studio/motion/types";
+import {
   createPostAction,
   correctCopyAction,
   renderPostAction,
   changeTemplateAction,
+  createMotionPostAction,
+  updateMotionPostAction,
 } from "../actions";
 import { PostPreview } from "./post-preview";
 import { PostHistory } from "./post-history";
+import { MotionPreview, type MotionPostData } from "./motion-preview";
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   announcement: "Announcement",
@@ -42,12 +53,50 @@ export function StudioClient() {
   const [generating, setGenerating] = useState(false);
   const [activePost, setActivePost] = useState<ActivePost | null>(null);
 
+  // Motion state
+  const [motionEnabled, setMotionEnabled] = useState(false);
+  const [selectedMotionTemplate, setSelectedMotionTemplate] = useState<string | null>(null);
+  const [motionPost, setMotionPost] = useState<MotionPostData | null>(null);
+
   const handleCreate = useCallback(async () => {
     if (!brief.trim()) {
       toast.error("Enter a brief first.");
       return;
     }
     setGenerating(true);
+
+    if (motionEnabled) {
+      const templateId = selectedMotionTemplate ?? ALL_MOTION_TEMPLATES[0]?.id;
+      if (!templateId) {
+        toast.error("No motion template available.");
+        setGenerating(false);
+        return;
+      }
+
+      const result = await createMotionPostAction({
+        brief: brief.trim(),
+        contentType,
+        motionTemplateId: templateId,
+      });
+      setGenerating(false);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      setMotionPost({
+        id: result.postId,
+        motionTemplateId: result.motionTemplateId,
+        slides: result.slides,
+        brief: brief.trim(),
+        paletteId: result.paletteId,
+        animationParams: result.animationParams,
+        primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
+      });
+      setView("preview");
+      toast.success("Motion post generated.");
+      return;
+    }
+
     const result = await createPostAction({
       brief: brief.trim(),
       contentType,
@@ -65,13 +114,14 @@ export function StudioClient() {
       contentType,
       brief: brief.trim(),
     });
+    setMotionPost(null);
     setView("preview");
     toast.success(
       result.slideCount > 1
         ? `${result.slideCount}-slide carousel generated.`
         : "Copy generated.",
     );
-  }, [brief, contentType, slideCount]);
+  }, [brief, contentType, slideCount, motionEnabled, selectedMotionTemplate]);
 
   const handleCorrect = useCallback(
     async (correction: string, slideIndex?: number) => {
@@ -126,8 +176,59 @@ export function StudioClient() {
     [activePost],
   );
 
+  // Motion editor callbacks
+  const handleMotionCopyChange = useCallback(
+    (slides: SlideCopy[]) => {
+      if (!motionPost) return;
+      setMotionPost((prev) => (prev ? { ...prev, slides } : null));
+      updateMotionPostAction({ postId: motionPost.id, slides });
+    },
+    [motionPost],
+  );
+
+  const handleMotionPaletteChange = useCallback(
+    (paletteId: string) => {
+      if (!motionPost) return;
+      setMotionPost((prev) => (prev ? { ...prev, paletteId } : null));
+      updateMotionPostAction({ postId: motionPost.id, paletteId });
+    },
+    [motionPost],
+  );
+
+  const handleMotionAspectRatioChange = useCallback(
+    (ratio: MotionAspectRatio) => {
+      if (!motionPost) return;
+      setMotionPost((prev) =>
+        prev ? { ...prev, primaryAspectRatio: ratio } : null,
+      );
+      updateMotionPostAction({
+        postId: motionPost.id,
+        primaryAspectRatio: ratio,
+      });
+    },
+    [motionPost],
+  );
+
+  const handleNewPost = useCallback(() => {
+    setBrief("");
+    setSlideCount(1);
+    setActivePost(null);
+    setMotionPost(null);
+    setView("create");
+  }, []);
+
+  const hasActivePreview = activePost || motionPost;
+
+  // Available motion templates for current content type
+  const staticTemplates = getTemplatesForType(contentType);
+  const pairedForType = staticTemplates.flatMap((st) =>
+    getMotionTemplatesForStatic(st.id),
+  );
+  const motionOnly = getMotionOnlyTemplates();
+  const availableMotionTemplates = [...pairedForType, ...motionOnly];
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <header className="px-4 pt-6 pb-5">
         <div
           className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
@@ -169,7 +270,7 @@ export function StudioClient() {
         >
           Create
         </button>
-        {activePost && (
+        {hasActivePreview && (
           <button
             type="button"
             onClick={() => setView("preview")}
@@ -206,6 +307,40 @@ export function StudioClient() {
       <div className="mt-6 px-4">
         {view === "create" && (
           <div className="space-y-6">
+            {/* Motion toggle */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMotionEnabled(!motionEnabled)}
+                className="relative h-7 w-12 rounded-full transition-colors"
+                style={{
+                  backgroundColor: motionEnabled
+                    ? "var(--color-brand-red)"
+                    : "var(--color-neutral-800)",
+                  border: "1px solid rgba(253, 245, 230, 0.12)",
+                }}
+              >
+                <div
+                  className="absolute top-0.5 h-5 w-5 rounded-full transition-all"
+                  style={{
+                    left: motionEnabled ? 22 : 3,
+                    backgroundColor: "var(--color-brand-cream)",
+                  }}
+                />
+              </button>
+              <span
+                className="font-[family-name:var(--font-label)] text-[11px] uppercase"
+                style={{
+                  letterSpacing: "1.5px",
+                  color: motionEnabled
+                    ? "var(--color-brand-cream)"
+                    : "var(--color-neutral-500)",
+                }}
+              >
+                Motion
+              </span>
+            </div>
+
             <div>
               <label
                 className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
@@ -218,7 +353,10 @@ export function StudioClient() {
                   <button
                     key={ct}
                     type="button"
-                    onClick={() => setContentType(ct)}
+                    onClick={() => {
+                      setContentType(ct);
+                      setSelectedMotionTemplate(null);
+                    }}
                     className="rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] transition-all"
                     style={{
                       backgroundColor:
@@ -238,40 +376,88 @@ export function StudioClient() {
               </div>
             </div>
 
-            <div>
-              <label
-                className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-                style={{ letterSpacing: "1.5px" }}
-              >
-                Slides
-              </label>
-              <div className="flex items-center gap-2">
-                {SLIDE_OPTIONS.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setSlideCount(n)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg font-[family-name:var(--font-body)] text-[13px] font-medium transition-all"
-                    style={{
-                      backgroundColor:
-                        slideCount === n
-                          ? "var(--color-brand-red)"
-                          : "var(--color-neutral-800)",
-                      color: "var(--color-brand-cream)",
-                      border:
-                        slideCount === n
-                          ? "1px solid var(--color-brand-red)"
-                          : "1px solid rgba(253, 245, 230, 0.08)",
-                    }}
-                  >
-                    {n}
-                  </button>
-                ))}
-                <span className="ml-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
-                  {slideCount === 1 ? "Single post" : `${slideCount}-slide carousel`}
-                </span>
+            {motionEnabled ? (
+              /* Motion template selector */
+              <div>
+                <label
+                  className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                  style={{ letterSpacing: "1.5px" }}
+                >
+                  Motion template
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableMotionTemplates.map((mt) => (
+                    <button
+                      key={mt.id}
+                      type="button"
+                      onClick={() => setSelectedMotionTemplate(mt.id)}
+                      className="rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] transition-all"
+                      style={{
+                        backgroundColor:
+                          selectedMotionTemplate === mt.id
+                            ? "var(--color-brand-red)"
+                            : "var(--color-neutral-800)",
+                        color: "var(--color-brand-cream)",
+                        border:
+                          selectedMotionTemplate === mt.id
+                            ? "1px solid var(--color-brand-red)"
+                            : "1px solid rgba(253, 245, 230, 0.08)",
+                      }}
+                    >
+                      {mt.name}
+                      {mt.overlayCapable && (
+                        <span
+                          style={{
+                            marginLeft: 6,
+                            fontSize: 9,
+                            opacity: 0.5,
+                            verticalAlign: "super",
+                          }}
+                        >
+                          overlay
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Slide count selector */
+              <div>
+                <label
+                  className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                  style={{ letterSpacing: "1.5px" }}
+                >
+                  Slides
+                </label>
+                <div className="flex items-center gap-2">
+                  {SLIDE_OPTIONS.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setSlideCount(n)}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg font-[family-name:var(--font-body)] text-[13px] font-medium transition-all"
+                      style={{
+                        backgroundColor:
+                          slideCount === n
+                            ? "var(--color-brand-red)"
+                            : "var(--color-neutral-800)",
+                        color: "var(--color-brand-cream)",
+                        border:
+                          slideCount === n
+                            ? "1px solid var(--color-brand-red)"
+                            : "1px solid rgba(253, 245, 230, 0.08)",
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                  <span className="ml-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+                    {slideCount === 1 ? "Single post" : `${slideCount}-slide carousel`}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div>
               <label
@@ -284,9 +470,11 @@ export function StudioClient() {
                 value={brief}
                 onChange={(e) => setBrief(e.target.value)}
                 placeholder={
-                  slideCount > 1
-                    ? "e.g. 5-slide carousel breaking down our content creation process. Each slide builds on the last."
-                    : "e.g. Announce our new pricing tiers. Punchy, confident, a bit cheeky."
+                  motionEnabled
+                    ? "e.g. We hit 500 clients this month. Big number, count it up. Dark and dramatic."
+                    : slideCount > 1
+                      ? "e.g. 5-slide carousel breaking down our content creation process. Each slide builds on the last."
+                      : "e.g. Announce our new pricing tiers. Punchy, confident, a bit cheeky."
                 }
                 rows={4}
                 className="w-full resize-y rounded-lg border px-4 py-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.6] placeholder:text-[color:var(--color-neutral-500)] focus:outline-none"
@@ -311,25 +499,32 @@ export function StudioClient() {
             >
               {generating
                 ? "Generating…"
-                : slideCount > 1
-                  ? `Generate ${slideCount} slides`
-                  : "Generate"}
+                : motionEnabled
+                  ? "Generate motion"
+                  : slideCount > 1
+                    ? `Generate ${slideCount} slides`
+                    : "Generate"}
             </button>
           </div>
         )}
 
-        {view === "preview" && activePost && (
+        {view === "preview" && motionPost && (
+          <MotionPreview
+            post={motionPost}
+            onCopyChange={handleMotionCopyChange}
+            onPaletteChange={handleMotionPaletteChange}
+            onAspectRatioChange={handleMotionAspectRatioChange}
+            onNewPost={handleNewPost}
+          />
+        )}
+
+        {view === "preview" && activePost && !motionPost && (
           <PostPreview
             post={activePost}
             onCorrect={handleCorrect}
             onRender={handleRender}
             onChangeTemplate={handleChangeTemplate}
-            onNewPost={() => {
-              setBrief("");
-              setSlideCount(1);
-              setActivePost(null);
-              setView("create");
-            }}
+            onNewPost={handleNewPost}
           />
         )}
 
