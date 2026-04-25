@@ -3,7 +3,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["better-sqlite3"],
+  serverExternalPackages: [
+    "better-sqlite3",
+    "@remotion/renderer",
+    "@remotion/bundler",
+    "@remotion/compositor-darwin-arm64",
+    "@remotion/compositor-darwin-x64",
+    "@remotion/compositor-linux-arm64-gnu",
+    "@remotion/compositor-linux-arm64-musl",
+    "@remotion/compositor-linux-x64-gnu",
+    "@remotion/compositor-linux-x64-musl",
+  ],
   outputFileTracingIncludes: {
     "/*": ["./lib/db/migrations/**/*"],
   },
