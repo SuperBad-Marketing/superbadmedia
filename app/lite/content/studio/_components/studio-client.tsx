@@ -23,6 +23,7 @@ import {
 import { PostPreview } from "./post-preview";
 import { PostHistory } from "./post-history";
 import { MotionPreview, type MotionPostData } from "./motion-preview";
+import { InspirationPanel } from "./inspiration-panel";
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   announcement: "Announcement",
@@ -57,6 +58,9 @@ export function StudioClient() {
   const [motionEnabled, setMotionEnabled] = useState(false);
   const [selectedMotionTemplate, setSelectedMotionTemplate] = useState<string | null>(null);
   const [motionPost, setMotionPost] = useState<MotionPostData | null>(null);
+  const [inspirationRefs, setInspirationRefs] = useState<
+    { id: string; source_type: "link" | "upload"; source_url: string; thumbnail_url: string | null; title: string | null; description: string | null }[]
+  >([]);
 
   const handleCreate = useCallback(async () => {
     if (!brief.trim()) {
@@ -485,6 +489,14 @@ export function StudioClient() {
                 }}
               />
             </div>
+
+            <InspirationPanel
+              attached={inspirationRefs}
+              onAttach={(ref) => setInspirationRefs((prev) => [...prev, ref])}
+              onDetach={(id) =>
+                setInspirationRefs((prev) => prev.filter((r) => r.id !== id))
+              }
+            />
 
             <button
               type="button"
