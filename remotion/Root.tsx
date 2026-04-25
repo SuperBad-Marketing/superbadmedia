@@ -2,10 +2,15 @@ import React from "react";
 import { Composition } from "remotion";
 import { AnnouncementBoldMotion } from "../lib/content-studio/motion/compositions/announcement-bold-motion";
 import { AnnouncementMinimalMotion } from "../lib/content-studio/motion/compositions/announcement-minimal-motion";
-import {
-  ALL_MOTION_TEMPLATES,
-  getMotionTemplate,
-} from "../lib/content-studio/motion/registry";
+import { AntiMotivationTypographyMotion } from "../lib/content-studio/motion/compositions/anti-motivation-typography-motion";
+import { TipsValueMotion } from "../lib/content-studio/motion/compositions/tips-value-motion";
+import { TestimonialQuoteMotion } from "../lib/content-studio/motion/compositions/testimonial-quote-motion";
+import { BtsCaptionMotion } from "../lib/content-studio/motion/compositions/bts-caption-motion";
+import { PortfolioShowcaseMotion } from "../lib/content-studio/motion/compositions/portfolio-showcase-motion";
+import { StatCounterMotion } from "../lib/content-studio/motion/compositions/stat-counter-motion";
+import { TextRevealMotion } from "../lib/content-studio/motion/compositions/text-reveal-motion";
+import { LogoStingMotion } from "../lib/content-studio/motion/compositions/logo-sting-motion";
+import { ALL_MOTION_TEMPLATES } from "../lib/content-studio/motion/registry";
 import { BRAND_PALETTES } from "../lib/content-studio/motion/palettes";
 import { MOTION_DIMENSIONS } from "../lib/content-studio/motion/types";
 import type { MotionAspectRatio } from "../lib/content-studio/motion/types";
@@ -13,6 +18,14 @@ import type { MotionAspectRatio } from "../lib/content-studio/motion/types";
 const COMPOSITION_MAP: Record<string, React.FC<any>> = {
   "announcement-bold-motion": AnnouncementBoldMotion,
   "announcement-minimal-motion": AnnouncementMinimalMotion,
+  "anti-motivation-typography-motion": AntiMotivationTypographyMotion,
+  "tips-value-motion": TipsValueMotion,
+  "testimonial-quote-motion": TestimonialQuoteMotion,
+  "bts-caption-motion": BtsCaptionMotion,
+  "portfolio-showcase-motion": PortfolioShowcaseMotion,
+  "stat-counter": StatCounterMotion,
+  "text-reveal": TextRevealMotion,
+  "logo-sting": LogoStingMotion,
 };
 
 const DEFAULT_RATIO: MotionAspectRatio = "square";
