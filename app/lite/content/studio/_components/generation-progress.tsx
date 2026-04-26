@@ -52,12 +52,14 @@ function getActivePhaseList(isMotion: boolean): GenerationPhase[] {
 interface GenerationProgressProps {
   active: boolean;
   isMotion: boolean;
+  failed?: boolean;
   onComplete?: () => void;
 }
 
 export function GenerationProgress({
   active,
   isMotion,
+  failed,
   onComplete,
 }: GenerationProgressProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -129,14 +131,18 @@ export function GenerationProgress({
   useEffect(() => {
     if (!active && progress > 0 && !completedRef.current) {
       completedRef.current = true;
-      setProgress(100);
-      setCurrentPhaseIndex(phaseList.length - 1);
+      if (failed) {
+        setProgress(progress);
+      } else {
+        setProgress(100);
+        setCurrentPhaseIndex(phaseList.length - 1);
+      }
       const timer = setTimeout(() => {
         onComplete?.();
-      }, 600);
+      }, failed ? 3000 : 600);
       return () => clearTimeout(timer);
     }
-  }, [active, progress, phaseList.length, onComplete]);
+  }, [active, progress, phaseList.length, onComplete, failed]);
 
   const currentPhase = phaseList[currentPhaseIndex];
   const currentConfig =
@@ -168,7 +174,10 @@ export function GenerationProgress({
           className="absolute inset-y-0 left-0 rounded-full"
           style={{ backgroundColor: "var(--color-brand-red)" }}
           initial={{ width: "0%" }}
-          animate={{ width: `${progress}%` }}
+          animate={{
+            width: `${progress}%`,
+            opacity: failed ? 0.4 : 1,
+          }}
           transition={{
             duration: shouldReduceMotion ? 0 : 0.4,
             ease: [0.22, 1, 0.36, 1],
@@ -220,7 +229,7 @@ export function GenerationProgress({
               </span>
             </motion.div>
           )}
-          {currentPhase === "done" && (
+          {currentPhase === "done" && !failed && (
             <motion.span
               key="done"
               initial={shouldReduceMotion ? false : { opacity: 0, x: -6 }}
@@ -235,13 +244,30 @@ export function GenerationProgress({
               Complete
             </motion.span>
           )}
+          {failed && !active && (
+            <motion.span
+              key="failed"
+              initial={shouldReduceMotion ? false : { opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="font-[family-name:var(--font-label)] text-[11px] uppercase"
+              style={{
+                letterSpacing: "1.5px",
+                color: "var(--color-brand-red)",
+              }}
+            >
+              Generation failed
+            </motion.span>
+          )}
         </AnimatePresence>
-        <span
-          className="font-[family-name:var(--font-body)] text-[11px] tabular-nums"
-          style={{ color: "var(--color-neutral-500)" }}
-        >
-          {Math.round(progress)}%
-        </span>
+        {!failed && (
+          <span
+            className="font-[family-name:var(--font-body)] text-[11px] tabular-nums"
+            style={{ color: "var(--color-neutral-500)" }}
+          >
+            {Math.round(progress)}%
+          </span>
+        )}
       </div>
 
       {/* Phase timeline */}

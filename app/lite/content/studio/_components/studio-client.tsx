@@ -64,6 +64,7 @@ export function StudioClient() {
     () => !!(searchParams.get("prefill_brief") || searchParams.get("prefill_type")),
   );
   const [generating, setGenerating] = useState(false);
+  const [generationFailed, setGenerationFailed] = useState(false);
   const [activePost, setActivePost] = useState<ActivePost | null>(null);
 
   // Motion state
@@ -80,12 +81,14 @@ export function StudioClient() {
       return;
     }
     setGenerating(true);
+    setGenerationFailed(false);
 
     try {
       if (motionEnabled) {
         const templateId = selectedMotionTemplate ?? ALL_MOTION_TEMPLATES[0]?.id;
         if (!templateId) {
           toast.error("No motion template available.");
+          setGenerationFailed(true);
           return;
         }
 
@@ -97,6 +100,7 @@ export function StudioClient() {
         });
         if (!result.ok) {
           toast.error(result.error);
+          setGenerationFailed(true);
           return;
         }
         setMotionPost({
@@ -120,6 +124,7 @@ export function StudioClient() {
       });
       if (!result.ok) {
         toast.error(result.error);
+        setGenerationFailed(true);
         return;
       }
       setActivePost({
@@ -138,6 +143,7 @@ export function StudioClient() {
       );
     } catch {
       toast.error("Generation failed. Try again.");
+      setGenerationFailed(true);
     } finally {
       setGenerating(false);
     }
@@ -562,6 +568,7 @@ export function StudioClient() {
             <GenerationProgress
               active={generating}
               isMotion={motionEnabled}
+              failed={generationFailed}
             />
           </div>
         )}
