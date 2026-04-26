@@ -11,6 +11,7 @@ import type {
   InboxSortOrder,
   InboxView,
 } from "../_queries/list-threads";
+import { triggerInboxSync } from "../_actions/sync";
 import { ViewFilterTabs } from "./view-filter-tabs";
 import { ThreadList } from "./thread-list";
 import { ComposeModal } from "./compose-modal";
@@ -49,11 +50,22 @@ export function InboxShell({
 }) {
   const router = useRouter();
   const [composeOpen, setComposeOpen] = React.useState(false);
+  const [syncing, setSyncing] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
 
   useAdminEvents((event) => {
     if (event.type === "inbox_sync") router.refresh();
   });
+
+  const handleSync = React.useCallback(async () => {
+    setSyncing(true);
+    try {
+      await triggerInboxSync();
+      router.refresh();
+    } finally {
+      setSyncing(false);
+    }
+  }, [router]);
 
   React.useEffect(() => {
     function evaluate() {
@@ -103,6 +115,8 @@ export function InboxShell({
           activeView={view}
           activeAddress={address}
           onComposeClick={() => setComposeOpen(true)}
+          onSyncClick={handleSync}
+          syncing={syncing}
         />
       </aside>
 

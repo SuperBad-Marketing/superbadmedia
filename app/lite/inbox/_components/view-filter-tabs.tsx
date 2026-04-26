@@ -19,6 +19,7 @@ import {
   Package,
   PencilLine,
   Radar,
+  RefreshCw,
   Send,
   Settings,
   Trash2,
@@ -82,11 +83,15 @@ export function ViewFilterTabs({
   activeView,
   activeAddress,
   onComposeClick,
+  onSyncClick,
+  syncing,
   counts,
 }: {
   activeView: InboxView;
   activeAddress: InboxAddressFilter;
   onComposeClick: () => void;
+  onSyncClick: () => void;
+  syncing: boolean;
   counts?: Partial<Record<InboxView, number>>;
 }) {
   const reducedMotion = useReducedMotion();
@@ -124,6 +129,30 @@ export function ViewFilterTabs({
       >
         <PencilLine size={16} strokeWidth={1.75} aria-hidden />
         <span>Compose</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={onSyncClick}
+        disabled={syncing}
+        aria-label="Sync with Outlook"
+        className={cn(
+          "flex items-center justify-center gap-2 rounded-sm px-4 py-2",
+          "border border-[color:var(--color-neutral-700)] text-[color:var(--color-neutral-400)]",
+          "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
+          "outline-none transition-colors hover:border-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-200)]",
+          "focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)]",
+          "focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)]",
+          "disabled:pointer-events-none disabled:opacity-50",
+        )}
+      >
+        <RefreshCw
+          size={14}
+          strokeWidth={1.75}
+          aria-hidden
+          className={cn("shrink-0", syncing && "animate-spin")}
+        />
+        <span>{syncing ? "Syncing…" : "Sync"}</span>
       </button>
 
       <LayoutGroup id="inbox-view-nav">
