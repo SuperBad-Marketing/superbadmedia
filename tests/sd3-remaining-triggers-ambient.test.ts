@@ -71,38 +71,6 @@ function baseTriggerContext(overrides: Partial<TriggerContext> = {}): TriggerCon
   };
 }
 
-// --- Melbourne Public Holiday ---
-
-describe("melbourne_public_holiday trigger", () => {
-  it("fires when holidayName is present", () => {
-    const ctx = baseTriggerContext({
-      melbourneDateISO: "2026-04-25",
-      holidayName: "ANZAC Day",
-    });
-    const results = evaluateAllTriggers(ctx);
-    const match = results.find((r) => r.eggId === "melbourne_public_holiday");
-    expect(match).toBeDefined();
-    expect(match!.evidence.holidayName).toBe("ANZAC Day");
-  });
-
-  it("does not fire when holidayName is null", () => {
-    const ctx = baseTriggerContext({
-      melbourneDateISO: "2026-04-22",
-      holidayName: null,
-    });
-    const results = evaluateAllTriggers(ctx);
-    const match = results.find((r) => r.eggId === "melbourne_public_holiday");
-    expect(match).toBeUndefined();
-  });
-
-  it("does not fire when holidayName is not provided", () => {
-    const ctx = baseTriggerContext({});
-    const results = evaluateAllTriggers(ctx);
-    const match = results.find((r) => r.eggId === "melbourne_public_holiday");
-    expect(match).toBeUndefined();
-  });
-});
-
 // --- Melbourne Rain ---
 
 describe("melbourne_rain trigger", () => {
@@ -260,9 +228,9 @@ describe("melbourne-holidays helper", () => {
 // --- Trigger registration count ---
 
 describe("trigger registration", () => {
-  it("has 12 public triggers registered (9 from SD-2 + 3 from SD-3)", async () => {
+  it("has 11 public triggers registered (9 from SD-2 + 2 from SD-3)", async () => {
     const { getRegisteredTriggers } = await import("@/lib/eggs/trigger-evaluator");
     const triggers = getRegisteredTriggers();
-    expect(triggers.length).toBe(12);
+    expect(triggers.length).toBe(11);
   });
 });

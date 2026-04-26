@@ -138,7 +138,7 @@ describe("Registry ↔ trigger alignment", () => {
     expect(exempt.length).toBeGreaterThan(0);
     for (const egg of exempt) {
       expect(
-        ["melbourne_public_holiday", "public_crt_turn_off"].includes(egg.id),
+        ["public_crt_turn_off"].includes(egg.id),
         `unexpected exempt egg: ${egg.id}`,
       ).toBe(true);
     }
@@ -298,24 +298,6 @@ describe("Public trigger evaluation — matching contexts", () => {
     expect(results.find((r) => r.eggId === "abandoned_tab")).toBeUndefined();
   });
 
-  it("melbourne_public_holiday fires when holiday present", () => {
-    const ctx = baseTriggerCtx({
-      melbourneDateISO: "2026-01-26",
-      holidayName: "Australia Day",
-    });
-    const results = evaluateAllTriggers(ctx);
-    expect(results.find((r) => r.eggId === "melbourne_public_holiday")).toBeDefined();
-  });
-
-  it("melbourne_public_holiday does not fire without holiday", () => {
-    const ctx = baseTriggerCtx({
-      melbourneDateISO: "2026-03-15",
-      holidayName: null,
-    });
-    const results = evaluateAllTriggers(ctx);
-    expect(results.find((r) => r.eggId === "melbourne_public_holiday")).toBeUndefined();
-  });
-
   it("melbourne_rain fires with Melbourne timezone and precipitation", () => {
     const ctx = baseTriggerCtx({
       timezone: "Australia/Melbourne",
@@ -389,8 +371,8 @@ describe("Cadence budget edge cases", () => {
       firedEggIds: ["late_night_visitor", "linkedin_referrer"],
       tricksDisabled: false,
     };
-    const holiday = getEggById("melbourne_public_holiday")!;
-    expect(canFirePublicEgg(holiday, state, NOW, 14)).toBe(true);
+    const crtPublic = getEggById("public_crt_turn_off")!;
+    expect(canFirePublicEgg(crtPublic, state, NOW, 14)).toBe(true);
   });
 
   it("one-shot egg (Infinity cooldown) blocks after first fire", () => {
@@ -553,10 +535,6 @@ describe("Evidence fields are always non-null on match", () => {
       { eggId: "rapid_scroller", ctx: { scrollDepth: 0.95, scrollDurationMs: 3_000 } },
       { eggId: "deep_reader", ctx: { dwellMs: 300_000, scrollDepth: 0.8 } },
       { eggId: "abandoned_tab", ctx: { tabBackgroundedMs: 700_000 } },
-      {
-        eggId: "melbourne_public_holiday",
-        ctx: { melbourneDateISO: "2026-01-26", holidayName: "Australia Day" },
-      },
       {
         eggId: "melbourne_rain",
         ctx: { timezone: "Australia/Melbourne", weatherPrecipitationMm: 2.5 },

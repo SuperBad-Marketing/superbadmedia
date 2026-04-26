@@ -230,32 +230,6 @@ describe("trigger-evaluator with public triggers", () => {
     expect(lateNight).toBeUndefined();
   });
 
-  it("melbourne_public_holiday fires when holidayName is set", async () => {
-    const { evaluateAllTriggers } = await import("@/lib/eggs/trigger-evaluator");
-
-    const results = evaluateAllTriggers({
-      nowMs: Date.now(),
-      localHour: 14,
-      dayOfWeek: 1,
-      referrer: "",
-      dwellMs: 10000,
-      scrollDepth: 0.5,
-      scrollDurationMs: 5000,
-      tabBackgroundedMs: 0,
-      timezone: "Australia/Melbourne",
-      visitCount: 1,
-      sessionId: "test",
-      isMobile: false,
-      melbourneDateISO: "2026-01-26",
-      melbourneHour: 14,
-      holidayName: "Australia Day",
-    });
-
-    const holiday = results.find((r) => r.eggId === "melbourne_public_holiday");
-    expect(holiday).toBeDefined();
-    expect(holiday!.evidence.holidayName).toBe("Australia Day");
-  });
-
   it("melbourne_rain fires when precipitation > 0 and Melbourne timezone", async () => {
     const { evaluateAllTriggers } = await import("@/lib/eggs/trigger-evaluator");
 
@@ -364,7 +338,7 @@ describe("cadence gates — public", () => {
     const { canFirePublicEgg } = await import("@/lib/eggs/cadence");
     const { PUBLIC_EGGS } = await import("@/lib/eggs/registry");
 
-    const egg = PUBLIC_EGGS.find((e) => e.id === "melbourne_public_holiday")!;
+    const egg = PUBLIC_EGGS.find((e) => e.id === "public_crt_turn_off")!;
     expect(egg.exemptFromBudget).toBe(true);
 
     const ok = canFirePublicEgg(

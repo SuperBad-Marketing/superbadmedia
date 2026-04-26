@@ -160,12 +160,12 @@ describe("Egg Registry", () => {
     expect(ADMIN_EGGS).toHaveLength(6);
   });
 
-  it("has 12 public eggs", () => {
-    expect(PUBLIC_EGGS).toHaveLength(12);
+  it("has 11 public eggs", () => {
+    expect(PUBLIC_EGGS).toHaveLength(11);
   });
 
   it("ALL_EGGS = admin + public", () => {
-    expect(ALL_EGGS).toHaveLength(18);
+    expect(ALL_EGGS).toHaveLength(17);
   });
 
   it("getEggById finds by id", () => {
@@ -231,7 +231,7 @@ describe("Suppression", () => {
 
 describe("Cadence", () => {
   const egg = getEggById("crt_turn_off")!;
-  const exemptEgg = getEggById("melbourne_public_holiday")!;
+  const exemptEgg = getEggById("public_crt_turn_off")!;
 
   it("allows fire when no prior fires", () => {
     const state: CadenceState = {

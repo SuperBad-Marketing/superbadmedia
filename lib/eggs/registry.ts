@@ -80,14 +80,6 @@ export const PUBLIC_EGGS: EggDefinition[] = [
     description: "Sunday + search engine referrer + 45s dwell",
   },
   {
-    id: "melbourne_public_holiday",
-    name: "Melbourne Public Holiday",
-    register: "public-bartender",
-    cooldownDays: 0, // structural, fires every holiday visit
-    exemptFromBudget: true,
-    description: "Site closure on Australian public holidays",
-  },
-  {
     id: "fifth_time_visitor",
     name: "Fifth-Time Visitor",
     register: "public-bartender",

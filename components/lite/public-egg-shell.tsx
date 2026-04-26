@@ -13,7 +13,6 @@ import {
   AbandonedTabEgg,
 } from "./public-egg-renderers";
 import { MelbourneRainEgg } from "./melbourne-rain-egg";
-import { MelbourneHolidayEgg } from "./melbourne-holiday-egg";
 import { PublicCrtTurnOffEgg } from "./public-crt-turn-off-egg";
 import { WelcomeEggSafetyNet } from "./welcome-egg-safety-net";
 
@@ -31,7 +30,6 @@ export function PublicEggShell() {
       <DeepReaderEgg />
       <AbandonedTabEgg />
       <MelbourneRainEgg />
-      <MelbourneHolidayEgg />
       <PublicCrtTurnOffEgg />
       <WelcomeEggSafetyNet />
     </>
