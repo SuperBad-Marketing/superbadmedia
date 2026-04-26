@@ -26,17 +26,17 @@ export function wrapEmailHtml(bodyHtml: string): string {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
           <!-- Header -->
           <tr>
-            <td style="padding:0 0 32px;text-align:center;">
+            <td style="padding:0 0 8px;text-align:center;">
               <p style="margin:0 0 6px;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;font-weight:800;letter-spacing:6px;text-transform:uppercase;color:#FDF5E6;">SUPERBAD</p>
               <p style="margin:0;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#F4A0B0;">MARKETING THAT DOESN'T APOLOGISE</p>
             </td>
           </tr>
-          <!-- Divider -->
+          <!-- Red accent -->
           <tr>
-            <td style="padding:0 0 28px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <td align="center" style="padding:16px 0 28px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="48" style="width:48px;">
                 <tr>
-                  <td style="border-top:1px solid rgba(253,245,230,0.12);font-size:0;line-height:0;">&nbsp;</td>
+                  <td style="border-top:2px solid #B22848;font-size:0;line-height:0;">&nbsp;</td>
                 </tr>
               </table>
             </td>
@@ -61,7 +61,8 @@ export function wrapEmailHtml(bodyHtml: string): string {
           <tr>
             <td style="text-align:center;padding:0 0 8px;">
               <p style="margin:0 0 4px;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(253,245,230,0.35);">SUPERBAD</p>
-              <p style="margin:0;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:11px;color:rgba(253,245,230,0.25);line-height:1.5;">Melbourne</p>
+              <p style="margin:0 0 6px;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:11px;color:rgba(253,245,230,0.25);line-height:1.5;">Melbourne</p>
+              <p style="margin:0;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:11px;"><a href="https://superbadmedia.com.au" style="color:#B22848;text-decoration:none;">superbadmedia.com.au</a></p>
             </td>
           </tr>
         </table>

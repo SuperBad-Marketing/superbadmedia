@@ -86,6 +86,7 @@ export {
   sendComposeMessage,
   saveComposeDraftRow,
   textToSimpleHtml,
+  buildBrandedComposeHtml,
   type ResolveRecipientResult,
   type EnsureThreadInput,
   type SendComposeInput,

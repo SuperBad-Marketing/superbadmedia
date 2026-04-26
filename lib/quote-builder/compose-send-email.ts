@@ -69,7 +69,8 @@ export function paragraphsToHtml(paragraphs: string[], quoteUrl: string): string
   return `<div style="font-family: ui-sans-serif, system-ui, sans-serif; max-width: 560px;">
 ${escapedParagraphs}
 <p style="margin: 28px 0;"><a href="${escapeAttr(quoteUrl)}" style="display: inline-block; padding: 14px 28px; background: #B22848; color: #FDF5E6; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">Read your quote →</a></p>
-<p style="margin: 0; line-height: 1.55; color: rgba(253,245,230,0.5); font-size: 13px;">Andy<br/>SuperBad Marketing</p>
+<p style="margin: 0 0 2px; font-weight: 700; color: #FDF5E6; font-size: 13px;">Andy Robinson</p>
+<p style="margin: 0; line-height: 1.55; color: rgba(253,245,230,0.4); font-size: 12px;">Founder, SuperBad Marketing</p>
 </div>`;
 }
 

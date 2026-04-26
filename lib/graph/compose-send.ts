@@ -196,7 +196,7 @@ export async function sendComposeMessage(
     cc: input.cc,
     bcc: input.bcc,
     subject: finalSubject,
-    bodyHtml: textToSimpleHtml(input.bodyText),
+    bodyHtml: buildBrandedComposeHtml(input.bodyText),
     bodyText: input.bodyText,
     attachments: input.attachments,
   });
@@ -324,4 +324,22 @@ export function textToSimpleHtml(text: string): string {
     .replace(/'/g, "&#39;");
   const withBreaks = escaped.replace(/\r?\n/g, "<br>");
   return `<div>${withBreaks}</div>`;
+}
+
+export function buildBrandedComposeHtml(bodyText: string): string {
+  const bodyHtml = textToSimpleHtml(bodyText);
+  return `<div style="font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.6;color:#1a1a18;">
+${bodyHtml}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:28px;">
+  <tr><td style="border-top:2px solid #B22848;font-size:0;line-height:0;padding:0;" colspan="2">&nbsp;</td></tr>
+  <tr><td style="padding:16px 0 0;" colspan="2">
+    <p style="margin:0 0 2px;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:14px;font-weight:700;color:#1a1a18;">Andy Robinson</p>
+    <p style="margin:0 0 10px;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#666;">Founder, SuperBad Marketing</p>
+    <p style="margin:0 0 2px;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#999;">
+      <a href="https://superbadmedia.com.au" style="color:#B22848;text-decoration:none;">superbadmedia.com.au</a>
+    </p>
+    <p style="margin:8px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:11px;font-style:italic;color:#F4A0B0;letter-spacing:0.3px;">Marketing that doesn't apologise.</p>
+  </td></tr>
+</table>
+</div>`;
 }
