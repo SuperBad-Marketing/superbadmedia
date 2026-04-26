@@ -30,6 +30,7 @@ import type { Question } from "@/lib/brand-dna/question-bank";
 import { resolveQuestionText } from "@/lib/brand-dna/question-bank";
 
 import { OptionCard } from "@/components/lite/brand-dna/option-card";
+import { getVisualPreview } from "@/components/lite/brand-dna/question-visuals";
 
 interface QuestionCardClientProps {
   question: Question;
@@ -206,6 +207,7 @@ export function QuestionCardClient({
                 selected={selected === key}
                 disabled={pending}
                 onClick={() => void handleSelect(key)}
+                visual={question.visual ? getVisualPreview(question.id, key, selected === key) : undefined}
               />
             );
           })}

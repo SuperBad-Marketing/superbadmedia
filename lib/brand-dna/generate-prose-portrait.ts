@@ -18,6 +18,7 @@ import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import { db as globalDb } from "@/lib/db";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
+import { companies } from "@/lib/db/schema/companies";
 import { killSwitches } from "@/lib/kill-switches";
 import { modelFor } from "@/lib/ai/models";
 import { buildProsePortraitPrompt } from "@/lib/ai/prompts/brand-dna-assessment/generate-prose-portrait";
@@ -71,6 +72,23 @@ export async function generateProsePortrait(
 
   const subjectName = profile.subject_display_name ?? "this brand";
 
+  let industry: string | null = null;
+  let industryVertical: string | null = null;
+  if (profile.company_id) {
+    const companyRows = await database
+      .select({
+        industry: companies.industry,
+        industry_vertical: companies.industry_vertical,
+      })
+      .from(companies)
+      .where(eq(companies.id, profile.company_id))
+      .limit(1);
+    if (companyRows[0]) {
+      industry = companyRows[0].industry;
+      industryVertical = companyRows[0].industry_vertical;
+    }
+  }
+
   const prompt = buildProsePortraitPrompt({
     subjectName,
     track: profile.track ?? "unspecified",
@@ -79,6 +97,8 @@ export async function generateProsePortrait(
     reflectionText: profile.reflection_text,
     firstImpression: profile.first_impression ?? "",
     sectionInsights,
+    industry,
+    industryVertical,
   });
 
   const modelId = modelFor("brand-dna-generate-prose-portrait");

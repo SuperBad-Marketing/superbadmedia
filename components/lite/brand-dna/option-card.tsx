@@ -18,6 +18,8 @@ interface OptionCardProps {
   disabled?: boolean;
   onClick?: () => void;
   type?: "button" | "submit";
+  /** Optional visual preview rendered above the text. */
+  visual?: React.ReactNode;
 }
 
 export function OptionCard({
@@ -27,6 +29,7 @@ export function OptionCard({
   disabled = false,
   onClick,
   type = "button",
+  visual,
 }: OptionCardProps) {
   return (
     <button
@@ -74,6 +77,11 @@ export function OptionCard({
       >
         {letter}
       </span>
+      {visual && (
+        <div style={{ marginBottom: 12 }}>
+          {visual}
+        </div>
+      )}
       {text}
 
       <style jsx>{`

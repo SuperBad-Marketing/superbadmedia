@@ -22,6 +22,9 @@ export type ProsePortraitInput = {
   sectionInsights: string[];
   /** Brand override tags from supplement (founder_supplement track only). */
   brandOverrideTags?: Record<string, number> | null;
+  /** Industry / business type context for marketing-specific advice. */
+  industry?: string | null;
+  industryVertical?: string | null;
 };
 
 export function buildProsePortraitPrompt(input: ProsePortraitInput): string {
@@ -34,6 +37,8 @@ export function buildProsePortraitPrompt(input: ProsePortraitInput): string {
     firstImpression,
     sectionInsights,
     brandOverrideTags,
+    industry,
+    industryVertical,
   } = input;
 
   const topTags = Object.entries(tagFrequencyMap)
@@ -58,6 +63,10 @@ export function buildProsePortraitPrompt(input: ProsePortraitInput): string {
     ? "They answered in business mode — write about the brand, not a person."
     : "They answered as a founder — write about the person.";
 
+  const businessContext = industry || industryVertical
+    ? `\nBusiness context: ${industry ? `This is a ${industry}` : ""}${industry && industryVertical ? ` in ${industryVertical.replace(/_/g, " ")}` : industryVertical ? `Industry: ${industryVertical.replace(/_/g, " ")}` : ""}. The portrait should connect their brand signals to how they should approach marketing for this specific kind of business — not generic personality description. What does their aesthetic identity mean for a ${industry ?? industryVertical?.replace(/_/g, " ") ?? "business"} specifically? How should their communication style shape their marketing? What creative direction makes sense for this industry with these instincts?`
+    : "";
+
   // Brand override layer for founder_supplement track
   const overrideBlock = brandOverrideTags && Object.keys(brandOverrideTags).length
     ? buildOverrideBlock(brandOverrideTags)
@@ -68,7 +77,7 @@ export function buildProsePortraitPrompt(input: ProsePortraitInput): string {
 This materialises section by section during the cinematic reveal — the person watches their identity being assembled. It must feel like being genuinely known.
 
 Track: ${track}. ${shapeLine}
-${trackNote}
+${trackNote}${businessContext}
 
 First impression (already shown — don't restate, but stay consistent):
 "${firstImpression}"
@@ -90,7 +99,8 @@ What to capture:
 3. THE PERSONALITY — the human being that emerges from the pattern. Not a list of traits. The person. What's it like to work with them? What do they care about that they didn't say outright?
 4. THE REFLECTION CONTRAST — if they wrote a reflection, what appeared there that the structured answers missed? What did the blank page reveal that four options couldn't?
 5. THE ABSENT SIGNALS — what tags are conspicuously low-frequency or missing? What they didn't reach for is as revealing as what they did.
-${brandOverrideTags && Object.keys(brandOverrideTags).length ? "6. THE BRAND SPLIT — where the brand diverges from the founder. Name the gaps. Interpret them. This is the most valuable section of the portrait for founder_supplement profiles." : ""}
+${industry || industryVertical ? `6. THE MARKETING DIRECTION — given who they are AND what their business does, what should their marketing actually look like? Not generic advice. Specific direction: what kind of content, what tone in their ads, what their social presence should feel like, what they should avoid. Connect their brand signals to their industry.` : ""}
+${brandOverrideTags && Object.keys(brandOverrideTags).length ? `${industry || industryVertical ? "7" : "6"}. THE BRAND SPLIT — where the brand diverges from the founder. Name the gaps. Interpret them. This is the most valuable section of the portrait for founder_supplement profiles.` : ""}
 
 Voice — non-negotiable:
 - Write as if you watched them for a week and now you're telling a close friend who they are. Flat delivery. Perceptive. Warm underneath, never on top.

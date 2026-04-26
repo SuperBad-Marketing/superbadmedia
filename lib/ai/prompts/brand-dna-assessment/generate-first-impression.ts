@@ -23,6 +23,8 @@ export type FirstImpressionInput = {
   tagFrequencyMap: Record<string, number>;
   reflectionText: string | null;
   sectionInsights: string[];
+  industry?: string | null;
+  industryVertical?: string | null;
 };
 
 /**
@@ -39,6 +41,8 @@ export function buildFirstImpressionPrompt(input: FirstImpressionInput): string 
     tagFrequencyMap,
     reflectionText,
     sectionInsights,
+    industry,
+    industryVertical,
   } = input;
 
   const topTags = Object.entries(tagFrequencyMap)
@@ -73,12 +77,16 @@ export function buildFirstImpressionPrompt(input: FirstImpressionInput): string 
     ? "They answered in business mode — 'the brand', not 'I'. Write about the brand."
     : "They answered as a founder. Write about the person.";
 
+  const businessContext = industry || industryVertical
+    ? `\nBusiness context: ${industry ? `This is a ${industry}` : `Industry: ${industryVertical?.replace(/_/g, " ")}`}. Ground the impression in who they are as a ${industry ?? industryVertical?.replace(/_/g, " ") ?? "business"} — not as a personality type.`
+    : "";
+
   return `You're writing the first impression for ${subjectName}'s Brand DNA reveal.
 
 This is the emotional peak. It fades in alone on screen — 2–3 sentences, nothing else visible. It must feel like a punch of recognition: "how do they know that about me?"
 
 Track: ${track}. ${shapeLine}
-${trackNote}
+${trackNote}${businessContext}
 
 Strongest signals across the full assessment:
 ${topTags || "(no tags)"}
