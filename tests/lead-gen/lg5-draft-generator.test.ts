@@ -29,6 +29,10 @@ vi.mock("@/lib/activity-log", () => ({
   logActivity: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("@/lib/lead-gen/funnel-history", () => ({
+  fetchFunnelHistory: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock("@/lib/db", () => {
   const selectChain = {
     from: vi.fn(),

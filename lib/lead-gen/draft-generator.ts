@@ -21,6 +21,7 @@ import { invokeLlmText } from "@/lib/ai/invoke";
 import { checkBrandVoiceDrift } from "@/lib/ai/drift-check";
 import { getSuperbadBrandProfile } from "@/lib/quote-builder/superbad-brand-profile";
 import { SUPERBAD_SENDER } from "./sender";
+import { fetchFunnelHistory, type FunnelHistory } from "./funnel-history";
 import type { ViabilityProfile } from "./types";
 
 const PROMPT_VERSION = "lg5-v1";
@@ -78,10 +79,13 @@ export async function generateDraft(
     return { ok: false, reason: "kill_switch" };
   }
 
-  const brandProfile = await getSuperbadBrandProfile(dbInstance);
-  const voiceExamples = await loadVoiceExamples(dbInstance);
+  const [brandProfile, voiceExamples, funnelHistory] = await Promise.all([
+    getSuperbadBrandProfile(dbInstance),
+    loadVoiceExamples(dbInstance),
+    fetchFunnelHistory(input.contactInfo.email, dbInstance),
+  ]);
   const systemPrompt = buildSystemPrompt(brandProfile, input, voiceExamples);
-  const userPrompt = buildUserPrompt(input);
+  const userPrompt = buildUserPrompt(input, undefined, funnelHistory);
 
   const startMs = Date.now();
   let rawResponse: string;
@@ -109,7 +113,7 @@ export async function generateDraft(
 
   if (!driftResult.pass) {
     // One auto-regen with drift feedback
-    const regenPrompt = buildUserPrompt(input, driftResult.notes);
+    const regenPrompt = buildUserPrompt(input, driftResult.notes, funnelHistory);
     try {
       const regenResponse = await invokeLlmText({
         job: "lead-gen-outreach-draft",
@@ -285,6 +289,7 @@ Respond with a JSON object only — no prose, no markdown fences:
 function buildUserPrompt(
   input: GenerateDraftInput,
   driftFeedback?: string,
+  funnelHistory?: FunnelHistory | null,
 ): string {
   const sections: string[] = [];
 
@@ -299,6 +304,20 @@ function buildUserPrompt(
   sections.push(`\nTOUCH: ${input.touchKind} (touch #${input.touchIndex})`);
 
   sections.push(`\nVIABILITY PROFILE:\n${JSON.stringify(input.viabilityProfile, null, 2)}`);
+
+  if (funnelHistory) {
+    sections.push(`\nFUNNEL HISTORY (this prospect previously started the trial shoot funnel and dropped off):`);
+    sections.push(`Business: ${funnelHistory.businessName} (${funnelHistory.shape})`);
+    sections.push(`Questionnaire sections completed: ${funnelHistory.sectionsCompleted}`);
+    sections.push(`Abandoned: ${funnelHistory.daysSinceAbandonment} days ago`);
+    if (funnelHistory.signalTags.length > 0) {
+      sections.push(`Signal tags: ${funnelHistory.signalTags.join(", ")}`);
+    }
+    sections.push(`SMS replies during abandon sequence: ${funnelHistory.hadSmsReplies ? "yes" : "none"}`);
+    if (funnelHistory.questionnaireSummary) {
+      sections.push(`Questionnaire answers: ${JSON.stringify(funnelHistory.questionnaireSummary)}`);
+    }
+  }
 
   if (input.priorTouches.length > 0) {
     sections.push(`\nPRIOR TOUCHES (${input.priorTouches.length}):`);

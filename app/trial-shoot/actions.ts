@@ -18,6 +18,7 @@ import {
 import { issueMagicLink } from "@/lib/portal/issue-magic-link";
 import { sendEmail } from "@/lib/channels/email/send";
 import settings from "@/lib/settings";
+import { ensureAbandonCheckEnqueued } from "@/lib/intro-funnel/abandon-tracking";
 
 const FUNNEL_SHAPES = ["solo_founder", "founder_led_team", "multi_stakeholder_company"] as const;
 const TRIAL_SHOOT_TIERS = ["session", "production"] as const;
@@ -142,6 +143,8 @@ export async function submitSection1Action(
       body: `${input.name} started the trial shoot funnel`,
       meta: { shape: input.shape, token },
     });
+
+    void ensureAbandonCheckEnqueued();
 
     // Set portal session cookie so the prospect stays authenticated
     const ttlDays = await settings.get("portal.session_cookie_ttl_days");
