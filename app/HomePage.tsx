@@ -466,7 +466,37 @@ export default function HomePage() {
           />
         </Screen>
 
-        {/* ── Screen 4 — Statement: emotion over features (brand red) ── */}
+        {/* ── Screen 4 — What we actually do ── */}
+        <Screen>
+          <Redaction
+            generic="We're a full-service creative agency passionate about telling your brand's story through innovative, best-in-class content solutions."
+            honest={
+              <span>
+                We make short-form and long-form content. Take photographs.
+                Write strategies. Build campaigns. Run your ads
+                <span style={{ color: "var(--brand-red)" }}>.</span>
+              </span>
+            }
+            honestSub={
+              <p
+                className="text-pretty"
+                style={{
+                  fontFamily: "var(--font-narrative)",
+                  fontSize: "clamp(18px, 2vw, 26px)",
+                  lineHeight: 1.5,
+                  fontStyle: "italic",
+                  color: "var(--brand-pink)",
+                  margin: 0,
+                }}
+              >
+                But mostly — we figure out what makes your audience care, and
+                then we make that.
+              </p>
+            }
+          />
+        </Screen>
+
+        {/* ── Screen 5 — Statement: emotion over features (brand red) ── */}
         <Screen surface="brand">
           <Statement>
             <p
@@ -521,7 +551,43 @@ export default function HomePage() {
           </Statement>
         </Screen>
 
-        {/* ── Screen 5 — Redaction #2 ── */}
+        {/* ── Screen 6 — Social proof ── */}
+        <Screen align="center">
+          <Statement>
+            <p
+              className="text-balance"
+              style={{
+                fontFamily: "var(--font-narrative)",
+                fontSize: "clamp(22px, 3vw, 36px)",
+                lineHeight: 1.4,
+                fontStyle: "italic",
+                color: "var(--neutral-100)",
+                margin: 0,
+                maxWidth: "24ch",
+              }}
+            >
+              &ldquo;It showed what we are authentically. Our personalities were
+              embedded.&rdquo;
+            </p>
+          </Statement>
+          <Statement delay={0.15}>
+            <p
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: "var(--text-micro)",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase",
+                color: "var(--brand-pink)",
+                margin: 0,
+                marginTop: "clamp(16px, 2vw, 24px)",
+              }}
+            >
+              &mdash; Marco, Melbourne
+            </p>
+          </Statement>
+        </Screen>
+
+        {/* ── Screen 7 — Redaction #2 ── */}
         <Screen>
           <Redaction
             generic="Our proven methodology delivers measurable ROI through strategic multi-channel campaigns and performance-driven creative."
@@ -595,37 +661,7 @@ export default function HomePage() {
           </Statement>
         </Screen>
 
-        {/* ── Screen 7 — Redaction #3 ── */}
-        <Screen>
-          <Redaction
-            generic="We're a full-service creative agency passionate about telling your brand's story through innovative, best-in-class content solutions."
-            honest={
-              <span>
-                We make films. Take photographs. Write strategies. Build
-                campaigns. Run your ads
-                <span style={{ color: "var(--brand-red)" }}>.</span>
-              </span>
-            }
-            honestSub={
-              <p
-                className="text-pretty"
-                style={{
-                  fontFamily: "var(--font-narrative)",
-                  fontSize: "clamp(18px, 2vw, 26px)",
-                  lineHeight: 1.5,
-                  fontStyle: "italic",
-                  color: "var(--brand-pink)",
-                  margin: 0,
-                }}
-              >
-                But mostly — we figure out what makes your audience care, and
-                then we make that.
-              </p>
-            }
-          />
-        </Screen>
-
-        {/* ── Screen 8 — Warm close ── */}
+        {/* ── Screen 7 — Warm close ── */}
         <Screen align="center" surface={1}>
           <Statement>
             <p
@@ -668,6 +704,25 @@ export default function HomePage() {
             >
               A creative media and marketing company that thinks about this
               stuff all day.
+            </p>
+          </Statement>
+          <Statement delay={0.25}>
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(14px, 1.4vw, 17px)",
+                lineHeight: 1.8,
+                color: "var(--neutral-500)",
+                margin: "0 auto",
+                marginTop: "clamp(28px, 3vw, 44px)",
+                maxWidth: "46ch",
+              }}
+              className="text-pretty"
+            >
+              LSKD. A pilates studio in Truganina. Melbourne Storm. A deli in
+              Brighton. Thetford Australia. A psychologist in Coburg. Gyms in
+              Hoppers Crossing and Ferntree Gully. Interior designers in
+              Richmond. Migration agents in the CBD.
             </p>
           </Statement>
         </Screen>

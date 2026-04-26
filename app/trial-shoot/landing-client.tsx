@@ -697,15 +697,18 @@ export function LandingClient() {
                 <h2
                   style={{
                     fontFamily: "var(--font-display)",
-                    fontSize: "clamp(2rem, 5vw, 4rem)",
-                    lineHeight: 1.05,
-                    letterSpacing: "-1.5px",
+                    fontSize: "clamp(1.75rem, 4vw, 3rem)",
+                    lineHeight: 1.15,
+                    letterSpacing: "-1px",
                     color: "var(--brand-cream)",
                     margin: 0,
                   }}
                 >
-                  Cafes. Tradies. Podcasters.
+                  LSKD. A pilates studio in Truganina.
                   <br />
+                  Melbourne Storm. A deli in Brighton.
+                  <br />
+                  Thetford Australia.{" "}
                   <span
                     style={{
                       fontFamily: "var(--font-narrative)",
@@ -714,9 +717,24 @@ export function LandingClient() {
                       fontWeight: 500,
                     }}
                   >
-                    A motorsport team running on vibes.
+                    A psychologist in Coburg.
                   </span>
                 </h2>
+                <p
+                  style={{
+                    marginTop: 28,
+                    fontFamily: "var(--font-narrative)",
+                    fontStyle: "italic",
+                    fontSize: "clamp(1rem, 2vw, 1.25rem)",
+                    lineHeight: 1.6,
+                    color: "var(--neutral-300)",
+                    maxWidth: 640,
+                    margin: "28px auto 0",
+                  }}
+                >
+                  Gyms in Hoppers Crossing and Ferntree Gully. Interior
+                  designers in Richmond. Migration agents in the CBD.
+                </p>
                 <p
                   style={{
                     marginTop: 24,
