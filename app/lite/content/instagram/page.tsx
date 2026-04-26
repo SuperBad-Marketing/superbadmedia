@@ -22,7 +22,7 @@ export default async function InstagramPage() {
     redirect("/api/auth/signin");
   }
 
-  const [accounts, metaRow, plans] = await Promise.all([
+  const [accounts, metaRow] = await Promise.all([
     db
       .select()
       .from(instagram_accounts)
@@ -39,12 +39,18 @@ export default async function InstagramPage() {
       )
       .limit(1)
       .then((rows) => rows[0] ?? null),
-    db
+  ]);
+
+  let plans: (typeof instagram_content_plans.$inferSelect)[] = [];
+  try {
+    plans = await db
       .select()
       .from(instagram_content_plans)
       .orderBy(desc(instagram_content_plans.created_at_ms))
-      .all(),
-  ]);
+      .all();
+  } catch {
+    plans = [];
+  }
 
   return (
     <div className="min-h-screen bg-[color:var(--color-neutral-950)]">

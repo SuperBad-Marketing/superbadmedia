@@ -35,11 +35,16 @@ export default async function BriefDetailPage({
 
   if (!brief) notFound();
 
-  const storyboard = await db
-    .select()
-    .from(brief_storyboards)
-    .where(eq(brief_storyboards.brief_id, id))
-    .get();
+  let storyboard: typeof brief_storyboards.$inferSelect | null = null;
+  try {
+    storyboard = await db
+      .select()
+      .from(brief_storyboards)
+      .where(eq(brief_storyboards.brief_id, id))
+      .get() ?? null;
+  } catch {
+    storyboard = null;
+  }
 
   let companyName: string | null = null;
   if (brief.company_id) {
