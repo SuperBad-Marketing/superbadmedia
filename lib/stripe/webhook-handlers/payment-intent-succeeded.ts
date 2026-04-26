@@ -85,6 +85,7 @@ export async function handlePaymentIntentSucceeded(
 
   const nowMs = opts.nowMs ?? Date.now();
   const amount = pi.amount ?? quote.total_cents_inc_gst;
+  const errors: string[] = [];
 
   // Log settle.
   await logActivity({
@@ -124,6 +125,7 @@ export async function handlePaymentIntentSucceeded(
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+      errors.push(`finaliseDealAsWon: ${message}`);
       await logActivity({
         companyId: quote.company_id,
         dealId: quote.deal_id,
@@ -203,6 +205,7 @@ export async function handlePaymentIntentSucceeded(
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+      errors.push(`subscription_create: ${message}`);
       await logActivity({
         companyId: quote.company_id,
         dealId: quote.deal_id,
@@ -218,6 +221,9 @@ export async function handlePaymentIntentSucceeded(
     await enqueueStripeSettleEmail({ quote, company, primaryContact });
   }
 
+  if (errors.length > 0) {
+    return { result: "error", error: errors.join("; ") };
+  }
   return { result: "ok" };
 }
 
