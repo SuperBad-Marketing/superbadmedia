@@ -23,6 +23,7 @@ import {
 } from "@/lib/wizards/defs/meta";
 import { getPages, getInstagramAccountFromPage, getAccountInfo } from "@/lib/channels/instagram/client";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 
 const META_VAULT_CONTEXT = "meta.credentials";
 
@@ -162,6 +163,13 @@ export async function completeMetaAction(
       completion_payload: payload,
       contract_version: contractVersion(),
       completed_at_ms: Date.now(),
+    });
+
+    const refreshAtMs = Date.now() + 50 * 86400 * 1000;
+    await enqueueTask({
+      task_type: "instagram_token_refresh",
+      runAt: refreshAtMs,
+      idempotencyKey: `ig-token-refresh-${new Date(refreshAtMs).toISOString().slice(0, 10)}`,
     });
 
     return {
