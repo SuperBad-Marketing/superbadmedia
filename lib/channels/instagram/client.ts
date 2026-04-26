@@ -88,7 +88,7 @@ export async function getAccountInfo(
 > {
   return callApi(
     "GET",
-    `${GRAPH_API_BASE}/${igUserId}?fields=id,username,followers_count,media_count`,
+    `${GRAPH_FB_BASE}/${igUserId}?fields=id,username,followers_count,media_count`,
     accessToken,
     undefined,
     "get_account_info",
@@ -103,7 +103,7 @@ export async function getAccountInsights(
   since?: number,
   until?: number,
 ): Promise<IGApiResult<{ data: unknown[] }>> {
-  let url = `${GRAPH_API_BASE}/${igUserId}/insights?metric=${metric}&period=${period}`;
+  let url = `${GRAPH_FB_BASE}/${igUserId}/insights?metric=${metric}&period=${period}`;
   if (since) url += `&since=${Math.floor(since / 1000)}`;
   if (until) url += `&until=${Math.floor(until / 1000)}`;
   return callApi("GET", url, accessToken, undefined, "get_account_insights");
@@ -120,7 +120,7 @@ export async function getMediaList(
 > {
   return callApi(
     "GET",
-    `${GRAPH_API_BASE}/${igUserId}/media?fields=id,timestamp,media_type,caption,permalink,thumbnail_url&limit=${limit}`,
+    `${GRAPH_FB_BASE}/${igUserId}/media?fields=id,timestamp,media_type,caption,permalink,thumbnail_url&limit=${limit}`,
     accessToken,
     undefined,
     "get_media_list",
@@ -138,7 +138,7 @@ export async function getMediaInsights(
       : "impressions,reach,likes,comments,saves,shares";
   return callApi(
     "GET",
-    `${GRAPH_API_BASE}/${mediaId}/insights?metric=${metrics}`,
+    `${GRAPH_FB_BASE}/${mediaId}/insights?metric=${metrics}`,
     accessToken,
     undefined,
     "get_media_insights",
@@ -152,7 +152,7 @@ export async function getFollowerDemographics(
 ): Promise<IGApiResult<{ data: unknown[] }>> {
   return callApi(
     "GET",
-    `${GRAPH_API_BASE}/${igUserId}/insights?metric=follower_demographics&period=lifetime&metric_type=total_value&breakdown=${breakdown}`,
+    `${GRAPH_FB_BASE}/${igUserId}/insights?metric=follower_demographics&period=lifetime&metric_type=total_value&breakdown=${breakdown}`,
     accessToken,
     undefined,
     "get_follower_demographics",
@@ -189,7 +189,7 @@ export async function createMediaContainer(
 
   return callApi(
     "POST",
-    `${GRAPH_API_BASE}/${igUserId}/media`,
+    `${GRAPH_FB_BASE}/${igUserId}/media`,
     accessToken,
     body,
     "create_media_container",
@@ -203,7 +203,7 @@ export async function publishMedia(
 ): Promise<IGApiResult<{ id: string }>> {
   return callApi(
     "POST",
-    `${GRAPH_API_BASE}/${igUserId}/media_publish`,
+    `${GRAPH_FB_BASE}/${igUserId}/media_publish`,
     accessToken,
     { creation_id: creationId },
     "publish_media",
@@ -216,7 +216,7 @@ export async function getContainerStatus(
 ): Promise<IGApiResult<{ status_code: string }>> {
   return callApi(
     "GET",
-    `${GRAPH_API_BASE}/${containerId}?fields=status_code`,
+    `${GRAPH_FB_BASE}/${containerId}?fields=status_code`,
     accessToken,
     undefined,
     "get_container_status",
