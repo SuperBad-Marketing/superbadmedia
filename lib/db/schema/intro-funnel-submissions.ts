@@ -65,6 +65,7 @@ export const intro_funnel_submissions = sqliteTable(
       .notNull()
       .default("session"),
     submitted_website_url: text("submitted_website_url"),
+    submitted_instagram_handle: text("submitted_instagram_handle"),
     submitted_intent: text("submitted_intent"),
 
     funnel_state: text("funnel_state", { enum: FUNNEL_STATES })
@@ -80,6 +81,7 @@ export const intro_funnel_submissions = sqliteTable(
       .notNull()
       .default(0),
     signal_tags_json: text("signal_tags_json", { mode: "json" }),
+    viability_profile_json: text("viability_profile_json", { mode: "json" }),
 
     abandon_sequence_state: text("abandon_sequence_state", {
       enum: ABANDON_SEQUENCE_STATES,

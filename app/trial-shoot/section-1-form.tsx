@@ -52,6 +52,8 @@ export function Section1Form({ selectedTier, onSuccess }: Section1FormProps) {
     const email = (fd.get("email") as string)?.trim();
     const phone = (fd.get("phone") as string)?.trim();
     const websiteUrl = (fd.get("websiteUrl") as string)?.trim() || undefined;
+    const rawIg = (fd.get("instagramHandle") as string)?.trim() || undefined;
+    const instagramHandle = rawIg?.replace(/^@/, "") || undefined;
     const smsOptIn = fd.get("smsOptIn") === "on";
 
     if (!name || !businessName || !email || !phone || !selectedShape) {
@@ -66,6 +68,7 @@ export function Section1Form({ selectedTier, onSuccess }: Section1FormProps) {
         email,
         phone,
         websiteUrl,
+        instagramHandle,
         smsOptIn,
         shape: selectedShape,
         selectedTier,
@@ -165,6 +168,12 @@ export function Section1Form({ selectedTier, onSuccess }: Section1FormProps) {
           label="Website"
           placeholder="If you've got one — no judgement either way."
           type="url"
+        />
+        <Field
+          name="instagramHandle"
+          label="Instagram"
+          placeholder="@yourbusiness"
+          type="text"
         />
       </div>
 
