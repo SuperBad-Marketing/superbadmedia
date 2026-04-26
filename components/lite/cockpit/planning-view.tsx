@@ -256,11 +256,7 @@ function TaskCard({
   return (
     <Link
       href={`/lite/tasks?open=${task.id}`}
-      className="rounded-[var(--radius-default)] px-3 py-2.5 text-[13px] font-[family-name:var(--font-body)] transition-colors block"
-      style={{
-        backgroundColor: "var(--color-surface-0)",
-        color: "var(--color-neutral-100)",
-      }}
+      className="rounded-[var(--radius-default)] px-3 py-2.5 text-[13px] font-[family-name:var(--font-body)] block bg-[color:var(--color-surface-0)] text-[color:var(--color-neutral-100)] transition-all duration-150 ease-out hover:-translate-y-px hover:bg-[color:var(--color-surface-1)]"
     >
       {task.title}
     </Link>

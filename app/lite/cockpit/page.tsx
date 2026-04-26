@@ -11,6 +11,10 @@ import { BannerStrip } from "@/components/lite/cockpit/banner-strip";
 import { CalendarPreview } from "@/components/lite/cockpit/calendar-preview";
 import { PlanningView } from "@/components/lite/cockpit/planning-view";
 import { AiChatFab } from "@/components/lite/cockpit/ai-chat-panel";
+import {
+  CockpitContent,
+  CockpitSection,
+} from "@/components/lite/cockpit/cockpit-content";
 
 export const metadata: Metadata = {
   title: "SuperBad — Cockpit",
@@ -35,66 +39,59 @@ export default async function CockpitPage() {
     ]);
 
   return (
-    <div className="min-h-full">
+    <>
       <AiChatFab />
-      <div className="max-w-[720px] mx-auto px-4 pt-6 pb-8">
-        {/* Page header */}
-        <header className="pb-6">
+      <CockpitContent>
+        {/* Brief — hero card */}
+        <CockpitSection>
           <div
-            className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none"
-            style={{ letterSpacing: "2px", color: "var(--color-neutral-500)" }}
+            className="rounded-2xl p-8"
+            style={{
+              background: "var(--color-surface-2)",
+              boxShadow:
+                "var(--surface-highlight), 0 4px 24px rgba(0,0,0,0.25)",
+              border: "1px solid rgba(253, 245, 230, 0.06)",
+            }}
           >
-            Admin · Cockpit
+            <BriefPanel
+              brief={briefResult.brief}
+              slot={briefResult.slot}
+              fallback={briefResult.fallback}
+            />
           </div>
-          <h1
-            className="mt-3 font-[family-name:var(--font-display)] text-[40px] leading-none"
-            style={{ letterSpacing: "-0.4px", color: "var(--color-brand-cream)" }}
-          >
-            Cockpit
-          </h1>
-        </header>
-
-        {/* Brief card */}
-        <div
-          className="rounded-xl p-6"
-          style={{
-            background: "var(--color-surface-2)",
-            boxShadow: "var(--surface-highlight), 0 2px 8px rgba(0,0,0,0.2)",
-            border: "1px solid rgba(253, 245, 230, 0.06)",
-          }}
-        >
-          <BriefPanel
-            brief={briefResult.brief}
-            slot={briefResult.slot}
-            fallback={briefResult.fallback}
-          />
-        </div>
+        </CockpitSection>
 
         {/* Attention rail */}
         {waitingItems.length > 0 && (
-          <div className="mt-6">
+          <CockpitSection className="mt-6">
             <div
               className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
-              style={{ letterSpacing: "2px", color: "var(--color-brand-orange)" }}
+              style={{
+                letterSpacing: "2px",
+                color: "var(--color-brand-orange)",
+              }}
             >
               Needs Attention
             </div>
             <AttentionRail items={waitingItems} />
-          </div>
+          </CockpitSection>
         )}
 
         {/* Health banners */}
         {banners.length > 0 && (
-          <div className="mt-5">
+          <CockpitSection className="mt-5">
             <BannerStrip banners={banners} />
-          </div>
+          </CockpitSection>
         )}
 
         {/* Calendar */}
-        <div className="mt-6">
+        <CockpitSection className="mt-6">
           <div
             className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
-            style={{ letterSpacing: "2px", color: "var(--color-neutral-500)" }}
+            style={{
+              letterSpacing: "2px",
+              color: "var(--color-neutral-500)",
+            }}
           >
             Calendar
           </div>
@@ -108,13 +105,16 @@ export default async function CockpitPage() {
           >
             <CalendarPreview events={calendarEvents} />
           </div>
-        </div>
+        </CockpitSection>
 
         {/* Planning */}
-        <div className="mt-8">
+        <CockpitSection className="mt-8">
           <div
             className="mb-4 font-[family-name:var(--font-label)] text-[10px] uppercase"
-            style={{ letterSpacing: "2px", color: "var(--color-neutral-500)" }}
+            style={{
+              letterSpacing: "2px",
+              color: "var(--color-neutral-500)",
+            }}
           >
             Planning
           </div>
@@ -128,8 +128,8 @@ export default async function CockpitPage() {
           >
             <PlanningView kanban={kanban} />
           </div>
-        </div>
-      </div>
-    </div>
+        </CockpitSection>
+      </CockpitContent>
+    </>
   );
 }

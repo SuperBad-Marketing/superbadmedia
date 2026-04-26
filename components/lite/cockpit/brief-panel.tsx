@@ -16,17 +16,6 @@ const QUIET_FALLBACK_LINES = [
   "No dramas. That's the update.",
 ];
 
-const GREETING_LINES = [
-  "Morning. Here's what's going.",
-  "You're back. Okay.",
-  "Afternoon.",
-  "Right. Where were we.",
-  "Here's the state of things.",
-  "Let's see what we've got.",
-  "One more day. Here's the brief.",
-  "Back at it.",
-];
-
 function pseudoRandomPick(pool: string[], seedMs: number, windowDays: number): string {
   const dayIndex = Math.floor(seedMs / (86400000 * windowDays));
   return pool[dayIndex % pool.length];
@@ -42,17 +31,21 @@ export function BriefPanel({
   fallback: boolean;
 }) {
   const nowMs = Date.now();
-  const greeting = pseudoRandomPick(GREETING_LINES, nowMs, 1);
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
         <p
           className="font-[family-name:var(--font-label)] text-[10px] uppercase"
           style={{ letterSpacing: "2px", color: "var(--color-brand-orange)" }}
         >
           Daily Brief
         </p>
+        <span
+          aria-hidden
+          className="inline-block size-[3px] rounded-full"
+          style={{ backgroundColor: "var(--color-neutral-600)" }}
+        />
         <p
           className="font-[family-name:var(--font-label)] text-[10px] uppercase"
           style={{ letterSpacing: "1.5px", color: "var(--color-neutral-600)" }}
@@ -60,23 +53,17 @@ export function BriefPanel({
           {slot}
         </p>
       </div>
-      <p
-        className="mt-3 font-[family-name:var(--font-body)] text-[13px]"
-        style={{ color: "var(--color-neutral-500)" }}
-      >
-        {greeting}
-      </p>
-      <div className="mt-2">
+      <div className="mt-4">
         {fallback || !brief ? (
           <p
-            className="font-[family-name:var(--font-narrative)] text-[18px] italic leading-relaxed"
+            className="text-pretty font-[family-name:var(--font-narrative)] text-[20px] italic leading-relaxed"
             style={{ color: "var(--color-neutral-500)" }}
           >
             {pseudoRandomPick(QUIET_FALLBACK_LINES, nowMs, 1)}
           </p>
         ) : (
           <p
-            className="font-[family-name:var(--font-narrative)] text-[18px] leading-relaxed"
+            className="text-pretty font-[family-name:var(--font-narrative)] text-[20px] leading-relaxed"
             style={{ color: "var(--color-neutral-200)" }}
           >
             {brief.prose}
