@@ -35,35 +35,41 @@ export async function createPostAction(input: z.infer<typeof createSchema>) {
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: "invalid_input" };
 
-  const { brief, contentType, slideCount, templateId } = parsed.data;
+  try {
+    const { brief, contentType, slideCount, templateId } = parsed.data;
 
-  const result = await generateCopy(brief, contentType, slideCount, templateId);
-  if (!result.ok) return { ok: false as const, error: result.error };
+    const result = await generateCopy(brief, contentType, slideCount, templateId);
+    if (!result.ok) return { ok: false as const, error: result.error };
 
-  const now = Date.now();
-  const id = crypto.randomUUID();
+    const now = Date.now();
+    const id = crypto.randomUUID();
 
-  await db.insert(contentStudioPosts).values({
-    id,
-    brief,
-    content_type: contentType,
-    template_id: result.templateId,
-    slide_count: slideCount,
-    generated_copy_json: result.slides as SlideCopy[],
-    correction_history_json: [] as unknown[],
-    status: "draft",
-    created_at_ms: now,
-    updated_at_ms: now,
-  });
+    await db.insert(contentStudioPosts).values({
+      id,
+      brief,
+      content_type: contentType,
+      template_id: result.templateId,
+      slide_count: slideCount,
+      generated_copy_json: result.slides as SlideCopy[],
+      correction_history_json: [] as unknown[],
+      status: "draft",
+      created_at_ms: now,
+      updated_at_ms: now,
+    });
 
-  revalidatePath("/lite/content/studio");
-  return {
-    ok: true as const,
-    postId: id,
-    slides: result.slides,
-    templateId: result.templateId,
-    slideCount,
-  };
+    revalidatePath("/lite/content/studio");
+    return {
+      ok: true as const,
+      postId: id,
+      slides: result.slides,
+      templateId: result.templateId,
+      slideCount,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[content-studio] createPostAction failed:", msg);
+    return { ok: false as const, error: msg };
+  }
 }
 
 const correctSchema = z.object({
@@ -350,52 +356,58 @@ export async function createMotionPostAction(
   const parsed = createMotionSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: "invalid_input" };
 
-  const { brief, contentType, motionTemplateId, slideCount: reqSlides, paletteId, primaryAspectRatio } =
-    parsed.data;
-  const slideCount = reqSlides ?? 1;
+  try {
+    const { brief, contentType, motionTemplateId, slideCount: reqSlides, paletteId, primaryAspectRatio } =
+      parsed.data;
+    const slideCount = reqSlides ?? 1;
 
-  const motionTemplate = getMotionTemplate(motionTemplateId);
-  if (!motionTemplate) return { ok: false as const, error: "template_not_found" };
+    const motionTemplate = getMotionTemplate(motionTemplateId);
+    if (!motionTemplate) return { ok: false as const, error: "template_not_found" };
 
-  const result = await generateCopy(brief, contentType, slideCount);
-  if (!result.ok) return { ok: false as const, error: result.error };
+    const result = await generateCopy(brief, contentType, slideCount);
+    if (!result.ok) return { ok: false as const, error: result.error };
 
-  const now = Date.now();
-  const id = crypto.randomUUID();
-  const resolvedPalette = paletteId ?? BRAND_PALETTES[0].id;
-  const resolvedRatio = primaryAspectRatio ?? "square";
-  const defaultParams = Object.fromEntries(
-    motionTemplate.animationParams.map((p) => [p.key, p.default]),
-  );
+    const now = Date.now();
+    const id = crypto.randomUUID();
+    const resolvedPalette = paletteId ?? BRAND_PALETTES[0].id;
+    const resolvedRatio = primaryAspectRatio ?? "square";
+    const defaultParams = Object.fromEntries(
+      motionTemplate.animationParams.map((p) => [p.key, p.default]),
+    );
 
-  await db.insert(contentStudioPosts).values({
-    id,
-    brief,
-    content_type: contentType,
-    template_id: motionTemplate.staticCounterpart ?? motionTemplateId,
-    slide_count: slideCount,
-    generated_copy_json: result.slides as SlideCopy[],
-    correction_history_json: [] as unknown[],
-    status: "draft",
-    motion_enabled: 1,
-    motion_template_id: motionTemplateId,
-    palette_id: resolvedPalette,
-    animation_params_json: JSON.stringify(defaultParams),
-    primary_aspect_ratio: resolvedRatio,
-    created_at_ms: now,
-    updated_at_ms: now,
-  });
+    await db.insert(contentStudioPosts).values({
+      id,
+      brief,
+      content_type: contentType,
+      template_id: motionTemplate.staticCounterpart ?? motionTemplateId,
+      slide_count: slideCount,
+      generated_copy_json: result.slides as SlideCopy[],
+      correction_history_json: [] as unknown[],
+      status: "draft",
+      motion_enabled: 1,
+      motion_template_id: motionTemplateId,
+      palette_id: resolvedPalette,
+      animation_params_json: JSON.stringify(defaultParams),
+      primary_aspect_ratio: resolvedRatio,
+      created_at_ms: now,
+      updated_at_ms: now,
+    });
 
-  revalidatePath("/lite/content/studio");
-  return {
-    ok: true as const,
-    postId: id,
-    slides: result.slides,
-    motionTemplateId,
-    paletteId: resolvedPalette,
-    animationParams: defaultParams,
-    primaryAspectRatio: resolvedRatio,
-  };
+    revalidatePath("/lite/content/studio");
+    return {
+      ok: true as const,
+      postId: id,
+      slides: result.slides,
+      motionTemplateId,
+      paletteId: resolvedPalette,
+      animationParams: defaultParams,
+      primaryAspectRatio: resolvedRatio,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[content-studio] createMotionPostAction failed:", msg);
+    return { ok: false as const, error: msg };
+  }
 }
 
 const updateMotionSchema = z.object({
