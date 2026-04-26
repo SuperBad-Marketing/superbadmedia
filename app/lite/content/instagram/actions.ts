@@ -9,6 +9,8 @@ import { db } from "@/lib/db";
 import {
   instagram_accounts,
   instagram_content_plans,
+  instagram_metrics_snapshots,
+  instagram_media,
   type ContentPlanSlot,
 } from "@/lib/db/schema/instagram";
 import { tasks } from "@/lib/db/schema/tasks";
@@ -18,7 +20,14 @@ import { contentStudioRenders } from "@/lib/db/schema/content-studio";
 import { publishSingleImage, publishCarousel } from "@/lib/channels/instagram/publish";
 import { invokeLlmText } from "@/lib/ai/invoke";
 import { getCredential } from "@/lib/integrations/getCredential";
-import { getPages, getInstagramAccountFromPage, getAccountInfo } from "@/lib/channels/instagram/client";
+import {
+  getPages,
+  getInstagramAccountFromPage,
+  getAccountInfo,
+  getAccountInsights,
+  getMediaList,
+  getMediaInsights,
+} from "@/lib/channels/instagram/client";
 
 type ActionResult<T = unknown> =
   | { ok: true; value: T }
@@ -420,4 +429,171 @@ export async function updatePlanSlotAction(input: {
 
   revalidatePath("/lite/content/instagram");
   return { ok: true, value: undefined };
+}
+
+export async function syncInstagramDataAction(): Promise<
+  ActionResult<{ followers: number; mediaCount: number; postsSynced: number }>
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const account = await db.query.instagram_accounts.findFirst({
+    where: (t, { eq: e }) => e(t.status, "active"),
+  });
+  if (!account) return { ok: false, error: "No active Instagram account." };
+
+  const now = Date.now();
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 1. Account info (followers, media count)
+  const info = await getAccountInfo(account.instagram_user_id, account.access_token);
+  if (!info.ok) return { ok: false, error: `Account info: ${info.error}` };
+
+  // 2. Account insights (reach, impressions, profile views)
+  let reach = 0;
+  let impressions = 0;
+  let profileViews = 0;
+
+  const insightsResult = await getAccountInsights(
+    account.instagram_user_id,
+    account.access_token,
+    "impressions,reach,profile_views",
+    "day",
+  );
+  if (insightsResult.ok) {
+    const metrics = insightsResult.data.data as {
+      name: string;
+      values: { value: number }[];
+    }[];
+    for (const m of metrics) {
+      const val = m.values?.[m.values.length - 1]?.value ?? 0;
+      if (m.name === "reach") reach = val;
+      if (m.name === "impressions") impressions = val;
+      if (m.name === "profile_views") profileViews = val;
+    }
+  }
+
+  // 3. Upsert metrics snapshot
+  const existingSnapshot = await db
+    .select({ id: instagram_metrics_snapshots.id })
+    .from(instagram_metrics_snapshots)
+    .where(
+      eq(instagram_metrics_snapshots.account_id, account.id),
+    )
+    .limit(1)
+    .then((rows) =>
+      rows.find(() => true),
+    );
+
+  const snapshotId = existingSnapshot?.id ?? randomUUID();
+  await db
+    .insert(instagram_metrics_snapshots)
+    .values({
+      id: snapshotId,
+      account_id: account.id,
+      snapshot_date: today,
+      followers: info.data.followers_count,
+      reach,
+      impressions,
+      profile_views: profileViews,
+      synced_at_ms: now,
+    })
+    .onConflictDoUpdate({
+      target: instagram_metrics_snapshots.id,
+      set: {
+        followers: info.data.followers_count,
+        reach,
+        impressions,
+        profile_views: profileViews,
+        synced_at_ms: now,
+      },
+    });
+
+  // 4. Recent media + per-post insights
+  let postsSynced = 0;
+  const mediaResult = await getMediaList(account.instagram_user_id, account.access_token, 25);
+  if (mediaResult.ok) {
+    for (const media of mediaResult.data.data) {
+      const insRes = await getMediaInsights(media.id, account.access_token, media.media_type);
+      let likes = 0,
+        comments = 0,
+        saves = 0,
+        shares = 0,
+        mediaReach = 0,
+        mediaImpressions = 0,
+        videoViews = 0;
+
+      if (insRes.ok) {
+        for (const m of insRes.data.data) {
+          const v = m.values?.[0]?.value ?? 0;
+          if (m.name === "likes") likes = v;
+          if (m.name === "comments") comments = v;
+          if (m.name === "saves") saves = v;
+          if (m.name === "shares") shares = v;
+          if (m.name === "reach") mediaReach = v;
+          if (m.name === "impressions") mediaImpressions = v;
+          if (m.name === "plays") videoViews = v;
+        }
+      }
+
+      const existing = await db
+        .select({ id: instagram_media.id })
+        .from(instagram_media)
+        .where(eq(instagram_media.ig_media_id, media.id))
+        .limit(1)
+        .then((rows) => rows[0] ?? null);
+
+      const publishedMs = new Date((media as { timestamp: string }).timestamp).getTime();
+      const caption = (media as { caption?: string }).caption ?? null;
+      const permalink = (media as { permalink?: string }).permalink ?? null;
+      const thumbnailUrl = (media as { thumbnail_url?: string }).thumbnail_url ?? null;
+
+      if (existing) {
+        await db
+          .update(instagram_media)
+          .set({
+            likes,
+            comments_count: comments,
+            saves,
+            shares,
+            reach: mediaReach,
+            impressions: mediaImpressions,
+            video_views: videoViews || null,
+            last_synced_at_ms: now,
+          })
+          .where(eq(instagram_media.id, existing.id));
+      } else {
+        await db.insert(instagram_media).values({
+          id: randomUUID(),
+          account_id: account.id,
+          ig_media_id: media.id,
+          media_type: media.media_type as "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM" | "REEL",
+          caption,
+          permalink,
+          thumbnail_url: thumbnailUrl,
+          published_at_ms: publishedMs,
+          likes,
+          comments_count: comments,
+          saves,
+          shares,
+          reach: mediaReach,
+          impressions: mediaImpressions,
+          video_views: videoViews || null,
+          last_synced_at_ms: now,
+        });
+      }
+      postsSynced++;
+    }
+  }
+
+  revalidatePath("/lite/content/instagram");
+  return {
+    ok: true,
+    value: {
+      followers: info.data.followers_count,
+      mediaCount: info.data.media_count,
+      postsSynced,
+    },
+  };
 }

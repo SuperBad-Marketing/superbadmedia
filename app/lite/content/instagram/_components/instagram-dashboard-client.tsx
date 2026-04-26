@@ -10,6 +10,7 @@ import {
   retryInstagramDiscoveryAction,
   approvePlanSlotsAction,
   updatePlanSlotAction,
+  syncInstagramDataAction,
 } from "../actions";
 
 interface AccountSummary {
@@ -39,6 +40,7 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
   const router = useRouter();
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   async function handleRetry() {
     setRetrying(true);
@@ -49,6 +51,25 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
       router.refresh();
     } else {
       setRetryError(result.error);
+    }
+  }
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const result = await syncInstagramDataAction();
+      if (result.ok) {
+        toast.success(
+          `Synced — ${result.value.followers.toLocaleString()} followers, ${result.value.postsSynced} posts updated.`,
+        );
+        router.refresh();
+      } else {
+        toast.error(result.error);
+      }
+    } catch {
+      toast.error("Sync failed. Try again.");
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -147,14 +168,44 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className="inline-block h-2 w-2 rounded-full"
-            style={{ backgroundColor: "var(--color-brand-pink)" }}
-          />
-          <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-500)]">
-            Connected
-          </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-opacity disabled:opacity-50"
+            style={{
+              backgroundColor: "var(--color-neutral-800)",
+              color: "var(--color-brand-cream)",
+              border: "1px solid rgba(253, 245, 230, 0.08)",
+            }}
+          >
+            {syncing ? (
+              <Loader2 className="size-3 animate-spin" strokeWidth={1.5} />
+            ) : (
+              <svg
+                className="size-3"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M1.5 8a6.5 6.5 0 0 1 11.3-4.4M14.5 8a6.5 6.5 0 0 1-11.3 4.4" />
+                <path d="M13.5 1v3.5H10M2.5 15v-3.5H6" />
+              </svg>
+            )}
+            {syncing ? "Syncing…" : "Sync"}
+          </button>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: "var(--color-brand-pink)" }}
+            />
+            <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-500)]">
+              Connected
+            </span>
+          </div>
         </div>
       </div>
 
