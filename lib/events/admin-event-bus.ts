@@ -2,6 +2,7 @@ import type { SoundKey } from "@/lib/sounds";
 
 export type AdminEventType =
   | "deal_bounce_rollback"
+  | "inbox_sync"
   | "payment_failed"
   | "quote_accepted";
 

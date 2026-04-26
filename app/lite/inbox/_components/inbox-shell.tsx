@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { useAdminEvents } from "@/lib/events/use-admin-events";
 import type {
   InboxAddressFilter,
   InboxListRow,
@@ -45,8 +47,13 @@ export function InboxShell({
   mobileDetail: React.ReactNode;
   mobileTab: string | null;
 }) {
+  const router = useRouter();
   const [composeOpen, setComposeOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
+
+  useAdminEvents((event) => {
+    if (event.type === "inbox_sync") router.refresh();
+  });
 
   React.useEffect(() => {
     function evaluate() {

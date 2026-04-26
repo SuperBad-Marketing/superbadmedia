@@ -5,6 +5,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { graph_api_state } from "@/lib/db/schema/graph-api-state";
 import { killSwitches } from "@/lib/kill-switches";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { emitAdminEvent } from "@/lib/events/admin-event-bus";
 import type { GraphClient } from "./client";
 import { GraphDeltaResponseSchema, GraphMessageSchema } from "./types";
 import { normalizeGraphMessage } from "./normalize";
@@ -205,6 +206,15 @@ export async function runDeltaSync(
         updated_at_ms: Date.now(),
       })
       .where(eq(graph_api_state.id, stateId));
+  }
+
+  if (inserted > 0) {
+    emitAdminEvent({
+      type: "inbox_sync",
+      message: `${inserted} new message${inserted === 1 ? "" : "s"} synced`,
+      timestamp: new Date().toISOString(),
+      meta: { inserted },
+    });
   }
 
   return { inserted, skipped, errors, newDeltaToken };
