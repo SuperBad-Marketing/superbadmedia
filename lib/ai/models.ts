@@ -151,6 +151,10 @@ export const MODELS = {
   "instagram-strategy-digest": "sonnet",
   "instagram-realtime-alert": "haiku",
   "instagram-boost-rationale": "haiku",
+  // talking-head-scripts (3)
+  "talking-head-generate-script": "opus",
+  "talking-head-generate-edit-brief": "haiku",
+  "talking-head-generate-publish-meta": "haiku",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;
