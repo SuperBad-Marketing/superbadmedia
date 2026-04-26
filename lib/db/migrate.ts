@@ -52,23 +52,22 @@ export function runSeeds(
     .sort();
 
   for (const file of files) {
-    const sql = fs.readFileSync(path.join(migrationsFolder, file), "utf-8");
-    const statements = sql
-      .split("--> statement-breakpoint")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    const tx = sqlite.transaction(() => {
-      for (const stmt of statements) {
-        try {
-          sqlite.exec(stmt);
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          if (msg.includes("duplicate column name")) continue;
-          throw err;
-        }
+    const raw = fs.readFileSync(path.join(migrationsFolder, file), "utf-8");
+    const chunks = raw.includes("--> statement-breakpoint")
+      ? raw.split("--> statement-breakpoint")
+      : raw.split(/;\s*\n/).map((s) => s.trim()).filter((s) => s && !s.startsWith("--"));
+    for (const chunk of chunks) {
+      const stmt = chunk.trim();
+      if (!stmt || stmt.startsWith("--")) continue;
+      const execStr = stmt.endsWith(";") ? stmt : `${stmt};`;
+      try {
+        sqlite.exec(execStr);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("duplicate column name") || msg.includes("already exists")) continue;
+        throw err;
       }
-    });
-    tx();
+    }
   }
 }
 

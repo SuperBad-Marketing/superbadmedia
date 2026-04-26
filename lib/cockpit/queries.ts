@@ -69,24 +69,29 @@ export async function getTodayBraindump(
   userId: string,
   nowMs: number = Date.now(),
 ): Promise<BraindumpRow | null> {
-  const { startMs, endMs } = melbourneStartAndEndOfDay(nowMs);
+  try {
+    const { startMs, endMs } = melbourneStartAndEndOfDay(nowMs);
 
-  const row = await db
-    .select()
-    .from(braindumps)
-    .where(
-      and(
-        eq(braindumps.created_by, userId),
-        gte(braindumps.created_at_ms, startMs),
-        lte(braindumps.created_at_ms, endMs),
-        isNotNull(braindumps.committed_at_ms),
-      ),
-    )
-    .orderBy(desc(braindumps.created_at_ms))
-    .limit(1)
-    .then((rows) => rows[0] ?? null);
+    const row = await db
+      .select()
+      .from(braindumps)
+      .where(
+        and(
+          eq(braindumps.created_by, userId),
+          gte(braindumps.created_at_ms, startMs),
+          lte(braindumps.created_at_ms, endMs),
+          isNotNull(braindumps.committed_at_ms),
+        ),
+      )
+      .orderBy(desc(braindumps.created_at_ms))
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
 
-  return row;
+    return row;
+  } catch (err) {
+    console.error("[getTodayBraindump] query failed:", err);
+    return null;
+  }
 }
 
 export async function getTodayCalendarEvents(nowMs: number = Date.now()) {
