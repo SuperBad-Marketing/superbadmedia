@@ -32,9 +32,14 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request): Promise<NextResponse> {
   const signature = req.headers.get("stripe-signature");
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
 
   if (!signature || !secret) {
+    console.error("[stripe.webhook] missing:", {
+      hasSignature: !!signature,
+      hasSecret: !!secret,
+      secretLength: secret?.length ?? 0,
+    });
     return NextResponse.json(
       { error: "Missing signature or secret" },
       { status: 400 },
@@ -47,7 +52,12 @@ export async function POST(req: Request): Promise<NextResponse> {
   try {
     event = getStripe().webhooks.constructEvent(rawBody, signature, secret);
   } catch (err) {
-    console.error("[stripe.webhook] signature verification failed:", err);
+    console.error("[stripe.webhook] signature verification failed:", {
+      error: err instanceof Error ? err.message : String(err),
+      secretPrefix: secret.slice(0, 8),
+      bodyLength: rawBody.length,
+      signatureLength: signature.length,
+    });
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -127,4 +137,14 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   return NextResponse.json({ received: true, dispatch: outcome.result });
+}
+
+export function GET() {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+  return NextResponse.json({
+    status: "reachable",
+    webhookSecretConfigured: !!secret,
+    webhookSecretPrefix: secret ? secret.slice(0, 8) + "…" : null,
+    stripeKeyConfigured: !!process.env.STRIPE_SECRET_KEY,
+  });
 }

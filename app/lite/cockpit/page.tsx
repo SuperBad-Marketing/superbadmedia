@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth/session";
 import { mergeWaitingItems, mergeHealthBanners } from "@/lib/cockpit/aggregator";
 import { getCurrentBrief, getTodayCalendarEvents, getTodayBraindump } from "@/lib/cockpit/queries";
+import { generateBriefForSlot } from "@/lib/cockpit/generate-brief";
+import { getCurrentSlot } from "@/lib/cockpit/queries";
 import { getTasksForCockpitKanban } from "@/lib/tasks/cockpit";
 import { BriefPanel } from "@/components/lite/cockpit/brief-panel";
 import { AttentionRail } from "@/components/lite/cockpit/attention-rail";
@@ -39,6 +41,31 @@ export default async function CockpitPage() {
       getTasksForCockpitKanban(nowMs),
       getTodayBraindump(session.user.id!, nowMs),
     ]);
+
+  if (briefResult.fallback) {
+    try {
+      const slot = getCurrentSlot(nowMs);
+      const gen = await generateBriefForSlot(slot, { trigger: "cron" });
+      if (gen.generated) {
+        briefResult.brief = {
+          id: gen.briefId,
+          user_id: session.user.id!,
+          slot,
+          brief_date: new Date(nowMs).toISOString().slice(0, 10),
+          generated_at_ms: nowMs,
+          trigger: "cron",
+          trigger_event: null,
+          prose: gen.prose,
+          signals_snapshot: "{}",
+          model_version: "auto-generated",
+          created_at_ms: nowMs,
+        };
+        briefResult.fallback = false;
+      }
+    } catch {
+      // Generation failed — show fallback rather than crash
+    }
+  }
 
   return (
     <>

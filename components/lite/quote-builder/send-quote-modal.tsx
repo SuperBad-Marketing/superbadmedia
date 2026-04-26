@@ -148,14 +148,14 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="max-w-6xl sm:max-w-6xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Send quote</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="grid min-h-0 flex-1 gap-6 overflow-hidden lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <aside
-            className="hidden max-h-[60vh] overflow-y-auto rounded-md border border-border lg:block"
+            className="hidden overflow-y-auto rounded-md border border-border lg:block"
             aria-label="Preview of what the client will see"
           >
             <div style={{ zoom: 0.75 }}>
@@ -167,7 +167,7 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
             </div>
           </aside>
 
-          <div>
+          <div className="overflow-y-auto">
 
         {loading && (
           <div className="py-10 text-center text-sm text-muted-foreground">
@@ -184,11 +184,11 @@ export function SendQuoteModal(props: SendQuoteModalProps) {
         {!loading && draft && (
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground">
                   To
                 </div>
-                <div>
+                <div className="truncate">
                   {draft.recipientName}
                   {draft.recipientEmail && (
                     <span className="text-muted-foreground"> · {draft.recipientEmail}</span>

@@ -138,7 +138,7 @@ export function PreviewPane(props: PreviewProps) {
                 key={l.id}
                 className="flex items-baseline justify-between gap-3"
               >
-                <span>
+                <span className="min-w-0 flex-1">
                   <span className="font-medium">
                     {l.snapshot.name || <em>unnamed</em>}
                   </span>{" "}
@@ -147,7 +147,7 @@ export function PreviewPane(props: PreviewProps) {
                     {l.kind === "retainer" ? " / mo" : ""}
                   </span>
                 </span>
-                <span className="font-mono text-xs">
+                <span className="shrink-0 font-mono text-xs">
                   {formatMoney(l.qty * l.unit_price_cents_inc_gst)}
                 </span>
               </li>

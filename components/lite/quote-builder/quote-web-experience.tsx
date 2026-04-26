@@ -191,7 +191,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
             <ul className="divide-y" style={{ borderColor: "color-mix(in srgb, var(--brand-charcoal) 12%, transparent)" }}>
               {props.content.sections.whatWellDo.line_items.map((item) => (
                 <li key={item.id} className="flex items-baseline justify-between gap-4 py-3">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-base font-medium">{item.snapshot.name}</div>
                     <div
                       className="text-xs uppercase tracking-wider"
@@ -201,7 +201,7 @@ export function QuoteWebExperience(props: QuoteWebExperienceProps) {
                       {item.kind === "retainer" ? " / month" : ""}
                     </div>
                   </div>
-                  <div className="font-mono text-sm">
+                  <div className="shrink-0 font-mono text-sm">
                     {formatMoney(item.qty * item.unit_price_cents_inc_gst)}
                     {item.kind === "retainer" ? " / mo" : ""}
                   </div>
