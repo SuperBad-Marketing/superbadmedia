@@ -2,9 +2,11 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { eq, and } from "drizzle-orm";
 
+import { desc } from "drizzle-orm";
+
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { instagram_accounts } from "@/lib/db/schema/instagram";
+import { instagram_accounts, instagram_content_plans } from "@/lib/db/schema/instagram";
 import { integration_connections } from "@/lib/db/schema/integration-connections";
 import { ContentTabs } from "../_components/content-tabs";
 import { InstagramDashboardClient } from "./_components/instagram-dashboard-client";
@@ -20,7 +22,7 @@ export default async function InstagramPage() {
     redirect("/api/auth/signin");
   }
 
-  const [accounts, metaRow] = await Promise.all([
+  const [accounts, metaRow, plans] = await Promise.all([
     db
       .select()
       .from(instagram_accounts)
@@ -37,6 +39,11 @@ export default async function InstagramPage() {
       )
       .limit(1)
       .then((rows) => rows[0] ?? null),
+    db
+      .select()
+      .from(instagram_content_plans)
+      .orderBy(desc(instagram_content_plans.created_at_ms))
+      .all(),
   ]);
 
   return (
@@ -77,6 +84,17 @@ export default async function InstagramPage() {
             status: a.status,
           }))}
           metaConnected={metaRow !== null}
+          plans={plans
+            .filter((p) => p.status !== "expired")
+            .map((p) => ({
+              id: p.id,
+              accountId: p.account_id,
+              weekStartDate: p.week_start_date,
+              weekEndDate: p.week_end_date,
+              themeSummary: p.theme_summary,
+              slots: p.slots_json,
+              status: p.status,
+            }))}
         />
       </div>
     </div>

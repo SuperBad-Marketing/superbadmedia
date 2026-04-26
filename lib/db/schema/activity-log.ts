@@ -379,6 +379,16 @@ export const ACTIVITY_LOG_KINDS = [
   "brief_submitted",
   "brief_matched",
   "brief_status_changed",
+  // --- Brief Storyboards (4) ---
+  "storyboard_generated",
+  "storyboard_failed",
+  "storyboard_revised",
+  "storyboard_regenerated",
+  // --- Instagram Strategy Plans (4) ---
+  "instagram_plan_generated",
+  "instagram_plan_approved",
+  "instagram_plan_expired",
+  "instagram_plan_nudge_sent",
   // --- Data management ---
   "brand_dna_reset",
   "client_context_reset",

@@ -6,6 +6,7 @@ import { user } from "@/lib/db/schema/user";
 import { nextReferenceNumber } from "./reference-number";
 import { matchBriefToClient } from "./match-client";
 import { logActivity } from "@/lib/activity-log";
+import { generateStoryboard } from "./generate-storyboard";
 
 export interface SubmitBriefInput {
   briefType: BriefType;
@@ -166,6 +167,10 @@ export async function submitBrief(
       match_confidence: matchConfidence,
     },
   });
+
+  if (input.briefType === "structured") {
+    generateStoryboard(briefId).catch(() => {});
+  }
 
   return {
     briefId,

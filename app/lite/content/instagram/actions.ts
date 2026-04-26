@@ -6,7 +6,14 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { instagram_accounts } from "@/lib/db/schema/instagram";
+import {
+  instagram_accounts,
+  instagram_content_plans,
+  type ContentPlanSlot,
+} from "@/lib/db/schema/instagram";
+import { tasks } from "@/lib/db/schema/tasks";
+import { user } from "@/lib/db/schema/user";
+import { logActivity } from "@/lib/activity-log";
 import { contentStudioRenders } from "@/lib/db/schema/content-studio";
 import { publishSingleImage, publishCarousel } from "@/lib/channels/instagram/publish";
 import { invokeLlmText } from "@/lib/ai/invoke";
@@ -268,4 +275,137 @@ export async function postToInstagramAction(input: {
     ok: true,
     value: { igMediaId: result.igMediaId, mediaRowId: result.mediaRowId },
   };
+}
+
+export async function approvePlanSlotsAction(input: {
+  planId: string;
+  slotIndices: number[];
+}): Promise<ActionResult<{ tasksCreated: number }>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const plan = await db
+    .select()
+    .from(instagram_content_plans)
+    .where(eq(instagram_content_plans.id, input.planId))
+    .get();
+
+  if (!plan) return { ok: false, error: "Plan not found." };
+
+  const account = await db
+    .select()
+    .from(instagram_accounts)
+    .where(eq(instagram_accounts.id, plan.account_id))
+    .get();
+
+  if (!account) return { ok: false, error: "Instagram account not found." };
+
+  const adminUser = await db
+    .select({ id: user.id })
+    .from(user)
+    .limit(1)
+    .get();
+  const createdBy = adminUser?.id ?? "admin-dev-01";
+
+  const slots = [...(plan.slots_json as ContentPlanSlot[])];
+  const now = Date.now();
+  let tasksCreated = 0;
+
+  for (const idx of input.slotIndices) {
+    const slot = slots[idx];
+    if (!slot || slot.approved) continue;
+
+    const taskId = randomUUID();
+    const taskKind = account.account_type === "own" ? "admin" : "client_task";
+    const dueMs = new Date(slot.suggested_date + "T10:00:00+10:00").getTime();
+
+    await db.insert(tasks).values({
+      id: taskId,
+      title: `Instagram: ${slot.topic}`,
+      body: `${slot.caption_direction}\n\nContent type: ${slot.content_type}\nAccount: @${account.username}`,
+      kind: taskKind as "admin" | "client_task",
+      status: "todo",
+      priority: "normal",
+      due_at_ms: dueMs,
+      entity_type: account.company_id ? "company" : null,
+      entity_id: account.company_id ?? null,
+      created_at_ms: now,
+      updated_at_ms: now,
+      created_by: createdBy,
+    });
+
+    slots[idx] = { ...slot, approved: true, task_id: taskId };
+    tasksCreated++;
+  }
+
+  const allApproved = slots.every((s) => s.approved);
+  const anyApproved = slots.some((s) => s.approved);
+
+  await db
+    .update(instagram_content_plans)
+    .set({
+      slots_json: slots,
+      status: allApproved
+        ? "all_approved"
+        : anyApproved
+          ? "partially_approved"
+          : "awaiting_review",
+      reviewed_at_ms: plan.reviewed_at_ms ?? now,
+      updated_at_ms: now,
+    })
+    .where(eq(instagram_content_plans.id, plan.id));
+
+  await logActivity({
+    kind: "instagram_plan_approved",
+    companyId: account.company_id ?? undefined,
+    body: `${tasksCreated} Instagram post${tasksCreated !== 1 ? "s" : ""} approved for @${account.username}.`,
+    meta: {
+      plan_id: plan.id,
+      account_id: account.id,
+      tasks_created: tasksCreated,
+      slot_indices: input.slotIndices,
+    },
+  });
+
+  revalidatePath("/lite/content/instagram");
+  revalidatePath("/lite/tasks");
+  return { ok: true, value: { tasksCreated } };
+}
+
+export async function updatePlanSlotAction(input: {
+  planId: string;
+  slotIndex: number;
+  topic?: string;
+  captionDirection?: string;
+}): Promise<ActionResult<void>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const plan = await db
+    .select()
+    .from(instagram_content_plans)
+    .where(eq(instagram_content_plans.id, input.planId))
+    .get();
+
+  if (!plan) return { ok: false, error: "Plan not found." };
+
+  const slots = [...(plan.slots_json as ContentPlanSlot[])];
+  const slot = slots[input.slotIndex];
+  if (!slot) return { ok: false, error: "Slot not found." };
+  if (slot.approved) return { ok: false, error: "Slot already approved." };
+
+  if (input.topic !== undefined) slot.topic = input.topic;
+  if (input.captionDirection !== undefined)
+    slot.caption_direction = input.captionDirection;
+  slots[input.slotIndex] = slot;
+
+  await db
+    .update(instagram_content_plans)
+    .set({ slots_json: slots, updated_at_ms: Date.now() })
+    .where(eq(instagram_content_plans.id, plan.id));
+
+  revalidatePath("/lite/content/instagram");
+  return { ok: true, value: undefined };
 }

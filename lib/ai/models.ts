@@ -139,6 +139,9 @@ export const MODELS = {
   "content-studio-pick-template": "haiku",
   // catalogue-chat (1)
   "catalogue-chat-recommend": "sonnet",
+  // brief-storyboards (2)
+  "brief-storyboard-generate": "opus",
+  "brief-storyboard-revise": "opus",
   // instagram-channel (8)
   "instagram-draft-caption": "sonnet",
   "instagram-classify-inbound": "haiku",

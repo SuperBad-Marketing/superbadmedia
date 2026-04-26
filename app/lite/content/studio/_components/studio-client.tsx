@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
@@ -47,10 +48,20 @@ export interface ActivePost {
 }
 
 export function StudioClient() {
+  const searchParams = useSearchParams();
   const [view, setView] = useState<StudioView>("create");
-  const [brief, setBrief] = useState("");
-  const [contentType, setContentType] = useState<ContentType>("announcement");
+  const [brief, setBrief] = useState(() => searchParams.get("prefill_brief") ?? "");
+  const [contentType, setContentType] = useState<ContentType>(() => {
+    const prefill = searchParams.get("prefill_type");
+    if (prefill && CONTENT_TYPES.includes(prefill as ContentType)) {
+      return prefill as ContentType;
+    }
+    return "announcement";
+  });
   const [slideCount, setSlideCount] = useState(1);
+  const [prefilled] = useState(
+    () => !!(searchParams.get("prefill_brief") || searchParams.get("prefill_type")),
+  );
   const [generating, setGenerating] = useState(false);
   const [activePost, setActivePost] = useState<ActivePost | null>(null);
 
@@ -461,6 +472,15 @@ export function StudioClient() {
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {prefilled && brief && (
+              <div
+                className="mb-3 rounded-lg px-3 py-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-brand-cream)]"
+                style={{ background: "rgba(244, 160, 176, 0.10)" }}
+              >
+                Pre-filled from Instagram plan — review and generate when ready.
               </div>
             )}
 

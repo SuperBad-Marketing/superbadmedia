@@ -161,7 +161,13 @@ export function BriefsIndexClient({ rows }: { rows: BriefIndexRow[] }) {
                     className="transition-colors duration-[120ms] hover:bg-[color:rgba(253,245,230,0.02)]"
                   >
                     <td style={TD} className="font-[family-name:var(--font-label)] text-[11px] tabular-nums text-[color:var(--color-brand-cream)]" >
-                      <span style={{ letterSpacing: "1px" }}>{b.reference_number}</span>
+                      <Link
+                        href={`/lite/admin/briefs/${b.id}`}
+                        className="transition-colors duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[color:var(--color-brand-pink)]"
+                        style={{ letterSpacing: "1px" }}
+                      >
+                        {b.reference_number}
+                      </Link>
                     </td>
                     <td style={TD} className="font-[family-name:var(--font-body)] text-[13px] font-medium text-[color:var(--color-brand-cream)]">
                       {b.company_id ? (

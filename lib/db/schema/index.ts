@@ -99,3 +99,4 @@ export * from "./inspiration-library";
 export * from "./instagram";
 export * from "./brand-voice-examples";
 export * from "./briefs";
+export * from "./brief-storyboards";

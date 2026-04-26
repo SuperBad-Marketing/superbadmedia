@@ -1,4 +1,11 @@
-import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const instagram_accounts = sqliteTable(
   "instagram_accounts",
@@ -224,3 +231,68 @@ export const instagram_voice_corrections = sqliteTable(
 
 export type InstagramVoiceCorrectionRow =
   typeof instagram_voice_corrections.$inferSelect;
+
+export const CONTENT_PLAN_STATUSES = [
+  "awaiting_review",
+  "partially_approved",
+  "all_approved",
+  "expired",
+] as const;
+export type ContentPlanStatus = (typeof CONTENT_PLAN_STATUSES)[number];
+
+export const PLAN_SLOT_CONTENT_TYPES = [
+  "carousel",
+  "single",
+  "reel",
+  "story",
+] as const;
+export type PlanSlotContentType = (typeof PLAN_SLOT_CONTENT_TYPES)[number];
+
+export interface ContentPlanSlot {
+  index: number;
+  suggested_date: string;
+  day_of_week: string;
+  content_type: PlanSlotContentType;
+  topic: string;
+  caption_direction: string;
+  approved: boolean;
+  task_id: string | null;
+}
+
+export const instagram_content_plans = sqliteTable(
+  "instagram_content_plans",
+  {
+    id: text("id").primaryKey(),
+    account_id: text("account_id")
+      .notNull()
+      .references(() => instagram_accounts.id, { onDelete: "cascade" }),
+    strategy_report_id: text("strategy_report_id"),
+    week_start_date: text("week_start_date").notNull(),
+    week_end_date: text("week_end_date").notNull(),
+    theme_summary: text("theme_summary").notNull(),
+    slots_json: text("slots_json", { mode: "json" })
+      .$type<ContentPlanSlot[]>()
+      .notNull(),
+    status: text("status", { enum: CONTENT_PLAN_STATUSES })
+      .notNull()
+      .default("awaiting_review"),
+    nudge_sent: integer("nudge_sent", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    reviewed_at_ms: integer("reviewed_at_ms"),
+    created_at_ms: integer("created_at_ms").notNull(),
+    updated_at_ms: integer("updated_at_ms").notNull(),
+  },
+  (t) => ({
+    unique_account_week: uniqueIndex("ig_plans_account_week_idx").on(
+      t.account_id,
+      t.week_start_date,
+    ),
+    by_status: index("ig_plans_status_idx").on(t.status),
+  }),
+);
+
+export type InstagramContentPlanRow =
+  typeof instagram_content_plans.$inferSelect;
+export type InstagramContentPlanInsert =
+  typeof instagram_content_plans.$inferInsert;
