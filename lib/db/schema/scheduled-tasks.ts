@@ -41,6 +41,7 @@ export const SCHEDULED_TASK_TYPES = [
   "inbox_graph_subscription_renew",
   "inbox_initial_import",
   "inbox_ticket_auto_resolve_idle",
+  "inbox_graph_sync",
   // --- SaaS Subscription Billing (4) ---
   "saas_data_loss_warning",
   "saas_annual_renewal_reminder",
@@ -99,6 +100,8 @@ export const SCHEDULED_TASK_TYPES = [
   "recurring_expense_book",
   "finance_export_generate",
   "finance_export_retention_purge",
+  // --- Instagram Channel (1) ---
+  "instagram_token_refresh",
   // --- Surprise & Delight (4) ---
   "ambient_copy_generate",
   "hidden_egg_fire_cleanup",

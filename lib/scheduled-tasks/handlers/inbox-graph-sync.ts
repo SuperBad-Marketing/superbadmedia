@@ -1,5 +1,8 @@
 import { killSwitches } from "@/lib/kill-switches";
 import { getActiveGraphState, createGraphClient, runDeltaSync, syncSentItems } from "@/lib/graph";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import settings from "@/lib/settings";
+import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
 
 export async function runGraphSyncCycle(): Promise<{
   inserted: number;
@@ -25,3 +28,22 @@ export async function runGraphSyncCycle(): Promise<{
     errors: delta.errors,
   };
 }
+
+export async function ensureGraphSyncEnqueued(): Promise<void> {
+  const intervalSeconds = await settings.get(
+    "inbox.graph_sync_interval_seconds",
+  );
+  await enqueueTask({
+    task_type: "inbox_graph_sync",
+    runAt: Date.now() + intervalSeconds * 1000,
+    payload: {},
+    idempotencyKey: "inbox_graph_sync_periodic",
+  });
+}
+
+export const INBOX_GRAPH_SYNC_HANDLERS: HandlerMap = {
+  inbox_graph_sync: async () => {
+    await runGraphSyncCycle();
+    await ensureGraphSyncEnqueued();
+  },
+};

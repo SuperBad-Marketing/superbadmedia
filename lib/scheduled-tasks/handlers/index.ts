@@ -5,6 +5,8 @@ import { SAAS_SUBSCRIPTION_HANDLERS } from "./saas-subscription-usage-reset";
 import { SAAS_TIER_CHANGE_HANDLERS } from "./saas-subscription-tier-downgrade-apply";
 import { SAAS_DATA_LOSS_HANDLERS } from "./saas-data-loss-warning";
 import { INBOX_SUBSCRIPTION_RENEW_HANDLERS } from "./inbox-graph-subscription-renew";
+import { INBOX_HISTORY_IMPORT_HANDLERS } from "./inbox-history-import";
+import { INBOX_GRAPH_SYNC_HANDLERS } from "./inbox-graph-sync";
 import { INBOX_HYGIENE_HANDLERS } from "./inbox-hygiene-purge";
 import { INBOX_DRAFT_HANDLERS } from "./inbox-draft-generate";
 import { INBOX_TICKET_AUTO_RESOLVE_HANDLERS } from "./inbox-ticket-auto-resolve";
@@ -56,6 +58,7 @@ import { COST_ANOMALY_DETECTOR_LEARNED_HANDLERS } from "./cost-anomaly-detector-
 import { COST_ANOMALY_DIAGNOSE_HANDLERS } from "./cost-anomaly-diagnose";
 import { WEEKLY_DIGEST_SEND_HANDLERS } from "./weekly-digest-send";
 import { COCKPIT_BRIEF_REGENERATE_HANDLERS } from "./cockpit-brief-regenerate";
+import { INSTAGRAM_TOKEN_REFRESH_HANDLERS } from "./instagram-token-refresh";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -75,6 +78,8 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...SAAS_TIER_CHANGE_HANDLERS,
   ...SAAS_DATA_LOSS_HANDLERS,
   ...INBOX_SUBSCRIPTION_RENEW_HANDLERS,
+  ...INBOX_HISTORY_IMPORT_HANDLERS,
+  ...INBOX_GRAPH_SYNC_HANDLERS,
   ...INBOX_HYGIENE_HANDLERS,
   ...INBOX_DRAFT_HANDLERS,
   ...INBOX_TICKET_AUTO_RESOLVE_HANDLERS,
@@ -126,4 +131,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...COST_ANOMALY_DIAGNOSE_HANDLERS,
   ...WEEKLY_DIGEST_SEND_HANDLERS,
   ...COCKPIT_BRIEF_REGENERATE_HANDLERS,
+  ...INSTAGRAM_TOKEN_REFRESH_HANDLERS,
 };

@@ -29,6 +29,8 @@ import {
   type GraphAdminPayload,
 } from "@/lib/wizards/defs/graph-api-admin";
 import { getAppUrl } from "@/lib/env/app-url";
+import settings from "@/lib/settings";
+import { ensureGraphSyncEnqueued } from "@/lib/scheduled-tasks/handlers/inbox-graph-sync";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 
 export async function getGraphAuthorizeUrlAction(): Promise<string> {
@@ -43,7 +45,7 @@ export async function getGraphAuthorizeUrlAction(): Promise<string> {
     "Mail.ReadWrite",
     "Mail.Send",
     "MailboxSettings.Read",
-    "Calendars.Read",
+    "Calendars.ReadWrite",
   ].join(" ");
   const params = new URLSearchParams({
     client_id: clientId,
@@ -118,7 +120,7 @@ export async function completeGraphAdminAction(
       user_id: ownerId,
       tenant_id: tenantId,
       client_id: clientId,
-      initial_import_status: "not_started",
+      initial_import_status: "in_progress",
       created_at_ms: now,
       updated_at_ms: now,
     });
@@ -164,12 +166,15 @@ export async function completeGraphAdminAction(
     }
 
     // Enqueue initial email history import
+    const monthsBack = await settings.get("inbox.history_import_months");
     await enqueueTask({
       task_type: "inbox_initial_import",
       runAt: Date.now(),
-      payload: { graph_state_id: graphStateId },
+      payload: { graph_state_id: graphStateId, months_back: monthsBack },
       idempotencyKey: `inbox_initial_import|${graphStateId}|start`,
     });
+
+    void ensureGraphSyncEnqueued();
 
     return {
       ok: true,
