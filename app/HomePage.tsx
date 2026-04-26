@@ -9,10 +9,12 @@ function NavLink({
   href,
   children,
   external,
+  onClick,
 }: {
   href: string;
   children: React.ReactNode;
   external?: boolean;
+  onClick?: () => void;
 }) {
   const style: React.CSSProperties = {
     fontFamily: "var(--font-label)",
@@ -35,16 +37,63 @@ function NavLink({
 
   if (external) {
     return (
-      <a href={href} style={style} {...handlers}>
+      <a href={href} style={style} {...handlers} onClick={onClick}>
         {children}
       </a>
     );
   }
 
   return (
-    <Link href={href} style={style} {...handlers}>
+    <Link href={href} style={style} {...handlers} onClick={onClick}>
       {children}
     </Link>
+  );
+}
+
+/* ── Mobile menu button (three-line → X) ── */
+function MenuToggle({
+  open,
+  onToggle,
+}: {
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      aria-label={open ? "Close menu" : "Open menu"}
+      onClick={onToggle}
+      className="relative z-50 flex h-10 w-10 items-center justify-center sm:hidden"
+      style={{ background: "none", border: "none", cursor: "pointer" }}
+    >
+      <div className="flex w-5 flex-col items-end gap-[5px]">
+        <motion.span
+          className="block h-[1.5px] rounded-full"
+          style={{ backgroundColor: "var(--neutral-300)", originX: 0.5 }}
+          animate={
+            open
+              ? { rotate: 45, y: 3.25, width: 20 }
+              : { rotate: 0, y: 0, width: 20 }
+          }
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        />
+        <motion.span
+          className="block h-[1.5px] rounded-full"
+          style={{ backgroundColor: "var(--neutral-300)" }}
+          animate={open ? { opacity: 0, width: 0 } : { opacity: 1, width: 14 }}
+          transition={{ duration: 0.2 }}
+        />
+        <motion.span
+          className="block h-[1.5px] rounded-full"
+          style={{ backgroundColor: "var(--neutral-300)", originX: 0.5 }}
+          animate={
+            open
+              ? { rotate: -45, y: -3.25, width: 20 }
+              : { rotate: 0, y: 0, width: 20 }
+          }
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
+    </button>
   );
 }
 
@@ -83,10 +132,11 @@ function Redaction({
         <motion.span
           style={{
             color: inView ? "rgba(253, 245, 230, 0.35)" : "transparent",
-            transition: "color 0.4s",
+            transition: "color 0.4s, background-size 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
             backgroundImage: `linear-gradient(transparent 46%, var(--brand-red) 46%, var(--brand-red) 54%, transparent 54%)`,
             backgroundSize: struck ? "100% 1.5em" : "0% 1.5em",
             backgroundRepeat: "repeat-y",
+            backgroundPosition: "left center",
             WebkitBoxDecorationBreak: "clone",
             boxDecorationBreak: "clone" as never,
           }}
@@ -202,6 +252,8 @@ function Statement({
 }
 
 export default function HomePage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <main className="relative h-dvh overflow-hidden">
       {/* ── Ambient background ── */}
@@ -250,13 +302,48 @@ export default function HomePage() {
         >
           SuperBad
         </p>
-        <div className="flex items-center gap-5 sm:gap-6">
+
+        {/* Desktop links */}
+        <div className="hidden items-center gap-6 sm:flex">
           <NavLink href="/trial-shoot">Trial Shoot</NavLink>
           <NavLink href="mailto:andy@superbadmedia.com.au" external>
             Get in Touch
           </NavLink>
         </div>
+
+        {/* Mobile hamburger */}
+        <MenuToggle open={menuOpen} onToggle={() => setMenuOpen((o) => !o)} />
       </motion.nav>
+
+      {/* ── Mobile menu overlay ── */}
+      <motion.div
+        className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-10 sm:hidden"
+        style={{ backgroundColor: "var(--neutral-900)" }}
+        initial={false}
+        animate={menuOpen ? { opacity: 1, pointerEvents: "auto" as const } : { opacity: 0, pointerEvents: "none" as const }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <motion.div
+          animate={menuOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ delay: menuOpen ? 0.1 : 0, duration: 0.3 }}
+        >
+          <NavLink href="/trial-shoot" onClick={() => setMenuOpen(false)}>
+            Trial Shoot
+          </NavLink>
+        </motion.div>
+        <motion.div
+          animate={menuOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ delay: menuOpen ? 0.18 : 0, duration: 0.3 }}
+        >
+          <NavLink
+            href="mailto:andy@superbadmedia.com.au"
+            external
+            onClick={() => setMenuOpen(false)}
+          >
+            Get in Touch
+          </NavLink>
+        </motion.div>
+      </motion.div>
 
       {/* ── Scroll-snap container ── */}
       <div className="relative z-10 h-dvh snap-y snap-mandatory overflow-y-scroll">
