@@ -46,6 +46,7 @@ export default async function PortalBrandDnaInsightPage({
 
   return (
     <main
+      className="bda-insight-main"
       style={{
         flex: 1,
         display: "flex",
@@ -78,6 +79,15 @@ export default async function PortalBrandDnaInsightPage({
       >
         Section {nextSection} of 5
       </Link>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .bda-insight-main {
+            padding: 24px 20px !important;
+            gap: 28px !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

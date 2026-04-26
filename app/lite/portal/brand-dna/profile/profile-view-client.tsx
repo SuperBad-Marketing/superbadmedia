@@ -50,6 +50,7 @@ export function ProfileViewClient({
 
   return (
     <main
+      className="bda-profile-main"
       style={{
         flex: 1,
         overflowY: "auto",
@@ -60,6 +61,7 @@ export function ProfileViewClient({
       }}
     >
       <div
+        className="bda-profile-inner"
         style={{
           maxWidth: 780,
           width: "100%",
@@ -334,6 +336,20 @@ export function ProfileViewClient({
           </p>
         </motion.div>
       </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .bda-profile-main {
+            padding: 24px 20px 60px !important;
+          }
+          :global(.bda-profile-inner) {
+            gap: 36px !important;
+          }
+          :global(.bda-profile-inner p) {
+            font-size: 15px !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

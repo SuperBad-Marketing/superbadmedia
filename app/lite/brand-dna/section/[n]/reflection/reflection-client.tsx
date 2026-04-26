@@ -52,6 +52,7 @@ export function ReflectionClient({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...houseSpring, duration: 1.0 }}
+      className="bda-reflection-main"
       style={{
         flex: 1,
         display: "flex",
@@ -78,6 +79,7 @@ export function ReflectionClient({
           Before the reveal
         </p>
         <h2
+          className="bda-reflection-heading"
           style={{
             fontFamily: "var(--font-body)",
             fontWeight: 500,
@@ -115,6 +117,7 @@ export function ReflectionClient({
           rows={5}
           placeholder="What did this bring up? What did you notice? What's missing from the picture so far?"
           disabled={pending}
+          className="bda-reflection-textarea"
           style={{
             background: "rgba(34, 34, 31, 0.7)",
             color: "var(--brand-cream)",
@@ -130,10 +133,11 @@ export function ReflectionClient({
           }}
         />
 
-        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+        <div className="bda-reflection-actions" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <button
             type="submit"
             disabled={pending || empty}
+            className="bda-reflection-submit"
             style={{
               fontFamily: "var(--font-label)",
               fontSize: 11,
@@ -175,6 +179,21 @@ export function ReflectionClient({
           </button>
         </div>
       </form>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          :global(.bda-reflection-main) {
+            padding: 24px 20px !important;
+            gap: 24px !important;
+          }
+          :global(.bda-reflection-heading) {
+            font-size: 26px !important;
+          }
+          :global(.bda-reflection-submit) {
+            padding: 12px 24px !important;
+          }
+        }
+      `}</style>
     </motion.main>
   );
 }

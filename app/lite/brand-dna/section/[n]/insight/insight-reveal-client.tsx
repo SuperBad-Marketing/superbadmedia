@@ -24,6 +24,7 @@ export function InsightRevealClient({ insight, attribution }: InsightRevealClien
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...houseSpring, duration: 1.2 }}
+      className="bda-insight-container"
       style={{
         maxWidth: 700,
         textAlign: "center",
@@ -33,6 +34,7 @@ export function InsightRevealClient({ insight, attribution }: InsightRevealClien
       }}
     >
       <div
+        className="bda-insight-card"
         style={{
           padding: "40px 32px",
           borderRadius: 16,
@@ -42,6 +44,7 @@ export function InsightRevealClient({ insight, attribution }: InsightRevealClien
         }}
       >
         <blockquote
+          className="bda-insight-quote"
           style={{
             fontFamily: "var(--font-narrative)",
             fontStyle: "italic",
@@ -70,6 +73,19 @@ export function InsightRevealClient({ insight, attribution }: InsightRevealClien
           {attribution}
         </p>
       )}
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          :global(.bda-insight-card) {
+            padding: 28px 20px !important;
+            border-radius: 12px !important;
+          }
+          :global(.bda-insight-quote) {
+            font-size: 24px !important;
+            line-height: 1.4 !important;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 }

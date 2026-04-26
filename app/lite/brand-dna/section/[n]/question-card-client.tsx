@@ -117,6 +117,7 @@ export function QuestionCardClient({
 
   return (
     <main
+      className="bda-question-main"
       style={{
         flex: 1,
         display: "flex",
@@ -130,6 +131,7 @@ export function QuestionCardClient({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...houseSpring, duration: 0.9 }}
+        className="bda-question-inner"
         style={{
           maxWidth: 780,
           width: "100%",
@@ -209,7 +211,7 @@ export function QuestionCardClient({
           })}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="bda-question-footer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {canGoBack ? (
             <button
               type="button"
@@ -241,6 +243,7 @@ export function QuestionCardClient({
           {restartAction && (
             confirmRestart ? (
               <span
+                className="bda-restart-confirm"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -250,6 +253,7 @@ export function QuestionCardClient({
                   letterSpacing: "1.5px",
                   textTransform: "uppercase",
                   color: "var(--neutral-500)",
+                  flexWrap: "wrap",
                 }}
               >
                 <span>Clear all answers?</span>
@@ -326,8 +330,24 @@ export function QuestionCardClient({
           :global(.bda-options-grid) {
             grid-template-columns: 1fr !important;
           }
-          h2 {
-            font-size: 28px !important;
+          .bda-question-main {
+            padding: 20px !important;
+          }
+          :global(.bda-question-inner) {
+            gap: 24px !important;
+          }
+          :global(.bda-question-inner h2) {
+            font-size: 26px !important;
+            letter-spacing: -0.5px !important;
+          }
+          :global(.bda-question-footer) {
+            flex-direction: column !important;
+            gap: 12px !important;
+            align-items: stretch !important;
+          }
+          :global(.bda-restart-confirm) {
+            justify-content: center !important;
+            gap: 8px !important;
           }
         }
         :global(.bda-back-btn:hover:not(:disabled)) {

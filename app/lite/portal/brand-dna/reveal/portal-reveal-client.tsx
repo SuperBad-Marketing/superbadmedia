@@ -86,6 +86,7 @@ export function PortalRevealClient({
 
   return (
     <main
+      className="bda-reveal-main"
       style={{
         flex: 1,
         overflowY: "auto",
@@ -96,6 +97,7 @@ export function PortalRevealClient({
       }}
     >
       <div
+        className="bda-reveal-inner"
         style={{
           maxWidth: 780,
           width: "100%",
@@ -154,6 +156,7 @@ export function PortalRevealClient({
         {/* Section-by-section build */}
         {phase !== "impression" && sectionInsights.length > 0 && (
           <div
+            className="bda-reveal-sections"
             style={{ display: "flex", flexDirection: "column", gap: 56 }}
             aria-label="Signal summary by section"
           >
@@ -315,6 +318,23 @@ export function PortalRevealClient({
           </motion.section>
         )}
       </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .bda-reveal-main {
+            padding: 24px 20px 60px !important;
+          }
+          :global(.bda-reveal-inner) {
+            gap: 36px !important;
+          }
+          :global(.bda-reveal-sections) {
+            gap: 36px !important;
+          }
+          :global(.bda-reveal-inner p) {
+            font-size: 15px !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

@@ -21,6 +21,7 @@ export function ProgressChrome({ currentSection, sectionLabel }: ProgressChromeP
 
   return (
     <header
+      className="bda-progress-chrome"
       style={{
         position: "relative",
         zIndex: 3,
@@ -52,6 +53,7 @@ export function ProgressChrome({ currentSection, sectionLabel }: ProgressChromeP
                 ? "Progress: complete"
                 : `Progress: section ${currentSection} of 5`
           }
+          className="bda-progress-bar"
           style={{
             display: "flex",
             gap: 4,
@@ -65,6 +67,7 @@ export function ProgressChrome({ currentSection, sectionLabel }: ProgressChromeP
             return (
               <span
                 key={n}
+                className="bda-segment"
                 style={{
                   width: 44,
                   height: 2,
@@ -91,6 +94,7 @@ export function ProgressChrome({ currentSection, sectionLabel }: ProgressChromeP
             );
           })}
           <span
+            className="bda-progress-label"
             style={{
               marginLeft: 12,
               fontFamily: "var(--font-label)",
@@ -112,6 +116,22 @@ export function ProgressChrome({ currentSection, sectionLabel }: ProgressChromeP
             )}
           </span>
         </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .bda-progress-chrome {
+            padding: 16px 20px !important;
+            gap: 12px !important;
+          }
+          :global(.bda-segment) {
+            width: 28px !important;
+          }
+          :global(.bda-progress-label) {
+            margin-left: 8px !important;
+            font-size: 9px !important;
+          }
+        }
+      `}</style>
     </header>
   );
 }

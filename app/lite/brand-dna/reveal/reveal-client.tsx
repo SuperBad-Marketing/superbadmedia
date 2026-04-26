@@ -98,6 +98,7 @@ function RevealInner({
 
   return (
     <main
+      className="bda-reveal-main"
       style={{
         flex: 1,
         overflowY: "auto",
@@ -108,6 +109,7 @@ function RevealInner({
       }}
     >
       <div
+        className="bda-reveal-inner"
         style={{
           maxWidth: 780,
           width: "100%",
@@ -166,6 +168,7 @@ function RevealInner({
         {/* Section-by-section build */}
         {phase !== "impression" && sectionInsights.length > 0 && (
           <div
+            className="bda-reveal-sections"
             style={{ display: "flex", flexDirection: "column", gap: 56 }}
             aria-label="Signal summary by section"
           >
@@ -280,6 +283,23 @@ function RevealInner({
           </motion.article>
         )}
       </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .bda-reveal-main {
+            padding: 24px 20px 60px !important;
+          }
+          :global(.bda-reveal-inner) {
+            gap: 36px !important;
+          }
+          :global(.bda-reveal-sections) {
+            gap: 36px !important;
+          }
+          :global(.bda-reveal-inner p) {
+            font-size: 16px !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

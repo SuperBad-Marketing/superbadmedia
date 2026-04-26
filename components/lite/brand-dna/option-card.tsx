@@ -97,6 +97,13 @@ export function OptionCard({
             transform: none !important;
           }
         }
+        @media (max-width: 640px) {
+          .bda-opt {
+            padding: 18px 20px !important;
+            font-size: 15px !important;
+            border-radius: 12px !important;
+          }
+        }
       `}</style>
     </button>
   );

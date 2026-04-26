@@ -104,7 +104,6 @@ export function AmbientScene({ scene }: AmbientSceneProps) {
           backgroundImage: NOISE_URL,
         }}
       />
-      {/* Reduced-motion: cut transitions, keep static composition. */}
       <style jsx>{`
         @media (prefers-reduced-motion: reduce) {
           div[aria-hidden="true"] {

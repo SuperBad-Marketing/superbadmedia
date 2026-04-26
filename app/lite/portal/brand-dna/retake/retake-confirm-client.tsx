@@ -30,6 +30,7 @@ export function RetakeConfirmClient({
 
   return (
     <main
+      className="bda-retake-main"
       style={{
         flex: 1,
         display: "flex",
@@ -65,6 +66,7 @@ export function RetakeConfirmClient({
         </span>
 
         <h1
+          className="bda-retake-heading"
           style={{
             fontFamily: "var(--font-body)",
             fontWeight: 500,
@@ -92,11 +94,13 @@ export function RetakeConfirmClient({
         </p>
 
         <div
+          className="bda-retake-actions"
           style={{
             display: "flex",
             gap: 12,
             justifyContent: "center",
             marginTop: 12,
+            flexWrap: "wrap",
           }}
         >
           <button
@@ -141,6 +145,21 @@ export function RetakeConfirmClient({
           </Link>
         </div>
       </motion.div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .bda-retake-main {
+            padding: 24px 20px !important;
+          }
+          :global(.bda-retake-heading) {
+            font-size: 26px !important;
+          }
+          :global(.bda-retake-actions) {
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

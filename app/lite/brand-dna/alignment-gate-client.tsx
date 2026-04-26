@@ -61,6 +61,7 @@ export function AlignmentGateClient({
 
   return (
     <main
+      className="bda-gate-main"
       style={{
         flex: 1,
         display: "flex",
@@ -73,6 +74,7 @@ export function AlignmentGateClient({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...houseSpring, duration: 0.9 }}
+        className="bda-gate-inner"
         style={{
           maxWidth: 780,
           width: "100%",
@@ -101,6 +103,7 @@ export function AlignmentGateClient({
         </div>
 
         <h1
+          className="bda-gate-heading"
           style={{
             fontFamily: "var(--font-body)",
             fontWeight: 500,
@@ -163,6 +166,16 @@ export function AlignmentGateClient({
         @media (max-width: 640px) {
           :global(.bda-options-grid) {
             grid-template-columns: 1fr !important;
+          }
+          .bda-gate-main {
+            padding: 20px !important;
+          }
+          :global(.bda-gate-inner) {
+            gap: 24px !important;
+          }
+          :global(.bda-gate-heading) {
+            font-size: 28px !important;
+            letter-spacing: -0.5px !important;
           }
         }
       `}</style>

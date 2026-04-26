@@ -50,6 +50,7 @@ export default async function InsightPage({
 
   return (
     <main
+      className="bda-insight-main"
       style={{
         flex: 1,
         display: "flex",
@@ -100,6 +101,15 @@ export default async function InsightPage({
           See your brand DNA →
         </Link>
       )}
+
+      <style>{`
+        @media (max-width: 640px) {
+          .bda-insight-main {
+            padding: 24px 20px !important;
+            gap: 28px !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }
