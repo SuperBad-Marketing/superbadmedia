@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { integration_connections } from "@/lib/db/schema/integration-connections";
 import { graph_api_state } from "@/lib/db/schema/graph-api-state";
@@ -222,11 +222,7 @@ export async function getActiveGraphState() {
   const [row] = await db
     .select()
     .from(graph_api_state)
-    .where(eq(graph_api_state.initial_import_status, "complete"))
+    .orderBy(desc(graph_api_state.created_at_ms))
     .limit(1);
-  if (!row) {
-    const [any] = await db.select().from(graph_api_state).limit(1);
-    return any ?? null;
-  }
-  return row;
+  return row ?? null;
 }

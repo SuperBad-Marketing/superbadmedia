@@ -114,6 +114,14 @@ export async function completeGraphAdminAction(
     const tenantId = process.env.MS_GRAPH_TENANT_ID ?? "common";
     const clientId = process.env.MS_GRAPH_CLIENT_ID ?? "";
     const now = Date.now();
+
+    const existingStates = await db
+      .select({ id: graph_api_state.id })
+      .from(graph_api_state);
+    for (const old of existingStates) {
+      await db.delete(graph_api_state).where(eq(graph_api_state.id, old.id));
+    }
+
     const graphStateId = randomUUID();
     await db.insert(graph_api_state).values({
       id: graphStateId,
