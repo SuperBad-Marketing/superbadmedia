@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   updateLeadGenSettingsAction,
@@ -108,9 +108,28 @@ export function LeadGenSettingsForm({
   initial: LeadGenSettings;
 }) {
   const router = useRouter();
-  const [form, setForm] = useState(initial);
+  const searchParams = useSearchParams();
+  const [form, setForm] = useState(() => {
+    const prefillCategory = searchParams.get("prefill_category");
+    const prefillBrief = searchParams.get("prefill_brief");
+    const prefillTrack = searchParams.get("prefill_track");
+    if (prefillCategory || prefillBrief || prefillTrack) {
+      return {
+        ...initial,
+        ...(prefillCategory ? { category: prefillCategory } : {}),
+        ...(prefillBrief ? { standingBrief: prefillBrief } : {}),
+        ...(prefillTrack && (prefillTrack === "retainer" || prefillTrack === "saas")
+          ? { trackPriority: prefillTrack }
+          : {}),
+      };
+    }
+    return initial;
+  });
   const [saving, setSaving] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  const [prefilled, setPrefilled] = useState(
+    () => !!(searchParams.get("prefill_category") || searchParams.get("prefill_brief")),
+  );
 
   async function handleSave() {
     setSaving(true);
@@ -121,6 +140,7 @@ export function LeadGenSettingsForm({
       return;
     }
     toast.success("Search settings saved.");
+    setPrefilled(false);
     router.refresh();
   }
 
@@ -148,6 +168,19 @@ export function LeadGenSettingsForm({
 
   return (
     <div className="px-4">
+      {prefilled && (
+        <div
+          className="mt-4 flex items-center gap-3 rounded-lg border px-4 py-3"
+          style={{
+            backgroundColor: "rgba(232, 78, 103, 0.08)",
+            borderColor: "rgba(232, 78, 103, 0.2)",
+          }}
+        >
+          <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-pink)]">
+            Suggestion applied — review the fields below and save when ready.
+          </span>
+        </div>
+      )}
       <SectionHeading>Targeting</SectionHeading>
 
       <SettingRow

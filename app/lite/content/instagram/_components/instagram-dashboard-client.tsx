@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { retryInstagramDiscoveryAction } from "../actions";
 
 interface AccountSummary {
   id: string;
@@ -11,10 +14,63 @@ interface AccountSummary {
 
 interface Props {
   accounts: AccountSummary[];
+  metaConnected: boolean;
 }
 
-export function InstagramDashboardClient({ accounts }: Props) {
+export function InstagramDashboardClient({ accounts, metaConnected }: Props) {
+  const router = useRouter();
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+
+  async function handleRetry() {
+    setRetrying(true);
+    setRetryError(null);
+    const result = await retryInstagramDiscoveryAction();
+    setRetrying(false);
+    if (result.ok) {
+      router.refresh();
+    } else {
+      setRetryError(result.error);
+    }
+  }
+
   if (accounts.length === 0) {
+    if (metaConnected) {
+      return (
+        <div className="py-20 text-center">
+          <div
+            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ backgroundColor: "var(--color-neutral-800)" }}
+          >
+            <span className="font-[family-name:var(--font-display)] text-[24px] text-[color:var(--color-neutral-600)]">
+              IG
+            </span>
+          </div>
+          <h2 className="font-[family-name:var(--font-body)] text-[18px] text-[color:var(--color-brand-cream)]">
+            Meta connected — Instagram not found
+          </h2>
+          <p className="mt-2 max-w-[400px] mx-auto font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-500)]">
+            Your Meta account is connected but no Instagram Business Account was
+            detected. Make sure your Instagram is linked to a Facebook Page in
+            Meta Business Suite, then retry.
+          </p>
+          {retryError && (
+            <p className="mt-3 max-w-[400px] mx-auto font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-red)]">
+              {retryError}
+            </p>
+          )}
+          <button
+            onClick={handleRetry}
+            disabled={retrying}
+            className="mt-6 inline-block rounded-lg px-5 py-2.5 font-[family-name:var(--font-label)] text-[11px] uppercase tracking-[1.5px] text-[color:var(--color-brand-cream)] disabled:opacity-50"
+            style={{ backgroundColor: "var(--color-brand-red)" }}
+          >
+            {retrying ? "Checking…" : "Retry Connection"}
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="py-20 text-center">
         <div
@@ -29,8 +85,8 @@ export function InstagramDashboardClient({ accounts }: Props) {
           No Instagram account connected
         </h2>
         <p className="mt-2 max-w-[400px] mx-auto font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-500)]">
-          Connect your Instagram Professional account through the Meta
-          integration in Settings to start publishing and tracking metrics.
+          Connect your Meta account in Settings → Integrations to start
+          publishing and tracking metrics.
         </p>
         <Link
           href="/lite/admin/settings/integrations"
@@ -39,7 +95,7 @@ export function InstagramDashboardClient({ accounts }: Props) {
             backgroundColor: "var(--color-brand-red)",
           }}
         >
-          Connect Instagram
+          Connect Meta
         </Link>
       </div>
     );

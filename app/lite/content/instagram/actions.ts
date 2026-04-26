@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -9,10 +10,94 @@ import { instagram_accounts } from "@/lib/db/schema/instagram";
 import { contentStudioRenders } from "@/lib/db/schema/content-studio";
 import { publishSingleImage, publishCarousel } from "@/lib/channels/instagram/publish";
 import { invokeLlmText } from "@/lib/ai/invoke";
+import { getCredential } from "@/lib/integrations/getCredential";
+import { getPages, getInstagramAccountFromPage, getAccountInfo } from "@/lib/channels/instagram/client";
 
 type ActionResult<T = unknown> =
   | { ok: true; value: T }
   | { ok: false; error: string };
+
+export async function retryInstagramDiscoveryAction(): Promise<
+  ActionResult<{ username: string }>
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const raw = await getCredential("meta");
+  if (!raw) {
+    return {
+      ok: false,
+      error: "Meta isn't connected yet. Set it up in Settings → Integrations first.",
+    };
+  }
+
+  let accessToken: string;
+  try {
+    const creds = JSON.parse(raw) as { accessToken?: string };
+    accessToken = creds.accessToken ?? raw;
+  } catch {
+    accessToken = raw;
+  }
+
+  const pagesResult = await getPages(accessToken);
+  if (!pagesResult.ok) {
+    return {
+      ok: false,
+      error: `Could not list Facebook Pages: ${pagesResult.error}. Check that the Meta app has pages_show_list permission.`,
+    };
+  }
+  if (pagesResult.data.data.length === 0) {
+    return {
+      ok: false,
+      error: "No Facebook Pages found. Your Instagram Business account needs a linked Facebook Page.",
+    };
+  }
+
+  for (const page of pagesResult.data.data) {
+    const igResult = await getInstagramAccountFromPage(page.id, accessToken);
+    if (!igResult.ok) continue;
+    const igBizAccount = igResult.data?.instagram_business_account;
+    if (!igBizAccount?.id) continue;
+
+    const infoResult = await getAccountInfo(igBizAccount.id, page.access_token);
+    if (!infoResult.ok) continue;
+
+    const existing = await db.query.instagram_accounts.findFirst({
+      where: (t, { eq: e }) => e(t.instagram_user_id, igBizAccount.id),
+    });
+
+    if (existing) {
+      await db
+        .update(instagram_accounts)
+        .set({
+          access_token: page.access_token,
+          token_expires_at_ms: Date.now() + 60 * 86400 * 1000,
+          status: "active",
+        })
+        .where(eq(instagram_accounts.id, existing.id));
+    } else {
+      await db.insert(instagram_accounts).values({
+        id: randomUUID(),
+        instagram_user_id: igBizAccount.id,
+        username: infoResult.data.username,
+        account_type: "own",
+        access_token: page.access_token,
+        token_expires_at_ms: Date.now() + 60 * 86400 * 1000,
+        connected_at_ms: Date.now(),
+        status: "active",
+      });
+    }
+
+    revalidatePath("/lite/content/instagram");
+    return { ok: true, value: { username: infoResult.data.username } };
+  }
+
+  return {
+    ok: false,
+    error: "No Instagram Business Account found on your Facebook Pages. Link one in Meta Business Suite first.",
+  };
+}
 
 export async function listInstagramAccountsAction(): Promise<
   ActionResult<{ id: string; username: string; account_type: string }[]>

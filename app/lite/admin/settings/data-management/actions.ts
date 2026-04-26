@@ -1,0 +1,145 @@
+"use server";
+
+import { eq, and, inArray } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+
+import { auth } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
+import { brand_dna_answers } from "@/lib/db/schema/brand-dna-answers";
+import { brand_dna_blends } from "@/lib/db/schema/brand-dna-blends";
+import { brand_dna_invites } from "@/lib/db/schema/brand-dna-invites";
+import { context_summaries } from "@/lib/db/schema/context-summaries";
+import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
+import { contacts } from "@/lib/db/schema/contacts";
+import { companies } from "@/lib/db/schema/companies";
+import { logActivity } from "@/lib/activity-log";
+
+type ResetResult = { ok: true; cleared: number } | { ok: false; error: string };
+
+async function requireAdmin() {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") return null;
+  return session.user;
+}
+
+export async function resetBrandDnaAction(
+  scope: "all_clients" | "company",
+  companyId?: string,
+): Promise<ResetResult> {
+  const user = await requireAdmin();
+  if (!user) return { ok: false, error: "Not authorised." };
+
+  const profileFilter =
+    scope === "company" && companyId
+      ? and(
+          eq(brand_dna_profiles.company_id, companyId),
+          eq(brand_dna_profiles.subject_type, "client"),
+        )
+      : eq(brand_dna_profiles.subject_type, "client");
+
+  const profiles = await db
+    .select({ id: brand_dna_profiles.id, company_id: brand_dna_profiles.company_id })
+    .from(brand_dna_profiles)
+    .where(profileFilter)
+    .all();
+
+  if (profiles.length === 0) return { ok: true, cleared: 0 };
+
+  const profileIds = profiles.map((p) => p.id);
+
+  await db.delete(brand_dna_answers).where(inArray(brand_dna_answers.profile_id, profileIds));
+  await db.delete(brand_dna_profiles).where(inArray(brand_dna_profiles.id, profileIds));
+
+  if (scope === "company" && companyId) {
+    await db.delete(brand_dna_blends).where(eq(brand_dna_blends.company_id, companyId));
+    await db.delete(brand_dna_invites).where(
+      inArray(
+        brand_dna_invites.contact_id,
+        db
+          .select({ id: contacts.id })
+          .from(contacts)
+          .where(eq(contacts.company_id, companyId)),
+      ),
+    );
+  } else {
+    const companyIds = [...new Set(profiles.map((p) => p.company_id).filter(Boolean))] as string[];
+    if (companyIds.length > 0) {
+      await db.delete(brand_dna_blends).where(inArray(brand_dna_blends.company_id, companyIds));
+    }
+  }
+
+  await logActivity({
+    kind: "brand_dna_reset",
+    body: scope === "company"
+      ? `Brand DNA reset for company ${companyId}`
+      : `Brand DNA reset for all clients (${profiles.length} profiles)`,
+    meta: { scope, company_id: companyId ?? null, profiles_cleared: profiles.length },
+  });
+
+  revalidatePath("/lite/admin/settings/data-management");
+  revalidatePath("/lite/brand-dna");
+  return { ok: true, cleared: profiles.length };
+}
+
+export async function resetClientContextAction(
+  scope: "all" | "company",
+  companyId?: string,
+): Promise<ResetResult> {
+  const user = await requireAdmin();
+  if (!user) return { ok: false, error: "Not authorised." };
+
+  let contactIds: string[];
+
+  if (scope === "company" && companyId) {
+    const rows = await db
+      .select({ id: contacts.id })
+      .from(contacts)
+      .where(eq(contacts.company_id, companyId))
+      .all();
+    contactIds = rows.map((r) => r.id);
+  } else {
+    const rows = await db.select({ id: contacts.id }).from(contacts).all();
+    contactIds = rows.map((r) => r.id);
+  }
+
+  if (contactIds.length === 0) return { ok: true, cleared: 0 };
+
+  let cleared = 0;
+
+  const contextRows = await db
+    .delete(context_summaries)
+    .where(inArray(context_summaries.contact_id, contactIds))
+    .returning({ id: context_summaries.id });
+  cleared += contextRows.length;
+
+  const chatRows = await db
+    .delete(portal_chat_messages)
+    .where(inArray(portal_chat_messages.contact_id, contactIds))
+    .returning({ id: portal_chat_messages.id });
+  cleared += chatRows.length;
+
+  await logActivity({
+    kind: "client_context_reset",
+    body: scope === "company"
+      ? `Client context reset for company ${companyId}`
+      : `Client context reset for all contacts (${cleared} rows)`,
+    meta: { scope, company_id: companyId ?? null, rows_cleared: cleared },
+  });
+
+  revalidatePath("/lite/admin/settings/data-management");
+  return { ok: true, cleared };
+}
+
+export async function listCompaniesForResetAction(): Promise<
+  { id: string; name: string }[]
+> {
+  const user = await requireAdmin();
+  if (!user) return [];
+
+  return db
+    .select({ id: companies.id, name: companies.name })
+    .from(companies)
+    .orderBy(companies.name)
+    .all();
+}

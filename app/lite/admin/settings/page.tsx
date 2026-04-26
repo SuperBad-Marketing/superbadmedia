@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Paintbrush, ShoppingBag, FileText, Plug, Mic } from "lucide-react";
+import { Paintbrush, ShoppingBag, FileText, Plug, Mic, Trash2 } from "lucide-react";
 
 import { auth } from "@/lib/auth/session";
 
@@ -40,6 +40,12 @@ const SECTIONS = [
     icon: FileText,
     label: "Quote Templates",
     description: "Saved templates for recurring quote structures.",
+  },
+  {
+    href: "/lite/admin/settings/data-management",
+    icon: Trash2,
+    label: "Data Management",
+    description: "Reset Brand DNA, clear client context, start fresh.",
   },
 ] as const;
 

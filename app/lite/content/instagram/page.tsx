@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { instagram_accounts } from "@/lib/db/schema/instagram";
+import { integration_connections } from "@/lib/db/schema/integration-connections";
 import { ContentTabs } from "../_components/content-tabs";
 import { InstagramDashboardClient } from "./_components/instagram-dashboard-client";
 
@@ -19,11 +20,24 @@ export default async function InstagramPage() {
     redirect("/api/auth/signin");
   }
 
-  const accounts = await db
-    .select()
-    .from(instagram_accounts)
-    .where(eq(instagram_accounts.status, "active"))
-    .all();
+  const [accounts, metaRow] = await Promise.all([
+    db
+      .select()
+      .from(instagram_accounts)
+      .where(eq(instagram_accounts.status, "active"))
+      .all(),
+    db
+      .select({ id: integration_connections.id })
+      .from(integration_connections)
+      .where(
+        and(
+          eq(integration_connections.vendor_key, "meta"),
+          eq(integration_connections.status, "active"),
+        ),
+      )
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+  ]);
 
   return (
     <div className="min-h-screen bg-[color:var(--color-neutral-950)]">
@@ -62,6 +76,7 @@ export default async function InstagramPage() {
             account_type: a.account_type,
             status: a.status,
           }))}
+          metaConnected={metaRow !== null}
         />
       </div>
     </div>

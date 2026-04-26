@@ -81,6 +81,7 @@ export function StudioClient() {
         brief: brief.trim(),
         contentType,
         motionTemplateId: templateId,
+        slideCount,
       });
       setGenerating(false);
       if (!result.ok) {
@@ -380,8 +381,44 @@ export function StudioClient() {
               </div>
             </div>
 
-            {motionEnabled ? (
-              /* Motion template selector */
+            {/* Slide count selector — always visible */}
+            <div>
+              <label
+                className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                style={{ letterSpacing: "1.5px" }}
+              >
+                Slides
+              </label>
+              <div className="flex items-center gap-2">
+                {SLIDE_OPTIONS.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setSlideCount(n)}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg font-[family-name:var(--font-body)] text-[13px] font-medium transition-all"
+                    style={{
+                      backgroundColor:
+                        slideCount === n
+                          ? "var(--color-brand-red)"
+                          : "var(--color-neutral-800)",
+                      color: "var(--color-brand-cream)",
+                      border:
+                        slideCount === n
+                          ? "1px solid var(--color-brand-red)"
+                          : "1px solid rgba(253, 245, 230, 0.08)",
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <span className="ml-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+                  {slideCount === 1 ? "Single post" : `${slideCount}-slide carousel`}
+                </span>
+              </div>
+            </div>
+
+            {/* Motion template selector — shown when motion is on */}
+            {motionEnabled && (
               <div>
                 <label
                   className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
@@ -423,42 +460,6 @@ export function StudioClient() {
                       )}
                     </button>
                   ))}
-                </div>
-              </div>
-            ) : (
-              /* Slide count selector */
-              <div>
-                <label
-                  className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-                  style={{ letterSpacing: "1.5px" }}
-                >
-                  Slides
-                </label>
-                <div className="flex items-center gap-2">
-                  {SLIDE_OPTIONS.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setSlideCount(n)}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg font-[family-name:var(--font-body)] text-[13px] font-medium transition-all"
-                      style={{
-                        backgroundColor:
-                          slideCount === n
-                            ? "var(--color-brand-red)"
-                            : "var(--color-neutral-800)",
-                        color: "var(--color-brand-cream)",
-                        border:
-                          slideCount === n
-                            ? "1px solid var(--color-brand-red)"
-                            : "1px solid rgba(253, 245, 230, 0.08)",
-                      }}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <span className="ml-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
-                    {slideCount === 1 ? "Single post" : `${slideCount}-slide carousel`}
-                  </span>
                 </div>
               </div>
             )}

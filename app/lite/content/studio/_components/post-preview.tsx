@@ -532,6 +532,26 @@ export function PostPreview({
 }
 
 function RenderCard({ r }: { r: { id: string; ratio: AspectRatio; url: string } }) {
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      const resp = await fetch(r.url);
+      const blob = await resp.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `superbad-${r.ratio}-${r.id.slice(0, 8)}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      toast.error("Download failed.");
+    }
+    setDownloading(false);
+  }
+
   return (
     <div
       className="overflow-hidden rounded-lg"
@@ -554,15 +574,26 @@ function RenderCard({ r }: { r: { id: string; ratio: AspectRatio; url: string } 
         >
           {RATIO_LABELS[r.ratio]}
         </span>
-        <a
-          href={r.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)] hover:opacity-70"
-          style={{ letterSpacing: "1px" }}
-        >
-          Open
-        </a>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={downloading}
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-cream)] hover:opacity-70"
+            style={{ letterSpacing: "1px", opacity: downloading ? 0.5 : 1 }}
+          >
+            {downloading ? "…" : "Download"}
+          </button>
+          <a
+            href={r.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)] hover:opacity-70"
+            style={{ letterSpacing: "1px" }}
+          >
+            Open
+          </a>
+        </div>
       </div>
     </div>
   );

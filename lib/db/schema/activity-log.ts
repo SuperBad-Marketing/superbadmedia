@@ -379,6 +379,9 @@ export const ACTIVITY_LOG_KINDS = [
   "brief_submitted",
   "brief_matched",
   "brief_status_changed",
+  // --- Data management ---
+  "brand_dna_reset",
+  "client_context_reset",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

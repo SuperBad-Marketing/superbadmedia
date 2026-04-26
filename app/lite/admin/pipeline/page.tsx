@@ -153,6 +153,18 @@ export default async function PipelinePage() {
   });
 
   const staleCount = cards.filter((c) => c.is_stale).length;
+  const pipelineValueCents = cards
+    .filter((c) => c.stage !== "won" && c.stage !== "lost")
+    .reduce((sum, c) => sum + (c.value_cents ?? 0), 0);
+  const pipelineValueFormatted = new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(pipelineValueCents / 100);
+  const activeDealCount = cards.filter(
+    (c) => c.stage !== "won" && c.stage !== "lost",
+  ).length;
 
   return (
     <div>
@@ -205,6 +217,25 @@ export default async function PipelinePage() {
               </span>
             </>
           ) : null}
+          {pipelineValueCents > 0 && (
+            <>
+              <span
+                aria-hidden
+                className="text-[color:var(--color-neutral-700)]"
+              >
+                ·
+              </span>
+              <span
+                className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-brand-pink)]"
+                style={{ letterSpacing: "1.5px" }}
+              >
+                {pipelineValueFormatted}
+              </span>
+              <span>
+                in pipeline ({activeDealCount} active)
+              </span>
+            </>
+          )}
         </div>
       </header>
       <PipelineBoard deals={cards} snoozeDefaultDays={snoozeDefaultDays} />

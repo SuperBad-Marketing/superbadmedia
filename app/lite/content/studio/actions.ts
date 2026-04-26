@@ -334,6 +334,7 @@ const createMotionSchema = z.object({
   brief: z.string().min(1).max(2000),
   contentType: z.enum(CONTENT_TYPES),
   motionTemplateId: z.string().min(1),
+  slideCount: z.number().int().min(1).max(10).optional(),
   paletteId: z.string().optional(),
   primaryAspectRatio: z.string().optional(),
 });
@@ -349,13 +350,14 @@ export async function createMotionPostAction(
   const parsed = createMotionSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: "invalid_input" };
 
-  const { brief, contentType, motionTemplateId, paletteId, primaryAspectRatio } =
+  const { brief, contentType, motionTemplateId, slideCount: reqSlides, paletteId, primaryAspectRatio } =
     parsed.data;
+  const slideCount = reqSlides ?? 1;
 
   const motionTemplate = getMotionTemplate(motionTemplateId);
   if (!motionTemplate) return { ok: false as const, error: "template_not_found" };
 
-  const result = await generateCopy(brief, contentType, 1);
+  const result = await generateCopy(brief, contentType, slideCount);
   if (!result.ok) return { ok: false as const, error: result.error };
 
   const now = Date.now();
@@ -371,7 +373,7 @@ export async function createMotionPostAction(
     brief,
     content_type: contentType,
     template_id: motionTemplate.staticCounterpart ?? motionTemplateId,
-    slide_count: 1,
+    slide_count: slideCount,
     generated_copy_json: result.slides as SlideCopy[],
     correction_history_json: [] as unknown[],
     status: "draft",
@@ -488,6 +490,8 @@ export async function exportMotionPostAction(
     url: string;
   }[] = [];
 
+  const errors: string[] = [];
+
   for (const ratio of parsed.data.ratios) {
     const motionRatio = ratio as MotionAspectRatio;
     const dims = MOTION_DIMENSIONS[motionRatio];
@@ -512,11 +516,12 @@ export async function exportMotionPostAction(
       const renderId = crypto.randomUUID();
       const videoJobId = crypto.randomUUID();
 
+      const dbRatio = motionRatio === "story" ? "portrait" as const : motionRatio;
       await db.insert(contentStudioRenders).values({
         id: renderId,
         post_id: parsed.data.postId,
         slide_index: 0,
-        aspect_ratio: "square",
+        aspect_ratio: dbRatio,
         platforms: "motion-export",
         width: result.width,
         height: result.height,
@@ -548,14 +553,18 @@ export async function exportMotionPostAction(
         format: result.format,
         url: result.url,
       });
-    } catch {
-      results.push({
-        id: "",
-        ratio,
-        format: parsed.data.format,
-        url: "",
-      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[motion-export] ${ratio} render failed:`, msg);
+      errors.push(`${ratio}: ${msg}`);
     }
+  }
+
+  if (results.length === 0) {
+    return {
+      ok: false as const,
+      error: `All renders failed. ${errors.join("; ")}`,
+    };
   }
 
   await db
@@ -564,7 +573,11 @@ export async function exportMotionPostAction(
     .where(eq(contentStudioPosts.id, parsed.data.postId));
 
   revalidatePath("/lite/content/studio");
-  return { ok: true as const, renders: results };
+  return {
+    ok: true as const,
+    renders: results,
+    ...(errors.length > 0 ? { warnings: errors } : {}),
+  };
 }
 
 function normaliseSlideCopy(json: unknown): SlideCopy[] {
