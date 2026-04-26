@@ -8,13 +8,61 @@
  * Every call logs a cost tuple to `external_call_log` via the observatory
  * helper (COB-1, Wave 21). Logging is fire-and-forget — never blocks the
  * response or throws on insert failure.
+ *
+ * API key resolution: wizard-stored key (integration_connections) wins,
+ * env var ANTHROPIC_API_KEY is the fallback for local dev.
  */
 import Anthropic from "@anthropic-ai/sdk";
+import { eq, and } from "drizzle-orm";
 import { modelFor, modelTierFor, type ModelJobSlug } from "./models";
 import { logExternalCall } from "@/lib/observatory/log-external-call";
 import { estimateAnthropicCostAud } from "@/lib/observatory/pricing";
+import { db } from "@/lib/db";
+import { integration_connections } from "@/lib/db/schema/integration-connections";
+import { vault } from "@/lib/crypto/vault";
 
-const CLIENT_SINGLETON = new Anthropic();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+let cachedKey: string | null = null;
+let cachedClient: Anthropic | null = null;
+let cacheExpiresAt = 0;
+
+async function getClient(): Promise<Anthropic> {
+  const now = Date.now();
+  if (cachedClient && now < cacheExpiresAt) return cachedClient;
+
+  let apiKey: string | undefined;
+
+  try {
+    const row = await db
+      .select({ credentials: integration_connections.credentials })
+      .from(integration_connections)
+      .where(
+        and(
+          eq(integration_connections.vendor_key, "anthropic"),
+          eq(integration_connections.status, "active"),
+        ),
+      )
+      .limit(1)
+      .then((rows) => rows[0]);
+
+    if (row) {
+      apiKey = vault.decrypt(row.credentials, "anthropic.credentials");
+    }
+  } catch {
+    // DB or vault unavailable — fall through to env var
+  }
+
+  if (!apiKey) {
+    apiKey = process.env.ANTHROPIC_API_KEY;
+  }
+
+  if (apiKey !== cachedKey || !cachedClient) {
+    cachedClient = new Anthropic({ apiKey });
+    cachedKey = apiKey ?? null;
+  }
+  cacheExpiresAt = now + CACHE_TTL_MS;
+  return cachedClient;
+}
 
 function safeUsage(response: { usage?: { input_tokens?: number; output_tokens?: number } }): {
   inputTokens: number;
@@ -68,7 +116,8 @@ export async function invokeLlmText({
   actorType = "internal",
   actorId,
 }: InvokeLlmTextOptions): Promise<string> {
-  const response = await CLIENT_SINGLETON.messages.create({
+  const client = await getClient();
+  const response = await client.messages.create({
     model: modelFor(job),
     max_tokens: maxTokens,
     ...(system ? { system } : {}),
@@ -88,7 +137,8 @@ export interface InvokeLlmResult {
 export async function invokeLlmTextWithMeta(
   options: InvokeLlmTextOptions,
 ): Promise<InvokeLlmResult> {
-  const response = await CLIENT_SINGLETON.messages.create({
+  const client = await getClient();
+  const response = await client.messages.create({
     model: modelFor(options.job),
     max_tokens: options.maxTokens,
     ...(options.system ? { system: options.system } : {}),
@@ -126,7 +176,8 @@ export async function invokeLlmVision({
     source: { type: "url" as const, url },
   }));
 
-  const response = await CLIENT_SINGLETON.messages.create({
+  const client = await getClient();
+  const response = await client.messages.create({
     model: modelFor(job),
     max_tokens: maxTokens,
     ...(system ? { system } : {}),

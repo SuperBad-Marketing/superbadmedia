@@ -141,8 +141,9 @@ export function StudioClient() {
           ? `${result.slideCount}-slide carousel generated.`
           : "Copy generated.",
       );
-    } catch {
-      toast.error("Generation failed. Try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(msg || "Generation failed. Try again.");
       setGenerationFailed(true);
     } finally {
       setGenerating(false);
