@@ -55,22 +55,46 @@ async function discoverInstagramAccount(
   | { ok: true; igUserId: string; username: string; pageAccessToken: string }
   | { ok: false; reason: string }
 > {
+  // Check what permissions the token actually has
+  let permissionsDebug = "";
+  try {
+    const permRes = await fetch(
+      `https://graph.facebook.com/v21.0/me/permissions?access_token=${accessToken}`,
+    );
+    const permJson = await permRes.json() as { data?: { permission: string; status: string }[] };
+    const granted = permJson.data?.filter((p) => p.status === "granted").map((p) => p.permission) ?? [];
+    permissionsDebug = `Granted: ${granted.join(", ")}`;
+  } catch {
+    permissionsDebug = "Could not fetch permissions";
+  }
+
   const pagesResult = await getPages(accessToken);
   if (!pagesResult.ok) {
-    return { ok: false, reason: `Could not list Facebook Pages: ${pagesResult.error}` };
+    return { ok: false, reason: `Could not list Facebook Pages: ${pagesResult.error}. ${permissionsDebug}` };
   }
   if (pagesResult.data.data.length === 0) {
-    return { ok: false, reason: "No Facebook Pages found. Instagram Business accounts require a linked Facebook Page." };
+    return { ok: false, reason: `No Facebook Pages found. ${permissionsDebug}` };
   }
 
+  const diagnostics: string[] = [permissionsDebug];
   for (const page of pagesResult.data.data) {
+    diagnostics.push(`Page "${page.name}" (${page.id})`);
     const igResult = await getInstagramAccountFromPage(page.id, page.access_token);
-    if (!igResult.ok) continue;
+    if (!igResult.ok) {
+      diagnostics.push(`  IG lookup failed: ${igResult.error}`);
+      continue;
+    }
     const igBizAccount = igResult.data?.instagram_business_account;
-    if (!igBizAccount?.id) continue;
+    if (!igBizAccount?.id) {
+      diagnostics.push(`  No IG account in response: ${JSON.stringify(igResult.data)}`);
+      continue;
+    }
 
     const infoResult = await getAccountInfo(igBizAccount.id, page.access_token);
-    if (!infoResult.ok) continue;
+    if (!infoResult.ok) {
+      diagnostics.push(`  IG info failed: ${infoResult.error}`);
+      continue;
+    }
 
     return {
       ok: true,
@@ -82,7 +106,7 @@ async function discoverInstagramAccount(
 
   return {
     ok: false,
-    reason: "No Instagram Business Account found linked to your Facebook Pages. Connect one in Meta Business Suite first.",
+    reason: diagnostics.join(" | "),
   };
 }
 
