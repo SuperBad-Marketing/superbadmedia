@@ -158,16 +158,16 @@ function getISOWeekKey(date: Date, tz: string): string {
 async function getExistingBookingsInRange(
   fromMs: number,
   toMs: number,
-): Promise<Array<{ startMs: number; endMs: number; weekKey: string }>> {
+): Promise<Array<{ startMs: number; endMs: number; weekKey: string; isShoot: boolean }>> {
   const rows = await db
     .select({
       start_at_ms: calendar_bookings.start_at_ms,
       end_at_ms: calendar_bookings.end_at_ms,
+      booking_type: calendar_bookings.booking_type,
     })
     .from(calendar_bookings)
     .where(
       and(
-        eq(calendar_bookings.booking_type, "intro_funnel_shoot"),
         eq(calendar_bookings.status, "active"),
         gte(calendar_bookings.start_at_ms, fromMs),
         lte(calendar_bookings.start_at_ms, toMs),
@@ -178,6 +178,7 @@ async function getExistingBookingsInRange(
     startMs: r.start_at_ms,
     endMs: r.end_at_ms,
     weekKey: getISOWeekKey(new Date(r.start_at_ms), "Australia/Melbourne"),
+    isShoot: r.booking_type === "intro_funnel_shoot",
   }));
 }
 
@@ -199,7 +200,9 @@ export async function computeAvailableSlots(
 
   const weekCounts: Record<string, number> = {};
   for (const b of existing) {
-    weekCounts[b.weekKey] = (weekCounts[b.weekKey] ?? 0) + 1;
+    if (b.isShoot) {
+      weekCounts[b.weekKey] = (weekCounts[b.weekKey] ?? 0) + 1;
+    }
   }
 
   const slots: Slot[] = [];

@@ -287,6 +287,7 @@ export const ACTIVITY_LOG_KINDS = [
   "inbox_ticket_resolved",
   "inbox_ticket_auto_resolved",
   "inbox_calendar_rsvp_sent",
+  "calendar_event_created",
   "inbox_attachment_uploaded",
   "inbox_thread_merged",
   "inbox_history_import_started",
@@ -389,6 +390,9 @@ export const ACTIVITY_LOG_KINDS = [
   "instagram_plan_approved",
   "instagram_plan_expired",
   "instagram_plan_nudge_sent",
+  // --- Instagram Token (2) ---
+  "instagram_token_refreshed",
+  "instagram_token_refresh_failed",
   // --- Data management ---
   "brand_dna_reset",
   "client_context_reset",

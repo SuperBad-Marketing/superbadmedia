@@ -7,7 +7,8 @@ import { db } from "@/lib/db";
 import { calendar_bookings } from "@/lib/db/schema/calendar";
 import { and, gte, lte } from "drizzle-orm";
 import { getActiveGraphState, createGraphClient } from "@/lib/graph";
-import { syncOutlookCalendar } from "@/lib/graph/calendar-sync";
+import { syncOutlookCalendar, createOutlookEvent } from "@/lib/graph/calendar-sync";
+import { logActivity } from "@/lib/activity-log";
 
 export async function getCalendarEvents(startMs: number, endMs: number) {
   const session = await auth();
@@ -54,6 +55,72 @@ export async function syncCalendarAction(): Promise<
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Calendar sync failed.",
+    };
+  }
+}
+
+const CreateEventSchema = z.object({
+  subject: z.string().trim().min(1).max(300),
+  startMs: z.number().int().positive(),
+  endMs: z.number().int().positive(),
+  location: z.string().max(300).optional(),
+  attendees: z.array(z.string().email()).optional(),
+});
+
+export type CreateEventInput = z.infer<typeof CreateEventSchema>;
+
+export async function createEventAction(
+  input: CreateEventInput,
+): Promise<{ ok: true; eventId: string } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "unauthorized" };
+  }
+
+  const parsed = CreateEventSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  if (parsed.data.endMs <= parsed.data.startMs) {
+    return { ok: false, error: "End time must be after start time." };
+  }
+
+  const state = await getActiveGraphState();
+  if (!state) {
+    return { ok: false, error: "No Microsoft connection found." };
+  }
+
+  try {
+    const client = await createGraphClient(state.integration_connection_id);
+    const result = await createOutlookEvent(client, {
+      subject: parsed.data.subject,
+      startMs: parsed.data.startMs,
+      endMs: parsed.data.endMs,
+      location: parsed.data.location,
+      attendees: parsed.data.attendees,
+    });
+
+    if (!result.ok) {
+      return { ok: false, error: result.reason };
+    }
+
+    await logActivity({
+      kind: "calendar_event_created",
+      body: `Created calendar event: ${parsed.data.subject}`,
+      meta: {
+        event_id: result.eventId,
+        start_ms: parsed.data.startMs,
+        end_ms: parsed.data.endMs,
+      },
+    });
+
+    revalidatePath("/lite/calendar");
+    return { ok: true, eventId: result.eventId };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to create event.",
     };
   }
 }

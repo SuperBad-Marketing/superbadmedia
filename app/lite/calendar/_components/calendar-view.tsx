@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
-import { syncCalendarAction } from "../actions";
+import { useState, useMemo, useRef } from "react";
+import { ChevronLeft, ChevronRight, RefreshCw, Plus, X } from "lucide-react";
+import { syncCalendarAction, createEventAction } from "../actions";
 
 interface CalendarEvent {
   id: string;
@@ -86,6 +86,7 @@ export function CalendarView({ events }: { events: CalendarEvent[] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const today = new Date();
 
@@ -167,6 +168,18 @@ export function CalendarView({ events }: { events: CalendarEvent[] }) {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setShowCreate(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors hover:border-[color:var(--color-brand-pink)] hover:text-[color:var(--color-brand-pink)]"
+            style={{
+              letterSpacing: "1.5px",
+              borderColor: "var(--color-neutral-600)",
+              color: "var(--color-neutral-300)",
+            }}
+          >
+            <Plus size={12} />
+            Add Event
+          </button>
+          <button
             onClick={handleSync}
             disabled={syncing}
             className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors hover:border-[color:var(--color-brand-pink)] hover:text-[color:var(--color-brand-pink)] disabled:opacity-40"
@@ -228,6 +241,10 @@ export function CalendarView({ events }: { events: CalendarEvent[] }) {
           today={today}
           events={events}
         />
+      )}
+
+      {showCreate && (
+        <CreateEventModal onClose={() => setShowCreate(false)} />
       )}
     </div>
   );
@@ -469,6 +486,185 @@ function WeekView({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function toLocalDatetimeValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function CreateEventModal({ onClose }: { onClose: () => void }) {
+  const [subject, setSubject] = useState("");
+  const [startVal, setStartVal] = useState(() => {
+    const d = new Date();
+    d.setMinutes(0, 0, 0);
+    d.setHours(d.getHours() + 1);
+    return toLocalDatetimeValue(d);
+  });
+  const [endVal, setEndVal] = useState(() => {
+    const d = new Date();
+    d.setMinutes(0, 0, 0);
+    d.setHours(d.getHours() + 2);
+    return toLocalDatetimeValue(d);
+  });
+  const [location, setLocation] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!subject.trim()) return;
+    setSaving(true);
+    setError(null);
+
+    const startMs = new Date(startVal).getTime();
+    const endMs = new Date(endVal).getTime();
+
+    const result = await createEventAction({
+      subject: subject.trim(),
+      startMs,
+      endMs,
+      location: location.trim() || undefined,
+    });
+
+    setSaving(false);
+    if (result.ok) {
+      onClose();
+    } else {
+      setError(result.error);
+    }
+  }
+
+  const inputStyle = {
+    backgroundColor: "var(--color-surface-2)",
+    borderColor: "rgba(253, 245, 230, 0.08)",
+    color: "var(--color-neutral-100)",
+  };
+
+  return (
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(4px)" }}
+      onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl p-6"
+        style={{
+          backgroundColor: "var(--color-surface-1)",
+          border: "1px solid rgba(253, 245, 230, 0.06)",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+        }}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <h3
+            className="font-[family-name:var(--font-display)] text-[20px] leading-none"
+            style={{ color: "var(--color-brand-cream)" }}
+          >
+            New Event
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg transition-colors hover:bg-[color:var(--color-surface-3)]"
+            style={{ color: "var(--color-neutral-400)" }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label
+              className="block mb-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase"
+              style={{ letterSpacing: "1.5px", color: "var(--color-neutral-500)" }}
+            >
+              Subject
+            </label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full rounded-lg border px-3 py-2 text-[14px] font-[family-name:var(--font-body)] outline-none focus:border-[color:var(--color-brand-pink)]"
+              style={inputStyle}
+              autoFocus
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                className="block mb-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase"
+                style={{ letterSpacing: "1.5px", color: "var(--color-neutral-500)" }}
+              >
+                Start
+              </label>
+              <input
+                type="datetime-local"
+                value={startVal}
+                onChange={(e) => setStartVal(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-[13px] font-[family-name:var(--font-body)] outline-none focus:border-[color:var(--color-brand-pink)]"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label
+                className="block mb-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase"
+                style={{ letterSpacing: "1.5px", color: "var(--color-neutral-500)" }}
+              >
+                End
+              </label>
+              <input
+                type="datetime-local"
+                value={endVal}
+                onChange={(e) => setEndVal(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-[13px] font-[family-name:var(--font-body)] outline-none focus:border-[color:var(--color-brand-pink)]"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              className="block mb-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase"
+              style={{ letterSpacing: "1.5px", color: "var(--color-neutral-500)" }}
+            >
+              Location
+            </label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Optional"
+              className="w-full rounded-lg border px-3 py-2 text-[14px] font-[family-name:var(--font-body)] outline-none focus:border-[color:var(--color-brand-pink)] placeholder:text-[color:var(--color-neutral-600)]"
+              style={inputStyle}
+            />
+          </div>
+
+          {error && (
+            <p
+              className="text-[12px] font-[family-name:var(--font-body)]"
+              style={{ color: "var(--color-brand-red)" }}
+            >
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={saving || !subject.trim()}
+            className="mt-1 w-full rounded-lg py-2.5 font-[family-name:var(--font-label)] text-[11px] uppercase tracking-[1.5px] transition-all disabled:opacity-40"
+            style={{
+              backgroundColor: "var(--color-brand-red)",
+              color: "var(--color-brand-cream)",
+            }}
+          >
+            {saving ? "Creating…" : "Create Event"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
