@@ -130,6 +130,9 @@ describe("DiscoverySearchParams type", () => {
       category: "dental clinics",
       location: "Melbourne, Australia",
       radius_km: 25,
+      location_lat: -37.8136,
+      location_lng: 144.9631,
+      country_code: "AU",
       brief: "Looking for dental clinics that could benefit from better marketing",
       max_candidates: 8,
     };

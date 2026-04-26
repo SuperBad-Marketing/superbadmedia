@@ -353,6 +353,40 @@ export function LeadGenSettingsForm({
           </SettingRow>
 
           <SettingRow
+            label="Coordinates"
+            description="Lat/lng for geo-anchored search. Google 'coordinates of [city]' to find these."
+          >
+            <div className="flex gap-2">
+              <input
+                type="number"
+                step="any"
+                value={form.locationLat}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    locationLat: parseFloat(e.target.value) || 0,
+                  }))
+                }
+                placeholder="Latitude"
+                className={numberClass}
+              />
+              <input
+                type="number"
+                step="any"
+                value={form.locationLng}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    locationLng: parseFloat(e.target.value) || 0,
+                  }))
+                }
+                placeholder="Longitude"
+                className={numberClass}
+              />
+            </div>
+          </SettingRow>
+
+          <SettingRow
             label="Radius (km)"
             description="How far from the city centre to search."
           >

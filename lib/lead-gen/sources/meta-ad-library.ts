@@ -116,10 +116,11 @@ export async function searchMetaAdLibrary(
   const start = Date.now();
 
   const searchTerms = params.category || params.brief;
+  const countryCode = params.country_code || "AU";
   const queryParams = new URLSearchParams({
     access_token: accessToken,
     search_terms: searchTerms,
-    ad_reached_countries: '["AU"]',
+    ad_reached_countries: JSON.stringify([countryCode]),
     ad_active_status: "ACTIVE",
     ad_type: "ALL",
     fields: AD_LIBRARY_FIELDS,

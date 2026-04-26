@@ -38,6 +38,38 @@ interface SerpApiMapsResponse {
 }
 
 /**
+ * Convert a radius in km to a Google Maps zoom level.
+ * Approximate mapping — tighter zoom = smaller search area.
+ */
+function radiusKmToZoom(radiusKm: number): number {
+  if (radiusKm <= 3) return 15;
+  if (radiusKm <= 6) return 14;
+  if (radiusKm <= 12) return 13;
+  if (radiusKm <= 25) return 12;
+  if (radiusKm <= 50) return 11;
+  if (radiusKm <= 100) return 10;
+  return 9;
+}
+
+/**
+ * Haversine distance between two GPS points in km.
+ */
+function haversineKm(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number,
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
  * Extract a clean domain from a website URL.
  */
 function extractDomain(url: string): string | null {
@@ -73,9 +105,13 @@ export async function searchGoogleMaps(
     ? `${params.category} in ${params.location}`
     : params.location;
 
+  const zoom = radiusKmToZoom(params.radius_km);
+  const ll = `@${params.location_lat},${params.location_lng},${zoom}z`;
+
   const queryParams = new URLSearchParams({
     engine: "google_maps",
     q: query,
+    ll,
     api_key: apiKey,
     type: "search",
     hl: "en",
@@ -109,12 +145,23 @@ export async function searchGoogleMaps(
     const results = data.local_results ?? [];
     logExternalCall({ job: "serpapi.google_maps", actorType: "internal", units: { search_queries: 1, results_returned: results.length }, estimatedCostAud: 0.005 }).catch(() => {});
 
-    const candidates: DiscoveredCandidate[] = results.map((result) => {
+    const radiusLimit = params.radius_km * 1.5;
+
+    const candidates: DiscoveredCandidate[] = [];
+    for (const result of results) {
+      if (result.gps_coordinates) {
+        const dist = haversineKm(
+          params.location_lat, params.location_lng,
+          result.gps_coordinates.latitude, result.gps_coordinates.longitude,
+        );
+        if (dist > radiusLimit) continue;
+      }
+
       const domain = result.website ? extractDomain(result.website) : null;
       const category =
         result.type ?? (result.types ? result.types[0] : undefined);
 
-      return {
+      candidates.push({
         company_name: result.title,
         domain,
         source: "google_maps" as const,
@@ -124,7 +171,7 @@ export async function searchGoogleMaps(
             rating: result.rating ?? null,
             review_count: result.reviews ?? 0,
             photo_count: result.photos_count ?? 0,
-            last_photo_date: null, // Not available in search results — enrichment fills this
+            last_photo_date: null,
           },
         },
         raw_source_data: {
@@ -134,8 +181,8 @@ export async function searchGoogleMaps(
           gps_coordinates: result.gps_coordinates,
           types: result.types,
         },
-      };
-    });
+      });
+    }
 
     return { candidates };
   } catch (err) {

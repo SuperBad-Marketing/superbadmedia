@@ -36,6 +36,9 @@ const DEFAULT_PARAMS: DiscoverySearchParams = {
   category: "cafes",
   location: "Melbourne, Australia",
   radius_km: 25,
+  location_lat: -37.8136,
+  location_lng: 144.9631,
+  country_code: "AU",
   brief: "cafes with good marketing potential",
   max_candidates: 8,
 };
@@ -107,7 +110,7 @@ describe("searchGoogleMaps", () => {
     expect(second.raw_source_data?.place_id).toBe("ChIJ_def456");
   });
 
-  it("passes location to SerpAPI query", async () => {
+  it("passes location and ll coordinates to SerpAPI query", async () => {
     mockGetCredential.mockResolvedValue("test-key");
     mockFetch.mockResolvedValue({
       ok: true,
@@ -120,6 +123,32 @@ describe("searchGoogleMaps", () => {
     expect(calledUrl).toContain("engine=google_maps");
     expect(calledUrl).toContain("cafes");
     expect(calledUrl).toContain("Melbourne");
+    expect(calledUrl).toContain("ll=%40-37.8136%2C144.9631%2C12z");
+  });
+
+  it("filters out results outside radius", async () => {
+    mockGetCredential.mockResolvedValue("test-key");
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        local_results: [
+          {
+            position: 1,
+            title: "Melbourne Cafe",
+            gps_coordinates: { latitude: -37.82, longitude: 144.97 },
+          },
+          {
+            position: 2,
+            title: "Florida Cafe",
+            gps_coordinates: { latitude: 28.08, longitude: -80.60 },
+          },
+        ],
+      }),
+    });
+
+    const result = await searchGoogleMaps(DEFAULT_PARAMS);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0].company_name).toBe("Melbourne Cafe");
   });
 
   it("handles API errors gracefully", async () => {

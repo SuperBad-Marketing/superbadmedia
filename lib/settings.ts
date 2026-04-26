@@ -200,12 +200,14 @@ const registry = {
   "content.max_posts_per_month": integer,
   "content.max_subscribers_per_tier": str,
 
-  // Lead Generation (13 — LG-1)
+  // Lead Generation (15 — LG-1)
   "lead_generation.daily_search_enabled": boolean,
   "lead_generation.daily_max_per_day": integer,
   "lead_generation.dedup_window_days": integer,
   "lead_generation.location_radius_km": integer,
   "lead_generation.location_centre": str,
+  "lead_generation.location_lat": decimal,
+  "lead_generation.location_lng": decimal,
   "lead_generation.location_mode": z.enum(["local", "global"]),
   "lead_generation.location_country": str,
   "lead_generation.location_country_code": str,

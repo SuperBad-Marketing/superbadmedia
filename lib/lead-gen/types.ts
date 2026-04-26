@@ -98,6 +98,15 @@ export interface DiscoverySearchParams {
   /** Search radius in km (e.g. 25). */
   radius_km: number;
 
+  /** Centre latitude for geo-anchored search (e.g. -37.8136). */
+  location_lat: number;
+
+  /** Centre longitude for geo-anchored search (e.g. 144.9631). */
+  location_lng: number;
+
+  /** ISO 3166-1 alpha-2 country code (e.g. "AU"). */
+  country_code: string;
+
   /** Standing brief or manual brief override text. */
   brief: string;
 

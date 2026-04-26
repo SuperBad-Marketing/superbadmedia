@@ -32,6 +32,9 @@ const DEFAULT_PARAMS: DiscoverySearchParams = {
   category: "cafes",
   location: "Melbourne, Australia",
   radius_km: 25,
+  location_lat: -37.8136,
+  location_lng: 144.9631,
+  country_code: "AU",
   brief: "cafes with good marketing potential",
   max_candidates: 8,
 };

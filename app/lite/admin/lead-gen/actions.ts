@@ -740,6 +740,8 @@ export async function getLeadGenSettingsAction(): Promise<{
   category: string;
   standingBrief: string;
   locationCentre: string;
+  locationLat: number;
+  locationLng: number;
   locationRadiusKm: number;
   locationMode: "local" | "global";
   locationCountry: string;
@@ -757,6 +759,8 @@ export async function getLeadGenSettingsAction(): Promise<{
     category,
     standingBrief,
     locationCentre,
+    locationLat,
+    locationLng,
     locationRadiusKm,
     locationMode,
     locationCountry,
@@ -773,6 +777,8 @@ export async function getLeadGenSettingsAction(): Promise<{
     settings.get("lead_generation.category"),
     settings.get("lead_generation.standing_brief"),
     settings.get("lead_generation.location_centre"),
+    settings.get("lead_generation.location_lat"),
+    settings.get("lead_generation.location_lng"),
     settings.get("lead_generation.location_radius_km"),
     settings.get("lead_generation.location_mode"),
     settings.get("lead_generation.location_country"),
@@ -790,6 +796,8 @@ export async function getLeadGenSettingsAction(): Promise<{
     category,
     standingBrief,
     locationCentre,
+    locationLat,
+    locationLng,
     locationRadiusKm,
     locationMode,
     locationCountry,
@@ -811,6 +819,8 @@ export async function updateLeadGenSettingsAction(input: {
   category: string;
   standingBrief: string;
   locationCentre: string;
+  locationLat: number;
+  locationLng: number;
   locationRadiusKm: number;
   locationMode: string;
   locationCountry: string;
@@ -831,6 +841,8 @@ export async function updateLeadGenSettingsAction(input: {
     settings.set("lead_generation.category", input.category),
     settings.set("lead_generation.standing_brief", input.standingBrief),
     settings.set("lead_generation.location_centre", input.locationCentre),
+    settings.set("lead_generation.location_lat", String(input.locationLat)),
+    settings.set("lead_generation.location_lng", String(input.locationLng)),
     settings.set("lead_generation.location_radius_km", String(input.locationRadiusKm)),
     settings.set("lead_generation.location_mode", input.locationMode as "local" | "global"),
     settings.set("lead_generation.location_country", input.locationCountry),

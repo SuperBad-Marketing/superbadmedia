@@ -370,21 +370,29 @@ export async function runDailySearch(
 async function buildSearchParams(
   manualBriefOverride?: string,
 ): Promise<DiscoverySearchParams> {
-  const [location, radiusKm, category, standingBrief, maxPerDay] =
-    await Promise.all([
-      settings.get("lead_generation.location_centre"),
-      settings.get("lead_generation.location_radius_km"),
-      settings.get("lead_generation.category"),
-      settings.get("lead_generation.standing_brief"),
-      settings.get("lead_generation.daily_max_per_day"),
-    ]);
+  const [
+    location, radiusKm, locationLat, locationLng,
+    countryCode, category, standingBrief, maxPerDay,
+  ] = await Promise.all([
+    settings.get("lead_generation.location_centre"),
+    settings.get("lead_generation.location_radius_km"),
+    settings.get("lead_generation.location_lat"),
+    settings.get("lead_generation.location_lng"),
+    settings.get("lead_generation.location_country_code"),
+    settings.get("lead_generation.category"),
+    settings.get("lead_generation.standing_brief"),
+    settings.get("lead_generation.daily_max_per_day"),
+  ]);
 
   return {
     location,
     radius_km: radiusKm,
+    location_lat: locationLat,
+    location_lng: locationLng,
+    country_code: countryCode,
     category,
     brief: manualBriefOverride ?? standingBrief,
-    max_candidates: maxPerDay * 3, // fetch wider, score tighter
+    max_candidates: maxPerDay * 3,
   };
 }
 

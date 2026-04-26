@@ -106,6 +106,9 @@ export async function runAuditEnrichment(
           category: input.businessName,
           location: "",
           radius_km: 0,
+          location_lat: 0,
+          location_lng: 0,
+          country_code: "AU",
           brief: input.domain,
           max_candidates: 5,
         });
@@ -130,6 +133,9 @@ export async function runAuditEnrichment(
           category: input.domain,
           location: "",
           radius_km: 0,
+          location_lat: 0,
+          location_lng: 0,
+          country_code: "AU",
           brief: input.domain,
           max_candidates: 5,
         });
@@ -170,6 +176,9 @@ export async function runAuditEnrichment(
           category: input.businessName,
           location: "",
           radius_km: 0,
+          location_lat: 0,
+          location_lng: 0,
+          country_code: "AU",
           brief: "",
           max_candidates: 5,
         });
