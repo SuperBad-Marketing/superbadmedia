@@ -10,9 +10,11 @@ import { houseSpring } from "@/lib/design-tokens"
 import { AdminShell } from "@/components/lite/admin-shell"
 import {
   ADMIN_NAV_PRIMARY,
+  ADMIN_NAV_GROUPS,
   ADMIN_NAV_UTILITY,
   ADMIN_PROFILE_CHIP,
   type AdminNavItem,
+  type AdminNavGroup as AdminNavGroupType,
   matchActiveId,
 } from "@/components/lite/admin-shell-nav"
 import { GlobalSearchTrigger } from "@/components/lite/global-search"
@@ -59,11 +61,14 @@ export function AdminShellWithNav({
       </Link>
 
       <LayoutGroup id="admin-nav">
-        <nav aria-label="Admin" className="flex flex-1 flex-col gap-6 min-h-0">
-          <AdminNavGroup
-            items={ADMIN_NAV_PRIMARY}
-            activeId={activeId}
-          />
+        <nav aria-label="Admin" className="flex flex-1 flex-col gap-5 min-h-0">
+          {ADMIN_NAV_GROUPS.map((group) => (
+            <AdminNavSection
+              key={group.label}
+              group={group}
+              activeId={activeId}
+            />
+          ))}
 
           <div className="border-t border-[color:var(--color-neutral-700)]" aria-hidden />
 
@@ -89,6 +94,32 @@ export function AdminShellWithNav({
       <AdminShell sidebar={sidebar}>{children}</AdminShell>
       <AdminBottomNav />
       <BraindumpFab />
+    </div>
+  )
+}
+
+function AdminNavSection({
+  group,
+  activeId,
+}: {
+  group: AdminNavGroupType
+  activeId: string | null
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span
+        className="pl-4 pb-1 font-[family-name:var(--font-righteous)] text-[length:var(--text-micro)] uppercase tracking-[0.15em] text-[color:var(--color-neutral-600)]"
+        aria-hidden
+      >
+        {group.label}
+      </span>
+      <ul className="flex flex-col gap-0.5">
+        {group.items.map((item) => (
+          <li key={item.id}>
+            <AdminNavRow item={item} isActive={item.id === activeId} />
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

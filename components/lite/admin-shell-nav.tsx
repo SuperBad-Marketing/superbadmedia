@@ -45,120 +45,148 @@ export type AdminNavItem = {
  * `matchPrefix` is used by `<AdminShellWithNav>` for active-state
  * resolution against `usePathname()`. Null = never matches (Soon).
  */
-export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
+export type AdminNavGroup = {
+  label: string
+  items: readonly AdminNavItem[]
+}
+
+export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
   {
-    id: "cockpit",
-    label: "Cockpit",
-    href: "/lite/cockpit",
-    icon: GaugeCircle,
-    status: "live",
-    matchPrefix: "/lite/cockpit",
+    label: "Daily",
+    items: [
+      {
+        id: "cockpit",
+        label: "Cockpit",
+        href: "/lite/cockpit",
+        icon: GaugeCircle,
+        status: "live",
+        matchPrefix: "/lite/cockpit",
+      },
+      {
+        id: "inbox",
+        label: "Inbox",
+        href: "/lite/inbox",
+        icon: Inbox,
+        status: "live",
+        matchPrefix: "/lite/inbox",
+      },
+      {
+        id: "calendar",
+        label: "Calendar",
+        href: "/lite/calendar",
+        icon: CalendarDays,
+        status: "live",
+        matchPrefix: "/lite/calendar",
+      },
+      {
+        id: "tasks",
+        label: "Tasks",
+        href: "/lite/tasks",
+        icon: ListTodo,
+        status: "live",
+        matchPrefix: "/lite/tasks",
+      },
+    ],
   },
   {
-    id: "pipeline",
-    label: "Pipeline",
-    href: "/lite/admin/pipeline",
-    icon: LayoutGrid,
-    status: "live",
-    matchPrefix: "/lite/admin/pipeline",
+    label: "Sales",
+    items: [
+      {
+        id: "pipeline",
+        label: "Pipeline",
+        href: "/lite/admin/pipeline",
+        icon: LayoutGrid,
+        status: "live",
+        matchPrefix: "/lite/admin/pipeline",
+      },
+      {
+        id: "clients",
+        label: "Clients",
+        href: "/lite/admin/clients",
+        icon: Building2,
+        status: "live",
+        matchPrefix: "/lite/admin/clients",
+      },
+      {
+        id: "lead-gen",
+        label: "Lead Gen",
+        href: "/lite/admin/lead-gen",
+        icon: Radar,
+        status: "live",
+        matchPrefix: "/lite/admin/lead-gen",
+      },
+    ],
   },
   {
-    id: "inbox",
-    label: "Inbox",
-    href: "/lite/inbox",
-    icon: Inbox,
-    status: "live",
-    matchPrefix: "/lite/inbox",
+    label: "Production",
+    items: [
+      {
+        id: "briefs",
+        label: "Briefs",
+        href: "/lite/admin/briefs",
+        icon: ClipboardList,
+        status: "live",
+        matchPrefix: "/lite/admin/briefs",
+      },
+      {
+        id: "content",
+        label: "Content",
+        href: "/lite/content",
+        icon: Newspaper,
+        status: "live",
+        matchPrefix: "/lite/content",
+      },
+      {
+        id: "hiring",
+        label: "Hiring",
+        href: "/lite/admin/hiring",
+        icon: Users,
+        status: "live",
+        matchPrefix: "/lite/admin/hiring",
+      },
+    ],
   },
   {
-    id: "calendar",
-    label: "Calendar",
-    href: "/lite/calendar",
-    icon: CalendarDays,
-    status: "live",
-    matchPrefix: "/lite/calendar",
-  },
-  {
-    id: "clients",
-    label: "Clients",
-    href: "/lite/admin/clients",
-    icon: Building2,
-    status: "live",
-    matchPrefix: "/lite/admin/clients",
-  },
-  {
-    id: "briefs",
-    label: "Briefs",
-    href: "/lite/admin/briefs",
-    icon: ClipboardList,
-    status: "live",
-    matchPrefix: "/lite/admin/briefs",
-  },
-  {
-    id: "tasks",
-    label: "Tasks",
-    href: "/lite/tasks",
-    icon: ListTodo,
-    status: "live",
-    matchPrefix: "/lite/tasks",
-  },
-  {
-    id: "lead-gen",
-    label: "Lead Gen",
-    href: "/lite/admin/lead-gen",
-    icon: Radar,
-    status: "live",
-    matchPrefix: "/lite/admin/lead-gen",
-  },
-  {
-    id: "hiring",
-    label: "Hiring",
-    href: "/lite/admin/hiring",
-    icon: Users,
-    status: "live",
-    matchPrefix: "/lite/admin/hiring",
-  },
-  {
-    id: "content",
-    label: "Content",
-    href: "/lite/content",
-    icon: Newspaper,
-    status: "live",
-    matchPrefix: "/lite/content",
-  },
-  {
-    id: "products",
-    label: "Products",
-    href: "/lite/admin/products",
-    icon: Package,
-    status: "live",
-    matchPrefix: "/lite/admin/products",
-  },
-  {
-    id: "channels",
-    label: "Channels",
-    href: "/lite/admin/channels/instagram",
-    icon: Radio,
-    status: "soon",
-    matchPrefix: "/lite/admin/channels",
-  },
-  {
-    id: "finance",
-    label: "Finance",
-    href: "/lite/finance",
-    icon: DollarSign,
-    status: "live",
-    matchPrefix: "/lite/finance",
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    href: "/lite/admin/settings",
-    icon: Settings,
-    status: "live",
-    matchPrefix: "/lite/admin/settings",
+    label: "Business",
+    items: [
+      {
+        id: "products",
+        label: "Products",
+        href: "/lite/admin/products",
+        icon: Package,
+        status: "live",
+        matchPrefix: "/lite/admin/products",
+      },
+      {
+        id: "channels",
+        label: "Channels",
+        href: "/lite/admin/channels/instagram",
+        icon: Radio,
+        status: "soon",
+        matchPrefix: "/lite/admin/channels",
+      },
+      {
+        id: "finance",
+        label: "Finance",
+        href: "/lite/finance",
+        icon: DollarSign,
+        status: "live",
+        matchPrefix: "/lite/finance",
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        href: "/lite/admin/settings",
+        icon: Settings,
+        status: "live",
+        matchPrefix: "/lite/admin/settings",
+      },
+    ],
   },
 ] as const
+
+export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] =
+  ADMIN_NAV_GROUPS.flatMap((g) => g.items)
 
 export const ADMIN_NAV_UTILITY: readonly AdminNavItem[] = [
   {
