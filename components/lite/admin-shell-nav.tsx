@@ -1,6 +1,7 @@
 import {
   Activity,
   Building2,
+  CalendarDays,
   ClipboardList,
   DollarSign,
   FileText,
@@ -68,6 +69,14 @@ export const ADMIN_NAV_PRIMARY: readonly AdminNavItem[] = [
     icon: Inbox,
     status: "live",
     matchPrefix: "/lite/inbox",
+  },
+  {
+    id: "calendar",
+    label: "Calendar",
+    href: "/lite/calendar",
+    icon: CalendarDays,
+    status: "live",
+    matchPrefix: "/lite/calendar",
   },
   {
     id: "clients",

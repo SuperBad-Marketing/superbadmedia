@@ -27,18 +27,18 @@ const TYPE_LABELS: Record<CalendarBookingType, string> = {
 export function CalendarPreview({ events }: { events: CalendarEvent[] }) {
   if (events.length === 0) {
     return (
-      <div className="flex items-center gap-3 py-2">
+      <Link href="/lite/calendar" className="flex items-center gap-3 py-2 group">
         <Calendar
-          className="h-4 w-4"
+          className="h-4 w-4 transition-colors group-hover:text-[color:var(--color-neutral-200)]"
           style={{ color: "var(--color-neutral-400)" }}
         />
         <p
-          className="text-[13px] font-[family-name:var(--font-serif)] italic"
+          className="text-[13px] font-[family-name:var(--font-serif)] italic transition-colors group-hover:text-[color:var(--color-neutral-300)]"
           style={{ color: "var(--color-neutral-500)" }}
         >
           Nothing on the calendar today. Unscheduled time is underrated.
         </p>
-      </div>
+      </Link>
     );
   }
 

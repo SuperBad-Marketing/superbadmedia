@@ -53,6 +53,7 @@ export async function getGraphAuthorizeUrlAction(): Promise<string> {
     redirect_uri: redirectUri,
     response_mode: "query",
     scope: scopes,
+    prompt: "consent",
   });
   return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?${params.toString()}`;
 }

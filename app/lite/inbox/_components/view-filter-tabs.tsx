@@ -7,6 +7,7 @@ import {
   AlertOctagon,
   AtSign,
   Building2,
+  CalendarDays,
   Circle,
   Focus,
   Globe,
@@ -234,6 +235,7 @@ export function ViewFilterTabs({
         {(
           [
             { href: "/lite/admin/pipeline", label: "Pipeline", icon: LayoutGrid },
+            { href: "/lite/calendar", label: "Calendar", icon: CalendarDays },
             { href: "/lite/admin/clients", label: "Clients", icon: Building2 },
             { href: "/lite/admin/lead-gen", label: "Lead Gen", icon: Radar },
             { href: "/lite/content", label: "Content", icon: Newspaper },
