@@ -3,13 +3,14 @@ import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
 import { mergeWaitingItems, mergeHealthBanners } from "@/lib/cockpit/aggregator";
-import { getCurrentBrief, getTodayCalendarEvents } from "@/lib/cockpit/queries";
+import { getCurrentBrief, getTodayCalendarEvents, getTodayBraindump } from "@/lib/cockpit/queries";
 import { getTasksForCockpitKanban } from "@/lib/tasks/cockpit";
 import { BriefPanel } from "@/components/lite/cockpit/brief-panel";
 import { AttentionRail } from "@/components/lite/cockpit/attention-rail";
 import { BannerStrip } from "@/components/lite/cockpit/banner-strip";
 import { CalendarPreview } from "@/components/lite/cockpit/calendar-preview";
 import { PlanningView } from "@/components/lite/cockpit/planning-view";
+import { BraindumpSection } from "@/components/lite/cockpit/braindump-section";
 import { AiChatFab } from "@/components/lite/cockpit/ai-chat-panel";
 import {
   CockpitContent,
@@ -29,13 +30,14 @@ export default async function CockpitPage() {
 
   const nowMs = Date.now();
 
-  const [briefResult, waitingItems, banners, calendarEvents, kanban] =
+  const [briefResult, waitingItems, banners, calendarEvents, kanban, todayBraindump] =
     await Promise.all([
       getCurrentBrief(session.user.id!, nowMs),
       mergeWaitingItems(nowMs),
       mergeHealthBanners(nowMs),
       getTodayCalendarEvents(nowMs),
       getTasksForCockpitKanban(nowMs),
+      getTodayBraindump(session.user.id!, nowMs),
     ]);
 
   return (
@@ -59,6 +61,20 @@ export default async function CockpitPage() {
               fallback={briefResult.fallback}
             />
           </div>
+        </CockpitSection>
+
+        {/* Morning braindump */}
+        <CockpitSection className="mt-6">
+          <div
+            className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
+            style={{
+              letterSpacing: "2px",
+              color: "var(--color-neutral-500)",
+            }}
+          >
+            Braindump
+          </div>
+          <BraindumpSection todayBraindump={todayBraindump} />
         </CockpitSection>
 
         {/* Attention rail */}

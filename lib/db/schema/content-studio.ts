@@ -57,6 +57,8 @@ export const contentStudioPosts = sqliteTable(
     primary_aspect_ratio: text("primary_aspect_ratio"),
     inspiration_refs_json: text("inspiration_refs_json"),
 
+    source_braindump_id: text("source_braindump_id"),
+
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },
@@ -64,6 +66,7 @@ export const contentStudioPosts = sqliteTable(
     by_type: index("csp_type_idx").on(t.content_type),
     by_status: index("csp_status_idx").on(t.status),
     by_created: index("csp_created_idx").on(t.created_at_ms),
+    by_braindump: index("csp_braindump_idx").on(t.source_braindump_id),
   }),
 );
 

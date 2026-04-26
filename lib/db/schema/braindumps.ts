@@ -8,6 +8,8 @@ export const braindumps = sqliteTable("braindumps", {
   parsed_at_ms: integer("parsed_at_ms"),
   committed_at_ms: integer("committed_at_ms"),
   task_count: integer("task_count").notNull().default(0),
+  content_count: integer("content_count").notNull().default(0),
+  script_count: integer("script_count").notNull().default(0),
   created_by: text("created_by")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),

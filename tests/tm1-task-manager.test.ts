@@ -26,9 +26,11 @@ beforeAll(() => {
   sqlite.pragma("journal_mode = WAL");
   sqlite.pragma("foreign_keys = ON");
   testDb = drizzle(sqlite, { schema });
-  drizzleMigrate(testDb, {
-    migrationsFolder: path.join(process.cwd(), "lib/db/migrations"),
-  });
+  const migrationsFolder = path.join(process.cwd(), "lib/db/migrations");
+  drizzleMigrate(testDb, { migrationsFolder });
+
+  try { sqlite.exec("ALTER TABLE braindumps ADD COLUMN content_count INTEGER NOT NULL DEFAULT 0"); } catch {}
+  try { sqlite.exec("ALTER TABLE braindumps ADD COLUMN script_count INTEGER NOT NULL DEFAULT 0"); } catch {}
 });
 
 afterAll(() => {

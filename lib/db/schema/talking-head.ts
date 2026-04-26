@@ -110,6 +110,7 @@ export const talkingHeadSessionPacks = sqliteTable(
       .default("default"),
     target_date: text("target_date"),
     script_count: integer("script_count").notNull().default(4),
+    source_braindump_id: text("source_braindump_id"),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },
@@ -143,6 +144,7 @@ export const talkingHeadScripts = sqliteTable(
       .notNull()
       .default("default"),
     signal_source: text("signal_source"),
+    source_braindump_id: text("source_braindump_id"),
     sort_order: integer("sort_order").notNull().default(0),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
@@ -153,6 +155,7 @@ export const talkingHeadScripts = sqliteTable(
       t.sort_order,
     ),
     by_status: index("th_scripts_status_idx").on(t.status),
+    by_braindump: index("th_scripts_braindump_idx").on(t.source_braindump_id),
   }),
 );
 

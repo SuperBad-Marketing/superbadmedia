@@ -108,6 +108,7 @@ export async function createSessionPack(
       publish_meta_json: publishMeta as unknown as Record<string, unknown>,
       energy_level: energy,
       signal_source: null,
+      source_braindump_id: null,
       sort_order: i,
       created_at_ms: now,
       updated_at_ms: now,

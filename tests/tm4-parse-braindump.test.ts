@@ -39,7 +39,7 @@ describe("parseBraindump", () => {
     await expect(parseBraindump("test")).rejects.toThrow("kill switch");
   });
 
-  it("parses a valid LLM response into ParsedBraindump", async () => {
+  it("parses tasks, content ideas, and script ideas", async () => {
     mockInvokeLlmText.mockResolvedValueOnce(
       JSON.stringify({
         tasks: [
@@ -56,50 +56,84 @@ describe("parseBraindump", () => {
             checklist: null,
             confidence: { title: 0.95, kind: 0.8, due_at: 0.9, entity: 0.7 },
           },
+        ],
+        content_ideas: [
           {
-            title: "Write 3 instagram posts",
-            body: "For the monthly content calendar",
-            kind: "client_deliverable",
-            priority: "normal",
-            due_at_iso: null,
-            entity_candidates: [],
-            checklist: ["Post 1", "Post 2", "Post 3"],
-            confidence: { title: 0.9, kind: 0.85, due_at: 0, entity: 0 },
+            brief: "Businesses waste money on stock photography when their phone takes better pictures",
+            content_type: "anti_motivation",
+            slide_count: 1,
+            confidence: 0.85,
+          },
+        ],
+        script_ideas: [
+          {
+            topic: "Why agencies won't tell you the real cost of their 'free' audit",
+            pillar: "agency_wont_say",
+            format: "short",
+            angle: "The audit is free because your data is the product",
+            confidence: 0.9,
           },
         ],
         global_confidence: 0.82,
       }),
     );
 
-    const result: ParsedBraindump = await parseBraindump("call belle about the shoot\n3 instagram posts for monthly calendar");
+    const result: ParsedBraindump = await parseBraindump(
+      "call belle about the shoot\npost idea: stock photos are a waste\nvideo: agencies lie about free audits",
+    );
 
-    expect(result.tasks).toHaveLength(2);
+    expect(result.tasks).toHaveLength(1);
+    expect(result.content_ideas).toHaveLength(1);
+    expect(result.script_ideas).toHaveLength(1);
     expect(result.global_confidence).toBeCloseTo(0.82);
 
     const t1 = result.tasks[0];
     expect(t1.title).toBe("Call Belle about shoot");
     expect(t1.kind).toBe("client_task");
-    expect(t1.priority).toBe("high");
-    expect(t1.entity_type).toBe("contact");
     expect(t1.entity_id).toBe("c1");
-    expect(t1.entity_name).toBe("Belle Robinson");
     expect(t1.alternatives?.entity).toHaveLength(2);
-    expect(t1.due_at_ms).toBeTypeOf("number");
-    expect(t1.confidence.title).toBeCloseTo(0.95);
 
-    const t2 = result.tasks[1];
-    expect(t2.kind).toBe("client_deliverable");
-    expect(t2.checklist).toHaveLength(3);
-    expect(t2.checklist![0].text).toBe("Post 1");
-    expect(t2.checklist![0].checked).toBe(false);
-    expect(t2.entity_type).toBeNull();
-    expect(t2.alternatives).toBeUndefined();
+    const c1 = result.content_ideas[0];
+    expect(c1.brief).toContain("stock photography");
+    expect(c1.content_type).toBe("anti_motivation");
+    expect(c1.slide_count).toBe(1);
+    expect(c1.confidence).toBeCloseTo(0.85);
+
+    const s1 = result.script_ideas[0];
+    expect(s1.topic).toContain("free");
+    expect(s1.pillar).toBe("agency_wont_say");
+    expect(s1.format).toBe("short");
+    expect(s1.angle).toContain("data is the product");
+    expect(s1.confidence).toBeCloseTo(0.9);
+  });
+
+  it("handles tasks-only response (backward compat)", async () => {
+    mockInvokeLlmText.mockResolvedValueOnce(
+      JSON.stringify({
+        tasks: [
+          {
+            title: "Invoice Jake",
+            kind: "admin",
+            priority: "normal",
+            confidence: { title: 0.9, kind: 0.8, due_at: 0, entity: 0 },
+          },
+        ],
+        global_confidence: 0.7,
+      }),
+    );
+
+    const result = await parseBraindump("invoice jake");
+    expect(result.tasks).toHaveLength(1);
+    expect(result.content_ideas).toHaveLength(0);
+    expect(result.script_ideas).toHaveLength(0);
   });
 
   it("handles invalid kind by defaulting to admin", async () => {
     mockInvokeLlmText.mockResolvedValueOnce(
       JSON.stringify({
         tasks: [{ title: "Do thing", kind: "bogus_kind", priority: "normal", confidence: { title: 0.9, kind: 0.5, due_at: 0, entity: 0 } }],
+        content_ideas: [],
+        script_ideas: [],
         global_confidence: 0.5,
       }),
     );
@@ -108,16 +142,70 @@ describe("parseBraindump", () => {
     expect(result.tasks[0].kind).toBe("admin");
   });
 
-  it("handles invalid priority by defaulting to normal", async () => {
+  it("handles invalid content type by defaulting to tips", async () => {
     mockInvokeLlmText.mockResolvedValueOnce(
       JSON.stringify({
-        tasks: [{ title: "Do thing", kind: "admin", priority: "extreme", confidence: { title: 0.9, kind: 0.5, due_at: 0, entity: 0 } }],
+        tasks: [],
+        content_ideas: [
+          { brief: "Test post", content_type: "bogus_type", slide_count: 1, confidence: 0.5 },
+        ],
+        script_ideas: [],
         global_confidence: 0.5,
       }),
     );
 
-    const result = await parseBraindump("do thing");
-    expect(result.tasks[0].priority).toBe("normal");
+    const result = await parseBraindump("make a post about something");
+    expect(result.content_ideas[0].content_type).toBe("tips");
+  });
+
+  it("handles invalid pillar by defaulting to overheard_in_marketing", async () => {
+    mockInvokeLlmText.mockResolvedValueOnce(
+      JSON.stringify({
+        tasks: [],
+        content_ideas: [],
+        script_ideas: [
+          { topic: "Test script", pillar: "bogus_pillar", format: "short", angle: "test", confidence: 0.5 },
+        ],
+        global_confidence: 0.5,
+      }),
+    );
+
+    const result = await parseBraindump("film a video about something");
+    expect(result.script_ideas[0].pillar).toBe("overheard_in_marketing");
+  });
+
+  it("handles invalid format by defaulting to short", async () => {
+    mockInvokeLlmText.mockResolvedValueOnce(
+      JSON.stringify({
+        tasks: [],
+        content_ideas: [],
+        script_ideas: [
+          { topic: "Test", pillar: "agency_wont_say", format: "bogus", angle: "x", confidence: 0.5 },
+        ],
+        global_confidence: 0.5,
+      }),
+    );
+
+    const result = await parseBraindump("test");
+    expect(result.script_ideas[0].format).toBe("short");
+  });
+
+  it("clamps slide count to 1-10 range", async () => {
+    mockInvokeLlmText.mockResolvedValueOnce(
+      JSON.stringify({
+        tasks: [],
+        content_ideas: [
+          { brief: "Test", content_type: "tips", slide_count: 25, confidence: 0.5 },
+          { brief: "Test2", content_type: "tips", slide_count: 0, confidence: 0.5 },
+        ],
+        script_ideas: [],
+        global_confidence: 0.5,
+      }),
+    );
+
+    const result = await parseBraindump("test");
+    expect(result.content_ideas[0].slide_count).toBe(10);
+    expect(result.content_ideas[1].slide_count).toBe(1);
   });
 
   it("throws on invalid JSON response", async () => {
@@ -125,15 +213,12 @@ describe("parseBraindump", () => {
     await expect(parseBraindump("test")).rejects.toThrow("Failed to parse");
   });
 
-  it("throws when tasks array is missing", async () => {
-    mockInvokeLlmText.mockResolvedValueOnce(JSON.stringify({ global_confidence: 0.5 }));
-    await expect(parseBraindump("test")).rejects.toThrow("missing tasks array");
-  });
-
   it("clamps confidence values to 0-1 range", async () => {
     mockInvokeLlmText.mockResolvedValueOnce(
       JSON.stringify({
         tasks: [{ title: "Test", kind: "admin", priority: "normal", confidence: { title: 1.5, kind: -0.3, due_at: 0.5, entity: 2.0 } }],
+        content_ideas: [{ brief: "Test", content_type: "tips", slide_count: 1, confidence: 1.8 }],
+        script_ideas: [{ topic: "Test", pillar: "agency_wont_say", format: "short", angle: "x", confidence: -0.5 }],
         global_confidence: 1.8,
       }),
     );
@@ -141,31 +226,34 @@ describe("parseBraindump", () => {
     const result = await parseBraindump("test");
     expect(result.tasks[0].confidence.title).toBe(1);
     expect(result.tasks[0].confidence.kind).toBe(0);
-    expect(result.tasks[0].confidence.entity).toBe(1);
+    expect(result.content_ideas[0].confidence).toBe(1);
+    expect(result.script_ideas[0].confidence).toBe(0);
     expect(result.global_confidence).toBe(1);
   });
 
   it("strips markdown code fences from response", async () => {
     mockInvokeLlmText.mockResolvedValueOnce(
-      '```json\n{"tasks":[{"title":"Test","kind":"admin","priority":"normal","confidence":{"title":0.9,"kind":0.8,"due_at":0,"entity":0}}],"global_confidence":0.7}\n```',
+      '```json\n{"tasks":[],"content_ideas":[{"brief":"Test","content_type":"tips","slide_count":1,"confidence":0.9}],"script_ideas":[],"global_confidence":0.7}\n```',
     );
 
     const result = await parseBraindump("test");
-    expect(result.tasks).toHaveLength(1);
-    expect(result.tasks[0].title).toBe("Test");
+    expect(result.content_ideas).toHaveLength(1);
+    expect(result.content_ideas[0].brief).toBe("Test");
   });
 
-  it("passes job slug task-manager-parse-braindump to invokeLlmText", async () => {
+  it("passes job slug braindump-parse to invokeLlmText", async () => {
     mockInvokeLlmText.mockResolvedValueOnce(
       JSON.stringify({
-        tasks: [{ title: "Test", kind: "admin", priority: "normal", confidence: { title: 0.9, kind: 0.8, due_at: 0, entity: 0 } }],
+        tasks: [],
+        content_ideas: [],
+        script_ideas: [],
         global_confidence: 0.7,
       }),
     );
 
     await parseBraindump("test");
     expect(mockInvokeLlmText).toHaveBeenCalledWith(
-      expect.objectContaining({ job: "task-manager-parse-braindump" }),
+      expect.objectContaining({ job: "braindump-parse" }),
     );
   });
 
@@ -183,6 +271,8 @@ describe("parseBraindump", () => {
           ],
           confidence: { title: 0.9, kind: 0.8, due_at: 0, entity: 0.7 },
         }],
+        content_ideas: [],
+        script_ideas: [],
         global_confidence: 0.75,
       }),
     );
@@ -198,6 +288,8 @@ describe("parseBraindump", () => {
     mockInvokeLlmText.mockResolvedValueOnce(
       JSON.stringify({
         tasks: [{ title: "Test", kind: "admin", priority: "normal", confidence: { title: 0.9, kind: 0.8, due_at: 0, entity: 0 } }],
+        content_ideas: [],
+        script_ideas: [],
         global_confidence: 0.7,
       }),
     );

@@ -384,6 +384,8 @@ export async function createBraindump(input: {
 export async function markBraindumpCommitted(
   id: string,
   taskCount: number,
+  contentCount = 0,
+  scriptCount = 0,
 ): Promise<void> {
   await db
     .update(braindumps)
@@ -391,6 +393,8 @@ export async function markBraindumpCommitted(
       committed_at_ms: Date.now(),
       parsed_at_ms: Date.now(),
       task_count: taskCount,
+      content_count: contentCount,
+      script_count: scriptCount,
     })
     .where(eq(braindumps.id, id));
 }

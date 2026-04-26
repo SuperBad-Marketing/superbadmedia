@@ -8,6 +8,12 @@ import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
 import type { TaskKind, TaskPriority, ChecklistItem } from "@/lib/tasks/types";
 import { TASK_KINDS, TASK_PRIORITIES } from "@/lib/tasks/types";
+import { CONTENT_TYPES, type ContentType } from "@/lib/db/schema/content-studio";
+import { PILLAR_SLUGS, SCRIPT_FORMATS, type PillarSlug, type ScriptFormat } from "@/lib/db/schema/talking-head";
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
 
 export type EntityCandidate = {
   type: string;
@@ -37,8 +43,27 @@ export type ParsedTask = {
   };
 };
 
+export type ParsedContentIdea = {
+  id: string;
+  brief: string;
+  content_type: ContentType;
+  slide_count: number;
+  confidence: number;
+};
+
+export type ParsedScriptIdea = {
+  id: string;
+  topic: string;
+  pillar: PillarSlug;
+  format: ScriptFormat;
+  angle: string;
+  confidence: number;
+};
+
 export type ParsedBraindump = {
   tasks: ParsedTask[];
+  content_ideas: ParsedContentIdea[];
+  script_ideas: ParsedScriptIdea[];
   global_confidence: number;
 };
 
@@ -47,6 +72,10 @@ export type SurfaceContext = {
   entityType?: string;
   entityId?: string;
 };
+
+// ---------------------------------------------------------------------------
+// LLM response shapes (internal)
+// ---------------------------------------------------------------------------
 
 type LlmEntityCandidate = {
   entity_type: string;
@@ -71,10 +100,31 @@ type LlmParsedTask = {
   };
 };
 
+type LlmContentIdea = {
+  brief: string;
+  content_type: string;
+  slide_count: number;
+  confidence: number;
+};
+
+type LlmScriptIdea = {
+  topic: string;
+  pillar: string;
+  format: string;
+  angle: string;
+  confidence: number;
+};
+
 type LlmParsedBraindump = {
   tasks: LlmParsedTask[];
+  content_ideas: LlmContentIdea[];
+  script_ideas: LlmScriptIdea[];
   global_confidence: number;
 };
+
+// ---------------------------------------------------------------------------
+// Entity context
+// ---------------------------------------------------------------------------
 
 async function fetchEntityContext(): Promise<string> {
   const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
@@ -136,6 +186,10 @@ async function fetchEntityContext(): Promise<string> {
   return lines.length > 0 ? lines.join("\n") : "No entities in the system yet.";
 }
 
+// ---------------------------------------------------------------------------
+// Prompt
+// ---------------------------------------------------------------------------
+
 function getMelbourneDate(): string {
   return new Date().toLocaleDateString("en-AU", {
     timeZone: "Australia/Melbourne",
@@ -161,7 +215,7 @@ function buildPrompt(
   const today = getMelbourneDate();
   const dayOfWeek = getMelbourneDayOfWeek();
 
-  let prompt = `You are a task parser for SuperBad Marketing, a Melbourne-based marketing agency run by Andy. Parse the following freeform braindump text into structured tasks.
+  let prompt = `You are a morning braindump parser for SuperBad Marketing, a Melbourne-based marketing agency run by Andy. Parse freeform text into THREE categories: actionable tasks, Instagram content ideas, and talking-head video script ideas.
 
 TODAY: ${today} (${dayOfWeek})
 TIMEZONE: Australia/Melbourne
@@ -174,25 +228,70 @@ ${entityContext}
   }
 
   prompt += `
-TASK KINDS (pick the most appropriate):
+CLASSIFICATION RULES:
+- A TASK is something Andy needs to DO: call someone, invoice, follow up, book, fix, send, etc.
+- A CONTENT IDEA is an idea for an Instagram post (image/graphic/carousel): opinions, observations, tips, portfolio showcase, behind-the-scenes moments, announcements, anti-motivation typography posts.
+- A SCRIPT IDEA is an idea for a talking-head video: rants, takes, industry truths, advice, breakdowns — anything that sounds like Andy sitting in a chair talking to camera.
+
+When in doubt between content and script: if the idea is visual or short-form, it's content. If it's a monologue, rant, or has a narrative arc, it's a script.
+
+── TASKS ──
+
+TASK KINDS:
 - "personal" — Andy's life admin, never visible to clients
 - "admin" — SuperBad operational work not tied to a specific contact or deal
 - "prospect_followup" — tied to a lead or prospect
-- "client_deliverable" — work SuperBad owes a client (e.g. "4 instagram posts for Belle")
-- "client_task" — task tied to a client that is NOT a deliverable (e.g. "call Jake about the invoice")
+- "client_deliverable" — work SuperBad owes a client
+- "client_task" — task tied to a client that is NOT a deliverable
 
 PRIORITIES: "high", "normal", "low"
 
-INSTRUCTIONS:
-1. Split the text into individual tasks. Each distinct action or item becomes one task.
-2. Infer the kind from context. If it mentions a known contact or company, it's likely prospect_followup, client_deliverable, or client_task. Personal errands are "personal". General admin is "admin".
-3. Parse relative dates: "tomorrow", "friday", "next week", "in 3 days", etc. relative to today. Output as ISO date (YYYY-MM-DD).
-4. Match entity references against the CONTACTS and COMPANIES lists. Use fuzzy matching — "Belle" could match "Belle Bakery" or "Belle Robinson". Return the top candidates with confidence scores.
-5. Detect countable phrasings ("4 instagram posts", "three blog drafts") and emit them as checklist items.
-6. Assign confidence scores (0.0–1.0) for each parsed field. High confidence = unambiguous. Low confidence = guessed or inferred.
-7. Keep task titles concise and action-oriented. Strip filler words but preserve intent.
+TASK INSTRUCTIONS:
+1. Each distinct action becomes one task.
+2. Infer kind from context. Known contacts/companies → prospect_followup, client_deliverable, or client_task. Personal errands → "personal". General ops → "admin".
+3. Parse relative dates ("tomorrow", "friday", "next week") relative to today as ISO (YYYY-MM-DD).
+4. Match entity references against CONTACTS and COMPANIES. Fuzzy match. Return top candidates with confidence.
+5. Countable phrasings ("4 posts", "three drafts") → checklist items.
+6. Confidence 0.0–1.0 per field.
 
-OUTPUT FORMAT — respond with ONLY valid JSON, no markdown fencing:
+── CONTENT IDEAS (Instagram) ──
+
+CONTENT TYPES (pick best fit):
+- "anti_motivation" — dry, typography-forward posts that reframe grind as proof of progress
+- "tips" — practical marketing advice or observations
+- "portfolio" — showcasing work, behind-the-camera perspective
+- "behind_the_scenes" — process, setup, studio, day-in-the-life
+- "announcement" — business news, launches, offers
+- "testimonial" — client results or social proof
+
+CONTENT INSTRUCTIONS:
+1. Extract the core idea as a creative brief (1-2 sentences).
+2. Pick the best content_type.
+3. Suggest slide_count: 1 for single posts, 3-10 for carousels (multi-point ideas suit carousels).
+4. Confidence 0.0–1.0 for the overall classification.
+
+── SCRIPT IDEAS (talking-head video) ──
+
+PILLARS (pick best fit):
+- "agency_wont_say" — industry honesty, what agencies hide, retainer truths
+- "shooting_small_business" — observations from shoots, patterns from behind the camera
+- "marketing_doesnt_work" — widely recommended tactics that are mostly useless
+- "uncomfortable_truth" — broader business realities, real costs, hard truths
+- "if_i_were_brand" — unsolicited strategy breakdowns for real businesses
+- "overheard_in_marketing" — deadpan observations about industry absurdity
+
+FORMATS: "short" (30-90 sec), "mid" (2-5 min)
+
+SCRIPT INSTRUCTIONS:
+1. Extract the topic (what the video is about).
+2. Write an angle (the specific take or hook — one sentence).
+3. Pick the best pillar.
+4. Pick format: simple takes → short, developed arguments → mid.
+5. Confidence 0.0–1.0 for the overall classification.
+
+── OUTPUT ──
+
+Respond with ONLY valid JSON, no markdown fencing:
 {
   "tasks": [
     {
@@ -208,14 +307,37 @@ OUTPUT FORMAT — respond with ONLY valid JSON, no markdown fencing:
       "confidence": { "title": 0.9, "kind": 0.8, "due_at": 0.7, "entity": 0.6 }
     }
   ],
+  "content_ideas": [
+    {
+      "brief": "1-2 sentence creative brief for the post",
+      "content_type": "anti_motivation",
+      "slide_count": 1,
+      "confidence": 0.85
+    }
+  ],
+  "script_ideas": [
+    {
+      "topic": "what the video is about",
+      "pillar": "agency_wont_say",
+      "format": "short",
+      "angle": "the specific take or hook",
+      "confidence": 0.8
+    }
+  ],
   "global_confidence": 0.8
 }
+
+If there are no items for a category, return an empty array. Every fragment of the braindump should be classified into exactly one category — don't drop anything.
 
 BRAINDUMP TEXT:
 ${rawText}`;
 
   return prompt;
 }
+
+// ---------------------------------------------------------------------------
+// Mappers
+// ---------------------------------------------------------------------------
 
 function clamp01(n: unknown): number {
   const v = typeof n === "number" ? n : 0;
@@ -278,6 +400,45 @@ function mapLlmTask(task: LlmParsedTask, index: number): ParsedTask {
   };
 }
 
+function mapLlmContentIdea(idea: LlmContentIdea, index: number): ParsedContentIdea {
+  const validType = (CONTENT_TYPES as readonly string[]).includes(idea.content_type)
+    ? (idea.content_type as ContentType)
+    : "tips";
+  const slideCount = typeof idea.slide_count === "number" && idea.slide_count >= 1
+    ? Math.min(idea.slide_count, 10)
+    : 1;
+
+  return {
+    id: `content-${index}-${Date.now()}`,
+    brief: idea.brief || "Untitled content idea",
+    content_type: validType,
+    slide_count: slideCount,
+    confidence: clamp01(idea.confidence),
+  };
+}
+
+function mapLlmScriptIdea(idea: LlmScriptIdea, index: number): ParsedScriptIdea {
+  const validPillar = (PILLAR_SLUGS as readonly string[]).includes(idea.pillar)
+    ? (idea.pillar as PillarSlug)
+    : "overheard_in_marketing";
+  const validFormat = (SCRIPT_FORMATS as readonly string[]).includes(idea.format)
+    ? (idea.format as ScriptFormat)
+    : "short";
+
+  return {
+    id: `script-${index}-${Date.now()}`,
+    topic: idea.topic || "Untitled script idea",
+    pillar: validPillar,
+    format: validFormat,
+    angle: idea.angle || "",
+    confidence: clamp01(idea.confidence),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
 export async function parseBraindump(
   rawText: string,
   surfaceContext?: SurfaceContext | null,
@@ -290,7 +451,7 @@ export async function parseBraindump(
   const prompt = buildPrompt(rawText, entityContext, surfaceContext);
 
   const responseText = await invokeLlmText({
-    job: "task-manager-parse-braindump",
+    job: "braindump-parse",
     prompt,
     maxTokens: 4096,
   });
@@ -304,20 +465,32 @@ export async function parseBraindump(
   }
 
   if (!Array.isArray(parsed.tasks)) {
-    throw new Error("Invalid braindump response: missing tasks array.");
+    parsed.tasks = [];
+  }
+  if (!Array.isArray(parsed.content_ideas)) {
+    parsed.content_ideas = [];
+  }
+  if (!Array.isArray(parsed.script_ideas)) {
+    parsed.script_ideas = [];
   }
 
   const tasks = parsed.tasks.map((t, i) => mapLlmTask(t, i));
+  const content_ideas = parsed.content_ideas.map((c, i) => mapLlmContentIdea(c, i));
+  const script_ideas = parsed.script_ideas.map((s, i) => mapLlmScriptIdea(s, i));
+
+  const totalItems = tasks.length + content_ideas.length + script_ideas.length;
 
   await logActivity({
     kind: "braindump_parsed",
-    body: `Braindump parsed — ${tasks.length} task${tasks.length === 1 ? "" : "s"} extracted`,
-    meta: { task_count: tasks.length },
+    body: `Braindump parsed — ${tasks.length} task${tasks.length === 1 ? "" : "s"}, ${content_ideas.length} content idea${content_ideas.length === 1 ? "" : "s"}, ${script_ideas.length} script${script_ideas.length === 1 ? "" : "s"}`,
+    meta: { task_count: tasks.length, content_count: content_ideas.length, script_count: script_ideas.length, total: totalItems },
     createdBy: "system",
   });
 
   return {
     tasks,
+    content_ideas,
+    script_ideas,
     global_confidence: clamp01(parsed.global_confidence),
   };
 }

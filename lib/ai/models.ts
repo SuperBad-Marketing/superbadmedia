@@ -94,8 +94,8 @@ export const MODELS = {
   "client-mgmt-escalation-summary": "haiku",
   // referral (1)
   "referral-follow-up-draft": "opus",
-  // task-manager (1)
-  "task-manager-parse-braindump": "haiku",
+  // braindump (1)
+  "braindump-parse": "sonnet",
   // unified-inbox (8)
   "inbox-classify-inbound-route": "haiku",
   "inbox-classify-notification-priority": "haiku",

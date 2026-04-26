@@ -1,9 +1,11 @@
 import { db } from "@/lib/db";
 import { cockpit_briefs } from "@/lib/db/schema/cockpit-briefs";
+import { braindumps } from "@/lib/db/schema/braindumps";
 import { calendar_bookings } from "@/lib/db/schema/calendar";
-import { and, eq, gte, lte, desc } from "drizzle-orm";
+import { and, eq, gte, lte, desc, isNotNull } from "drizzle-orm";
 import { melbourneStartAndEndOfDay, melbourneWallDate } from "@/lib/time/melbourne";
 import type { CockpitBriefSlot } from "@/lib/db/schema/cockpit-briefs";
+import type { BraindumpRow } from "@/lib/db/schema/braindumps";
 
 function toDateString(ms: number): string {
   const { year, month, day } = melbourneWallDate(ms);
@@ -61,6 +63,30 @@ export async function getCurrentBrief(
   if (anyToday) return { brief: anyToday, slot, fallback: false };
 
   return { brief: null, slot, fallback: true };
+}
+
+export async function getTodayBraindump(
+  userId: string,
+  nowMs: number = Date.now(),
+): Promise<BraindumpRow | null> {
+  const { startMs, endMs } = melbourneStartAndEndOfDay(nowMs);
+
+  const row = await db
+    .select()
+    .from(braindumps)
+    .where(
+      and(
+        eq(braindumps.created_by, userId),
+        gte(braindumps.created_at_ms, startMs),
+        lte(braindumps.created_at_ms, endMs),
+        isNotNull(braindumps.committed_at_ms),
+      ),
+    )
+    .orderBy(desc(braindumps.created_at_ms))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+
+  return row;
 }
 
 export async function getTodayCalendarEvents(nowMs: number = Date.now()) {

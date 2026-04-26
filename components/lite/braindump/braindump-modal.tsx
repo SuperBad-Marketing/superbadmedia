@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X, Trash2, ArrowLeft, ChevronDown } from "lucide-react";
+import { X, ArrowLeft, ChevronDown, Image, Video, CheckSquare } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
 import { formatTimestamp } from "@/lib/format-timestamp";
 import {
@@ -11,11 +11,20 @@ import {
   type TaskKind,
   type TaskPriority,
 } from "@/lib/tasks/types";
-import type { ParsedTask, SurfaceContext, EntityCandidate } from "@/lib/ai/parse-braindump";
+import { CONTENT_TYPES, type ContentType } from "@/lib/db/schema/content-studio";
+import { PILLAR_SLUGS, SCRIPT_FORMATS, type PillarSlug, type ScriptFormat } from "@/lib/db/schema/talking-head";
+import type {
+  ParsedTask,
+  ParsedContentIdea,
+  ParsedScriptIdea,
+  SurfaceContext,
+} from "@/lib/ai/parse-braindump";
 import {
   parseBraindumpAction,
   commitBraindumpAction,
   type CommitTask,
+  type CommitContentIdea,
+  type CommitScriptIdea,
 } from "@/app/lite/tasks/braindump-actions";
 import { searchEntitiesAction } from "@/app/lite/tasks/actions";
 
@@ -45,10 +54,33 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
   low: "Low",
 };
 
+const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+  announcement: "Announcement",
+  anti_motivation: "Anti-motivation",
+  portfolio: "Portfolio",
+  tips: "Tips",
+  testimonial: "Testimonial",
+  behind_the_scenes: "Behind the scenes",
+};
+
+const PILLAR_LABELS: Record<PillarSlug, string> = {
+  agency_wont_say: "Agency won't say",
+  shooting_small_business: "Shooting small biz",
+  marketing_doesnt_work: "Marketing doesn't work",
+  uncomfortable_truth: "Uncomfortable truth",
+  if_i_were_brand: "If I were [brand]",
+  overheard_in_marketing: "Overheard in marketing",
+};
+
+const FORMAT_LABELS: Record<ScriptFormat, string> = {
+  short: "Short (30-90s)",
+  mid: "Mid (2-5min)",
+};
+
 type ModalPhase = "input" | "parsing" | "review" | "committing";
 
 // ---------------------------------------------------------------------------
-// Natural-language date parsing (same as task-detail-drawer)
+// Natural-language date parsing
 // ---------------------------------------------------------------------------
 
 function parseNaturalDate(input: string): number | null {
@@ -102,7 +134,7 @@ function ConfidenceDot({ value }: { value: number }) {
   return (
     <span
       aria-label={`Confidence: ${Math.round(value * 100)}%`}
-      className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+      className="inline-block size-1.5 shrink-0 rounded-full"
       style={{ backgroundColor: color }}
     />
   );
@@ -129,7 +161,7 @@ function InlineSelect<T extends string>({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="appearance-none border-none bg-transparent font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-300)] outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] rounded-sm cursor-pointer pr-4"
+        className="cursor-pointer appearance-none border-none bg-transparent pr-4 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-300)] outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] rounded-sm"
         style={{
           color: options.find((o) => o.value === value)?.color ?? undefined,
         }}
@@ -145,6 +177,24 @@ function InlineSelect<T extends string>({
         className="pointer-events-none absolute right-0 text-[color:var(--color-neutral-500)]"
       />
     </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Section label
+// ---------------------------------------------------------------------------
+
+function SectionLabel({ icon, label, count }: { icon: React.ReactNode; label: string; count: number }) {
+  return (
+    <div className="flex items-center gap-2 pb-2 pt-3 first:pt-0">
+      <span className="text-[color:var(--color-neutral-500)]">{icon}</span>
+      <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[2px] text-[color:var(--color-neutral-500)]">
+        {label}
+      </span>
+      <span className="font-[family-name:var(--font-label)] text-[10px] tabular-nums text-[color:var(--color-neutral-500)]">
+        {count}
+      </span>
+    </div>
   );
 }
 
@@ -224,7 +274,6 @@ function ProtoTaskCard({
       transition={houseSpring}
       className="relative rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] p-4"
     >
-      {/* Title */}
       <div className="mb-3 flex items-start gap-2">
         <ConfidenceDot value={task.confidence.title} />
         <input
@@ -246,7 +295,6 @@ function ProtoTaskCard({
         </button>
       </div>
 
-      {/* Kind + Priority + Due row */}
       <div className="flex flex-wrap items-center gap-4 text-[length:var(--text-small)]">
         <InlineSelect
           value={task.kind}
@@ -282,7 +330,6 @@ function ProtoTaskCard({
         </span>
       </div>
 
-      {/* Entity link */}
       <div className="mt-2 flex items-center gap-1 text-[length:var(--text-small)]">
         <ConfidenceDot value={task.confidence.entity} />
         {task.entity_name ? (
@@ -324,14 +371,13 @@ function ProtoTaskCard({
               setTimeout(() => entitySearchRef.current?.focus(), 50);
             }}
             disabled={disabled}
-            className="font-[family-name:var(--font-dm-sans)] text-[color:var(--color-neutral-500)] outline-none hover:text-[color:var(--color-neutral-300)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] rounded-sm"
+            className="rounded-sm font-[family-name:var(--font-dm-sans)] text-[color:var(--color-neutral-500)] outline-none hover:text-[color:var(--color-neutral-300)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
           >
             + link entity
           </button>
         )}
       </div>
 
-      {/* Entity alternatives dropdown */}
       <AnimatePresence>
         {showAlternatives && hasAlternatives && (
           <motion.div
@@ -365,7 +411,6 @@ function ProtoTaskCard({
         )}
       </AnimatePresence>
 
-      {/* Entity search */}
       <AnimatePresence>
         {showEntitySearch && !task.entity_name && (
           <motion.div
@@ -417,6 +462,155 @@ function ProtoTaskCard({
 }
 
 // ---------------------------------------------------------------------------
+// Content idea card
+// ---------------------------------------------------------------------------
+
+function ContentIdeaCard({
+  idea,
+  onUpdate,
+  onDelete,
+  disabled,
+}: {
+  idea: ParsedContentIdea;
+  onUpdate: (updates: Partial<ParsedContentIdea>) => void;
+  onDelete: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+      transition={houseSpring}
+      className="relative rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] p-4"
+    >
+      <div className="mb-3 flex items-start gap-2">
+        <ConfidenceDot value={idea.confidence} />
+        <textarea
+          value={idea.brief}
+          onChange={(e) => onUpdate({ brief: e.target.value })}
+          disabled={disabled}
+          rows={2}
+          className="flex-1 resize-none bg-transparent font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none placeholder:text-[color:var(--color-neutral-500)] focus-visible:border-b focus-visible:border-[color:var(--color-accent-cta)]"
+          placeholder="Content brief"
+        />
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={disabled}
+          aria-label="Remove content idea"
+          className="shrink-0 rounded-sm p-1 text-[color:var(--color-neutral-500)] outline-none transition-colors hover:text-[color:var(--color-brand-red)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
+        >
+          <X size={14} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4 text-[length:var(--text-small)]">
+        <InlineSelect
+          value={idea.content_type}
+          options={CONTENT_TYPES.map((t) => ({
+            value: t,
+            label: CONTENT_TYPE_LABELS[t],
+          }))}
+          onChange={(v) => onUpdate({ content_type: v })}
+        />
+        <span className="inline-flex items-center gap-1.5">
+          <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-500)]">
+            Slides
+          </span>
+          <select
+            value={idea.slide_count}
+            onChange={(e) => onUpdate({ slide_count: Number(e.target.value) })}
+            disabled={disabled}
+            className="cursor-pointer appearance-none border-none bg-transparent pr-3 font-[family-name:var(--font-label)] text-[10px] tabular-nums text-[color:var(--color-neutral-300)] outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] rounded-sm"
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n === 1 ? "Single" : `${n} slides`}
+              </option>
+            ))}
+          </select>
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Script idea card
+// ---------------------------------------------------------------------------
+
+function ScriptIdeaCard({
+  idea,
+  onUpdate,
+  onDelete,
+  disabled,
+}: {
+  idea: ParsedScriptIdea;
+  onUpdate: (updates: Partial<ParsedScriptIdea>) => void;
+  onDelete: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+      transition={houseSpring}
+      className="relative rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] p-4"
+    >
+      <div className="mb-2 flex items-start gap-2">
+        <ConfidenceDot value={idea.confidence} />
+        <input
+          type="text"
+          value={idea.topic}
+          onChange={(e) => onUpdate({ topic: e.target.value })}
+          disabled={disabled}
+          className="flex-1 bg-transparent font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none placeholder:text-[color:var(--color-neutral-500)] focus-visible:border-b focus-visible:border-[color:var(--color-accent-cta)]"
+          placeholder="Script topic"
+        />
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={disabled}
+          aria-label="Remove script idea"
+          className="shrink-0 rounded-sm p-1 text-[color:var(--color-neutral-500)] outline-none transition-colors hover:text-[color:var(--color-brand-red)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
+        >
+          <X size={14} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {idea.angle && (
+        <p className="mb-3 pl-3.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-400)]">
+          {idea.angle}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-4 text-[length:var(--text-small)]">
+        <InlineSelect
+          value={idea.pillar}
+          options={PILLAR_SLUGS.map((p) => ({
+            value: p,
+            label: PILLAR_LABELS[p],
+          }))}
+          onChange={(v) => onUpdate({ pillar: v })}
+        />
+        <InlineSelect
+          value={idea.format}
+          options={SCRIPT_FORMATS.map((f) => ({
+            value: f,
+            label: FORMAT_LABELS[f],
+          }))}
+          onChange={(v) => onUpdate({ format: v })}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Shimmer loading state
 // ---------------------------------------------------------------------------
 
@@ -430,8 +624,8 @@ function ParseShimmer() {
           style={{ animationDelay: `${i * 200}ms` }}
         />
       ))}
-      <p className="text-center font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
-        parsing…
+      <p className="text-center text-pretty font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
+        parsing your brain…
       </p>
     </div>
   );
@@ -452,8 +646,12 @@ export function BraindumpModal({
   const [phase, setPhase] = React.useState<ModalPhase>("input");
   const [rawText, setRawText] = React.useState("");
   const [tasks, setTasks] = React.useState<ParsedTask[]>([]);
+  const [contentIdeas, setContentIdeas] = React.useState<ParsedContentIdea[]>([]);
+  const [scriptIdeas, setScriptIdeas] = React.useState<ParsedScriptIdea[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const totalItems = tasks.length + contentIdeas.length + scriptIdeas.length;
 
   React.useEffect(() => {
     if (phase === "input") {
@@ -483,6 +681,8 @@ export function BraindumpModal({
       return;
     }
     setTasks(result.data.tasks);
+    setContentIdeas(result.data.content_ideas);
+    setScriptIdeas(result.data.script_ideas);
     setPhase("review");
   }, [rawText, surfaceContext]);
 
@@ -509,10 +709,37 @@ export function BraindumpModal({
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const handleUpdateContent = React.useCallback(
+    (id: string, updates: Partial<ParsedContentIdea>) => {
+      setContentIdeas((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+      );
+    },
+    [],
+  );
+
+  const handleDeleteContent = React.useCallback((id: string) => {
+    setContentIdeas((prev) => prev.filter((c) => c.id !== id));
+  }, []);
+
+  const handleUpdateScript = React.useCallback(
+    (id: string, updates: Partial<ParsedScriptIdea>) => {
+      setScriptIdeas((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+      );
+    },
+    [],
+  );
+
+  const handleDeleteScript = React.useCallback((id: string) => {
+    setScriptIdeas((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
   const handleCommit = React.useCallback(async () => {
-    if (tasks.length === 0) return;
+    if (totalItems === 0) return;
     setPhase("committing");
     setError(null);
+
     const commitTasks: CommitTask[] = tasks.map((t) => ({
       title: t.title,
       kind: t.kind,
@@ -522,22 +749,41 @@ export function BraindumpModal({
       entity_id: t.entity_id,
       checklist: t.checklist,
     }));
+
+    const commitContent: CommitContentIdea[] = contentIdeas.map((c) => ({
+      brief: c.brief,
+      content_type: c.content_type,
+      slide_count: c.slide_count,
+    }));
+
+    const commitScripts: CommitScriptIdea[] = scriptIdeas.map((s) => ({
+      topic: s.topic,
+      pillar: s.pillar,
+      format: s.format,
+      angle: s.angle,
+    }));
+
     const result = await commitBraindumpAction(
       rawText,
       surfaceContext,
       commitTasks,
+      commitContent,
+      commitScripts,
     );
+
     if (!result.ok) {
       setError(result.error);
       setPhase("review");
       return;
     }
     onClose();
-  }, [tasks, rawText, surfaceContext, onClose]);
+  }, [tasks, contentIdeas, scriptIdeas, totalItems, rawText, surfaceContext, onClose]);
 
   const handleBack = React.useCallback(() => {
     setPhase("input");
     setTasks([]);
+    setContentIdeas([]);
+    setScriptIdeas([]);
   }, []);
 
   const isLocked = phase === "parsing" || phase === "committing";
@@ -613,8 +859,8 @@ export function BraindumpModal({
                 onChange={(e) => setRawText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isLocked}
-                placeholder="dump it. we'll file it."
-                rows={6}
+                placeholder="dump it. tasks, content ideas, video topics — we'll sort it."
+                rows={8}
                 className="w-full resize-none rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-2)] p-4 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none placeholder:italic placeholder:text-[color:var(--color-neutral-500)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] disabled:opacity-50"
               />
               {phase === "parsing" && (
@@ -627,21 +873,82 @@ export function BraindumpModal({
 
           {/* Review phase */}
           {(phase === "review" || phase === "committing") && (
-            <div className="flex flex-col gap-3">
-              <AnimatePresence mode="popLayout">
-                {tasks.map((task) => (
-                  <ProtoTaskCard
-                    key={task.id}
-                    task={task}
-                    onUpdate={(updates) => handleUpdateTask(task.id, updates)}
-                    onDelete={() => handleDeleteTask(task.id)}
-                    disabled={phase === "committing"}
+            <div className="flex flex-col gap-1">
+              {/* Tasks section */}
+              {tasks.length > 0 && (
+                <div>
+                  <SectionLabel
+                    icon={<CheckSquare size={12} strokeWidth={1.5} />}
+                    label="Tasks"
+                    count={tasks.length}
                   />
-                ))}
-              </AnimatePresence>
-              {tasks.length === 0 && (
-                <p className="py-8 text-center font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
-                  no tasks parsed. try again?
+                  <div className="flex flex-col gap-2">
+                    <AnimatePresence mode="popLayout">
+                      {tasks.map((task) => (
+                        <ProtoTaskCard
+                          key={task.id}
+                          task={task}
+                          onUpdate={(updates) => handleUpdateTask(task.id, updates)}
+                          onDelete={() => handleDeleteTask(task.id)}
+                          disabled={phase === "committing"}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+
+              {/* Content ideas section */}
+              {contentIdeas.length > 0 && (
+                <div>
+                  <SectionLabel
+                    icon={<Image size={12} strokeWidth={1.5} />}
+                    label="Content Studio"
+                    count={contentIdeas.length}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <AnimatePresence mode="popLayout">
+                      {contentIdeas.map((idea) => (
+                        <ContentIdeaCard
+                          key={idea.id}
+                          idea={idea}
+                          onUpdate={(updates) => handleUpdateContent(idea.id, updates)}
+                          onDelete={() => handleDeleteContent(idea.id)}
+                          disabled={phase === "committing"}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+
+              {/* Script ideas section */}
+              {scriptIdeas.length > 0 && (
+                <div>
+                  <SectionLabel
+                    icon={<Video size={12} strokeWidth={1.5} />}
+                    label="Script Studio"
+                    count={scriptIdeas.length}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <AnimatePresence mode="popLayout">
+                      {scriptIdeas.map((idea) => (
+                        <ScriptIdeaCard
+                          key={idea.id}
+                          idea={idea}
+                          onUpdate={(updates) => handleUpdateScript(idea.id, updates)}
+                          onDelete={() => handleDeleteScript(idea.id)}
+                          disabled={phase === "committing"}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+
+              {totalItems === 0 && (
+                <p className="py-8 text-center text-pretty font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
+                  nothing parsed. try again?
                 </p>
               )}
             </div>
@@ -653,7 +960,7 @@ export function BraindumpModal({
           {phase === "input" && (
             <>
               <span className="mr-auto font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]">
-                ⌘⇧D or ⌘↵ to parse
+                ⌘↵ to parse
               </span>
               <button
                 type="button"
@@ -683,8 +990,8 @@ export function BraindumpModal({
           )}
           {phase === "review" && (
             <>
-              <span className="mr-auto font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]">
-                {tasks.length} task{tasks.length !== 1 ? "s" : ""}
+              <span className="mr-auto font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] tabular-nums text-[color:var(--color-neutral-500)]">
+                {totalItems} item{totalItems !== 1 ? "s" : ""}
               </span>
               <button
                 type="button"
@@ -696,7 +1003,7 @@ export function BraindumpModal({
               <button
                 type="button"
                 onClick={handleCommit}
-                disabled={tasks.length === 0}
+                disabled={totalItems === 0}
                 className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] disabled:opacity-40"
               >
                 Commit
