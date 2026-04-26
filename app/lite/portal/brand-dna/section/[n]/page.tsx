@@ -11,7 +11,7 @@ import {
 } from "@/lib/brand-dna/question-bank";
 
 import { QuestionCardClient } from "@/app/lite/brand-dna/section/[n]/question-card-client";
-import { submitPortalAnswer } from "../../actions";
+import { submitPortalAnswer, restartPortalAssessment } from "../../actions";
 
 /**
  * Portal Brand DNA — card-per-question page.
@@ -107,6 +107,7 @@ export default async function PortalBrandDnaSectionPage({
       sectionTitle={sectionTitle}
       track={track}
       submitAction={submitPortalAnswer}
+      restartAction={restartPortalAssessment}
     />
   );
 }

@@ -351,6 +351,68 @@ export async function markPortalProfileComplete(
   });
 }
 
+// ── restartPortalAssessment ────────────────────────────────────────────────
+
+export async function restartPortalAssessment(
+  formData: FormData,
+): Promise<void> {
+  if (!isAssessmentEnabled()) {
+    redirect("/lite/portal");
+  }
+
+  const session = await requirePortalSession();
+
+  const profileId = formData.get("profileId");
+  if (!profileId || typeof profileId !== "string") {
+    redirect("/lite/portal/brand-dna");
+  }
+
+  const rows = await db
+    .select({
+      id: brand_dna_profiles.id,
+      status: brand_dna_profiles.status,
+      contact_id: brand_dna_profiles.contact_id,
+    })
+    .from(brand_dna_profiles)
+    .where(eq(brand_dna_profiles.id, profileId))
+    .limit(1);
+
+  const profile = rows[0];
+  if (!profile || profile.contact_id !== session.contactId) {
+    redirect("/lite/portal/brand-dna");
+  }
+  if (profile.status === "complete") {
+    redirect("/lite/portal/brand-dna/profile");
+  }
+
+  await db
+    .delete(brand_dna_answers)
+    .where(eq(brand_dna_answers.profile_id, profileId));
+
+  await db
+    .update(brand_dna_profiles)
+    .set({
+      current_section: 1,
+      signal_tags: null,
+      section_insights: null,
+      first_impression: null,
+      prose_portrait: null,
+      reflection_text: null,
+      status: "pending",
+      updated_at_ms: Date.now(),
+    })
+    .where(eq(brand_dna_profiles.id, profileId));
+
+  await logActivity({
+    kind: "assessment_restarted",
+    body: "Brand DNA assessment restarted from the beginning",
+    contactId: session.contactId,
+    companyId: session.clientId ?? undefined,
+  });
+
+  redirect(`/lite/portal/brand-dna?profileId=${profileId}`);
+}
+
 // ── getPortalProfileId ──────────────────────────────────────────────────────
 
 export async function getPortalProfileId(): Promise<string | null> {

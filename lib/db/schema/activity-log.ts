@@ -107,7 +107,8 @@ export const ACTIVITY_LOG_KINDS = [
   "invoice_paid_online",
   "invoice_superseded",
   "invoice_voided",
-  // --- Brand DNA Assessment (8) ---
+  // --- Brand DNA Assessment (9) ---
+  "assessment_restarted",
   "assessment_started",
   "section_completed",
   "assessment_completed",

@@ -41,6 +41,7 @@ interface QuestionCardClientProps {
   track: string | null;
   submitAction: (formData: FormData) => Promise<void>;
   goBackAction?: (formData: FormData) => Promise<void>;
+  restartAction?: (formData: FormData) => Promise<void>;
 }
 
 const OPTION_KEYS = ["a", "b", "c", "d"] as const;
@@ -55,9 +56,11 @@ export function QuestionCardClient({
   track,
   submitAction,
   goBackAction,
+  restartAction,
 }: QuestionCardClientProps) {
   const [selected, setSelected] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
+  const [confirmRestart, setConfirmRestart] = React.useState(false);
   const canGoBack = goBackAction && (questionIndex > 0 || section > 1);
 
   // Defect-fix: when the page redirects to the next question, the layout is
@@ -67,6 +70,7 @@ export function QuestionCardClient({
   React.useEffect(() => {
     setSelected(null);
     setPending(false);
+    setConfirmRestart(false);
   }, [question.id]);
 
   async function handleSelect(optionKey: string) {
@@ -97,6 +101,17 @@ export function QuestionCardClient({
     fd.set("questionIndex", String(questionIndex));
 
     await goBackAction(fd);
+    setPending(false);
+  }
+
+  async function handleRestart() {
+    if (pending || !restartAction) return;
+    setPending(true);
+
+    const fd = new FormData();
+    fd.set("profileId", profileId);
+
+    await restartAction(fd);
     setPending(false);
   }
 
@@ -194,34 +209,116 @@ export function QuestionCardClient({
           })}
         </div>
 
-        {canGoBack && (
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => void handleGoBack()}
-            className="bda-back-btn"
-            style={{
-              alignSelf: "flex-start",
-              fontFamily: "var(--font-label)",
-              fontSize: 11,
-              letterSpacing: "1.5px",
-              textTransform: "uppercase",
-              color: "var(--neutral-500)",
-              background: "transparent",
-              border: "none",
-              cursor: pending ? "default" : "pointer",
-              padding: "8px 0",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              opacity: pending ? 0.4 : 1,
-              transition: "color 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          >
-            <span aria-hidden="true" style={{ fontSize: 14 }}>←</span>
-            Back
-          </button>
-        )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {canGoBack ? (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => void handleGoBack()}
+              className="bda-back-btn"
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: 11,
+                letterSpacing: "1.5px",
+                textTransform: "uppercase",
+                color: "var(--neutral-500)",
+                background: "transparent",
+                border: "none",
+                cursor: pending ? "default" : "pointer",
+                padding: "8px 0",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                opacity: pending ? 0.4 : 1,
+                transition: "color 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            >
+              <span aria-hidden="true" style={{ fontSize: 14 }}>←</span>
+              Back
+            </button>
+          ) : <span />}
+
+          {restartAction && (
+            confirmRestart ? (
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  fontFamily: "var(--font-label)",
+                  fontSize: 11,
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  color: "var(--neutral-500)",
+                }}
+              >
+                <span>Clear all answers?</span>
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => void handleRestart()}
+                  className="bda-restart-confirm-btn"
+                  style={{
+                    fontFamily: "var(--font-label)",
+                    fontSize: 11,
+                    letterSpacing: "1.5px",
+                    textTransform: "uppercase",
+                    color: "var(--brand-pink)",
+                    background: "transparent",
+                    border: "none",
+                    cursor: pending ? "default" : "pointer",
+                    padding: "8px 0",
+                    opacity: pending ? 0.4 : 1,
+                    transition: "color 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}
+                >
+                  Yes, start over
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmRestart(false)}
+                  className="bda-restart-cancel-btn"
+                  style={{
+                    fontFamily: "var(--font-label)",
+                    fontSize: 11,
+                    letterSpacing: "1.5px",
+                    textTransform: "uppercase",
+                    color: "var(--neutral-500)",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "8px 0",
+                    transition: "color 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}
+                >
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => setConfirmRestart(true)}
+                className="bda-restart-btn"
+                style={{
+                  fontFamily: "var(--font-label)",
+                  fontSize: 11,
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  color: "var(--neutral-500)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: pending ? "default" : "pointer",
+                  padding: "8px 0",
+                  opacity: pending ? 0.4 : 1,
+                  transition: "color 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+                }}
+              >
+                Start over
+              </button>
+            )
+          )}
+        </div>
       </motion.div>
 
       <style jsx>{`
@@ -235,6 +332,12 @@ export function QuestionCardClient({
         }
         :global(.bda-back-btn:hover:not(:disabled)) {
           color: var(--brand-pink) !important;
+        }
+        :global(.bda-restart-btn:hover:not(:disabled)) {
+          color: var(--brand-cream) !important;
+        }
+        :global(.bda-restart-cancel-btn:hover) {
+          color: var(--brand-cream) !important;
         }
       `}</style>
     </main>

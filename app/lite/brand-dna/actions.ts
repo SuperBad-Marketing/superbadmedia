@@ -463,6 +463,66 @@ export async function goBack(formData: FormData): Promise<void> {
   redirect(`/lite/brand-dna/section/${section}?profileId=${profileId}`);
 }
 
+// ── restartAssessment ─────────────────────────────────────────────────────
+
+export async function restartAssessment(formData: FormData): Promise<void> {
+  if (!isAssessmentEnabled()) {
+    redirect("/lite/brand-dna");
+  }
+
+  const session = await auth();
+  if (!session?.user?.id || session.user.role !== "admin") {
+    redirect("/api/auth/signin");
+  }
+
+  const profileId = formData.get("profileId");
+  if (!profileId || typeof profileId !== "string") {
+    redirect("/lite/brand-dna");
+  }
+
+  const rows = await db
+    .select({
+      id: brand_dna_profiles.id,
+      status: brand_dna_profiles.status,
+    })
+    .from(brand_dna_profiles)
+    .where(eq(brand_dna_profiles.id, profileId))
+    .limit(1);
+
+  const profile = rows[0];
+  if (!profile) {
+    redirect("/lite/brand-dna");
+  }
+  if (profile.status === "complete") {
+    redirect("/lite/brand-dna/reveal");
+  }
+
+  await db
+    .delete(brand_dna_answers)
+    .where(eq(brand_dna_answers.profile_id, profileId));
+
+  await db
+    .update(brand_dna_profiles)
+    .set({
+      current_section: 1,
+      signal_tags: null,
+      section_insights: null,
+      first_impression: null,
+      prose_portrait: null,
+      reflection_text: null,
+      status: "pending",
+      updated_at_ms: Date.now(),
+    })
+    .where(eq(brand_dna_profiles.id, profileId));
+
+  await logActivity({
+    kind: "assessment_restarted",
+    body: "Brand DNA assessment restarted from the beginning",
+  });
+
+  redirect(`/lite/brand-dna?profileId=${profileId}`);
+}
+
 // ── Exported helpers (for section page to read profile ID without auth) ───────
 
 /**
