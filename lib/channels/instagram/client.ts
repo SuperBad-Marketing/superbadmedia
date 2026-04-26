@@ -21,10 +21,11 @@ async function callApi<T = unknown>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const fullUrl =
-    method === "GET" && !url.includes("access_token")
-      ? `${url}${url.includes("?") ? "&" : "?"}access_token=${accessToken}`
-      : url;
+  const parsed = new URL(url);
+  if (method === "GET" && !parsed.searchParams.has("access_token")) {
+    parsed.searchParams.set("access_token", accessToken);
+  }
+  const fullUrl = parsed.toString();
 
   const init: RequestInit = { method, headers };
   if (method === "POST" && body) {
