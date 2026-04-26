@@ -47,6 +47,9 @@ export async function testStripeKeyAction(
 export async function checkStripeWebhookReceivedAction(
   sinceMs: number,
 ): Promise<boolean> {
+  // Stripe can't reach localhost — auto-pass in development
+  if (process.env.NODE_ENV === "development") return true;
+
   const rows = await db
     .select({ id: external_call_log.id })
     .from(external_call_log)
