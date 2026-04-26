@@ -64,7 +64,7 @@ async function discoverInstagramAccount(
   }
 
   for (const page of pagesResult.data.data) {
-    const igResult = await getInstagramAccountFromPage(page.id, accessToken);
+    const igResult = await getInstagramAccountFromPage(page.id, page.access_token);
     if (!igResult.ok) continue;
     const igBizAccount = igResult.data?.instagram_business_account;
     if (!igBizAccount?.id) continue;

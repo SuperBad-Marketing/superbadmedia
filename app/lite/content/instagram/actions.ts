@@ -61,14 +61,26 @@ export async function retryInstagramDiscoveryAction(): Promise<
     };
   }
 
+  const diagnostics: string[] = [];
   for (const page of pagesResult.data.data) {
-    const igResult = await getInstagramAccountFromPage(page.id, accessToken);
-    if (!igResult.ok) continue;
+    diagnostics.push(`Page: ${page.name} (${page.id})`);
+    const igResult = await getInstagramAccountFromPage(page.id, page.access_token);
+    if (!igResult.ok) {
+      diagnostics.push(`  → getInstagramAccountFromPage failed: ${igResult.error}`);
+      continue;
+    }
     const igBizAccount = igResult.data?.instagram_business_account;
-    if (!igBizAccount?.id) continue;
+    if (!igBizAccount?.id) {
+      diagnostics.push(`  → No instagram_business_account field in response: ${JSON.stringify(igResult.data)}`);
+      continue;
+    }
+    diagnostics.push(`  → Found IG Business Account: ${igBizAccount.id}`);
 
     const infoResult = await getAccountInfo(igBizAccount.id, page.access_token);
-    if (!infoResult.ok) continue;
+    if (!infoResult.ok) {
+      diagnostics.push(`  → getAccountInfo failed: ${infoResult.error}`);
+      continue;
+    }
 
     const existing = await db.query.instagram_accounts.findFirst({
       where: (t, { eq: e }) => e(t.instagram_user_id, igBizAccount.id),
@@ -102,7 +114,7 @@ export async function retryInstagramDiscoveryAction(): Promise<
 
   return {
     ok: false,
-    error: "No Instagram Business Account found on your Facebook Pages. Link one in Meta Business Suite first.",
+    error: `No Instagram Business Account found. Debug: ${diagnostics.join(" | ")}`,
   };
 }
 
