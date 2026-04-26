@@ -175,7 +175,7 @@ describe("defaultSupplier", () => {
       const s = defaultSupplier();
       expect(s.name).toBe("SuperBad Media Pty Ltd");
       expect(s.abn).toBe("ABN to confirm");
-      expect(s.email).toBe("hi@superbadmedia.com.au");
+      expect(s.email).toBe("andy@superbadmedia.com.au");
     } finally {
       if (prevAbn !== undefined) process.env.SUPERBAD_ABN = prevAbn;
       if (prevEmail !== undefined) process.env.SUPERBAD_BILLING_EMAIL = prevEmail;

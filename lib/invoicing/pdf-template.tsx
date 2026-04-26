@@ -70,7 +70,7 @@ export function defaultSupplier(): SupplierProfile {
   return {
     name: "SuperBad Media Pty Ltd",
     abn: process.env.SUPERBAD_ABN ?? "ABN to confirm",
-    email: process.env.SUPERBAD_BILLING_EMAIL ?? "hi@superbadmedia.com.au",
+    email: process.env.SUPERBAD_BILLING_EMAIL ?? "andy@superbadmedia.com.au",
   };
 }
 

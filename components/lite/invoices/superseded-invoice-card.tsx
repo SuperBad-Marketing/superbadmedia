@@ -62,7 +62,7 @@ export function SupersededInvoiceCard(props: {
           </>
         ) : (
           <p className="mt-4 text-sm text-[#6b6b6b]">
-            Reach Andy at hi@superbadmedia.com.au if this looks wrong.
+            Reach Andy at andy@superbadmedia.com.au if this looks wrong.
           </p>
         )}
       </div>

@@ -106,8 +106,8 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
   // --- Send via Resend ---
   const from = process.env.EMAIL_FROM_NAME
-    ? `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM ?? "noreply@superbadmedia.com.au"}>`
-    : (process.env.EMAIL_FROM ?? "noreply@superbadmedia.com.au");
+    ? `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM ?? "support@superbadmedia.com.au"}>`
+    : (process.env.EMAIL_FROM ?? "support@superbadmedia.com.au");
 
   const html = wrapEmailHtml(body);
 
