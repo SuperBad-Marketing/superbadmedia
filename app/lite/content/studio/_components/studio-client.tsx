@@ -25,6 +25,7 @@ import { PostPreview } from "./post-preview";
 import { PostHistory } from "./post-history";
 import { MotionPreview, type MotionPostData } from "./motion-preview";
 import { InspirationPanel } from "./inspiration-panel";
+import { GenerationProgress } from "./generation-progress";
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   announcement: "Announcement",
@@ -80,79 +81,86 @@ export function StudioClient() {
     }
     setGenerating(true);
 
-    if (motionEnabled) {
-      const templateId = selectedMotionTemplate ?? ALL_MOTION_TEMPLATES[0]?.id;
-      if (!templateId) {
-        toast.error("No motion template available.");
-        setGenerating(false);
+    try {
+      if (motionEnabled) {
+        const templateId = selectedMotionTemplate ?? ALL_MOTION_TEMPLATES[0]?.id;
+        if (!templateId) {
+          toast.error("No motion template available.");
+          return;
+        }
+
+        const result = await createMotionPostAction({
+          brief: brief.trim(),
+          contentType,
+          motionTemplateId: templateId,
+          slideCount,
+        });
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        setMotionPost({
+          id: result.postId,
+          motionTemplateId: result.motionTemplateId,
+          slides: result.slides,
+          brief: brief.trim(),
+          paletteId: result.paletteId,
+          animationParams: result.animationParams,
+          primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
+        });
+        setView("preview");
+        toast.success("Motion post generated.");
         return;
       }
 
-      const result = await createMotionPostAction({
+      const result = await createPostAction({
         brief: brief.trim(),
         contentType,
-        motionTemplateId: templateId,
         slideCount,
       });
-      setGenerating(false);
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      setMotionPost({
+      setActivePost({
         id: result.postId,
-        motionTemplateId: result.motionTemplateId,
+        templateId: result.templateId,
         slides: result.slides,
+        contentType,
         brief: brief.trim(),
-        paletteId: result.paletteId,
-        animationParams: result.animationParams,
-        primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
       });
+      setMotionPost(null);
       setView("preview");
-      toast.success("Motion post generated.");
-      return;
+      toast.success(
+        result.slideCount > 1
+          ? `${result.slideCount}-slide carousel generated.`
+          : "Copy generated.",
+      );
+    } catch {
+      toast.error("Generation failed. Try again.");
+    } finally {
+      setGenerating(false);
     }
-
-    const result = await createPostAction({
-      brief: brief.trim(),
-      contentType,
-      slideCount,
-    });
-    setGenerating(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    setActivePost({
-      id: result.postId,
-      templateId: result.templateId,
-      slides: result.slides,
-      contentType,
-      brief: brief.trim(),
-    });
-    setMotionPost(null);
-    setView("preview");
-    toast.success(
-      result.slideCount > 1
-        ? `${result.slideCount}-slide carousel generated.`
-        : "Copy generated.",
-    );
   }, [brief, contentType, slideCount, motionEnabled, selectedMotionTemplate]);
 
   const handleCorrect = useCallback(
     async (correction: string, slideIndex?: number) => {
       if (!activePost) return;
-      const result = await correctCopyAction({
-        postId: activePost.id,
-        correction,
-        slideIndex,
-      });
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await correctCopyAction({
+          postId: activePost.id,
+          correction,
+          slideIndex,
+        });
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        setActivePost((prev) => (prev ? { ...prev, slides: result.slides } : null));
+        toast.success("Copy updated.");
+      } catch {
+        toast.error("Correction failed. Try again.");
       }
-      setActivePost((prev) => (prev ? { ...prev, slides: result.slides } : null));
-      toast.success("Copy updated.");
     },
     [activePost],
   );
@@ -160,17 +168,21 @@ export function StudioClient() {
   const handleRender = useCallback(
     async (ratios: AspectRatio[], platforms: string) => {
       if (!activePost) return;
-      const result = await renderPostAction({
-        postId: activePost.id,
-        ratios,
-        platforms,
-      });
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await renderPostAction({
+          postId: activePost.id,
+          ratios,
+          platforms,
+        });
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success(`${result.renders.length} render${result.renders.length === 1 ? "" : "s"} complete.`);
+        return result.renders;
+      } catch {
+        toast.error("Rendering failed. Try again.");
       }
-      toast.success(`${result.renders.length} render${result.renders.length === 1 ? "" : "s"} complete.`);
-      return result.renders;
     },
     [activePost],
   );
@@ -178,16 +190,20 @@ export function StudioClient() {
   const handleChangeTemplate = useCallback(
     async (templateId: string) => {
       if (!activePost) return;
-      const result = await changeTemplateAction({
-        postId: activePost.id,
-        templateId,
-      });
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await changeTemplateAction({
+          postId: activePost.id,
+          templateId,
+        });
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        setActivePost((prev) => (prev ? { ...prev, templateId } : null));
+        toast.success("Template changed.");
+      } catch {
+        toast.error("Template change failed. Try again.");
       }
-      setActivePost((prev) => (prev ? { ...prev, templateId } : null));
-      toast.success("Template changed.");
     },
     [activePost],
   );
@@ -197,7 +213,9 @@ export function StudioClient() {
     (slides: SlideCopy[]) => {
       if (!motionPost) return;
       setMotionPost((prev) => (prev ? { ...prev, slides } : null));
-      updateMotionPostAction({ postId: motionPost.id, slides });
+      updateMotionPostAction({ postId: motionPost.id, slides }).catch(() =>
+        toast.error("Failed to save copy changes."),
+      );
     },
     [motionPost],
   );
@@ -206,7 +224,9 @@ export function StudioClient() {
     (paletteId: string) => {
       if (!motionPost) return;
       setMotionPost((prev) => (prev ? { ...prev, paletteId } : null));
-      updateMotionPostAction({ postId: motionPost.id, paletteId });
+      updateMotionPostAction({ postId: motionPost.id, paletteId }).catch(() =>
+        toast.error("Failed to save palette change."),
+      );
     },
     [motionPost],
   );
@@ -220,7 +240,7 @@ export function StudioClient() {
       updateMotionPostAction({
         postId: motionPost.id,
         primaryAspectRatio: ratio,
-      });
+      }).catch(() => toast.error("Failed to save aspect ratio change."));
     },
     [motionPost],
   );
@@ -538,6 +558,11 @@ export function StudioClient() {
                     ? `Generate ${slideCount} slides`
                     : "Generate"}
             </button>
+
+            <GenerationProgress
+              active={generating}
+              isMotion={motionEnabled}
+            />
           </div>
         )}
 
