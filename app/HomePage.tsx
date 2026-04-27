@@ -463,6 +463,21 @@ export default function HomePage() {
                 <span style={{ color: "var(--brand-red)" }}>.</span>
               </>
             }
+            honestSub={
+              <p
+                className="text-pretty"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "clamp(16px, 1.8vw, 22px)",
+                  lineHeight: 1.6,
+                  color: "var(--neutral-500)",
+                  margin: 0,
+                }}
+              >
+                Then we use that audience data to build campaigns that actually
+                perform.
+              </p>
+            }
           />
         </Screen>
 
