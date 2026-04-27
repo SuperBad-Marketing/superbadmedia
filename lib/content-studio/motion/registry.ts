@@ -153,6 +153,81 @@ const logoStingMotion: MotionTemplateDef = {
   maxDuration: 4 * FPS,
 };
 
+const wordSlamMotion: MotionTemplateDef = {
+  id: "word-slam",
+  name: "Word Slam",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: true,
+  copySlots: ["headline", "tagline"],
+  animationParams: [
+    { key: "wordStagger", label: "Word stagger", type: "timing", default: 10 },
+  ],
+  defaultDuration: 3 * FPS,
+  minDuration: 2 * FPS,
+  maxDuration: 6 * FPS,
+};
+
+const cinematicRevealMotion: MotionTemplateDef = {
+  id: "cinematic-reveal",
+  name: "Cinematic Reveal",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: false,
+  copySlots: ["headline", "detail", "tagline"],
+  animationParams: [
+    { key: "revealPace", label: "Reveal pace", type: "timing", default: 15 },
+  ],
+  defaultDuration: 3.5 * FPS,
+  minDuration: 2.5 * FPS,
+  maxDuration: 6 * FPS,
+};
+
+const focusPullMotion: MotionTemplateDef = {
+  id: "focus-pull",
+  name: "Focus Pull",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: false,
+  copySlots: ["headline", "detail", "tagline"],
+  animationParams: [
+    { key: "focusSpeed", label: "Focus speed", type: "timing", default: 18 },
+  ],
+  defaultDuration: 3.5 * FPS,
+  minDuration: 2.5 * FPS,
+  maxDuration: 6 * FPS,
+};
+
+const whipPanMotion: MotionTemplateDef = {
+  id: "whip-pan",
+  name: "Whip Pan",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: true,
+  copySlots: ["headline", "tagline"],
+  animationParams: [
+    { key: "whipSpeed", label: "Whip speed", type: "timing", default: 6 },
+  ],
+  defaultDuration: 4 * FPS,
+  minDuration: 2.5 * FPS,
+  maxDuration: 6 * FPS,
+};
+
+const zoomThroughMotion: MotionTemplateDef = {
+  id: "zoom-through",
+  name: "Zoom Through",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: true,
+  copySlots: ["headline", "tagline"],
+  animationParams: [
+    { key: "zoomSpeed", label: "Zoom speed", type: "timing", default: 8 },
+  ],
+  defaultDuration: 3 * FPS,
+  minDuration: 2 * FPS,
+  maxDuration: 6 * FPS,
+};
+
 export const ALL_MOTION_TEMPLATES: MotionTemplateDef[] = [
   announcementBoldMotion,
   announcementMinimalMotion,
@@ -164,6 +239,11 @@ export const ALL_MOTION_TEMPLATES: MotionTemplateDef[] = [
   statCounterMotion,
   textRevealMotion,
   logoStingMotion,
+  wordSlamMotion,
+  cinematicRevealMotion,
+  focusPullMotion,
+  whipPanMotion,
+  zoomThroughMotion,
 ];
 
 export function getMotionTemplate(id: string): MotionTemplateDef | undefined {

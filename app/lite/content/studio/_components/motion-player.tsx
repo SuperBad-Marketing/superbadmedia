@@ -12,6 +12,11 @@ import { PortfolioShowcaseMotion } from "@/lib/content-studio/motion/composition
 import { StatCounterMotion } from "@/lib/content-studio/motion/compositions/stat-counter-motion";
 import { TextRevealMotion } from "@/lib/content-studio/motion/compositions/text-reveal-motion";
 import { LogoStingMotion } from "@/lib/content-studio/motion/compositions/logo-sting-motion";
+import { WordSlamMotion } from "@/lib/content-studio/motion/compositions/word-slam-motion";
+import { CinematicRevealMotion } from "@/lib/content-studio/motion/compositions/cinematic-reveal-motion";
+import { FocusPullMotion } from "@/lib/content-studio/motion/compositions/focus-pull-motion";
+import { WhipPanMotion } from "@/lib/content-studio/motion/compositions/whip-pan-motion";
+import { ZoomThroughMotion } from "@/lib/content-studio/motion/compositions/zoom-through-motion";
 import { withSfx } from "@/lib/content-studio/motion/compositions/motion-sfx";
 import type { ColourPalette, MotionTemplateProps, SfxCueData } from "@/lib/content-studio/motion/types";
 import { MOTION_DIMENSIONS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
@@ -27,6 +32,11 @@ const COMPOSITION_MAP: Record<string, React.FC<MotionTemplateProps>> = {
   "stat-counter": withSfx(StatCounterMotion),
   "text-reveal": withSfx(TextRevealMotion),
   "logo-sting": withSfx(LogoStingMotion),
+  "word-slam": withSfx(WordSlamMotion),
+  "cinematic-reveal": withSfx(CinematicRevealMotion),
+  "focus-pull": withSfx(FocusPullMotion),
+  "whip-pan": withSfx(WhipPanMotion),
+  "zoom-through": withSfx(ZoomThroughMotion),
 };
 
 interface MotionPlayerProps {

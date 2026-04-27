@@ -10,6 +10,11 @@ import { PortfolioShowcaseMotion } from "../lib/content-studio/motion/compositio
 import { StatCounterMotion } from "../lib/content-studio/motion/compositions/stat-counter-motion";
 import { TextRevealMotion } from "../lib/content-studio/motion/compositions/text-reveal-motion";
 import { LogoStingMotion } from "../lib/content-studio/motion/compositions/logo-sting-motion";
+import { WordSlamMotion } from "../lib/content-studio/motion/compositions/word-slam-motion";
+import { CinematicRevealMotion } from "../lib/content-studio/motion/compositions/cinematic-reveal-motion";
+import { FocusPullMotion } from "../lib/content-studio/motion/compositions/focus-pull-motion";
+import { WhipPanMotion } from "../lib/content-studio/motion/compositions/whip-pan-motion";
+import { ZoomThroughMotion } from "../lib/content-studio/motion/compositions/zoom-through-motion";
 import { withSfx } from "../lib/content-studio/motion/compositions/motion-sfx";
 import { ALL_MOTION_TEMPLATES } from "../lib/content-studio/motion/registry";
 import { BRAND_PALETTES } from "../lib/content-studio/motion/palettes";
@@ -27,6 +32,11 @@ const COMPOSITION_MAP: Record<string, React.FC<any>> = {
   "stat-counter": withSfx(StatCounterMotion),
   "text-reveal": withSfx(TextRevealMotion),
   "logo-sting": withSfx(LogoStingMotion),
+  "word-slam": withSfx(WordSlamMotion),
+  "cinematic-reveal": withSfx(CinematicRevealMotion),
+  "focus-pull": withSfx(FocusPullMotion),
+  "whip-pan": withSfx(WhipPanMotion),
+  "zoom-through": withSfx(ZoomThroughMotion),
 };
 
 const DEFAULT_RATIO: MotionAspectRatio = "square";
@@ -34,6 +44,11 @@ const FPS = 30;
 
 const SAMPLE_COPY: Record<string, Record<string, string>> = {
   "stat-counter": { stat: "$1250K", label: "Revenue generated", sublabel: "across all clients this quarter" },
+  "word-slam": { headline: "Stop Scrolling Start Building", tagline: "the work speaks louder." },
+  "cinematic-reveal": { headline: "This Is What\nWe Do", detail: "Marketing that moves at the speed of culture.", tagline: "not an agency. a weapon." },
+  "focus-pull": { headline: "Sharper Than\nYou Expected", detail: "Content built for attention spans that don't exist.", tagline: "that's the point." },
+  "whip-pan": { headline: "Create Launch Dominate Repeat", tagline: "the flywheel never stops." },
+  "zoom-through": { headline: "Strategy That Scales", tagline: "from one post to a thousand." },
 };
 
 export const RemotionRoot: React.FC = () => {
