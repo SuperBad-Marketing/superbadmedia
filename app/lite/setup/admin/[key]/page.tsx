@@ -47,6 +47,7 @@ import { ApiKeyClient } from "./clients/api-key-client";
 import { SaasProductSetupClient } from "./clients/saas-product-setup-client";
 import { HiringRoleBriefClient } from "./clients/hiring-role-brief-client";
 import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
+import { PosthogAdminClient } from "./clients/posthog-admin-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -98,6 +99,7 @@ const CLIENT_MAP: Record<string, ClientRenderer> = {
   "hiring-role-brief": ({ common }) => (
     <HiringRoleBriefClient {...common} />
   ),
+  posthog: ({ common }) => <PosthogAdminClient {...common} />,
   "api-key": ({ common, searchParams }) => {
     const raw =
       typeof searchParams.vendor === "string" ? searchParams.vendor : "";

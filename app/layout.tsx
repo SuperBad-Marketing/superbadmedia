@@ -10,6 +10,7 @@ import { ReportIssueButton } from "@/components/lite/report-issue-button";
 import { NoTricksLink } from "@/components/lite/no-tricks-link";
 import { PublicEggShell } from "@/components/lite/public-egg-shell";
 import { PostHogAnalyticsProvider } from "@/components/lite/posthog-provider";
+import { getPosthogConfig } from "@/lib/integrations/posthog-config";
 
 import "./globals.css";
 
@@ -35,7 +36,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { htmlClassNames, theme, typeface, motion, density, textSize, soundsEnabled } = await getActivePresets();
+  const [{ htmlClassNames, theme, typeface, motion, density, textSize, soundsEnabled }, posthog] =
+    await Promise.all([getActivePresets(), getPosthogConfig()]);
 
   return (
     <html
@@ -46,7 +48,7 @@ export default async function RootLayout({
         <ThemeProvider value={{ theme, typeface, motion, density, textSize, soundsEnabled }}>
           <MotionProvider>
             <SoundProvider>
-              <PostHogAnalyticsProvider>
+              <PostHogAnalyticsProvider posthogKey={posthog.key} posthogHost={posthog.host}>
                 {children}
               </PostHogAnalyticsProvider>
               <PublicEggShell />

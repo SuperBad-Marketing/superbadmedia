@@ -98,6 +98,13 @@ const INTEGRATIONS: IntegrationDef[] = [
     wizardPath: "/lite/setup/admin/api-key?vendor=higgsfield",
     envHint: null,
   },
+  {
+    vendorKey: "posthog",
+    label: "PostHog",
+    description: "Analytics, session recording, heatmaps.",
+    wizardPath: "/lite/setup/admin/posthog",
+    envHint: "NEXT_PUBLIC_POSTHOG_KEY",
+  },
 ];
 
 export default async function IntegrationsPage() {

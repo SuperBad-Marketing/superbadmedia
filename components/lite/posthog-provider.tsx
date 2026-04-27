@@ -3,15 +3,12 @@
 /**
  * PostHog analytics provider — session recording, heatmaps, pageview tracking.
  *
- * Loads only when:
- *   1. NEXT_PUBLIC_POSTHOG_KEY is set
- *   2. User has consented to "analytics" cookies (EU) or no consent decision
- *      is required yet (non-EU visitors get analytics by default until they
- *      opt out via the cookie banner)
+ * Key resolution order:
+ *   1. `posthogKey` prop (server-rendered from integration_connections)
+ *   2. NEXT_PUBLIC_POSTHOG_KEY env var (build-time fallback)
  *
- * Reads consent from localStorage key `sb_cookie_consent` (same as
- * cookie-consent-banner.tsx). Re-checks on storage events so consent
- * changes take effect without a page reload.
+ * Loads only when a key is available AND the user has consented to
+ * "analytics" cookies (EU) or no consent decision is required yet.
  *
  * Owner: analytics setup.
  */
@@ -21,8 +18,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { PostHogProvider as PHProvider } from "posthog-js/react";
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "";
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
+const ENV_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "";
+const ENV_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
 const CONSENT_STORAGE_KEY = "sb_cookie_consent";
 
 function hasAnalyticsConsent(): boolean {
@@ -55,16 +52,26 @@ function PostHogPageview() {
   return null;
 }
 
-export function PostHogAnalyticsProvider({ children }: { children: React.ReactNode }) {
+export function PostHogAnalyticsProvider({
+  children,
+  posthogKey,
+  posthogHost,
+}: {
+  children: React.ReactNode;
+  posthogKey?: string | null;
+  posthogHost?: string | null;
+}) {
   const [initialized, setInitialized] = useState(false);
+  const key = posthogKey || ENV_KEY;
+  const host = posthogHost || ENV_HOST;
 
   useEffect(() => {
-    if (!POSTHOG_KEY) return;
+    if (!key) return;
     if (!hasAnalyticsConsent()) return;
 
     if (!initialized) {
-      posthog.init(POSTHOG_KEY, {
-        api_host: POSTHOG_HOST,
+      posthog.init(key, {
+        api_host: host,
         capture_pageview: false,
         capture_pageleave: true,
         autocapture: true,
@@ -83,9 +90,9 @@ export function PostHogAnalyticsProvider({ children }: { children: React.ReactNo
     }
     window.addEventListener("storage", onStorageChange);
     return () => window.removeEventListener("storage", onStorageChange);
-  }, [initialized]);
+  }, [initialized, key, host]);
 
-  if (!POSTHOG_KEY) return <>{children}</>;
+  if (!key) return <>{children}</>;
 
   return (
     <PHProvider client={posthog}>
