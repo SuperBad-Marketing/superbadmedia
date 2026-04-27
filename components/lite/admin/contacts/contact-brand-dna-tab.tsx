@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { BrandDnaProfileRow } from "@/lib/db/schema/brand-dna-profiles";
 
 function formatDate(ms: number): string {
@@ -89,6 +92,57 @@ function ProfileStatusBadge({ status }: { status: string }) {
   );
 }
 
+function BrandPackButton({ profileId }: { profileId: string }) {
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+
+  async function handleDownload() {
+    setState("loading");
+    try {
+      const res = await fetch(`/api/admin/brand-pack/${profileId}`);
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Download failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const disposition = res.headers.get("content-disposition") ?? "";
+      const match = disposition.match(/filename="(.+)"/);
+      const filename = match?.[1] ?? "SuperBad-Brand-Pack.pdf";
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setState("idle");
+    } catch {
+      setState("error");
+      setTimeout(() => setState("idle"), 3000);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={state === "loading"}
+      className="mt-4 inline-flex items-center gap-2 rounded-[8px] px-4 py-2 font-[family-name:var(--font-label)] text-[11px] uppercase transition-all"
+      style={{
+        letterSpacing: "1.5px",
+        background: state === "error" ? "rgba(193, 32, 45, 0.15)" : "rgba(244, 160, 176, 0.1)",
+        color: state === "error" ? "var(--color-brand-red)" : "var(--color-brand-pink)",
+        opacity: state === "loading" ? 0.6 : 1,
+        cursor: state === "loading" ? "wait" : "pointer",
+      }}
+    >
+      {state === "loading" && (
+        <svg className="h-3 w-3 animate-spin" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="8" />
+        </svg>
+      )}
+      {state === "error" ? "Generation failed" : state === "loading" ? "Generating…" : "Generate Brand Pack"}
+    </button>
+  );
+}
+
 export function ContactBrandDnaTab({
   profiles,
 }: {
@@ -158,6 +212,10 @@ export function ContactBrandDnaTab({
           <p className="mt-3 text-[11px] italic text-[color:var(--color-neutral-500)]">
             Completed {formatDate(current.completed_at_ms)}
           </p>
+        )}
+
+        {current.status === "complete" && (
+          <BrandPackButton profileId={current.id} />
         )}
       </section>
 

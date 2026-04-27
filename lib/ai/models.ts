@@ -55,6 +55,7 @@ export const MODELS = {
   "brand-dna-generate-prose-portrait": "opus",
   "brand-dna-generate-company-blend": "opus",
   "brand-dna-generate-retake-comparison": "opus",
+  "brand-dna-generate-brand-pack": "opus",
   // content-engine (10)
   "content-score-keyword-rankability": "haiku",
   "content-generate-topic-outline": "haiku",
