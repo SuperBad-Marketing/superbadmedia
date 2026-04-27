@@ -7,7 +7,9 @@ import { getCurrentBrief, getTodayCalendarEvents, getTodayBraindump } from "@/li
 import { generateBriefForSlot } from "@/lib/cockpit/generate-brief";
 import { getCurrentSlot } from "@/lib/cockpit/queries";
 import { getTasksForCockpitKanban } from "@/lib/tasks/cockpit";
+import { getTodayHabits } from "@/lib/habits/queries";
 import { BriefPanel } from "@/components/lite/cockpit/brief-panel";
+import { HabitsPanel } from "@/components/lite/cockpit/habits-panel";
 import { AttentionRail } from "@/components/lite/cockpit/attention-rail";
 import { BannerStrip } from "@/components/lite/cockpit/banner-strip";
 import { CalendarPreview } from "@/components/lite/cockpit/calendar-preview";
@@ -32,7 +34,7 @@ export default async function CockpitPage() {
 
   const nowMs = Date.now();
 
-  const [briefResult, waitingItems, banners, calendarEvents, kanban, todayBraindump] =
+  const [briefResult, waitingItems, banners, calendarEvents, kanban, todayBraindump, todayHabits] =
     await Promise.all([
       getCurrentBrief(session.user.id!, nowMs),
       mergeWaitingItems(nowMs),
@@ -40,6 +42,7 @@ export default async function CockpitPage() {
       getTodayCalendarEvents(nowMs),
       getTasksForCockpitKanban(nowMs),
       getTodayBraindump(session.user.id!, nowMs),
+      getTodayHabits(nowMs),
     ]);
 
   if (briefResult.fallback) {
@@ -89,6 +92,31 @@ export default async function CockpitPage() {
             />
           </div>
         </CockpitSection>
+
+        {/* Habits */}
+        {todayHabits.length > 0 && (
+          <CockpitSection className="mt-6">
+            <div
+              className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
+              style={{
+                letterSpacing: "2px",
+                color: "var(--color-neutral-500)",
+              }}
+            >
+              Habits
+            </div>
+            <div
+              className="rounded-xl px-5 py-4"
+              style={{
+                background: "var(--color-surface-2)",
+                boxShadow: "var(--surface-highlight)",
+                border: "1px solid rgba(253, 245, 230, 0.03)",
+              }}
+            >
+              <HabitsPanel habits={todayHabits} />
+            </div>
+          </CockpitSection>
+        )}
 
         {/* Morning braindump */}
         <CockpitSection className="mt-6">
