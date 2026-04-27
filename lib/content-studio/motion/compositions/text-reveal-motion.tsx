@@ -1,12 +1,26 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import type { MotionTemplateProps } from "../types";
-import { useFadeIn, useGradientPulse } from "./shared";
+import {
+  MotionFonts,
+  FONT_DISPLAY,
+  FONT_LABEL,
+  FONT_NARRATIVE,
+} from "./motion-fonts";
+import { Atmosphere } from "./atmosphere";
+import { useFadeIn } from "./shared";
 
 export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
   copy,
   palette,
   transparent,
+  fontPairingId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -14,20 +28,20 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
   const isSquare = width === 1080;
 
   const wordFontSize = isLandscape ? 48 : isSquare ? 64 : 80;
-  const gradientPulse = useGradientPulse();
 
   const text = copy.headline || "";
   const words = text.split(/\s+/).filter(Boolean);
-  const emphasisWords = (copy.emphasis || "").split(",").map((w) => w.trim().toLowerCase());
+  const emphasisWords = (copy.emphasis || "")
+    .split(",")
+    .map((w) => w.trim().toLowerCase());
 
-  const framesPerWord = Math.max(6, Math.floor(60 / Math.max(words.length, 1)));
-  const footerFade = useFadeIn(words.length * framesPerWord + 15, 15);
+  const framesPerWord = Math.max(5, Math.floor(50 / Math.max(words.length, 1)));
+  const footerFade = useFadeIn(words.length * framesPerWord + 15, 12);
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: transparent ? "transparent" : palette.background,
-        fontFamily: "'Inter', sans-serif",
         color: palette.text,
         display: "flex",
         flexDirection: "column",
@@ -36,16 +50,13 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
         overflow: "hidden",
       }}
     >
-      {!transparent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `radial-gradient(ellipse 70% 50% at 50% 30%, ${palette.primary}${Math.round(gradientPulse * 255).toString(16).padStart(2, "0")}, transparent 60%)`,
-          }}
-        />
-      )}
+      <MotionFonts fontPairingId={fontPairingId} />
+      <Atmosphere
+        palette={palette}
+        transparent={transparent}
+        gradientPosition="center"
+        gradientIntensity={0.18}
+      />
 
       <div
         style={{
@@ -66,18 +77,19 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
           const wordSpring = spring({
             frame: frame - startFrame,
             fps,
-            config: { mass: 0.8, stiffness: 280, damping: 22 },
+            config: { mass: 0.6, stiffness: 400, damping: 13 },
           });
           const opacity = interpolate(wordSpring, [0, 1], [0, 1]);
-          const y = interpolate(wordSpring, [0, 1], [30, 0]);
+          const y = interpolate(wordSpring, [0, 1], [24, 0]);
           const isEmphasis = emphasisWords.includes(word.toLowerCase());
 
           return (
             <span
               key={i}
               style={{
+                fontFamily: FONT_DISPLAY,
                 fontWeight: isEmphasis ? 900 : 700,
-                fontSize: wordFontSize,
+                fontSize: isEmphasis ? wordFontSize * 1.05 : wordFontSize,
                 lineHeight: 1.2,
                 color: isEmphasis ? palette.primary : palette.text,
                 opacity,
@@ -96,10 +108,11 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
           style={{
             position: "absolute",
             bottom: isLandscape ? 60 : 100,
+            fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
             fontSize: isLandscape ? 16 : 20,
             color: palette.accent,
-            opacity: useFadeIn(words.length * framesPerWord + 5, 15),
+            opacity: useFadeIn(words.length * framesPerWord + 5, 12),
           }}
         >
           {copy.tagline}
@@ -110,6 +123,7 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "absolute",
           bottom: isLandscape ? 20 : 40,
+          fontFamily: FONT_LABEL,
           fontWeight: 600,
           fontSize: 12,
           letterSpacing: 3,

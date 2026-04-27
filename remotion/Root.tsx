@@ -10,26 +10,31 @@ import { PortfolioShowcaseMotion } from "../lib/content-studio/motion/compositio
 import { StatCounterMotion } from "../lib/content-studio/motion/compositions/stat-counter-motion";
 import { TextRevealMotion } from "../lib/content-studio/motion/compositions/text-reveal-motion";
 import { LogoStingMotion } from "../lib/content-studio/motion/compositions/logo-sting-motion";
+import { withSfx } from "../lib/content-studio/motion/compositions/motion-sfx";
 import { ALL_MOTION_TEMPLATES } from "../lib/content-studio/motion/registry";
 import { BRAND_PALETTES } from "../lib/content-studio/motion/palettes";
 import { MOTION_DIMENSIONS } from "../lib/content-studio/motion/types";
 import type { MotionAspectRatio } from "../lib/content-studio/motion/types";
 
 const COMPOSITION_MAP: Record<string, React.FC<any>> = {
-  "announcement-bold-motion": AnnouncementBoldMotion,
-  "announcement-minimal-motion": AnnouncementMinimalMotion,
-  "anti-motivation-typography-motion": AntiMotivationTypographyMotion,
-  "tips-value-motion": TipsValueMotion,
-  "testimonial-quote-motion": TestimonialQuoteMotion,
-  "bts-caption-motion": BtsCaptionMotion,
-  "portfolio-showcase-motion": PortfolioShowcaseMotion,
-  "stat-counter": StatCounterMotion,
-  "text-reveal": TextRevealMotion,
-  "logo-sting": LogoStingMotion,
+  "announcement-bold-motion": withSfx(AnnouncementBoldMotion),
+  "announcement-minimal-motion": withSfx(AnnouncementMinimalMotion),
+  "anti-motivation-typography-motion": withSfx(AntiMotivationTypographyMotion),
+  "tips-value-motion": withSfx(TipsValueMotion),
+  "testimonial-quote-motion": withSfx(TestimonialQuoteMotion),
+  "bts-caption-motion": withSfx(BtsCaptionMotion),
+  "portfolio-showcase-motion": withSfx(PortfolioShowcaseMotion),
+  "stat-counter": withSfx(StatCounterMotion),
+  "text-reveal": withSfx(TextRevealMotion),
+  "logo-sting": withSfx(LogoStingMotion),
 };
 
 const DEFAULT_RATIO: MotionAspectRatio = "square";
 const FPS = 30;
+
+const SAMPLE_COPY: Record<string, Record<string, string>> = {
+  "stat-counter": { stat: "$1250K", label: "Revenue generated", sublabel: "across all clients this quarter" },
+};
 
 export const RemotionRoot: React.FC = () => {
   const defaultPalette = BRAND_PALETTES[0];
@@ -41,6 +46,11 @@ export const RemotionRoot: React.FC = () => {
         const Component = COMPOSITION_MAP[template.id];
         if (!Component) return null;
 
+        const copy = SAMPLE_COPY[template.id] ||
+          Object.fromEntries(
+            template.copySlots.map((slot) => [slot, `Sample ${slot}`]),
+          );
+
         return (
           <Composition
             key={template.id}
@@ -51,14 +61,13 @@ export const RemotionRoot: React.FC = () => {
             width={width}
             height={height}
             defaultProps={{
-              copy: Object.fromEntries(
-                template.copySlots.map((slot) => [slot, `Sample ${slot}`]),
-              ),
+              copy,
               palette: defaultPalette,
               transparent: false,
               animationParams: Object.fromEntries(
                 template.animationParams.map((p) => [p.key, p.default]),
               ),
+              fontPairingId: "house",
             }}
           />
         );

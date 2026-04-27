@@ -1,12 +1,27 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import type { MotionTemplateProps } from "../types";
-import { useFadeIn, useSlideUp, useGradientPulse } from "./shared";
+import {
+  MotionFonts,
+  FONT_DISPLAY,
+  FONT_LABEL,
+  FONT_NARRATIVE,
+} from "./motion-fonts";
+import { Atmosphere } from "./atmosphere";
+import { AccentLine } from "./accent-shapes";
+import { useFadeIn, useSlideUp } from "./shared";
 
 export const PortfolioShowcaseMotion: React.FC<MotionTemplateProps> = ({
   copy,
   palette,
   transparent,
+  fontPairingId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -15,26 +30,23 @@ export const PortfolioShowcaseMotion: React.FC<MotionTemplateProps> = ({
 
   const headlineFontSize = isLandscape ? 56 : isSquare ? 80 : 96;
   const pad = isLandscape ? "40px 60px" : "60px 48px";
-  const gradientPulse = useGradientPulse();
 
   const wipeProgress = spring({
     frame: frame - 3,
     fps,
-    config: { mass: 1, stiffness: 200, damping: 28 },
+    config: { mass: 0.8, stiffness: 280, damping: 16 },
   });
   const labelClipX = interpolate(wipeProgress, [0, 1], [100, 0]);
 
-  const headline = useSlideUp(15, 50);
-  const dividerFade = useFadeIn(35, 15);
-  const subtextFade = useFadeIn(45, 15);
-  const taglineFade = useFadeIn(55, 15);
-  const footerFade = useFadeIn(65, 15);
+  const headline = useSlideUp(15, 35);
+  const subtextFade = useFadeIn(45, 12);
+  const taglineFade = useFadeIn(55, 12);
+  const footerFade = useFadeIn(65, 12);
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: transparent ? "transparent" : palette.background,
-        fontFamily: "'Inter', sans-serif",
         color: palette.text,
         display: "flex",
         flexDirection: "column",
@@ -43,20 +55,26 @@ export const PortfolioShowcaseMotion: React.FC<MotionTemplateProps> = ({
         overflow: "hidden",
       }}
     >
-      {!transparent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `radial-gradient(ellipse 70% 50% at 50% 30%, ${palette.primary}${Math.round(gradientPulse * 255).toString(16).padStart(2, "0")}, transparent 60%)`,
-          }}
-        />
-      )}
+      <MotionFonts fontPairingId={fontPairingId} />
+      <Atmosphere
+        palette={palette}
+        transparent={transparent}
+        gradientPosition="top-left"
+        gradientIntensity={0.22}
+      />
 
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: pad, width: "100%" }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          textAlign: "center",
+          padding: pad,
+          width: "100%",
+        }}
+      >
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 14 : 16,
             letterSpacing: 4,
@@ -73,6 +91,7 @@ export const PortfolioShowcaseMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_DISPLAY,
             fontWeight: 900,
             fontSize: headlineFontSize,
             lineHeight: 0.95,
@@ -86,24 +105,23 @@ export const PortfolioShowcaseMotion: React.FC<MotionTemplateProps> = ({
           {copy.headline || ""}
         </div>
 
-        <div
-          style={{
-            width: 48,
-            height: 3,
-            background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`,
-            margin: `0 auto ${isLandscape ? 12 : 16}px`,
-            borderRadius: 2,
-            opacity: dividerFade,
-          }}
+        <AccentLine
+          startFrame={33}
+          width={48}
+          height={3}
+          color={`linear-gradient(90deg, ${palette.accent}, ${palette.primary})`}
+          direction="center-out"
+          style={{ margin: `0 auto ${isLandscape ? 12 : 16}px` }}
         />
 
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 16 : 20,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
-            color: "#8A8A80",
+            color: `${palette.text}70`,
             marginBottom: isLandscape ? 8 : 12,
             opacity: subtextFade,
           }}
@@ -113,6 +131,7 @@ export const PortfolioShowcaseMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
             fontSize: isLandscape ? 16 : 20,
             color: palette.accent,
@@ -128,6 +147,7 @@ export const PortfolioShowcaseMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "absolute",
           bottom: isLandscape ? 20 : 40,
+          fontFamily: FONT_LABEL,
           fontWeight: 600,
           fontSize: 12,
           letterSpacing: 3,

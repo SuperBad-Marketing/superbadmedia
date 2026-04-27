@@ -1,12 +1,26 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import type { MotionTemplateProps } from "../types";
-import { useGradientPulse } from "./shared";
+import {
+  MotionFonts,
+  FONT_DISPLAY,
+  FONT_LABEL,
+} from "./motion-fonts";
+import { Atmosphere } from "./atmosphere";
+import { AccentLine } from "./accent-shapes";
+import { useBlurReveal } from "./shared";
 
 export const LogoStingMotion: React.FC<MotionTemplateProps> = ({
   copy,
   palette,
   transparent,
+  fontPairingId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -14,38 +28,28 @@ export const LogoStingMotion: React.FC<MotionTemplateProps> = ({
   const isSquare = width === 1080;
 
   const logoFontSize = isLandscape ? 72 : isSquare ? 96 : 120;
-  const gradientPulse = useGradientPulse();
 
   const logoScale = spring({
     frame: frame - 5,
     fps,
-    config: { mass: 1.5, stiffness: 140, damping: 18 },
+    config: { mass: 1.2, stiffness: 180, damping: 14 },
   });
-  const logoOpacity = interpolate(logoScale, [0, 1], [0, 1]);
-  const logoBlur = interpolate(frame, [5, 20], [8, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const underlineProgress = spring({
-    frame: frame - 25,
-    fps,
-    config: { mass: 1, stiffness: 250, damping: 30 },
-  });
+  const logoBlur = useBlurReveal(5, 10, 18);
 
   const taglineProgress = spring({
     frame: frame - 35,
     fps,
-    config: { mass: 1, stiffness: 220, damping: 25 },
+    config: { mass: 0.7, stiffness: 300, damping: 16 },
   });
-  const taglineY = interpolate(taglineProgress, [0, 1], [20, 0]);
+  const taglineY = interpolate(taglineProgress, [0, 1], [16, 0]);
   const taglineOpacity = interpolate(taglineProgress, [0, 1], [0, 1]);
+
+  const underlineWidth = isLandscape ? 200 : 250;
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: transparent ? "transparent" : palette.background,
-        fontFamily: "'Inter', sans-serif",
         color: palette.text,
         display: "flex",
         flexDirection: "column",
@@ -54,27 +58,35 @@ export const LogoStingMotion: React.FC<MotionTemplateProps> = ({
         overflow: "hidden",
       }}
     >
-      {!transparent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${palette.primary}${Math.round(gradientPulse * 255).toString(16).padStart(2, "0")}, transparent 70%)`,
-          }}
-        />
-      )}
+      <MotionFonts fontPairingId={fontPairingId} />
+      <Atmosphere
+        palette={palette}
+        transparent={transparent}
+        gradientPosition="center"
+        gradientIntensity={0.3}
+        grainOpacity={0.04}
+      />
 
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
         <div
           style={{
+            fontFamily: FONT_DISPLAY,
             fontWeight: 900,
             fontSize: logoFontSize,
             letterSpacing: -3,
             color: palette.text,
-            opacity: logoOpacity,
+            opacity: logoBlur.opacity,
             transform: `scale(${logoScale})`,
-            filter: `blur(${logoBlur}px)`,
+            filter: `blur(${logoBlur.blur}px)`,
           }}
         >
           {copy.logo || "SuperBad"}
@@ -82,18 +94,48 @@ export const LogoStingMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
-            width: isLandscape ? 200 : 250,
-            height: 3,
-            background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`,
-            margin: "0 auto",
-            borderRadius: 2,
-            transform: `scaleX(${underlineProgress})`,
-            transformOrigin: "center",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginTop: 4,
           }}
-        />
+        >
+          <AccentLine
+            startFrame={22}
+            width={(underlineWidth - 24) / 2}
+            height={2}
+            color={palette.accent}
+            direction="right-to-left"
+          />
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              backgroundColor: palette.primary,
+              opacity: interpolate(
+                spring({
+                  frame: frame - 25,
+                  fps,
+                  config: { mass: 0.4, stiffness: 400, damping: 14 },
+                }),
+                [0, 1],
+                [0, 0.6],
+              ),
+            }}
+          />
+          <AccentLine
+            startFrame={22}
+            width={(underlineWidth - 24) / 2}
+            height={2}
+            color={palette.accent}
+            direction="left-to-right"
+          />
+        </div>
 
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 14 : 18,
             letterSpacing: 6,

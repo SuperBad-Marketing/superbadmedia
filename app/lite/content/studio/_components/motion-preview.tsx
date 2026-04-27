@@ -5,10 +5,11 @@ import type { PlayerRef } from "@remotion/player";
 import { MotionPlayer } from "./motion-player";
 import { PaletteSwatches } from "./palette-swatches";
 import { MotionTimeline } from "./motion-timeline";
+import { SfxTimeline } from "./sfx-timeline";
 import { FontPairingPicker } from "./font-pairing-picker";
 import { getMotionTemplate } from "@/lib/content-studio/motion/registry";
 import { BRAND_PALETTES, getPalette } from "@/lib/content-studio/motion/palettes";
-import type { ColourPalette } from "@/lib/content-studio/motion/types";
+import type { ColourPalette, SfxCueData } from "@/lib/content-studio/motion/types";
 import { MOTION_ASPECT_RATIOS, MOTION_RATIO_LABELS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ export interface MotionPostData {
   primaryAspectRatio: MotionAspectRatio;
   fontPairingId?: string | null;
   durationInFrames?: number | null;
+  sfxCues?: SfxCueData[];
 }
 
 interface MotionPreviewProps {
@@ -33,6 +35,7 @@ interface MotionPreviewProps {
   onAspectRatioChange: (ratio: MotionAspectRatio) => void;
   onFontPairingChange: (id: string | null) => void;
   onDurationChange: (frames: number) => void;
+  onSfxChange: (cues: SfxCueData[]) => void;
   onNewPost: () => void;
 }
 
@@ -43,6 +46,7 @@ export function MotionPreview({
   onAspectRatioChange,
   onFontPairingChange,
   onDurationChange,
+  onSfxChange,
   onNewPost,
 }: MotionPreviewProps) {
   const playerRef = useRef<PlayerRef>(null);
@@ -61,6 +65,7 @@ export function MotionPreview({
   const [exportRatios, setExportRatios] = useState<Set<MotionAspectRatio>>(
     () => new Set([post.primaryAspectRatio]),
   );
+  const [sfxCues, setSfxCues] = useState<SfxCueData[]>(post.sfxCues ?? []);
   const [exporting, setExporting] = useState(false);
   const [exportResults, setExportResults] = useState<
     { ratio: string; format: string; url: string }[]
@@ -107,6 +112,14 @@ export function MotionPreview({
       onDurationChange(frames);
     },
     [onDurationChange],
+  );
+
+  const handleSfxChange = useCallback(
+    (cues: SfxCueData[]) => {
+      setSfxCues(cues);
+      onSfxChange(cues);
+    },
+    [onSfxChange],
   );
 
   const handleExport = useCallback(async () => {
@@ -234,6 +247,7 @@ export function MotionPreview({
             animationParams={post.animationParams}
             durationInFrames={durationInFrames}
             fps={fps}
+            sfxCues={sfxCues}
           />
         </div>
 
@@ -242,6 +256,15 @@ export function MotionPreview({
           playerRef={playerRef}
           durationInFrames={durationInFrames}
           fps={fps}
+        />
+
+        {/* SFX Timeline */}
+        <SfxTimeline
+          cues={sfxCues}
+          onChange={handleSfxChange}
+          durationInFrames={durationInFrames}
+          fps={fps}
+          playerRef={playerRef}
         />
 
         {/* Duration slider */}

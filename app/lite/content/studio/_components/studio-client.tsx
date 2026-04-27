@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
-import type { CustomPaletteInput } from "@/lib/content-studio/motion/types";
+import type { CustomPaletteInput, SfxCueData } from "@/lib/content-studio/motion/types";
 import {
   ALL_MOTION_TEMPLATES,
   getPairedMotionTemplates,
@@ -275,6 +275,7 @@ export function StudioClient() {
           setGenerationFailed(true);
           return;
         }
+        const sfxRaw = result.animationParams._sfxCues;
         setMotionPost({
           id: result.postId,
           motionTemplateId: result.motionTemplateId,
@@ -284,6 +285,7 @@ export function StudioClient() {
           animationParams: result.animationParams,
           primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
           fontPairingId,
+          sfxCues: typeof sfxRaw === "string" ? JSON.parse(sfxRaw) : [],
         });
         setView("preview");
         toast.success("Motion post generated.");
@@ -441,6 +443,7 @@ export function StudioClient() {
           toast.error(result.error);
           return;
         }
+        const sfxRaw2 = result.animationParams._sfxCues;
         setMotionPost({
           id: result.postId,
           motionTemplateId: result.motionTemplateId,
@@ -450,6 +453,7 @@ export function StudioClient() {
           animationParams: result.animationParams,
           primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
           fontPairingId,
+          sfxCues: typeof sfxRaw2 === "string" ? JSON.parse(sfxRaw2) : [],
         });
         setView("preview");
         toast.success("Motion version created.");
@@ -516,6 +520,21 @@ export function StudioClient() {
       updateMotionPostAction({ postId: motionPost.id, durationInFrames: frames }).catch(() =>
         toast.error("Failed to save duration change."),
       );
+    },
+    [motionPost],
+  );
+
+  const handleMotionSfxChange = useCallback(
+    (cues: SfxCueData[]) => {
+      if (!motionPost) return;
+      setMotionPost((prev) => (prev ? { ...prev, sfxCues: cues } : null));
+      updateMotionPostAction({
+        postId: motionPost.id,
+        animationParams: {
+          ...motionPost.animationParams,
+          _sfxCues: JSON.stringify(cues),
+        },
+      }).catch(() => toast.error("Failed to save SFX changes."));
     },
     [motionPost],
   );
@@ -913,6 +932,7 @@ export function StudioClient() {
             onAspectRatioChange={handleMotionAspectRatioChange}
             onFontPairingChange={handleMotionFontChange}
             onDurationChange={handleMotionDurationChange}
+            onSfxChange={handleMotionSfxChange}
             onNewPost={handleNewPost}
           />
         )}

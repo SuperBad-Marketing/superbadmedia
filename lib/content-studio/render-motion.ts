@@ -5,7 +5,7 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { MOTION_DIMENSIONS, type MotionAspectRatio } from "./motion/types";
-import type { ColourPalette } from "./motion/types";
+import type { ColourPalette, SfxCueData } from "./motion/types";
 
 export type MotionFormat = "mp4" | "webm";
 
@@ -18,6 +18,8 @@ export interface MotionRenderInput {
   animationParams: Record<string, number | string | boolean>;
   durationInFrames: number;
   format: MotionFormat;
+  fontPairingId?: string;
+  sfxCues?: SfxCueData[];
 }
 
 export interface MotionRenderResult {
@@ -53,6 +55,8 @@ export async function renderMotionPost(
       palette: input.palette,
       transparent: input.transparent,
       animationParams: input.animationParams,
+      fontPairingId: input.fontPairingId,
+      sfxCues: input.sfxCues,
     },
   });
 
@@ -76,6 +80,8 @@ export async function renderMotionPost(
       palette: input.palette,
       transparent: input.transparent,
       animationParams: input.animationParams,
+      fontPairingId: input.fontPairingId,
+      sfxCues: input.sfxCues,
     },
     ...(input.transparent && input.format === "webm"
       ? { pixelFormat: "yuva420p" }

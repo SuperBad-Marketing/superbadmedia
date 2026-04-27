@@ -1,12 +1,26 @@
 import React from "react";
-import { AbsoluteFill, spring, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import type { MotionTemplateProps } from "../types";
-import { useFadeIn, useSlideUp, useGradientPulse } from "./shared";
+import {
+  MotionFonts,
+  FONT_DISPLAY,
+  FONT_LABEL,
+  FONT_NARRATIVE,
+} from "./motion-fonts";
+import { Atmosphere } from "./atmosphere";
+import { useFadeIn, useSlideUp } from "./shared";
 
 export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
   copy,
   palette,
   transparent,
+  fontPairingId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -15,25 +29,24 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
 
   const quoteFontSize = isLandscape ? 28 : isSquare ? 40 : 48;
   const pad = isLandscape ? "40px 60px" : "60px 48px";
-  const gradientPulse = useGradientPulse();
 
   const quoteMarkScale = spring({
     frame: frame - 5,
     fps,
-    config: { mass: 0.8, stiffness: 250, damping: 20 },
+    config: { mass: 0.6, stiffness: 350, damping: 12 },
   });
   const quoteMarkOpacity = interpolate(quoteMarkScale, [0, 1], [0, 1]);
 
-  const quoteFade = useFadeIn(15, 20);
+  const brandFade = useFadeIn(0, 12);
+  const quoteFade = useFadeIn(15, 18);
   const attribution = useSlideUp(45, 20);
-  const subtextFade = useFadeIn(55, 15);
-  const footerFade = useFadeIn(65, 15);
+  const subtextFade = useFadeIn(55, 12);
+  const footerFade = useFadeIn(65, 12);
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: transparent ? "transparent" : palette.background,
-        fontFamily: "'Inter', sans-serif",
         color: palette.text,
         display: "flex",
         flexDirection: "column",
@@ -42,27 +55,33 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
         overflow: "hidden",
       }}
     >
-      {!transparent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `radial-gradient(ellipse 70% 50% at 50% 30%, ${palette.primary}${Math.round(gradientPulse * 255).toString(16).padStart(2, "0")}, transparent 60%)`,
-          }}
-        />
-      )}
+      <MotionFonts fontPairingId={fontPairingId} />
+      <Atmosphere
+        palette={palette}
+        transparent={transparent}
+        gradientPosition="center"
+        gradientIntensity={0.22}
+      />
 
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: pad, width: "100%" }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          textAlign: "center",
+          padding: pad,
+          width: "100%",
+        }}
+      >
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 14 : 16,
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.primary,
             marginBottom: isLandscape ? 20 : 32,
-            opacity: useFadeIn(0, 15),
+            opacity: brandFade,
           }}
         >
           SuperBad
@@ -70,6 +89,7 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_DISPLAY,
             fontWeight: 900,
             fontSize: quoteFontSize * 2,
             color: palette.primary,
@@ -84,6 +104,7 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
             fontWeight: 400,
             fontSize: quoteFontSize,
@@ -109,6 +130,7 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 14 : 16,
             letterSpacing: 2,
@@ -123,11 +145,12 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 14 : 16,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
-            color: "#8A8A80",
+            color: `${palette.text}60`,
             marginTop: 8,
             opacity: subtextFade,
           }}
@@ -140,6 +163,7 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "absolute",
           bottom: isLandscape ? 20 : 40,
+          fontFamily: FONT_LABEL,
           fontWeight: 600,
           fontSize: 12,
           letterSpacing: 3,

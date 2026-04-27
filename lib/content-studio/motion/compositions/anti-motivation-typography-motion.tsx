@@ -1,46 +1,58 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import type { MotionTemplateProps } from "../types";
-import { useFadeIn, useGradientPulse } from "./shared";
+import {
+  MotionFonts,
+  FONT_DISPLAY,
+  FONT_NARRATIVE,
+} from "./motion-fonts";
+import { Atmosphere } from "./atmosphere";
+import { AccentDot } from "./accent-shapes";
+import { useFadeIn } from "./shared";
 
 export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
   copy,
   palette,
   transparent,
+  fontPairingId,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
   const isLandscape = width > 1200;
   const isSquare = width === 1080;
 
-  const headlineFontSize = isLandscape ? 56 : isSquare ? 80 : 96;
+  const headlineFontSize = isLandscape ? 60 : isSquare ? 88 : 104;
   const pad = isLandscape ? "40px 60px" : "60px 48px";
-  const gradientPulse = useGradientPulse();
 
   const headlineProgress = spring({
     frame: frame - 5,
     fps,
-    config: { mass: 1.2, stiffness: 180, damping: 22 },
+    config: { mass: 1, stiffness: 200, damping: 16 },
   });
-  const headlineY = interpolate(headlineProgress, [0, 1], [60, 0]);
+  const headlineY = interpolate(headlineProgress, [0, 1], [50, 0]);
   const headlineOpacity = interpolate(headlineProgress, [0, 1], [0, 1]);
 
   const letterSpacing = interpolate(
     frame,
-    [30, 50, 70, 90],
-    [-3, -1, -3, -1],
+    [25, 45, 65, 85],
+    [-4, 0, -4, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "extend" },
   );
 
-  const dividerFade = useFadeIn(35, 15);
-  const taglineFade = useFadeIn(45, 20);
-  const footerFade = useFadeIn(60, 15);
+  const dividerFade = useFadeIn(35, 12);
+  const taglineFade = useFadeIn(45, 15);
+  const footerFade = useFadeIn(60, 12);
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: transparent ? "transparent" : palette.background,
-        fontFamily: "'Inter', sans-serif",
         color: palette.text,
         display: "flex",
         flexDirection: "column",
@@ -49,23 +61,56 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
         overflow: "hidden",
       }}
     >
-      {!transparent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `radial-gradient(ellipse 70% 50% at 50% 30%, ${palette.primary}${Math.round(gradientPulse * 255).toString(16).padStart(2, "0")}, transparent 60%)`,
-          }}
-        />
-      )}
+      <MotionFonts fontPairingId={fontPairingId} />
+      <Atmosphere
+        palette={palette}
+        transparent={transparent}
+        gradientPosition="center"
+        gradientIntensity={0.3}
+        grainOpacity={0.045}
+        secondaryGradient
+      />
 
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: pad, width: "100%" }}>
+      <AccentDot
+        startFrame={15}
+        x={width * 0.2}
+        y={height * 0.3}
+        radius={8}
+        color={palette.primary}
+        opacity={0.15}
+      />
+      <AccentDot
+        startFrame={20}
+        x={width * 0.78}
+        y={height * 0.65}
+        radius={6}
+        color={palette.accent}
+        opacity={0.12}
+      />
+      <AccentDot
+        startFrame={25}
+        x={width * 0.15}
+        y={height * 0.72}
+        radius={5}
+        color={palette.primary}
+        opacity={0.1}
+      />
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          textAlign: "center",
+          padding: pad,
+          width: "100%",
+        }}
+      >
         <div
           style={{
+            fontFamily: FONT_DISPLAY,
             fontWeight: 900,
             fontSize: headlineFontSize,
-            lineHeight: 0.95,
+            lineHeight: 0.92,
             letterSpacing,
             color: palette.text,
             opacity: headlineOpacity,
@@ -88,8 +133,9 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 16 : 20,
+            fontSize: isLandscape ? 18 : 22,
             color: palette.accent,
             opacity: taglineFade,
           }}

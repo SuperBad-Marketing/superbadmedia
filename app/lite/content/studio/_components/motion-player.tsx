@@ -12,20 +12,21 @@ import { PortfolioShowcaseMotion } from "@/lib/content-studio/motion/composition
 import { StatCounterMotion } from "@/lib/content-studio/motion/compositions/stat-counter-motion";
 import { TextRevealMotion } from "@/lib/content-studio/motion/compositions/text-reveal-motion";
 import { LogoStingMotion } from "@/lib/content-studio/motion/compositions/logo-sting-motion";
-import type { ColourPalette, MotionTemplateProps } from "@/lib/content-studio/motion/types";
+import { withSfx } from "@/lib/content-studio/motion/compositions/motion-sfx";
+import type { ColourPalette, MotionTemplateProps, SfxCueData } from "@/lib/content-studio/motion/types";
 import { MOTION_DIMENSIONS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
 
 const COMPOSITION_MAP: Record<string, React.FC<MotionTemplateProps>> = {
-  "announcement-bold-motion": AnnouncementBoldMotion,
-  "announcement-minimal-motion": AnnouncementMinimalMotion,
-  "anti-motivation-typography-motion": AntiMotivationTypographyMotion,
-  "tips-value-motion": TipsValueMotion,
-  "testimonial-quote-motion": TestimonialQuoteMotion,
-  "bts-caption-motion": BtsCaptionMotion,
-  "portfolio-showcase-motion": PortfolioShowcaseMotion,
-  "stat-counter": StatCounterMotion,
-  "text-reveal": TextRevealMotion,
-  "logo-sting": LogoStingMotion,
+  "announcement-bold-motion": withSfx(AnnouncementBoldMotion),
+  "announcement-minimal-motion": withSfx(AnnouncementMinimalMotion),
+  "anti-motivation-typography-motion": withSfx(AntiMotivationTypographyMotion),
+  "tips-value-motion": withSfx(TipsValueMotion),
+  "testimonial-quote-motion": withSfx(TestimonialQuoteMotion),
+  "bts-caption-motion": withSfx(BtsCaptionMotion),
+  "portfolio-showcase-motion": withSfx(PortfolioShowcaseMotion),
+  "stat-counter": withSfx(StatCounterMotion),
+  "text-reveal": withSfx(TextRevealMotion),
+  "logo-sting": withSfx(LogoStingMotion),
 };
 
 interface MotionPlayerProps {
@@ -39,6 +40,7 @@ interface MotionPlayerProps {
   fps?: number;
   loop?: boolean;
   style?: React.CSSProperties;
+  sfxCues?: SfxCueData[];
 }
 
 export const MotionPlayer = forwardRef<PlayerRef, MotionPlayerProps>(
@@ -54,6 +56,7 @@ export const MotionPlayer = forwardRef<PlayerRef, MotionPlayerProps>(
       fps = 30,
       loop = true,
       style,
+      sfxCues,
     },
     ref,
   ) {
@@ -61,8 +64,8 @@ export const MotionPlayer = forwardRef<PlayerRef, MotionPlayerProps>(
     const { width, height } = MOTION_DIMENSIONS[aspectRatio];
 
     const inputProps: MotionTemplateProps = useMemo(
-      () => ({ copy, palette, transparent, animationParams }),
-      [copy, palette, transparent, animationParams],
+      () => ({ copy, palette, transparent, animationParams, sfxCues }),
+      [copy, palette, transparent, animationParams, sfxCues],
     );
 
     if (!Component) {

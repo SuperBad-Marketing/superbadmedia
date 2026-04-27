@@ -1,12 +1,26 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import type { MotionTemplateProps } from "../types";
-import { useFadeIn, useGradientPulse } from "./shared";
+import {
+  MotionFonts,
+  FONT_BODY,
+  FONT_LABEL,
+  FONT_NARRATIVE,
+} from "./motion-fonts";
+import { Atmosphere } from "./atmosphere";
+import { useFadeIn, useBlurReveal } from "./shared";
 
 export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
   copy,
   palette,
   transparent,
+  fontPairingId,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -15,34 +29,24 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
 
   const headlineFontSize = isLandscape ? 26 : isSquare ? 36 : 44;
   const pad = isLandscape ? "40px 60px" : "60px 48px";
-  const gradientPulse = useGradientPulse();
 
-  const brandFade = useFadeIn(0, 15);
-
-  const blurAmount = interpolate(frame, [5, 30], [12, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const headlineOpacity = interpolate(frame, [5, 25], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const brandFade = useFadeIn(0, 12);
+  const headlineBlur = useBlurReveal(5, 14, 22);
 
   const taglineProgress = spring({
     frame: frame - 35,
     fps,
-    config: { mass: 1, stiffness: 220, damping: 25 },
+    config: { mass: 0.7, stiffness: 300, damping: 14 },
   });
   const taglineX = interpolate(taglineProgress, [0, 1], [40, 0]);
   const taglineOpacity = interpolate(taglineProgress, [0, 1], [0, 1]);
 
-  const footerFade = useFadeIn(55, 15);
+  const footerFade = useFadeIn(55, 12);
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: transparent ? "transparent" : palette.background,
-        fontFamily: "'Inter', sans-serif",
         color: palette.text,
         display: "flex",
         flexDirection: "column",
@@ -51,20 +55,27 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
         overflow: "hidden",
       }}
     >
-      {!transparent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `radial-gradient(ellipse 70% 50% at 50% 30%, ${palette.primary}${Math.round(gradientPulse * 255).toString(16).padStart(2, "0")}, transparent 60%)`,
-          }}
-        />
-      )}
+      <MotionFonts fontPairingId={fontPairingId} />
+      <Atmosphere
+        palette={palette}
+        transparent={transparent}
+        gradientPosition="center"
+        gradientIntensity={0.2}
+        grainOpacity={0.055}
+      />
 
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: pad, width: "100%" }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          textAlign: "center",
+          padding: pad,
+          width: "100%",
+        }}
+      >
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 14 : 16,
             letterSpacing: 4,
@@ -79,12 +90,13 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_BODY,
             fontWeight: 400,
             fontSize: headlineFontSize,
             lineHeight: 1.5,
             color: palette.text,
-            opacity: headlineOpacity,
-            filter: `blur(${blurAmount}px)`,
+            opacity: headlineBlur.opacity,
+            filter: `blur(${headlineBlur.blur}px)`,
           }}
         >
           {copy.headline || ""}
@@ -92,6 +104,7 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
             fontSize: isLandscape ? 16 : 20,
             color: palette.accent,
@@ -108,6 +121,7 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "absolute",
           bottom: isLandscape ? 20 : 40,
+          fontFamily: FONT_LABEL,
           fontWeight: 600,
           fontSize: 12,
           letterSpacing: 3,

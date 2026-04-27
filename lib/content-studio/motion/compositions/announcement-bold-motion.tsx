@@ -1,71 +1,78 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import type { MotionTemplateProps } from "../types";
-import { useFadeIn, useSlideUp, useScaleIn, useGradientPulse } from "./shared";
+import {
+  MotionFonts,
+  FONT_DISPLAY,
+  FONT_BODY,
+  FONT_LABEL,
+  FONT_NARRATIVE,
+} from "./motion-fonts";
+import { Atmosphere } from "./atmosphere";
+import { AccentLine } from "./accent-shapes";
+import { useFadeIn, useSlamIn, useSlideUp } from "./shared";
 
 export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
   copy,
   palette,
   transparent,
+  fontPairingId,
 }) => {
   const { width } = useVideoConfig();
   const isLandscape = width > 1200;
   const isSquare = width === 1080;
 
-  const headlineFontSize = isLandscape ? 56 : isSquare ? 80 : 96;
+  const headlineFontSize = isLandscape ? 60 : isSquare ? 84 : 100;
   const detailFontSize = isLandscape ? 36 : isSquare ? 48 : 56;
   const pad = isLandscape ? "40px 60px" : "60px 48px";
 
-  const brandFade = useFadeIn(0, 15);
-  const headline = useSlideUp(10, 40);
-  const divider = useScaleIn(30);
-  const detailFade = useFadeIn(40, 20);
-  const subtextFade = useFadeIn(55, 15);
-  const taglineFade = useFadeIn(65, 15);
-  const footerFade = useFadeIn(75, 15);
-  const gradientPulse = useGradientPulse();
+  const brandFade = useFadeIn(0, 12);
+  const headline = useSlamIn(8);
+  const detailSlide = useSlideUp(32, 25);
+  const subtextFade = useFadeIn(46, 12);
+  const taglineFade = useFadeIn(56, 15);
+  const footerFade = useFadeIn(70, 12);
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: transparent ? "transparent" : palette.background,
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: FONT_BODY,
         color: palette.text,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
         overflow: "hidden",
       }}
     >
-      {!transparent && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `radial-gradient(ellipse 70% 50% at 50% 30%, ${palette.primary}${Math.round(gradientPulse * 255).toString(16).padStart(2, "0")}, transparent 60%)`,
-          }}
-        />
-      )}
+      <MotionFonts fontPairingId={fontPairingId} />
+      <Atmosphere
+        palette={palette}
+        transparent={transparent}
+        gradientPosition="top-left"
+        gradientIntensity={0.28}
+        secondaryGradient
+      />
 
       <div
         style={{
           position: "relative",
           zIndex: 1,
-          textAlign: "center",
+          textAlign: "left",
           padding: pad,
           width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 14 : 16,
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.primary,
-            marginBottom: isLandscape ? 20 : 32,
+            marginBottom: isLandscape ? 20 : 28,
             opacity: brandFade,
           }}
         >
@@ -74,38 +81,39 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_DISPLAY,
             fontWeight: 900,
             fontSize: headlineFontSize,
             lineHeight: 0.95,
             letterSpacing: -2,
-            marginBottom: isLandscape ? 16 : 24,
+            marginBottom: isLandscape ? 16 : 20,
             color: palette.text,
             opacity: headline.opacity,
-            transform: `translateY(${headline.translateY}px)`,
+            transform: `translateY(${headline.y}px) scale(${headline.scale})`,
+            transformOrigin: "left center",
           }}
         >
           {copy.headline || ""}
         </div>
 
-        <div
-          style={{
-            width: 48,
-            height: 3,
-            background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`,
-            margin: `0 auto ${isLandscape ? 16 : 24}px`,
-            borderRadius: 2,
-            opacity: divider.opacity,
-            transform: `scaleX(${divider.scaleX})`,
-          }}
+        <AccentLine
+          startFrame={24}
+          width={isLandscape ? 60 : 80}
+          height={3}
+          color={palette.accent}
+          direction="left-to-right"
+          style={{ marginBottom: isLandscape ? 16 : 20 }}
         />
 
         <div
           style={{
+            fontFamily: FONT_DISPLAY,
             fontWeight: 900,
             fontSize: detailFontSize,
             color: palette.primary,
             marginBottom: isLandscape ? 8 : 12,
-            opacity: detailFade,
+            opacity: detailSlide.opacity,
+            transform: `translateY(${detailSlide.translateY}px)`,
           }}
         >
           {copy.detail || ""}
@@ -113,11 +121,12 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_LABEL,
             fontWeight: 600,
             fontSize: isLandscape ? 16 : 20,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
-            color: "#8A8A80",
+            color: `${palette.text}80`,
             marginBottom: isLandscape ? 8 : 12,
             opacity: subtextFade,
           }}
@@ -127,10 +136,11 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
             fontSize: isLandscape ? 16 : 20,
             color: palette.accent,
-            marginTop: isLandscape ? 12 : 20,
+            marginTop: isLandscape ? 12 : 16,
             opacity: taglineFade,
           }}
         >
@@ -142,6 +152,10 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "absolute",
           bottom: isLandscape ? 20 : 40,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontFamily: FONT_LABEL,
           fontWeight: 600,
           fontSize: 12,
           letterSpacing: 3,

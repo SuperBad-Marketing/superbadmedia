@@ -63,10 +63,20 @@ export interface CustomPaletteInput {
   text: string;
 }
 
+export const SFX_NAMES = ["tick", "whoosh", "impact", "riser"] as const;
+export type SfxName = (typeof SFX_NAMES)[number];
+
+export interface SfxCueData {
+  sfx: SfxName;
+  startFrame: number;
+  volume: number;
+}
+
 export interface MotionTemplateProps {
   copy: Record<string, string>;
   palette: ColourPalette;
   transparent: boolean;
   animationParams: Record<string, number | string | boolean>;
   fontPairingId?: string;
+  sfxCues?: SfxCueData[];
 }
