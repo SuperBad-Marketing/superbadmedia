@@ -12,7 +12,7 @@ import { killSwitches } from "@/lib/kill-switches";
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   debug: false,
-  tracesSampleRate: 1,
+  tracesSampleRate: killSwitches.sentry_enabled ? 0.15 : 0,
   beforeSend(event) {
     if (!killSwitches.sentry_enabled) return null;
     return event;

@@ -30,7 +30,7 @@ dbs:
         access-key-id: ${R2_ACCESS_KEY_ID}
         secret-access-key: ${R2_SECRET_ACCESS_KEY}
         # Sync every WAL frame as it's written — near-real-time RPO.
-        sync-interval: 1s
+        sync-interval: 10s
         # Keep at least 24 hours of snapshots for point-in-time restore.
         # ATO 7-year legal retention is enforced via R2 bucket lifecycle
         # rules (no-expire policy), not via this Litestream retention setting.
