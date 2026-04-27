@@ -18,7 +18,7 @@ const globalForStripe = globalThis as unknown as { _stripe?: Stripe };
 export function getStripe(): Stripe {
   if (globalForStripe._stripe) return globalForStripe._stripe;
   const instance = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-    apiVersion: "2026-03-25.dahlia",
+    apiVersion: "2026-04-22.dahlia",
     typescript: true,
   });
   if (process.env.NODE_ENV !== "production") {
