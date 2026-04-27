@@ -13,7 +13,7 @@ import {
   fetchMapsExtras,
   applyMapsExtrasToProfile,
 } from "@/lib/lead-gen/enrich";
-import { searchMetaAdLibrary } from "@/lib/lead-gen/sources/meta-ad-library";
+import { searchMetaAdLibraryApify } from "@/lib/lead-gen/sources/apify-meta-ad-library";
 import { searchGoogleMaps } from "@/lib/lead-gen/sources/google-maps";
 import { searchGoogleAdsTransparency } from "@/lib/lead-gen/sources/google-ads-transparency";
 import { db } from "@/lib/db";
@@ -102,8 +102,7 @@ export async function runAuditEnrichment(
     {
       name: "meta_ads",
       run: async () => {
-        const result = await searchMetaAdLibrary({
-          category: input.businessName,
+        const result = await searchMetaAdLibraryApify({
           location: "",
           radius_km: 0,
           location_lat: 0,
@@ -130,7 +129,6 @@ export async function runAuditEnrichment(
       name: "google_ads",
       run: async () => {
         const result = await searchGoogleAdsTransparency({
-          category: input.domain,
           location: "",
           radius_km: 0,
           location_lat: 0,

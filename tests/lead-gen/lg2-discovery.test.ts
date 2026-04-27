@@ -6,22 +6,22 @@ import type {
 
 // ── Mocks ───────────────────────────────────────────────────────────
 
-const mockSearchMetaAdLibrary = vi.fn();
+const mockSearchMetaAdLibraryApify = vi.fn();
+const mockSearchInstagramLocation = vi.fn();
 const mockSearchGoogleMaps = vi.fn();
-const mockSearchGoogleAdsTransparency = vi.fn();
 
-vi.mock("@/lib/lead-gen/sources/meta-ad-library", () => ({
-  searchMetaAdLibrary: (...args: unknown[]) =>
-    mockSearchMetaAdLibrary(...args),
+vi.mock("@/lib/lead-gen/sources/apify-meta-ad-library", () => ({
+  searchMetaAdLibraryApify: (...args: unknown[]) =>
+    mockSearchMetaAdLibraryApify(...args),
+}));
+
+vi.mock("@/lib/lead-gen/sources/apify-instagram-location", () => ({
+  searchInstagramLocation: (...args: unknown[]) =>
+    mockSearchInstagramLocation(...args),
 }));
 
 vi.mock("@/lib/lead-gen/sources/google-maps", () => ({
   searchGoogleMaps: (...args: unknown[]) => mockSearchGoogleMaps(...args),
-}));
-
-vi.mock("@/lib/lead-gen/sources/google-ads-transparency", () => ({
-  searchGoogleAdsTransparency: (...args: unknown[]) =>
-    mockSearchGoogleAdsTransparency(...args),
 }));
 
 // ── Import after mocks ──────────────────────────────────────────────
@@ -29,13 +29,12 @@ vi.mock("@/lib/lead-gen/sources/google-ads-transparency", () => ({
 import { runDiscovery } from "@/lib/lead-gen/discovery";
 
 const DEFAULT_PARAMS: DiscoverySearchParams = {
-  category: "cafes",
   location: "Melbourne, Australia",
   radius_km: 25,
   location_lat: -37.8136,
   location_lng: 144.9631,
   country_code: "AU",
-  brief: "cafes with good marketing potential",
+  brief: "businesses with good marketing potential",
   max_candidates: 8,
 };
 
@@ -58,16 +57,14 @@ describe("runDiscovery", () => {
   });
 
   it("combines candidates from all three sources", async () => {
-    mockSearchMetaAdLibrary.mockResolvedValue({
+    mockSearchMetaAdLibraryApify.mockResolvedValue({
       candidates: [makeCandidate("Meta Biz", "meta.com.au", "meta_ad_library")],
+    });
+    mockSearchInstagramLocation.mockResolvedValue({
+      candidates: [makeCandidate("IG Biz", "ig.com.au", "instagram_location")],
     });
     mockSearchGoogleMaps.mockResolvedValue({
       candidates: [makeCandidate("Maps Biz", "maps.com.au", "google_maps")],
-    });
-    mockSearchGoogleAdsTransparency.mockResolvedValue({
-      candidates: [
-        makeCandidate("Ads Biz", "ads.com.au", "google_ads_transparency"),
-      ],
     });
 
     const result = await runDiscovery(DEFAULT_PARAMS);
@@ -78,36 +75,36 @@ describe("runDiscovery", () => {
   });
 
   it("deduplicates by domain (case-insensitive)", async () => {
-    mockSearchMetaAdLibrary.mockResolvedValue({
+    mockSearchMetaAdLibraryApify.mockResolvedValue({
       candidates: [
         makeCandidate("Acme (Meta)", "acme.com.au", "meta_ad_library"),
       ],
     });
-    mockSearchGoogleMaps.mockResolvedValue({
+    mockSearchInstagramLocation.mockResolvedValue({
       candidates: [
-        makeCandidate("Acme (Maps)", "ACME.COM.AU", "google_maps"),
+        makeCandidate("Acme (IG)", "ACME.COM.AU", "instagram_location"),
       ],
     });
-    mockSearchGoogleAdsTransparency.mockResolvedValue({
+    mockSearchGoogleMaps.mockResolvedValue({
       candidates: [],
     });
 
     const result = await runDiscovery(DEFAULT_PARAMS);
 
     expect(result.candidates).toHaveLength(1);
-    expect(result.candidates[0].company_name).toBe("Acme (Meta)"); // Meta wins priority
+    expect(result.candidates[0].company_name).toBe("Acme (Meta)");
     expect(result.dedup_removed).toBe(1);
   });
 
-  it("preserves priority order: Meta > Transparency > Maps", async () => {
-    mockSearchMetaAdLibrary.mockResolvedValue({
+  it("preserves priority order: Meta > Instagram > Maps", async () => {
+    mockSearchMetaAdLibraryApify.mockResolvedValue({
       candidates: [
         makeCandidate("Meta Biz", "shared.com.au", "meta_ad_library"),
       ],
     });
-    mockSearchGoogleAdsTransparency.mockResolvedValue({
+    mockSearchInstagramLocation.mockResolvedValue({
       candidates: [
-        makeCandidate("Ads Biz", "shared.com.au", "google_ads_transparency"),
+        makeCandidate("IG Biz", "shared.com.au", "instagram_location"),
       ],
     });
     mockSearchGoogleMaps.mockResolvedValue({
@@ -123,8 +120,8 @@ describe("runDiscovery", () => {
   });
 
   it("does not dedup candidates without domains", async () => {
-    mockSearchMetaAdLibrary.mockResolvedValue({ candidates: [] });
-    mockSearchGoogleAdsTransparency.mockResolvedValue({ candidates: [] });
+    mockSearchMetaAdLibraryApify.mockResolvedValue({ candidates: [] });
+    mockSearchInstagramLocation.mockResolvedValue({ candidates: [] });
     mockSearchGoogleMaps.mockResolvedValue({
       candidates: [
         makeCandidate("No Web A", null, "google_maps"),
@@ -139,22 +136,18 @@ describe("runDiscovery", () => {
   });
 
   it("continues when one source fails", async () => {
-    mockSearchMetaAdLibrary.mockRejectedValue(new Error("Meta API down"));
+    mockSearchMetaAdLibraryApify.mockRejectedValue(new Error("Meta API down"));
+    mockSearchInstagramLocation.mockResolvedValue({
+      candidates: [makeCandidate("IG Biz", "ig.com.au", "instagram_location")],
+    });
     mockSearchGoogleMaps.mockResolvedValue({
       candidates: [makeCandidate("Maps Biz", "maps.com.au", "google_maps")],
-    });
-    mockSearchGoogleAdsTransparency.mockResolvedValue({
-      candidates: [
-        makeCandidate("Ads Biz", "ads.com.au", "google_ads_transparency"),
-      ],
     });
 
     const result = await runDiscovery(DEFAULT_PARAMS);
 
-    // Two sources survived
     expect(result.candidates).toHaveLength(2);
 
-    // Failed source is captured in source_results
     const metaSource = result.source_results.find(
       (s) => s.source === "meta_ad_library",
     );
@@ -163,9 +156,9 @@ describe("runDiscovery", () => {
   });
 
   it("continues when all sources fail", async () => {
-    mockSearchMetaAdLibrary.mockRejectedValue(new Error("fail 1"));
-    mockSearchGoogleMaps.mockRejectedValue(new Error("fail 2"));
-    mockSearchGoogleAdsTransparency.mockRejectedValue(new Error("fail 3"));
+    mockSearchMetaAdLibraryApify.mockRejectedValue(new Error("fail 1"));
+    mockSearchInstagramLocation.mockRejectedValue(new Error("fail 2"));
+    mockSearchGoogleMaps.mockRejectedValue(new Error("fail 3"));
 
     const result = await runDiscovery(DEFAULT_PARAMS);
 
@@ -175,15 +168,15 @@ describe("runDiscovery", () => {
   });
 
   it("captures per-source errors when source returns error string", async () => {
-    mockSearchMetaAdLibrary.mockResolvedValue({
+    mockSearchMetaAdLibraryApify.mockResolvedValue({
       candidates: [],
       error: "credential not found",
     });
+    mockSearchInstagramLocation.mockResolvedValue({
+      candidates: [],
+    });
     mockSearchGoogleMaps.mockResolvedValue({
       candidates: [makeCandidate("Biz", "biz.com", "google_maps")],
-    });
-    mockSearchGoogleAdsTransparency.mockResolvedValue({
-      candidates: [],
     });
 
     const result = await runDiscovery(DEFAULT_PARAMS);
@@ -196,29 +189,29 @@ describe("runDiscovery", () => {
   });
 
   it("reports correct total_found_before_dedup and dedup_removed", async () => {
-    mockSearchMetaAdLibrary.mockResolvedValue({
+    mockSearchMetaAdLibraryApify.mockResolvedValue({
       candidates: [
         makeCandidate("A", "shared.com", "meta_ad_library"),
         makeCandidate("B", "unique-meta.com", "meta_ad_library"),
       ],
     });
-    mockSearchGoogleMaps.mockResolvedValue({
+    mockSearchInstagramLocation.mockResolvedValue({
       candidates: [
-        makeCandidate("C", "shared.com", "google_maps"), // dupe
-        makeCandidate("D", "unique-maps.com", "google_maps"),
-        makeCandidate("E", null, "google_maps"), // no domain
+        makeCandidate("C", "shared.com", "instagram_location"), // dupe
+        makeCandidate("D", "unique-ig.com", "instagram_location"),
       ],
     });
-    mockSearchGoogleAdsTransparency.mockResolvedValue({
+    mockSearchGoogleMaps.mockResolvedValue({
       candidates: [
-        makeCandidate("F", "shared.com", "google_ads_transparency"), // dupe
+        makeCandidate("E", "shared.com", "google_maps"), // dupe
+        makeCandidate("F", null, "google_maps"), // no domain
       ],
     });
 
     const result = await runDiscovery(DEFAULT_PARAMS);
 
     expect(result.total_found_before_dedup).toBe(6);
-    expect(result.dedup_removed).toBe(2); // Two "shared.com" dupes removed
-    expect(result.candidates).toHaveLength(4); // A, B, D, E
+    expect(result.dedup_removed).toBe(2);
+    expect(result.candidates).toHaveLength(4); // A, B, D, F
   });
 });

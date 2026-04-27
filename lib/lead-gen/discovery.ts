@@ -1,85 +1,77 @@
-/**
- * Discovery orchestrator — runs all three primary sources in parallel,
- * deduplicates by domain, and returns a unified candidate list.
- *
- * This is step 2 of the daily run sequence (spec §3.4):
- *   "Query all sources in parallel for the standing brief (or manual brief
- *    if override). Per-source failures logged to lead_runs.error; run
- *    continues with remaining sources."
- *
- * Owner: LG-2. Consumer: daily search runner (LG-4).
- */
-
-import { searchMetaAdLibrary } from "./sources/meta-ad-library";
+import { searchMetaAdLibraryApify } from "./sources/apify-meta-ad-library";
+import { searchInstagramLocation } from "./sources/apify-instagram-location";
 import { searchGoogleMaps } from "./sources/google-maps";
-import { searchGoogleAdsTransparency } from "./sources/google-ads-transparency";
 import type {
   DiscoveredCandidate,
   DiscoverySearchParams,
   SourceResult,
 } from "./types";
 
-/**
- * Result of a full discovery run across all three sources.
- */
+const BROAD_SWEEP_CATEGORIES = [
+  "restaurants",
+  "retail stores",
+  "health and beauty",
+  "professional services",
+  "fitness and wellness",
+  "trades and construction",
+  "automotive",
+  "hospitality and accommodation",
+  "creative and design",
+  "education and training",
+  "food and beverage",
+  "medical and dental",
+];
+
+let broadSweepIndex = 0;
+
+function nextBroadCategory(): string {
+  const cat = BROAD_SWEEP_CATEGORIES[broadSweepIndex % BROAD_SWEEP_CATEGORIES.length];
+  broadSweepIndex++;
+  return cat;
+}
+
 export interface DiscoveryRunResult {
-  /** Deduplicated candidates, sorted by source priority. */
   candidates: DiscoveredCandidate[];
-
-  /** Per-source result details (for lead_runs.per_source_errors_json). */
   source_results: SourceResult[];
-
-  /** Total candidates found before dedup. */
   total_found_before_dedup: number;
-
-  /** How many were removed as duplicates. */
   dedup_removed: number;
 }
 
 /**
- * Run all three discovery sources in parallel and return a deduplicated
- * unified candidate list.
+ * Run all three discovery sources in parallel:
+ *   1. Meta Ad Library (Apify) — businesses actively running ads
+ *   2. Instagram location — businesses with local content presence
+ *   3. Google Maps broad sweep — auto-cycling categories, catches the rest
  *
- * Each source runs independently — if one fails, the others still return
- * results. Per-source errors are captured in `source_results` for the
- * `lead_runs.per_source_errors_json` audit column.
- *
- * Deduplication is by domain (lowercased). When two sources discover the
- * same domain, the first source in priority order wins:
- *   1. Meta Ad Library (ad-running = strongest signal)
- *   2. Google Ads Transparency (ad-running on Google)
- *   3. Google Maps (location-based, most common duplicates)
- *
- * Candidates without a domain are never deduped against each other
- * (we can't know they're the same business without a domain).
+ * Deduplication by domain. Priority: Meta Ads > Instagram > Maps.
  */
 export async function runDiscovery(
   params: DiscoverySearchParams,
 ): Promise<DiscoveryRunResult> {
-  // Run all three sources in parallel (spec §3.4 step 2)
-  const [metaResult, mapsResult, transparencyResult] =
+  const mapsParams = {
+    ...params,
+    category: params.category || nextBroadCategory(),
+  };
+
+  const [metaResult, instagramResult, mapsResult] =
     await Promise.allSettled([
-      timedSource("meta_ad_library", () => searchMetaAdLibrary(params)),
-      timedSource("google_maps", () => searchGoogleMaps(params)),
-      timedSource("google_ads_transparency", () =>
-        searchGoogleAdsTransparency(params),
-      ),
+      timedSource("meta_ad_library", () => searchMetaAdLibraryApify(params)),
+      timedSource("instagram_location", () => searchInstagramLocation(params)),
+      timedSource("google_maps", () => searchGoogleMaps(mapsParams)),
     ]);
 
   const sourceResults: SourceResult[] = [
     extractSourceResult(metaResult, "meta_ad_library"),
-    extractSourceResult(transparencyResult, "google_ads_transparency"),
+    extractSourceResult(instagramResult, "instagram_location"),
     extractSourceResult(mapsResult, "google_maps"),
   ];
 
-  // Combine all candidates in priority order
   const allCandidates: DiscoveredCandidate[] = sourceResults.flatMap(
     (sr) => sr.candidates,
   );
 
   const totalBeforeDedup = allCandidates.length;
 
-  // Deduplicate by domain (priority order: Meta > Transparency > Maps)
   const seenDomains = new Set<string>();
   const deduplicated: DiscoveredCandidate[] = [];
 
@@ -89,7 +81,6 @@ export async function runDiscovery(
       if (seenDomains.has(normDomain)) continue;
       seenDomains.add(normDomain);
     }
-    // Candidates without a domain always pass (can't dedup without one)
     deduplicated.push(candidate);
   }
 
@@ -101,9 +92,6 @@ export async function runDiscovery(
   };
 }
 
-/**
- * Wrap a source call with timing.
- */
 async function timedSource(
   source: DiscoveredCandidate["source"],
   fn: () => Promise<{ candidates: DiscoveredCandidate[]; error?: string }>,
@@ -127,9 +115,6 @@ async function timedSource(
   }
 }
 
-/**
- * Extract a SourceResult from a Promise.allSettled outcome.
- */
 function extractSourceResult(
   settled: PromiseSettledResult<SourceResult>,
   source: DiscoveredCandidate["source"],

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   updateLeadGenSettingsAction,
-  suggestSearchParamsAction,
+  geocodePlaceAction,
   type LeadGenSettings,
 } from "../actions";
 
@@ -61,74 +61,18 @@ const numberClass =
 const selectClass =
   "w-full sm:w-[280px] rounded-md border px-3 py-2 text-[14px] font-[family-name:var(--font-body)] bg-[color:var(--color-neutral-800)] text-[color:var(--color-brand-cream)] border-[color:var(--color-neutral-600)] focus:outline-none focus:border-[color:var(--color-brand-pink)]";
 
-const COUNTRIES = [
-  { code: "AU", name: "Australia" },
-  { code: "US", name: "United States" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "CA", name: "Canada" },
-  { code: "NZ", name: "New Zealand" },
-  { code: "IE", name: "Ireland" },
-  { code: "SG", name: "Singapore" },
-  { code: "AE", name: "United Arab Emirates" },
-  { code: "DE", name: "Germany" },
-  { code: "FR", name: "France" },
-  { code: "NL", name: "Netherlands" },
-  { code: "SE", name: "Sweden" },
-  { code: "NO", name: "Norway" },
-  { code: "DK", name: "Denmark" },
-  { code: "FI", name: "Finland" },
-  { code: "AT", name: "Austria" },
-  { code: "CH", name: "Switzerland" },
-  { code: "BE", name: "Belgium" },
-  { code: "IT", name: "Italy" },
-  { code: "ES", name: "Spain" },
-  { code: "PT", name: "Portugal" },
-  { code: "JP", name: "Japan" },
-  { code: "KR", name: "South Korea" },
-  { code: "IN", name: "India" },
-  { code: "ZA", name: "South Africa" },
-  { code: "BR", name: "Brazil" },
-  { code: "MX", name: "Mexico" },
-  { code: "IL", name: "Israel" },
-  { code: "HK", name: "Hong Kong" },
-  { code: "MY", name: "Malaysia" },
-  { code: "PH", name: "Philippines" },
-  { code: "TH", name: "Thailand" },
-  { code: "PL", name: "Poland" },
-  { code: "CZ", name: "Czech Republic" },
-  { code: "RO", name: "Romania" },
-  { code: "CL", name: "Chile" },
-  { code: "CO", name: "Colombia" },
-  { code: "AR", name: "Argentina" },
-];
-
 export function LeadGenSettingsForm({
   initial,
 }: {
   initial: LeadGenSettings;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [form, setForm] = useState(() => {
-    const prefillCategory = searchParams.get("prefill_category");
-    const prefillBrief = searchParams.get("prefill_brief");
-    const prefillTrack = searchParams.get("prefill_track");
-    if (prefillCategory || prefillBrief || prefillTrack) {
-      return {
-        ...initial,
-        ...(prefillCategory ? { category: prefillCategory } : {}),
-        ...(prefillBrief ? { standingBrief: prefillBrief } : {}),
-        ...(prefillTrack && (prefillTrack === "retainer" || prefillTrack === "saas")
-          ? { trackPriority: prefillTrack }
-          : {}),
-      };
-    }
-    return initial;
-  });
+  const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
-  const [suggesting, setSuggesting] = useState(false);
-  const [prefilled, setPrefilled] = useState(
-    () => !!(searchParams.get("prefill_category") || searchParams.get("prefill_brief")),
+  const [resolving, setResolving] = useState(false);
+  const [locationInput, setLocationInput] = useState(initial.locationCentre);
+  const [resolvedDisplay, setResolvedDisplay] = useState<string | null>(
+    initial.locationLat !== 0 ? `${initial.locationCentre} (${initial.locationLat.toFixed(4)}, ${initial.locationLng.toFixed(4)})` : null,
   );
 
   async function handleSave() {
@@ -140,48 +84,98 @@ export function LeadGenSettingsForm({
       return;
     }
     toast.success("Search settings saved.");
-    setPrefilled(false);
     router.refresh();
   }
 
-  async function handleSuggest() {
-    setSuggesting(true);
-    const res = await suggestSearchParamsAction({
-      targetRevenue: form.targetRevenue,
-      targetTeamSize: form.targetTeamSize,
-      targetIndustry: form.targetIndustry,
-      locationCentre: form.locationCentre,
-      trackPriority: form.trackPriority,
-    });
-    setSuggesting(false);
+  async function handleResolveLocation() {
+    if (!locationInput.trim()) {
+      toast.error("Enter a place name first.");
+      return;
+    }
+    setResolving(true);
+    const res = await geocodePlaceAction(locationInput);
+    setResolving(false);
     if (!res.ok) {
       toast.error(res.error);
       return;
     }
     setForm((f) => ({
       ...f,
-      category: res.category,
-      standingBrief: res.standingBrief,
+      locationCentre: locationInput.trim(),
+      locationLat: res.lat,
+      locationLng: res.lng,
+      locationCountryCode: res.countryCode,
+      locationCountry: res.displayName.split(",").pop()?.trim() ?? "",
     }));
-    toast.success("Search params suggested — review and save.");
+    setResolvedDisplay(`${res.displayName.split(",").slice(0, 2).join(",")} (${res.lat.toFixed(4)}, ${res.lng.toFixed(4)})`);
+    toast.success("Location resolved.");
   }
 
   return (
     <div className="px-4">
-      {prefilled && (
-        <div
-          className="mt-4 flex items-center gap-3 rounded-lg border px-4 py-3"
-          style={{
-            backgroundColor: "rgba(232, 78, 103, 0.08)",
-            borderColor: "rgba(232, 78, 103, 0.2)",
-          }}
-        >
-          <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-pink)]">
-            Suggestion applied — review the fields below and save when ready.
-          </span>
+      <SectionHeading>Location</SectionHeading>
+
+      <SettingRow
+        label="Search location"
+        description="Where to find businesses. Type a city or area name and hit resolve — coordinates are filled in automatically."
+      >
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={locationInput}
+              onChange={(e) => setLocationInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleResolveLocation();
+                }
+              }}
+              placeholder="e.g. Melbourne, Australia"
+              className={inputClass}
+            />
+            <button
+              type="button"
+              onClick={handleResolveLocation}
+              disabled={resolving}
+              className="shrink-0 rounded-md px-4 py-2 font-[family-name:var(--font-body)] text-[13px] font-medium transition-opacity"
+              style={{
+                backgroundColor: "var(--color-neutral-700)",
+                color: "var(--color-brand-cream)",
+                opacity: resolving ? 0.5 : 1,
+              }}
+            >
+              {resolving ? "Resolving…" : "Resolve"}
+            </button>
+          </div>
+          {resolvedDisplay && (
+            <span className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+              {resolvedDisplay}
+            </span>
+          )}
         </div>
-      )}
-      <SectionHeading>Targeting</SectionHeading>
+      </SettingRow>
+
+      <SettingRow
+        label="Search radius (km)"
+        description="How far from the location centre to search. Also sets the travel range for trial shoots."
+      >
+        <input
+          type="number"
+          value={form.locationRadiusKm}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              locationRadiusKm: parseInt(e.target.value) || 0,
+            }))
+          }
+          min={1}
+          max={500}
+          className={numberClass}
+        />
+      </SettingRow>
+
+      <SectionHeading>Discovery</SectionHeading>
 
       <SettingRow
         label="Track priority"
@@ -201,227 +195,25 @@ export function LeadGenSettingsForm({
       </SettingRow>
 
       <SettingRow
-        label="Target industry"
-        description="What kind of businesses you're looking for. Leave blank for any."
-      >
-        <input
-          type="text"
-          value={form.targetIndustry}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, targetIndustry: e.target.value }))
-          }
-          placeholder="e.g. hospitality, health & fitness"
-          className={inputClass}
-        />
-      </SettingRow>
-
-      <SettingRow
-        label="Target revenue"
-        description="Rough annual revenue range of businesses you want to find."
-      >
-        <input
-          type="text"
-          value={form.targetRevenue}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, targetRevenue: e.target.value }))
-          }
-          placeholder="e.g. $100k–$500k"
-          className={inputClass}
-        />
-      </SettingRow>
-
-      <SettingRow
-        label="Target team size"
-        description="How many people work at the businesses you're targeting."
-      >
-        <input
-          type="text"
-          value={form.targetTeamSize}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, targetTeamSize: e.target.value }))
-          }
-          placeholder="e.g. 1–10, 10–50"
-          className={inputClass}
-        />
-      </SettingRow>
-
-      <div className="mt-4">
-        <button
-          type="button"
-          onClick={handleSuggest}
-          disabled={suggesting}
-          className="rounded-lg px-5 py-2 font-[family-name:var(--font-body)] text-[13px] font-medium transition-opacity"
-          style={{
-            backgroundColor: "var(--color-neutral-700)",
-            color: "var(--color-brand-cream)",
-            opacity: suggesting ? 0.5 : 1,
-          }}
-        >
-          {suggesting ? "Thinking…" : "Suggest search from targeting"}
-        </button>
-        <span className="ml-3 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
-          AI generates a category + brief from the fields above
-        </span>
-      </div>
-
-      <SectionHeading>Search parameters</SectionHeading>
-
-      <SettingRow
-        label="Category"
-        description="Business type to search for on Google Maps. e.g. 'cafes', 'dental clinics', 'fitness studios'."
-      >
-        <input
-          type="text"
-          value={form.category}
-          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-          placeholder="e.g. cafes"
-          className={inputClass}
-        />
-      </SettingRow>
-
-      <SettingRow
         label="Standing brief"
-        description="Describes your ideal prospect. Fed to the AI draft generator and shapes outreach tone."
+        description="Describes your ideal prospect. Shapes how outreach emails are personalised."
       >
         <textarea
           value={form.standingBrief}
           onChange={(e) =>
             setForm((f) => ({ ...f, standingBrief: e.target.value }))
           }
-          placeholder="e.g. Small-to-medium businesses in Melbourne that are already spending on marketing but could be doing it better..."
+          placeholder="e.g. Ambitious businesses investing in their brand but underperforming on content. They have a story worth telling and the revenue to back a proper marketing partnership."
           className={textareaClass}
           rows={4}
         />
       </SettingRow>
 
-      <SettingRow
-        label="Location mode"
-        description="Local targets a specific city. Global auto-identifies the best regions for SaaS signups."
-      >
-        <select
-          value={form.locationMode}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, locationMode: e.target.value as "local" | "global" }))
-          }
-          className={selectClass}
-        >
-          <option value="local">Local — target a specific city</option>
-          <option value="global">Global — auto-target best regions for SaaS</option>
-        </select>
-      </SettingRow>
-
-      {form.locationMode === "local" && (
-        <>
-          <SettingRow
-            label="Country"
-            description="Disambiguates the city — 'Melbourne' in Australia vs Florida."
-          >
-            <select
-              value={form.locationCountryCode}
-              onChange={(e) => {
-                const option = COUNTRIES.find((c) => c.code === e.target.value);
-                setForm((f) => ({
-                  ...f,
-                  locationCountryCode: e.target.value,
-                  locationCountry: option?.name ?? "",
-                }));
-              }}
-              className={selectClass}
-            >
-              <option value="">Select a country</option>
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </SettingRow>
-
-          <SettingRow
-            label="City"
-            description="Centre point for location-based discovery (Google Maps)."
-          >
-            <input
-              type="text"
-              value={form.locationCentre}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, locationCentre: e.target.value }))
-              }
-              placeholder="e.g. Melbourne"
-              className={inputClass}
-            />
-          </SettingRow>
-
-          <SettingRow
-            label="Coordinates"
-            description="Lat/lng for geo-anchored search. Google 'coordinates of [city]' to find these."
-          >
-            <div className="flex gap-2">
-              <input
-                type="number"
-                step="any"
-                value={form.locationLat}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    locationLat: parseFloat(e.target.value) || 0,
-                  }))
-                }
-                placeholder="Latitude"
-                className={numberClass}
-              />
-              <input
-                type="number"
-                step="any"
-                value={form.locationLng}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    locationLng: parseFloat(e.target.value) || 0,
-                  }))
-                }
-                placeholder="Longitude"
-                className={numberClass}
-              />
-            </div>
-          </SettingRow>
-
-          <SettingRow
-            label="Radius (km)"
-            description="How far from the city centre to search."
-          >
-            <input
-              type="number"
-              value={form.locationRadiusKm}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  locationRadiusKm: parseInt(e.target.value) || 0,
-                }))
-              }
-              min={1}
-              max={500}
-              className={numberClass}
-            />
-          </SettingRow>
-        </>
-      )}
-
-      {form.locationMode === "global" && (
-        <div className="py-4 px-1">
-          <p className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)] italic">
-            Global mode analyses enrichment signal density to identify high-potential regions automatically.
-            The platform recommends target-rich locations and cycles through them across daily runs.
-            You can pin or exclude specific regions from the metrics panel.
-          </p>
-        </div>
-      )}
-
       <SectionHeading>Run behaviour</SectionHeading>
 
       <SettingRow
-        label="Max per day"
-        description="Maximum new prospects per daily run (before warmup clamp). Higher = more drafts to review."
+        label="Daily target"
+        description="How many qualified businesses to find per daily run. The pipeline searches broadly and filters down to this number."
       >
         <input
           type="number"

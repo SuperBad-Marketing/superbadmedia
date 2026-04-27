@@ -11,7 +11,7 @@
 import type { DiscoveredCandidate, DiscoverySearchParams } from "../types";
 
 export async function searchGoogleAdsTransparency(
-  _params: DiscoverySearchParams,
+  _params: Partial<DiscoverySearchParams>,
 ): Promise<{ candidates: DiscoveredCandidate[]; error?: string }> {
   return { candidates: [] };
 }

@@ -23,6 +23,7 @@ export const CANDIDATE_SOURCES = [
   "meta_ad_library",
   "google_maps",
   "google_ads_transparency",
+  "instagram_location",
   "manual_brief",
   "manual_entry",
 ] as const;

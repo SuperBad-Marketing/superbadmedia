@@ -111,7 +111,7 @@ export interface DiscoveredCandidate {
   domain: string | null;
 
   /** Which discovery source found this candidate. */
-  source: "meta_ad_library" | "google_maps" | "google_ads_transparency";
+  source: "meta_ad_library" | "google_maps" | "google_ads_transparency" | "instagram_location";
 
   /**
    * Partial viability profile seeded by the discovery source.
@@ -127,9 +127,6 @@ export interface DiscoveredCandidate {
  * Search parameters derived from Settings → Lead Generation → Daily Search.
  */
 export interface DiscoverySearchParams {
-  /** Free-text category (e.g. "cafes", "dental clinics"). */
-  category: string;
-
   /** Location string (e.g. "Melbourne, Australia"). */
   location: string;
 
@@ -148,8 +145,14 @@ export interface DiscoverySearchParams {
   /** Standing brief or manual brief override text. */
   brief: string;
 
-  /** Maximum candidates to return across all sources. */
+  /** Target number of qualified candidates (pipeline over-fetches to hit this). */
   max_candidates: number;
+
+  /**
+   * @deprecated Kept for backward compat with existing verticals data.
+   * New searches don't require a category — broad sweep is automatic.
+   */
+  category?: string;
 }
 
 /**

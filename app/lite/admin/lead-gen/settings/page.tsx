@@ -33,9 +33,9 @@ export default async function LeadGenSettingsPage() {
           Search Settings
         </h1>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
-          What to search for, where, and how much.{" "}
+          Where to look and how many to find.{" "}
           <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
-            the machine needs a target.
+            cast wide, refine later.
           </em>
         </p>
       </header>

@@ -861,71 +861,56 @@ export async function updateLeadGenSettingsAction(input: {
   return { ok: true };
 }
 
-// ── AI Search Suggestions ────────────────────────────────────────────
+// ── Place geocoding ────────────────────────────────────────────────────
 
-export async function suggestSearchParamsAction(input: {
-  targetRevenue: string;
-  targetTeamSize: string;
-  targetIndustry: string;
-  locationCentre: string;
-  trackPriority: string;
-}): Promise<
-  | { ok: true; category: string; standingBrief: string }
+export async function geocodePlaceAction(place: string): Promise<
+  | { ok: true; lat: number; lng: number; countryCode: string; displayName: string }
   | { ok: false; error: string }
 > {
   const by = await adminActorTag();
   if (!by) return { ok: false, error: "Not authorised." };
 
-  if (!killSwitches.llm_calls_enabled) {
-    return { ok: false, error: "LLM calls are paused." };
-  }
-
-  const trackDesc =
-    input.trackPriority === "saas"
-      ? "SaaS subscribers — small teams who'd use a self-serve marketing tool"
-      : input.trackPriority === "retainer"
-        ? "retainer clients — established businesses ready for a full-service creative agency"
-        : "both SaaS subscribers and retainer clients";
-
-  const prompt = `You are helping configure a lead generation search for SuperBad Marketing, a creative marketing agency in Melbourne, Australia.
-
-Based on the targeting criteria below, suggest:
-1. A Google Maps search category (short, 1-3 words, what you'd type into Google Maps to find these businesses — e.g. "cafes", "dental clinics", "fitness studios", "hair salons")
-2. A standing brief (2-3 sentences describing the ideal prospect — this gets fed to an AI that writes personalised cold outreach emails)
-
-TARGETING CRITERIA:
-- Location: ${input.locationCentre || "Melbourne"}
-- Industry: ${input.targetIndustry || "any"}
-- Revenue range: ${input.targetRevenue || "not specified"}
-- Team size: ${input.targetTeamSize || "not specified"}
-- Looking for: ${trackDesc}
-
-Respond in exactly this format (no other text):
-CATEGORY: <category>
-BRIEF: <brief>`;
+  const trimmed = place.trim();
+  if (!trimmed) return { ok: false, error: "Enter a place name." };
 
   try {
-    const result = await invokeLlmText({
-      job: "lead-gen-suggest-search",
-      system: "You are a concise marketing strategist. Respond only in the requested format.",
-      prompt,
-      maxTokens: 300,
+    const params = new URLSearchParams({
+      q: trimmed,
+      format: "json",
+      limit: "1",
+      addressdetails: "1",
     });
 
-    const categoryMatch = result.match(/CATEGORY:\s*(.+)/i);
-    const briefMatch = result.match(/BRIEF:\s*([\s\S]+)/i);
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params}`,
+      { headers: { "User-Agent": "SuperBadLite/1.0 (andy@superbadmedia.com.au)" } },
+    );
 
-    if (!categoryMatch || !briefMatch) {
-      return { ok: false, error: "Unexpected response format — try again." };
+    if (!response.ok) {
+      return { ok: false, error: "Geocoding service unavailable — try again." };
     }
 
+    const results = await response.json() as Array<{
+      lat: string;
+      lon: string;
+      display_name: string;
+      address?: { country_code?: string };
+    }>;
+
+    if (results.length === 0) {
+      return { ok: false, error: `Couldn't find "${trimmed}" — try a more specific place name.` };
+    }
+
+    const top = results[0];
     return {
       ok: true,
-      category: categoryMatch[1].trim(),
-      standingBrief: briefMatch[1].trim(),
+      lat: parseFloat(top.lat),
+      lng: parseFloat(top.lon),
+      countryCode: (top.address?.country_code ?? "au").toUpperCase(),
+      displayName: top.display_name,
     };
   } catch {
-    return { ok: false, error: "Suggestion failed — try again." };
+    return { ok: false, error: "Geocoding failed — try again." };
   }
 }
 

@@ -105,11 +105,12 @@ describe("LG-1 schema — enum completeness", () => {
     ]);
   });
 
-  it("candidate sources has 5 values", () => {
+  it("candidate sources has 6 values", () => {
     expect(CANDIDATE_SOURCES).toEqual([
       "meta_ad_library",
       "google_maps",
       "google_ads_transparency",
+      "instagram_location",
       "manual_brief",
       "manual_entry",
     ]);

@@ -27,8 +27,10 @@ export type {
 } from "./types";
 
 // LG-2: Discovery sources
-export { searchMetaAdLibrary } from "./sources/meta-ad-library";
+export { searchMetaAdLibraryApify } from "./sources/apify-meta-ad-library";
+export { searchInstagramLocation } from "./sources/apify-instagram-location";
 export { searchGoogleMaps } from "./sources/google-maps";
+export { searchMetaAdLibrary } from "./sources/meta-ad-library";
 export { searchGoogleAdsTransparency } from "./sources/google-ads-transparency";
 
 // LG-2: Discovery orchestrator
