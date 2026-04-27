@@ -37,6 +37,7 @@ import { generateDraft } from "./draft-generator";
 import { enforceWarmupCap, initWarmupState } from "./warmup";
 import { getNextVertical, recordVerticalSearch } from "./vertical-rotation";
 import { prefilterCandidates } from "./icp-prefilter";
+import { deepEnrichBatch, type DeepEnrichmentInput } from "./enrich/deep-enrichment";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "./types";
 import type { LeadRunTrigger } from "@/lib/db/schema/lead-runs";
 
@@ -238,6 +239,45 @@ export async function runDailySearch(
     scoredCandidates.sort((a, b) => b.assignment.score - a.assignment.score);
     const topCandidates = scoredCandidates.slice(0, effectiveCap);
 
+    // ── Step 7.5: Deep enrichment (Apify actors, post-scoring) ──────
+    const deepInputs: DeepEnrichmentInput[] = topCandidates.map((entry) => ({
+      companyName: entry.discovered.company_name,
+      domain: entry.discovered.domain,
+      currentProfile: entry.enrichedProfile,
+      currentAssignment: entry.assignment,
+    }));
+
+    const deepResults = await deepEnrichBatch(deepInputs);
+
+    const deepEnrichedCandidates: typeof topCandidates = [];
+    for (let i = 0; i < topCandidates.length; i++) {
+      const entry = topCandidates[i];
+      const deepResult = deepResults.get(deepInputs[i]);
+      if (deepResult) {
+        entry.enrichedProfile = deepResult.profile;
+        entry.assignment = deepResult.reassignment;
+
+        if (deepResult.scrapedContacts.length > 0) {
+          for (const dc of deepResult.scrapedContacts) {
+            if (!entry.scrapedContacts.some((c) => c.email === dc.email)) {
+              entry.scrapedContacts.push({
+                email: dc.email,
+                name: null,
+                role: null,
+                phone: dc.phone,
+                source_page: dc.source,
+              });
+            }
+          }
+        }
+
+        if (deepResult.reassignment.track === null) continue;
+        if (trackPriority === "saas" && deepResult.reassignment.track !== "saas") continue;
+        if (trackPriority === "retainer" && deepResult.reassignment.track !== "retainer") continue;
+      }
+      deepEnrichedCandidates.push(entry);
+    }
+
     // ── Steps 8–11: Contact discovery + draft generation + insert ────
     const standingBrief =
       input.manualBriefText ??
@@ -245,7 +285,7 @@ export async function runDailySearch(
 
     let candidatesCreated = 0;
     let draftedCount = 0;
-    for (const entry of topCandidates) {
+    for (const entry of deepEnrichedCandidates) {
       // Step 8: Discover contact email — Hunter.io primary, website scrape fallback
       const domain = entry.discovered.domain;
       let contactResult = {

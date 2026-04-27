@@ -305,6 +305,28 @@ function buildUserPrompt(
 
   sections.push(`\nVIABILITY PROFILE:\n${JSON.stringify(input.viabilityProfile, null, 2)}`);
 
+  const wc = input.viabilityProfile.website_content;
+  if (wc?.distilled_brief) {
+    sections.push(`\nDEEP ENRICHMENT — BUSINESS BRIEF:\n${wc.distilled_brief}`);
+    if (wc.services_offered.length > 0) {
+      sections.push(`Services: ${wc.services_offered.join(", ")}`);
+    }
+    if (wc.unique_selling_points.length > 0) {
+      sections.push(`USPs: ${wc.unique_selling_points.join(", ")}`);
+    }
+  }
+
+  const fb = input.viabilityProfile.facebook;
+  const li = input.viabilityProfile.linkedin;
+  const tt = input.viabilityProfile.tiktok;
+  const deepSignals: string[] = [];
+  if (fb?.has_active_page) deepSignals.push(`Facebook: ${fb.follower_count ?? "?"} followers`);
+  if (li?.has_active_page) deepSignals.push(`LinkedIn: ${li.employee_count_range ?? "?"} employees, ${li.industry ?? "unknown industry"}`);
+  if (tt?.has_active_profile) deepSignals.push(`TikTok: ${tt.follower_count ?? "?"} followers`);
+  if (deepSignals.length > 0) {
+    sections.push(`\nSOCIAL PRESENCE:\n${deepSignals.join("\n")}`);
+  }
+
   if (funnelHistory) {
     sections.push(`\nFUNNEL HISTORY (this prospect previously started the trial shoot funnel and dropped off):`);
     sections.push(`Business: ${funnelHistory.businessName} (${funnelHistory.shape})`);

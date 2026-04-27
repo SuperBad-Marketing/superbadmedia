@@ -8,6 +8,26 @@ export const apifyManifest: VendorManifest = {
       defaultBand: { p95: 25000, p99: 35000 },
       unit: "ms",
     },
+    {
+      name: "apify.website_crawler",
+      defaultBand: { p95: 40000, p99: 60000 },
+      unit: "ms",
+    },
+    {
+      name: "apify.facebook_page",
+      defaultBand: { p95: 30000, p99: 45000 },
+      unit: "ms",
+    },
+    {
+      name: "apify.linkedin_company",
+      defaultBand: { p95: 35000, p99: 50000 },
+      unit: "ms",
+    },
+    {
+      name: "apify.tiktok_profile",
+      defaultBand: { p95: 30000, p99: 45000 },
+      unit: "ms",
+    },
   ],
   actorConvention: "internal",
   killSwitchKey: "setup_wizards_enabled",

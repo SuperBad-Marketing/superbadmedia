@@ -54,6 +54,44 @@ export interface ViabilityProfile {
     last_photo_date: string | null; // ISO date
   };
 
+  // Deep enrichment signals (post-scoring, Apify-sourced)
+  facebook?: {
+    page_name: string | null;
+    follower_count: number | null;
+    posts_last_30d: number | null;
+    last_post_date: string | null;
+    has_active_page: boolean;
+  };
+  linkedin?: {
+    company_name: string | null;
+    employee_count_range: string | null;
+    industry: string | null;
+    follower_count: number | null;
+    has_active_page: boolean;
+  };
+  tiktok?: {
+    follower_count: number | null;
+    video_count: number | null;
+    posts_last_30d: number | null;
+    last_post_date: string | null;
+    has_active_profile: boolean;
+  };
+  website_content?: {
+    services_offered: string[];
+    unique_selling_points: string[];
+    target_audience_signals: string[];
+    business_maturity_signals: string[];
+    content_quality: "poor" | "basic" | "good" | "excellent" | "unknown";
+    distilled_brief: string | null;
+  };
+  deep_enrichment?: {
+    ran_at_ms: number;
+    actors_attempted: number;
+    actors_succeeded: number;
+    soft_adjustment: number;
+    adjustment_reasons: string[];
+  };
+
   // Per-source fetch status
   fetch_errors?: Record<string, string>;
 }
