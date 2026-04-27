@@ -220,7 +220,12 @@ async function loadVoiceExamples(
 
 function buildLengthGuidance(input: GenerateDraftInput): string {
   if (input.touchKind === "first_touch") {
-    return "FIRST TOUCH: 2-3 sentences only. One observation about their business, one value prop, one soft CTA. Respect their time — earn the right to exist in their inbox.";
+    return "FIRST TOUCH (touch #1): 3-4 sentences. Gap observation + free win + soft CTA. Earn the right to exist in their inbox by giving value before asking.";
+  }
+
+  const isBreakup = input.touchIndex >= 4;
+  if (isBreakup) {
+    return "BREAKUP TOUCH (last email): 2 sentences max. Acknowledge you're done. No guilt, no 'I've tried reaching you.' Just: this is the last one, no hard feelings, I'm around if you ever want a second opinion. Sign off with just 'Andy' before the footer.";
   }
 
   const hasEngagement = input.engagementHistory.some((e) => e.opened || e.clicked);
@@ -228,12 +233,24 @@ function buildLengthGuidance(input: GenerateDraftInput): string {
   if (hasEngagement) {
     const clicked = input.engagementHistory.some((e) => e.clicked);
     if (clicked) {
-      return "ENGAGED FOLLOW-UP (clicked prior email): 2-3 short paragraphs. They've shown real interest — reference what they engaged with, add substance, make the next step concrete.";
+      return "ENGAGED FOLLOW-UP (clicked prior email): 2-3 short paragraphs. They've shown real interest — add substance, make the next step concrete. You've earned room.";
     }
-    return "ENGAGED FOLLOW-UP (opened prior email): 1-2 short paragraphs. They read your last one — build on it with a new angle or specific insight. Still concise but you've earned a bit more room.";
+    const openedButNeverReplied = input.touchIndex >= 5;
+    if (openedButNeverReplied) {
+      return "BONUS TOUCH (opened multiple times, never replied): 2 sentences. Self-aware, dry. Acknowledge they've been reading. 'Happy to have a 10-minute conversation, or happy to keep being the unsolicited voice in your inbox.' Either/or, no pressure.";
+    }
+    return "ENGAGED FOLLOW-UP (opened prior email): 3-4 sentences. New angle, new observation from a different signal. They read the last one — build on it with a specific insight. Still concise.";
   }
 
-  return "COLD FOLLOW-UP (no opens detected): 2-3 sentences max. Different angle, different hook, same brevity. If the last approach didn't land, try a completely different entry point.";
+  if (input.touchIndex === 2) {
+    return "COLD FOLLOW-UP #2: 3-4 sentences. Completely different signal from touch 1. New observation, new free insight. This email must stand alone — if they never read touch 1, this should still make sense.";
+  }
+
+  if (input.touchIndex === 3) {
+    return "PROOF TOUCH #3: 3-4 sentences. One sentence of proof — a similar business, a specific result. Connect it to their situation. No case study links, no attachments. The proof earns its place in one sentence.";
+  }
+
+  return "COLD FOLLOW-UP: 2-3 sentences max. Different angle, different signal, same brevity. If the last approach didn't land, try a completely different entry point.";
 }
 
 function buildSystemPrompt(
@@ -267,10 +284,26 @@ PROSPECT TRACK: ${input.track === "saas" ? "SaaS subscription products" : "Creat
 TRIAL SHOOT OFFER:
 SuperBad offers a $297 trial shoot — 60 minutes on-site, plus a bespoke 6-week marketing plan. This is the primary offer for the retainer track. Mention it naturally when relevant — it's the low-risk entry point. Don't be salesy about it, but don't hide it either. It's a real thing, worth mentioning.
 
+EMAIL STRUCTURE — Gap + Free Win + Soft CTA:
+1. THE GAP: Identify a specific disconnect in their marketing using the viability profile data. Not a compliment, not a criticism — an observation that shows you actually looked. "Your Google reviews say one thing, your website says another."
+2. THE FREE WIN: Give them one actionable piece of advice they can use without SuperBad.
+   - If the fix takes under 30 minutes and doesn't require strategy, be SPECIFIC: "Move your top 3 Google review quotes onto your homepage — takes 20 minutes."
+   - If it's complex/strategic, be DIRECTIONAL: "Your ad spend and your content quality are telling different stories."
+3. THE SOFT CTA: Proportional to zero prior relationship. "Worth a conversation if you're curious." Never "book a call" or "let me know when you're free for 30 minutes."
+
+SUBJECT LINE RULES:
+- Lowercase, conversational. Like a text from someone you know.
+- Vary style by touch: Touch 1 = observation-lead ("87 reviews, 0 instagram posts"). Touch 2 = name-anchor ("quick thought about [business]"). Touch 3 = conversational-plain ("something worth mentioning"). Touch 4 = most human ("last one from me").
+- BANNED: fake "re:", fake "fw:", implied prior conversation, question hooks ("Want to know...?"), exclamation marks, ALL CAPS, emoji.
+- If the subject needs a trick to get opened, the observation isn't sharp enough. Fix the observation.
+
 RULES:
 - Write as Andy, first person. Dry, observational, never corporate.
 - Every email is unique to this prospect. No templates. No placeholder variables.
 - Reference specific signals from the viability profile ONLY if they are present. Do NOT invent or hallucinate specifics.
+- Each follow-up must use a DIFFERENT observation from a different signal — never repeat or rephrase the same gap.
+- Never say "following up", "bumping this", "as I mentioned", or reference prior emails. Each email stands alone.
+- Never apologise for emailing. Never use false scarcity. Never open with a question hook.
 - Include the Spam Act footer at the end of the body:
   ---
   Andy Robinson · SuperBad Media · Melbourne, Australia
