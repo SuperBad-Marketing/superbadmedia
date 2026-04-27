@@ -46,16 +46,29 @@ export function HiringBoard({
   const [activeFilters, setActiveFilters] = React.useState<Set<string>>(
     new Set(),
   );
+  const [searchQuery, setSearchQuery] = React.useState("");
   const toast = useToastWithSound();
 
   React.useEffect(() => setLocalCandidates(candidates), [candidates]);
 
   const filteredCandidates = React.useMemo(() => {
-    if (activeFilters.size === 0) return localCandidates;
-    return localCandidates.filter(
-      (c) => c.role_brief_id && activeFilters.has(c.role_brief_id),
-    );
-  }, [localCandidates, activeFilters]);
+    let result = localCandidates;
+    if (activeFilters.size > 0) {
+      result = result.filter(
+        (c) => c.role_brief_id && activeFilters.has(c.role_brief_id),
+      );
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          (c.role_name && c.role_name.toLowerCase().includes(q)) ||
+          (c.location_city && c.location_city.toLowerCase().includes(q)),
+      );
+    }
+    return result;
+  }, [localCandidates, activeFilters, searchQuery]);
 
   const toggleFilter = (id: string) => {
     setActiveFilters((prev) => {
@@ -204,6 +217,26 @@ export function HiringBoard({
   return (
     <>
       <QuickAddBar />
+
+      <div className="flex items-center gap-3 px-4 pb-3">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name, role, or location…"
+          className="w-full max-w-[320px] rounded-[8px] border-0 px-3 py-2 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-600)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-pink)]/40"
+          style={{ background: "var(--color-surface-2)" }}
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="text-[11px] text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       {roleBriefFilter.length > 0 ? (
         <div className="flex flex-wrap gap-2 px-4 pb-4">

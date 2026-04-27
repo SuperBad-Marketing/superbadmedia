@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { desc, eq, and, asc, max } from "drizzle-orm";
 import type { Metadata } from "next";
 
+import Link from "next/link";
+
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { candidates } from "@/lib/db/schema/candidates";
@@ -242,7 +244,31 @@ export default async function HiringPage() {
           >
             Hiring Pipeline
           </h1>
-          <DiscoveryRunButton />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/lite/admin/hiring/briefs"
+              className="rounded-[8px] px-3 py-2 font-[family-name:var(--font-label)] text-[11px] uppercase transition-colors"
+              style={{
+                letterSpacing: "1.5px",
+                background: "rgba(253, 245, 230, 0.06)",
+                color: "var(--color-neutral-300)",
+              }}
+            >
+              Role Briefs
+            </Link>
+            <Link
+              href="/lite/setup/admin/hiring-role-brief"
+              className="rounded-[8px] px-3 py-2 font-[family-name:var(--font-label)] text-[11px] uppercase transition-colors"
+              style={{
+                letterSpacing: "1.5px",
+                background: "rgba(193, 32, 45, 0.15)",
+                color: "var(--color-brand-red)",
+              }}
+            >
+              New Role
+            </Link>
+            <DiscoveryRunButton />
+          </div>
         </div>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
           Every candidate, every stage, every stall.{" "}

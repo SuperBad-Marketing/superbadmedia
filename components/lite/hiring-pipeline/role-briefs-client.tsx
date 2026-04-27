@@ -26,10 +26,10 @@ export interface RoleBriefListRow {
 }
 
 const STATUS_COLORS: Record<RoleBriefStatus, string> = {
-  open: "var(--color-semantic-success, #7BAE7E)",
-  draft: "var(--color-brand-cream, #FDF5E6)",
-  paused: "var(--color-brand-orange, #F28C52)",
-  filled: "var(--color-brand-charcoal, #2B2B2B)",
+  open: "var(--color-success)",
+  draft: "var(--color-brand-cream)",
+  paused: "var(--color-brand-orange)",
+  filled: "var(--color-neutral-600)",
 };
 
 const STATUS_LABELS: Record<RoleBriefStatus, string> = {
@@ -62,8 +62,7 @@ interface Props {
 }
 
 export function RoleBriefsClient({ rows }: Props) {
-  const statusFilter = React.useState<RoleBriefStatus | "all">("all");
-  const [filter, setFilter] = statusFilter;
+  const [filter, setFilter] = React.useState<RoleBriefStatus | "all">("all");
 
   const filtered = filter === "all" ? rows : rows.filter((r) => r.status === filter);
 
@@ -76,30 +75,48 @@ export function RoleBriefsClient({ rows }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-[var(--color-brand-charcoal)]">
+    <div className="px-4 pt-6 pb-10">
+      <div
+        className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "2px" }}
+      >
+        Admin · Hiring · Role Briefs
+      </div>
+      <div className="mt-3 flex items-start justify-between gap-4">
+        <h1
+          className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+          style={{ letterSpacing: "-0.4px" }}
+        >
           Role Briefs
         </h1>
         <Link
-          href="/lite/admin/hiring?action=new-role"
-          className="rounded-md bg-[var(--color-brand-charcoal)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-brand-charcoal)]/90"
+          href="/lite/setup/admin/hiring-role-brief"
+          className="rounded-[8px] px-3 py-2 font-[family-name:var(--font-label)] text-[11px] uppercase transition-colors"
+          style={{
+            letterSpacing: "1.5px",
+            background: "rgba(193, 32, 45, 0.15)",
+            color: "var(--color-brand-red)",
+          }}
         >
           New Role
         </Link>
       </div>
+      <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+        What you&apos;re looking for and where you&apos;re looking.
+      </p>
 
       {/* Filter tabs */}
-      <div className="mb-6 flex gap-2 border-b border-[var(--color-brand-charcoal)]/10 pb-2">
+      <div className="mt-5 flex gap-2 pb-4">
         {(["all", "open", "draft", "paused", "filled"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setFilter(tab)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-full px-3 py-1.5 font-[family-name:var(--font-label)] text-[11px] uppercase transition-colors ${
               filter === tab
-                ? "bg-[var(--color-brand-charcoal)] text-white"
-                : "text-[var(--color-brand-charcoal)]/60 hover:text-[var(--color-brand-charcoal)]"
+                ? "bg-[color:var(--color-brand-pink)]/10 text-[color:var(--color-brand-cream)]"
+                : "text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]"
             }`}
+            style={{ letterSpacing: "1.5px" }}
           >
             {tab === "all" ? "All" : STATUS_LABELS[tab]} ({counts[tab]})
           </button>
@@ -108,9 +125,17 @@ export function RoleBriefsClient({ rows }: Props) {
 
       {/* List */}
       {filtered.length === 0 ? (
-        <p className="py-12 text-center text-sm text-[var(--color-brand-charcoal)]/50">
-          No role briefs to show.
-        </p>
+        <div className="py-12 text-center">
+          <p
+            className="font-[family-name:var(--font-display)] text-[24px] leading-none text-[color:var(--color-brand-cream)]"
+            style={{ letterSpacing: "-0.2px" }}
+          >
+            No role briefs yet.
+          </p>
+          <p className="mt-3 font-[family-name:var(--font-narrative)] text-[13px] italic text-[color:var(--color-brand-pink)]">
+            define a role and the scouts go looking.
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((brief, i) => (
@@ -122,23 +147,30 @@ export function RoleBriefsClient({ rows }: Props) {
             >
               <Link
                 href={`/lite/admin/hiring/briefs/${brief.id}`}
-                className="block rounded-lg border border-[var(--color-brand-charcoal)]/8 bg-white p-4 transition-shadow hover:shadow-md"
+                className="block rounded-[12px] p-4 transition-all hover:brightness-110"
+                style={{
+                  background: "var(--color-surface-2)",
+                  boxShadow: "var(--surface-highlight)",
+                }}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className="inline-block h-2 w-2 rounded-full"
+                        className="inline-block h-2 w-2 shrink-0 rounded-full"
                         style={{ backgroundColor: STATUS_COLORS[brief.status] }}
                       />
-                      <h3 className="truncate text-base font-medium text-[var(--color-brand-charcoal)]">
+                      <h3 className="truncate font-[family-name:var(--font-body)] text-[16px] font-medium text-[color:var(--color-brand-cream)]">
                         {brief.role_name}
                       </h3>
-                      <span className="text-xs text-[var(--color-brand-charcoal)]/50">
+                      <span
+                        className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                        style={{ letterSpacing: "1.2px" }}
+                      >
                         {STATUS_LABELS[brief.status]}
                       </span>
                     </div>
-                    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-brand-charcoal)]/60">
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-400)]">
                       <span>{formatRate(brief.rate_min_aud, brief.rate_max_aud, brief.rate_unit)}</span>
                       {brief.target_hours_per_week && (
                         <span>{brief.target_hours_per_week} hrs/wk</span>
@@ -151,9 +183,9 @@ export function RoleBriefsClient({ rows }: Props) {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1 text-xs text-[var(--color-brand-charcoal)]/60">
+                  <div className="flex flex-col items-end gap-1 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]" style={{ letterSpacing: "1.2px" }}>
                     <span>
-                      Bench: {brief.bench_active}/{brief.bench_total}
+                      Bench {brief.bench_active}/{brief.bench_total}
                     </span>
                     <span>{brief.candidate_count} candidate{brief.candidate_count === 1 ? "" : "s"}</span>
                     <span>Discovery: {formatRelativeMs(brief.last_discovery_run_at_ms)}</span>
