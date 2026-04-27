@@ -22,7 +22,7 @@ type IntegrationDef = {
 
 const INTEGRATIONS: IntegrationDef[] = [
   {
-    vendorKey: "stripe",
+    vendorKey: "stripe-admin",
     label: "Stripe",
     description: "Payments, subscriptions, invoicing.",
     wizardPath: "/lite/setup/critical-flight/stripe-admin?from=settings",
