@@ -104,6 +104,8 @@ export const brand_dna_profiles = sqliteTable(
     first_impression: text("first_impression"),
     /** Optional free-form reflection submitted before the reveal. */
     reflection_text: text("reflection_text"),
+    /** JSON: { businessDoes, customers, differentiator } from context step. */
+    business_context: text("business_context"),
     /**
      * Array of 4 between-section Opus insights (one per sections 1–4).
      * JSON: string[]. Used for retake comparison.

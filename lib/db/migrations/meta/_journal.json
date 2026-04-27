@@ -414,6 +414,13 @@
       "when": 1778100000000,
       "tag": "0074_lg_candidate_contact_phone",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "6",
+      "when": 1778200000000,
+      "tag": "0088_brand_dna_business_context",
+      "breakpoints": true
     }
   ]
 }

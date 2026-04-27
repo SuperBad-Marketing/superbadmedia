@@ -282,7 +282,7 @@ describe("submitAlignmentGate", () => {
     expect(created?.status).toBe("in_progress");
   });
 
-  it("redirects to /lite/brand-dna/section/1 on valid track", async () => {
+  it("redirects to /lite/brand-dna/context on valid track", async () => {
     const { submitAlignmentGate } = await import(
       "@/app/lite/brand-dna/actions"
     );
@@ -292,7 +292,7 @@ describe("submitAlignmentGate", () => {
 
     await expectRedirectTo(
       () => submitAlignmentGate(fd),
-      "/lite/brand-dna/section/1",
+      "/lite/brand-dna/context",
     );
   });
 

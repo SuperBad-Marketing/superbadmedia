@@ -76,7 +76,15 @@ export async function generateFirstImpression(
 
   let industry: string | null = null;
   let industryVertical: string | null = null;
-  if (profile.company_id) {
+
+  if (profile.business_context) {
+    try {
+      const ctx = JSON.parse(profile.business_context) as { businessDoes?: string };
+      if (ctx.businessDoes) industry = ctx.businessDoes;
+    } catch { /* skip */ }
+  }
+
+  if (!industry && profile.company_id) {
     const companyRows = await database
       .select({
         industry: companies.industry,

@@ -46,6 +46,7 @@ export default async function BrandDnaEntryPage({
         track: brand_dna_profiles.track,
         current_section: brand_dna_profiles.current_section,
         status: brand_dna_profiles.status,
+        business_context: brand_dna_profiles.business_context,
       })
       .from(brand_dna_profiles)
       .where(
@@ -59,7 +60,9 @@ export default async function BrandDnaEntryPage({
     const profile = existing[0];
 
     if (profile?.track && profile.status !== "complete") {
-      // Resume: go to the current section (first unanswered question)
+      if (!profile.business_context) {
+        redirect(`/lite/brand-dna/context`);
+      }
       const resumeSection = Math.max(1, profile.current_section ?? 1);
       redirect(`/lite/brand-dna/section/${resumeSection}`);
     }

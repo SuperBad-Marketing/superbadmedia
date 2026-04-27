@@ -154,7 +154,7 @@ export async function submitAlignmentGate(formData: FormData): Promise<void> {
     });
   }
 
-  redirect(`/lite/brand-dna/section/1`);
+  redirect(`/lite/brand-dna/context`);
 }
 
 // ── submitAnswer ─────────────────────────────────────────────────────────────
@@ -545,4 +545,47 @@ export async function getSelfProfileId(): Promise<string | null> {
     .limit(1);
 
   return rows[0]?.id ?? null;
+}
+
+// ── submitBusinessContext ──────────────────────────────────────────────────
+
+export async function submitBusinessContext(formData: FormData): Promise<void> {
+  if (!isAssessmentEnabled()) {
+    redirect("/lite/onboarding");
+  }
+
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/lite/login");
+  }
+
+  const profileId = formData.get("profileId");
+  const businessDoes = formData.get("businessDoes");
+  const customers = formData.get("customers");
+  const differentiator = formData.get("differentiator");
+
+  if (
+    !profileId || typeof profileId !== "string" ||
+    !businessDoes || typeof businessDoes !== "string" ||
+    !customers || typeof customers !== "string" ||
+    !differentiator || typeof differentiator !== "string"
+  ) {
+    redirect("/lite/brand-dna/context?error=missing_fields");
+  }
+
+  const context = {
+    businessDoes: businessDoes.trim(),
+    customers: customers.trim(),
+    differentiator: differentiator.trim(),
+  };
+
+  await db
+    .update(brand_dna_profiles)
+    .set({
+      business_context: JSON.stringify(context),
+      updated_at_ms: Date.now(),
+    })
+    .where(eq(brand_dna_profiles.id, profileId));
+
+  redirect(`/lite/brand-dna/section/1`);
 }

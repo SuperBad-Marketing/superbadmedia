@@ -74,7 +74,22 @@ export async function generateProsePortrait(
 
   let industry: string | null = null;
   let industryVertical: string | null = null;
-  if (profile.company_id) {
+
+  // Business context from the pre-assessment context step
+  if (profile.business_context) {
+    try {
+      const ctx = JSON.parse(profile.business_context) as {
+        businessDoes?: string;
+        customers?: string;
+        differentiator?: string;
+      };
+      if (ctx.businessDoes) {
+        industry = ctx.businessDoes;
+      }
+    } catch { /* malformed JSON — skip */ }
+  }
+
+  if (!industry && profile.company_id) {
     const companyRows = await database
       .select({
         industry: companies.industry,
@@ -89,6 +104,13 @@ export async function generateProsePortrait(
     }
   }
 
+  let businessContext: { businessDoes?: string; customers?: string; differentiator?: string } | null = null;
+  if (profile.business_context) {
+    try {
+      businessContext = JSON.parse(profile.business_context);
+    } catch { /* skip */ }
+  }
+
   const prompt = buildProsePortraitPrompt({
     subjectName,
     track: profile.track ?? "unspecified",
@@ -99,6 +121,7 @@ export async function generateProsePortrait(
     sectionInsights,
     industry,
     industryVertical,
+    businessContext,
   });
 
   const modelId = modelFor("brand-dna-generate-prose-portrait");
