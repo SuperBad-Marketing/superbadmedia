@@ -63,11 +63,25 @@ export interface CustomPaletteInput {
   text: string;
 }
 
-export const SFX_NAMES = ["tick", "whoosh", "impact", "riser"] as const;
-export type SfxName = (typeof SFX_NAMES)[number];
+export interface SfxSound {
+  id: string;
+  name: string;
+  slug: string;
+  fileUrl: string;
+  color: string;
+  isBuiltin: boolean;
+}
+
+export const BUILTIN_SFX: SfxSound[] = [
+  { id: "builtin-tick", name: "Tick", slug: "tick", fileUrl: "sfx/tick.wav", color: "#F2C94C", isBuiltin: true },
+  { id: "builtin-whoosh", name: "Whoosh", slug: "whoosh", fileUrl: "sfx/whoosh.wav", color: "#56CCF2", isBuiltin: true },
+  { id: "builtin-impact", name: "Impact", slug: "impact", fileUrl: "sfx/impact.wav", color: "#EB5757", isBuiltin: true },
+  { id: "builtin-riser", name: "Riser", slug: "riser", fileUrl: "sfx/riser.wav", color: "#6FCF97", isBuiltin: true },
+];
 
 export interface SfxCueData {
-  sfx: SfxName;
+  sfxId: string;
+  url: string;
   startFrame: number;
   volume: number;
 }

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Paintbrush, ShoppingBag, FileText, Plug, Mic, Trash2 } from "lucide-react";
+import { Paintbrush, ShoppingBag, FileText, Plug, Mic, Trash2, Volume2 } from "lucide-react";
 
 import { auth } from "@/lib/auth/session";
 
@@ -28,6 +28,12 @@ const SECTIONS = [
     icon: Plug,
     label: "Integrations",
     description: "API keys, webhooks, third-party connections.",
+  },
+  {
+    href: "/lite/admin/settings/sfx",
+    icon: Volume2,
+    label: "SFX Library",
+    description: "Sound effects for motion posts. Upload your own or use the defaults.",
   },
   {
     href: "/lite/admin/settings/catalogue",

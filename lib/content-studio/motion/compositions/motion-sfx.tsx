@@ -1,28 +1,24 @@
 import React from "react";
 import { Audio, Sequence, staticFile } from "remotion";
-import type { SfxName, SfxCueData, MotionTemplateProps } from "../types";
-
-const SFX_FILES: Record<SfxName, string> = {
-  tick: "sfx/tick.wav",
-  whoosh: "sfx/whoosh.wav",
-  impact: "sfx/impact.wav",
-  riser: "sfx/riser.wav",
-};
+import type { SfxCueData, MotionTemplateProps } from "../types";
 
 export const SfxCue: React.FC<{
-  sfx: SfxName;
+  url: string;
   startFrame: number;
   volume?: number;
-}> = ({ sfx, startFrame, volume = 0.6 }) => (
-  <Sequence from={startFrame} layout="none">
-    <Audio src={staticFile(SFX_FILES[sfx])} volume={volume} />
-  </Sequence>
-);
+}> = ({ url, startFrame, volume = 0.6 }) => {
+  const src = url.startsWith("http") ? url : staticFile(url);
+  return (
+    <Sequence from={startFrame} layout="none">
+      <Audio src={src} volume={volume} />
+    </Sequence>
+  );
+};
 
 export const SfxLayer: React.FC<{ cues: SfxCueData[] }> = ({ cues }) => (
   <>
     {cues.map((cue, i) => (
-      <SfxCue key={i} sfx={cue.sfx} startFrame={cue.startFrame} volume={cue.volume} />
+      <SfxCue key={i} url={cue.url} startFrame={cue.startFrame} volume={cue.volume} />
     ))}
   </>
 );

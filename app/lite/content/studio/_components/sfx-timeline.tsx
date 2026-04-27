@@ -1,22 +1,10 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { PlayerRef } from "@remotion/player";
-import { SFX_NAMES, type SfxCueData, type SfxName } from "@/lib/content-studio/motion/types";
-
-const SFX_COLORS: Record<SfxName, string> = {
-  tick: "#F2C94C",
-  whoosh: "#56CCF2",
-  impact: "#EB5757",
-  riser: "#6FCF97",
-};
-
-const SFX_LABELS: Record<SfxName, string> = {
-  tick: "Tick",
-  whoosh: "Whoosh",
-  impact: "Impact",
-  riser: "Riser",
-};
+import type { SfxCueData, SfxSound } from "@/lib/content-studio/motion/types";
+import { BUILTIN_SFX } from "@/lib/content-studio/motion/types";
+import { getSfxLibraryAction } from "@/app/lite/admin/settings/sfx/actions";
 
 interface SfxTimelineProps {
   cues: SfxCueData[];
@@ -34,12 +22,32 @@ export function SfxTimeline({
   playerRef,
 }: SfxTimelineProps) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [activeSfx, setActiveSfx] = useState<SfxName>("impact");
+  const [sounds, setSounds] = useState<SfxSound[]>(BUILTIN_SFX);
+  const [activeSfxId, setActiveSfxId] = useState(BUILTIN_SFX[2].id);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
+  useEffect(() => {
+    getSfxLibraryAction().then(({ sounds: all }) => {
+      setSounds(all);
+    });
+  }, []);
+
+  const activeSound = sounds.find((s) => s.id === activeSfxId) ?? sounds[0];
+
+  const cueColor = useCallback(
+    (cue: SfxCueData) => sounds.find((s) => s.id === cue.sfxId)?.color ?? "#9B51E0",
+    [sounds],
+  );
+
+  const cueName = useCallback(
+    (cue: SfxCueData) => sounds.find((s) => s.id === cue.sfxId)?.name ?? "?",
+    [sounds],
+  );
+
   const frameToPercent = useCallback(
-    (frame: number) => (durationInFrames > 1 ? (frame / (durationInFrames - 1)) * 100 : 0),
+    (frame: number) =>
+      durationInFrames > 1 ? (frame / (durationInFrames - 1)) * 100 : 0,
     [durationInFrames],
   );
 
@@ -61,14 +69,18 @@ export function SfxTimeline({
       if (target.dataset.cueIndex) return;
 
       const frame = xToFrame(e.clientX);
-      const newCue: SfxCueData = { sfx: activeSfx, startFrame: frame, volume: 0.5 };
+      const newCue: SfxCueData = {
+        sfxId: activeSound.id,
+        url: activeSound.fileUrl,
+        startFrame: frame,
+        volume: 0.5,
+      };
       const next = [...cues, newCue];
       onChange(next);
       setSelectedIndex(next.length - 1);
-
       playerRef.current?.seekTo(frame);
     },
-    [activeSfx, cues, onChange, xToFrame, draggingIndex, playerRef],
+    [activeSound, cues, onChange, xToFrame, draggingIndex, playerRef],
   );
 
   const handleCueClick = useCallback(
@@ -89,7 +101,9 @@ export function SfxTimeline({
 
       const handleMove = (me: MouseEvent) => {
         const frame = xToFrame(me.clientX);
-        onChange(cues.map((c, i) => (i === index ? { ...c, startFrame: frame } : c)));
+        onChange(
+          cues.map((c, i) => (i === index ? { ...c, startFrame: frame } : c)),
+        );
       };
 
       const handleUp = () => {
@@ -107,7 +121,9 @@ export function SfxTimeline({
   const handleVolumeChange = useCallback(
     (volume: number) => {
       if (selectedIndex === null) return;
-      onChange(cues.map((c, i) => (i === selectedIndex ? { ...c, volume } : c)));
+      onChange(
+        cues.map((c, i) => (i === selectedIndex ? { ...c, volume } : c)),
+      );
     },
     [cues, onChange, selectedIndex],
   );
@@ -118,9 +134,12 @@ export function SfxTimeline({
     setSelectedIndex(null);
   }, [cues, onChange, selectedIndex]);
 
-  const handlePreview = useCallback((sfx: SfxName) => {
+  const handlePreview = useCallback((sound: SfxSound) => {
     try {
-      const audio = new Audio(`/sfx/${sfx}.wav`);
+      const url = sound.fileUrl.startsWith("http")
+        ? sound.fileUrl
+        : `/${sound.fileUrl}`;
+      const audio = new Audio(url);
       audio.volume = 0.5;
       audio.play();
     } catch {}
@@ -150,26 +169,36 @@ export function SfxTimeline({
       </div>
 
       {/* SFX type buttons */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-        {SFX_NAMES.map((sfx) => (
+      <div
+        style={{
+          display: "flex",
+          gap: 6,
+          marginBottom: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        {sounds.map((sound) => (
           <button
-            key={sfx}
+            key={sound.id}
             onClick={() => {
-              setActiveSfx(sfx);
-              handlePreview(sfx);
+              setActiveSfxId(sound.id);
+              handlePreview(sound);
             }}
             style={{
               padding: "5px 12px",
               borderRadius: 6,
               border:
-                activeSfx === sfx
-                  ? `1px solid ${SFX_COLORS[sfx]}`
+                activeSfxId === sound.id
+                  ? `1px solid ${sound.color}`
                   : "1px solid rgba(253,245,230,0.1)",
               background:
-                activeSfx === sfx
-                  ? `${SFX_COLORS[sfx]}18`
+                activeSfxId === sound.id
+                  ? `${sound.color}18`
                   : "rgba(253,245,230,0.03)",
-              color: activeSfx === sfx ? SFX_COLORS[sfx] : "var(--color-brand-cream)",
+              color:
+                activeSfxId === sound.id
+                  ? sound.color
+                  : "var(--color-brand-cream)",
               fontFamily: "var(--font-label)",
               fontSize: 11,
               letterSpacing: 1,
@@ -185,12 +214,12 @@ export function SfxTimeline({
                 width: 8,
                 height: 8,
                 borderRadius: "50%",
-                background: SFX_COLORS[sfx],
-                opacity: activeSfx === sfx ? 1 : 0.4,
+                background: sound.color,
+                opacity: activeSfxId === sound.id ? 1 : 0.4,
                 flexShrink: 0,
               }}
             />
-            {SFX_LABELS[sfx]}
+            {sound.name}
           </button>
         ))}
       </div>
@@ -210,7 +239,9 @@ export function SfxTimeline({
         }}
       >
         {/* Frame ruler ticks */}
-        {Array.from({ length: Math.min(Math.floor(durationInFrames / fps), 10) }).map((_, i) => {
+        {Array.from({
+          length: Math.min(Math.floor(durationInFrames / fps), 10),
+        }).map((_, i) => {
           const frame = (i + 1) * fps;
           const pct = frameToPercent(frame);
           if (pct > 99) return null;
@@ -234,7 +265,7 @@ export function SfxTimeline({
         {cues.map((cue, i) => {
           const pct = frameToPercent(cue.startFrame);
           const isSelected = selectedIndex === i;
-          const color = SFX_COLORS[cue.sfx];
+          const color = cueColor(cue);
 
           return (
             <div
@@ -262,8 +293,12 @@ export function SfxTimeline({
                   height: isSelected ? 14 : 10,
                   borderRadius: "50%",
                   background: color,
-                  border: isSelected ? "2px solid var(--color-brand-cream)" : "none",
-                  boxShadow: isSelected ? `0 0 8px ${color}60` : `0 0 4px ${color}30`,
+                  border: isSelected
+                    ? "2px solid var(--color-brand-cream)"
+                    : "none",
+                  boxShadow: isSelected
+                    ? `0 0 8px ${color}60`
+                    : `0 0 4px ${color}30`,
                   transition: "all 0.1s",
                   pointerEvents: "none",
                 }}
@@ -281,7 +316,7 @@ export function SfxTimeline({
                     top: -14,
                   }}
                 >
-                  {SFX_LABELS[cue.sfx]} · {(cue.startFrame / fps).toFixed(1)}s
+                  {cueName(cue)} · {(cue.startFrame / fps).toFixed(1)}s
                 </div>
               )}
             </div>
@@ -323,7 +358,7 @@ export function SfxTimeline({
               fontFamily: "var(--font-label)",
               fontSize: 11,
               letterSpacing: 1,
-              color: SFX_COLORS[selectedCue.sfx],
+              color: cueColor(selectedCue),
               flexShrink: 0,
             }}
           >
@@ -332,10 +367,10 @@ export function SfxTimeline({
                 width: 8,
                 height: 8,
                 borderRadius: "50%",
-                background: SFX_COLORS[selectedCue.sfx],
+                background: cueColor(selectedCue),
               }}
             />
-            {SFX_LABELS[selectedCue.sfx]}
+            {cueName(selectedCue)}
           </div>
 
           <div
@@ -358,7 +393,7 @@ export function SfxTimeline({
             style={{
               flex: 1,
               maxWidth: 120,
-              accentColor: SFX_COLORS[selectedCue.sfx],
+              accentColor: cueColor(selectedCue),
               cursor: "pointer",
             }}
           />
