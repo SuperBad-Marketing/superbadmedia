@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  ImageIcon,
   Loader2,
   Sparkles,
   Target,
@@ -16,6 +17,7 @@ import {
   Eye,
   Rocket,
   Megaphone,
+  Upload,
   Users,
   MousePointerClick,
   Heart,
@@ -35,7 +37,9 @@ import {
   createCampaignFromStrategyAction,
   seedBenchmarksAction,
   listStudioPostsAction,
+  generateAdCopyAction,
   type StudioPostSummary,
+  type CreativePayload,
 } from "../actions";
 import type { MetaAdAccountRow } from "@/lib/db/schema/meta-campaigns";
 import { useEffect } from "react";
@@ -98,10 +102,13 @@ interface CreativeAsset {
   studioPostId?: string;
   label: string;
   thumbnailUrl: string | null;
+  cloudinaryUrl: string | null;
+  cloudinaryPublicId: string | null;
   creativeType: "image" | "video" | "carousel";
   headline: string;
   primaryText: string;
   cta: string;
+  uploading?: boolean;
 }
 
 const CTA_OPTIONS = [
@@ -283,6 +290,17 @@ export default function NewCampaignWizard() {
     if (!strategy || !objective || !selectedAccountId) return;
     startTransition(async () => {
       const poolTag = campaignLabel.trim().toLowerCase().replace(/\s+/g, "-");
+      const creativePayloads: CreativePayload[] = creatives.map((c) => ({
+        source: c.source,
+        studioPostId: c.studioPostId,
+        label: c.label,
+        cloudinaryUrl: c.cloudinaryUrl,
+        cloudinaryPublicId: c.cloudinaryPublicId,
+        creativeType: c.creativeType,
+        headline: c.headline,
+        primaryText: c.primaryText,
+        cta: c.cta,
+      }));
       const res = await createCampaignFromStrategyAction({
         adAccountId: selectedAccountId,
         strategy,
@@ -296,6 +314,8 @@ export default function NewCampaignWizard() {
           strategyNotes: strategyNotes.trim() || undefined,
           location: location.trim() || undefined,
         },
+        creatives: creativePayloads,
+        destinationUrl: destinationUrl.trim() || undefined,
       });
       if (res.ok) {
         toast.success(`${res.campaignIds.length} campaign(s) created as drafts.`);
@@ -425,6 +445,8 @@ export default function NewCampaignWizard() {
               studioPosts={studioPosts}
               creatives={creatives}
               setCreatives={setCreatives}
+              objective={objective ?? "awareness"}
+              destinationUrl={destinationUrl}
             />
           )}
           {step === "strategy" && (
@@ -858,47 +880,60 @@ function StepCreative({
   studioPosts,
   creatives,
   setCreatives,
+  objective,
+  destinationUrl,
 }: {
   campaignLabel: string;
   setCampaignLabel: (v: string) => void;
   studioPosts: StudioPostSummary[];
   creatives: CreativeAsset[];
   setCreatives: (v: CreativeAsset[]) => void;
+  objective: string;
+  destinationUrl: string;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
 
   function addFromStudio(post: StudioPostSummary) {
     if (creatives.some((c) => c.studioPostId === post.id)) return;
+    const newId = crypto.randomUUID();
     setCreatives([
       ...creatives,
       {
-        id: crypto.randomUUID(),
+        id: newId,
         source: "content_studio",
         studioPostId: post.id,
         label: post.brief.slice(0, 60),
         thumbnailUrl: post.thumbnailUrl,
+        cloudinaryUrl: post.thumbnailUrl,
+        cloudinaryPublicId: null,
         creativeType: "image",
         headline: "",
         primaryText: "",
         cta: "LEARN_MORE",
       },
     ]);
+    setEditingId(newId);
   }
 
   function addBlankUpload() {
+    const newId = crypto.randomUUID();
     setCreatives([
       ...creatives,
       {
-        id: crypto.randomUUID(),
+        id: newId,
         source: "upload",
         label: `Creative ${creatives.length + 1}`,
         thumbnailUrl: null,
+        cloudinaryUrl: null,
+        cloudinaryPublicId: null,
         creativeType: "image",
         headline: "",
         primaryText: "",
         cta: "LEARN_MORE",
       },
     ]);
+    setEditingId(newId);
   }
 
   function removeCreative(id: string) {
@@ -910,6 +945,64 @@ function StepCreative({
     setCreatives(
       creatives.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     );
+  }
+
+  async function handleGenerateCopy(creative: CreativeAsset) {
+    setGeneratingId(creative.id);
+    try {
+      const res = await generateAdCopyAction({
+        objective,
+        creativeType: creative.creativeType,
+        campaignLabel,
+        destinationUrl: destinationUrl.trim() || undefined,
+      });
+      if (res.ok) {
+        updateCreative(creative.id, {
+          headline: res.headline,
+          primaryText: res.primaryText,
+        });
+        toast.success("Copy generated.");
+      }
+    } catch {
+      toast.error("Copy generation failed — try again.");
+    }
+    setGeneratingId(null);
+  }
+
+  async function handleFileSelect(creativeId: string, file: File) {
+    const localPreview = URL.createObjectURL(file);
+    const isVideo = file.type.startsWith("video/");
+    updateCreative(creativeId, {
+      thumbnailUrl: localPreview,
+      creativeType: isVideo ? "video" : "image",
+      label: file.name.replace(/\.[^.]+$/, "").slice(0, 60),
+      uploading: true,
+    });
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload/campaign-creative", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (data.ok) {
+        updateCreative(creativeId, {
+          cloudinaryUrl: data.url,
+          cloudinaryPublicId: data.publicId,
+          thumbnailUrl: data.url,
+          uploading: false,
+        });
+        toast.success("Creative uploaded.");
+      } else {
+        toast.error(data.error ?? "Upload failed.");
+        updateCreative(creativeId, { uploading: false });
+      }
+    } catch {
+      toast.error("Upload failed — check your connection.");
+      updateCreative(creativeId, { uploading: false });
+    }
   }
 
   const CONTENT_TYPE_LABELS: Record<string, string> = {
@@ -1006,7 +1099,7 @@ function StepCreative({
           onClick={addBlankUpload}
           className="text-[color:var(--color-accent-cta)] text-[length:var(--text-body)] hover:underline"
         >
-          + Add a creative (upload later)
+          + Add a creative
         </button>
       </div>
 
@@ -1018,6 +1111,7 @@ function StepCreative({
           </span>
           {creatives.map((c) => {
             const isEditing = editingId === c.id;
+            const isGenerating = generatingId === c.id;
             return (
               <div
                 key={c.id}
@@ -1032,7 +1126,7 @@ function StepCreative({
                     />
                   ) : (
                     <span className="flex h-10 w-10 items-center justify-center rounded bg-[color:var(--color-surface-1)] text-[color:var(--color-neutral-600)] text-[length:var(--text-small)] shrink-0">
-                      {c.source === "upload" ? "UP" : "CS"}
+                      {c.source === "upload" ? <Upload size={16} /> : "CS"}
                     </span>
                   )}
                   <div className="flex-1 min-w-0">
@@ -1041,7 +1135,7 @@ function StepCreative({
                     </span>
                     <span className="text-[color:var(--color-neutral-500)] text-[length:var(--text-small)]">
                       {c.source === "content_studio" ? "Content Studio" : "Upload"} ·{" "}
-                      {c.headline ? "Copy written" : "Needs copy"}
+                      {c.uploading ? "Uploading..." : c.headline ? "Copy written" : "Needs copy"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -1049,7 +1143,7 @@ function StepCreative({
                       onClick={() => setEditingId(isEditing ? null : c.id)}
                       className="text-[color:var(--color-accent-cta)] text-[length:var(--text-small)] hover:underline"
                     >
-                      {isEditing ? "Done" : "Edit copy"}
+                      {isEditing ? "Done" : "Edit"}
                     </button>
                     <button
                       onClick={() => removeCreative(c.id)}
@@ -1067,6 +1161,79 @@ function StepCreative({
                     transition={houseSpring}
                     className="flex flex-col gap-3 pt-3 border-t border-[color:var(--color-neutral-700)]"
                   >
+                    {/* Upload area */}
+                    <div>
+                      <span className="block text-[color:var(--color-neutral-400)] text-[length:var(--text-small)] mb-1">
+                        Visual creative
+                      </span>
+                      {c.thumbnailUrl ? (
+                        <div className="relative group w-fit">
+                          <img
+                            src={c.thumbnailUrl}
+                            alt=""
+                            className="h-32 w-auto rounded-md object-cover"
+                          />
+                          {c.uploading && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/60">
+                              <Loader2 size={24} className="animate-spin text-white" />
+                            </div>
+                          )}
+                          {!c.uploading && (
+                            <label className="absolute inset-0 flex items-center justify-center rounded-md bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                              <span className="text-white text-[length:var(--text-small)] font-medium">Replace</span>
+                              <input
+                                type="file"
+                                accept="image/*,video/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileSelect(c.id, file);
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-[color:var(--color-neutral-600)] bg-[color:var(--color-surface-1)] p-6 cursor-pointer hover:border-[color:var(--color-accent-cta)] transition-colors">
+                          <ImageIcon size={24} className="text-[color:var(--color-neutral-500)]" />
+                          <span className="text-[color:var(--color-neutral-400)] text-[length:var(--text-small)]">
+                            Drop an image or video here, or click to browse
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*,video/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileSelect(c.id, file);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* Copy fields + generate button */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[color:var(--color-neutral-300)] text-[length:var(--text-small)] font-medium">
+                        Ad copy
+                      </span>
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        transition={houseSpring}
+                        onClick={() => handleGenerateCopy(c)}
+                        disabled={isGenerating || !campaignLabel.trim()}
+                        className="flex items-center gap-1.5 rounded-md bg-[color:var(--color-surface-3)] px-2.5 py-1.5 text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-200)] hover:bg-[color:var(--color-surface-1)] transition-colors disabled:opacity-40"
+                      >
+                        {isGenerating ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Sparkles size={14} className="text-[color:var(--color-brand-pink)]" />
+                        )}
+                        {isGenerating ? "Generating..." : "Generate copy"}
+                      </motion.button>
+                    </div>
+
                     <label className="flex flex-col gap-1">
                       <span className="text-[color:var(--color-neutral-400)] text-[length:var(--text-small)]">
                         Headline

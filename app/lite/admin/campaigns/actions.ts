@@ -13,9 +13,12 @@ import {
   contentStudioPosts,
   contentStudioRenders,
 } from "@/lib/db/schema/content-studio";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { buildCampaignStrategy, type StrategyInput, type CampaignStrategy } from "@/lib/meta-campaigns/build-strategy";
 import { seedBenchmarks } from "@/lib/meta-campaigns/seed-benchmarks";
+import { invokeLlmText } from "@/lib/ai/invoke";
+import { getSuperbadBrandProfile } from "@/lib/quote-builder/superbad-brand-profile";
+import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 
 export async function listCampaignsAction(): Promise<{
   ok: boolean;
@@ -73,11 +76,25 @@ export async function seedBenchmarksAction(): Promise<{
   return { ok: true, count };
 }
 
+export type CreativePayload = {
+  source: "content_studio" | "upload";
+  studioPostId?: string;
+  label: string;
+  cloudinaryUrl: string | null;
+  cloudinaryPublicId: string | null;
+  creativeType: "image" | "video" | "carousel";
+  headline: string;
+  primaryText: string;
+  cta: string;
+};
+
 export async function createCampaignFromStrategyAction(input: {
   adAccountId: string;
   companyId?: string;
   strategy: CampaignStrategy;
   strategyInput: StrategyInput;
+  creatives: CreativePayload[];
+  destinationUrl?: string;
 }): Promise<{ ok: boolean; campaignIds: string[] }> {
   const now = Date.now();
   const campaignIds: string[] = [];
@@ -112,8 +129,10 @@ export async function createCampaignFromStrategyAction(input: {
       })
       .run();
 
+    const adSetIds: string[] = [];
     for (const adSet of planned.adSets) {
       const adSetId = crypto.randomUUID();
+      adSetIds.push(adSetId);
       db.insert(metaAdSets)
         .values({
           id: adSetId,
@@ -141,6 +160,32 @@ export async function createCampaignFromStrategyAction(input: {
           updated_at_ms: now,
         })
         .run();
+    }
+
+    const firstAdSetId = adSetIds[0];
+    if (firstAdSetId && input.creatives.length > 0) {
+      for (const creative of input.creatives) {
+        db.insert(metaAds)
+          .values({
+            id: crypto.randomUUID(),
+            ad_set_id: firstAdSetId,
+            campaign_id: campaignId,
+            name: creative.headline || creative.label,
+            status: "draft",
+            creative_type: creative.creativeType,
+            creative_source: creative.source,
+            content_studio_post_id: creative.studioPostId ?? null,
+            asset_url: creative.cloudinaryUrl,
+            thumbnail_url: creative.cloudinaryUrl,
+            headline: creative.headline || null,
+            primary_text: creative.primaryText || null,
+            cta_type: creative.cta || null,
+            destination_url: input.destinationUrl ?? null,
+            created_at_ms: now,
+            updated_at_ms: now,
+          })
+          .run();
+      }
     }
   }
 
@@ -229,4 +274,90 @@ export async function updateCampaignStatusAction(
     .where(eq(metaCampaigns.id, id))
     .run();
   return { ok: true };
+}
+
+export async function generateAdCopyAction(input: {
+  objective: string;
+  creativeType: string;
+  campaignLabel: string;
+  destinationUrl?: string;
+  companyId?: string;
+}): Promise<{
+  ok: boolean;
+  headline: string;
+  primaryText: string;
+}> {
+  let voiceDescription: string;
+  let avoidWords: string[] = [];
+
+  if (input.companyId) {
+    const profile = db
+      .select()
+      .from(brand_dna_profiles)
+      .where(
+        and(
+          eq(brand_dna_profiles.company_id, input.companyId),
+          eq(brand_dna_profiles.is_current, true),
+          eq(brand_dna_profiles.status, "complete"),
+        ),
+      )
+      .get();
+
+    if (profile?.prose_portrait) {
+      voiceDescription = profile.prose_portrait.slice(0, 600);
+    } else {
+      voiceDescription = "Professional, clear, benefit-driven. Warm but direct.";
+    }
+  } else {
+    const sbProfile = await getSuperbadBrandProfile();
+    voiceDescription = sbProfile.voiceDescription;
+    avoidWords = sbProfile.avoidWords ?? [];
+  }
+
+  const system = [
+    "You write high-performing Meta ad copy.",
+    `Brand voice: ${voiceDescription}`,
+    avoidWords.length > 0
+      ? `Never use these words: ${avoidWords.join(", ")}.`
+      : "",
+    "Return ONLY a JSON object with keys: headline, primaryText.",
+    "headline: max 40 characters, punchy, stops the scroll.",
+    "primaryText: 2-4 sentences, hooks immediately, speaks to the audience's pain or desire, ends with a reason to act.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const prompt = [
+    `Campaign: ${input.campaignLabel}`,
+    `Objective: ${input.objective}`,
+    `Creative type: ${input.creativeType}`,
+    input.destinationUrl ? `Landing page: ${input.destinationUrl}` : null,
+    "Generate ad copy now.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const raw = await invokeLlmText({
+    job: "meta-ad-copy-generate",
+    system,
+    prompt,
+    maxTokens: 400,
+  });
+
+  try {
+    const cleaned = raw.replace(/```json\s*/g, "").replace(/```/g, "").trim();
+    const parsed = JSON.parse(cleaned) as { headline?: string; primaryText?: string };
+    return {
+      ok: true,
+      headline: parsed.headline ?? "",
+      primaryText: parsed.primaryText ?? "",
+    };
+  } catch {
+    const lines = raw.split("\n").filter((l) => l.trim());
+    return {
+      ok: true,
+      headline: lines[0]?.slice(0, 40) ?? "",
+      primaryText: lines.slice(1).join(" ").slice(0, 300) ?? "",
+    };
+  }
 }
