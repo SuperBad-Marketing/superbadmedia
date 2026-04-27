@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { houseSpring } from "@/lib/design-tokens";
 import type { TrialShootTier } from "@/lib/db/schema/intro-funnel-submissions";
@@ -271,11 +271,14 @@ function TierCard({
   );
 }
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export function LandingClient() {
   const [selectedTier, setSelectedTier] = useState<TrialShootTier | null>(null);
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const reduced = useReducedMotion();
 
   function handleTierSelect(tier: TrialShootTier) {
     setSelectedTier(tier);
@@ -380,74 +383,130 @@ export function LandingClient() {
               exit={{ opacity: 0, y: -20 }}
               transition={houseSpring}
             >
-              {/* ---- Nav ---- */}
-              <nav
-                style={{
-                  padding: "24px var(--lp-px)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
+              {/* ---- Hero (full viewport) ---- */}
+              <section
+                className="flex h-dvh flex-col overflow-hidden"
+                style={{ position: "relative" }}
               >
-                <span
+                <nav
                   style={{
-                    fontFamily: "var(--font-logo)",
-                    fontSize: 26,
-                    color: "var(--brand-cream)",
+                    padding: "24px var(--lp-px)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  SuperBad
-                </span>
-              </nav>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-logo)",
+                      fontSize: 26,
+                      color: "var(--brand-cream)",
+                    }}
+                  >
+                    SuperBad
+                  </span>
+                </nav>
 
-              {/* ---- Hero ---- */}
+                <div
+                  className="flex flex-1 flex-col items-center justify-center"
+                  style={{ paddingBottom: "8vh" }}
+                >
+                  <div
+                    style={{
+                      maxWidth: 900,
+                      padding: "0 var(--lp-px)",
+                      textAlign: "center",
+                    }}
+                  >
+                    <motion.div
+                      initial={reduced ? false : { opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, ease: EASE }}
+                      style={{
+                        fontFamily: "var(--font-label)",
+                        fontSize: 10,
+                        letterSpacing: "3px",
+                        textTransform: "uppercase",
+                        color: "var(--brand-pink)",
+                        marginBottom: 24,
+                      }}
+                    >
+                      Trial shoots &middot; Melbourne &middot; we come to you
+                    </motion.div>
+                    <h1
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "clamp(3rem, 7vw, 5.5rem)",
+                        lineHeight: 0.95,
+                        letterSpacing: "-2px",
+                        color: "var(--brand-cream)",
+                        margin: 0,
+                      }}
+                    >
+                      {["Find", "out", "if"].map((word, i) => (
+                        <motion.span
+                          key={`l1-${i}`}
+                          style={{ display: "inline-block", marginRight: "0.3em" }}
+                          initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                          transition={{ duration: 0.5, delay: 0.3 + i * 0.07, ease: EASE }}
+                        >
+                          {word}
+                        </motion.span>
+                      ))}
+                      <br />
+                      {["we’re", "right"].map((word, i) => (
+                        <motion.span
+                          key={`l2-${i}`}
+                          style={{ display: "inline-block", marginRight: "0.3em" }}
+                          initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                          transition={{ duration: 0.5, delay: 0.3 + (3 + i) * 0.07, ease: EASE }}
+                        >
+                          {word}
+                        </motion.span>
+                      ))}
+                      <br />
+                      {["for", "each", "other"].map((word, i) => (
+                        <motion.span
+                          key={`l3-${i}`}
+                          style={{ display: "inline-block", marginRight: "0.3em" }}
+                          initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                          transition={{ duration: 0.5, delay: 0.3 + (5 + i) * 0.07, ease: EASE }}
+                        >
+                          {word}
+                        </motion.span>
+                      ))}
+                      <br />
+                      <motion.span
+                        style={{
+                          display: "inline-block",
+                          fontFamily: "var(--font-narrative)",
+                          fontStyle: "italic",
+                          color: "var(--brand-pink)",
+                          fontWeight: 500,
+                        }}
+                        initial={reduced ? false : { opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 + 8 * 0.07 + 0.1, ease: EASE }}
+                      >
+                        before either of us commits.
+                      </motion.span>
+                    </h1>
+                  </div>
+                </div>
+              </section>
+
+              {/* ---- Subtitle + intro ---- */}
               <section
                 style={{
                   maxWidth: 900,
                   margin: "0 auto",
-                  padding: "40px var(--lp-px) 60px",
+                  padding: "60px var(--lp-px) 20px",
                   textAlign: "center",
                 }}
               >
-                <div
-                  style={{
-                    fontFamily: "var(--font-label)",
-                    fontSize: 10,
-                    letterSpacing: "3px",
-                    textTransform: "uppercase",
-                    color: "var(--brand-pink)",
-                    marginBottom: 24,
-                  }}
-                >
-                  Trial shoots &middot; Melbourne &middot; we come to you
-                </div>
-                <h1
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "clamp(3rem, 7vw, 5.5rem)",
-                    lineHeight: 0.95,
-                    letterSpacing: "-2px",
-                    color: "var(--brand-cream)",
-                    margin: "0 0 24px",
-                  }}
-                >
-                  Find out if
-                  <br />
-                  we&rsquo;re right
-                  <br />
-                  for each other
-                  <br />
-                  <span
-                    style={{
-                      fontFamily: "var(--font-narrative)",
-                      fontStyle: "italic",
-                      color: "var(--brand-pink)",
-                      fontWeight: 500,
-                    }}
-                  >
-                    before either of us commits.
-                  </span>
-                </h1>
                 <p
                   style={{
                     fontFamily: "var(--font-narrative)",

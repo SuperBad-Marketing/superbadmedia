@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 /* ── NavLink ── */
 function NavLink({
@@ -253,6 +255,26 @@ function Statement({
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const reduced = useReducedMotion();
+
+  const entertainRef = useRef<HTMLDivElement>(null);
+  const entertainInView = useInView(entertainRef, { once: true, amount: 0.4 });
+
+  const emotionRef = useRef<HTMLDivElement>(null);
+  const emotionInView = useInView(emotionRef, { once: true, amount: 0.4 });
+
+  const revealWords = (text: string, inView: boolean, delayOffset = 0, stagger = 0.07) =>
+    text.split(" ").map((word, i) => (
+      <motion.span
+        key={`${delayOffset}-${i}`}
+        style={{ display: "inline-block", marginRight: "0.3em" }}
+        initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+        animate={inView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+        transition={{ duration: 0.5, delay: delayOffset + i * stagger, ease: EASE }}
+      >
+        {word}
+      </motion.span>
+    ));
 
   return (
     <main className="relative h-dvh overflow-hidden">
@@ -417,7 +439,7 @@ export default function HomePage() {
 
         {/* ── Screen 2 — Statement: entertainment platform ── */}
         <Screen surface={1}>
-          <Statement>
+          <div ref={entertainRef}>
             <p
               style={{
                 fontFamily: "var(--font-display)",
@@ -429,12 +451,17 @@ export default function HomePage() {
               }}
               className="text-balance"
             >
-              Social media is an entertainment platform
-              <span style={{ color: "var(--brand-red)" }}>.</span>
+              {revealWords("Social media is an entertainment platform", entertainInView)}
+              <motion.span
+                style={{ display: "inline-block", color: "var(--brand-red)" }}
+                initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={entertainInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+                transition={{ duration: 0.5, delay: 6 * 0.07, ease: EASE }}
+              >
+                .
+              </motion.span>
             </p>
-          </Statement>
-          <Statement delay={0.15}>
-            <p
+            <motion.p
               className="text-pretty"
               style={{
                 fontFamily: "var(--font-body)",
@@ -445,12 +472,15 @@ export default function HomePage() {
                 marginTop: "clamp(20px, 3vw, 40px)",
                 maxWidth: "44ch",
               }}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              animate={entertainInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.8, ease: EASE }}
             >
               Not a sales platform. Not a brochure with a comments section.
               People open Instagram for the same reason they turn on Netflix
               — to feel something.
-            </p>
-          </Statement>
+            </motion.p>
+          </div>
         </Screen>
 
         {/* ── Screen 3 — Redaction #1 ── */}
@@ -513,7 +543,7 @@ export default function HomePage() {
 
         {/* ── Screen 5 — Statement: emotion over features (brand red) ── */}
         <Screen surface="brand">
-          <Statement>
+          <div ref={emotionRef}>
             <p
               style={{
                 fontFamily: "var(--font-display)",
@@ -525,12 +555,17 @@ export default function HomePage() {
               }}
               className="text-balance"
             >
-              People don&rsquo;t buy what you sell
-              <span style={{ color: "var(--neutral-900)" }}>.</span>
+              {revealWords("People don’t buy what you sell", emotionInView)}
+              <motion.span
+                style={{ display: "inline-block", color: "var(--neutral-900)" }}
+                initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={emotionInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+                transition={{ duration: 0.5, delay: 6 * 0.07, ease: EASE }}
+              >
+                .
+              </motion.span>
             </p>
-          </Statement>
-          <Statement delay={0.12}>
-            <p
+            <motion.p
               className="text-balance"
               style={{
                 fontFamily: "var(--font-narrative)",
@@ -542,12 +577,13 @@ export default function HomePage() {
                 marginTop: "clamp(12px, 2vw, 24px)",
                 maxWidth: "22ch",
               }}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              animate={emotionInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.7, ease: EASE }}
             >
               They buy how you make them feel.
-            </p>
-          </Statement>
-          <Statement delay={0.22}>
-            <p
+            </motion.p>
+            <motion.p
               className="text-pretty"
               style={{
                 fontFamily: "var(--font-body)",
@@ -558,12 +594,15 @@ export default function HomePage() {
                 marginTop: "clamp(20px, 3vw, 36px)",
                 maxWidth: "44ch",
               }}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              animate={emotionInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 1.0, ease: EASE }}
             >
               Every purchase decision is emotional first. The logic comes after
               — to justify what they already wanted. Connection will always
               outsell a feature list.
-            </p>
-          </Statement>
+            </motion.p>
+          </div>
         </Screen>
 
         {/* ── Screen 6 — Social proof ── */}
