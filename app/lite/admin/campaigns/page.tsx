@@ -36,27 +36,52 @@ export default function CampaignsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="flex items-start justify-between gap-4 mb-10">
-        <div>
-          <h1 className="font-[family-name:var(--font-righteous)] text-[length:var(--text-display)] text-[color:var(--color-neutral-100)] leading-tight">
-            Campaigns
-          </h1>
-          <p className="mt-1 text-[color:var(--color-neutral-400)] text-[length:var(--text-body)]">
-            Meta ad campaigns — build, launch, optimise.
-          </p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          transition={houseSpring}
-          onClick={() => router.push("/lite/admin/campaigns/new")}
-          className="flex items-center gap-2 rounded-md bg-[color:var(--color-accent-cta)] px-4 py-2.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] font-medium text-white shadow-sm"
+    <div>
+      <header className="px-4 pt-6 pb-5">
+        <div
+          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "2px" }}
         >
-          <Plus size={18} strokeWidth={2} />
-          New Campaign
-        </motion.button>
-      </div>
+          Admin · Campaigns
+        </div>
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <div>
+            <h1
+              className="font-[family-name:var(--font-display)] text-[40px] leading-none text-[color:var(--color-brand-cream)]"
+              style={{ letterSpacing: "-0.4px" }}
+            >
+              Campaigns
+            </h1>
+            <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
+              Meta ad campaigns — build, launch, optimise.{" "}
+              <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
+                spend money to make money.
+              </em>
+            </p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            transition={houseSpring}
+            onClick={() => router.push("/lite/admin/campaigns/new")}
+            className="flex items-center gap-2 rounded-md bg-[color:var(--color-accent-cta)] px-4 py-2.5 font-[family-name:var(--font-body)] text-[14px] font-medium text-white shadow-sm"
+          >
+            <Plus size={18} strokeWidth={2} />
+            New Campaign
+          </motion.button>
+        </div>
+        <div className="mt-4 flex items-center gap-4 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+          <span
+            className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            {campaigns.length}
+          </span>
+          <span>campaign{campaigns.length === 1 ? "" : "s"}</span>
+        </div>
+      </header>
+
+      <div className="px-4 pt-6">
 
       {loaded && campaigns.length === 0 && (
         <motion.div
@@ -70,10 +95,10 @@ export default function CampaignsPage() {
             strokeWidth={1}
             className="text-[color:var(--color-neutral-600)] mb-4"
           />
-          <p className="text-[color:var(--color-neutral-400)] text-[length:var(--text-body)] mb-1">
+          <p className="text-[color:var(--color-neutral-400)] text-[14px] mb-1">
             No campaigns yet.
           </p>
-          <p className="text-[color:var(--color-neutral-500)] text-[length:var(--text-small)]">
+          <p className="text-[color:var(--color-neutral-500)] text-[12px]">
             Create your first campaign to get started.
           </p>
         </motion.div>
@@ -95,11 +120,11 @@ export default function CampaignsPage() {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] font-medium text-[color:var(--color-neutral-100)] truncate">
+                    <span className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-neutral-100)] truncate">
                       {c.name}
                     </span>
                     <span
-                      className="shrink-0 rounded-full px-2 py-0.5 text-[length:var(--text-micro)] font-medium uppercase tracking-wider"
+                      className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider"
                       style={{
                         color: status.color,
                         border: `1px solid ${status.color}`,
@@ -108,7 +133,7 @@ export default function CampaignsPage() {
                       {status.label}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-[color:var(--color-neutral-500)] text-[length:var(--text-small)]">
+                  <div className="flex items-center gap-3 text-[color:var(--color-neutral-500)] text-[12px]">
                     <span className="capitalize">{c.objective}</span>
                     <span aria-hidden>·</span>
                     <span>{STAGE_LABELS[c.funnel_stage] ?? c.funnel_stage}</span>
@@ -138,6 +163,7 @@ export default function CampaignsPage() {
           })}
         </div>
       </AnimatePresence>
+      </div>
     </div>
   );
 }
