@@ -156,6 +156,10 @@ export const MODELS = {
   "talking-head-generate-script": "opus",
   "talking-head-generate-edit-brief": "haiku",
   "talking-head-generate-publish-meta": "haiku",
+  // call-notes (3)
+  "call-pre-briefing": "opus",
+  "call-custom-questions": "haiku",
+  "call-post-synthesis": "opus",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;

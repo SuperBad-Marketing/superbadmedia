@@ -9,11 +9,14 @@ import { deals } from "@/lib/db/schema/deals";
 import { companies } from "@/lib/db/schema/companies";
 import { contacts } from "@/lib/db/schema/contacts";
 import { quotes } from "@/lib/db/schema/quotes";
+import { call_logs } from "@/lib/db/schema/call-logs";
 import {
   DealDetailClient,
   type DealDetailData,
 } from "@/components/lite/sales-pipeline/deal-detail-client";
 import { DealQuotesSection } from "@/components/lite/sales-pipeline/deal-quotes-section";
+import { DealCallHistory } from "@/components/lite/sales-pipeline/deal-call-history";
+import { AdHocNoteButton } from "@/components/lite/sales-pipeline/adhoc-note-button";
 
 export const metadata: Metadata = {
   title: "SuperBad — Deal Detail",
@@ -67,6 +70,12 @@ export default async function DealDetailPage({
     .from(quotes)
     .where(eq(quotes.deal_id, id))
     .orderBy(desc(quotes.created_at_ms));
+
+  const dealCalls = await db
+    .select()
+    .from(call_logs)
+    .where(eq(call_logs.deal_id, id))
+    .orderBy(desc(call_logs.created_at_ms));
 
   const deal: DealDetailData = {
     id: row.id,
@@ -143,6 +152,14 @@ export default async function DealDetailPage({
           )}
         </div>
       </header>
+
+      <div className="mt-4 px-4 flex justify-end">
+        <AdHocNoteButton dealId={deal.id} />
+      </div>
+
+      <div className="mt-4 px-4">
+        <DealCallHistory dealId={deal.id} dealStage={deal.stage} calls={dealCalls} />
+      </div>
 
       <div className="mt-6 px-4">
         <DealDetailClient deal={deal} />

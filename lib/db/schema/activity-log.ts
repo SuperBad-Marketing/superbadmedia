@@ -397,6 +397,10 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Data management ---
   "brand_dna_reset",
   "client_context_reset",
+  // --- Call Notes (3) ---
+  "call_started",
+  "call_completed",
+  "adhoc_note_added",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

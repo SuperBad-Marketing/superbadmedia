@@ -101,3 +101,4 @@ export * from "./brand-voice-examples";
 export * from "./briefs";
 export * from "./brief-storyboards";
 export * from "./talking-head";
+export * from "./call-logs";
