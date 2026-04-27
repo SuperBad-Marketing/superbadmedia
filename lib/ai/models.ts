@@ -89,6 +89,10 @@ export const MODELS = {
   "lead-gen-discovery-suggestions": "haiku",
   "lead-gen-icp-prefilter": "haiku",
   "lead-gen-deep-website-distill": "haiku",
+  "lead-gen-reply-draft": "opus",
+  "lead-gen-reply-nudge": "opus",
+  "lead-gen-reply-long-tail": "opus",
+  "lead-gen-reply-classify": "haiku",
   // video-studio (1)
   "video-brief-builder": "haiku",
   // client-management (3)

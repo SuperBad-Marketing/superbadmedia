@@ -99,6 +99,13 @@ export const leadCandidates = sqliteTable(
     previous_track: text("previous_track", { enum: CANDIDATE_TRACKS }),
     track_changed_at: integer("track_changed_at", { mode: "timestamp_ms" }),
 
+    // Reply handling (outreach-strategy spec)
+    quoted_session_price_cents: integer("quoted_session_price_cents"),
+    quoted_production_price_cents: integer("quoted_production_price_cents"),
+    reply_status: text("reply_status"),
+    last_reply_at_ms: integer("last_reply_at_ms"),
+    reply_draft_id: text("reply_draft_id"),
+
     created_at: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),

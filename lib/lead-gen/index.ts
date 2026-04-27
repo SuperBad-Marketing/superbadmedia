@@ -163,3 +163,15 @@ export {
   inferPricingTier,
   parseRelativeDate,
 } from "./enrich";
+
+// Reply handling
+export { handleInboundReply } from "./reply-handler";
+export type { InboundReply, HandleReplyResult } from "./reply-handler";
+
+// Reply drop-off sequence
+export { processDropOffSequence } from "./reply-drop-off";
+export type { DropOffRunResult } from "./reply-drop-off";
+
+// Discount codes
+export { createDiscountCode, validateDiscountCode, redeemDiscountCode } from "./discount-codes";
+export type { ValidateCodeResult } from "./discount-codes";
