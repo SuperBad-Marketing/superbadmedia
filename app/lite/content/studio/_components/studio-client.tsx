@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
+import type { CustomPaletteInput } from "@/lib/content-studio/motion/types";
 import {
   ALL_MOTION_TEMPLATES,
   getPairedMotionTemplates,
@@ -20,6 +21,8 @@ import {
   changeTemplateAction,
   createMotionPostAction,
   updateMotionPostAction,
+  updateStaticPostAction,
+  promoteToMotionAction,
 } from "../actions";
 import { PostPreview } from "./post-preview";
 import { PostHistory } from "./post-history";
@@ -225,6 +228,11 @@ export function StudioClient() {
     { id: string; source_type: "link" | "upload"; source_url: string; thumbnail_url: string | null; title: string | null; description: string | null }[]
   >([]);
 
+  // Style customisation state (shared between static and motion)
+  const [fontPairingId, setFontPairingId] = useState<string | null>(null);
+  const [staticPaletteId, setStaticPaletteId] = useState<string | null>(null);
+  const [customPalette, setCustomPalette] = useState<CustomPaletteInput | null>(null);
+
   const handleCreate = useCallback(async () => {
     if (!topic.trim()) {
       toast.error("Enter a topic first.");
@@ -260,6 +268,7 @@ export function StudioClient() {
           contentType,
           motionTemplateId: templateId,
           slideCount,
+          fontPairingId: fontPairingId ?? undefined,
         });
         if (!result.ok) {
           toast.error(result.error);
@@ -274,6 +283,7 @@ export function StudioClient() {
           paletteId: result.paletteId,
           animationParams: result.animationParams,
           primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
+          fontPairingId,
         });
         setView("preview");
         toast.success("Motion post generated.");
@@ -284,6 +294,9 @@ export function StudioClient() {
         brief,
         contentType,
         slideCount,
+        fontPairingId: fontPairingId ?? undefined,
+        paletteId: staticPaletteId ?? undefined,
+        customPalette: customPalette ?? undefined,
       });
       if (!result.ok) {
         toast.error(result.error);
@@ -311,7 +324,7 @@ export function StudioClient() {
     } finally {
       setGenerating(false);
     }
-  }, [topic, postGoal, postTone, postAudience, postCta, postHook, extraContext, contentType, slideCount, motionEnabled, selectedMotionTemplate]);
+  }, [topic, postGoal, postTone, postAudience, postCta, postHook, extraContext, contentType, slideCount, motionEnabled, selectedMotionTemplate, fontPairingId, staticPaletteId, customPalette]);
 
   const handleCorrect = useCallback(
     async (correction: string, slideIndex?: number) => {
@@ -378,6 +391,75 @@ export function StudioClient() {
     [activePost],
   );
 
+  // Static post callbacks
+  const handleStaticCopyChange = useCallback(
+    (slides: SlideCopy[]) => {
+      if (!activePost) return;
+      setActivePost((prev) => (prev ? { ...prev, slides } : null));
+      updateStaticPostAction({ postId: activePost.id, slides }).catch(() =>
+        toast.error("Failed to save copy changes."),
+      );
+    },
+    [activePost],
+  );
+
+  const handleStaticFontChange = useCallback(
+    (id: string | null) => {
+      setFontPairingId(id);
+      if (!activePost) return;
+      updateStaticPostAction({ postId: activePost.id, fontPairingId: id }).catch(() =>
+        toast.error("Failed to save font change."),
+      );
+    },
+    [activePost],
+  );
+
+  const handleStaticPaletteChange = useCallback(
+    (paletteId: string | null, custom?: CustomPaletteInput | null) => {
+      setStaticPaletteId(paletteId);
+      if (custom !== undefined) setCustomPalette(custom);
+      if (!activePost) return;
+      updateStaticPostAction({
+        postId: activePost.id,
+        paletteId,
+        customPalette: custom ?? (paletteId !== "custom" ? null : undefined),
+      }).catch(() => toast.error("Failed to save palette change."));
+    },
+    [activePost],
+  );
+
+  const handlePromoteToMotion = useCallback(
+    async (motionTemplateId: string, slideIndex: number) => {
+      if (!activePost) return;
+      try {
+        const result = await promoteToMotionAction({
+          postId: activePost.id,
+          slideIndex,
+          motionTemplateId,
+        });
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        setMotionPost({
+          id: result.postId,
+          motionTemplateId: result.motionTemplateId,
+          slides: result.slides,
+          brief: activePost.brief,
+          paletteId: result.paletteId,
+          animationParams: result.animationParams,
+          primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
+          fontPairingId,
+        });
+        setView("preview");
+        toast.success("Motion version created.");
+      } catch {
+        toast.error("Failed to create motion version.");
+      }
+    },
+    [activePost, fontPairingId],
+  );
+
   // Motion editor callbacks
   const handleMotionCopyChange = useCallback(
     (slides: SlideCopy[]) => {
@@ -415,6 +497,29 @@ export function StudioClient() {
     [motionPost],
   );
 
+  const handleMotionFontChange = useCallback(
+    (id: string | null) => {
+      setFontPairingId(id);
+      if (!motionPost) return;
+      setMotionPost((prev) => (prev ? { ...prev, fontPairingId: id } : null));
+      updateMotionPostAction({ postId: motionPost.id, fontPairingId: id }).catch(() =>
+        toast.error("Failed to save font change."),
+      );
+    },
+    [motionPost],
+  );
+
+  const handleMotionDurationChange = useCallback(
+    (frames: number) => {
+      if (!motionPost) return;
+      setMotionPost((prev) => (prev ? { ...prev, durationInFrames: frames } : null));
+      updateMotionPostAction({ postId: motionPost.id, durationInFrames: frames }).catch(() =>
+        toast.error("Failed to save duration change."),
+      );
+    },
+    [motionPost],
+  );
+
   const handleNewPost = useCallback(() => {
     setTopic("");
     setPostGoal("awareness");
@@ -426,6 +531,9 @@ export function StudioClient() {
     setSlideCount(1);
     setActivePost(null);
     setMotionPost(null);
+    setFontPairingId(null);
+    setStaticPaletteId(null);
+    setCustomPalette(null);
     setView("create");
   }, []);
 
@@ -803,6 +911,8 @@ export function StudioClient() {
             onCopyChange={handleMotionCopyChange}
             onPaletteChange={handleMotionPaletteChange}
             onAspectRatioChange={handleMotionAspectRatioChange}
+            onFontPairingChange={handleMotionFontChange}
+            onDurationChange={handleMotionDurationChange}
             onNewPost={handleNewPost}
           />
         )}
@@ -814,6 +924,13 @@ export function StudioClient() {
             onRender={handleRender}
             onChangeTemplate={handleChangeTemplate}
             onNewPost={handleNewPost}
+            onCopyChange={handleStaticCopyChange}
+            onFontPairingChange={handleStaticFontChange}
+            onPaletteChange={handleStaticPaletteChange}
+            onPromoteToMotion={handlePromoteToMotion}
+            fontPairingId={fontPairingId}
+            paletteId={staticPaletteId}
+            customPalette={customPalette}
           />
         )}
 

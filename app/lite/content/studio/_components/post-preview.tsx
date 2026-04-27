@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import {
   ASPECT_RATIOS,
@@ -11,7 +11,15 @@ import {
   getTemplatesForType,
   getDimensions,
 } from "@/lib/content-studio/templates";
+import { BRAND_PALETTES, getPalette, buildCustomPalette } from "@/lib/content-studio/motion/palettes";
+import type { ColourPalette, CustomPaletteInput as CustomPaletteColors } from "@/lib/content-studio/motion/types";
+import { getMotionTemplatesForStatic } from "@/lib/content-studio/motion/registry";
+import { getFontFacesForBrowser } from "@/lib/content-studio/font-pairings";
+import type { SlideCopy } from "@/lib/content-studio/generate-copy";
 import type { ActivePost } from "./studio-client";
+import { PaletteSwatches } from "./palette-swatches";
+import { FontPairingPicker } from "./font-pairing-picker";
+import { CustomPaletteInput } from "./custom-palette-input";
 
 const RATIO_LABELS: Record<AspectRatio, string> = {
   portrait: "Portrait 9:16",
@@ -42,6 +50,13 @@ interface PostPreviewProps {
   ) => Promise<{ id: string; slideIndex: number; ratio: AspectRatio; url: string }[] | undefined>;
   onChangeTemplate: (templateId: string) => Promise<void>;
   onNewPost: () => void;
+  onCopyChange: (slides: SlideCopy[]) => void;
+  onFontPairingChange: (id: string | null) => void;
+  onPaletteChange: (paletteId: string | null, customPalette?: CustomPaletteColors | null) => void;
+  onPromoteToMotion: (motionTemplateId: string, slideIndex: number) => Promise<void>;
+  fontPairingId: string | null;
+  paletteId: string | null;
+  customPalette: CustomPaletteColors | null;
 }
 
 export function PostPreview({
@@ -50,6 +65,13 @@ export function PostPreview({
   onRender,
   onChangeTemplate,
   onNewPost,
+  onCopyChange,
+  onFontPairingChange,
+  onPaletteChange,
+  onPromoteToMotion,
+  fontPairingId,
+  paletteId,
+  customPalette,
 }: PostPreviewProps) {
   const isCarousel = post.slides.length > 1;
   const [activeSlide, setActiveSlide] = useState(0);
@@ -68,18 +90,38 @@ export function PostPreview({
     { id: string; slideIndex: number; ratio: AspectRatio; url: string }[]
   >([]);
   const [showTemplateDrawer, setShowTemplateDrawer] = useState(false);
+  const [showCustomPalette, setShowCustomPalette] = useState(paletteId === "custom");
+  const [promoting, setPromoting] = useState(false);
 
-  const currentCopy = post.slides[activeSlide] ?? {};
+  const [editingSlides, setEditingSlides] = useState<SlideCopy[]>(post.slides);
+
+  const currentCopy = editingSlides[activeSlide] ?? {};
 
   const template = useMemo(
     () => getTemplate(post.templateId),
     [post.templateId],
   );
 
+  const resolvedPalette = useMemo<ColourPalette | undefined>(() => {
+    if (paletteId === "custom" && customPalette) {
+      return buildCustomPalette(customPalette);
+    }
+    if (paletteId) return getPalette(paletteId);
+    return undefined;
+  }, [paletteId, customPalette]);
+
+  const previewFontFaces = useMemo(() => {
+    if (!fontPairingId) return undefined;
+    return getFontFacesForBrowser(fontPairingId);
+  }, [fontPairingId]);
+
   const previewHtml = useMemo(() => {
     if (!template) return "";
-    return template.renderHtml(currentCopy, previewRatio);
-  }, [template, currentCopy, previewRatio]);
+    return template.renderHtml(currentCopy, previewRatio, {
+      fontFaces: previewFontFaces,
+      palette: resolvedPalette,
+    });
+  }, [template, currentCopy, previewRatio, previewFontFaces, resolvedPalette]);
 
   const { width: nativeW, height: nativeH } = getDimensions(previewRatio);
 
@@ -90,6 +132,64 @@ export function PostPreview({
       ),
     [post.contentType, post.templateId],
   );
+
+  const compatibleMotionTemplates = useMemo(
+    () => getMotionTemplatesForStatic(post.templateId),
+    [post.templateId],
+  );
+
+  const handleSlotChange = useCallback(
+    (slot: string, value: string) => {
+      setEditingSlides((prev) => {
+        const next = [...prev];
+        next[activeSlide] = { ...next[activeSlide], [slot]: value };
+        onCopyChange(next);
+        return next;
+      });
+    },
+    [activeSlide, onCopyChange],
+  );
+
+  const handlePaletteSelect = useCallback(
+    (p: ColourPalette) => {
+      setShowCustomPalette(false);
+      onPaletteChange(p.id);
+    },
+    [onPaletteChange],
+  );
+
+  const handleCustomPaletteToggle = useCallback(() => {
+    if (showCustomPalette) {
+      onPaletteChange(null, null);
+      setShowCustomPalette(false);
+    } else {
+      setShowCustomPalette(true);
+      onPaletteChange("custom", customPalette ?? {
+        background: "#0F0F0E",
+        primary: "#B22848",
+        accent: "#F28C52",
+        text: "#FDF5E6",
+      });
+    }
+  }, [showCustomPalette, customPalette, onPaletteChange]);
+
+  const handleCustomPaletteChange = useCallback(
+    (colors: CustomPaletteColors) => {
+      onPaletteChange("custom", colors);
+    },
+    [onPaletteChange],
+  );
+
+  // Sync editingSlides when post.slides changes externally (e.g. from LLM correction)
+  if (post.slides !== editingSlides && JSON.stringify(post.slides) !== JSON.stringify(editingSlides)) {
+    // Only update if the slides actually changed from an external source
+    const externalChange = post.slides.some(
+      (s, i) => JSON.stringify(s) !== JSON.stringify(editingSlides[i]),
+    );
+    if (externalChange) {
+      setEditingSlides(post.slides);
+    }
+  }
 
   async function handleCorrect() {
     if (!correction.trim()) return;
@@ -130,6 +230,15 @@ export function PostPreview({
       else next.add(p);
       return next;
     });
+  }
+
+  async function handlePromote(motionTemplateId: string) {
+    setPromoting(true);
+    try {
+      await onPromoteToMotion(motionTemplateId, activeSlide);
+    } finally {
+      setPromoting(false);
+    }
   }
 
   const maxPreviewH = previewRatio === "portrait" ? 480 : previewRatio === "square" ? 360 : 260;
@@ -175,6 +284,64 @@ export function PostPreview({
           </div>
         </div>
       )}
+
+      {/* Font picker */}
+      <FontPairingPicker
+        activePairingId={fontPairingId}
+        onSelect={onFontPairingChange}
+      />
+
+      {/* Palette */}
+      <div>
+        <div
+          style={{
+            fontFamily: "var(--font-label)",
+            fontSize: 11,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: "rgba(253,245,230,0.4)",
+            marginBottom: 4,
+          }}
+        >
+          Palette
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <PaletteSwatches
+            palettes={BRAND_PALETTES}
+            activePaletteId={paletteId ?? ""}
+            onSelect={handlePaletteSelect}
+          />
+          <button
+            onClick={handleCustomPaletteToggle}
+            style={{
+              padding: "3px 10px",
+              borderRadius: 8,
+              border: showCustomPalette
+                ? "2px solid var(--color-brand-cream)"
+                : "2px solid transparent",
+              background: showCustomPalette
+                ? "rgba(253,245,230,0.08)"
+                : "rgba(253,245,230,0.03)",
+              color: "var(--color-brand-cream)",
+              cursor: "pointer",
+              fontFamily: "var(--font-label)",
+              fontSize: 9,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              opacity: showCustomPalette ? 1 : 0.7,
+              height: 30,
+            }}
+          >
+            Custom
+          </button>
+        </div>
+        {showCustomPalette && (
+          <CustomPaletteInput
+            initial={customPalette ?? undefined}
+            onChange={handleCustomPaletteChange}
+          />
+        )}
+      </div>
 
       {/* Live preview */}
       <div>
@@ -268,16 +435,16 @@ export function PostPreview({
         )}
       </div>
 
-      {/* Copy slots for active slide */}
+      {/* Inline copy editing */}
       <div>
         <span
           className="mb-3 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
           style={{ letterSpacing: "1.5px" }}
         >
-          {isCarousel ? `Slide ${activeSlide + 1} copy` : "Generated copy"}
+          {isCarousel ? `Slide ${activeSlide + 1} copy` : "Edit copy"}
         </span>
         <div className="space-y-2">
-          {Object.entries(currentCopy).map(([slot, value]) => (
+          {template?.copySlots.map((slot) => (
             <div
               key={slot}
               className="flex items-start gap-3 rounded-md p-3"
@@ -287,27 +454,62 @@ export function PostPreview({
               }}
             >
               <span
-                className="mt-0.5 shrink-0 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)]"
+                className="mt-2 shrink-0 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)]"
                 style={{ letterSpacing: "1px", minWidth: 72 }}
               >
                 {slot}
               </span>
-              <span className="font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-brand-cream)]">
-                {value}
+              <textarea
+                value={currentCopy[slot] ?? ""}
+                onChange={(e) => handleSlotChange(slot, e.target.value)}
+                rows={slot === "headline" ? 3 : 2}
+                className="flex-1 resize-y rounded-md border px-3 py-2 font-[family-name:var(--font-body)] text-[14px] leading-[1.6] focus:outline-none"
+                style={{
+                  backgroundColor: "rgba(253, 245, 230, 0.03)",
+                  color: "var(--color-brand-cream)",
+                  borderColor: "rgba(253, 245, 230, 0.1)",
+                }}
+              />
+            </div>
+          )) ?? Object.entries(currentCopy).map(([slot, value]) => (
+            <div
+              key={slot}
+              className="flex items-start gap-3 rounded-md p-3"
+              style={{
+                backgroundColor: "var(--color-neutral-800)",
+                border: "1px solid rgba(253, 245, 230, 0.06)",
+              }}
+            >
+              <span
+                className="mt-2 shrink-0 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)]"
+                style={{ letterSpacing: "1px", minWidth: 72 }}
+              >
+                {slot}
               </span>
+              <textarea
+                value={value ?? ""}
+                onChange={(e) => handleSlotChange(slot, e.target.value)}
+                rows={2}
+                className="flex-1 resize-y rounded-md border px-3 py-2 font-[family-name:var(--font-body)] text-[14px] leading-[1.6] focus:outline-none"
+                style={{
+                  backgroundColor: "rgba(253, 245, 230, 0.03)",
+                  color: "var(--color-brand-cream)",
+                  borderColor: "rgba(253, 245, 230, 0.1)",
+                }}
+              />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Correction */}
+      {/* AI Correction */}
       <div>
         <div className="mb-2 flex items-center gap-3">
           <span
             className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
             style={{ letterSpacing: "1.5px" }}
           >
-            Corrections
+            AI corrections
           </span>
           {isCarousel && (
             <div className="flex items-center gap-1.5">
@@ -385,6 +587,42 @@ export function PostPreview({
           </button>
         </div>
       </div>
+
+      {/* Add motion */}
+      {compatibleMotionTemplates.length > 0 && (
+        <div>
+          <span
+            className="mb-3 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+            style={{ letterSpacing: "1.5px" }}
+          >
+            Add motion
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {compatibleMotionTemplates.map((mt) => (
+              <button
+                key={mt.id}
+                type="button"
+                onClick={() => handlePromote(mt.id)}
+                disabled={promoting}
+                className="rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] transition-all hover:opacity-80"
+                style={{
+                  backgroundColor: "rgba(178, 40, 72, 0.15)",
+                  color: "var(--color-brand-pink)",
+                  border: "1px solid rgba(178, 40, 72, 0.3)",
+                  opacity: promoting ? 0.5 : 1,
+                }}
+              >
+                {promoting ? "Creating…" : mt.name}
+              </button>
+            ))}
+          </div>
+          <p
+            className="mt-2 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]"
+          >
+            Creates a motion version of {isCarousel ? `slide ${activeSlide + 1}` : "this post"} with your existing copy.
+          </p>
+        </div>
+      )}
 
       {/* Render options */}
       <div

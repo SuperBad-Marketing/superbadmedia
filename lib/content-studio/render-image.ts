@@ -1,6 +1,6 @@
 import puppeteer, { type Browser } from "puppeteer-core";
 import { resolveExecutablePath } from "@/lib/pdf/render";
-import { getTemplate, getDimensions } from "./templates";
+import { getTemplate, getDimensions, type RenderOptions } from "./templates";
 import type { AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "./generate-copy";
 
@@ -19,11 +19,12 @@ export async function renderPostImage(
   templateId: string,
   copy: SlideCopy,
   ratio: AspectRatio,
+  renderOptions?: RenderOptions,
 ): Promise<RenderImageResult> {
   const template = getTemplate(templateId);
   if (!template) throw new Error(`Unknown template: ${templateId}`);
 
-  const html = template.renderHtml(copy, ratio);
+  const html = template.renderHtml(copy, ratio, renderOptions);
   const { width, height } = getDimensions(ratio);
 
   let browser: Browser | null = null;
@@ -51,6 +52,7 @@ export async function renderAllRatios(
   templateId: string,
   copy: SlideCopy,
   ratios: AspectRatio[],
+  renderOptions?: RenderOptions,
 ): Promise<Map<AspectRatio, RenderImageResult>> {
   const template = getTemplate(templateId);
   if (!template) throw new Error(`Unknown template: ${templateId}`);
@@ -66,7 +68,7 @@ export async function renderAllRatios(
     });
 
     for (const ratio of ratios) {
-      const html = template.renderHtml(copy, ratio);
+      const html = template.renderHtml(copy, ratio, renderOptions);
       const { width, height } = getDimensions(ratio);
       const page = await browser.newPage();
       await page.setViewport({ width, height, deviceScaleFactor: 2 });
@@ -90,6 +92,7 @@ export async function renderCarousel(
   templateId: string,
   slides: SlideCopy[],
   ratios: AspectRatio[],
+  renderOptions?: RenderOptions,
 ): Promise<Map<string, RenderImageResult & SlideRenderKey>> {
   const template = getTemplate(templateId);
   if (!template) throw new Error(`Unknown template: ${templateId}`);
@@ -107,7 +110,7 @@ export async function renderCarousel(
     for (let slideIndex = 0; slideIndex < slides.length; slideIndex++) {
       const copy = slides[slideIndex];
       for (const ratio of ratios) {
-        const html = template.renderHtml(copy, ratio);
+        const html = template.renderHtml(copy, ratio, renderOptions);
         const { width, height } = getDimensions(ratio);
         const page = await browser.newPage();
         await page.setViewport({ width, height, deviceScaleFactor: 2 });

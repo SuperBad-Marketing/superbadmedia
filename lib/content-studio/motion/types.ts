@@ -49,7 +49,14 @@ export interface MotionTemplateDef {
 export interface ColourPalette {
   id: string;
   name: string;
-  source: "brand" | "client-dna";
+  source: "brand" | "client-dna" | "custom";
+  background: string;
+  primary: string;
+  accent: string;
+  text: string;
+}
+
+export interface CustomPaletteInput {
   background: string;
   primary: string;
   accent: string;
@@ -61,4 +68,5 @@ export interface MotionTemplateProps {
   palette: ColourPalette;
   transparent: boolean;
   animationParams: Record<string, number | string | boolean>;
+  fontPairingId?: string;
 }

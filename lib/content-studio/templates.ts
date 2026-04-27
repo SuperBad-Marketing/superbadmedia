@@ -1,4 +1,10 @@
 import type { ContentType, AspectRatio } from "@/lib/db/schema/content-studio";
+import type { ColourPalette } from "./motion/types";
+
+export interface RenderOptions {
+  fontFaces?: string;
+  palette?: ColourPalette;
+}
 
 export interface TemplateDef {
   id: string;
@@ -8,6 +14,7 @@ export interface TemplateDef {
   renderHtml: (
     copy: Record<string, string>,
     ratio: AspectRatio,
+    options?: RenderOptions,
   ) => string;
 }
 
@@ -24,41 +31,58 @@ export function getDimensions(ratio: AspectRatio) {
   return ASPECT_DIMENSIONS[ratio];
 }
 
-function baseStyles(ratio: AspectRatio) {
+const DEFAULT_FONT_FACES = `
+  @font-face { font-family: 'Display'; src: local('Inter'); font-weight: 900; }
+  @font-face { font-family: 'Body'; src: local('Inter'); font-weight: 400; }
+  @font-face { font-family: 'Label'; src: local('Inter'); font-weight: 600; }
+`;
+
+const DEFAULT_PALETTE: ColourPalette = {
+  id: "default-dark",
+  name: "Default Dark",
+  source: "brand",
+  background: "#1A1A18",
+  primary: "#B22848",
+  accent: "#F28C52",
+  text: "#FDF5E6",
+};
+
+function baseStyles(ratio: AspectRatio, options?: RenderOptions) {
   const { width, height } = ASPECT_DIMENSIONS[ratio];
+  const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
+  const p = options?.palette ?? DEFAULT_PALETTE;
+
   return `
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    @font-face { font-family: 'Display'; src: local('Inter'); font-weight: 900; }
-    @font-face { font-family: 'Body'; src: local('Inter'); font-weight: 400; }
-    @font-face { font-family: 'Label'; src: local('Inter'); font-weight: 600; }
+    ${ff}
     body {
       width: ${width}px; height: ${height}px;
-      background: #1A1A18;
+      background: ${p.background};
       display: flex; flex-direction: column;
       justify-content: center; align-items: center;
       font-family: 'Body', sans-serif;
-      color: #FDF5E6;
+      color: ${p.text};
       overflow: hidden;
       position: relative;
     }
     .gradient-overlay {
       position: absolute; inset: 0; pointer-events: none;
-      background: radial-gradient(ellipse 70% 50% at 50% 30%, rgba(178,40,72,0.12), transparent 60%);
+      background: radial-gradient(ellipse 70% 50% at 50% 30%, ${p.primary}1f, transparent 60%);
     }
     .content { position: relative; z-index: 1; text-align: center; padding: ${ratio === "landscape" ? "40px 60px" : "60px 48px"}; width: 100%; }
-    .brand-label { font-family: 'Label'; font-size: ${ratio === "landscape" ? "14px" : "16px"}; letter-spacing: 4px; text-transform: uppercase; color: #B22848; margin-bottom: ${ratio === "landscape" ? "20px" : "32px"}; }
-    .headline { font-family: 'Display'; font-weight: 900; color: #FDF5E6; line-height: 0.95; letter-spacing: -2px; margin-bottom: ${ratio === "landscape" ? "16px" : "24px"}; }
+    .brand-label { font-family: 'Label'; font-size: ${ratio === "landscape" ? "14px" : "16px"}; letter-spacing: 4px; text-transform: uppercase; color: ${p.primary}; margin-bottom: ${ratio === "landscape" ? "20px" : "32px"}; }
+    .headline { font-family: 'Display'; font-weight: 900; color: ${p.text}; line-height: 0.95; letter-spacing: -2px; margin-bottom: ${ratio === "landscape" ? "16px" : "24px"}; }
     .headline-portrait { font-size: 96px; }
     .headline-square { font-size: 80px; }
     .headline-landscape { font-size: 56px; }
-    .divider { width: 48px; height: 3px; background: linear-gradient(90deg, #F28C52, #B22848); margin: 0 auto ${ratio === "landscape" ? "16px" : "24px"}; border-radius: 2px; }
-    .detail { font-family: 'Display'; font-weight: 900; color: #B22848; margin-bottom: ${ratio === "landscape" ? "8px" : "12px"}; }
+    .divider { width: 48px; height: 3px; background: linear-gradient(90deg, ${p.accent}, ${p.primary}); margin: 0 auto ${ratio === "landscape" ? "16px" : "24px"}; border-radius: 2px; }
+    .detail { font-family: 'Display'; font-weight: 900; color: ${p.primary}; margin-bottom: ${ratio === "landscape" ? "8px" : "12px"}; }
     .detail-portrait { font-size: 56px; }
     .detail-square { font-size: 48px; }
     .detail-landscape { font-size: 36px; }
     .subtext { font-family: 'Label'; font-size: ${ratio === "landscape" ? "16px" : "20px"}; letter-spacing: 3px; text-transform: uppercase; color: #8A8A80; margin-bottom: ${ratio === "landscape" ? "8px" : "12px"}; }
-    .tagline { font-family: 'Body'; font-style: italic; font-size: ${ratio === "landscape" ? "16px" : "20px"}; color: #F4A0B0; margin-top: ${ratio === "landscape" ? "12px" : "20px"}; }
-    .footer { position: absolute; bottom: ${ratio === "landscape" ? "20px" : "40px"}; font-family: 'Label'; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: rgba(253,245,230,0.25); }
+    .tagline { font-family: 'Body'; font-style: italic; font-size: ${ratio === "landscape" ? "16px" : "20px"}; color: ${p.accent}; margin-top: ${ratio === "landscape" ? "12px" : "20px"}; }
+    .footer { position: absolute; bottom: ${ratio === "landscape" ? "20px" : "40px"}; font-family: 'Label'; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}40; }
   `;
 }
 
@@ -75,8 +99,8 @@ const announcementBold: TemplateDef = {
   name: "Bold Announcement",
   contentType: "announcement",
   copySlots: ["headline", "detail", "subtext", "tagline"],
-  renderHtml(copy, ratio) {
-    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio)}</style></head><body>
+  renderHtml(copy, ratio, options) {
+    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}</style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
         <div class="brand-label">SuperBad</div>
@@ -96,9 +120,11 @@ const announcementMinimal: TemplateDef = {
   name: "Minimal Announcement",
   contentType: "announcement",
   copySlots: ["headline", "detail", "tagline"],
-  renderHtml(copy, ratio) {
-    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio)}
-      .headline { color: #F4A0B0; }
+  renderHtml(copy, ratio, options) {
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const headlineAccent = mixAccent(p);
+    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
+      .headline { color: ${headlineAccent}; }
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
@@ -117,8 +143,8 @@ const antiMotivation: TemplateDef = {
   name: "Anti-Motivation Typography",
   contentType: "anti_motivation",
   copySlots: ["headline", "tagline"],
-  renderHtml(copy, ratio) {
-    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio)}
+  renderHtml(copy, ratio, options) {
+    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
       .headline { letter-spacing: -3px; }
     </style></head><body>
       <div class="gradient-overlay"></div>
@@ -137,9 +163,10 @@ const tipsValue: TemplateDef = {
   name: "Value Post",
   contentType: "tips",
   copySlots: ["headline", "detail", "tagline"],
-  renderHtml(copy, ratio) {
-    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio)}
-      .detail { color: #FDF5E6; font-family: 'Body'; font-weight: 400; font-size: ${ratio === "landscape" ? "18px" : "22px"}; line-height: 1.6; letter-spacing: 0; }
+  renderHtml(copy, ratio, options) {
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
+      .detail { color: ${p.text}; font-family: 'Body'; font-weight: 400; font-size: ${ratio === "landscape" ? "18px" : "22px"}; line-height: 1.6; letter-spacing: 0; }
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
@@ -159,13 +186,15 @@ const testimonialQuote: TemplateDef = {
   name: "Testimonial Quote",
   contentType: "testimonial",
   copySlots: ["headline", "detail", "subtext"],
-  renderHtml(copy, ratio) {
-    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio)}
+  renderHtml(copy, ratio, options) {
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const headlineAccent = mixAccent(p);
+    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
       .headline { font-family: 'Body'; font-style: italic; font-weight: 400; letter-spacing: 0; line-height: 1.4; }
       .headline-portrait { font-size: 48px; }
       .headline-square { font-size: 40px; }
       .headline-landscape { font-size: 28px; }
-      .detail { font-family: 'Label'; font-size: ${ratio === "landscape" ? "14px" : "16px"}; letter-spacing: 2px; text-transform: uppercase; color: #F4A0B0; }
+      .detail { font-family: 'Label'; font-size: ${ratio === "landscape" ? "14px" : "16px"}; letter-spacing: 2px; text-transform: uppercase; color: ${headlineAccent}; }
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
@@ -185,8 +214,8 @@ const behindTheScenes: TemplateDef = {
   name: "Behind the Scenes",
   contentType: "behind_the_scenes",
   copySlots: ["headline", "tagline"],
-  renderHtml(copy, ratio) {
-    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio)}
+  renderHtml(copy, ratio, options) {
+    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
       .headline { font-family: 'Body'; font-weight: 400; letter-spacing: 0; line-height: 1.5; }
       .headline-portrait { font-size: 44px; }
       .headline-square { font-size: 36px; }
@@ -208,9 +237,10 @@ const portfolioShowcase: TemplateDef = {
   name: "Portfolio Showcase",
   contentType: "portfolio",
   copySlots: ["headline", "detail", "tagline"],
-  renderHtml(copy, ratio) {
-    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio)}
-      .brand-label { color: #F28C52; }
+  renderHtml(copy, ratio, options) {
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
+      .brand-label { color: ${p.accent}; }
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
@@ -224,6 +254,13 @@ const portfolioShowcase: TemplateDef = {
     </body></html>`;
   },
 };
+
+function mixAccent(palette: ColourPalette): string {
+  if (palette.id === "default-dark" || palette.source === "brand") {
+    return "#F4A0B0";
+  }
+  return palette.accent;
+}
 
 export const ALL_TEMPLATES: TemplateDef[] = [
   announcementBold,

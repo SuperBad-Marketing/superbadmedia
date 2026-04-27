@@ -1,4 +1,4 @@
-import type { ColourPalette } from "./types";
+import type { ColourPalette, CustomPaletteInput } from "./types";
 
 export const BRAND_PALETTES: ColourPalette[] = [
   {
@@ -50,6 +50,18 @@ export const BRAND_PALETTES: ColourPalette[] = [
 
 export function getPalette(id: string): ColourPalette | undefined {
   return BRAND_PALETTES.find((p) => p.id === id);
+}
+
+export function buildCustomPalette(colors: CustomPaletteInput): ColourPalette {
+  return {
+    id: "custom",
+    name: "Custom",
+    source: "custom",
+    background: colors.background,
+    primary: colors.primary,
+    accent: colors.accent,
+    text: colors.text,
+  };
 }
 
 export function generateClientPalettes(

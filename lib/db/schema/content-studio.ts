@@ -57,6 +57,12 @@ export const contentStudioPosts = sqliteTable(
     primary_aspect_ratio: text("primary_aspect_ratio"),
     inspiration_refs_json: text("inspiration_refs_json"),
 
+    font_pairing_id: text("font_pairing_id"),
+    static_palette_id: text("static_palette_id"),
+    custom_palette_json: text("custom_palette_json"),
+    motion_duration_frames: integer("motion_duration_frames"),
+    promoted_from_post_id: text("promoted_from_post_id"),
+
     source_braindump_id: text("source_braindump_id"),
 
     created_at_ms: integer("created_at_ms").notNull(),

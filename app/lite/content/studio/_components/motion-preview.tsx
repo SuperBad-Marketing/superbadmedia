@@ -5,6 +5,7 @@ import type { PlayerRef } from "@remotion/player";
 import { MotionPlayer } from "./motion-player";
 import { PaletteSwatches } from "./palette-swatches";
 import { MotionTimeline } from "./motion-timeline";
+import { FontPairingPicker } from "./font-pairing-picker";
 import { getMotionTemplate } from "@/lib/content-studio/motion/registry";
 import { BRAND_PALETTES, getPalette } from "@/lib/content-studio/motion/palettes";
 import type { ColourPalette } from "@/lib/content-studio/motion/types";
@@ -21,6 +22,8 @@ export interface MotionPostData {
   paletteId: string;
   animationParams: Record<string, number | string | boolean>;
   primaryAspectRatio: MotionAspectRatio;
+  fontPairingId?: string | null;
+  durationInFrames?: number | null;
 }
 
 interface MotionPreviewProps {
@@ -28,6 +31,8 @@ interface MotionPreviewProps {
   onCopyChange: (slides: SlideCopy[]) => void;
   onPaletteChange: (paletteId: string) => void;
   onAspectRatioChange: (ratio: MotionAspectRatio) => void;
+  onFontPairingChange: (id: string | null) => void;
+  onDurationChange: (frames: number) => void;
   onNewPost: () => void;
 }
 
@@ -36,6 +41,8 @@ export function MotionPreview({
   onCopyChange,
   onPaletteChange,
   onAspectRatioChange,
+  onFontPairingChange,
+  onDurationChange,
   onNewPost,
 }: MotionPreviewProps) {
   const playerRef = useRef<PlayerRef>(null);
@@ -59,8 +66,13 @@ export function MotionPreview({
     { ratio: string; format: string; url: string }[]
   >([]);
 
-  const durationInFrames = template?.defaultDuration ?? 90;
   const fps = 30;
+  const defaultDuration = template?.defaultDuration ?? 90;
+  const minDuration = template?.minDuration ?? 60;
+  const maxDuration = template?.maxDuration ?? 180;
+  const [durationInFrames, setDurationInFrames] = useState(
+    post.durationInFrames ?? defaultDuration,
+  );
 
   const handleSlotChange = useCallback(
     (slot: string, value: string) => {
@@ -87,6 +99,14 @@ export function MotionPreview({
       onAspectRatioChange(ratio);
     },
     [onAspectRatioChange],
+  );
+
+  const handleDurationChange = useCallback(
+    (frames: number) => {
+      setDurationInFrames(frames);
+      onDurationChange(frames);
+    },
+    [onDurationChange],
   );
 
   const handleExport = useCallback(async () => {
@@ -134,6 +154,14 @@ export function MotionPreview({
     <div style={{ display: "flex", gap: 24, width: "100%" }}>
       {/* Left: Preview viewport + controls */}
       <div style={{ flex: "1 1 0", minWidth: 0 }}>
+        {/* Font picker */}
+        <div style={{ marginBottom: 12 }}>
+          <FontPairingPicker
+            activePairingId={post.fontPairingId ?? null}
+            onSelect={onFontPairingChange}
+          />
+        </div>
+
         {/* Palette swatches */}
         <div style={{ marginBottom: 8 }}>
           <div
@@ -215,6 +243,46 @@ export function MotionPreview({
           durationInFrames={durationInFrames}
           fps={fps}
         />
+
+        {/* Duration slider */}
+        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 11,
+              letterSpacing: 1,
+              color: "rgba(253,245,230,0.4)",
+              textTransform: "uppercase",
+              flexShrink: 0,
+            }}
+          >
+            Duration
+          </div>
+          <input
+            type="range"
+            min={minDuration}
+            max={maxDuration}
+            step={1}
+            value={durationInFrames}
+            onChange={(e) => handleDurationChange(Number(e.target.value))}
+            style={{
+              flex: 1,
+              accentColor: "var(--color-brand-red)",
+              cursor: "pointer",
+            }}
+          />
+          <div
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              color: "var(--color-brand-cream)",
+              minWidth: 40,
+              textAlign: "right",
+            }}
+          >
+            {(durationInFrames / fps).toFixed(1)}s
+          </div>
+        </div>
 
         {/* Overlay toggle for overlay-capable templates */}
         {template.overlayCapable && (
