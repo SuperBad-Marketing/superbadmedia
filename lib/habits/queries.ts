@@ -81,6 +81,9 @@ function computeStreak(
 export type HabitWithStatus = {
   id: string;
   title: string;
+  description: string | null;
+  icon: string | null;
+  linkHref: string | null;
   cadence: HabitCadence;
   cadenceLabel: string;
   completedToday: boolean;
@@ -132,6 +135,9 @@ export async function getTodayHabits(nowMs: number = Date.now()): Promise<HabitW
     return {
       id: h.id,
       title: h.title,
+      description: h.description,
+      icon: h.icon,
+      linkHref: h.link_href,
       cadence: h.cadence as HabitCadence,
       cadenceLabel: cadenceLabel(h.cadence as HabitCadence, h.cadence_days),
       completedToday,

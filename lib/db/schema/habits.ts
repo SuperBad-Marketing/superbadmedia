@@ -14,6 +14,9 @@ export const habits = sqliteTable(
   {
     id: text("id").primaryKey(),
     title: text("title").notNull(),
+    description: text("description"),
+    icon: text("icon"),
+    link_href: text("link_href"),
     cadence: text("cadence", { enum: HABIT_CADENCES }).notNull().default("daily"),
     cadence_days: text("cadence_days"),
     sort_order: integer("sort_order").notNull().default(0),

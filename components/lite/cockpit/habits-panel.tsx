@@ -1,11 +1,41 @@
 "use client";
 
-import { useState, useOptimistic, useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Flame } from "lucide-react";
+import {
+  Flame,
+  Palette,
+  Video,
+  Target,
+  Inbox,
+  Send,
+  Check,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
 import { toggleHabitAction } from "@/app/lite/cockpit/actions";
 import type { HabitWithStatus } from "@/lib/habits/queries";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  palette: Palette,
+  video: Video,
+  target: Target,
+  inbox: Inbox,
+  send: Send,
+};
+
+const ALL_DONE_LINES = [
+  "Nothing left. Suspicious.",
+  "Clean sweep. Don't get used to it.",
+  "All done. The hard part is tomorrow.",
+];
+
+function pickAllDoneLine(): string {
+  const dayIndex = Math.floor(Date.now() / 86400000);
+  return ALL_DONE_LINES[dayIndex % ALL_DONE_LINES.length];
+}
 
 type OptimisticHabit = HabitWithStatus & { pending?: boolean };
 
@@ -33,7 +63,6 @@ export function HabitsPanel({ habits }: { habits: HabitWithStatus[] }) {
   const completed = optimisticHabits.filter((h) => h.completedToday).length;
   const total = optimisticHabits.length;
   const allDone = completed === total;
-  const progress = total > 0 ? completed / total : 0;
 
   function handleToggle(habitId: string) {
     startTransition(async () => {
@@ -44,38 +73,28 @@ export function HabitsPanel({ habits }: { habits: HabitWithStatus[] }) {
 
   return (
     <div>
-      {/* Progress bar */}
-      <div className="mb-5 flex items-center gap-3">
-        <div
-          className="relative h-1 flex-1 overflow-hidden rounded-full"
-          style={{ backgroundColor: "var(--color-surface-1)" }}
+      {/* Section header with count */}
+      <div className="mb-4 flex items-baseline justify-between">
+        <h2
+          className="font-[family-name:var(--font-label)] text-[12px] uppercase"
+          style={{ letterSpacing: "1.5px", color: "var(--color-neutral-500)" }}
         >
-          <motion.div
-            className="absolute inset-y-0 left-0 w-full rounded-full"
-            style={{
-              backgroundColor: allDone ? "var(--color-success)" : "var(--color-brand-red)",
-              transformOrigin: "left",
-            }}
-            initial={false}
-            animate={{ scaleX: progress }}
-            transition={reducedMotion ? { duration: 0 } : { ...houseSpring }}
-          />
-        </div>
+          The Routine
+        </h2>
         <span
           className="font-[family-name:var(--font-label)] text-[11px] tabular-nums"
-          style={{ color: allDone ? "var(--color-success)" : "var(--color-neutral-500)" }}
+          style={{ color: allDone ? "var(--color-success)" : "var(--color-neutral-600)" }}
         >
-          {completed}/{total}
+          {completed} of {total}
         </span>
       </div>
 
-      {/* Habit list */}
-      <div className="flex flex-col gap-1">
-        {optimisticHabits.map((habit, i) => (
-          <HabitRow
+      {/* Card grid */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {optimisticHabits.map((habit) => (
+          <HabitCard
             key={habit.id}
             habit={habit}
-            index={i}
             onToggle={handleToggle}
             reducedMotion={reducedMotion ?? false}
           />
@@ -86,14 +105,14 @@ export function HabitsPanel({ habits }: { habits: HabitWithStatus[] }) {
       <AnimatePresence>
         {allDone && (
           <motion.p
-            className="mt-4 text-center font-[family-name:var(--font-narrative)] text-[14px] italic"
+            className="mt-5 text-center font-[family-name:var(--font-narrative)] text-[14px] italic"
             style={{ color: "var(--color-neutral-500)" }}
-            initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reducedMotion ? undefined : { opacity: 0 }}
             transition={reducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut" }}
           >
-            Done for the day. Nice one.
+            {pickAllDoneLine()}
           </motion.p>
         )}
       </AnimatePresence>
@@ -101,138 +120,163 @@ export function HabitsPanel({ habits }: { habits: HabitWithStatus[] }) {
   );
 }
 
-function HabitRow({
+function HabitCard({
   habit,
-  index,
   onToggle,
   reducedMotion,
 }: {
   habit: OptimisticHabit;
-  index: number;
   onToggle: (id: string) => void;
   reducedMotion: boolean;
 }) {
-  const [justCompleted, setJustCompleted] = useState(false);
-
-  function handleClick() {
-    if (!habit.completedToday) {
-      setJustCompleted(true);
-      setTimeout(() => setJustCompleted(false), 600);
-    }
-    onToggle(habit.id);
-  }
+  const Icon = (habit.icon && ICON_MAP[habit.icon]) || Palette;
+  const done = habit.completedToday;
 
   return (
-    <motion.button
-      onClick={handleClick}
-      className="group flex w-full items-center gap-3 rounded-[var(--radius-default)] px-3 py-3 text-left transition-colors"
+    <motion.div
+      className="relative flex flex-col gap-3 rounded-[var(--radius-generous)] p-4"
       style={{
-        backgroundColor: "transparent",
+        backgroundColor: done ? "var(--color-surface-2)" : "var(--color-surface-0)",
+        border: done
+          ? "1px solid rgba(123, 174, 126, 0.12)"
+          : "1px solid rgba(253, 245, 230, 0.06)",
+        boxShadow: done
+          ? "none"
+          : "var(--surface-highlight), 0 2px 12px rgba(0,0,0,0.2)",
       }}
-      whileHover={reducedMotion ? undefined : { backgroundColor: "rgba(253, 245, 230, 0.03)" }}
-      whileTap={reducedMotion ? undefined : { scale: 0.985 }}
-      transition={reducedMotion ? { duration: 0 } : { duration: 0.1 }}
-      layout={!reducedMotion}
+      initial={false}
+      animate={
+        reducedMotion
+          ? undefined
+          : { opacity: done ? 0.65 : 1 }
+      }
+      transition={reducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
     >
-      {/* Checkbox */}
-      <div className="relative flex-shrink-0" style={{ width: 22, height: 22 }}>
-        {/* Outer ring */}
-        <motion.div
-          className="absolute inset-0 rounded-full"
+      {/* Top row: icon + cadence + check */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex size-8 items-center justify-center rounded-[var(--radius-default)]"
+            style={{
+              backgroundColor: done
+                ? "rgba(123, 174, 126, 0.1)"
+                : "rgba(242, 140, 82, 0.1)",
+            }}
+          >
+            <Icon
+              className="size-4"
+              style={{
+                color: done
+                  ? "var(--color-success)"
+                  : "var(--color-brand-orange)",
+              }}
+            />
+          </div>
+          <span
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase"
+            style={{
+              letterSpacing: "0.5px",
+              color: "var(--color-neutral-600)",
+            }}
+          >
+            {habit.cadenceLabel}
+          </span>
+        </div>
+
+        {/* Check button */}
+        <button
+          onClick={() => onToggle(habit.id)}
+          className="group/check flex size-7 items-center justify-center rounded-full transition-colors"
           style={{
-            border: habit.completedToday
-              ? "2px solid var(--color-brand-red)"
-              : "2px solid var(--color-neutral-600)",
-            backgroundColor: habit.completedToday
-              ? "var(--color-brand-red)"
+            backgroundColor: done
+              ? "var(--color-success)"
               : "transparent",
+            border: done
+              ? "2px solid var(--color-success)"
+              : "2px solid var(--color-neutral-600)",
           }}
-          initial={false}
-          animate={
-            reducedMotion
-              ? undefined
-              : {
-                  scale: justCompleted ? 1.2 : 1,
-                }
-          }
-          transition={reducedMotion ? { duration: 0 } : houseSpring}
-        />
-        {/* Checkmark */}
-        <AnimatePresence>
-          {habit.completedToday && (
-            <motion.svg
-              viewBox="0 0 22 22"
-              className="absolute inset-0"
-              initial={reducedMotion ? false : { opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={reducedMotion ? undefined : { opacity: 0, scale: 0.5 }}
-              transition={reducedMotion ? { duration: 0 } : { ...houseSpring, delay: 0.05 }}
-            >
-              <motion.path
-                d="M6 11.5L9.5 15L16 8"
-                fill="none"
-                stroke="var(--color-brand-cream)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={reducedMotion ? undefined : { pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={reducedMotion ? { duration: 0 } : { duration: 0.25, delay: 0.1, ease: "easeOut" }}
-              />
-            </motion.svg>
-          )}
-        </AnimatePresence>
+          aria-label={done ? `Uncheck ${habit.title}` : `Mark ${habit.title} done`}
+        >
+          <AnimatePresence>
+            {done && (
+              <motion.div
+                initial={reducedMotion ? false : { opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={reducedMotion ? undefined : { opacity: 0, scale: 0.5 }}
+                transition={reducedMotion ? { duration: 0 } : houseSpring}
+              >
+                <Check
+                  className="size-3.5"
+                  strokeWidth={3}
+                  style={{ color: "var(--color-brand-cream)" }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </button>
       </div>
 
-      {/* Title + cadence */}
-      <div className="flex flex-1 items-baseline gap-2 min-w-0">
-        <motion.span
-          className="text-[14px] font-[family-name:var(--font-body)] truncate"
-          initial={false}
-          animate={{
-            opacity: habit.completedToday ? 0.4 : 1,
-            x: habit.completedToday && !reducedMotion ? 2 : 0,
-          }}
-          transition={reducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
-          style={{
-            color: "var(--color-neutral-100)",
-            textDecorationLine: habit.completedToday ? "line-through" : "none",
-            textDecorationColor: "var(--color-neutral-600)",
-          }}
+      {/* Title + description */}
+      <div className="min-w-0">
+        <p
+          className="text-[15px] font-medium font-[family-name:var(--font-body)]"
+          style={{ color: "var(--color-neutral-100)" }}
         >
           {habit.title}
-        </motion.span>
-        <span
-          className="flex-shrink-0 font-[family-name:var(--font-label)] text-[10px] uppercase"
-          style={{
-            color: "var(--color-neutral-600)",
-            letterSpacing: "0.5px",
-          }}
-        >
-          {habit.cadenceLabel}
-        </span>
+        </p>
+        {habit.description && (
+          <p
+            className="mt-0.5 text-[13px] font-[family-name:var(--font-narrative)] italic"
+            style={{ color: "var(--color-neutral-500)" }}
+          >
+            {habit.description}
+          </p>
+        )}
       </div>
 
-      {/* Streak */}
-      {habit.streak > 0 && (
-        <motion.div
-          className="flex flex-shrink-0 items-center gap-1"
-          initial={reducedMotion ? false : { opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={reducedMotion ? { duration: 0 } : houseSpring}
-        >
-          <Flame
-            className="h-3.5 w-3.5"
-            style={{ color: "var(--color-brand-orange)" }}
-          />
-          <span
-            className="font-[family-name:var(--font-label)] text-[11px] tabular-nums"
-            style={{ color: "var(--color-brand-orange)" }}
+      {/* Bottom row: link + streak */}
+      <div className="flex items-center justify-between">
+        {habit.linkHref ? (
+          <Link
+            href={habit.linkHref}
+            className="group/link inline-flex items-center gap-1 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors"
+            style={{
+              letterSpacing: "0.5px",
+              color: done
+                ? "var(--color-neutral-600)"
+                : "var(--color-brand-pink)",
+            }}
           >
-            {habit.streak}
-          </span>
-        </motion.div>
-      )}
-    </motion.button>
+            Open
+            <ArrowRight
+              className="size-3 transition-transform group-hover/link:translate-x-0.5"
+              style={{ color: "inherit" }}
+            />
+          </Link>
+        ) : (
+          <span />
+        )}
+
+        {habit.streak > 0 && (
+          <motion.div
+            className="flex items-center gap-1"
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={reducedMotion ? { duration: 0 } : houseSpring}
+          >
+            <Flame
+              className="size-3.5"
+              style={{ color: "var(--color-brand-orange)" }}
+            />
+            <span
+              className="font-[family-name:var(--font-label)] text-[11px] tabular-nums"
+              style={{ color: "var(--color-brand-orange)" }}
+            >
+              {habit.streak}
+            </span>
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
   );
 }

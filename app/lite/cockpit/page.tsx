@@ -96,25 +96,7 @@ export default async function CockpitPage() {
         {/* Habits */}
         {todayHabits.length > 0 && (
           <CockpitSection className="mt-6">
-            <div
-              className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
-              style={{
-                letterSpacing: "2px",
-                color: "var(--color-neutral-500)",
-              }}
-            >
-              Habits
-            </div>
-            <div
-              className="rounded-xl px-5 py-4"
-              style={{
-                background: "var(--color-surface-2)",
-                boxShadow: "var(--surface-highlight)",
-                border: "1px solid rgba(253, 245, 230, 0.03)",
-              }}
-            >
-              <HabitsPanel habits={todayHabits} />
-            </div>
+            <HabitsPanel habits={todayHabits} />
           </CockpitSection>
         )}
 
