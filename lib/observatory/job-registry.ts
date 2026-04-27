@@ -163,6 +163,14 @@ const NON_LLM_ENTRIES: Record<string, JobRegistryEntry> = {
     jobDisabledUntil: null,
   },
 
+  // Apify — paid per actor run
+  "apify.email_finder": {
+    vendor: "other",
+    bands: { per_call_ceiling_aud: 0.1, daily_ceiling_aud: 15, learned_band_multiplier: 3, rate_override: null },
+    description: "Apify contact info scraper for email discovery",
+    jobDisabledUntil: null,
+  },
+
   // Meta — free API, rate-limited
   "meta.ad_library.search": {
     vendor: "meta",

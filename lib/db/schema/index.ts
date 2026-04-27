@@ -104,3 +104,4 @@ export * from "./talking-head";
 export * from "./call-logs";
 export * from "./proposals";
 export * from "./meta-campaigns";
+export * from "./search-verticals";

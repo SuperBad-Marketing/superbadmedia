@@ -24,6 +24,8 @@ export const leadRuns = sqliteTable(
     run_completed_at: integer("run_completed_at", { mode: "timestamp_ms" }),
     trigger: text("trigger", { enum: LEAD_RUN_TRIGGERS }).notNull(),
     manual_brief_text: text("manual_brief_text"),
+    vertical_id: text("vertical_id"),
+    vertical_name: text("vertical_name"),
 
     found_count: integer("found_count").notNull().default(0),
     dnc_filtered_count: integer("dnc_filtered_count").notNull().default(0),

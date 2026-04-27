@@ -87,6 +87,7 @@ export const MODELS = {
   "lead-gen-candidate-summary": "haiku",
   "lead-gen-suggest-search": "haiku",
   "lead-gen-discovery-suggestions": "haiku",
+  "lead-gen-icp-prefilter": "haiku",
   // video-studio (1)
   "video-brief-builder": "haiku",
   // client-management (3)

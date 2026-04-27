@@ -35,6 +35,8 @@ import { createCandidate } from "./candidate";
 import { discoverContact, type KnownContactName } from "./contact-discovery";
 import { generateDraft } from "./draft-generator";
 import { enforceWarmupCap, initWarmupState } from "./warmup";
+import { getNextVertical, recordVerticalSearch } from "./vertical-rotation";
+import { prefilterCandidates } from "./icp-prefilter";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "./types";
 import type { LeadRunTrigger } from "@/lib/db/schema/lead-runs";
 
@@ -47,9 +49,12 @@ export interface DailySearchResult {
   runId: string;
   foundCount: number;
   dncFilteredCount: number;
+  icpFilteredCount: number;
   qualifiedCount: number;
   cappedReason: string | null;
   candidatesCreated: number;
+  verticalId: string | null;
+  verticalName: string | null;
   error: string | null;
   perSourceErrors: Record<string, string> | null;
 }
@@ -72,6 +77,8 @@ export async function runDailySearch(
       runStartedAt,
       trigger: input.trigger,
       manualBriefText: input.manualBriefText,
+      verticalId: null,
+      verticalName: null,
       foundCount: 0,
       dncFilteredCount: 0,
       qualifiedCount: 0,
@@ -86,9 +93,12 @@ export async function runDailySearch(
       runId: run.id,
       foundCount: 0,
       dncFilteredCount: 0,
+      icpFilteredCount: 0,
       qualifiedCount: 0,
       cappedReason: "kill_switch_disabled",
       candidatesCreated: 0,
+      verticalId: null,
+      verticalName: null,
       error: null,
       perSourceErrors: null,
     };
@@ -110,6 +120,8 @@ export async function runDailySearch(
         runStartedAt,
         trigger: input.trigger,
         manualBriefText: input.manualBriefText,
+        verticalId: null,
+        verticalName: null,
         foundCount: 0,
         dncFilteredCount: 0,
         qualifiedCount: 0,
@@ -124,18 +136,41 @@ export async function runDailySearch(
         runId: run.id,
         foundCount: 0,
         dncFilteredCount: 0,
+        icpFilteredCount: 0,
         qualifiedCount: 0,
         cappedReason: "effective_cap_zero",
         candidatesCreated: 0,
+        verticalId: null,
+        verticalName: null,
         error: null,
         perSourceErrors: null,
       };
     }
 
-    // ── Step 2: Query all sources in parallel ────────────────────────
-    const searchParams = await buildSearchParams(input.manualBriefText);
+    // ── Step 2: Resolve search params (vertical rotation or settings) ─
+    let verticalId: string | null = null;
+    let verticalName: string | null = null;
+    let searchParams: DiscoverySearchParams;
+
+    if (input.manualBriefText) {
+      searchParams = await buildSearchParams(input.manualBriefText);
+    } else {
+      const vertical = await getNextVertical(dbInstance);
+      if (vertical) {
+        verticalId = vertical.id;
+        verticalName = vertical.name;
+        searchParams = vertical.searchParams;
+      } else {
+        searchParams = await buildSearchParams();
+      }
+    }
+
     const discoveryResult = await runDiscovery(searchParams);
     const foundCount = discoveryResult.total_found_before_dedup;
+
+    if (verticalId) {
+      await recordVerticalSearch(verticalId, dbInstance);
+    }
 
     // ── Step 3: Deduplicate ──────────────────────────────────────────
     const dedupWindowDays = await settings.get(
@@ -151,9 +186,29 @@ export async function runDailySearch(
       dbInstance,
     );
 
-    // ── Steps 4–6: Enrich + score + qualify ──────────────────────────
+    // ── Step 3.5: ICP pre-filter (before expensive enrichment) ───────
     const trackPriority = await settings.get("lead_generation.track_priority");
+    const brief = input.manualBriefText ??
+      await settings.get("lead_generation.standing_brief");
 
+    const prefilterResults = await prefilterCandidates(
+      survivors,
+      brief,
+      trackPriority,
+    );
+
+    const icpSurvivors: DiscoveredCandidate[] = [];
+    let icpFilteredCount = 0;
+    for (const candidate of survivors) {
+      const result = prefilterResults.get(candidate);
+      if (result && !result.pass) {
+        icpFilteredCount++;
+        continue;
+      }
+      icpSurvivors.push(candidate);
+    }
+
+    // ── Steps 4–6: Enrich + score + qualify ──────────────────────────
     const scoredCandidates: Array<{
       discovered: DiscoveredCandidate;
       assignment: ReturnType<typeof assignTrack>;
@@ -162,7 +217,7 @@ export async function runDailySearch(
       scrapedPhones: Awaited<ReturnType<typeof enrichCandidate>>["scraped_phones"];
     }> = [];
 
-    for (const candidate of survivors) {
+    for (const candidate of icpSurvivors) {
       const enrichResult = await enrichCandidate(candidate);
       const assignment = assignTrack(enrichResult.profile);
 
@@ -308,6 +363,8 @@ export async function runDailySearch(
       runStartedAt,
       trigger: input.trigger,
       manualBriefText: input.manualBriefText,
+      verticalId,
+      verticalName,
       foundCount,
       dncFilteredCount,
       qualifiedCount: scoredCandidates.length,
@@ -325,10 +382,13 @@ export async function runDailySearch(
       runId,
       foundCount,
       dncFilteredCount,
+      icpFilteredCount,
       qualifiedCount: scoredCandidates.length,
       cappedReason:
         scoredCandidates.length > effectiveCap ? "warmup_cap" : null,
       candidatesCreated,
+      verticalId,
+      verticalName,
       error: null,
       perSourceErrors:
         Object.keys(perSourceErrors).length > 0 ? perSourceErrors : null,
@@ -341,6 +401,8 @@ export async function runDailySearch(
       runStartedAt,
       trigger: input.trigger,
       manualBriefText: input.manualBriefText,
+      verticalId: null,
+      verticalName: null,
       foundCount: 0,
       dncFilteredCount: 0,
       qualifiedCount: 0,
@@ -356,9 +418,12 @@ export async function runDailySearch(
       runId,
       foundCount: 0,
       dncFilteredCount: 0,
+      icpFilteredCount: 0,
       qualifiedCount: 0,
       cappedReason: null,
       candidatesCreated: 0,
+      verticalId: null,
+      verticalName: null,
       error: errorMsg,
       perSourceErrors: null,
     };
@@ -462,6 +527,8 @@ interface RunSummaryInput {
   runStartedAt: Date;
   trigger: LeadRunTrigger;
   manualBriefText?: string;
+  verticalId: string | null;
+  verticalName: string | null;
   foundCount: number;
   dncFilteredCount: number;
   qualifiedCount: number;
@@ -485,6 +552,8 @@ async function writeRunSummary(
       run_completed_at: new Date(),
       trigger: input.trigger,
       manual_brief_text: input.manualBriefText ?? null,
+      vertical_id: input.verticalId,
+      vertical_name: input.verticalName,
       found_count: input.foundCount,
       dnc_filtered_count: input.dncFilteredCount,
       qualified_count: input.qualifiedCount,

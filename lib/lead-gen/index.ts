@@ -130,6 +130,26 @@ export type {
   QueueHeaderData,
 } from "./queries";
 
+// Vertical rotation
+export {
+  getNextVertical,
+  recordVerticalSearch,
+  listVerticals,
+  createVertical,
+  updateVertical,
+  toggleVertical,
+  deleteVertical,
+} from "./vertical-rotation";
+export type { SelectedVertical } from "./vertical-rotation";
+
+// ICP pre-filter
+export { prefilterCandidate, prefilterCandidates } from "./icp-prefilter";
+export type { IcpPrefilterResult } from "./icp-prefilter";
+
+// Apify email finder
+export { findEmailsViaApify } from "./sources/apify-email-finder";
+export type { ApifyEmailResult } from "./sources/apify-email-finder";
+
 // LG-3: Enrichment pipeline (re-exports)
 export {
   fetchPageSpeed,

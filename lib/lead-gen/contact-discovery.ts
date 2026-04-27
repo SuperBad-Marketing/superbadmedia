@@ -7,6 +7,7 @@
 
 import { logExternalCall } from "@/lib/observatory";
 import { getCredential } from "@/lib/integrations/getCredential";
+import { findEmailsViaApify } from "./sources/apify-email-finder";
 
 const HUNTER_API_BASE = "https://api.hunter.io/v2";
 const HUNTER_TIMEOUT_MS = 10_000;
@@ -25,7 +26,7 @@ export interface ContactDiscoveryResult {
   name: string | null;
   role: string | null;
   confidence: "verified" | "inferred" | "unknown";
-  source: "hunter" | "pattern_inference" | "none";
+  source: "hunter" | "apify" | "pattern_inference" | "none";
 }
 
 interface HunterEmail {
@@ -67,6 +68,8 @@ export async function discoverContact(
   const apiKey = await getCredential("hunter-io");
 
   if (!apiKey) {
+    const apifyResult = await tryApifyFallback(domain, companyName);
+    if (apifyResult.email) return apifyResult;
     return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
   }
 
@@ -88,9 +91,12 @@ export async function discoverContact(
       }
     }
 
-    // Hunter returned no usable match — try pattern inference
+    // Hunter returned no usable match — try Apify before pattern inference
+    const apifyResult = await tryApifyFallback(domain, companyName);
+    if (apifyResult.email) return apifyResult;
+
+    // Last resort: pattern inference from Hunter's domain pattern
     if (result.pattern) {
-      // First try with known names from website scrape
       if (knownNames.length > 0) {
         const inferred = inferFromPatternWithName(result.pattern, domain, knownNames[0]);
         if (inferred) {
@@ -119,8 +125,34 @@ export async function discoverContact(
     return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
   } catch {
     logExternalCall({ job: "hunter.domain_search", actorType: "internal", units: { searches: 1, results_returned: 0 }, estimatedCostAud: 0.03 }).catch(() => {});
+
+    // Hunter failed entirely — try Apify as primary fallback
+    const apifyResult = await tryApifyFallback(domain, companyName);
+    if (apifyResult.email) return apifyResult;
+
     return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
   }
+}
+
+async function tryApifyFallback(
+  domain: string,
+  companyName: string,
+): Promise<ContactDiscoveryResult> {
+  try {
+    const result = await findEmailsViaApify(domain, companyName);
+    if (result.email) {
+      return {
+        email: result.email,
+        name: result.name,
+        role: result.role,
+        confidence: result.confidence,
+        source: "apify" as const,
+      };
+    }
+  } catch {
+    // Apify unavailable — fall through silently
+  }
+  return { email: null, name: null, role: null, confidence: "unknown", source: "none" };
 }
 
 async function hunterDomainSearch(

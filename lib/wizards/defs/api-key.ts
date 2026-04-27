@@ -28,10 +28,11 @@ import { googlePagespeedManifest, PAGESPEED_API_BASE } from "@/lib/integrations/
 import { googleYoutubeManifest, YOUTUBE_API_BASE } from "@/lib/integrations/vendors/google-youtube";
 import { remotionManifest } from "@/lib/integrations/vendors/remotion";
 import { higgsFieldManifest, HIGGSFIELD_API_BASE } from "@/lib/integrations/vendors/higgsfield";
+import { apifyManifest, APIFY_API_BASE } from "@/lib/integrations/vendors/apify";
 import { registerWizard } from "@/lib/wizards/registry";
 import type { VendorManifest, WizardDefinition } from "@/lib/wizards/types";
 
-export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "hunter-io" | "google-pagespeed" | "google-youtube" | "remotion" | "higgsfield";
+export type ApiKeyVendor = "openai" | "anthropic" | "serpapi" | "hunter-io" | "google-pagespeed" | "google-youtube" | "remotion" | "higgsfield" | "apify";
 
 export type ApiKeyPayload = {
   vendor: ApiKeyVendor;
@@ -250,6 +251,33 @@ async function pingHiggsfield(
   }
 }
 
+async function pingApify(
+  key: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  try {
+    const res = await fetch(
+      `${APIFY_API_BASE}/users/me?token=${encodeURIComponent(key)}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      return {
+        ok: false,
+        reason: `Apify rejected that token: ${res.status} ${body.slice(0, 140) || res.statusText}`,
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      reason:
+        err instanceof Error
+          ? `Apify ping failed: ${err.message}`
+          : "Apify ping failed.",
+    };
+  }
+}
+
 /**
  * Remotion has no live verify endpoint — licence keys are local-only.
  * Format-only check: non-empty, minimum plausible length. Documented in
@@ -317,10 +345,16 @@ export const API_KEY_VENDOR_PROFILES: Record<ApiKeyVendor, ApiKeyVendorProfile> 
     manifest: higgsFieldManifest,
     verify: pingHiggsfield,
   },
+  apify: {
+    vendor: "apify",
+    label: "Apify",
+    manifest: apifyManifest,
+    verify: pingApify,
+  },
 };
 
 export function isApiKeyVendor(v: string | undefined | null): v is ApiKeyVendor {
-  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "hunter-io" || v === "google-pagespeed" || v === "google-youtube" || v === "remotion" || v === "higgsfield";
+  return v === "openai" || v === "anthropic" || v === "serpapi" || v === "hunter-io" || v === "google-pagespeed" || v === "google-youtube" || v === "remotion" || v === "higgsfield" || v === "apify";
 }
 
 export function getApiKeyVendorProfile(
