@@ -78,7 +78,7 @@ function WebhookProbeComponent({
           data-wizard-webhook-pulse
           className="h-3 w-3 rounded-full bg-foreground"
           animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ ...houseSpring, repeat: Infinity, duration: 1.2 }}
+          transition={{ ease: "easeInOut", repeat: Infinity, duration: 1.2 }}
         />
       ) : null}
       {state.received ? (
