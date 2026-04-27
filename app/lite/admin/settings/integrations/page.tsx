@@ -92,6 +92,20 @@ const INTEGRATIONS: IntegrationDef[] = [
     envHint: "SERPAPI_API_KEY",
   },
   {
+    vendorKey: "hunter-io",
+    label: "Hunter.io",
+    description: "Primary email discovery for lead gen contacts.",
+    wizardPath: "/lite/setup/admin/api-key?vendor=hunter-io",
+    envHint: null,
+  },
+  {
+    vendorKey: "apify",
+    label: "Apify",
+    description: "Contact email scraping — fallback when Hunter.io has no match.",
+    wizardPath: "/lite/setup/admin/api-key?vendor=apify",
+    envHint: null,
+  },
+  {
     vendorKey: "higgsfield",
     label: "Higgsfield",
     description: "AI video generation — cinematic, motion design, social.",

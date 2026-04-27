@@ -6,6 +6,7 @@ const TABS = [
   { label: "Runs", href: "/lite/admin/lead-gen/runs", active: true },
   { label: "Metrics", href: "/lite/admin/lead-gen/metrics", active: true },
   { label: "DNC", href: "/lite/admin/lead-gen/dnc", active: true },
+  { label: "Verticals", href: "/lite/admin/lead-gen/verticals", active: true },
   { label: "Settings", href: "/lite/admin/lead-gen/settings", active: true },
 ] as const;
 
