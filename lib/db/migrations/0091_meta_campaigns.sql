@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `meta_ad_accounts` (
   `created_at_ms` integer NOT NULL,
   `updated_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 
 -- Campaigns
 CREATE TABLE IF NOT EXISTS `meta_campaigns` (
@@ -41,9 +42,13 @@ CREATE TABLE IF NOT EXISTS `meta_campaigns` (
   `created_at_ms` integer NOT NULL,
   `updated_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_campaigns_account_idx` ON `meta_campaigns` (`ad_account_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_campaigns_status_idx` ON `meta_campaigns` (`status`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_campaigns_company_idx` ON `meta_campaigns` (`company_id`);
+--> statement-breakpoint
 
 -- Ad sets
 CREATE TABLE IF NOT EXISTS `meta_ad_sets` (
@@ -70,8 +75,11 @@ CREATE TABLE IF NOT EXISTS `meta_ad_sets` (
   `created_at_ms` integer NOT NULL,
   `updated_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_ad_sets_campaign_idx` ON `meta_ad_sets` (`campaign_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_ad_sets_status_idx` ON `meta_ad_sets` (`status`);
+--> statement-breakpoint
 
 -- Ads
 CREATE TABLE IF NOT EXISTS `meta_ads` (
@@ -96,9 +104,13 @@ CREATE TABLE IF NOT EXISTS `meta_ads` (
   `created_at_ms` integer NOT NULL,
   `updated_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_ads_adset_idx` ON `meta_ads` (`ad_set_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_ads_campaign_idx` ON `meta_ads` (`campaign_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_ads_status_idx` ON `meta_ads` (`status`);
+--> statement-breakpoint
 
 -- Campaign metrics snapshots
 CREATE TABLE IF NOT EXISTS `meta_campaign_metrics` (
@@ -134,9 +146,13 @@ CREATE TABLE IF NOT EXISTS `meta_campaign_metrics` (
   `lead_cost_cents` integer,
   `created_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_metrics_campaign_idx` ON `meta_campaign_metrics` (`campaign_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_metrics_date_idx` ON `meta_campaign_metrics` (`date_ms`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_metrics_ad_idx` ON `meta_campaign_metrics` (`ad_id`);
+--> statement-breakpoint
 
 -- Performance benchmarks
 CREATE TABLE IF NOT EXISTS `meta_performance_benchmarks` (
@@ -157,7 +173,9 @@ CREATE TABLE IF NOT EXISTS `meta_performance_benchmarks` (
   `created_at_ms` integer NOT NULL,
   `updated_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_benchmarks_stage_idx` ON `meta_performance_benchmarks` (`funnel_stage`, `objective`);
+--> statement-breakpoint
 
 -- Optimization log
 CREATE TABLE IF NOT EXISTS `meta_optimization_log` (
@@ -178,9 +196,13 @@ CREATE TABLE IF NOT EXISTS `meta_optimization_log` (
   `approved_by_user_id` text REFERENCES `user`(`id`),
   `created_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_opt_log_campaign_idx` ON `meta_optimization_log` (`campaign_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_opt_log_action_idx` ON `meta_optimization_log` (`action`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_opt_log_created_idx` ON `meta_optimization_log` (`created_at_ms`);
+--> statement-breakpoint
 
 -- Campaign reports
 CREATE TABLE IF NOT EXISTS `meta_campaign_reports` (
@@ -200,8 +222,11 @@ CREATE TABLE IF NOT EXISTS `meta_campaign_reports` (
   `period_roas` real,
   `created_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_reports_campaign_idx` ON `meta_campaign_reports` (`campaign_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_reports_type_idx` ON `meta_campaign_reports` (`report_type`);
+--> statement-breakpoint
 
 -- Content pool tags
 CREATE TABLE IF NOT EXISTS `meta_content_pool_tags` (
@@ -212,5 +237,7 @@ CREATE TABLE IF NOT EXISTS `meta_content_pool_tags` (
   `campaign_id` text REFERENCES `meta_campaigns`(`id`) ON DELETE SET NULL,
   `created_at_ms` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_pool_tags_tag_idx` ON `meta_content_pool_tags` (`tag`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `meta_pool_tags_content_idx` ON `meta_content_pool_tags` (`content_id`);

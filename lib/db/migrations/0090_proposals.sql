@@ -21,9 +21,13 @@ CREATE TABLE IF NOT EXISTS `proposals` (
   `created_at_ms` integer NOT NULL,
   `updated_at_ms` integer NOT NULL
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS `proposals_token_unique` ON `proposals` (`token`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `proposals_company_idx` ON `proposals` (`company_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `proposals_deal_idx` ON `proposals` (`deal_id`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `proposals_status_idx` ON `proposals` (`status`);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `proposals_token_idx` ON `proposals` (`token`);

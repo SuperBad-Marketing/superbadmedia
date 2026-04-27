@@ -55,7 +55,7 @@ export function runSeeds(
     const raw = fs.readFileSync(path.join(migrationsFolder, file), "utf-8");
     const chunks = raw.includes("--> statement-breakpoint")
       ? raw.split("--> statement-breakpoint")
-      : raw.split(/;\s*\n/).map((s) => s.trim()).filter((s) => s && !s.startsWith("--"));
+      : raw.split(/;\s*\n/).map((s) => s.split("\n").filter(l => !l.trim().startsWith("--")).join("\n").trim()).filter(Boolean);
     for (const chunk of chunks) {
       const stmt = chunk.trim();
       if (!stmt || stmt.startsWith("--")) continue;
