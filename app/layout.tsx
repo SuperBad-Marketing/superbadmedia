@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/lite/theme-provider";
 import { ReportIssueButton } from "@/components/lite/report-issue-button";
 import { NoTricksLink } from "@/components/lite/no-tricks-link";
 import { PublicEggShell } from "@/components/lite/public-egg-shell";
+import { PostHogAnalyticsProvider } from "@/components/lite/posthog-provider";
 
 import "./globals.css";
 
@@ -45,7 +46,9 @@ export default async function RootLayout({
         <ThemeProvider value={{ theme, typeface, motion, density, textSize, soundsEnabled }}>
           <MotionProvider>
             <SoundProvider>
-              {children}
+              <PostHogAnalyticsProvider>
+                {children}
+              </PostHogAnalyticsProvider>
               <PublicEggShell />
               <Toaster />
               <footer className="mt-auto flex items-center justify-between px-4 pb-3 pt-2">
