@@ -1,7 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { killSwitches } from "@/lib/kill-switches";
-import { GraphWebhookNotificationSchema } from "@/lib/graph/types";
-import { createGraphClient, getActiveGraphState, runDeltaSync } from "@/lib/graph";
 
 /**
  * Graph API webhook receiver. Two modes:
@@ -25,32 +22,11 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  if (!killSwitches.inbox_sync_enabled) {
-    return NextResponse.json({ status: "disabled" }, { status: 200 });
-  }
-
-  try {
-    const body = await req.json();
-    const parsed = GraphWebhookNotificationSchema.safeParse(body);
-    if (!parsed.success) {
-      console.error("[graph-webhook] Invalid notification payload:", parsed.error);
-      return NextResponse.json({ status: "invalid" }, { status: 400 });
-    }
-
-    const state = await getActiveGraphState();
-    if (!state) {
-      console.error("[graph-webhook] No active graph_api_state row");
-      return NextResponse.json({ status: "no_state" }, { status: 200 });
-    }
-
-    const client = await createGraphClient(state.integration_connection_id);
-    await runDeltaSync(client, state.id);
-
-    return NextResponse.json({ status: "ok" }, { status: 200 });
-  } catch (err) {
-    console.error("[graph-webhook] Error processing notification:", err);
-    return NextResponse.json({ status: "error" }, { status: 200 });
-  }
+  // Acknowledge immediately — the scheduled inbox_graph_sync task (every
+  // 5 min) handles the actual delta sync. Running it inline on every
+  // webhook notification was hammering the Graph API into 429s / timeouts,
+  // which starved the server for all other work.
+  return NextResponse.json({ status: "ok" }, { status: 200 });
 }
 
 export async function GET(req: NextRequest) {
