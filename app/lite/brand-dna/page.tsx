@@ -68,8 +68,7 @@ export default async function BrandDnaEntryPage({
     }
 
     if (profile?.status === "complete") {
-      // Already done — BDA-3 reveal page (stub: stay on page for now)
-      // BDA-3 will add a redirect to the reveal here
+      redirect(`/lite/brand-dna/reveal?profileId=${profile.id}`);
     }
   }
 

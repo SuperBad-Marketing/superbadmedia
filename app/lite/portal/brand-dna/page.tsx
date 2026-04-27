@@ -48,6 +48,9 @@ export default async function PortalBrandDnaPage({
       redirect("/lite/portal/brand-dna/profile");
     }
     if (profile.status === "in_progress" && profile.track) {
+      if (!profile.business_context) {
+        redirect(`/lite/portal/brand-dna/context?profileId=${profile.id}`);
+      }
       const section = profile.current_section ?? 1;
       redirect(
         `/lite/portal/brand-dna/section/${section}?profileId=${profile.id}`,

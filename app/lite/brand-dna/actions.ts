@@ -360,6 +360,50 @@ export async function markProfileComplete(profileId: string): Promise<void> {
   });
 }
 
+// ── retakeAssessment ────────────────────────────────────────────────────────
+
+/**
+ * Archive the current completed profile and redirect to /lite/brand-dna
+ * so the user starts a fresh assessment from scratch.
+ */
+export async function retakeAssessment(): Promise<void> {
+  if (!isAssessmentEnabled()) {
+    redirect("/lite/brand-dna");
+  }
+
+  const session = await auth();
+  if (!session?.user?.id || session.user.role !== "admin") {
+    redirect("/api/auth/signin");
+  }
+
+  const rows = await db
+    .select({ id: brand_dna_profiles.id, status: brand_dna_profiles.status })
+    .from(brand_dna_profiles)
+    .where(
+      and(
+        eq(brand_dna_profiles.subject_type, "superbad_self"),
+        eq(brand_dna_profiles.is_current, true),
+      ),
+    )
+    .limit(1);
+
+  const profile = rows[0];
+  if (profile) {
+    await db
+      .update(brand_dna_profiles)
+      .set({ is_current: false, updated_at_ms: Date.now() })
+      .where(eq(brand_dna_profiles.id, profile.id));
+  }
+
+  await logActivity({
+    kind: "assessment_restarted",
+    body: "Brand DNA retake — previous profile archived, starting fresh",
+    createdBy: session.user.id,
+  });
+
+  redirect("/lite/brand-dna");
+}
+
 // ── helpers ─────────────────────────────────────────────────────────────────
 
 async function deleteAnswerAndTags(profileId: string, questionId: string): Promise<void> {

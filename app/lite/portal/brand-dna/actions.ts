@@ -153,6 +153,48 @@ export async function submitPortalAlignmentGate(
     });
   }
 
+  redirect(`/lite/portal/brand-dna/context?profileId=${profileId}`);
+}
+
+// ── submitPortalBusinessContext ────────────────────────────────────────────
+
+export async function submitPortalBusinessContext(
+  formData: FormData,
+): Promise<void> {
+  if (!isAssessmentEnabled()) {
+    redirect("/lite/portal");
+  }
+
+  await requirePortalSession();
+
+  const profileId = formData.get("profileId");
+  const businessDoes = formData.get("businessDoes");
+  const customers = formData.get("customers");
+  const differentiator = formData.get("differentiator");
+
+  if (
+    !profileId || typeof profileId !== "string" ||
+    !businessDoes || typeof businessDoes !== "string" ||
+    !customers || typeof customers !== "string" ||
+    !differentiator || typeof differentiator !== "string"
+  ) {
+    redirect("/lite/portal/brand-dna/context?error=missing_fields");
+  }
+
+  const context = {
+    businessDoes: businessDoes.trim(),
+    customers: customers.trim(),
+    differentiator: differentiator.trim(),
+  };
+
+  await db
+    .update(brand_dna_profiles)
+    .set({
+      business_context: JSON.stringify(context),
+      updated_at_ms: Date.now(),
+    })
+    .where(eq(brand_dna_profiles.id, profileId));
+
   redirect(`/lite/portal/brand-dna/section/1?profileId=${profileId}`);
 }
 

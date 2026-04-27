@@ -24,6 +24,7 @@ import {
   deleteExampleAction,
   reorderExamplesAction,
 } from "./actions";
+import { retakeAssessment } from "@/app/lite/brand-dna/actions";
 
 const HOUSE_SPRING = {
   type: "spring" as const,
@@ -199,29 +200,40 @@ export function BrandVoiceAdmin({
                 : "The Brand DNA assessment maps SuperBad's voice, personality, and aesthetic. Every AI surface reads from it."}
             </p>
           </div>
-          <Link
-            href="/lite/brand-dna?subject=superbad_self"
-            className="flex shrink-0 items-center gap-1.5 rounded-[8px] px-4 py-2.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-all duration-[200ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px"
-            style={{
-              letterSpacing: "1.8px",
-              color: "var(--color-brand-cream)",
-              background:
-                brandDnaStatus === "complete"
-                  ? "transparent"
-                  : "var(--color-brand-red)",
-              border:
-                brandDnaStatus === "complete"
-                  ? "1px solid rgba(253, 245, 230, 0.1)"
-                  : "1px solid var(--color-brand-red)",
-              boxShadow:
-                brandDnaStatus === "complete"
-                  ? "none"
-                  : "inset 0 1px 0 rgba(253, 245, 230, 0.04), 0 4px 12px rgba(178, 40, 72, 0.25)",
-            }}
-          >
-            {brandDnaStatus === "complete" ? "Retake" : "Take assessment"}
-            <ExternalLink className="size-3 opacity-50" />
-          </Link>
+          {brandDnaStatus === "complete" ? (
+            <form action={retakeAssessment}>
+              <button
+                type="submit"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[8px] px-4 py-2.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-all duration-[200ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px"
+                style={{
+                  letterSpacing: "1.8px",
+                  color: "var(--color-brand-cream)",
+                  background: "transparent",
+                  border: "1px solid rgba(253, 245, 230, 0.1)",
+                  boxShadow: "none",
+                }}
+              >
+                Retake
+                <ExternalLink className="size-3 opacity-50" />
+              </button>
+            </form>
+          ) : (
+            <Link
+              href="/lite/brand-dna?subject=superbad_self"
+              className="flex shrink-0 items-center gap-1.5 rounded-[8px] px-4 py-2.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-all duration-[200ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-px"
+              style={{
+                letterSpacing: "1.8px",
+                color: "var(--color-brand-cream)",
+                background: "var(--color-brand-red)",
+                border: "1px solid var(--color-brand-red)",
+                boxShadow:
+                  "inset 0 1px 0 rgba(253, 245, 230, 0.04), 0 4px 12px rgba(178, 40, 72, 0.25)",
+              }}
+            >
+              Take assessment
+              <ExternalLink className="size-3 opacity-50" />
+            </Link>
+          )}
         </div>
         {brandDnaStatus === "complete" && (
           <div
