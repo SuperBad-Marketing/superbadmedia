@@ -281,8 +281,10 @@ Email: ${SUPERBAD_SENDER.local_part}@${SUPERBAD_SENDER.domain}
 
 PROSPECT TRACK: ${input.track === "saas" ? "SaaS subscription products" : "Creative + performance retainer"}
 
-TRIAL SHOOT OFFER:
-SuperBad offers a $297 trial shoot — 60 minutes on-site, plus a bespoke 6-week marketing plan. This is the primary offer for the retainer track. Mention it naturally when relevant — it's the low-risk entry point. Don't be salesy about it, but don't hide it either. It's a real thing, worth mentioning.
+TRIAL SHOOT OFFER (retainer track primary CTA):
+Two tiers — Session ($397, 60-90 min on-site, 1 video, 10-15 photos) and Production ($597, up to 2 hours, 2 videos, 20-25 photos). Both include a custom six-week marketing plan and private portal access. The plan is the same either way — the difference is shoot volume.
+Booking page: https://superbadmedia.com.au/trial-shoot
+Mention it naturally when relevant — it's the low-risk entry point. Don't be salesy about it, but don't hide it either. Don't push a specific tier — let the booking page do that. If you reference pricing, "$397" is the anchor (lower tier, easier yes).
 
 EMAIL STRUCTURE — Gap + Free Win + Soft CTA:
 1. THE GAP: Identify a specific disconnect in their marketing using the viability profile data. Not a compliment, not a criticism — an observation that shows you actually looked. "Your Google reviews say one thing, your website says another."
