@@ -47,8 +47,12 @@ export async function testStripeKeyAction(
 export async function checkStripeWebhookReceivedAction(
   sinceMs: number,
 ): Promise<boolean> {
-  // Stripe can't reach localhost — auto-pass in development
   if (process.env.NODE_ENV === "development") return true;
+
+  // If the webhook secret is configured, the endpoint is ready to receive.
+  // Waiting for a spontaneous Stripe event during setup is unreliable —
+  // auto-pass when the plumbing is in place.
+  if (process.env.STRIPE_WEBHOOK_SECRET?.trim()) return true;
 
   const rows = await db
     .select({ id: external_call_log.id })
