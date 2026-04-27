@@ -7,7 +7,7 @@ import { getPortalSession } from "@/lib/portal/guard";
 export default async function PortalIndexPage() {
   const session = await getPortalSession();
   if (!session?.contactId) {
-    redirect("/lite/portal/recover?reason=expired");
+    redirect("/lite/portal/login");
   }
 
   const contact = db

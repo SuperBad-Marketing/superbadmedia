@@ -102,3 +102,5 @@ export * from "./briefs";
 export * from "./brief-storyboards";
 export * from "./talking-head";
 export * from "./call-logs";
+export * from "./proposals";
+export * from "./meta-campaigns";

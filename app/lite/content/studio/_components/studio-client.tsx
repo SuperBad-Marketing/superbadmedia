@@ -38,6 +38,98 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
 
 const SLIDE_OPTIONS = [1, 2, 3, 4, 5, 6, 8, 10] as const;
 
+/* ------------------------------------------------------------------ */
+/* Structured brief options                                            */
+/* ------------------------------------------------------------------ */
+
+const POST_GOALS = [
+  { id: "awareness", label: "Brand awareness", hint: "Get seen, make an impression" },
+  { id: "engagement", label: "Engagement", hint: "Spark conversation, get shares" },
+  { id: "social_proof", label: "Social proof", hint: "Show credibility & results" },
+  { id: "education", label: "Education", hint: "Teach something, share value" },
+  { id: "conversion", label: "Conversion", hint: "Drive action — book, buy, enquire" },
+  { id: "community", label: "Community", hint: "Connect, relate, behind the scenes" },
+] as const;
+type PostGoal = (typeof POST_GOALS)[number]["id"];
+
+const POST_TONES = [
+  { id: "dry_witty", label: "Dry & witty", hint: "The house voice" },
+  { id: "bold_confident", label: "Bold & confident", hint: "Big energy" },
+  { id: "warm_genuine", label: "Warm & genuine", hint: "Heart on sleeve" },
+  { id: "provocative", label: "Provocative", hint: "Challenge assumptions" },
+  { id: "understated", label: "Understated", hint: "Let the work speak" },
+] as const;
+type PostTone = (typeof POST_TONES)[number]["id"];
+
+const POST_AUDIENCES = [
+  { id: "existing_clients", label: "Existing clients" },
+  { id: "prospects", label: "Prospects" },
+  { id: "industry_peers", label: "Industry peers" },
+  { id: "general", label: "General audience" },
+] as const;
+type PostAudience = (typeof POST_AUDIENCES)[number]["id"];
+
+const POST_CTAS = [
+  { id: "none", label: "No CTA", hint: "Pure content" },
+  { id: "soft", label: "Soft CTA", hint: "DM us, link in bio" },
+  { id: "direct", label: "Direct CTA", hint: "Book now, get started" },
+] as const;
+type PostCta = (typeof POST_CTAS)[number]["id"];
+
+const POST_HOOKS = [
+  { id: "question", label: "Question", hint: "Ask something provocative" },
+  { id: "statement", label: "Bold statement", hint: "Lead with a claim" },
+  { id: "story", label: "Story", hint: "Start with a scenario" },
+  { id: "statistic", label: "Statistic", hint: "Lead with a number" },
+  { id: "any", label: "Surprise me", hint: "Let the AI decide" },
+] as const;
+type PostHook = (typeof POST_HOOKS)[number]["id"];
+
+function compileBrief(opts: {
+  topic: string;
+  goal: PostGoal;
+  tone: PostTone;
+  audience: PostAudience;
+  cta: PostCta;
+  hook: PostHook;
+  extraContext: string;
+  contentType: ContentType;
+  slideCount: number;
+}): string {
+  const goalLabel = POST_GOALS.find((g) => g.id === opts.goal)?.label ?? opts.goal;
+  const toneLabel = POST_TONES.find((t) => t.id === opts.tone)?.label ?? opts.tone;
+  const audienceLabel = POST_AUDIENCES.find((a) => a.id === opts.audience)?.label ?? opts.audience;
+  const ctaLabel = POST_CTAS.find((c) => c.id === opts.cta);
+  const hookLabel = POST_HOOKS.find((h) => h.id === opts.hook);
+
+  const parts = [
+    `Topic: ${opts.topic}`,
+    `Goal: ${goalLabel}`,
+    `Tone: ${toneLabel}`,
+    `Audience: ${audienceLabel}`,
+  ];
+
+  if (opts.cta !== "none" && ctaLabel) {
+    parts.push(`Call to action: ${ctaLabel.label} (${ctaLabel.hint})`);
+  }
+
+  if (opts.hook !== "any" && hookLabel) {
+    parts.push(`Hook style: ${hookLabel.label}`);
+  }
+
+  if (opts.slideCount > 1) {
+    parts.push(`Format: ${opts.slideCount}-slide carousel`);
+  }
+
+  if (opts.extraContext.trim()) {
+    parts.push(`Additional context: ${opts.extraContext.trim()}`);
+  }
+
+  return parts.join("\n");
+}
+
+/* ------------------------------------------------------------------ */
+
 type StudioView = "create" | "preview" | "history";
 
 export interface ActivePost {
@@ -48,10 +140,68 @@ export interface ActivePost {
   brief: string;
 }
 
+function ChipSelector<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly { id: T; label: string; hint?: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div>
+      <label
+        className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "1.5px" }}
+      >
+        {label}
+      </label>
+      <div className="flex flex-wrap gap-2">
+        {options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onChange(opt.id)}
+            className="rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] transition-all"
+            style={{
+              backgroundColor:
+                value === opt.id
+                  ? "var(--color-brand-red)"
+                  : "var(--color-neutral-800)",
+              color: "var(--color-brand-cream)",
+              border:
+                value === opt.id
+                  ? "1px solid var(--color-brand-red)"
+                  : "1px solid rgba(253, 245, 230, 0.08)",
+            }}
+          >
+            {opt.label}
+            {opt.hint && value !== opt.id && (
+              <span className="ml-1.5 text-[11px] opacity-40">{opt.hint}</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function StudioClient() {
   const searchParams = useSearchParams();
   const [view, setView] = useState<StudioView>("create");
-  const [brief, setBrief] = useState(() => searchParams.get("prefill_brief") ?? "");
+
+  // Structured brief state
+  const [topic, setTopic] = useState(() => searchParams.get("prefill_brief") ?? "");
+  const [postGoal, setPostGoal] = useState<PostGoal>("awareness");
+  const [postTone, setPostTone] = useState<PostTone>("dry_witty");
+  const [postAudience, setPostAudience] = useState<PostAudience>("prospects");
+  const [postCta, setPostCta] = useState<PostCta>("none");
+  const [postHook, setPostHook] = useState<PostHook>("any");
+  const [extraContext, setExtraContext] = useState("");
+
   const [contentType, setContentType] = useState<ContentType>(() => {
     const prefill = searchParams.get("prefill_type");
     if (prefill && CONTENT_TYPES.includes(prefill as ContentType)) {
@@ -76,10 +226,23 @@ export function StudioClient() {
   >([]);
 
   const handleCreate = useCallback(async () => {
-    if (!brief.trim()) {
-      toast.error("Enter a brief first.");
+    if (!topic.trim()) {
+      toast.error("Enter a topic first.");
       return;
     }
+
+    const brief = compileBrief({
+      topic: topic.trim(),
+      goal: postGoal,
+      tone: postTone,
+      audience: postAudience,
+      cta: postCta,
+      hook: postHook,
+      extraContext,
+      contentType,
+      slideCount,
+    });
+
     setGenerating(true);
     setGenerationFailed(false);
 
@@ -93,7 +256,7 @@ export function StudioClient() {
         }
 
         const result = await createMotionPostAction({
-          brief: brief.trim(),
+          brief,
           contentType,
           motionTemplateId: templateId,
           slideCount,
@@ -107,7 +270,7 @@ export function StudioClient() {
           id: result.postId,
           motionTemplateId: result.motionTemplateId,
           slides: result.slides,
-          brief: brief.trim(),
+          brief,
           paletteId: result.paletteId,
           animationParams: result.animationParams,
           primaryAspectRatio: result.primaryAspectRatio as MotionAspectRatio,
@@ -118,7 +281,7 @@ export function StudioClient() {
       }
 
       const result = await createPostAction({
-        brief: brief.trim(),
+        brief,
         contentType,
         slideCount,
       });
@@ -132,7 +295,7 @@ export function StudioClient() {
         templateId: result.templateId,
         slides: result.slides,
         contentType,
-        brief: brief.trim(),
+        brief,
       });
       setMotionPost(null);
       setView("preview");
@@ -148,7 +311,7 @@ export function StudioClient() {
     } finally {
       setGenerating(false);
     }
-  }, [brief, contentType, slideCount, motionEnabled, selectedMotionTemplate]);
+  }, [topic, postGoal, postTone, postAudience, postCta, postHook, extraContext, contentType, slideCount, motionEnabled, selectedMotionTemplate]);
 
   const handleCorrect = useCallback(
     async (correction: string, slideIndex?: number) => {
@@ -253,7 +416,13 @@ export function StudioClient() {
   );
 
   const handleNewPost = useCallback(() => {
-    setBrief("");
+    setTopic("");
+    setPostGoal("awareness");
+    setPostTone("dry_witty");
+    setPostAudience("prospects");
+    setPostCta("none");
+    setPostHook("any");
+    setExtraContext("");
     setSlideCount(1);
     setActivePost(null);
     setMotionPost(null);
@@ -290,7 +459,7 @@ export function StudioClient() {
           Content Studio
         </h1>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
-          Describe what you want, pick the vibe, hit generate.{" "}
+          Pick the goal, set the tone, tell us the topic.{" "}
           <em className="font-[family-name:var(--font-narrative)] text-[color:var(--color-brand-pink)]">
             brand-perfect every time.
           </em>
@@ -419,7 +588,43 @@ export function StudioClient() {
               </div>
             </div>
 
-            {/* Slide count selector — always visible */}
+            {/* Structured brief inputs */}
+            <ChipSelector
+              label="Goal"
+              options={POST_GOALS}
+              value={postGoal}
+              onChange={setPostGoal}
+            />
+
+            <ChipSelector
+              label="Tone"
+              options={POST_TONES}
+              value={postTone}
+              onChange={setPostTone}
+            />
+
+            <ChipSelector
+              label="Audience"
+              options={POST_AUDIENCES}
+              value={postAudience}
+              onChange={setPostAudience}
+            />
+
+            <ChipSelector
+              label="Call to action"
+              options={POST_CTAS}
+              value={postCta}
+              onChange={setPostCta}
+            />
+
+            <ChipSelector
+              label="Hook style"
+              options={POST_HOOKS}
+              value={postHook}
+              onChange={setPostHook}
+            />
+
+            {/* Slide count selector */}
             <div>
               <label
                 className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
@@ -502,7 +707,7 @@ export function StudioClient() {
               </div>
             )}
 
-            {prefilled && brief && (
+            {prefilled && topic && (
               <div
                 className="mb-3 rounded-lg px-3 py-2 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-brand-cream)]"
                 style={{ background: "rgba(244, 160, 176, 0.10)" }}
@@ -511,24 +716,42 @@ export function StudioClient() {
               </div>
             )}
 
+            {/* Topic — the only free-text field */}
             <div>
               <label
                 className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
                 style={{ letterSpacing: "1.5px" }}
               >
-                Brief
+                Topic
               </label>
               <textarea
-                value={brief}
-                onChange={(e) => setBrief(e.target.value)}
-                placeholder={
-                  motionEnabled
-                    ? "e.g. We hit 500 clients this month. Big number, count it up. Dark and dramatic."
-                    : slideCount > 1
-                      ? "e.g. 5-slide carousel breaking down our content creation process. Each slide builds on the last."
-                      : "e.g. Announce our new pricing tiers. Punchy, confident, a bit cheeky."
-                }
-                rows={4}
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="What's this post about? e.g. We just hit 500 clients, new pricing tiers, behind the scenes of a shoot day…"
+                rows={3}
+                className="w-full resize-y rounded-lg border px-4 py-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.6] placeholder:text-[color:var(--color-neutral-500)] focus:outline-none"
+                style={{
+                  backgroundColor: "var(--color-neutral-800)",
+                  color: "var(--color-brand-cream)",
+                  borderColor: "rgba(253, 245, 230, 0.08)",
+                }}
+              />
+            </div>
+
+            {/* Optional extra context */}
+            <div>
+              <label
+                className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                style={{ letterSpacing: "1.5px" }}
+              >
+                Extra context{" "}
+                <span className="normal-case opacity-50">optional</span>
+              </label>
+              <textarea
+                value={extraContext}
+                onChange={(e) => setExtraContext(e.target.value)}
+                placeholder="Anything else the AI should know — specific phrases, things to avoid, reference points…"
+                rows={2}
                 className="w-full resize-y rounded-lg border px-4 py-3 font-[family-name:var(--font-body)] text-[14px] leading-[1.6] placeholder:text-[color:var(--color-neutral-500)] focus:outline-none"
                 style={{
                   backgroundColor: "var(--color-neutral-800)",
@@ -549,12 +772,12 @@ export function StudioClient() {
             <button
               type="button"
               onClick={handleCreate}
-              disabled={generating || !brief.trim()}
+              disabled={generating || !topic.trim()}
               className="rounded-lg px-6 py-2.5 font-[family-name:var(--font-body)] text-[14px] font-medium transition-opacity"
               style={{
                 backgroundColor: "var(--color-brand-red)",
                 color: "var(--color-brand-cream)",
-                opacity: generating || !brief.trim() ? 0.5 : 1,
+                opacity: generating || !topic.trim() ? 0.5 : 1,
               }}
             >
               {generating

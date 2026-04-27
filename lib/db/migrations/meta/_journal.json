@@ -421,6 +421,20 @@
       "when": 1778200000000,
       "tag": "0088_brand_dna_business_context",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "6",
+      "when": 1778300000000,
+      "tag": "0090_proposals",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "6",
+      "when": 1778400000000,
+      "tag": "0091_meta_campaigns",
+      "breakpoints": true
     }
   ]
 }

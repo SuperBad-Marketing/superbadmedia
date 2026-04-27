@@ -160,6 +160,8 @@ export const MODELS = {
   "call-pre-briefing": "opus",
   "call-custom-questions": "haiku",
   "call-post-synthesis": "opus",
+  // meta-campaigns (1)
+  "meta-campaign-strategy-builder": "opus",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;
