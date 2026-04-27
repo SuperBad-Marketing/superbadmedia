@@ -290,6 +290,7 @@ export const ACTIVITY_LOG_KINDS = [
   "inbox_calendar_rsvp_sent",
   "calendar_event_created",
   "inbox_attachment_uploaded",
+  "inbox_thread_deleted",
   "inbox_thread_merged",
   "inbox_history_import_started",
   "inbox_contact_rerouted",

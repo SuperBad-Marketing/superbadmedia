@@ -3,9 +3,11 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Bookmark, BookmarkX, ExternalLink } from "lucide-react";
+import { Bookmark, BookmarkX, ExternalLink, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import type { ThreadRow, MessageRow } from "@/lib/db/schema/messages";
 import type { ContactRow } from "@/lib/db/schema/contacts";
 import type { CompanyRow } from "@/lib/db/schema/companies";
@@ -16,6 +18,7 @@ import type {
   InboxSortOrder,
   InboxView,
 } from "../_queries/list-threads";
+import { deleteThreadAction } from "../_actions/delete";
 import { ConversationStream } from "./conversation-stream";
 import { CustomerContextPanel } from "./customer-context-panel";
 import { ReplyComposer } from "./reply-composer";
@@ -137,6 +140,7 @@ export function ThreadDetail({
 
         <div className="ml-auto flex items-center gap-2">
           <KeepToggle keepPinned={thread.keep_pinned} />
+          <DeleteButton threadId={thread.id} />
         </div>
       </header>
 
@@ -203,6 +207,73 @@ function KeepToggle({ keepPinned }: { keepPinned: boolean }) {
     >
       <Icon size={12} strokeWidth={1.75} aria-hidden />
       Keep
+    </button>
+  );
+}
+
+function DeleteButton({ threadId }: { threadId: string }) {
+  const router = useRouter();
+  const [deleting, setDeleting] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
+
+  const handleDelete = React.useCallback(async () => {
+    setDeleting(true);
+    const result = await deleteThreadAction({ threadId });
+    setDeleting(false);
+    setConfirming(false);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Thread deleted.");
+    router.push("/lite/inbox");
+  }, [threadId, router]);
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={deleting}
+          className={cn(
+            "flex items-center gap-1.5 rounded-sm border px-2 py-1",
+            "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
+            "outline-none transition-colors",
+            "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20",
+          )}
+        >
+          {deleting ? "Deleting…" : "Confirm"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirming(false)}
+          className={cn(
+            "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-2 py-1",
+            "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
+            "text-[color:var(--color-neutral-400)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)]",
+          )}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setConfirming(true)}
+      title="Delete this thread"
+      className={cn(
+        "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-2 py-1",
+        "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
+        "text-[color:var(--color-neutral-300)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)]",
+        "hover:border-red-500/40 hover:text-red-400",
+      )}
+    >
+      <Trash2 size={12} strokeWidth={1.75} aria-hidden />
+      Delete
     </button>
   );
 }

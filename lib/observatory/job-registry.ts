@@ -302,6 +302,12 @@ const NON_LLM_ENTRIES: Record<string, JobRegistryEntry> = {
     description: "Microsoft Graph subscription renewal",
     jobDisabledUntil: null,
   },
+  "graph-mail-trash": {
+    vendor: "graph",
+    bands: { per_call_ceiling_aud: 0, daily_ceiling_aud: 0, learned_band_multiplier: 3, rate_override: null },
+    description: "Microsoft Graph mail move to trash",
+    jobDisabledUntil: null,
+  },
 };
 
 // ---------------------------------------------------------------------------

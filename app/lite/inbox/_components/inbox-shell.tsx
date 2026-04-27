@@ -15,6 +15,7 @@ import { triggerInboxSync } from "../_actions/sync";
 import { ViewFilterTabs } from "./view-filter-tabs";
 import { ThreadList } from "./thread-list";
 import { ComposeModal } from "./compose-modal";
+import { CleanupModal } from "./cleanup-modal";
 import { MobileInbox } from "./mobile-inbox";
 
 const MIN_DESKTOP_VIEWPORT = 900;
@@ -50,6 +51,7 @@ export function InboxShell({
 }) {
   const router = useRouter();
   const [composeOpen, setComposeOpen] = React.useState(false);
+  const [cleanupOpen, setCleanupOpen] = React.useState(false);
   const [syncing, setSyncing] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -116,6 +118,7 @@ export function InboxShell({
           activeAddress={address}
           onComposeClick={() => setComposeOpen(true)}
           onSyncClick={handleSync}
+          onCleanupClick={() => setCleanupOpen(true)}
           syncing={syncing}
         />
       </aside>
@@ -161,6 +164,11 @@ export function InboxShell({
         onClose={() => setComposeOpen(false)}
         sendEnabled={sendEnabled}
         llmEnabled={llmEnabled}
+      />
+
+      <CleanupModal
+        open={cleanupOpen}
+        onClose={() => setCleanupOpen(false)}
       />
     </div>
   );

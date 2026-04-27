@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { ChevronLeft, Info } from "lucide-react";
+import { ChevronLeft, Info, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { houseSpring } from "@/lib/design-tokens";
@@ -17,10 +17,13 @@ import type {
   InboxSortOrder,
   InboxView,
 } from "../_queries/list-threads";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ConversationStream } from "./conversation-stream";
 import { ReplyComposer } from "./reply-composer";
 import { TicketOverlay } from "./ticket-overlay";
 import { MobileCustomerContextSheet } from "./mobile-customer-context-sheet";
+import { deleteThreadAction } from "../_actions/delete";
 
 /**
  * Full-screen mobile thread detail (spec §4.5). Wraps UI-8's existing
@@ -72,8 +75,11 @@ export function MobileThreadDetail({
   sort: InboxSortOrder;
   tab: string;
 }) {
+  const router = useRouter();
   const reducedMotion = useReducedMotion();
   const [contextOpen, setContextOpen] = React.useState(false);
+  const [deleteConfirm, setDeleteConfirm] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
 
   const flags: DraftReplyLowConfidenceFlag[] = Array.isArray(
     thread.cached_draft_low_confidence_flags,
@@ -122,6 +128,54 @@ export function MobileThreadDetail({
             {company?.name ? ` · ${company.name}` : ""}
           </p>
         </div>
+        {deleteConfirm ? (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={async () => {
+                setDeleting(true);
+                const result = await deleteThreadAction({ threadId: thread.id });
+                setDeleting(false);
+                setDeleteConfirm(false);
+                if (!result.ok) { toast.error(result.error); return; }
+                toast.success("Thread deleted.");
+                router.push("/lite/inbox");
+              }}
+              className={cn(
+                "flex h-8 items-center rounded-sm border px-2",
+                "font-[family-name:var(--font-dm-sans)] text-[11px]",
+                "border-red-500/40 bg-red-500/10 text-red-400",
+              )}
+            >
+              {deleting ? "…" : "Confirm"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeleteConfirm(false)}
+              className={cn(
+                "flex h-8 items-center rounded-sm border border-[color:var(--color-neutral-700)] px-2",
+                "font-[family-name:var(--font-dm-sans)] text-[11px] text-[color:var(--color-neutral-400)]",
+              )}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setDeleteConfirm(true)}
+            aria-label="Delete thread"
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-sm",
+              "text-[color:var(--color-neutral-400)] outline-none",
+              "hover:bg-[color:var(--color-surface-2)] hover:text-red-400",
+              "focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)]",
+            )}
+          >
+            <Trash2 size={16} strokeWidth={1.75} aria-hidden />
+          </button>
+        )}
       </header>
 
       {isSupport && (
