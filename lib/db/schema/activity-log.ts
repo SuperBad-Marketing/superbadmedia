@@ -404,6 +404,12 @@ export const ACTIVITY_LOG_KINDS = [
   "instagram_taste_profile_generated",
   "instagram_cold_start_strategy_generated",
   "instagram_post_published",
+  // --- Instagram Replies (5) ---
+  "instagram_reply_drafted",
+  "instagram_reply_sent",
+  "instagram_reply_escalated",
+  "instagram_reply_approved",
+  "instagram_reply_skipped",
   // --- Data management ---
   "brand_dna_reset",
   "client_context_reset",

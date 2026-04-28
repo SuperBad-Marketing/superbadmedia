@@ -101,8 +101,9 @@ export const SCHEDULED_TASK_TYPES = [
   "recurring_expense_book",
   "finance_export_generate",
   "finance_export_retention_purge",
-  // --- Instagram Channel (1) ---
+  // --- Instagram Channel (2) ---
   "instagram_token_refresh",
+  "instagram_reply_poll",
   // --- Surprise & Delight (4) ---
   "ambient_copy_generate",
   "hidden_egg_fire_cleanup",

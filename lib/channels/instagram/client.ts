@@ -250,6 +250,105 @@ export async function createPromotedPost(
 }
 
 // ---------------------------------------------------------------------------
+// Comments
+// ---------------------------------------------------------------------------
+
+export type IGComment = {
+  id: string;
+  text: string;
+  username: string;
+  timestamp: string;
+};
+
+export async function getMediaComments(
+  mediaId: string,
+  accessToken: string,
+  limit = 50,
+): Promise<IGApiResult<{ data: IGComment[] }>> {
+  return callApi(
+    "GET",
+    `${GRAPH_FB_BASE}/${mediaId}/comments?fields=id,text,username,timestamp&limit=${limit}`,
+    accessToken,
+    undefined,
+    "get_media_comments",
+  );
+}
+
+export async function replyToComment(
+  commentId: string,
+  accessToken: string,
+  message: string,
+): Promise<IGApiResult<{ id: string }>> {
+  return callApi(
+    "POST",
+    `${GRAPH_FB_BASE}/${commentId}/replies`,
+    accessToken,
+    { message },
+    "reply_to_comment",
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Messaging (DMs)
+// ---------------------------------------------------------------------------
+
+export type IGConversation = {
+  id: string;
+  participants?: { data: { id: string; username: string }[] };
+  updated_time?: string;
+};
+
+export type IGMessage = {
+  id: string;
+  message?: string;
+  from: { id: string; username?: string };
+  created_time: string;
+};
+
+export async function getConversations(
+  igUserId: string,
+  accessToken: string,
+  limit = 20,
+): Promise<IGApiResult<{ data: IGConversation[] }>> {
+  return callApi(
+    "GET",
+    `${GRAPH_FB_BASE}/${igUserId}/conversations?fields=id,participants,updated_time&limit=${limit}`,
+    accessToken,
+    undefined,
+    "get_conversations",
+  );
+}
+
+export async function getConversationMessages(
+  conversationId: string,
+  accessToken: string,
+  limit = 20,
+): Promise<IGApiResult<{ data: IGMessage[] }>> {
+  return callApi(
+    "GET",
+    `${GRAPH_FB_BASE}/${conversationId}?fields=messages.limit(${limit}){id,message,from,created_time}`,
+    accessToken,
+    undefined,
+    "get_conversation_messages",
+  );
+}
+
+export async function sendDirectMessage(
+  igUserId: string,
+  accessToken: string,
+  recipientId: string,
+  message: string,
+): Promise<IGApiResult<{ id: string }>> {
+  return callApi(
+    "POST",
+    `${GRAPH_FB_BASE}/${igUserId}/messages`,
+    accessToken,
+    { recipient: { id: recipientId }, message: { text: message } },
+    "send_dm",
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Token management
 // ---------------------------------------------------------------------------
 
