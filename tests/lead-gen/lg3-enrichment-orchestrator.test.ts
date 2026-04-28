@@ -64,6 +64,12 @@ vi.mock("@/lib/lead-gen/enrich/website-scrape", () => ({
     has_pricing_page: true,
     team_size_signal: "small",
     stated_pricing_tier: "mid",
+    scraped_contacts: [],
+    scraped_phones: [],
+    scraped_social_links: {
+      instagram_url: null, facebook_url: null, linkedin_url: null,
+      tiktok_url: null, twitter_url: null, youtube_url: null,
+    },
   }),
   applyWebsiteScrapeToProfile: vi.fn((profile, result) => ({
     ...profile,

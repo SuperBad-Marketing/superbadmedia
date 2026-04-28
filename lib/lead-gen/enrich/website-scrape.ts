@@ -27,7 +27,17 @@ export interface ScrapedContact {
 
 export interface ScrapedPhone {
   number: string;
+  type: "mobile" | "landline" | "tollfree" | "unknown";
   source_page: string;
+}
+
+export interface ScrapedSocialLinks {
+  instagram_url: string | null;
+  facebook_url: string | null;
+  linkedin_url: string | null;
+  tiktok_url: string | null;
+  twitter_url: string | null;
+  youtube_url: string | null;
 }
 
 export interface WebsiteScrapeResult {
@@ -37,6 +47,7 @@ export interface WebsiteScrapeResult {
   stated_pricing_tier: "unknown" | "budget" | "mid" | "premium";
   scraped_contacts: ScrapedContact[];
   scraped_phones: ScrapedPhone[];
+  scraped_social_links: ScrapedSocialLinks;
   error?: string;
 }
 
@@ -62,6 +73,10 @@ export async function scrapeWebsite(
   let pricingTier: WebsiteScrapeResult["stated_pricing_tier"] = "unknown";
   const allContacts: ScrapedContact[] = [];
   const allPhones: ScrapedPhone[] = [];
+  let socialLinks: ScrapedSocialLinks = {
+    instagram_url: null, facebook_url: null, linkedin_url: null,
+    tiktok_url: null, twitter_url: null, youtube_url: null,
+  };
   let pagesFetched = 0;
 
   try {
@@ -70,6 +85,7 @@ export async function scrapeWebsite(
 
     if (homepage) {
       const $ = cheerio.load(homepage);
+      socialLinks = extractSocialLinks($);
       const links = extractNavLinks($, baseUrl);
 
       let aboutUrl = links.find((l) =>
@@ -155,6 +171,7 @@ export async function scrapeWebsite(
       stated_pricing_tier: pricingTier,
       scraped_contacts: dedupedContacts,
       scraped_phones: dedupedPhones,
+      scraped_social_links: socialLinks,
     };
   } catch (err) {
     logExternalCall({ job: "website.scrape", actorType: "internal", units: { pages_fetched: pagesFetched }, estimatedCostAud: 0 }).catch(() => {});
@@ -165,6 +182,10 @@ export async function scrapeWebsite(
       stated_pricing_tier: "unknown",
       scraped_contacts: [],
       scraped_phones: [],
+      scraped_social_links: {
+        instagram_url: null, facebook_url: null, linkedin_url: null,
+        tiktok_url: null, twitter_url: null, youtube_url: null,
+      },
       error: `Website scrape failed: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
@@ -420,7 +441,7 @@ function extractFromJsonLdNode(
     contacts.push({ email, name, role: jobTitle, phone: telephone, source_page: sourcePage });
   }
   if (telephone && !phones.some((p) => normalisePhone(p.number) === normalisePhone(telephone))) {
-    phones.push({ number: telephone, source_page: sourcePage });
+    phones.push({ number: telephone, type: classifyPhoneType(telephone), source_page: sourcePage });
   }
 
   // Recurse into contactPoint, founder, employee, member, author
@@ -494,7 +515,7 @@ function extractPhones(
     const number = href.replace(/^tel:/i, "").trim();
     if (number.length < 8) return;
     if (!out.some((p) => normalisePhone(p.number) === normalisePhone(number))) {
-      out.push({ number, source_page: sourcePage });
+      out.push({ number, type: classifyPhoneType(number), source_page: sourcePage });
     }
   });
 
@@ -504,7 +525,7 @@ function extractPhones(
   for (const raw of textPhones) {
     const number = raw.trim();
     if (!out.some((p) => normalisePhone(p.number) === normalisePhone(number))) {
-      out.push({ number, source_page: sourcePage });
+      out.push({ number, type: classifyPhoneType(number), source_page: sourcePage });
     }
   }
 }
@@ -573,6 +594,61 @@ function dedupePhones(phones: ScrapedPhone[]): ScrapedPhone[] {
     if (!seen.has(key)) seen.set(key, p);
   }
   return [...seen.values()];
+}
+
+function classifyPhoneType(phone: string): ScrapedPhone["type"] {
+  const digits = phone.replace(/[^\d]/g, "");
+  if (/^04\d{8}$/.test(digits) || /^614\d{8}$/.test(digits)) return "mobile";
+  if (/^1[38]00\d{6}$/.test(digits) || /^13\d{4}$/.test(digits)) return "tollfree";
+  if (/^0[2-9]\d{8}$/.test(digits) || /^61[2-9]\d{8}$/.test(digits)) return "landline";
+  return "unknown";
+}
+
+const SOCIAL_SKIP_RE = /\/(sharer|share|intent|dialog|login|signup|help|about|privacy|terms|policy|hashtag)\b/i;
+
+function extractSocialLinks($: cheerio.CheerioAPI): ScrapedSocialLinks {
+  const links: ScrapedSocialLinks = {
+    instagram_url: null,
+    facebook_url: null,
+    linkedin_url: null,
+    tiktok_url: null,
+    twitter_url: null,
+    youtube_url: null,
+  };
+
+  $("a[href]").each((_, el) => {
+    const href = $(el).attr("href")?.trim();
+    if (!href || SOCIAL_SKIP_RE.test(href)) return;
+
+    try {
+      const url = new URL(href);
+      const host = url.hostname.replace(/^www\./, "").toLowerCase();
+      const path = url.pathname.replace(/\/+$/, "");
+
+      if (!links.instagram_url && (host === "instagram.com" || host === "instagr.am") && path.length > 1) {
+        links.instagram_url = `https://www.instagram.com${path}/`;
+      }
+      if (!links.facebook_url && (host === "facebook.com" || host === "fb.com") && path.length > 1 && !/^\/groups\b/.test(path)) {
+        links.facebook_url = `https://www.facebook.com${path}`;
+      }
+      if (!links.linkedin_url && host === "linkedin.com" && /^\/(company|in)\//.test(path)) {
+        links.linkedin_url = `https://www.linkedin.com${path}`;
+      }
+      if (!links.tiktok_url && host === "tiktok.com" && /^\/@/.test(path)) {
+        links.tiktok_url = `https://www.tiktok.com${path}`;
+      }
+      if (!links.twitter_url && (host === "twitter.com" || host === "x.com") && path.length > 1) {
+        links.twitter_url = `https://x.com${path}`;
+      }
+      if (!links.youtube_url && (host === "youtube.com" || host === "youtu.be") && path.length > 1) {
+        links.youtube_url = `https://www.youtube.com${path}`;
+      }
+    } catch {
+      // Malformed URL — skip
+    }
+  });
+
+  return links;
 }
 
 /**

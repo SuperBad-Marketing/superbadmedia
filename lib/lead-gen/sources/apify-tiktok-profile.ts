@@ -28,6 +28,7 @@ export interface TikTokProfileResult {
   posts_last_30d: number | null;
   last_post_date: string | null;
   has_active_profile: boolean;
+  profile_url: string | null;
   error?: string;
 }
 
@@ -70,12 +71,15 @@ export async function scrapeTikTokProfile(
       ? new Date(lastPostTimestamp * 1000).toISOString().split("T")[0]
       : null;
 
+    const resolvedHandle = authorMeta?.name ?? handle;
+
     return {
       follower_count: authorMeta?.fans ?? null,
       video_count: authorMeta?.video ?? null,
       posts_last_30d: recentPosts.length,
       last_post_date: lastPostDate,
       has_active_profile: (authorMeta?.fans ?? 0) > 0 || items.length > 0,
+      profile_url: resolvedHandle ? `https://www.tiktok.com/@${resolvedHandle}` : null,
     };
   } catch (err) {
     return {
@@ -92,6 +96,7 @@ function emptyResult(): TikTokProfileResult {
     posts_last_30d: null,
     last_post_date: null,
     has_active_profile: false,
+    profile_url: null,
   };
 }
 

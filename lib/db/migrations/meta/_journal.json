@@ -463,6 +463,13 @@
       "when": 1778800000000,
       "tag": "0103_business_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "6",
+      "when": 1778900000000,
+      "tag": "0106_add_contact_mobile",
+      "breakpoints": true
     }
   ]
 }

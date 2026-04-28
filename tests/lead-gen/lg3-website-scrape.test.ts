@@ -77,6 +77,10 @@ describe("inferPricingTier", () => {
 
 describe("applyWebsiteScrapeToProfile", () => {
   it("merges scrape result into empty profile", () => {
+    const emptySocial = {
+      instagram_url: null, facebook_url: null, linkedin_url: null,
+      tiktok_url: null, twitter_url: null, youtube_url: null,
+    };
     const result: WebsiteScrapeResult = {
       has_about_page: true,
       has_pricing_page: true,
@@ -84,6 +88,7 @@ describe("applyWebsiteScrapeToProfile", () => {
       stated_pricing_tier: "mid",
       scraped_contacts: [],
       scraped_phones: [],
+      scraped_social_links: emptySocial,
     };
     const profile = applyWebsiteScrapeToProfile({}, result);
 
@@ -96,6 +101,10 @@ describe("applyWebsiteScrapeToProfile", () => {
   });
 
   it("preserves existing PageSpeed and WHOIS data", () => {
+    const emptySocial = {
+      instagram_url: null, facebook_url: null, linkedin_url: null,
+      tiktok_url: null, twitter_url: null, youtube_url: null,
+    };
     const existing: Partial<ViabilityProfile> = {
       website: {
         domain_age_years: 5,
@@ -114,6 +123,7 @@ describe("applyWebsiteScrapeToProfile", () => {
       stated_pricing_tier: "premium",
       scraped_contacts: [],
       scraped_phones: [],
+      scraped_social_links: emptySocial,
     };
     const profile = applyWebsiteScrapeToProfile(existing, result);
 
@@ -124,6 +134,10 @@ describe("applyWebsiteScrapeToProfile", () => {
   });
 
   it("records error without blocking results", () => {
+    const emptySocial = {
+      instagram_url: null, facebook_url: null, linkedin_url: null,
+      tiktok_url: null, twitter_url: null, youtube_url: null,
+    };
     const result: WebsiteScrapeResult = {
       has_about_page: false,
       has_pricing_page: false,
@@ -131,6 +145,7 @@ describe("applyWebsiteScrapeToProfile", () => {
       stated_pricing_tier: "unknown",
       scraped_contacts: [],
       scraped_phones: [],
+      scraped_social_links: emptySocial,
       error: "Website scrape failed: timeout",
     };
     const profile = applyWebsiteScrapeToProfile({}, result);

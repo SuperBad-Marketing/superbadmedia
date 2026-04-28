@@ -30,6 +30,7 @@ import {
   applyWebsiteScrapeToProfile,
   type ScrapedContact,
   type ScrapedPhone,
+  type ScrapedSocialLinks,
 } from "./website-scrape";
 import {
   fetchMapsExtras,
@@ -43,6 +44,7 @@ export interface EnrichmentResult {
   signals_succeeded: number;
   scraped_contacts: ScrapedContact[];
   scraped_phones: ScrapedPhone[];
+  scraped_social_links: ScrapedSocialLinks;
 }
 
 /**
@@ -65,6 +67,11 @@ export async function enrichCandidate(
   let signalsSucceeded = 0;
   let scrapedContacts: ScrapedContact[] = [];
   let scrapedPhones: ScrapedPhone[] = [];
+  let scrapedSocialLinks: ScrapedSocialLinks = {
+    instagram_url: null, facebook_url: null, linkedin_url: null,
+    tiktok_url: null, twitter_url: null, youtube_url: null,
+  };
+  let igUsername: string | null = null;
 
   const hasDomain = !!candidate.domain;
   const placeId = (candidate.raw_source_data as Record<string, unknown>)
@@ -101,6 +108,7 @@ export async function enrichCandidate(
         const result = await fetchInstagram(candidate.domain!);
         profile = applyInstagramToProfile(profile, result);
         if (result.follower_count !== null) signalsSucceeded++;
+        if (result.username) igUsername = result.username;
       },
     },
     {
@@ -123,6 +131,7 @@ export async function enrichCandidate(
         profile = applyWebsiteScrapeToProfile(profile, result);
         scrapedContacts = result.scraped_contacts;
         scrapedPhones = result.scraped_phones;
+        scrapedSocialLinks = result.scraped_social_links;
         if (result.has_about_page || result.has_pricing_page) signalsSucceeded++;
       },
     },
@@ -147,13 +156,25 @@ export async function enrichCandidate(
   // Run all eligible signals in parallel
   await Promise.allSettled(eligibleTasks.map((t) => t.run()));
 
+  const finalProfile = profile as ViabilityProfile;
+  finalProfile.social_profiles = {
+    instagram_url: scrapedSocialLinks.instagram_url
+      ?? (igUsername ? `https://www.instagram.com/${igUsername}/` : null),
+    facebook_url: scrapedSocialLinks.facebook_url,
+    linkedin_url: scrapedSocialLinks.linkedin_url,
+    tiktok_url: scrapedSocialLinks.tiktok_url,
+    twitter_url: scrapedSocialLinks.twitter_url,
+    youtube_url: scrapedSocialLinks.youtube_url,
+  };
+
   return {
-    profile: profile as ViabilityProfile,
+    profile: finalProfile,
     enrichment_duration_ms: Date.now() - start,
     signals_attempted: signalsAttempted,
     signals_succeeded: signalsSucceeded,
     scraped_contacts: scrapedContacts,
     scraped_phones: scrapedPhones,
+    scraped_social_links: scrapedSocialLinks,
   };
 }
 
@@ -172,7 +193,7 @@ export {
   inferPricingTier,
   applyWebsiteScrapeToProfile,
 } from "./website-scrape";
-export type { ScrapedContact, ScrapedPhone } from "./website-scrape";
+export type { ScrapedContact, ScrapedPhone, ScrapedSocialLinks } from "./website-scrape";
 export {
   fetchMapsExtras,
   parseRelativeDate,

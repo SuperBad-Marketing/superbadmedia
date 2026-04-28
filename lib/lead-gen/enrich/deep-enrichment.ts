@@ -45,6 +45,7 @@ export async function deepEnrichCandidate(
   let actorsAttempted = 0;
   let actorsSucceeded = 0;
   const scrapedContacts: DeepEnrichmentResult["scrapedContacts"] = [];
+  let tiktokProfileUrl: string | null = null;
 
   const tasks: Array<{
     name: string;
@@ -117,6 +118,7 @@ export async function deepEnrichCandidate(
       const result = await scrapeTikTokProfile(input.companyName);
       profile = applyTikTokToProfile(profile, result);
       if (result.has_active_profile) actorsSucceeded++;
+      if (result.profile_url) tiktokProfileUrl = result.profile_url;
     },
   });
 
@@ -128,6 +130,15 @@ export async function deepEnrichCandidate(
     fullProfile,
     input.currentAssignment.track,
   );
+
+  const existing = fullProfile.social_profiles ?? {
+    instagram_url: null, facebook_url: null, linkedin_url: null,
+    tiktok_url: null, twitter_url: null, youtube_url: null,
+  };
+  fullProfile.social_profiles = {
+    ...existing,
+    tiktok_url: existing.tiktok_url ?? tiktokProfileUrl,
+  };
 
   fullProfile.deep_enrichment = {
     ran_at_ms: Date.now(),
