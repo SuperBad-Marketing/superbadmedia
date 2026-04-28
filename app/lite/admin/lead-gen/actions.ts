@@ -8,7 +8,8 @@ import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { dncEmails } from "@/lib/db/schema/dnc";
 import { dncDomains } from "@/lib/db/schema/dnc";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
+import { brand_voice_examples } from "@/lib/db/schema/brand-voice-examples";
 import { logActivity } from "@/lib/activity-log";
 import { transitionAutonomyState } from "@/lib/lead-gen/autonomy";
 import { classifyEdit } from "@/lib/lead-gen/classify-edit";
@@ -495,7 +496,26 @@ export async function generateDraftEmailAction(
   }
 
   const profile = candidate.viability_profile_json as Record<string, unknown>;
-  const brandProfile = await getSuperbadBrandProfile();
+  const [brandProfile, voiceExamples] = await Promise.all([
+    getSuperbadBrandProfile(),
+    db
+      .select({
+        title: brand_voice_examples.title,
+        body_markdown: brand_voice_examples.body_markdown,
+      })
+      .from(brand_voice_examples)
+      .where(eq(brand_voice_examples.surface, "outreach"))
+      .orderBy(asc(brand_voice_examples.sort_order)),
+  ]);
+
+  const voiceExamplesBlock =
+    voiceExamples.length > 0
+      ? `\nVOICE EXAMPLES — THE GOLD STANDARD.
+These are real emails Andy has written or approved. They define what SuperBad outreach sounds like. Your draft must match their tone, sentence rhythm, paragraph length, and energy. Study the subject lines, the openings, the sign-offs.
+
+${voiceExamples.map((ex) => `### ${ex.title}\n${ex.body_markdown}`).join("\n\n")}
+`
+      : "";
 
   const systemPrompt = `You are drafting a cold outreach email on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia).
 
@@ -503,7 +523,7 @@ BRAND VOICE:
 ${brandProfile.voiceDescription}
 Tone markers: ${brandProfile.toneMarkers.join(", ")}
 ${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}
-
+${voiceExamplesBlock}
 Respond in exactly this format:
 SUBJECT: <subject line>
 BODY:
