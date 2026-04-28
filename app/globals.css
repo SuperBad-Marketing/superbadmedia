@@ -397,3 +397,66 @@
   --space-5: 16px;
   --space-6: 24px;
 }
+
+/* ── Blog prose — brand-consistent markdown rendering (CE-3) ── */
+.blog-prose {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--neutral-300);
+}
+.blog-prose h1,
+.blog-prose h2,
+.blog-prose h3 {
+  font-family: var(--font-display);
+  color: var(--neutral-100);
+  line-height: 1.1;
+  margin-top: 2.5em;
+  margin-bottom: 0.6em;
+}
+.blog-prose h2 { font-size: clamp(24px, 3vw, 32px); }
+.blog-prose h3 { font-size: clamp(20px, 2.5vw, 24px); }
+.blog-prose p { margin-bottom: 1.4em; }
+.blog-prose a {
+  color: var(--brand-pink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(244, 160, 176, 0.3);
+  transition: text-decoration-color 0.15s;
+}
+.blog-prose a:hover { text-decoration-color: var(--brand-pink); }
+.blog-prose strong { color: var(--neutral-100); }
+.blog-prose em { font-family: var(--font-narrative); }
+.blog-prose ul,
+.blog-prose ol {
+  padding-left: 1.4em;
+  margin-bottom: 1.4em;
+}
+.blog-prose li { margin-bottom: 0.4em; }
+.blog-prose li::marker { color: var(--neutral-500); }
+.blog-prose hr {
+  border: none;
+  border-top: 1px solid rgba(253, 245, 230, 0.08);
+  margin: 2.5em 0;
+}
+.blog-prose pre {
+  background: var(--surface-1);
+  border: 1px solid rgba(253, 245, 230, 0.06);
+  border-radius: 6px;
+  padding: 1.2em 1.4em;
+  overflow-x: auto;
+  margin-bottom: 1.4em;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.blog-prose code {
+  font-size: 0.9em;
+  background: rgba(253, 245, 230, 0.06);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+}
+.blog-prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}

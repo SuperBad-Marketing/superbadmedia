@@ -111,7 +111,7 @@ const defaults: KillSwitchRegistry = {
   // CE-1: gates all Content Engine automated pipelines (keyword research,
   // draft generation, fan-out, ranking snapshots). When OFF, all cron
   // handlers exit early. Flip ON in Phase 6 after initial content config.
-  content_automations_enabled: false,
+  content_automations_enabled: true,
   // CE-1: gates newsletter sending specifically. When OFF, newsletter
   // send handler exits without sending. Separate from automations so
   // content generation can run without sending newsletters.
