@@ -255,6 +255,20 @@ function buildLengthGuidance(input: GenerateDraftInput): string {
   return "COLD FOLLOW-UP: 2-3 sentences max. Different angle, different signal, same brevity. If the last approach didn't land, try a completely different entry point.";
 }
 
+function buildVoiceExamplesBlock(voiceExamples: VoiceExample[]): string {
+  if (voiceExamples.length === 0) return "";
+  const exampleBlocks = voiceExamples
+    .map((ex) => `### ${ex.title}\n${ex.body_markdown}`)
+    .join("\n\n");
+  return `
+VOICE EXAMPLES — THE GOLD STANDARD.
+These are real emails Andy has written or approved. They define what SuperBad outreach sounds like. Your draft must match their tone, sentence rhythm, paragraph length, and energy. Study the subject lines, the openings, the sign-offs. The structural rules above tell you WHAT to include; these examples tell you HOW it should read.
+
+${exampleBlocks}
+
+`;
+}
+
 function buildSystemPrompt(
   brandProfile: Awaited<ReturnType<typeof getSuperbadBrandProfile>>,
   input: GenerateDraftInput,
@@ -262,20 +276,12 @@ function buildSystemPrompt(
 ): string {
   const unsubLink = `https://superbadmedia.com.au/unsubscribe?email={{EMAIL}}`;
 
-  let voiceExamplesBlock = "";
-  if (voiceExamples.length > 0) {
-    const exampleBlocks = voiceExamples
-      .map((ex) => `### ${ex.title}\n${ex.body_markdown}`)
-      .join("\n\n");
-    voiceExamplesBlock = `\n\nVOICE EXAMPLES — these are real emails Andy has written or approved. Match this tone, structure, and energy. Do not copy them verbatim — use them as a reference for how SuperBad actually sounds:\n\n${exampleBlocks}`;
-  }
-
   return `You are writing cold outreach emails on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia).
 
 BRAND VOICE:
 ${brandProfile.voiceDescription}
 Tone markers: ${brandProfile.toneMarkers.join(", ")}
-${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}${voiceExamplesBlock}
+${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}
 
 SENDER IDENTITY:
 Name: ${SUPERBAD_SENDER.display_name}
@@ -307,7 +313,7 @@ RULES:
 - Reference specific signals from the viability profile ONLY if they are present. Do NOT invent or hallucinate specifics.
 - Each follow-up must use a DIFFERENT observation from a different signal — never repeat or rephrase the same gap.
 - Never say "following up", "bumping this", "as I mentioned", or reference prior emails. Each email stands alone.
-- Never apologise for emailing. Never use false scarcity. Never open with a question hook.
+- Never apologise for emailing. Never use false scarcity. Never open with a question hook.${voiceExamples.length > 0 ? "\n- Your output MUST read like the voice examples below — same sentence rhythm, same dryness, same lack of corporate polish. If the draft wouldn't fit alongside those examples, rewrite it." : ""}
 - Include the Spam Act footer at the end of the body:
   ---
   Andy Robinson · SuperBad Media · Melbourne, Australia
@@ -317,7 +323,7 @@ RULES:
 
 LENGTH — adapts to touch type and engagement:
 ${buildLengthGuidance(input)}
-
+${buildVoiceExamplesBlock(voiceExamples)}
 OUTPUT FORMAT:
 Respond with a JSON object only — no prose, no markdown fences:
 {"subject": "...", "body_markdown": "..."}`;
