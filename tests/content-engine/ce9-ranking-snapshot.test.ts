@@ -89,6 +89,7 @@ function makeSerpSnapshot(
       snippet: "",
     })),
     searchedAt: Date.now(),
+    source: "serpapi",
   };
 }
 

@@ -87,7 +87,8 @@ export async function takeRankingSnapshots(
 
   for (const post of publishedPosts) {
     try {
-      const serpSnapshot = await fetchSerpResults(post.keyword, apiKey);
+      const apifyToken = await getCredential("apify");
+      const serpSnapshot = await fetchSerpResults(post.keyword, apiKey, apifyToken);
 
       // Find the post's position in the SERP results by matching the
       // published URL's domain against result domains

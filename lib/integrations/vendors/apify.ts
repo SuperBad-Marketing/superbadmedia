@@ -4,6 +4,11 @@ export const apifyManifest: VendorManifest = {
   vendorKey: "apify",
   jobs: [
     {
+      name: "apify.google_search",
+      defaultBand: { p95: 30000, p99: 60000 },
+      unit: "ms",
+    },
+    {
       name: "apify.email_finder",
       defaultBand: { p95: 25000, p99: 35000 },
       unit: "ms",
