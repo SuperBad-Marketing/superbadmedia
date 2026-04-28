@@ -800,3 +800,90 @@ function normaliseSlideCopy(json: unknown): SlideCopy[] {
   if (json && typeof json === "object") return [json as SlideCopy];
   return [{}];
 }
+
+/* ------------------------------------------------------------------ */
+/* Unified brief — client name lookup + video creation from studio    */
+/* ------------------------------------------------------------------ */
+
+import { companies } from "@/lib/db/schema/companies";
+import { buildBriefFromPrompt } from "@/lib/video/brief-builder";
+import { submitVideoJob } from "@/lib/video/higgsfield";
+import { killSwitches } from "@/lib/kill-switches";
+
+export async function getClientNamesAction(): Promise<
+  { ok: true; clients: string[] } | { ok: false; error: string }
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "unauthorized" };
+  }
+
+  const rows = await db
+    .select({ name: companies.name })
+    .from(companies)
+    .limit(200);
+
+  return { ok: true, clients: rows.map((r) => r.name) };
+}
+
+const videoFromStudioSchema = z.object({
+  brief: z.string().min(1),
+  format: z.enum(["cinematic", "composite"]),
+  brandSource: z.enum(["superbad", "client", "adhoc"]).default("superbad"),
+  clientId: z.string().optional(),
+});
+
+export async function createVideoFromStudioAction(
+  input: z.infer<typeof videoFromStudioSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "Not authorised." };
+  }
+  if (!killSwitches.llm_calls_enabled) {
+    return { ok: false as const, error: "LLM calls are paused." };
+  }
+
+  const parsed = videoFromStudioSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "Invalid input." };
+
+  try {
+    const videoBrief = await buildBriefFromPrompt(parsed.data.brief);
+
+    const jobId = crypto.randomUUID();
+    await db.insert(videoJobs).values({
+      id: jobId,
+      video_type: videoBrief.videoType,
+      engine: "higgsfield",
+      status: "queued",
+      initial_prompt: parsed.data.brief,
+      resolved_prompt: videoBrief.resolvedPrompt,
+      brief_json: videoBrief as unknown as Record<string, unknown>,
+      brand_source: parsed.data.brandSource,
+      client_id: parsed.data.clientId ?? null,
+      aspect_ratio: videoBrief.aspectRatio,
+      duration_sec: videoBrief.duration,
+      created_at: new Date(),
+      queued_at: new Date(),
+    });
+
+    const result = await submitVideoJob({
+      prompt: videoBrief.resolvedPrompt,
+      aspectRatio: videoBrief.aspectRatio,
+      duration: videoBrief.duration,
+    });
+
+    await db
+      .update(videoJobs)
+      .set({ external_job_id: result.jobId, status: "generating" })
+      .where(eq(videoJobs.id, jobId));
+
+    revalidatePath("/lite/content/studio");
+    revalidatePath("/lite/content/video-studio");
+
+    return { ok: true as const, jobId, videoBrief };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Video creation failed";
+    return { ok: false as const, error: msg };
+  }
+}
