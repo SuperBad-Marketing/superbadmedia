@@ -239,16 +239,25 @@ export function injectUnsubscribeFooter(
   body: string,
   unsubscribeUrl: string,
 ): string {
-  const footer = [
-    '<div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e5e5; font-size: 12px; color: #737373; text-align: center;">',
-    `  <p>You received this because you subscribed to this newsletter.</p>`,
-    `  <p><a href="${unsubscribeUrl}" style="color: #737373; text-decoration: underline;">Unsubscribe</a></p>`,
+  const softCta = [
+    '<div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(253,245,230,0.08); text-align: center;">',
+    '  <p style="margin: 0 0 6px; font-size: 13px; color: #e8e0d0;">If this was useful, forward it to someone who\'d get something from it.</p>',
+    '  <p style="margin: 0; font-size: 13px; color: rgba(253,245,230,0.4);">Want to talk about what you just read? Just reply to this email.</p>',
     "</div>",
   ].join("\n");
 
+  const footer = [
+    '<div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(253,245,230,0.06); font-size: 12px; color: rgba(253,245,230,0.25); text-align: center;">',
+    `  <p style="margin: 0 0 6px;">You received this because you subscribed to this newsletter.</p>`,
+    `  <p style="margin: 0;"><a href="${unsubscribeUrl}" style="color: rgba(253,245,230,0.25); text-decoration: underline;">Unsubscribe</a></p>`,
+    "</div>",
+  ].join("\n");
+
+  const combined = softCta + "\n" + footer;
+
   if (body.includes("</body>")) {
-    return body.replace("</body>", `${footer}\n</body>`);
+    return body.replace("</body>", `${combined}\n</body>`);
   }
 
-  return body + "\n" + footer;
+  return body + "\n" + combined;
 }

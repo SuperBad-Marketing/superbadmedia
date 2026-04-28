@@ -15,6 +15,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getPublishedPost, resolveCompanyByDomain } from "@/lib/content-engine/publish";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
@@ -203,39 +204,29 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           </h1>
         </header>
 
-        <div className="blog-prose">
-          <MarkdownRenderer body={post.body} />
-        </div>
+        {(() => {
+          const { first, second } = splitAtMidpoint(post.body);
+          if (second) {
+            return (
+              <>
+                <div className="blog-prose">
+                  <MarkdownRenderer body={first} />
+                </div>
+                <NewsletterSignup variant="inline" source="blog_cta" />
+                <div className="blog-prose">
+                  <MarkdownRenderer body={second} />
+                </div>
+              </>
+            );
+          }
+          return (
+            <div className="blog-prose">
+              <MarkdownRenderer body={first} />
+            </div>
+          );
+        })()}
 
-        {/* Newsletter opt-in — earned CTA at article end */}
-        <aside
-          className="mt-16 mb-20 rounded-lg px-8 py-8 text-center"
-          style={{
-            backgroundColor: "var(--surface-1)",
-            border: "1px solid rgba(253, 245, 230, 0.06)",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "14px",
-              color: "var(--neutral-400)",
-            }}
-          >
-            Want more like this? Subscribe to get new posts straight to your inbox.
-          </p>
-          <p
-            className="mt-2"
-            style={{
-              fontFamily: "var(--font-narrative)",
-              fontStyle: "italic",
-              fontSize: "12px",
-              color: "var(--brand-pink)",
-            }}
-          >
-            no spam. unsubscribe anytime.
-          </p>
-        </aside>
+        <NewsletterSignup variant="end-of-post" source="blog_cta" />
       </article>
     </>
   );
@@ -297,4 +288,24 @@ function escapeHtml(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+/**
+ * Split markdown at a paragraph boundary near the midpoint.
+ * Returns the full body as `first` if the post is too short to split
+ * (fewer than 6 paragraphs).
+ */
+function splitAtMidpoint(body: string): { first: string; second: string | null } {
+  const paragraphs = body.split(/\n\n+/);
+  if (paragraphs.length < 6) {
+    return { first: body, second: null };
+  }
+
+  const targetIndex = Math.floor(paragraphs.length * 0.45);
+  const splitIndex = Math.max(3, targetIndex);
+
+  return {
+    first: paragraphs.slice(0, splitIndex).join("\n\n"),
+    second: paragraphs.slice(splitIndex).join("\n\n"),
+  };
 }
