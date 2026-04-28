@@ -7,7 +7,7 @@
  * Allows adding/removing seed keywords that feed the weekly
  * research pipeline.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,11 @@ export function SeedKeywordManager({
   const [input, setInput] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setKeywords(initialKeywords);
+    setError(null);
+  }, [companyId, initialKeywords]);
 
   async function handleAdd() {
     const trimmed = input.trim();
