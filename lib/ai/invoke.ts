@@ -14,12 +14,14 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { eq, and } from "drizzle-orm";
-import { modelFor, modelTierFor, type ModelJobSlug } from "./models";
+import { modelFor, modelTierFor, isProfileInjectionExcluded, type ModelJobSlug } from "./models";
 import { logExternalCall } from "@/lib/observatory/log-external-call";
 import { estimateAnthropicCostAud } from "@/lib/observatory/pricing";
 import { db } from "@/lib/db";
 import { integration_connections } from "@/lib/db/schema/integration-connections";
 import { vault } from "@/lib/crypto/vault";
+import { loadSuperBadContext } from "@/lib/business-profile/load-context";
+import settingsRegistry from "@/lib/settings";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 let cachedKey: string | null = null;
@@ -90,6 +92,30 @@ function logCost(
   }).catch(() => {});
 }
 
+async function resolveSystemWithProfile(
+  job: ModelJobSlug,
+  callerSystem: string | undefined,
+): Promise<string | undefined> {
+  if (isProfileInjectionExcluded(job)) return callerSystem;
+
+  let enforced = true;
+  try {
+    enforced = await settingsRegistry.get("profile.enforcement_enabled");
+  } catch {
+    // settings row missing — treat as enabled
+  }
+  if (!enforced) return callerSystem;
+
+  const tier = modelTierFor(job);
+  const profileContext = await loadSuperBadContext(tier);
+  if (!profileContext) return callerSystem;
+
+  if (callerSystem) {
+    return `${profileContext}\n\n${callerSystem}`;
+  }
+  return profileContext;
+}
+
 export interface InvokeLlmTextOptions {
   job: ModelJobSlug;
   prompt: string;
@@ -117,10 +143,11 @@ export async function invokeLlmText({
   actorId,
 }: InvokeLlmTextOptions): Promise<string> {
   const client = await getClient();
+  const resolvedSystem = await resolveSystemWithProfile(job, system);
   const response = await client.messages.create({
     model: modelFor(job),
     max_tokens: maxTokens,
-    ...(system ? { system } : {}),
+    ...(resolvedSystem ? { system: resolvedSystem } : {}),
     messages: [{ role: "user", content: prompt }],
   });
   const usage = safeUsage(response);
@@ -138,10 +165,11 @@ export async function invokeLlmTextWithMeta(
   options: InvokeLlmTextOptions,
 ): Promise<InvokeLlmResult> {
   const client = await getClient();
+  const resolvedSystem = await resolveSystemWithProfile(options.job, options.system);
   const response = await client.messages.create({
     model: modelFor(options.job),
     max_tokens: options.maxTokens,
-    ...(options.system ? { system: options.system } : {}),
+    ...(resolvedSystem ? { system: resolvedSystem } : {}),
     messages: [{ role: "user", content: options.prompt }],
   });
   const usage = safeUsage(response);
@@ -177,10 +205,11 @@ export async function invokeLlmVision({
   }));
 
   const client = await getClient();
+  const resolvedSystem = await resolveSystemWithProfile(job, system);
   const response = await client.messages.create({
     model: modelFor(job),
     max_tokens: maxTokens,
-    ...(system ? { system } : {}),
+    ...(resolvedSystem ? { system: resolvedSystem } : {}),
     messages: [
       {
         role: "user",

@@ -319,6 +319,13 @@ const registry = {
   "instagram.reply.graduation_window": integer,
   "instagram.reply.poll_interval_seconds": integer,
   "instagram.token.refresh_at_day": integer,
+
+  // Business Profile (5 — BP-1)
+  "profile.stale_threshold_days": integer,
+  "profile.suggestion_expiry_days": integer,
+  "profile.cache_ttl_minutes": integer,
+  "profile.health_check_hour": integer,
+  "profile.enforcement_enabled": boolean,
 } as const;
 
 export type SettingsKey = keyof typeof registry;

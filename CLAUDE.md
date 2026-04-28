@@ -105,6 +105,10 @@ Global skills auto-load from `~/.claude/skills/`. Relevant ones for brainstorm p
 
 Project-specific skills (Next.js, Drizzle, Stripe, NextAuth, etc.) will be copied into `.claude/skills/` during Phase 2 once the stack is locked. Until then, reference the HQ skills library at `/Users/Andy/superbad-hq/.claude/skills/` for lookups only — do not copy code from HQ.
 
+## SuperBad Profile
+
+Read `docs/superbad-profile-snapshot.md` before any UI build session or client-facing content work. This is the canonical source for design rules, voice, brand identity, and business facts. The snapshot also lists which skills to load for different task types (UI work, copywriting, visual design).
+
 ## What to do when you're stuck
 
 - Context running low → compact, write a handoff note, stop. Better to end cleanly than bulldoze through.

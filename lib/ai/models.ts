@@ -175,6 +175,8 @@ export const MODELS = {
   "instagram-taste-analysis": "haiku",
   // braindump mood signal (1)
   "braindump-mood-signal": "haiku",
+  // business-profile (1)
+  "profile-generate-prose-summary": "haiku",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;
@@ -192,4 +194,44 @@ export function modelFor(job: ModelJobSlug): ModelId {
 
 export function modelTierFor(job: ModelJobSlug): ModelTier {
   return MODELS[job];
+}
+
+const PROFILE_INJECTION_EXCLUDED: ReadonlySet<ModelJobSlug> = new Set([
+  // Brand DNA generators — writing about a subject, not as SuperBad
+  "brand-dna-generate-section-insight",
+  "brand-dna-generate-first-impression",
+  "brand-dna-generate-prose-portrait",
+  "brand-dna-generate-company-blend",
+  "brand-dna-generate-retake-comparison",
+  "brand-dna-generate-brand-pack",
+  // Classification / extraction — pure analysis, no voice
+  "intro-funnel-signal-tag-extraction",
+  "lead-gen-icp-prefilter",
+  "lead-gen-reply-classify",
+  "inbox-classify-inbound-route",
+  "inbox-classify-notification-priority",
+  "inbox-classify-signal-noise",
+  "inbox-classify-support-ticket-type",
+  "inbox-compose-subject",
+  "instagram-classify-inbound",
+  "hiring-candidate-score",
+  "hiring-archive-reflection-ingest",
+  "hiring-reply-classify",
+  "drift-check-grader",
+  "six-week-plan-review",
+  "content-score-keyword-rankability",
+  "content-select-visual-template",
+  "content-generate-image-prompt",
+  "content-match-content-to-prospects",
+  // Parsing / internal — no voice generation
+  "braindump-parse",
+  "braindump-mood-signal",
+  "finance-draft-narrative",
+  "call-custom-questions",
+  // Profile's own prose generator — avoid circular injection
+  "profile-generate-prose-summary",
+]);
+
+export function isProfileInjectionExcluded(job: ModelJobSlug): boolean {
+  return PROFILE_INJECTION_EXCLUDED.has(job);
 }

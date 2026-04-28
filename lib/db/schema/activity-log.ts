@@ -410,6 +410,15 @@ export const ACTIVITY_LOG_KINDS = [
   "instagram_reply_escalated",
   "instagram_reply_approved",
   "instagram_reply_skipped",
+  // --- Business Profile (8) ---
+  "profile_section_created",
+  "profile_section_updated",
+  "profile_suggestion_created",
+  "profile_suggestion_approved",
+  "profile_suggestion_dismissed",
+  "profile_suggestion_expired",
+  "profile_prose_regenerated",
+  "profile_health_check_run",
   // --- Data management ---
   "brand_dna_reset",
   "client_context_reset",

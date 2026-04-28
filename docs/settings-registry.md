@@ -420,6 +420,18 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 
 ---
 
+## Business Profile (owner: `docs/specs/superbad-profile.md` §15)
+
+| Key | Default | Type | Description |
+|---|---|---|---|
+| `profile.stale_threshold_days` | `90` | integer | Days before a profile section is flagged as stale |
+| `profile.suggestion_expiry_days` | `30` | integer | Days before an unresolved profile suggestion auto-expires |
+| `profile.cache_ttl_minutes` | `10` | integer | In-memory cache TTL for assembled profile context |
+| `profile.health_check_hour` | `4` | integer | Melbourne hour (0–23) when the daily profile health check runs |
+| `profile.enforcement_enabled` | `true` | boolean | Kill switch — disabling reverts all LLM calls to pre-profile behaviour |
+
+---
+
 ## Totals
 
 - Finance: 11
@@ -452,6 +464,7 @@ Authoritative source of truth for every `settings.get(key)` key consumed by Lite
 - Autonomy Adjustment: 3 (LG-11)
 - SMS Transport: 2 (SAP)
 - Inbox Retention: 4 (SAP)
-- **Total: 178 keys at v1.0 seed** (was 103 pre-SAP; 165 pre-SAP in code; +13 new SAP keys)
+- Business Profile: 5 (BP-1)
+- **Total: 183 keys at v1.0 seed** (was 178 pre-BP; +5 Business Profile keys)
 
 Phase 5 Session A5 (Foundations seed migration) reads this file and emits the corresponding `INSERT INTO settings` rows. Any key consumed by feature code without a row here is a bug — Phase 4 AUTONOMY_PROTOCOL lint catches it.
