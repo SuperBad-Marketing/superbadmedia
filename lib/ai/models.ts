@@ -169,6 +169,12 @@ export const MODELS = {
   // meta-campaigns (2)
   "meta-campaign-strategy-builder": "opus",
   "meta-ad-copy-generate": "sonnet",
+  // instagram-competitive-strategy (3)
+  "instagram-competitive-strategy": "sonnet",
+  "instagram-post-why-high": "haiku",
+  "instagram-taste-analysis": "haiku",
+  // braindump mood signal (1)
+  "braindump-mood-signal": "haiku",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;

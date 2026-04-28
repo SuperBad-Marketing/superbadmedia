@@ -1,0 +1,441 @@
+import { randomUUID } from "node:crypto";
+import { eq, and, desc, gte } from "drizzle-orm";
+import { db } from "@/lib/db";
+import {
+  instagram_accounts,
+  instagram_content_plans,
+  instagram_strategy_reports,
+  instagram_metrics_snapshots,
+  instagram_audience_snapshots,
+} from "@/lib/db/schema/instagram";
+import {
+  instagram_competitor_posts,
+  instagram_inspiration_reactions,
+  instagram_taste_profiles,
+  instagram_watched_accounts,
+  type EnhancedContentPlanSlot,
+} from "@/lib/db/schema/instagram-competitive";
+import { braindumps } from "@/lib/db/schema/braindumps";
+import { tasks } from "@/lib/db/schema/tasks";
+import { invokeLlmText } from "@/lib/ai/invoke";
+import { getSuperbadBrandProfile } from "@/lib/quote-builder/superbad-brand-profile";
+import { logActivity } from "@/lib/activity-log";
+
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+interface StrategyInput {
+  accountId: string;
+  accountUsername: string;
+}
+
+export async function generateCompetitiveStrategy(
+  input: StrategyInput,
+): Promise<{ planId: string; reportId: string }> {
+  const now = Date.now();
+  const fourteenDaysAgo = now - 14 * 86_400_000;
+
+  const [brandProfile, likedPosts, tasteProfile, recentDumps, latestMetrics, audienceData] =
+    await Promise.all([
+      getSuperbadBrandProfile(),
+      fetchLikedInspirationPosts(),
+      fetchLatestTasteProfile(),
+      fetchRecentBraindumpIdeas(fourteenDaysAgo),
+      fetchLatestMetrics(input.accountId),
+      fetchAudienceData(input.accountId),
+    ]);
+
+  const hasSelfMetrics = latestMetrics !== null;
+
+  const systemPrompt = buildSystemPrompt(
+    brandProfile,
+    likedPosts,
+    tasteProfile,
+    recentDumps,
+    hasSelfMetrics,
+    latestMetrics,
+    audienceData,
+    input.accountUsername,
+  );
+
+  const userPrompt = `Generate a weekly Instagram content strategy and exactly 5 post briefs for @${input.accountUsername}. Today is ${new Date().toISOString().slice(0, 10)}.
+
+Output valid JSON matching this schema:
+{
+  "week_theme": "one sentence framing the week's content direction",
+  "strategic_rationale": "2-3 sentences explaining why these 5 posts in this order",
+  "posts": [
+    {
+      "content_type": "carousel" | "single" | "reel" | "story",
+      "topic": "one-line hook",
+      "caption_direction": "1-2 sentence caption guidance",
+      "creation_steps": [
+        { "step": 1, "instruction": "specific action to take", "is_manual": false }
+      ],
+      "requires_manual_input": false,
+      "manual_input_description": null,
+      "estimated_minutes": 15,
+      "inspiration_post_ids": []
+    }
+  ]
+}
+
+Rules:
+- Order posts with manual-input posts first (4-5 day lead time), studio-only posts last (1-2 days)
+- At least one carousel, one single, and one reel if possible
+- Creation steps must be specific enough that someone can follow them without thinking
+- If a step requires recording video or taking photos, mark is_manual: true
+- For studio-only posts, steps should reference Content Studio
+- Reference liked inspiration posts by ID in inspiration_post_ids where relevant`;
+
+  const raw = await invokeLlmText({
+    job: "instagram-competitive-strategy",
+    system: systemPrompt,
+    prompt: userPrompt,
+    maxTokens: 4096,
+  });
+
+  const cleaned = raw.replace(/^```json?\s*/, "").replace(/\s*```$/, "");
+  const parsed = JSON.parse(cleaned) as {
+    week_theme: string;
+    strategic_rationale: string;
+    posts: Array<{
+      content_type: string;
+      topic: string;
+      caption_direction: string;
+      creation_steps: Array<{ step: number; instruction: string; is_manual: boolean }>;
+      requires_manual_input: boolean;
+      manual_input_description: string | null;
+      estimated_minutes: number;
+      inspiration_post_ids: string[];
+    }>;
+  };
+
+  const reportId = randomUUID();
+  await db.insert(instagram_strategy_reports).values({
+    id: reportId,
+    account_id: input.accountId,
+    report_type: "weekly_digest",
+    generated_at_ms: now,
+    summary_text: parsed.week_theme,
+    recommendations_json: { rationale: parsed.strategic_rationale },
+    content_ideas_json: parsed.posts,
+  });
+
+  const { start: weekStart, end: weekEnd } = getWeekBounds(new Date());
+  const dates = assignDates(5, weekStart, parsed.posts);
+
+  const slots: EnhancedContentPlanSlot[] = parsed.posts.map((post, i) => ({
+    index: i,
+    suggested_date: dates[i].date,
+    day_of_week: dates[i].day,
+    content_type: normalizeContentType(post.content_type),
+    topic: post.topic,
+    caption_direction: post.caption_direction,
+    creation_steps: post.creation_steps,
+    requires_manual_input: post.requires_manual_input,
+    manual_input_description: post.manual_input_description,
+    status: "pending" as const,
+    task_id: null,
+    ig_media_id: null,
+    inspiration_post_ids: post.inspiration_post_ids ?? [],
+    estimated_minutes: post.estimated_minutes ?? 15,
+    approved: false,
+  }));
+
+  const planId = randomUUID();
+  await db.insert(instagram_content_plans).values({
+    id: planId,
+    account_id: input.accountId,
+    strategy_report_id: reportId,
+    week_start_date: weekStart,
+    week_end_date: weekEnd,
+    theme_summary: parsed.week_theme,
+    slots_json: slots,
+    status: "awaiting_review",
+    nudge_sent: false,
+    created_at_ms: now,
+    updated_at_ms: now,
+  });
+
+  const adminUser = await db
+    .select({ id: tasks.created_by })
+    .from(tasks)
+    .limit(1)
+    .get();
+  const createdBy = adminUser?.id ?? "admin-dev-01";
+
+  for (const slot of slots) {
+    const taskId = randomUUID();
+    const dueMs = new Date(slot.suggested_date + "T10:00:00+10:00").getTime();
+
+    await db.insert(tasks).values({
+      id: taskId,
+      title: `Instagram: ${slot.topic}`,
+      body: buildTaskBody(slot),
+      kind: "admin",
+      status: "todo",
+      priority: slot.requires_manual_input ? "normal" : "low",
+      due_at_ms: dueMs,
+      created_at_ms: now,
+      updated_at_ms: now,
+      created_by: createdBy,
+    });
+
+    slot.task_id = taskId;
+  }
+
+  await db
+    .update(instagram_content_plans)
+    .set({ slots_json: slots, updated_at_ms: Date.now() })
+    .where(eq(instagram_content_plans.id, planId));
+
+  await logActivity({
+    kind: "instagram_cold_start_strategy_generated",
+    body: `Instagram strategy generated for @${input.accountUsername} — ${slots.length} posts planned.`,
+    meta: {
+      plan_id: planId,
+      report_id: reportId,
+      account_id: input.accountId,
+      post_count: slots.length,
+      has_self_metrics: hasSelfMetrics,
+    },
+  });
+
+  return { planId, reportId };
+}
+
+function buildSystemPrompt(
+  brandProfile: { voiceDescription: string; toneMarkers: string[]; avoidWords?: string[] },
+  likedPosts: Array<{ id: string; caption: string | null; mediaType: string; likes: number; comments: number; finalScore: number; accountUsername: string }>,
+  tasteProfile: { preferred_types_json: unknown; preferred_topics_json: unknown; anti_patterns_json: unknown } | null,
+  recentDumps: Array<{ content_ideas: unknown[]; script_ideas: unknown[] }>,
+  hasSelfMetrics: boolean,
+  latestMetrics: { followers: number; reach: number } | null,
+  audienceData: unknown,
+  username: string,
+): string {
+  let prompt = `You are generating a weekly Instagram content strategy for @${username} (SuperBad Marketing).
+
+BRAND VOICE:
+${brandProfile.voiceDescription}
+Tone markers: ${brandProfile.toneMarkers.join(", ")}
+Words to avoid: ${(brandProfile.avoidWords ?? []).join(", ")}
+
+CONTENT APPROACH:
+- Dry, observational, self-deprecating, slow burn
+- Never explain the joke. Short sentences. Leave room for the mutter.
+- Open with an observation, not a hook question
+- No hashtag walls, no emoji abuse
+- Let the visual do the heavy lifting`;
+
+  if (likedPosts.length > 0) {
+    prompt += `\n\nLIKED INSPIRATION POSTS (Andy approved these — use them as direction):`;
+    for (const p of likedPosts.slice(0, 10)) {
+      prompt += `\n- [ID: ${p.id}] @${p.accountUsername} | ${p.mediaType} | ${p.likes} likes, ${p.comments} comments | Score: ${p.finalScore.toFixed(1)}×`;
+      if (p.caption) {
+        prompt += `\n  Caption: ${p.caption.slice(0, 200)}${p.caption.length > 200 ? "..." : ""}`;
+      }
+    }
+  }
+
+  if (tasteProfile) {
+    prompt += `\n\nANDY'S TASTE PROFILE:`;
+    if (tasteProfile.preferred_types_json)
+      prompt += `\nPreferred types: ${JSON.stringify(tasteProfile.preferred_types_json)}`;
+    if (tasteProfile.preferred_topics_json)
+      prompt += `\nPreferred topics: ${JSON.stringify(tasteProfile.preferred_topics_json)}`;
+    if (tasteProfile.anti_patterns_json)
+      prompt += `\nDislikes: ${JSON.stringify(tasteProfile.anti_patterns_json)}`;
+  }
+
+  const allContentIdeas = recentDumps.flatMap((d) => d.content_ideas);
+  const allScriptIdeas = recentDumps.flatMap((d) => d.script_ideas);
+
+  if (allContentIdeas.length > 0 || allScriptIdeas.length > 0) {
+    prompt += `\n\nRECENT BRAINDUMP IDEAS (Andy's own thoughts from the last 14 days):`;
+    if (allContentIdeas.length > 0)
+      prompt += `\nContent ideas: ${JSON.stringify(allContentIdeas.slice(0, 5))}`;
+    if (allScriptIdeas.length > 0)
+      prompt += `\nScript ideas: ${JSON.stringify(allScriptIdeas.slice(0, 3))}`;
+  }
+
+  if (hasSelfMetrics && latestMetrics) {
+    prompt += `\n\nOWN METRICS:
+Followers: ${latestMetrics.followers}
+Reach (latest): ${latestMetrics.reach}`;
+    if (audienceData) {
+      prompt += `\nAudience: ${JSON.stringify(audienceData)}`;
+    }
+  } else {
+    prompt += `\n\nCOLD START: No existing metrics data. This is a brand-new account or first-time strategy generation. Recommend a diagnostic mix of content types to establish baseline performance data.`;
+  }
+
+  return prompt;
+}
+
+function buildTaskBody(slot: EnhancedContentPlanSlot): string {
+  let body = `${slot.caption_direction}\n\nContent type: ${slot.content_type}`;
+  if (slot.requires_manual_input && slot.manual_input_description) {
+    body += `\n\nManual input needed: ${slot.manual_input_description}`;
+  }
+  if (slot.creation_steps.length > 0) {
+    body += `\n\nSteps:`;
+    for (const step of slot.creation_steps) {
+      body += `\n${step.step}. ${step.instruction}${step.is_manual ? " (manual)" : ""}`;
+    }
+  }
+  return body;
+}
+
+async function fetchLikedInspirationPosts() {
+  const rows = await db
+    .select({
+      id: instagram_competitor_posts.id,
+      caption: instagram_competitor_posts.caption,
+      mediaType: instagram_competitor_posts.media_type,
+      likes: instagram_competitor_posts.likes,
+      comments: instagram_competitor_posts.comments,
+      finalScore: instagram_competitor_posts.final_score,
+      watchedAccountId: instagram_competitor_posts.watched_account_id,
+    })
+    .from(instagram_competitor_posts)
+    .innerJoin(
+      instagram_inspiration_reactions,
+      eq(
+        instagram_competitor_posts.id,
+        instagram_inspiration_reactions.competitor_post_id,
+      ),
+    )
+    .where(eq(instagram_inspiration_reactions.reaction, "like"))
+    .all();
+
+  const accountIds = [...new Set(rows.map((r) => r.watchedAccountId))];
+  const accountMap = new Map<string, string>();
+  for (const aid of accountIds) {
+    const acc = await db
+      .select({ username: instagram_watched_accounts.username })
+      .from(instagram_watched_accounts)
+      .where(eq(instagram_watched_accounts.id, aid))
+      .get();
+    if (acc) accountMap.set(aid, acc.username);
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    accountUsername: accountMap.get(r.watchedAccountId) ?? "unknown",
+  }));
+}
+
+async function fetchLatestTasteProfile() {
+  return db
+    .select()
+    .from(instagram_taste_profiles)
+    .orderBy(desc(instagram_taste_profiles.generated_at_ms))
+    .limit(1)
+    .get() ?? null;
+}
+
+async function fetchRecentBraindumpIdeas(sinceMs: number) {
+  const rows = await db
+    .select({
+      parsed_at_ms: braindumps.parsed_at_ms,
+    })
+    .from(braindumps)
+    .where(gte(braindumps.created_at_ms, sinceMs))
+    .all();
+
+  return rows
+    .filter((r) => r.parsed_at_ms)
+    .map(() => ({
+      content_ideas: [] as unknown[],
+      script_ideas: [] as unknown[],
+    }));
+}
+
+async function fetchLatestMetrics(accountId: string) {
+  const row = await db
+    .select({
+      followers: instagram_metrics_snapshots.followers,
+      reach: instagram_metrics_snapshots.reach,
+    })
+    .from(instagram_metrics_snapshots)
+    .where(eq(instagram_metrics_snapshots.account_id, accountId))
+    .orderBy(desc(instagram_metrics_snapshots.synced_at_ms))
+    .limit(1)
+    .get();
+
+  if (!row) return null;
+  return { followers: row.followers ?? 0, reach: row.reach ?? 0 };
+}
+
+async function fetchAudienceData(accountId: string) {
+  const row = await db
+    .select()
+    .from(instagram_audience_snapshots)
+    .where(eq(instagram_audience_snapshots.account_id, accountId))
+    .orderBy(desc(instagram_audience_snapshots.synced_at_ms))
+    .limit(1)
+    .get();
+
+  if (!row) return null;
+  return {
+    top_cities: row.top_cities_json,
+    age_gender: row.age_gender_json,
+    online_hours: row.online_hours_json,
+  };
+}
+
+function getWeekBounds(refDate: Date): { start: string; end: string } {
+  const d = new Date(refDate);
+  const day = d.getDay();
+  const diffToMon = day === 0 ? 1 : 8 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMon);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const fmt = (dt: Date) => dt.toISOString().slice(0, 10);
+  return { start: fmt(monday), end: fmt(sunday) };
+}
+
+function assignDates(
+  count: number,
+  weekStart: string,
+  posts: Array<{ requires_manual_input: boolean }>,
+): { date: string; day: string }[] {
+  const base = new Date(weekStart + "T00:00:00");
+  const result: { date: string; day: string }[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const post = posts[i];
+    const offset = post?.requires_manual_input
+      ? Math.min(i, 1)
+      : 2 + Math.min(i, 4);
+    const d = new Date(base);
+    d.setDate(d.getDate() + offset);
+    result.push({
+      date: d.toISOString().slice(0, 10),
+      day: DAY_NAMES[d.getDay()],
+    });
+  }
+
+  return result;
+}
+
+function normalizeContentType(
+  type: string,
+): "carousel" | "single" | "reel" | "story" {
+  const t = type.toLowerCase();
+  if (t === "carousel") return "carousel";
+  if (t === "reel") return "reel";
+  if (t === "story") return "story";
+  return "single";
+}

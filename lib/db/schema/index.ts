@@ -107,3 +107,4 @@ export * from "./meta-campaigns";
 export * from "./search-verticals";
 export * from "./habits";
 export * from "./sfx-library";
+export * from "./instagram-competitive";

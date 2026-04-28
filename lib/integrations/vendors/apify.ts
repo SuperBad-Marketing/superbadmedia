@@ -38,6 +38,11 @@ export const apifyManifest: VendorManifest = {
       defaultBand: { p95: 60000, p99: 90000 },
       unit: "ms",
     },
+    {
+      name: "apify.instagram_profile",
+      defaultBand: { p95: 45000, p99: 70000 },
+      unit: "ms",
+    },
   ],
   actorConvention: "internal",
   killSwitchKey: "setup_wizards_enabled",

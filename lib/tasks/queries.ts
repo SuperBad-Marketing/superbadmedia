@@ -366,6 +366,7 @@ export async function deleteTasks(ids: string[]): Promise<void> {
 export async function createBraindump(input: {
   raw_text: string;
   surface_context?: Record<string, unknown> | null;
+  mood_signal?: Record<string, unknown> | null;
   created_by: string;
 }): Promise<BraindumpRow> {
   const now = Date.now();
@@ -373,6 +374,7 @@ export async function createBraindump(input: {
     id: randomUUID(),
     raw_text: input.raw_text,
     surface_context: input.surface_context ?? null,
+    mood_signal_json: input.mood_signal ?? null,
     task_count: 0,
     created_by: input.created_by,
     created_at_ms: now,

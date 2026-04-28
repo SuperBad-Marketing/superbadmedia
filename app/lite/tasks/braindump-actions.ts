@@ -18,6 +18,7 @@ import { logActivity } from "@/lib/activity-log";
 import type { TaskKind, TaskPriority, ChecklistItem } from "@/lib/tasks/types";
 import type { ContentType } from "@/lib/db/schema/content-studio";
 import type { PillarSlug, ScriptFormat } from "@/lib/db/schema/talking-head";
+import type { MoodSignal } from "@/lib/db/schema/instagram-competitive";
 
 type ActionResult<T = void> =
   | { ok: true; data: T }
@@ -79,6 +80,7 @@ export async function commitBraindumpAction(
   commitTasks: CommitTask[],
   commitContent: CommitContentIdea[] = [],
   commitScripts: CommitScriptIdea[] = [],
+  moodSignal: MoodSignal | null = null,
 ): Promise<ActionResult<CommitResult>> {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
@@ -96,6 +98,7 @@ export async function commitBraindumpAction(
     const braindump = await createBraindump({
       raw_text: rawText,
       surface_context: surfaceContext as Record<string, unknown> | null,
+      mood_signal: moodSignal as Record<string, unknown> | null,
       created_by: userId,
     });
 

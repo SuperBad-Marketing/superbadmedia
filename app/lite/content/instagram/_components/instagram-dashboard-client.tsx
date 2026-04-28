@@ -4,14 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, CheckCheck, Pencil, Calendar, Loader2 } from "lucide-react";
+import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles } from "lucide-react";
 import type { ContentPlanSlot } from "@/lib/db/schema/instagram";
+import type { EnhancedContentPlanSlot } from "@/lib/db/schema/instagram-competitive";
 import {
   retryInstagramDiscoveryAction,
   approvePlanSlotsAction,
   updatePlanSlotAction,
   syncInstagramDataAction,
 } from "../actions";
+import {
+  generateStrategyAction,
+  reactToInspirationAction,
+  fetchInspirationFeedAction,
+} from "../strategy-actions";
 
 interface AccountSummary {
   id: string;
@@ -221,6 +227,12 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
         );
       })}
 
+      {/* Generate Strategy button — shows when no plans exist */}
+      {plans.length === 0 && <GenerateStrategySection />}
+
+      {/* Inspiration Feed */}
+      <InspirationFeed />
+
       {/* Placeholder sections — will be populated in subsequent sessions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <DashboardCard title="Followers" subtitle="Growth over time">
@@ -240,18 +252,11 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
         </div>
       </DashboardCard>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <DashboardCard title="Strategy" subtitle="Weekly AI recommendations">
-          <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
-            First digest generates after one week of data.
-          </div>
-        </DashboardCard>
-        <DashboardCard title="Audience" subtitle="Demographics and activity">
-          <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
-            Available after 100+ followers.
-          </div>
-        </DashboardCard>
-      </div>
+      <DashboardCard title="Audience" subtitle="Demographics and activity">
+        <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
+          Available after 100+ followers.
+        </div>
+      </DashboardCard>
     </div>
   );
 }
@@ -607,6 +612,394 @@ function ContentPlanCard({
               <CheckCheck className="size-3.5" strokeWidth={1.5} />
               Approve all
             </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GenerateStrategySection() {
+  const router = useRouter();
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleGenerate() {
+    setGenerating(true);
+    setError(null);
+    try {
+      const result = await generateStrategyAction();
+      if (result.ok) {
+        toast.success("Strategy generated — your next 5 posts are ready.");
+        router.refresh();
+      } else {
+        setError(result.error);
+        toast.error(result.error);
+      }
+    } catch {
+      setError("Strategy generation failed. Try again.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  return (
+    <div
+      className="rounded-xl border p-8 text-center"
+      style={{
+        backgroundColor: "var(--color-neutral-900)",
+        borderColor: "rgba(253, 245, 230, 0.06)",
+      }}
+    >
+      <div
+        className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full"
+        style={{ backgroundColor: "rgba(244, 160, 176, 0.1)" }}
+      >
+        <Sparkles
+          className="size-6 text-[color:var(--color-brand-pink)]"
+          strokeWidth={1.5}
+        />
+      </div>
+      <h3 className="font-[family-name:var(--font-display)] text-[20px] text-[color:var(--color-brand-cream)] text-balance">
+        Generate your first strategy
+      </h3>
+      <p className="mx-auto mt-2 max-w-[480px] font-[family-name:var(--font-body)] text-[14px] leading-[1.55] text-[color:var(--color-neutral-400)] text-pretty">
+        No existing posts needed. The platform uses your Brand DNA, competitive
+        intelligence from watched accounts, and your braindump ideas to create a
+        step-by-step content plan.
+      </p>
+      {error && (
+        <p className="mt-3 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-red)]">
+          {error}
+        </p>
+      )}
+      <button
+        onClick={handleGenerate}
+        disabled={generating}
+        className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition-opacity disabled:opacity-50"
+        style={{
+          letterSpacing: "1.5px",
+          backgroundColor: "var(--color-brand-red)",
+        }}
+      >
+        {generating ? (
+          <>
+            <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
+            Generating…
+          </>
+        ) : (
+          <>
+            <Sparkles className="size-4" strokeWidth={1.5} />
+            Generate Strategy
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
+interface InspirationPost {
+  id: string;
+  imageUrl: string;
+  caption: string | null;
+  mediaType: string;
+  likes: number;
+  comments: number;
+  finalScore: number;
+  whyHigh: string | null;
+  permalink: string | null;
+  accountUsername: string;
+  accountFollowers: number;
+  reaction: "like" | "dislike" | null;
+}
+
+function InspirationFeed() {
+  const [posts, setPosts] = useState<InspirationPost[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [filter, setFilter] = useState<"all" | "liked" | "undecided" | "dismissed">("all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [reacting, setReacting] = useState<string | null>(null);
+
+  async function loadPosts() {
+    const result = await fetchInspirationFeedAction();
+    if (result.ok) {
+      setPosts(result.value);
+    }
+    setLoaded(true);
+  }
+
+  useState(() => {
+    loadPosts();
+  });
+
+  async function handleReact(postId: string, reaction: "like" | "dislike") {
+    setReacting(postId);
+    const result = await reactToInspirationAction({
+      competitorPostId: postId,
+      reaction,
+    });
+    if (result.ok) {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, reaction } : p,
+        ),
+      );
+    }
+    setReacting(null);
+  }
+
+  if (!loaded || posts.length === 0) return null;
+
+  const filtered = posts.filter((p) => {
+    if (filter === "liked") return p.reaction === "like";
+    if (filter === "dismissed") return p.reaction === "dislike";
+    if (filter === "undecided") return p.reaction === null;
+    return true;
+  });
+
+  const FILTER_OPTIONS = [
+    { key: "all" as const, label: "All" },
+    { key: "liked" as const, label: "Liked" },
+    { key: "undecided" as const, label: "Undecided" },
+    { key: "dismissed" as const, label: "Dismissed" },
+  ];
+
+  return (
+    <div
+      className="rounded-xl border p-5"
+      style={{
+        backgroundColor: "var(--color-neutral-900)",
+        borderColor: "rgba(253, 245, 230, 0.06)",
+      }}
+    >
+      <div className="mb-4 flex items-baseline justify-between">
+        <h3 className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
+          Inspiration
+        </h3>
+        <div className="flex gap-1">
+          {FILTER_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setFilter(opt.key)}
+              className="rounded-md px-2 py-1 font-[family-name:var(--font-label)] text-[9px] uppercase transition-colors"
+              style={{
+                letterSpacing: "1px",
+                backgroundColor:
+                  filter === opt.key
+                    ? "rgba(244, 160, 176, 0.15)"
+                    : "transparent",
+                color:
+                  filter === opt.key
+                    ? "var(--color-brand-pink)"
+                    : "var(--color-neutral-500)",
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {filtered.map((post) => (
+          <InspirationCard
+            key={post.id}
+            post={post}
+            expanded={expandedId === post.id}
+            onToggle={() =>
+              setExpandedId(expandedId === post.id ? null : post.id)
+            }
+            onReact={(r) => handleReact(post.id, r)}
+            reacting={reacting === post.id}
+          />
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
+          {filter === "all"
+            ? "Add watched accounts in Settings to see inspiration posts."
+            : `No ${filter} posts.`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InspirationCard({
+  post,
+  expanded,
+  onToggle,
+  onReact,
+  reacting,
+}: {
+  post: InspirationPost;
+  expanded: boolean;
+  onToggle: () => void;
+  onReact: (reaction: "like" | "dislike") => void;
+  reacting: boolean;
+}) {
+  const isLiked = post.reaction === "like";
+  const isDisliked = post.reaction === "dislike";
+
+  return (
+    <div
+      className="overflow-hidden rounded-lg border transition-opacity"
+      style={{
+        borderColor: isLiked
+          ? "rgba(244, 160, 176, 0.3)"
+          : "rgba(253, 245, 230, 0.06)",
+        opacity: isDisliked ? 0.35 : 1,
+      }}
+    >
+      {/* Image + overlay */}
+      <button
+        onClick={onToggle}
+        className="relative block w-full"
+      >
+        <img
+          src={post.imageUrl}
+          alt=""
+          className="aspect-square w-full object-cover"
+          loading="lazy"
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 flex items-end justify-between p-3"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)",
+          }}
+        >
+          <div>
+            <span className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-brand-cream)]" style={{ letterSpacing: "1px" }}>
+              @{post.accountUsername}
+            </span>
+            <span className="ml-2 font-[family-name:var(--font-label)] text-[9px] text-[color:var(--color-neutral-500)]">
+              {post.accountFollowers.toLocaleString()}
+            </span>
+          </div>
+          <span
+            className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[9px] font-semibold tabular-nums"
+            style={{
+              backgroundColor: "rgba(244, 160, 176, 0.25)",
+              color: "var(--color-brand-pink)",
+              letterSpacing: "0.5px",
+            }}
+          >
+            {post.finalScore.toFixed(1)}× avg
+          </span>
+        </div>
+      </button>
+
+      {/* Reaction buttons */}
+      <div
+        className="flex items-center justify-between px-3 py-2"
+        style={{ backgroundColor: "var(--color-neutral-900)" }}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[8px] uppercase"
+            style={{
+              letterSpacing: "0.8px",
+              background: "rgba(253, 245, 230, 0.05)",
+              color:
+                CONTENT_TYPE_COLORS[post.mediaType.toLowerCase()] ??
+                "var(--color-neutral-400)",
+            }}
+          >
+            {post.mediaType === "CAROUSEL_ALBUM" ? "carousel" : post.mediaType.toLowerCase()}
+          </span>
+          <span className="font-[family-name:var(--font-body)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]">
+            {post.likes.toLocaleString()} likes
+          </span>
+        </div>
+        <div className="flex gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onReact("like");
+            }}
+            disabled={reacting}
+            className="flex size-7 items-center justify-center rounded-full transition-colors"
+            aria-label="Like this post"
+            style={{
+              backgroundColor: isLiked
+                ? "rgba(244, 160, 176, 0.2)"
+                : "rgba(253, 245, 230, 0.05)",
+            }}
+          >
+            <Heart
+              className="size-3.5"
+              strokeWidth={1.5}
+              fill={isLiked ? "var(--color-brand-pink)" : "none"}
+              style={{
+                color: isLiked
+                  ? "var(--color-brand-pink)"
+                  : "var(--color-neutral-500)",
+              }}
+            />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onReact("dislike");
+            }}
+            disabled={reacting}
+            className="flex size-7 items-center justify-center rounded-full transition-colors"
+            aria-label="Dismiss this post"
+            style={{
+              backgroundColor: isDisliked
+                ? "rgba(255, 100, 100, 0.15)"
+                : "rgba(253, 245, 230, 0.05)",
+            }}
+          >
+            <X
+              className="size-3.5"
+              strokeWidth={1.5}
+              style={{
+                color: isDisliked
+                  ? "var(--color-brand-red)"
+                  : "var(--color-neutral-500)",
+              }}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded detail */}
+      {expanded && (
+        <div
+          className="border-t px-3 py-3"
+          style={{ borderColor: "rgba(253, 245, 230, 0.06)" }}
+        >
+          {post.caption && (
+            <p className="mb-2 line-clamp-4 font-[family-name:var(--font-body)] text-[12px] leading-[1.5] text-[color:var(--color-neutral-400)]">
+              {post.caption}
+            </p>
+          )}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-3 font-[family-name:var(--font-body)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]">
+              <span>{post.likes.toLocaleString()} likes</span>
+              <span>{post.comments.toLocaleString()} comments</span>
+              <span>
+                ER: {((post.likes + post.comments) / Math.max(post.accountFollowers, 1) * 100).toFixed(2)}%
+              </span>
+            </div>
+            {post.permalink && (
+              <a
+                href={post.permalink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+              >
+                View on Instagram →
+              </a>
+            )}
+          </div>
+          {post.whyHigh && (
+            <p className="mt-2 font-[family-name:var(--font-narrative)] text-[11px] italic text-[color:var(--color-brand-pink)]">
+              {post.whyHigh}
+            </p>
           )}
         </div>
       )}

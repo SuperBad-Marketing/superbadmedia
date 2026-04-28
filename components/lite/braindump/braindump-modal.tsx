@@ -19,6 +19,7 @@ import type {
   ParsedScriptIdea,
   SurfaceContext,
 } from "@/lib/ai/parse-braindump";
+import type { MoodSignal } from "@/lib/db/schema/instagram-competitive";
 import {
   parseBraindumpAction,
   commitBraindumpAction,
@@ -648,6 +649,7 @@ export function BraindumpModal({
   const [tasks, setTasks] = React.useState<ParsedTask[]>([]);
   const [contentIdeas, setContentIdeas] = React.useState<ParsedContentIdea[]>([]);
   const [scriptIdeas, setScriptIdeas] = React.useState<ParsedScriptIdea[]>([]);
+  const [moodSignal, setMoodSignal] = React.useState<MoodSignal | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -683,6 +685,7 @@ export function BraindumpModal({
     setTasks(result.data.tasks);
     setContentIdeas(result.data.content_ideas);
     setScriptIdeas(result.data.script_ideas);
+    setMoodSignal(result.data.mood_signal);
     setPhase("review");
   }, [rawText, surfaceContext]);
 
@@ -769,6 +772,7 @@ export function BraindumpModal({
       commitTasks,
       commitContent,
       commitScripts,
+      moodSignal,
     );
 
     if (!result.ok) {
@@ -777,7 +781,7 @@ export function BraindumpModal({
       return;
     }
     onClose();
-  }, [tasks, contentIdeas, scriptIdeas, totalItems, rawText, surfaceContext, onClose]);
+  }, [tasks, contentIdeas, scriptIdeas, totalItems, rawText, surfaceContext, moodSignal, onClose]);
 
   const handleBack = React.useCallback(() => {
     setPhase("input");

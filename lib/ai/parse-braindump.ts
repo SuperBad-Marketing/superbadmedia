@@ -6,6 +6,8 @@ import { eq, gt, sql } from "drizzle-orm";
 import { invokeLlmText } from "@/lib/ai/invoke";
 import { killSwitches } from "@/lib/kill-switches";
 import { logActivity } from "@/lib/activity-log";
+import { extractMoodSignal } from "@/lib/ai/extract-mood-signal";
+import type { MoodSignal } from "@/lib/db/schema/instagram-competitive";
 import type { TaskKind, TaskPriority, ChecklistItem } from "@/lib/tasks/types";
 import { TASK_KINDS, TASK_PRIORITIES } from "@/lib/tasks/types";
 import { CONTENT_TYPES, type ContentType } from "@/lib/db/schema/content-studio";
@@ -65,6 +67,7 @@ export type ParsedBraindump = {
   content_ideas: ParsedContentIdea[];
   script_ideas: ParsedScriptIdea[];
   global_confidence: number;
+  mood_signal: MoodSignal | null;
 };
 
 export type SurfaceContext = {
@@ -450,11 +453,14 @@ export async function parseBraindump(
   const entityContext = await fetchEntityContext();
   const prompt = buildPrompt(rawText, entityContext, surfaceContext);
 
-  const responseText = await invokeLlmText({
-    job: "braindump-parse",
-    prompt,
-    maxTokens: 4096,
-  });
+  const [responseText, moodSignal] = await Promise.all([
+    invokeLlmText({
+      job: "braindump-parse",
+      prompt,
+      maxTokens: 4096,
+    }),
+    extractMoodSignal(rawText).catch(() => null),
+  ]);
 
   let parsed: LlmParsedBraindump;
   try {
@@ -492,5 +498,6 @@ export async function parseBraindump(
     content_ideas,
     script_ideas,
     global_confidence: clamp01(parsed.global_confidence),
+    mood_signal: moodSignal,
   };
 }

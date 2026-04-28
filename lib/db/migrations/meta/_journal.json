@@ -442,6 +442,13 @@
       "when": 1778500000000,
       "tag": "0099_add_intro_funnel_instagram_handle",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "6",
+      "when": 1778600000000,
+      "tag": "0100_instagram_competitive_strategy",
+      "breakpoints": true
     }
   ]
 }

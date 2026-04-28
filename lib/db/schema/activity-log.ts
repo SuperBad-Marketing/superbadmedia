@@ -395,6 +395,13 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Instagram Token (2) ---
   "instagram_token_refreshed",
   "instagram_token_refresh_failed",
+  // --- Instagram Competitive Strategy (6) ---
+  "instagram_competitive_scrape_completed",
+  "instagram_inspiration_liked",
+  "instagram_inspiration_disliked",
+  "instagram_taste_profile_generated",
+  "instagram_cold_start_strategy_generated",
+  "instagram_post_published",
   // --- Data management ---
   "brand_dna_reset",
   "client_context_reset",

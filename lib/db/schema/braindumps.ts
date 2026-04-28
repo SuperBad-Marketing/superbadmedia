@@ -10,6 +10,7 @@ export const braindumps = sqliteTable("braindumps", {
   task_count: integer("task_count").notNull().default(0),
   content_count: integer("content_count").notNull().default(0),
   script_count: integer("script_count").notNull().default(0),
+  mood_signal_json: text("mood_signal_json", { mode: "json" }),
   created_by: text("created_by")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
