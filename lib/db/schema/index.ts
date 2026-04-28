@@ -112,3 +112,4 @@ export * from "./stripe-synced-payments";
 export * from "./business-profile-sections";
 export * from "./business-profile-suggestions";
 export * from "./prompt-library";
+export * from "./music-library";

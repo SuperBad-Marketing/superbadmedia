@@ -1287,3 +1287,140 @@ export async function getCompositeJobAction(jobId: string) {
     },
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Music library actions                                              */
+/* ------------------------------------------------------------------ */
+
+import { musicLibrary, MUSIC_MOODS, type MusicMood } from "@/lib/db/schema/music-library";
+
+export async function listMusicAction() {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const rows = await db
+    .select()
+    .from(musicLibrary)
+    .orderBy(desc(musicLibrary.sort_order))
+    .limit(200);
+
+  return {
+    ok: true as const,
+    tracks: rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      artist: r.artist,
+      fileUrl: r.file_url,
+      durationSec: r.duration_sec,
+      bpm: r.bpm,
+      mood: r.mood as MusicMood | null,
+    })),
+  };
+}
+
+const addMusicSchema = z.object({
+  name: z.string().min(1).max(200),
+  artist: z.string().optional(),
+  fileUrl: z.string().min(1),
+  cloudinaryPublicId: z.string().optional(),
+  durationSec: z.number().int().optional(),
+  bpm: z.number().int().optional(),
+  mood: z.enum(MUSIC_MOODS).optional(),
+});
+
+export async function addMusicTrackAction(
+  input: z.infer<typeof addMusicSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = addMusicSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const id = crypto.randomUUID();
+  await db.insert(musicLibrary).values({
+    id,
+    name: parsed.data.name,
+    artist: parsed.data.artist ?? null,
+    file_url: parsed.data.fileUrl,
+    cloudinary_public_id: parsed.data.cloudinaryPublicId ?? null,
+    duration_sec: parsed.data.durationSec ?? null,
+    bpm: parsed.data.bpm ?? null,
+    mood: parsed.data.mood ?? null,
+    created_at_ms: Date.now(),
+  });
+
+  return { ok: true as const, id };
+}
+
+/* ------------------------------------------------------------------ */
+/* Scene management actions                                           */
+/* ------------------------------------------------------------------ */
+
+export interface SceneData {
+  id: string;
+  prompt: string;
+  durationSec: number;
+  status: "pending" | "generating" | "ready" | "failed";
+  thumbnailUrl?: string;
+  outputUrl?: string;
+}
+
+const updateScenesSchema = z.object({
+  jobId: z.string(),
+  scenes: z.array(
+    z.object({
+      id: z.string(),
+      prompt: z.string(),
+      durationSec: z.number().int().min(2).max(15),
+      status: z.enum(["pending", "generating", "ready", "failed"]),
+      thumbnailUrl: z.string().optional(),
+      outputUrl: z.string().optional(),
+    }),
+  ),
+});
+
+export async function updateScenesAction(
+  input: z.infer<typeof updateScenesSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = updateScenesSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  await db
+    .update(videoJobs)
+    .set({
+      scenes_json: parsed.data.scenes as unknown as Record<string, unknown>,
+      scene_count: parsed.data.scenes.length,
+    })
+    .where(eq(videoJobs.id, parsed.data.jobId));
+
+  return { ok: true as const };
+}
+
+export async function setMusicTrackAction(jobId: string, trackId: string, musicUrl: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  await db
+    .update(videoJobs)
+    .set({ music_track_id: trackId, music_url: musicUrl })
+    .where(eq(videoJobs.id, jobId));
+
+  await db
+    .update(musicLibrary)
+    .set({ use_count: (await db.query.musicLibrary.findFirst({ where: eq(musicLibrary.id, trackId) }))!.use_count + 1 })
+    .where(eq(musicLibrary.id, trackId));
+
+  return { ok: true as const };
+}

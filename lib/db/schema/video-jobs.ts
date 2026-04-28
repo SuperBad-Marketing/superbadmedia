@@ -78,6 +78,12 @@ export const videoJobs = sqliteTable(
     footage_url: text("footage_url"),
     overlay_url: text("overlay_url"),
     composite_url: text("composite_url"),
+
+    // Multi-scene + music
+    scene_count: integer("scene_count").default(1),
+    scenes_json: text("scenes_json", { mode: "json" }),
+    music_track_id: text("music_track_id"),
+    music_url: text("music_url"),
   },
   (t) => ({
     by_status: index("video_jobs_status_idx").on(t.status, t.created_at),
