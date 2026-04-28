@@ -295,6 +295,8 @@ export const ACTIVITY_LOG_KINDS = [
   "inbox_history_import_started",
   "inbox_contact_rerouted",
   "inbox_noise_cleanup",
+  "inbox_age_cleanup",
+  "inbox_trash_emptied",
   "inbox_digest_sent",
   // --- Six-Week Plan Generator (17) ---
   "six_week_plan_generation_started",
