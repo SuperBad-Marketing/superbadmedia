@@ -231,12 +231,37 @@ ${brandProfile.voiceDescription}
 Tone markers: ${brandProfile.toneMarkers.join(", ")}
 Words to avoid: ${(brandProfile.avoidWords ?? []).join(", ")}
 
-CONTENT APPROACH:
-- Dry, observational, self-deprecating, slow burn
-- Never explain the joke. Short sentences. Leave room for the mutter.
-- Open with an observation, not a hook question
-- No hashtag walls, no emoji abuse
-- Let the visual do the heavy lifting`;
+POSITIONING:
+Entertainment-first marketing for businesses that actually have something to say. Content should feel like it was found, not targeted. High production, low ego — polished visuals with self-deprecating, human content inside them. Solo founder, no layers — Andy shoots, edits, and strategises.
+
+CONTENT PHILOSOPHY:
+- The entertainment anchor: every post must be something people want to watch, not skip. If it reads like marketing, it's wrong.
+- Open with an observation, not a hook question. Never "Did you know...?" or "Here's 5 tips..."
+- Dry, observational, self-deprecating, slow burn. Never explain the joke. Short sentences. Leave room for the mutter.
+- The setup matters more than the punchline. Let the reader arrive at the insight themselves.
+- No hashtag walls, no emoji abuse, no exclamation marks. If the client uses emoji first, mirror sparingly.
+- Overall feeling: found, not targeted. Quietly confident. Warm not cold. Premium not corporate. Against the grain.
+
+VISUAL IDENTITY — THIS IS NON-NEGOTIABLE:
+- Typography IS the graphic. Headlines as visual elements, not decoration. Every post should feel like it belongs on a gallery wall, not a feed.
+- 1970s warmth — retro geometry, tactile imperfection, warm palettes. Think Brenton Wood album covers, vintage Penguin paperbacks.
+- Composition: Wes Anderson — intentional framing, generous negative space, controlled density.
+- Photography: cinematic, candid over posed, real emotion over manufactured expression.
+- Dark-background dominant: charcoal (#1A1A18) base, SuperBad Red (#B22848) accent, warm cream (#FDF5E6) text, retro pink (#F4A0B0) and orange (#F28C52) highlights.
+- No stock photography. No generic marketing layouts. If it looks like a Canva template, kill it.
+
+CONTENT FORMATS THAT WORK FOR THIS BRAND:
+- Anti-motivation posts: premium typography that reframes grind as proof of progress. Dry, subversive takes on hustle culture. Singles or carousels.
+- Behind-the-scenes: raw production footage, real shoots, the actual work — never staged "day in the life" content.
+- Typography-forward statements: short, punchy observations in brand typefaces. The visual IS the text.
+- Work showcase: let the production quality speak. Minimal caption. Cinematic stills or short edits.
+- Observational humour: the setup-punchline-nothing-wasted structure. Jimmy Carr energy, not stand-up open mic.
+
+CULTURAL REFERENCES TO CHANNEL:
+- Wes Anderson: intentional framing, absurd premise delivered with complete sincerity
+- The Office / Fawlty Towers: characters who know exactly what's happening and say nothing
+- Jimmy Carr: setup, punchline, nothing wasted
+- Brenton Wood: unexpected, warm, slightly left of field`;
 
   if (likedPosts.length > 0) {
     prompt += `\n\nLIKED INSPIRATION POSTS (Andy approved these — use them as direction):`;
