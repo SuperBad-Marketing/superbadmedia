@@ -16,6 +16,7 @@ import { getContentHealthBanners } from "@/lib/content/health-banners";
 import { getBrandDnaWaitingItems } from "@/lib/brand-dna/cockpit";
 import { getSixWeekPlanWaitingItems } from "@/lib/six-week-plans/cockpit";
 import { getWizardHealthBanners } from "@/lib/wizards/health-banners";
+import { getInstagramReplyWaitingItems, getInstagramReplyHealthBanners } from "@/lib/channels/instagram/cockpit";
 
 /**
  * Merges waiting items from every source spec in parallel.
@@ -36,6 +37,7 @@ export async function mergeWaitingItems(
     getHiringWaitingItems(nowMs),
     getBrandDnaWaitingItems(nowMs),
     getSixWeekPlanWaitingItems(nowMs),
+    getInstagramReplyWaitingItems(nowMs),
     getClientManagementWaitingItems(nowMs),
     getWizardWaitingItems(nowMs),
   ]);
@@ -65,6 +67,7 @@ export async function mergeHealthBanners(
     getInboxHealthBanners(nowMs),
     getContentHealthBanners(nowMs),
     getWizardHealthBanners(nowMs),
+    getInstagramReplyHealthBanners(nowMs),
   ]);
 
   const banners: HealthBanner[] = [];
