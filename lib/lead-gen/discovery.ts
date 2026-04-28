@@ -20,14 +20,21 @@ const BROAD_SWEEP_CATEGORIES = [
   "education and training",
   "food and beverage",
   "medical and dental",
+  "manufacturing and wholesale",
+  "outdoor and recreation",
+  "real estate and property",
+  "financial services and accounting",
+  "legal services",
+  "home services and landscaping",
+  "pet services and veterinary",
+  "events and venues",
+  "agriculture and farming",
+  "technology and IT services",
 ];
 
-let broadSweepIndex = 0;
-
 function nextBroadCategory(): string {
-  const cat = BROAD_SWEEP_CATEGORIES[broadSweepIndex % BROAD_SWEEP_CATEGORIES.length];
-  broadSweepIndex++;
-  return cat;
+  const index = Math.floor(Math.random() * BROAD_SWEEP_CATEGORIES.length);
+  return BROAD_SWEEP_CATEGORIES[index];
 }
 
 export interface DiscoveryRunResult {

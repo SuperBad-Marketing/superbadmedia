@@ -7,13 +7,13 @@ import { triggerManualRunAction } from "../actions";
 
 const PIPELINE_STEPS = [
   "Checking warmup budget",
-  "Searching Google Maps",
+  "Picking search vertical",
+  "Searching discovery sources",
   "Deduplicating candidates",
-  "Checking website quality",
-  "Looking up domain age",
-  "Scraping websites",
-  "Checking YouTube channels",
+  "Pre-filtering by ICP fit",
+  "Enriching candidates",
   "Scoring & qualifying",
+  "Deep-enriching top picks",
   "Finding contact emails",
   "Generating outreach drafts",
   "Writing run summary",
