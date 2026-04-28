@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import {
   ChevronDown,
   Check,
@@ -26,6 +27,8 @@ import {
   regenerateProseAction,
   approveSuggestionAction,
   dismissSuggestionAction,
+  approveBrandDnaAction,
+  discardBrandDnaDraftAction,
 } from "./actions";
 
 const houseSpring = { type: "spring" as const, stiffness: 220, damping: 25, mass: 1 };
@@ -133,20 +136,33 @@ function formatRelativeTime(ms: number): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
+type BrandDnaSnapshot = {
+  id: string;
+  prose_portrait: string | null;
+  signal_tags: string | null;
+  status: string;
+} | null;
+
+type DraftBrandDna = {
+  id: string;
+  prose_portrait: string | null;
+  first_impression: string | null;
+  signal_tags: string | null;
+  status: string;
+  updated_at_ms: number;
+} | null;
+
 interface ProfileDashboardProps {
   initialSections: BusinessProfileSectionRow[];
-  brandDna: {
-    id: string;
-    prose_portrait: string | null;
-    signal_tags: string | null;
-    status: string;
-  } | null;
+  brandDna: BrandDnaSnapshot;
+  draftBrandDna: DraftBrandDna;
   initialSuggestions: BusinessProfileSuggestionRow[];
 }
 
 export function ProfileDashboard({
   initialSections,
   brandDna,
+  draftBrandDna,
   initialSuggestions,
 }: ProfileDashboardProps) {
   const router = useRouter();
@@ -170,7 +186,7 @@ export function ProfileDashboard({
       />
 
       {/* Brand DNA card */}
-      <BrandDnaCard brandDna={brandDna} />
+      <BrandDnaCard brandDna={brandDna} draftBrandDna={draftBrandDna} router={router} />
 
       {/* Section cards */}
       <div className="mt-6 space-y-3">
@@ -266,62 +282,105 @@ function HealthSnapshot({
   );
 }
 
+function parseTags(signalTags: string | null): string[] {
+  if (!signalTags) return [];
+  try {
+    const parsed = JSON.parse(signalTags) as Record<string, unknown>;
+    return Object.keys(parsed).slice(0, 8);
+  } catch {
+    return [];
+  }
+}
+
 function BrandDnaCard({
   brandDna,
+  draftBrandDna,
+  router,
 }: {
-  brandDna: ProfileDashboardProps["brandDna"];
+  brandDna: BrandDnaSnapshot;
+  draftBrandDna: DraftBrandDna;
+  router: ReturnType<typeof useRouter>;
 }) {
+  const [isPending, startTransition] = useTransition();
   const hasProse = brandDna?.status === "complete" && !!brandDna.prose_portrait;
+  const hasDraft = !!draftBrandDna?.prose_portrait;
 
-  let tags: string[] = [];
-  if (brandDna?.signal_tags) {
-    try {
-      const parsed = JSON.parse(brandDna.signal_tags) as Record<string, unknown>;
-      tags = Object.keys(parsed).slice(0, 8);
-    } catch {
-      // skip
-    }
+  const liveTags = parseTags(brandDna?.signal_tags ?? null);
+  const draftTags = parseTags(draftBrandDna?.signal_tags ?? null);
+
+  function onApprove() {
+    if (!draftBrandDna) return;
+    startTransition(async () => {
+      const res = await approveBrandDnaAction(draftBrandDna.id);
+      if (res.ok) {
+        toast.success("Brand DNA approved — now live across all AI features.");
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
+    });
+  }
+
+  function onDiscard() {
+    if (!draftBrandDna) return;
+    startTransition(async () => {
+      const res = await discardBrandDnaDraftAction(draftBrandDna.id);
+      if (res.ok) {
+        toast.success("Draft discarded.");
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
+    });
   }
 
   return (
-    <div
-      className="mt-4 rounded-lg border p-4"
-      style={{
-        backgroundColor: "var(--color-surface-1)",
-        borderColor: "var(--color-surface-3)",
-      }}
-    >
-      <div className="flex items-center justify-between">
-        <div className="font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-neutral-500)]" style={{ letterSpacing: "1.5px" }}>
-          Brand Personality
-        </div>
-        {hasProse ? (
-          <div className="flex items-center gap-1 text-[11px] text-[#7BAE7E]">
-            <Check size={12} />
-            Complete
+    <div className="mt-4 space-y-3">
+      {/* Draft awaiting approval */}
+      {hasDraft && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={houseSpring}
+          className="rounded-lg border-2 p-4"
+          style={{
+            backgroundColor: "var(--color-surface-1)",
+            borderColor: "var(--color-brand-orange)",
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-orange)]" style={{ letterSpacing: "1.5px" }}>
+              Brand Personality — Draft
+            </div>
+            <div className="flex items-center gap-1 text-[11px] text-[color:var(--color-brand-orange)]">
+              <Clock size={12} />
+              Awaiting approval
+            </div>
           </div>
-        ) : (
-          <div className="text-[11px] text-[color:var(--color-neutral-500)]">
-            Not yet assessed
-          </div>
-        )}
-      </div>
 
-      {hasProse ? (
-        <>
-          <p className="mt-3 text-[14px] leading-[1.6] text-[color:var(--color-neutral-300)]">
-            {brandDna!.prose_portrait!.slice(0, 300)}
-            {brandDna!.prose_portrait!.length > 300 && "..."}
+          <p className="mt-2 text-[13px] text-[color:var(--color-neutral-400)]">
+            This will replace your current brand personality across every AI feature when approved.
           </p>
-          {tags.length > 0 && (
+
+          {draftBrandDna.first_impression && (
+            <p className="mt-3 font-[family-name:var(--font-narrative)] text-[15px] italic leading-[1.6] text-[color:var(--color-brand-pink)]">
+              {draftBrandDna.first_impression}
+            </p>
+          )}
+
+          <p className="mt-3 text-[14px] leading-[1.6] text-[color:var(--color-neutral-300)]">
+            {draftBrandDna.prose_portrait}
+          </p>
+
+          {draftTags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
+              {draftTags.map((tag) => (
                 <span
                   key={tag}
                   className="rounded px-2 py-0.5 text-[11px]"
                   style={{
-                    backgroundColor: "rgba(244,160,176,0.12)",
-                    color: "var(--color-brand-pink)",
+                    backgroundColor: "rgba(242,140,82,0.12)",
+                    color: "var(--color-brand-orange)",
                   }}
                 >
                   {tag}
@@ -329,43 +388,123 @@ function BrandDnaCard({
               ))}
             </div>
           )}
-          <div className="mt-4">
-            <Link
-              href="/lite/brand-dna"
-              className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-[family-name:var(--font-label)] uppercase transition-colors"
-              style={{
-                letterSpacing: "1px",
-                backgroundColor: "rgba(244,160,176,0.1)",
-                color: "var(--color-brand-pink)",
-              }}
-            >
-              <RefreshCw size={12} />
-              Retake assessment
-            </Link>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="mt-3 text-[14px] text-[color:var(--color-neutral-500)]">
-            Take the Brand DNA assessment to generate your brand personality
-            profile. This feeds into every AI-generated communication.
-          </p>
-          <div className="mt-4">
-            <Link
-              href="/lite/brand-dna"
-              className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-[family-name:var(--font-label)] uppercase transition-colors"
+
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={onApprove}
+              disabled={isPending}
+              className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[12px] font-[family-name:var(--font-label)] uppercase transition-opacity disabled:opacity-50"
               style={{
                 letterSpacing: "1px",
                 backgroundColor: "var(--color-brand-red)",
                 color: "var(--color-brand-cream)",
               }}
             >
-              <Sparkles size={12} />
-              Take assessment
-            </Link>
+              <Check size={12} />
+              {isPending ? "Approving..." : "Approve & go live"}
+            </button>
+            <button
+              onClick={onDiscard}
+              disabled={isPending}
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-[family-name:var(--font-label)] uppercase transition-opacity disabled:opacity-50"
+              style={{
+                letterSpacing: "1px",
+                backgroundColor: "transparent",
+                color: "var(--color-neutral-400)",
+                border: "1px solid var(--color-neutral-600)",
+              }}
+            >
+              <X size={12} />
+              Discard
+            </button>
           </div>
-        </>
+        </motion.div>
       )}
+
+      {/* Live / empty state */}
+      <div
+        className="rounded-lg border p-4"
+        style={{
+          backgroundColor: "var(--color-surface-1)",
+          borderColor: "var(--color-surface-3)",
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-neutral-500)]" style={{ letterSpacing: "1.5px" }}>
+            Brand Personality{hasProse ? " — Live" : ""}
+          </div>
+          {hasProse ? (
+            <div className="flex items-center gap-1 text-[11px] text-[#7BAE7E]">
+              <Check size={12} />
+              Active
+            </div>
+          ) : (
+            <div className="text-[11px] text-[color:var(--color-neutral-500)]">
+              Not yet assessed
+            </div>
+          )}
+        </div>
+
+        {hasProse ? (
+          <>
+            <p className="mt-3 text-[14px] leading-[1.6] text-[color:var(--color-neutral-300)]">
+              {brandDna!.prose_portrait!.slice(0, 300)}
+              {brandDna!.prose_portrait!.length > 300 && "..."}
+            </p>
+            {liveTags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {liveTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded px-2 py-0.5 text-[11px]"
+                    style={{
+                      backgroundColor: "rgba(244,160,176,0.12)",
+                      color: "var(--color-brand-pink)",
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="mt-4">
+              <Link
+                href="/lite/brand-dna"
+                className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-[family-name:var(--font-label)] uppercase transition-colors"
+                style={{
+                  letterSpacing: "1px",
+                  backgroundColor: "rgba(244,160,176,0.1)",
+                  color: "var(--color-brand-pink)",
+                }}
+              >
+                <RefreshCw size={12} />
+                Retake assessment
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-[14px] text-[color:var(--color-neutral-500)]">
+              Take the Brand DNA assessment to generate your brand personality
+              profile. This feeds into every AI-generated communication.
+            </p>
+            <div className="mt-4">
+              <Link
+                href="/lite/brand-dna"
+                className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-[family-name:var(--font-label)] uppercase transition-colors"
+                style={{
+                  letterSpacing: "1px",
+                  backgroundColor: "var(--color-brand-red)",
+                  color: "var(--color-brand-cream)",
+                }}
+              >
+                <Sparkles size={12} />
+                Take assessment
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

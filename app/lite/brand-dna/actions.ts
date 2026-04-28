@@ -317,14 +317,17 @@ export async function submitReflection(formData: FormData): Promise<void> {
 // ── markProfileComplete ──────────────────────────────────────────────────────
 
 /**
- * Mark the superbad_self profile as complete.
+ * Mark a profile as complete (or awaiting approval for superbad_self).
  *
  * Called by the reveal client at the end of the cinematic sequence, once the
- * first impression + prose portrait are both on screen. Sets
- * `status = 'complete'` + `completed_at_ms`. This is the trigger that lets
- * the Brand DNA Gate clear — the NextAuth `jwt` callback (BDA-4) reads this.
+ * first impression + prose portrait are both on screen.
  *
- * Idempotent: safe to call more than once. If already complete, no-ops.
+ * For superbad_self profiles: sets `status = 'awaiting_approval'`. The profile
+ * won't cascade into LLM calls until explicitly approved from the Profile page.
+ * For client profiles: sets `status = 'complete'` immediately.
+ *
+ * Idempotent: safe to call more than once. No-ops if already complete or
+ * awaiting approval.
  */
 export async function markProfileComplete(profileId: string): Promise<void> {
   if (!isAssessmentEnabled()) return;
@@ -334,6 +337,7 @@ export async function markProfileComplete(profileId: string): Promise<void> {
     .select({
       id: brand_dna_profiles.id,
       status: brand_dna_profiles.status,
+      subject_type: brand_dna_profiles.subject_type,
     })
     .from(brand_dna_profiles)
     .where(eq(brand_dna_profiles.id, profileId))
@@ -341,21 +345,28 @@ export async function markProfileComplete(profileId: string): Promise<void> {
 
   const existing = rows[0];
   if (!existing) return;
-  if (existing.status === "complete") return;
+  if (existing.status === "complete" || existing.status === "awaiting_approval") return;
+
+  const isSuperbadSelf = existing.subject_type === "superbad_self";
+  const targetStatus = isSuperbadSelf ? "awaiting_approval" : "complete";
 
   await db
     .update(brand_dna_profiles)
     .set({
-      status: "complete",
-      completed_at_ms: Date.now(),
+      status: targetStatus,
+      completed_at_ms: isSuperbadSelf ? null : Date.now(),
       updated_at_ms: Date.now(),
     })
     .where(eq(brand_dna_profiles.id, profileId));
 
   const session = await auth();
   await logActivity({
-    kind: "onboarding_brand_dna_completed",
-    body: `Brand DNA assessment complete`,
+    kind: isSuperbadSelf
+      ? "brand_dna_awaiting_approval"
+      : "onboarding_brand_dna_completed",
+    body: isSuperbadSelf
+      ? "Brand DNA assessment ready for review"
+      : "Brand DNA assessment complete",
     createdBy: session?.user?.id ?? null,
   });
 }

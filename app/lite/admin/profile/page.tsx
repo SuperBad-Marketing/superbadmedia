@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
-import { loadProfileSections, loadPendingSuggestions } from "./actions";
+import { loadProfileSections, loadPendingSuggestions, loadDraftBrandDna } from "./actions";
 import { ProfileDashboard } from "./profile-dashboard";
 
 export const metadata: Metadata = {
@@ -21,9 +21,10 @@ export default async function ProfilePage() {
     redirect("/api/auth/signin");
   }
 
-  const [{ sections, brandDna }, suggestions] = await Promise.all([
+  const [{ sections, brandDna }, suggestions, draftBrandDna] = await Promise.all([
     loadProfileSections(),
     loadPendingSuggestions(),
+    loadDraftBrandDna(),
   ]);
 
   return (
@@ -51,6 +52,7 @@ export default async function ProfilePage() {
       <ProfileDashboard
         initialSections={sections}
         brandDna={brandDna}
+        draftBrandDna={draftBrandDna}
         initialSuggestions={suggestions}
       />
     </div>

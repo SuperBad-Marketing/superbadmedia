@@ -2,7 +2,7 @@
  * `isBrandDnaCompleteForUser` — DB check for the NextAuth jwt callback.
  *
  * Returns true when the SuperBad-self Brand DNA profile exists with
- * `subject_type = 'superbad_self' AND is_current = true AND status = 'complete'`.
+ * `subject_type = 'superbad_self' AND is_current = true AND status IN ('awaiting_approval', 'complete')`.
  *
  * Kill-switch gated: when `brand_dna_assessment_enabled` is false the query
  * is short-circuited (returns false). Non-Brand-DNA deployments pay no DB
@@ -14,7 +14,7 @@
  *
  * Owner: BDA-4.
  */
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import { db as defaultDb } from "@/lib/db";
@@ -42,7 +42,7 @@ export async function isBrandDnaCompleteForUser(
       and(
         eq(brand_dna_profiles.subject_type, "superbad_self"),
         eq(brand_dna_profiles.is_current, true),
-        eq(brand_dna_profiles.status, "complete"),
+        inArray(brand_dna_profiles.status, ["awaiting_approval", "complete"]),
       ),
     )
     .limit(1);

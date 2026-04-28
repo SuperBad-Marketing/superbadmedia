@@ -18,7 +18,7 @@ import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 export const BRAND_DNA_SUBJECT_TYPES = ["superbad_self", "client"] as const;
 export type BrandDnaSubjectType = (typeof BRAND_DNA_SUBJECT_TYPES)[number];
 
-export const BRAND_DNA_STATUSES = ["pending", "in_progress", "complete"] as const;
+export const BRAND_DNA_STATUSES = ["pending", "in_progress", "awaiting_approval", "complete"] as const;
 export type BrandDnaStatus = (typeof BRAND_DNA_STATUSES)[number];
 
 // ── BDA-1 enums ─────────────────────────────────────────────────────────────

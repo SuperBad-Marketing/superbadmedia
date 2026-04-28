@@ -308,6 +308,96 @@ export async function dismissSuggestionAction(
   return { ok: true };
 }
 
+export async function loadDraftBrandDna() {
+  const userId = await requireAdmin();
+  if (!userId) return null;
+
+  return db
+    .select({
+      id: brand_dna_profiles.id,
+      prose_portrait: brand_dna_profiles.prose_portrait,
+      first_impression: brand_dna_profiles.first_impression,
+      signal_tags: brand_dna_profiles.signal_tags,
+      status: brand_dna_profiles.status,
+      updated_at_ms: brand_dna_profiles.updated_at_ms,
+    })
+    .from(brand_dna_profiles)
+    .where(
+      and(
+        eq(brand_dna_profiles.subject_type, "superbad_self"),
+        eq(brand_dna_profiles.is_current, true),
+        eq(brand_dna_profiles.status, "awaiting_approval"),
+      ),
+    )
+    .get() ?? null;
+}
+
+export async function approveBrandDnaAction(
+  profileId: string,
+): Promise<ActionResult> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false, error: "Not authorised." };
+
+  const now = Date.now();
+
+  await db
+    .update(brand_dna_profiles)
+    .set({
+      status: "complete",
+      completed_at_ms: now,
+      updated_at_ms: now,
+    })
+    .where(
+      and(
+        eq(brand_dna_profiles.id, profileId),
+        eq(brand_dna_profiles.status, "awaiting_approval"),
+      ),
+    );
+
+  await logActivity({
+    kind: "brand_dna_approved",
+    body: "Brand DNA approved — now live across all AI features",
+    createdBy: `user:${userId}`,
+  });
+
+  invalidateProfileCache();
+
+  try {
+    await generateProfileSnapshot();
+  } catch {
+    // best-effort
+  }
+
+  revalidatePath("/lite/admin/profile");
+  return { ok: true };
+}
+
+export async function discardBrandDnaDraftAction(
+  profileId: string,
+): Promise<ActionResult> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false, error: "Not authorised." };
+
+  await db
+    .update(brand_dna_profiles)
+    .set({ is_current: false, updated_at_ms: Date.now() })
+    .where(
+      and(
+        eq(brand_dna_profiles.id, profileId),
+        eq(brand_dna_profiles.status, "awaiting_approval"),
+      ),
+    );
+
+  await logActivity({
+    kind: "brand_dna_draft_discarded",
+    body: "Brand DNA draft discarded — previous version remains active",
+    createdBy: `user:${userId}`,
+  });
+
+  revalidatePath("/lite/admin/profile");
+  return { ok: true };
+}
+
 export async function loadSectionHistory(sectionKey: string) {
   const userId = await requireAdmin();
   if (!userId) return [];

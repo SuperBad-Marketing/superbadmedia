@@ -88,7 +88,7 @@ async function RevealContent({ profileId }: { profileId: string }) {
       prosePortrait={prosePortrait}
       sectionInsights={sectionInsights}
       sectionTitles={sectionTitles}
-      alreadyComplete={profile.status === "complete"}
+      alreadyComplete={profile.status === "complete" || profile.status === "awaiting_approval"}
     />
   );
 }
