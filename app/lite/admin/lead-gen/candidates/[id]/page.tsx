@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth/session";
 import { getCandidateById } from "@/lib/lead-gen/queries";
@@ -111,8 +112,16 @@ export default async function CandidateDetailPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <header className="px-4 pt-6 pb-5">
+        <Link
+          href="/lite/admin/lead-gen"
+          className="inline-flex items-center gap-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-brand-pink)] transition-colors"
+          style={{ letterSpacing: "1.5px" }}
+        >
+          <span aria-hidden="true">&larr;</span>
+          Back to candidates
+        </Link>
         <div
-          className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
+          className="mt-3 font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
           style={{ letterSpacing: "2px" }}
         >
           Admin · Lead Gen · Candidates
