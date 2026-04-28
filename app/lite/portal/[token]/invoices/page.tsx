@@ -1,7 +1,8 @@
 import { requirePortalSession } from "@/lib/portal/require-session";
 import { getPortalMode } from "@/lib/portal/mode";
 import { SectionLocked } from "@/components/lite/portal/section-locked";
-import { PortalSectionPlaceholder } from "@/components/lite/portal/section-placeholder";
+import { PortalInvoicesList } from "@/components/lite/portal/invoices-list";
+import { fetchPortalInvoices } from "./actions";
 
 export default async function PortalInvoicesPage() {
   const session = await requirePortalSession();
@@ -11,5 +12,7 @@ export default async function PortalInvoicesPage() {
     return <SectionLocked sectionLabel="Invoices" />;
   }
 
-  return <PortalSectionPlaceholder section="Invoices" description="payments and statements." />;
+  const invoices = await fetchPortalInvoices();
+
+  return <PortalInvoicesList invoices={invoices} />;
 }

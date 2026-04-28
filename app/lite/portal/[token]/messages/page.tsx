@@ -1,7 +1,8 @@
 import { requirePortalSession } from "@/lib/portal/require-session";
 import { getPortalMode } from "@/lib/portal/mode";
 import { SectionLocked } from "@/components/lite/portal/section-locked";
-import { PortalSectionPlaceholder } from "@/components/lite/portal/section-placeholder";
+import { PortalMessagesView } from "@/components/lite/portal/messages-view";
+import { fetchPortalThreads } from "./actions";
 
 export default async function PortalMessagesPage() {
   const session = await requirePortalSession();
@@ -11,5 +12,7 @@ export default async function PortalMessagesPage() {
     return <SectionLocked sectionLabel="Messages" />;
   }
 
-  return <PortalSectionPlaceholder section="Messages" description="your thread with Andy." />;
+  const threads = await fetchPortalThreads();
+
+  return <PortalMessagesView threads={threads} />;
 }
