@@ -20,6 +20,10 @@ export interface DashboardData {
   overdueInvoiceCount: number;
   topExpenseCategories: Array<{ category: string; label: string; total_cents: number }>;
   mrrRunway: string | null;
+  revenueMtdCents: number;
+  revenueMtdPrevCents: number;
+  revenueYtdCents: number;
+  revenueYtdPrevCents: number;
 }
 
 export interface TransactionRow {
@@ -32,12 +36,99 @@ export interface TransactionRow {
   link: string;
 }
 
+async function sumRevenue(startMs: number, endMs: number): Promise<number> {
+  const [stripeCents, manualCents] = await Promise.all([
+    sumStripeCharges(startMs, endMs),
+    sumManualInvoices(startMs, endMs),
+  ]);
+  return stripeCents + manualCents;
+}
+
+async function sumStripeCharges(startMs: number, endMs: number): Promise<number> {
+  try {
+    const { getStripe } = await import("@/lib/stripe/client");
+    const stripe = getStripe();
+
+    let total = 0;
+    let hasMore = true;
+    let startingAfter: string | undefined;
+
+    while (hasMore) {
+      const params: Record<string, unknown> = {
+        created: {
+          gte: Math.floor(startMs / 1000),
+          lte: Math.floor(endMs / 1000),
+        },
+        limit: 100,
+      };
+      if (startingAfter) params.starting_after = startingAfter;
+
+      const charges = await stripe.charges.list(
+        params as Parameters<typeof stripe.charges.list>[0],
+      );
+
+      for (const charge of charges.data) {
+        if (charge.status === "succeeded") {
+          total += charge.amount;
+        }
+      }
+
+      hasMore = charges.has_more;
+      if (charges.data.length > 0) {
+        startingAfter = charges.data[charges.data.length - 1].id;
+      }
+    }
+
+    return total;
+  } catch {
+    return 0;
+  }
+}
+
+async function sumManualInvoices(startMs: number, endMs: number): Promise<number> {
+  const result = await db
+    .select({ total: sql<number>`coalesce(sum(${invoices.total_cents_inc_gst}), 0)` })
+    .from(invoices)
+    .where(and(
+      eq(invoices.status, "paid"),
+      gte(invoices.paid_at_ms, startMs),
+      lte(invoices.paid_at_ms, endMs),
+      sql`${invoices.stripe_payment_intent_id} is null`,
+    ));
+  return Number(result[0]?.total ?? 0);
+}
+
+function computeRevenuePeriods(now: Date) {
+  const y = now.getFullYear();
+  const m = now.getMonth();
+
+  const mtdStart = new Date(y, m, 1).getTime();
+  const mtdEnd = now.getTime();
+
+  const prevMtdStart = new Date(y, m - 1, 1).getTime();
+  const prevMtdDay = Math.min(now.getDate(), new Date(y, m, 0).getDate());
+  const prevMtdEnd = new Date(y, m - 1, prevMtdDay, 23, 59, 59, 999).getTime();
+
+  const fyStartYear = m >= 6 ? y : y - 1;
+  const ytdStart = new Date(fyStartYear, 6, 1).getTime();
+  const ytdEnd = now.getTime();
+
+  const prevFyStartYear = fyStartYear - 1;
+  const prevYtdStart = new Date(prevFyStartYear, 6, 1).getTime();
+  const daysSinceFyStart = Math.floor((ytdEnd - ytdStart) / 86_400_000);
+  const prevYtdEnd = new Date(prevFyStartYear, 6, 1 + daysSinceFyStart, 23, 59, 59, 999).getTime();
+
+  return { mtdStart, mtdEnd, prevMtdStart, prevMtdEnd, ytdStart, ytdEnd, prevYtdStart, prevYtdEnd };
+}
+
 export async function getDashboardData(
   rangeStart: string,
   rangeEnd: string,
 ): Promise<DashboardData> {
   const todayStr = new Date().toISOString().slice(0, 10);
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+
+  const periods = computeRevenuePeriods(new Date());
 
   const [
     snapshotRows,
@@ -49,6 +140,10 @@ export async function getDashboardData(
     overdueRows,
     topCategories,
     mrrDeals,
+    revenueMtdCents,
+    revenueMtdPrevCents,
+    revenueYtdCents,
+    revenueYtdPrevCents,
   ] = await Promise.all([
     db.select().from(finance_snapshots)
       .where(eq(finance_snapshots.snapshot_date, todayStr))
@@ -109,6 +204,10 @@ export async function getDashboardData(
         eq(deals.stage, "won"),
         inArray(deals.subscription_state, ["active_current", "past_due"]),
       )),
+    sumRevenue(periods.mtdStart, periods.mtdEnd),
+    sumRevenue(periods.prevMtdStart, periods.prevMtdEnd),
+    sumRevenue(periods.ytdStart, periods.ytdEnd),
+    sumRevenue(periods.prevYtdStart, periods.prevYtdEnd),
   ]);
 
   const snapshot = snapshotRows[0] ?? null;
@@ -205,5 +304,9 @@ export async function getDashboardData(
     overdueInvoiceCount: overdueRows[0]?.total ?? 0,
     topExpenseCategories,
     mrrRunway,
+    revenueMtdCents,
+    revenueMtdPrevCents,
+    revenueYtdCents,
+    revenueYtdPrevCents,
   };
 }

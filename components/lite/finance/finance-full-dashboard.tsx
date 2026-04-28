@@ -64,8 +64,10 @@ function momDelta(
 
 function DeltaBadge({
   delta,
+  label = "vs last month",
 }: {
   delta: { percent: number; direction: "up" | "down" | "flat" } | null;
+  label?: string;
 }) {
   if (!delta) return null;
   const Icon =
@@ -83,7 +85,7 @@ function DeltaBadge({
   return (
     <span className={`inline-flex items-center gap-1 text-[12px] ${color}`}>
       <Icon className="h-3 w-3" />
-      {delta.percent}% vs last month
+      {delta.percent}% {label}
     </span>
   );
 }
@@ -313,6 +315,9 @@ export function FinanceFullDashboard({
     ? momDelta(m.revenue_mtd_cents, data.prevMetrics?.revenue_mtd_cents ?? null)
     : null;
 
+  const mtdDelta = momDelta(data.revenueMtdCents, data.revenueMtdPrevCents);
+  const ytdDelta = momDelta(data.revenueYtdCents, data.revenueYtdPrevCents);
+
   return (
     <>
       <motion.div
@@ -423,6 +428,29 @@ export function FinanceFullDashboard({
           narrative={data.narrative}
           narrativeStale={data.narrativeStale}
         />
+
+        {/* Revenue: MTD + YTD */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <MetricTile
+            label="Revenue MTD"
+            value={formatAudFull(data.revenueMtdCents)}
+            href="/lite/finance/recent"
+          >
+            <DeltaBadge delta={mtdDelta} />
+          </MetricTile>
+          <MetricTile
+            label="Revenue YTD"
+            value={formatAudFull(data.revenueYtdCents)}
+            sublabel={(() => {
+              const now = new Date();
+              const fyStart = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+              return `FY${fyStart}/${String(fyStart + 1).slice(-2)}`;
+            })()}
+            href="/lite/finance/recent"
+          >
+            <DeltaBadge delta={ytdDelta} label="vs same period last FY" />
+          </MetricTile>
+        </div>
 
         {/* Metric tiles: 2x2 on md, 4-col on lg, stacked on mobile */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
