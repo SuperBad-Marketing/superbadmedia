@@ -1414,7 +1414,7 @@ function InspirationFeed() {
   const [loaded, setLoaded] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const [filter, setFilter] = useState<"all" | "liked" | "undecided" | "dismissed">("all");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<InspirationPost | null>(null);
   const [reacting, setReacting] = useState<string | null>(null);
   const [rescraping, setRescraping] = useState(false);
 
@@ -1563,15 +1563,23 @@ function InspirationFeed() {
               <InspirationCard
                 key={post.id}
                 post={post}
-                expanded={expandedId === post.id}
-                onToggle={() =>
-                  setExpandedId(expandedId === post.id ? null : post.id)
-                }
+                onOpen={() => setSelectedPost(post)}
                 onReact={(r) => handleReact(post.id, r)}
                 reacting={reacting === post.id}
               />
             ))}
           </div>
+
+          <AnimatePresence>
+            {selectedPost && (
+              <InspirationModal
+                post={selectedPost}
+                onClose={() => setSelectedPost(null)}
+                onReact={(r) => handleReact(selectedPost.id, r)}
+                reacting={reacting === selectedPost.id}
+              />
+            )}
+          </AnimatePresence>
 
           {filtered.length === 0 && (
             <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
@@ -1596,14 +1604,16 @@ function embedUrlFromPermalink(permalink: string): string | null {
   }
 }
 
+const houseSpring = { type: "spring" as const, stiffness: 220, damping: 25, mass: 1 };
+
 function InspirationCard({
   post,
+  onOpen,
   onReact,
   reacting,
 }: {
   post: InspirationPost;
-  expanded: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
   onReact: (reaction: "like" | "dislike") => void;
   reacting: boolean;
 }) {
@@ -1621,30 +1631,43 @@ function InspirationCard({
         opacity: isDisliked ? 0.35 : 1,
       }}
     >
-      {/* Instagram embed */}
-      {embedUrl ? (
-        <div className="relative w-full" style={{ minHeight: "320px" }}>
-          <iframe
-            src={embedUrl}
-            className="w-full border-0"
-            style={{ minHeight: "320px", background: "var(--color-neutral-800)" }}
-            loading="lazy"
-            allowTransparency
-          />
-        </div>
-      ) : (
-        <div
-          className="flex aspect-[4/3] w-full items-center justify-center"
-          style={{ backgroundColor: "var(--color-neutral-800)" }}
-        >
-          <div className="text-center">
-            <EyeOff className="mx-auto mb-1 size-5 text-[color:var(--color-neutral-600)]" strokeWidth={1.5} />
-            <span className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
-              No permalink
-            </span>
+      {/* Clickable embed area — iframe is visual-only, clicks open modal */}
+      <button
+        onClick={onOpen}
+        className="relative block w-full cursor-pointer"
+      >
+        {embedUrl ? (
+          <div className="relative w-full overflow-hidden" style={{ height: "320px" }}>
+            <iframe
+              src={embedUrl}
+              className="w-full border-0 pointer-events-none"
+              style={{ height: "480px", background: "var(--color-neutral-800)" }}
+              loading="lazy"
+              tabIndex={-1}
+              allowTransparency
+            />
           </div>
+        ) : (
+          <div
+            className="flex aspect-[4/3] w-full items-center justify-center"
+            style={{ backgroundColor: "var(--color-neutral-800)" }}
+          >
+            <div className="text-center">
+              <EyeOff className="mx-auto mb-1 size-5 text-[color:var(--color-neutral-600)]" strokeWidth={1.5} />
+              <span className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
+                No permalink
+              </span>
+            </div>
+          </div>
+        )}
+        {/* Hover hint */}
+        <div
+          className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100"
+          style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+        >
+          <Eye className="size-6 text-[color:var(--color-brand-cream)]" strokeWidth={1.5} />
         </div>
-      )}
+      </button>
 
       {/* Meta bar */}
       <div
@@ -1664,21 +1687,6 @@ function InspirationCard({
             }}
           >
             {post.finalScore.toFixed(1)}× avg
-          </span>
-          <span
-            className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[8px] uppercase"
-            style={{
-              letterSpacing: "0.8px",
-              background: "rgba(253, 245, 230, 0.05)",
-              color:
-                CONTENT_TYPE_COLORS[post.mediaType.toLowerCase()] ??
-                "var(--color-neutral-400)",
-            }}
-          >
-            {post.mediaType === "CAROUSEL_ALBUM" ? "carousel" : post.mediaType.toLowerCase()}
-          </span>
-          <span className="font-[family-name:var(--font-body)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]">
-            {post.likes.toLocaleString()} likes
           </span>
         </div>
         <div className="flex gap-1">
@@ -1728,5 +1736,256 @@ function InspirationCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function InspirationModal({
+  post,
+  onClose,
+  onReact,
+  reacting,
+}: {
+  post: InspirationPost;
+  onClose: () => void;
+  onReact: (reaction: "like" | "dislike") => void;
+  reacting: boolean;
+}) {
+  const isLiked = post.reaction === "like";
+  const isDisliked = post.reaction === "dislike";
+  const embedUrl = post.permalink ? embedUrlFromPermalink(post.permalink) : null;
+  const er = ((post.likes + post.comments) / Math.max(post.accountFollowers, 1) * 100).toFixed(2);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      {/* Backdrop */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(8px)" }}
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
+
+      {/* Panel */}
+      <motion.div
+        className="relative flex max-h-[90vh] w-full max-w-[900px] overflow-hidden rounded-2xl border"
+        style={{
+          backgroundColor: "var(--color-neutral-900)",
+          borderColor: "rgba(253, 245, 230, 0.08)",
+        }}
+        initial={{ scale: 0.92, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 10 }}
+        transition={houseSpring}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full transition-colors"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <X className="size-4 text-[color:var(--color-brand-cream)]" strokeWidth={1.5} />
+        </button>
+
+        {/* Left: Instagram embed */}
+        <div
+          className="hidden w-[55%] shrink-0 sm:block"
+          style={{ backgroundColor: "var(--color-neutral-950)" }}
+        >
+          {embedUrl ? (
+            <iframe
+              src={embedUrl}
+              className="h-full w-full border-0"
+              style={{ minHeight: "500px" }}
+              allowTransparency
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <EyeOff className="size-8 text-[color:var(--color-neutral-700)]" strokeWidth={1.5} />
+            </div>
+          )}
+        </div>
+
+        {/* Right: Metadata panel */}
+        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+          {/* Mobile-only embed */}
+          <div className="sm:hidden">
+            {embedUrl && (
+              <iframe
+                src={embedUrl}
+                className="w-full border-0"
+                style={{ height: "400px" }}
+                allowTransparency
+              />
+            )}
+          </div>
+
+          <div className="flex flex-1 flex-col p-5">
+            {/* Account header */}
+            <motion.div
+              className="mb-4 flex items-center gap-3"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...houseSpring, delay: 0.05 }}
+            >
+              <div
+                className="flex size-10 items-center justify-center rounded-full font-[family-name:var(--font-display)] text-[12px] text-[color:var(--color-brand-cream)]"
+                style={{ backgroundColor: "var(--color-neutral-800)" }}
+              >
+                IG
+              </div>
+              <div>
+                <span className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
+                  @{post.accountUsername}
+                </span>
+                <div className="font-[family-name:var(--font-body)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]">
+                  {post.accountFollowers.toLocaleString()} followers
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Score + stats */}
+            <motion.div
+              className="mb-4 flex flex-wrap items-center gap-2"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...houseSpring, delay: 0.1 }}
+            >
+              <span
+                className="rounded-full px-2.5 py-1 font-[family-name:var(--font-label)] text-[11px] font-semibold tabular-nums"
+                style={{
+                  backgroundColor: "rgba(244, 160, 176, 0.15)",
+                  color: "var(--color-brand-pink)",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {post.finalScore.toFixed(1)}× avg
+              </span>
+              <span
+                className="rounded-full px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+                style={{
+                  letterSpacing: "0.8px",
+                  background: "rgba(253, 245, 230, 0.05)",
+                  color: CONTENT_TYPE_COLORS[post.mediaType.toLowerCase()] ?? "var(--color-neutral-400)",
+                }}
+              >
+                {post.mediaType === "CAROUSEL_ALBUM" ? "carousel" : post.mediaType.toLowerCase()}
+              </span>
+            </motion.div>
+
+            <motion.div
+              className="mb-4 flex gap-4 font-[family-name:var(--font-body)] text-[12px] tabular-nums text-[color:var(--color-neutral-400)]"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...houseSpring, delay: 0.15 }}
+            >
+              <span>{post.likes.toLocaleString()} likes</span>
+              <span>{post.comments.toLocaleString()} comments</span>
+              <span>ER: {er}%</span>
+            </motion.div>
+
+            {/* Why it performed */}
+            {post.whyHigh && (
+              <motion.p
+                className="mb-4 rounded-lg p-3 font-[family-name:var(--font-narrative)] text-[13px] italic leading-[1.5] text-[color:var(--color-brand-pink)]"
+                style={{ backgroundColor: "rgba(244, 160, 176, 0.06)" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...houseSpring, delay: 0.2 }}
+              >
+                {post.whyHigh}
+              </motion.p>
+            )}
+
+            {/* Caption */}
+            {post.caption && (
+              <motion.p
+                className="mb-4 font-[family-name:var(--font-body)] text-[13px] leading-[1.6] text-[color:var(--color-neutral-300)]"
+                style={{ maxHeight: "200px", overflowY: "auto" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...houseSpring, delay: 0.25 }}
+              >
+                {post.caption}
+              </motion.p>
+            )}
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Actions bar */}
+            <motion.div
+              className="flex items-center justify-between border-t pt-4"
+              style={{ borderColor: "rgba(253, 245, 230, 0.06)" }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...houseSpring, delay: 0.3 }}
+            >
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onReact("like")}
+                  disabled={reacting}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 font-[family-name:var(--font-body)] text-[12px] transition-colors"
+                  style={{
+                    backgroundColor: isLiked ? "rgba(244, 160, 176, 0.15)" : "rgba(253, 245, 230, 0.05)",
+                    color: isLiked ? "var(--color-brand-pink)" : "var(--color-neutral-400)",
+                  }}
+                >
+                  <Heart
+                    className="size-4"
+                    strokeWidth={1.5}
+                    fill={isLiked ? "var(--color-brand-pink)" : "none"}
+                  />
+                  {isLiked ? "Liked" : "Like"}
+                </button>
+                <button
+                  onClick={() => onReact("dislike")}
+                  disabled={reacting}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 font-[family-name:var(--font-body)] text-[12px] transition-colors"
+                  style={{
+                    backgroundColor: isDisliked ? "rgba(255, 100, 100, 0.1)" : "rgba(253, 245, 230, 0.05)",
+                    color: isDisliked ? "var(--color-brand-red)" : "var(--color-neutral-400)",
+                  }}
+                >
+                  <X className="size-4" strokeWidth={1.5} />
+                  {isDisliked ? "Dismissed" : "Dismiss"}
+                </button>
+              </div>
+
+              {post.permalink && (
+                <a
+                  href={post.permalink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                >
+                  View on Instagram
+                  <ArrowRight className="size-3" strokeWidth={1.5} />
+                </a>
+              )}
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
