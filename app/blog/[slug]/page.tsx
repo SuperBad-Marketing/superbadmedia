@@ -243,43 +243,111 @@ function MarkdownRenderer({ body }: { body: string }) {
 }
 
 function markdownToHtml(md: string): string {
-  let html = md
-    // Code blocks (must come before inline code)
-    .replace(
-      /```(\w*)\n([\s\S]*?)```/g,
-      (_m, lang: string, code: string) =>
-        `<pre><code class="language-${lang}">${escapeHtml(code.trim())}</code></pre>`,
-    )
-    // Inline code
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
+  const blocks = md.split(/\n\n+/);
+  const outputBlocks: string[] = [];
+
+  let i = 0;
+  while (i < blocks.length) {
+    const block = blocks[i].trim();
+
+    if (!block) { i++; continue; }
+
+    // Code blocks
+    if (block.startsWith("```")) {
+      let codeBlock = block;
+      while (!codeBlock.endsWith("```") || codeBlock === "```" || codeBlock.match(/```$/g)?.length === 1 && codeBlock.startsWith("```")) {
+        if (codeBlock !== block || !codeBlock.slice(3).includes("```")) {
+          i++;
+          if (i < blocks.length) { codeBlock += "\n\n" + blocks[i]; } else { break; }
+        } else { break; }
+      }
+      const match = codeBlock.match(/^```(\w*)\n([\s\S]*?)```$/);
+      if (match) {
+        outputBlocks.push(`<pre><code class="language-${match[1]}">${escapeHtml(match[2].trim())}</code></pre>`);
+      } else {
+        outputBlocks.push(`<pre><code>${escapeHtml(codeBlock.replace(/^```\w*\n?/, "").replace(/```$/, "").trim())}</code></pre>`);
+      }
+      i++; continue;
+    }
+
+    // Horizontal rule
+    if (/^---+$/.test(block)) {
+      outputBlocks.push("<hr />");
+      i++; continue;
+    }
+
+    // Table
+    if (block.includes("|") && block.split("\n").length >= 2) {
+      const lines = block.split("\n").filter((l) => l.trim());
+      const isSepLine = (l: string) => /^\|?[\s-:|]+\|?$/.test(l.trim());
+      if (lines.length >= 2 && isSepLine(lines[1])) {
+        const parseRow = (l: string) =>
+          l.replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => inlineMarkdown(c.trim()));
+        const headerCells = parseRow(lines[0]);
+        const thead = `<thead><tr>${headerCells.map((c) => `<th>${c}</th>`).join("")}</tr></thead>`;
+        const bodyRows = lines.slice(2).map((l) => {
+          const cells = parseRow(l);
+          return `<tr>${cells.map((c) => `<td>${c}</td>`).join("")}</tr>`;
+        });
+        outputBlocks.push(`<div class="blog-table-wrap"><table>${thead}<tbody>${bodyRows.join("")}</tbody></table></div>`);
+        i++; continue;
+      }
+    }
+
+    // Blockquote
+    if (block.startsWith(">")) {
+      const quoteLines = block.split("\n").map((l) => l.replace(/^>\s?/, ""));
+      outputBlocks.push(`<blockquote><p>${inlineMarkdown(quoteLines.join(" "))}</p></blockquote>`);
+      i++; continue;
+    }
+
     // Headings
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    // Bold + italic
+    if (block.startsWith("### ")) {
+      outputBlocks.push(`<h3>${inlineMarkdown(block.slice(4))}</h3>`);
+      i++; continue;
+    }
+    if (block.startsWith("## ")) {
+      outputBlocks.push(`<h2>${inlineMarkdown(block.slice(3))}</h2>`);
+      i++; continue;
+    }
+    if (block.startsWith("# ")) {
+      outputBlocks.push(`<h1>${inlineMarkdown(block.slice(2))}</h1>`);
+      i++; continue;
+    }
+
+    // Unordered list
+    if (/^[-*] /.test(block)) {
+      const items = block.split("\n")
+        .filter((l) => /^[-*] /.test(l.trim()))
+        .map((l) => `<li>${inlineMarkdown(l.replace(/^[-*] /, ""))}</li>`);
+      outputBlocks.push(`<ul>${items.join("")}</ul>`);
+      i++; continue;
+    }
+
+    // Ordered list
+    if (/^\d+\.\s/.test(block)) {
+      const items = block.split("\n")
+        .filter((l) => /^\d+\.\s/.test(l.trim()))
+        .map((l) => `<li>${inlineMarkdown(l.replace(/^\d+\.\s/, ""))}</li>`);
+      outputBlocks.push(`<ol>${items.join("")}</ol>`);
+      i++; continue;
+    }
+
+    // Paragraph
+    outputBlocks.push(`<p>${inlineMarkdown(block.replace(/\n/g, " "))}</p>`);
+    i++;
+  }
+
+  return outputBlocks.join("\n");
+}
+
+function inlineMarkdown(text: string): string {
+  return text
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    // Links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-    // Unordered lists
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    // Horizontal rules
-    .replace(/^---$/gm, "<hr />")
-    // Paragraphs (blank-line separated)
-    .replace(/\n\n/g, "</p><p>");
-
-  // Wrap loose list items
-  html = html.replace(/(<li>[\s\S]*?<\/li>)/g, "<ul>$1</ul>");
-  // Clean up duplicate ul wrappers
-  html = html.replace(/<\/ul>\s*<ul>/g, "");
-
-  // Wrap in paragraph tags if not already
-  if (!html.startsWith("<")) {
-    html = `<p>${html}</p>`;
-  }
-
-  return html;
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 }
 
 function escapeHtml(text: string): string {

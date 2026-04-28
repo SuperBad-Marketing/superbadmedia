@@ -195,6 +195,7 @@ interface FullBrandDna {
   voiceDescription: string;
   toneMarkers: string[];
   avoidWords: string[];
+  isSuperBad: boolean;
 }
 
 async function loadFullBrandDna(companyId: string): Promise<FullBrandDna> {
@@ -203,6 +204,7 @@ async function loadFullBrandDna(companyId: string): Promise<FullBrandDna> {
       prose_portrait: brand_dna_profiles.prose_portrait,
       first_impression: brand_dna_profiles.first_impression,
       signal_tags: brand_dna_profiles.signal_tags,
+      is_superbad_self: brand_dna_profiles.is_superbad_self,
     })
     .from(brand_dna_profiles)
     .where(
@@ -224,6 +226,7 @@ async function loadFullBrandDna(companyId: string): Promise<FullBrandDna> {
       voiceDescription: "professional, clear, and approachable",
       toneMarkers: ["professional", "clear"],
       avoidWords: [],
+      isSuperBad: false,
     };
   }
 
@@ -246,6 +249,7 @@ async function loadFullBrandDna(companyId: string): Promise<FullBrandDna> {
         : "professional, clear, and approachable",
     toneMarkers: toneObj ? Object.keys(toneObj).slice(0, 5) : ["professional"],
     avoidWords: avoidObj ? Object.keys(avoidObj) : [],
+    isSuperBad: !!row.is_superbad_self,
   };
 }
 
@@ -257,9 +261,9 @@ function buildDriftProfile(brandDna: FullBrandDna) {
   };
 }
 
-function buildSystemPrompt(brandDna: FullBrandDna): string {
+function buildSystemPrompt(brandDna: FullBrandDna, isSuperBad: boolean): string {
   const parts: string[] = [
-    "You are a blog post writer. Your job is to produce a complete, publication-ready blog post that sounds exactly like the brand it represents.",
+    "You are a blog post writer. Your job is to produce a complete, publication-ready blog post that sounds exactly like the brand it represents — not a generic professional voice, not your own voice, THEIR voice.",
   ];
 
   if (brandDna.prosePortrait) {
@@ -272,12 +276,74 @@ function buildSystemPrompt(brandDna: FullBrandDna): string {
     parts.push(`\nBRAND SIGNAL TAGS:\n${JSON.stringify(brandDna.signalTags)}`);
   }
 
-  parts.push(
-    "\nWrite in the brand's authentic voice. Never sound generic, templated, or like typical AI content. Match the tone markers precisely.",
-  );
+  if (isSuperBad) {
+    parts.push(SUPERBAD_VOICE_RULES);
+  }
+
+  parts.push(`
+VOICE RULES:
+- Every word choice, every sentence structure, every piece of punctuation should feel like this brand.
+- If the voice portrait says short declaratives, write short declaratives. If it says dry asides, write dry asides.
+- Never default to "helpful professional blogger" voice. That is the one voice you must avoid.
+
+ANTI-PATTERNS (never do these):
+- "In today's fast-paced digital landscape…" or any variant — banned opening structure.
+- Rhetorical questions as transitions — only if the brand's voice explicitly uses them.
+- Excessive hedging ("it's important to note that…", "it's worth mentioning…") — cut it.
+- Lists of three adjectives — one is enough.
+- "In conclusion" or "Final thoughts" — just end.
+- Explaining the structure of the post to the reader ("In this article, we'll cover…").
+- Self-referential meta-commentary ("This isn't a listicle" is itself listicle energy).
+
+FORMATTING RULES:
+- Use > for key observations or pull quotes — one per 800-1000 words. These are typographic breathing room, not decoration.
+- Use --- between major sections for visual rhythm.
+- Tables use standard markdown pipe syntax.
+- Do NOT include a table of contents. The post should flow, not read like a textbook.
+- Bold sparingly. When you bold something, it should be the one phrase in that section worth remembering.`);
 
   return parts.join("\n");
 }
+
+const SUPERBAD_VOICE_RULES = `
+SUPERBAD VOICE (this is SuperBad's own blog — these rules are non-negotiable):
+
+Tone:
+- Dry. Not sarcastic — observational. The humour comes from noticing things, not mocking.
+- Self-deprecating, but with competence underneath. Never self-deprecating about quality.
+- Slow burn. Don't front-load the punchline. Let the reader arrive at it.
+- Real first. Say what's true before saying what's clever.
+- Warm underneath. The dryness is surface. Underneath it's someone who genuinely cares.
+
+Sentence structure:
+- Short sentences. Leave room for the mutter.
+- Fragments are fine. Often better.
+- One idea per sentence. If you need a comma, you might need a full stop instead.
+- Vary rhythm. Three short, then one that breathes. Then back.
+
+Banned words — never use, not even ironically:
+synergy, leverage (as verb), solutions, unlock, supercharge, game-changer, next-level,
+passionate about, dedicated to, committed to, innovative, cutting-edge, state-of-the-art,
+seamless, frictionless, end-to-end, empower, transform, revolutionise, thought leader,
+guru, ninja, rockstar, holistic, bespoke, reach out, journey (non-literal), space (as in "the marketing space").
+
+Formatting:
+- No exclamation marks. Ever. If the sentence needs one, rewrite it.
+- Em dashes over semicolons.
+- Australian English (colour, analyse, organise).
+- Lowercase where natural. "superbad" not "SuperBad" in running body copy.
+- Oxford comma: yes.
+
+What NOT to sound like:
+- A marketing blog. No frameworks. No "actionable insights." No "here's what you need to know."
+- A helpful uncle giving advice over beers. That's warm-and-approachable, which isn't this voice.
+- A LinkedIn post. No false authority, no "I've been in this industry for X years."
+- A consultant's report. No "based on our analysis." Say the thing directly.
+
+What TO sound like:
+- A smart colleague who's been watching the industry with one eyebrow slightly raised.
+- Someone who respects the reader enough to skip the preamble.
+- Writing that makes the reader feel like they're in on something, not being taught.`;
 
 function buildUserPrompt(
   keyword: string,
@@ -318,7 +384,7 @@ Respond in this exact JSON format (no markdown fencing):
 {
   "title": "Blog post title (SEO-optimised, 50-65 chars)",
   "slug": "url-friendly-slug-derived-from-title",
-  "body": "Full blog post in markdown. Use ## for H2, ### for H3. Include a table of contents at the top as a bullet list of section links.",
+  "body": "Full blog post in markdown. Use ## for H2, ### for H3. Use > for pull quotes (one per 800-1000 words). Use --- between major sections. Use standard pipe tables where data warrants it. Do NOT include a table of contents.",
   "metaDescription": "155-char meta description targeting the keyword",
   "structuredData": { "@context": "https://schema.org", "@type": "Article", "headline": "...", "description": "...", "datePublished": "${new Date().toISOString().split("T")[0]}", "author": { "@type": "Organization", "name": "..." } },
   "internalLinks": ["suggested-related-slug-1", "suggested-related-slug-2"],
@@ -369,7 +435,7 @@ async function callOpusBlogGeneration(
   serpSnapshot: { results?: Array<{ title: string; link: string; snippet: string }> } | null,
   brandDna: FullBrandDna,
 ): Promise<BlogPostDraft> {
-  const systemPrompt = buildSystemPrompt(brandDna);
+  const systemPrompt = buildSystemPrompt(brandDna, brandDna.isSuperBad);
   const userPrompt = buildUserPrompt(keyword, outline, contentGaps, serpSnapshot);
 
   const raw = await invokeLlmText({
