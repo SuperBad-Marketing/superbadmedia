@@ -317,9 +317,9 @@ export function LandingClient() {
 
   return (
     <main
-      className="landing-page"
+      className="landing-page snap-y snap-proximity overflow-y-scroll"
       style={{
-        minHeight: "100vh",
+        height: "100dvh",
         background: "var(--neutral-900)",
         position: "relative",
       }}
@@ -408,7 +408,7 @@ export function LandingClient() {
             >
               {/* ---- Hero (full viewport) ---- */}
               <section
-                className="flex h-dvh flex-col overflow-hidden"
+                className="flex h-dvh snap-start flex-col overflow-hidden"
                 style={{ position: "relative" }}
               >
                 <nav
@@ -523,6 +523,7 @@ export function LandingClient() {
 
               {/* ---- Subtitle + intro ---- */}
               <section
+                className="snap-start"
                 style={{
                   maxWidth: 900,
                   margin: "0 auto",
@@ -627,10 +628,11 @@ export function LandingClient() {
 
               {/* ---- How it works ---- */}
               <section
+                className="snap-start"
                 style={{
                   maxWidth: 900,
                   margin: "0 auto",
-                  padding: "0 var(--lp-px) 100px",
+                  padding: "80px var(--lp-px) 100px",
                 }}
               >
                 <Reveal>
@@ -720,7 +722,7 @@ export function LandingClient() {
 
               {/* ---- Editorial explainer ---- */}
               <section
-                className="landing-what-grid"
+                className="landing-what-grid snap-start"
                 style={{
                   maxWidth: 1200,
                   margin: "0 auto",
@@ -863,6 +865,7 @@ export function LandingClient() {
 
               {/* ---- You don't need to... (objection handler) ---- */}
               <section
+                className="snap-start"
                 style={{
                   maxWidth: 700,
                   margin: "0 auto",
@@ -964,6 +967,7 @@ export function LandingClient() {
 
               {/* ---- Final CTA ---- */}
               <section
+                className="snap-start"
                 style={{
                   padding: "80px var(--lp-px) 100px",
                   maxWidth: 900,
