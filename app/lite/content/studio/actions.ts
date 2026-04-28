@@ -1406,6 +1406,260 @@ export async function updateScenesAction(
   return { ok: true as const };
 }
 
+/* ------------------------------------------------------------------ */
+/* Instagram publishing from studio                                   */
+/* ------------------------------------------------------------------ */
+
+import { publishSingleImage, publishVideo, publishCarousel } from "@/lib/channels/instagram/publish";
+import { instagram_accounts } from "@/lib/db/schema/instagram";
+
+const publishToIgSchema = z.object({
+  postId: z.string().optional(),
+  videoJobId: z.string().optional(),
+  caption: z.string().min(1).max(2200),
+  accountId: z.string().optional(),
+});
+
+export async function publishToInstagramAction(
+  input: z.infer<typeof publishToIgSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = publishToIgSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const account = parsed.data.accountId
+    ? await db.query.instagram_accounts.findFirst({
+        where: eq(instagram_accounts.id, parsed.data.accountId),
+      })
+    : await db.query.instagram_accounts.findFirst({
+        where: eq(instagram_accounts.status, "active"),
+      });
+
+  if (!account) return { ok: false as const, error: "No active Instagram account." };
+
+  if (parsed.data.videoJobId) {
+    const job = await db.query.videoJobs.findFirst({
+      where: eq(videoJobs.id, parsed.data.videoJobId),
+    });
+    if (!job) return { ok: false as const, error: "Video job not found." };
+
+    const videoUrl = job.composite_url ?? job.output_url;
+    if (!videoUrl) return { ok: false as const, error: "No rendered video to publish." };
+
+    const result = await publishVideo(account.id, videoUrl, parsed.data.caption, {
+      sourcePostId: job.content_studio_post_id ?? undefined,
+    });
+    return result.ok
+      ? { ok: true as const, igMediaId: result.igMediaId, permalink: result.permalink }
+      : { ok: false as const, error: result.error };
+  }
+
+  if (parsed.data.postId) {
+    const renders = await db
+      .select()
+      .from(contentStudioRenders)
+      .where(eq(contentStudioRenders.post_id, parsed.data.postId));
+
+    const readyRenders = renders.filter(
+      (r) => r.render_status === "rendered" && r.cloudinary_url,
+    );
+
+    if (readyRenders.length === 0)
+      return { ok: false as const, error: "No rendered content to publish." };
+
+    const motionRender = readyRenders.find((r) => r.render_type === "motion");
+    if (motionRender?.cloudinary_url) {
+      const result = await publishVideo(
+        account.id,
+        motionRender.cloudinary_url,
+        parsed.data.caption,
+        { sourcePostId: parsed.data.postId },
+      );
+      return result.ok
+        ? { ok: true as const, igMediaId: result.igMediaId, permalink: result.permalink }
+        : { ok: false as const, error: result.error };
+    }
+
+    if (readyRenders.length >= 2) {
+      const urls = readyRenders
+        .sort((a, b) => a.slide_index - b.slide_index)
+        .map((r) => r.cloudinary_url!)
+        .slice(0, 10);
+      const result = await publishCarousel(account.id, urls, parsed.data.caption, {
+        sourcePostId: parsed.data.postId,
+      });
+      return result.ok
+        ? { ok: true as const, igMediaId: result.igMediaId, permalink: result.permalink }
+        : { ok: false as const, error: result.error };
+    }
+
+    const singleUrl = readyRenders[0].cloudinary_url!;
+    const result = await publishSingleImage(
+      account.id,
+      singleUrl,
+      parsed.data.caption,
+      { sourcePostId: parsed.data.postId },
+    );
+    return result.ok
+      ? { ok: true as const, igMediaId: result.igMediaId, permalink: result.permalink }
+      : { ok: false as const, error: result.error };
+  }
+
+  return { ok: false as const, error: "No content specified." };
+}
+
+/* ------------------------------------------------------------------ */
+/* Monthly cost data                                                  */
+/* ------------------------------------------------------------------ */
+
+import { sql, gte } from "drizzle-orm";
+import type { MonthlyCostData } from "./_components/cost-dashboard";
+
+export async function getMonthlyCostsAction(): Promise<
+  { ok: true; data: MonthlyCostData[] } | { ok: false; error: string }
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "unauthorized" };
+  }
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const jobs = await db
+    .select({
+      id: videoJobs.id,
+      engine: videoJobs.engine,
+      status: videoJobs.status,
+      created_at: videoJobs.created_at,
+      pipeline_stage: videoJobs.pipeline_stage,
+    })
+    .from(videoJobs)
+    .where(gte(videoJobs.created_at, sixMonthsAgo));
+
+  const monthMap = new Map<string, MonthlyCostData>();
+
+  for (const job of jobs) {
+    const d = new Date(job.created_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (!monthMap.has(key)) {
+      monthMap.set(key, {
+        month: key,
+        higgsfield: 0,
+        remotion: 0,
+        composite: 0,
+        totalJobs: 0,
+        totalCostAud: 0,
+      });
+    }
+    const entry = monthMap.get(key)!;
+    entry.totalJobs++;
+
+    const isComposite =
+      job.pipeline_stage === "overlay" ||
+      job.pipeline_stage === "composite" ||
+      job.pipeline_stage === "export" ||
+      job.pipeline_stage === "complete";
+
+    if (isComposite) {
+      entry.composite++;
+      entry.totalCostAud += 0.8;
+    } else if (job.engine === "higgsfield") {
+      entry.higgsfield++;
+      entry.totalCostAud += 0.75;
+    } else {
+      entry.remotion++;
+    }
+  }
+
+  const sorted = Array.from(monthMap.values()).sort(
+    (a, b) => b.month.localeCompare(a.month),
+  );
+
+  return { ok: true, data: sorted };
+}
+
+/* ------------------------------------------------------------------ */
+/* Portfolio / hero video queries                                     */
+/* ------------------------------------------------------------------ */
+
+export async function getPortfolioVideosAction() {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const jobs = await db
+    .select({
+      id: videoJobs.id,
+      videoType: videoJobs.video_type,
+      engine: videoJobs.engine,
+      outputUrl: videoJobs.output_url,
+      compositeUrl: videoJobs.composite_url,
+      thumbnailUrl: videoJobs.thumbnail_url,
+      initialPrompt: videoJobs.initial_prompt,
+      durationSec: videoJobs.duration_sec,
+      aspectRatio: videoJobs.aspect_ratio,
+      createdAt: videoJobs.created_at,
+    })
+    .from(videoJobs)
+    .where(eq(videoJobs.status, "ready"))
+    .orderBy(desc(videoJobs.created_at))
+    .limit(50);
+
+  return {
+    ok: true as const,
+    videos: jobs.map((j) => ({
+      id: j.id,
+      title: j.initialPrompt.slice(0, 60),
+      videoUrl: j.compositeUrl ?? j.outputUrl ?? "",
+      thumbnailUrl: j.thumbnailUrl ?? undefined,
+      engine: j.compositeUrl ? "composite" : j.engine,
+      durationSec: j.durationSec ?? undefined,
+      aspectRatio: j.aspectRatio ?? "16:9",
+      createdAt: j.createdAt.getTime(),
+    })),
+  };
+}
+
+export async function getHeroVideosAction() {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const jobs = await db
+    .select({
+      id: videoJobs.id,
+      outputUrl: videoJobs.output_url,
+      compositeUrl: videoJobs.composite_url,
+      thumbnailUrl: videoJobs.thumbnail_url,
+      aspectRatio: videoJobs.aspect_ratio,
+    })
+    .from(videoJobs)
+    .where(eq(videoJobs.status, "ready"))
+    .orderBy(desc(videoJobs.created_at))
+    .limit(20);
+
+  return {
+    ok: true as const,
+    videos: jobs
+      .filter((j) => {
+        const url = j.compositeUrl ?? j.outputUrl;
+        return url && (j.aspectRatio === "16:9" || j.aspectRatio === "landscape");
+      })
+      .map((j) => ({
+        id: j.id,
+        videoUrl: (j.compositeUrl ?? j.outputUrl)!,
+        thumbnailUrl: j.thumbnailUrl ?? undefined,
+      })),
+  };
+}
+
 export async function setMusicTrackAction(jobId: string, trackId: string, musicUrl: string) {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {

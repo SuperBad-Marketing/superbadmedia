@@ -89,6 +89,63 @@ export async function publishSingleImage(
   return { ok: true, igMediaId: pubRes.data.id, mediaRowId, permalink: null };
 }
 
+export async function publishVideo(
+  accountId: string,
+  videoUrl: string,
+  caption: string,
+  opts?: { sourcePostId?: string },
+): Promise<PublishResult> {
+  const account = await db.query.instagram_accounts.findFirst({
+    where: eq(instagram_accounts.id, accountId),
+  });
+  if (!account) return { ok: false, error: "Account not found." };
+  if (account.status !== "active")
+    return { ok: false, error: "Account is not active." };
+
+  const containerRes = await createMediaContainer(
+    account.instagram_user_id,
+    account.access_token,
+    {
+      video_url: videoUrl,
+      caption,
+      media_type: "REELS",
+    },
+  );
+  if (!containerRes.ok) return { ok: false, error: containerRes.error };
+
+  const { ready, error: waitError } = await waitForContainer(
+    containerRes.data.id,
+    account.access_token,
+    90_000,
+  );
+  if (!ready)
+    return { ok: false, error: waitError ?? "Video container not ready." };
+
+  const pubRes = await publishMedia(
+    account.instagram_user_id,
+    account.access_token,
+    containerRes.data.id,
+  );
+  if (!pubRes.ok) return { ok: false, error: pubRes.error };
+
+  const mediaRowId = randomUUID();
+  await db.insert(instagram_media).values({
+    id: mediaRowId,
+    account_id: accountId,
+    ig_media_id: pubRes.data.id,
+    media_type: "REEL",
+    source_post_id: opts?.sourcePostId ?? null,
+    caption,
+    permalink: null,
+    thumbnail_url: null,
+    published_at_ms: Date.now(),
+    boost_status: "none",
+    last_synced_at_ms: Date.now(),
+  });
+
+  return { ok: true, igMediaId: pubRes.data.id, mediaRowId, permalink: null };
+}
+
 export async function publishCarousel(
   accountId: string,
   imageUrls: string[],

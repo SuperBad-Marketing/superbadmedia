@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { PlusIcon, HistoryIcon, EyeIcon, BookmarkIcon, CopyIcon } from "lucide-react";
+import { PlusIcon, HistoryIcon, EyeIcon, BookmarkIcon, CopyIcon, SendIcon, DollarSignIcon } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
@@ -38,6 +38,8 @@ import {
   listPromptsAction,
   savePromptAction,
   createMultiVariantAction,
+  publishToInstagramAction,
+  getMonthlyCostsAction,
 } from "../actions";
 import { suggestProjectName } from "@/lib/content-studio/project-name";
 import { UnifiedBrief, type UnifiedBriefResult } from "./unified-brief";
@@ -51,6 +53,8 @@ import {
   PromptLibraryDrawer,
   type SavedPrompt,
 } from "./prompt-library-drawer";
+import { CostTag } from "./cost-tag";
+import { CostDashboard, type MonthlyCostData } from "./cost-dashboard";
 import type { PipelineStage } from "@/lib/db/schema/video-jobs";
 
 const FORMAT_MAP: Record<ContentType, ContentFormat> = {
@@ -62,7 +66,7 @@ const FORMAT_MAP: Record<ContentType, ContentFormat> = {
   announcement: "animated",
 };
 
-type StudioView = "create" | "preview" | "history";
+type StudioView = "create" | "preview" | "history" | "costs";
 
 export interface ActivePost {
   id: string;
@@ -106,6 +110,13 @@ export function StudioClientUnified() {
   // Multi-variant toggle
   const [multiVariant, setMultiVariant] = useState(false);
 
+  // Cost dashboard
+  const [costData, setCostData] = useState<MonthlyCostData[]>([]);
+  const [costsLoading, setCostsLoading] = useState(false);
+
+  // Publishing
+  const [publishing, setPublishing] = useState(false);
+
   // Load client names + WIP projects on mount
   useEffect(() => {
     getClientNamesAction().then((res) => {
@@ -125,6 +136,42 @@ export function StudioClientUnified() {
       if (res.ok) setCompositeJob(res.job);
     });
   }, []);
+
+  const loadCosts = useCallback(() => {
+    setCostsLoading(true);
+    getMonthlyCostsAction()
+      .then((res) => {
+        if (res.ok) setCostData(res.data);
+      })
+      .finally(() => setCostsLoading(false));
+  }, []);
+
+  const handlePublishToInstagram = useCallback(
+    async (caption: string) => {
+      setPublishing(true);
+      try {
+        const input: { postId?: string; videoJobId?: string; caption: string } = { caption };
+        if (activeVideoJobId) input.videoJobId = activeVideoJobId;
+        else if (activePost) input.postId = activePost.id;
+        else if (motionPost) input.postId = motionPost.id;
+        else {
+          toast.error("Nothing to publish.");
+          return;
+        }
+        const res = await publishToInstagramAction(input);
+        if (!res.ok) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success("Published to Instagram.");
+      } catch {
+        toast.error("Publishing failed.");
+      } finally {
+        setPublishing(false);
+      }
+    },
+    [activeVideoJobId, activePost, motionPost],
+  );
 
   const loadPrompts = useCallback(() => {
     setPromptsLoading(true);
@@ -610,6 +657,15 @@ export function StudioClientUnified() {
           active={view === "history"}
           onClick={() => setView("history")}
         />
+        <ViewTab
+          label="Costs"
+          icon={DollarSignIcon}
+          active={view === "costs"}
+          onClick={() => {
+            setView("costs");
+            loadCosts();
+          }}
+        />
       </div>
 
       {/* Content area */}
@@ -750,6 +806,13 @@ export function StudioClientUnified() {
                   Render 3 variants
                 </span>
               </label>
+
+              {briefResult && (
+                <CostTag
+                  format={getEffectiveFormat(briefResult)}
+                  variants={multiVariant ? 3 : 1}
+                />
+              )}
             </div>
 
             <GenerationProgress
@@ -828,32 +891,40 @@ export function StudioClientUnified() {
 
         {view === "preview" && activeVideoJobId && !activePost && !motionPost && (
           isComposite && compositeJob ? (
-            <CompositeEditor
-              job={compositeJob}
-              onConfigureOverlay={async (config) => {
-                const res = await configureCompositeAction({
-                  jobId: activeVideoJobId,
-                  ...config,
-                });
-                if (!res.ok) toast.error("error" in res ? res.error : "Failed");
-                loadCompositeJob(activeVideoJobId);
-              }}
-              onRenderOverlay={async () => {
-                const res = await renderOverlayAction(activeVideoJobId);
-                if (!res.ok) toast.error("error" in res ? res.error : "Overlay render failed");
-                loadCompositeJob(activeVideoJobId);
-              }}
-              onComposite={async () => {
-                const res = await compositeVideoAction(activeVideoJobId);
-                if (!res.ok) toast.error("error" in res ? res.error : "Compositing failed");
-                loadCompositeJob(activeVideoJobId);
-              }}
-              onRetryStage={async (stage) => {
-                const res = await retryCompositeStageAction(activeVideoJobId, stage);
-                if (!res.ok) toast.error("error" in res ? res.error : "Retry failed");
-                loadCompositeJob(activeVideoJobId);
-              }}
-            />
+            <div className="space-y-4">
+              <CompositeEditor
+                job={compositeJob}
+                onConfigureOverlay={async (config) => {
+                  const res = await configureCompositeAction({
+                    jobId: activeVideoJobId,
+                    ...config,
+                  });
+                  if (!res.ok) toast.error("error" in res ? res.error : "Failed");
+                  loadCompositeJob(activeVideoJobId);
+                }}
+                onRenderOverlay={async () => {
+                  const res = await renderOverlayAction(activeVideoJobId);
+                  if (!res.ok) toast.error("error" in res ? res.error : "Overlay render failed");
+                  loadCompositeJob(activeVideoJobId);
+                }}
+                onComposite={async () => {
+                  const res = await compositeVideoAction(activeVideoJobId);
+                  if (!res.ok) toast.error("error" in res ? res.error : "Compositing failed");
+                  loadCompositeJob(activeVideoJobId);
+                }}
+                onRetryStage={async (stage) => {
+                  const res = await retryCompositeStageAction(activeVideoJobId, stage);
+                  if (!res.ok) toast.error("error" in res ? res.error : "Retry failed");
+                  loadCompositeJob(activeVideoJobId);
+                }}
+              />
+              {compositeJob.compositeUrl && (
+                <PublishBar
+                  onPublish={handlePublishToInstagram}
+                  publishing={publishing}
+                />
+              )}
+            </div>
           ) : (
             <div className="space-y-4">
               <div
@@ -902,6 +973,10 @@ export function StudioClientUnified() {
         )}
 
         {view === "history" && <PostHistory />}
+
+        {view === "costs" && (
+          <CostDashboard data={costData} loading={costsLoading} />
+        )}
       </div>
 
       {/* Prompt library drawer */}
@@ -953,5 +1028,59 @@ function ViewTab({
       <Icon className="size-3" />
       {label}
     </button>
+  );
+}
+
+function PublishBar({
+  onPublish,
+  publishing,
+}: {
+  onPublish: (caption: string) => void;
+  publishing: boolean;
+}) {
+  const [caption, setCaption] = useState("");
+
+  return (
+    <div
+      className="flex items-end gap-3 rounded-xl p-4"
+      style={{
+        backgroundColor: "var(--color-neutral-800)",
+        border: "1px solid rgba(253, 245, 230, 0.06)",
+      }}
+    >
+      <div className="min-w-0 flex-1">
+        <label
+          className="mb-1.5 block font-[family-name:var(--font-label)] text-[10px] uppercase"
+          style={{ letterSpacing: "1.5px", color: "var(--color-neutral-500)" }}
+        >
+          Caption
+        </label>
+        <textarea
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Write a caption..."
+          rows={3}
+          className="w-full resize-none rounded-lg px-3 py-2 font-[family-name:var(--font-body)] text-[13px] outline-none"
+          style={{
+            backgroundColor: "rgba(253, 245, 230, 0.03)",
+            color: "var(--color-brand-cream)",
+            border: "1px solid rgba(253, 245, 230, 0.06)",
+          }}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => onPublish(caption)}
+        disabled={publishing || !caption.trim()}
+        className="flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 font-[family-name:var(--font-body)] text-[13px] font-medium transition-opacity disabled:opacity-40"
+        style={{
+          backgroundColor: "var(--color-brand-red)",
+          color: "var(--color-brand-cream)",
+        }}
+      >
+        <SendIcon className="size-3.5" />
+        {publishing ? "Publishing..." : "Publish to IG"}
+      </button>
+    </div>
   );
 }
