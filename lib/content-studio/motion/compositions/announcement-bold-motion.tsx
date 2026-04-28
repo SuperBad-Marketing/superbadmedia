@@ -108,6 +108,7 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
             fontWeight: 900,
             fontSize: lyt.detailFontSize,
             color: palette.primary,
+            maxWidth: lyt.contentMaxWidth,
             marginBottom: lyt.elementGap,
             opacity: detailSlide.opacity,
             transform: `translateY(${detailSlide.translateY}px)`,

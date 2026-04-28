@@ -64,6 +64,7 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
           textAlign: lyt.textAlign,
           padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
+          maxWidth: lyt.contentMaxWidth,
           display: "flex",
           flexWrap: "wrap",
           justifyContent: lyt.justifyContent,

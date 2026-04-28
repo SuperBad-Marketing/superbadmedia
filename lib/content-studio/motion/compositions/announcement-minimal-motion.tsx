@@ -133,6 +133,7 @@ export const AnnouncementMinimalMotion: React.FC<MotionTemplateProps> = ({
             fontWeight: 900,
             fontSize: lyt.detailFontSize,
             color: palette.primary,
+            maxWidth: lyt.contentMaxWidth,
             marginBottom: lyt.elementGap,
             opacity: useFadeIn(36, 12),
           }}

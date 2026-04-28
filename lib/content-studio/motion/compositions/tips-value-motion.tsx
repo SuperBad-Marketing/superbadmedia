@@ -74,6 +74,7 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
           textAlign: lyt.textAlign,
           padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
+          maxWidth: lyt.contentMaxWidth,
         }}
       >
         <div
