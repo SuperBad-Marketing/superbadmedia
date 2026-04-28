@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +17,7 @@ import {
   Sparkles,
   ThumbsUp,
   ThumbsDown,
+  MessageSquarePlus,
 } from "lucide-react";
 
 import type { BusinessProfileSectionRow } from "@/lib/db/schema/business-profile-sections";
@@ -30,6 +31,7 @@ import {
   approveBrandDnaAction,
   discardBrandDnaDraftAction,
   populateProfileAction,
+  refineBraindumpAction,
 } from "./actions";
 import { retakeAssessment } from "@/app/lite/brand-dna/actions";
 
@@ -581,6 +583,7 @@ function SectionCard({
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editingProse, setEditingProse] = useState(false);
+  const [refining, setRefining] = useState(false);
   const [isPending, startTransition] = useTransition();
   const meta = SECTION_META[sectionKey];
   const health = getSectionHealth(section);
@@ -650,6 +653,15 @@ function SectionCard({
                     router.refresh();
                   }}
                 />
+              ) : refining ? (
+                <BraindumpRefiner
+                  sectionKey={sectionKey}
+                  sectionLabel={meta?.label ?? sectionKey}
+                  onDone={() => {
+                    setRefining(false);
+                    router.refresh();
+                  }}
+                />
               ) : (
                 <>
                   {/* Structured data display */}
@@ -668,7 +680,7 @@ function SectionCard({
                     </div>
                   ) : (
                     <p className="text-[13px] italic text-[color:var(--color-neutral-500)]">
-                      No data yet. Click Edit to add content.
+                      No data yet — braindump what you know and AI will structure it.
                     </p>
                   )}
 
@@ -703,6 +715,19 @@ function SectionCard({
 
                   {/* Action buttons */}
                   <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRefining(true)}
+                      className="inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-[12px] font-medium transition-colors duration-[180ms]"
+                      style={{
+                        backgroundColor: "var(--color-brand-red)",
+                        color: "var(--color-brand-cream)",
+                      }}
+                    >
+                      <MessageSquarePlus size={12} />
+                      Refine
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => setEditing(true)}
@@ -873,6 +898,102 @@ function ProseEditor({
           type="button"
           onClick={onDone}
           className="inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-[12px] font-medium text-[color:var(--color-neutral-300)]"
+          style={{ backgroundColor: "var(--color-surface-2)" }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BraindumpRefiner({
+  sectionKey,
+  sectionLabel,
+  onDone,
+}: {
+  sectionKey: string;
+  sectionLabel: string;
+  onDone: () => void;
+}) {
+  const [text, setText] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function handleRefine() {
+    if (!text.trim()) {
+      setError("Type something first.");
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const result = await refineBraindumpAction(sectionKey, text);
+      if (result.ok) {
+        toast.success(`${sectionLabel} refined and saved.`);
+        onDone();
+      } else {
+        setError(result.error);
+      }
+    });
+  }
+
+  return (
+    <div>
+      <div
+        className="font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-neutral-500)]"
+        style={{ letterSpacing: "1px" }}
+      >
+        Braindump — {sectionLabel}
+      </div>
+      <p className="mt-1 text-[12px] text-[color:var(--color-neutral-500)]">
+        Type whatever you know. Messy is fine — AI will structure it.
+      </p>
+      <textarea
+        ref={textareaRef}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder={`Everything you know about ${sectionLabel.toLowerCase()}...`}
+        rows={6}
+        className="mt-2 w-full rounded border p-3 text-[14px] leading-[1.6] text-[color:var(--color-brand-cream)] placeholder:text-[color:var(--color-neutral-600)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-pink)]"
+        style={{
+          backgroundColor: "var(--color-surface-0)",
+          borderColor: error ? "var(--color-brand-red)" : "var(--color-surface-3)",
+        }}
+        autoFocus
+      />
+      {error && (
+        <p className="mt-1 text-[12px] text-[color:var(--color-brand-red)]">{error}</p>
+      )}
+      <div className="mt-2 flex gap-2">
+        <button
+          type="button"
+          onClick={handleRefine}
+          disabled={isPending || !text.trim()}
+          className="inline-flex items-center gap-1.5 rounded px-4 py-2 text-[12px] font-[family-name:var(--font-label)] uppercase transition-opacity disabled:opacity-50"
+          style={{
+            letterSpacing: "1px",
+            backgroundColor: "var(--color-brand-red)",
+            color: "var(--color-brand-cream)",
+          }}
+        >
+          {isPending ? (
+            <>
+              <RefreshCw size={12} className="animate-spin" />
+              Refining...
+            </>
+          ) : (
+            <>
+              <Sparkles size={12} />
+              Refine & save
+            </>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={onDone}
+          disabled={isPending}
+          className="inline-flex items-center gap-1.5 rounded px-3 py-2 text-[12px] font-medium text-[color:var(--color-neutral-300)] disabled:opacity-50"
           style={{ backgroundColor: "var(--color-surface-2)" }}
         >
           Cancel

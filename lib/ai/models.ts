@@ -175,8 +175,9 @@ export const MODELS = {
   "instagram-taste-analysis": "haiku",
   // braindump mood signal (1)
   "braindump-mood-signal": "haiku",
-  // business-profile (1)
+  // business-profile (2)
   "profile-generate-prose-summary": "haiku",
+  "profile-refine-braindump": "sonnet",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;
@@ -228,8 +229,9 @@ const PROFILE_INJECTION_EXCLUDED: ReadonlySet<ModelJobSlug> = new Set([
   "braindump-mood-signal",
   "finance-draft-narrative",
   "call-custom-questions",
-  // Profile's own prose generator — avoid circular injection
+  // Profile's own generators — avoid circular injection
   "profile-generate-prose-summary",
+  "profile-refine-braindump",
 ]);
 
 export function isProfileInjectionExcluded(job: ModelJobSlug): boolean {

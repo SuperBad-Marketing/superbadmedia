@@ -398,6 +398,121 @@ export async function discardBrandDnaDraftAction(
   return { ok: true };
 }
 
+const SECTION_SCHEMAS: Record<string, string> = {
+  social_proof: `Array of proof points. Return JSON: { "proof_points": [{ "client_name": string, "client_description": string (one line — what they do), "outcome": string (what was delivered/achieved), "quotable": boolean (whether they've given permission to be referenced), "vertical": string (industry), "added_at_ms": number (use current timestamp) }] }`,
+  origin_story: `Return JSON: { "short_version": string (2-3 sentences — the elevator version), "full_version": string (2-3 paragraphs — the real story), "founding_motivation": string (why this business exists), "name_origin": string or null (where the name comes from, if worth telling) }`,
+  identity: `Return JSON: { "business_name": string, "legal_name": string, "founder_name": string, "location": string, "structure": "solo_founder"|"founder_led_team"|"multi_stakeholder", "tagline": string, "website_url": string, "contact_email": string }`,
+  services: `Array of service offerings. Return JSON: { "services": [{ "name": string, "price_display": string (e.g. "$397 inc GST"), "price_cents": number, "description": string, "is_recurring": boolean, "billing_cadence": string|null ("monthly"/"annual"/null), "active": boolean }] }`,
+  audience: `Return JSON: { "primary_description": string, "geography": string, "verticals": string[] (empty if no restriction), "vertical_philosophy": string, "ideal_client_traits": string[], "anti_patterns": string[] }`,
+  positioning: `Return JSON: { "one_liner": string, "differentiators": string[], "philosophy": string, "pricing_philosophy": string, "competitors_context": string }`,
+  current_focus: `Return JSON: { "current_quarter_focus": string, "seasonal_emphasis": string|null, "growth_priorities": string[], "active_campaigns": string[], "recent_shifts": string }`,
+  voice_rules: `Return JSON: { "tone_description": string, "tone_markers": string[], "banned_words": string[], "sentence_style": string, "humour_rules": string, "register_admin": string, "register_client": string, "register_public": string, "exclamation_marks": boolean, "emoji_policy": string }`,
+  external_design_rules: `Return JSON with fields: colour_palette (object), colour_ratio, typography_display, typography_labels, typography_editorial, typography_body, typography_logo, dark_over_light (boolean), visual_era, composition_style, photography_style, typography_as_graphic (boolean), production_philosophy, overall_feeling, cultural_references (string[]), social_post_rules, pdf_rules, email_rules`,
+  internal_design_rules: `Return JSON with fields: admin_shell, page_chrome, surface_strategy, motion_house_spring, motion_reduced, radius_style, density_default, empty_states, icon_library, form_style, table_style, sound_approach, mobile_approach, no_generic_tailwind, accessibility_baseline`,
+};
+
+export async function refineBraindumpAction(
+  sectionKey: string,
+  rawText: string,
+): Promise<ActionResult & { structured?: Record<string, unknown>; prose?: string }> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false, error: "Not authorised." };
+
+  if (!BUSINESS_PROFILE_SECTION_KEYS.includes(sectionKey as BusinessProfileSectionKey)) {
+    return { ok: false, error: "Unknown section." };
+  }
+
+  if (!rawText.trim()) {
+    return { ok: false, error: "Nothing to refine — type something first." };
+  }
+
+  const schema = SECTION_SCHEMAS[sectionKey];
+  if (!schema) {
+    return { ok: false, error: "No schema defined for this section." };
+  }
+
+  const { invokeLlmText } = await import("@/lib/ai/invoke");
+
+  const label = sectionKey.replace(/_/g, " ");
+  const structuredResponse = await invokeLlmText({
+    job: "profile-refine-braindump",
+    prompt: `You are extracting structured business profile data from a braindump. The user typed raw notes about the "${label}" section of their business profile. Extract and organise this into the required JSON structure.
+
+Rules:
+- Use ONLY information from the braindump. Do not invent facts.
+- Clean up grammar and phrasing but preserve the meaning and tone.
+- If a field cannot be filled from the braindump, use null.
+- Return ONLY valid JSON, no markdown fences, no explanation.
+
+Required structure:
+${schema}
+
+Braindump:
+${rawText}`,
+    maxTokens: 1500,
+    actorType: "internal",
+  });
+
+  let parsed: Record<string, unknown>;
+  try {
+    const cleaned = structuredResponse.replace(/^```json?\s*/, "").replace(/\s*```$/, "").trim();
+    parsed = JSON.parse(cleaned) as Record<string, unknown>;
+  } catch {
+    return { ok: false, error: "AI returned invalid JSON. Try again or edit manually." };
+  }
+
+  // Save structured data
+  const saveResult = await saveSectionAction(sectionKey, parsed);
+  if (!saveResult.ok) return saveResult;
+
+  // Generate prose summary
+  const prose = await invokeLlmText({
+    job: "profile-generate-prose-summary",
+    prompt: `Summarise this "${label}" section of a business profile into 2-3 natural sentences. Write in third person. Be factual, not promotional.\n\n${JSON.stringify(parsed, null, 2)}`,
+    maxTokens: 300,
+    actorType: "internal",
+  });
+
+  const now = Date.now();
+  const current = await db
+    .select()
+    .from(business_profile_sections)
+    .where(
+      and(
+        eq(business_profile_sections.section_key, sectionKey),
+        eq(business_profile_sections.is_current, true),
+      ),
+    )
+    .get();
+
+  if (current) {
+    await db
+      .update(business_profile_sections)
+      .set({
+        prose_summary: prose,
+        prose_generated_at_ms: now,
+        updated_at_ms: now,
+      })
+      .where(eq(business_profile_sections.id, current.id));
+  }
+
+  invalidateProfileCache();
+
+  try {
+    await generateProfileSnapshot();
+  } catch { /* best-effort */ }
+
+  await logActivity({
+    kind: "profile_section_updated",
+    body: `Refined "${label}" from braindump`,
+    meta: { section_key: sectionKey, source: "braindump_refine" },
+    createdBy: `user:${userId}`,
+  });
+
+  revalidatePath("/lite/admin/profile");
+  return { ok: true, structured: parsed, prose };
+}
+
 export async function populateProfileAction(): Promise<ActionResult & { sectionsPopulated?: number; sectionsSkipped?: string[] }> {
   const userId = await requireAdmin();
   if (!userId) return { ok: false, error: "Not authorised." };

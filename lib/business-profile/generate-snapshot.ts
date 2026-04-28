@@ -23,7 +23,22 @@ function formatStructured(data: unknown): string {
     if (v === null || v === undefined) continue;
     const label = k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     if (Array.isArray(v)) {
-      lines.push(`- **${label}:** ${v.join(", ")}`);
+      const hasObjects = v.some(item => typeof item === "object" && item !== null);
+      if (hasObjects) {
+        for (const item of v) {
+          if (typeof item === "object" && item !== null) {
+            const summary = Object.entries(item as Record<string, unknown>)
+              .filter(([, val]) => val !== null && val !== undefined)
+              .map(([ik, iv]) => `${ik.replace(/_/g, " ")}: ${String(iv)}`)
+              .join(" · ");
+            lines.push(`- ${summary}`);
+          } else {
+            lines.push(`- ${String(item)}`);
+          }
+        }
+      } else {
+        lines.push(`- **${label}:** ${v.join(", ")}`);
+      }
     } else if (typeof v === "object") {
       lines.push(`- **${label}:** ${JSON.stringify(v)}`);
     } else {
