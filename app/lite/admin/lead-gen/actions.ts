@@ -533,7 +533,7 @@ ${brandProfile.voiceDescription}
 Tone markers: ${brandProfile.toneMarkers.join(", ")}
 ${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}
 ${voiceExamplesBlock}
-Respond in exactly this format:
+OUTPUT FORMAT (follow exactly — no deviations, no preamble):
 SUBJECT: <subject line>
 BODY:
 <email body in markdown>`;
@@ -552,7 +552,9 @@ ${JSON.stringify(profile, null, 2)}
 
 ${candidate.notes ? `NOTES:\n${candidate.notes}` : ""}
 
-The email should feel personal, reference something specific about their business, and be genuinely useful. No hard sell. Keep it under 150 words.`;
+The email should feel personal, reference something specific about their business, and be genuinely useful. No hard sell. Keep it under 150 words.
+
+Remember: respond ONLY with SUBJECT: then BODY: — nothing else.`;
 
   try {
     const result = await invokeLlmText({
