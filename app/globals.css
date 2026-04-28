@@ -385,6 +385,24 @@
   }
 }
 
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 /* Text-size-large user preference — consumed by the Settings → Display
    panel (lands post-A8). Opt-in via `[data-text-size="large"]` on <html>. */
 [data-text-size="large"] {
@@ -404,6 +422,11 @@
   font-size: 17px;
   line-height: 1.7;
   color: var(--neutral-300);
+}
+.blog-prose > *:first-child p:first-child {
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--neutral-100);
 }
 .blog-prose h1,
 .blog-prose h2,
@@ -432,13 +455,75 @@
   padding-left: 1.4em;
   margin-bottom: 1.4em;
 }
-.blog-prose li { margin-bottom: 0.4em; }
+.blog-prose ol { list-style-type: decimal; }
+.blog-prose li { margin-bottom: 0.5em; }
 .blog-prose li::marker { color: var(--neutral-500); }
+
+/* Pull quotes */
+.blog-prose blockquote {
+  border-left: 3px solid var(--brand-red);
+  margin: 2.5em 0;
+  padding: 1.2em 0 1.2em 1.6em;
+  background: none;
+}
+.blog-prose blockquote p {
+  font-family: var(--font-narrative);
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--neutral-100);
+  font-style: italic;
+  margin-bottom: 0;
+}
+
+/* Section dividers */
 .blog-prose hr {
   border: none;
-  border-top: 1px solid rgba(253, 245, 230, 0.08);
-  margin: 2.5em 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(253, 245, 230, 0.12) 20%,
+    rgba(253, 245, 230, 0.12) 80%,
+    transparent 100%
+  );
+  margin: 3.5em 0;
 }
+
+/* Tables */
+.blog-prose .blog-table-wrap {
+  overflow-x: auto;
+  margin: 2em 0;
+  border-radius: 8px;
+  border: 1px solid rgba(253, 245, 230, 0.08);
+}
+.blog-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.blog-prose thead {
+  background: var(--surface-1);
+}
+.blog-prose th {
+  font-family: var(--font-label);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--neutral-500);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(253, 245, 230, 0.1);
+}
+.blog-prose td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(253, 245, 230, 0.05);
+  color: var(--neutral-300);
+}
+.blog-prose tbody tr:last-child td { border-bottom: none; }
+.blog-prose tbody tr:hover { background: rgba(253, 245, 230, 0.02); }
+
+/* Code */
 .blog-prose pre {
   background: var(--surface-1);
   border: 1px solid rgba(253, 245, 230, 0.06);

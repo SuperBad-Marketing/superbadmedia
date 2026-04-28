@@ -253,6 +253,169 @@ function Statement({
   );
 }
 
+/* ── Services Marquee — kinetic "what we do" ── */
+function ServicesMarquee({ reduced }: { reduced: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const entranceInView = useInView(ref, { once: true, amount: 0.3 });
+  const scrollInView = useInView(ref, { amount: 0.3 });
+
+  const row1 = [
+    "Media Production",
+    "Content Creation",
+    "Brand Strategy",
+    "Ad Campaigns",
+    "Performance Marketing",
+    "Creative Direction",
+  ];
+
+  const row2 = [
+    "Short-Form Video",
+    "Long-Form Series",
+    "Photography",
+    "Social Content",
+    "Paid Social",
+    "Retargeting",
+  ];
+
+  const maskStyle: React.CSSProperties = {
+    overflow: "hidden",
+    maskImage:
+      "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
+    WebkitMaskImage:
+      "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
+  };
+
+  return (
+    <section
+      ref={ref}
+      className="relative flex h-dvh snap-start flex-col justify-center overflow-hidden"
+      style={{
+        backgroundColor: "var(--surface-1)",
+        paddingTop: "88px",
+        paddingBottom: "40px",
+      }}
+    >
+      <motion.p
+        style={{
+          fontFamily: "var(--font-label)",
+          fontSize: "var(--text-micro)",
+          letterSpacing: "0.35em",
+          textTransform: "uppercase",
+          color: "var(--brand-pink)",
+          margin: 0,
+          marginBottom: "clamp(28px, 3.5vw, 48px)",
+          paddingLeft: "clamp(32px, 5vw, 96px)",
+        }}
+        initial={reduced ? false : { opacity: 0, y: 8 }}
+        animate={entranceInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.5, ease: EASE }}
+      >
+        What we do
+      </motion.p>
+
+      <div style={maskStyle}>
+        <div
+          style={{
+            display: "flex",
+            whiteSpace: "nowrap",
+            animation: !reduced
+              ? "marquee-left 50s linear infinite"
+              : "none",
+            animationPlayState: scrollInView ? "running" : "paused",
+          }}
+        >
+          {[0, 1].map((copy) =>
+            row1.map((item, i) => (
+              <span
+                key={`r1-${copy}-${i}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  flexShrink: 0,
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(36px, 6vw, 80px)",
+                  lineHeight: 1,
+                  color: "var(--neutral-100)",
+                }}
+              >
+                {item}
+                <span
+                  style={{
+                    color: "var(--brand-red)",
+                    margin: "0 clamp(20px, 3vw, 40px)",
+                    fontSize: "0.4em",
+                  }}
+                >
+                  ●
+                </span>
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div style={{ ...maskStyle, marginTop: "clamp(12px, 1.5vw, 24px)" }}>
+        <div
+          style={{
+            display: "flex",
+            whiteSpace: "nowrap",
+            animation: !reduced
+              ? "marquee-right 45s linear infinite"
+              : "none",
+            animationPlayState: scrollInView ? "running" : "paused",
+          }}
+        >
+          {[0, 1].map((copy) =>
+            row2.map((item, i) => (
+              <span
+                key={`r2-${copy}-${i}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  flexShrink: 0,
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(28px, 4.5vw, 60px)",
+                  lineHeight: 1,
+                  color: "var(--neutral-300)",
+                }}
+              >
+                {item}
+                <span
+                  style={{
+                    color: "var(--brand-pink)",
+                    margin: "0 clamp(16px, 2.5vw, 36px)",
+                    fontSize: "0.4em",
+                  }}
+                >
+                  ●
+                </span>
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+
+      <motion.p
+        style={{
+          fontFamily: "var(--font-narrative)",
+          fontSize: "clamp(16px, 1.8vw, 22px)",
+          lineHeight: 1.5,
+          fontStyle: "italic",
+          color: "var(--brand-pink)",
+          margin: 0,
+          marginTop: "clamp(28px, 3.5vw, 48px)",
+          paddingLeft: "clamp(32px, 5vw, 96px)",
+        }}
+        initial={reduced ? false : { opacity: 0 }}
+        animate={entranceInView ? { opacity: 0.7 } : { opacity: 0 }}
+        transition={{ duration: 0.6, delay: 0.4, ease: EASE }}
+      >
+        No departments. No hand-offs. Just the work.
+      </motion.p>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const reduced = useReducedMotion();
@@ -600,6 +763,9 @@ export default function HomePage() {
             }
           />
         </Screen>
+
+        {/* ── Services Marquee — what we do ── */}
+        <ServicesMarquee reduced={!!reduced} />
 
         {/* ── Screen — Four agencies ── */}
         <Screen surface={1}>
