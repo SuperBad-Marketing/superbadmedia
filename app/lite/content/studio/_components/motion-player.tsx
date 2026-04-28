@@ -17,12 +17,18 @@ import { CinematicRevealMotion } from "@/lib/content-studio/motion/compositions/
 import { FocusPullMotion } from "@/lib/content-studio/motion/compositions/focus-pull-motion";
 import { WhipPanMotion } from "@/lib/content-studio/motion/compositions/whip-pan-motion";
 import { ZoomThroughMotion } from "@/lib/content-studio/motion/compositions/zoom-through-motion";
+import { EdgeBleedMotion } from "@/lib/content-studio/motion/compositions/edge-bleed-motion";
+import { SplitFieldMotion } from "@/lib/content-studio/motion/compositions/split-field-motion";
+import { OversizedCropMotion } from "@/lib/content-studio/motion/compositions/oversized-crop-motion";
+import { IsolationMotion } from "@/lib/content-studio/motion/compositions/isolation-motion";
+import { VerticalTypeMotion } from "@/lib/content-studio/motion/compositions/vertical-type-motion";
+import { StripeCutMotion } from "@/lib/content-studio/motion/compositions/stripe-cut-motion";
 import { withSfx } from "@/lib/content-studio/motion/compositions/motion-sfx";
 import type { ColourPalette, MotionTemplateProps, SfxCueData } from "@/lib/content-studio/motion/types";
 import { MOTION_DIMENSIONS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
 import type { MotionLayoutConfig } from "@/lib/content-studio/motion/layouts";
 
-const COMPOSITION_MAP: Record<string, React.FC<MotionTemplateProps>> = {
+export const COMPOSITION_MAP: Record<string, React.FC<MotionTemplateProps>> = {
   "announcement-bold-motion": withSfx(AnnouncementBoldMotion),
   "announcement-minimal-motion": withSfx(AnnouncementMinimalMotion),
   "anti-motivation-typography-motion": withSfx(AntiMotivationTypographyMotion),
@@ -38,6 +44,12 @@ const COMPOSITION_MAP: Record<string, React.FC<MotionTemplateProps>> = {
   "focus-pull": withSfx(FocusPullMotion),
   "whip-pan": withSfx(WhipPanMotion),
   "zoom-through": withSfx(ZoomThroughMotion),
+  "edge-bleed": withSfx(EdgeBleedMotion),
+  "split-field": withSfx(SplitFieldMotion),
+  "oversized-crop": withSfx(OversizedCropMotion),
+  "isolation": withSfx(IsolationMotion),
+  "vertical-type": withSfx(VerticalTypeMotion),
+  "stripe-cut": withSfx(StripeCutMotion),
 };
 
 interface MotionPlayerProps {

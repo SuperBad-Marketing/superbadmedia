@@ -36,6 +36,7 @@ export interface AnimationParamDef {
 export interface MotionTemplateDef {
   id: string;
   name: string;
+  description: string;
   category: "paired" | "motion-only";
   staticCounterpart: string | null;
   overlayCapable: boolean;

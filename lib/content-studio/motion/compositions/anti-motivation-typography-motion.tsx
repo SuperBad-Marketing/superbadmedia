@@ -96,11 +96,12 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
 
       <div
         style={{
-          position: "relative",
+          position: "absolute",
+          bottom: lyt.paddingY,
+          left: lyt.paddingX,
+          right: lyt.paddingX,
           zIndex: 1,
           textAlign: lyt.textAlign,
-          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
-          width: "100%",
           maxWidth: lyt.contentMaxWidth,
         }}
       >
@@ -124,7 +125,7 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
             width: 48,
             height: 3,
             background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`,
-            margin: `${lyt.elementGap}px auto`,
+            margin: `${lyt.elementGap}px 0`,
             borderRadius: 2,
             opacity: dividerFade,
           }}
@@ -141,21 +142,20 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
         >
           {copy.tagline || ""}
         </div>
-      </div>
 
-      <div
-        style={{
-          position: "absolute",
-          bottom: lyt.paddingY,
-          fontWeight: 600,
-          fontSize: lyt.footerFontSize,
-          letterSpacing: 3,
-          textTransform: "uppercase" as const,
-          color: `${palette.text}40`,
-          opacity: footerFade,
-        }}
-      >
-        superbadmedia.com.au
+        <div
+          style={{
+            marginTop: Math.round(20 * lyt.scale),
+            fontWeight: 600,
+            fontSize: lyt.footerFontSize,
+            letterSpacing: 3,
+            textTransform: "uppercase" as const,
+            color: `${palette.text}40`,
+            opacity: footerFade,
+          }}
+        >
+          superbadmedia.com.au
+        </div>
       </div>
     </AbsoluteFill>
   );

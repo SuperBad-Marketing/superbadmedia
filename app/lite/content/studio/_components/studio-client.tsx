@@ -13,7 +13,7 @@ import {
   getMotionOnlyTemplates,
   getMotionTemplatesForStatic,
 } from "@/lib/content-studio/motion/registry";
-import { getTemplatesForType } from "@/lib/content-studio/templates";
+import { getTemplatesForType, ALL_TEMPLATES } from "@/lib/content-studio/templates";
 import type { MotionAspectRatio } from "@/lib/content-studio/motion/types";
 import {
   createPostAction,
@@ -30,6 +30,8 @@ import { PostHistory } from "./post-history";
 import { MotionPreview, type MotionPostData } from "./motion-preview";
 import { InspirationPanel } from "./inspiration-panel";
 import { GenerationProgress } from "./generation-progress";
+import { TemplateThumbnail } from "./template-thumbnail";
+import { StaticTemplateThumbnail } from "./static-template-thumbnail";
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   announcement: "Announcement",
@@ -221,7 +223,8 @@ export function StudioClient() {
   const [generationFailed, setGenerationFailed] = useState(false);
   const [activePost, setActivePost] = useState<ActivePost | null>(null);
 
-  // Motion state
+  // Template state
+  const [selectedStaticTemplate, setSelectedStaticTemplate] = useState<string | null>(null);
   const [motionEnabled, setMotionEnabled] = useState(false);
   const [selectedMotionTemplate, setSelectedMotionTemplate] = useState<string | null>(null);
   const [motionPost, setMotionPost] = useState<MotionPostData | null>(null);
@@ -297,6 +300,7 @@ export function StudioClient() {
         brief,
         contentType,
         slideCount,
+        templateId: selectedStaticTemplate ?? undefined,
         fontPairingId: fontPairingId ?? undefined,
         paletteId: staticPaletteId ?? undefined,
         customPalette: customPalette ?? undefined,
@@ -327,7 +331,7 @@ export function StudioClient() {
     } finally {
       setGenerating(false);
     }
-  }, [topic, postGoal, postTone, postAudience, postCta, postHook, extraContext, contentType, slideCount, motionEnabled, selectedMotionTemplate, fontPairingId, staticPaletteId, customPalette]);
+  }, [topic, postGoal, postTone, postAudience, postCta, postHook, extraContext, contentType, slideCount, motionEnabled, selectedMotionTemplate, selectedStaticTemplate, fontPairingId, staticPaletteId, customPalette]);
 
   const handleCorrect = useCallback(
     async (correction: string, slideIndex?: number) => {
@@ -583,6 +587,8 @@ export function StudioClient() {
     setFontPairingId(null);
     setStaticPaletteId(null);
     setCustomPalette(null);
+    setSelectedStaticTemplate(null);
+    setSelectedMotionTemplate(null);
     setView("create");
   }, []);
 
@@ -725,6 +731,7 @@ export function StudioClient() {
                     onClick={() => {
                       setContentType(ct);
                       setSelectedMotionTemplate(null);
+                      setSelectedStaticTemplate(null);
                     }}
                     className="rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] transition-all"
                     style={{
@@ -820,47 +827,155 @@ export function StudioClient() {
             {/* Motion template selector — shown when motion is on */}
             {motionEnabled && (
               <div>
+                {pairedForType.length > 0 && (
+                  <>
+                    <label
+                      className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                      style={{ letterSpacing: "1.5px" }}
+                    >
+                      Paired templates
+                    </label>
+                    <div className="mb-5 grid gap-2 sm:grid-cols-2">
+                      {pairedForType.map((mt) => {
+                        const selected = selectedMotionTemplate === mt.id;
+                        return (
+                          <TemplateThumbnail key={mt.id} templateId={mt.id}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedMotionTemplate(mt.id)}
+                              className="w-full rounded-xl px-4 py-3 text-left transition-all"
+                              style={{
+                                backgroundColor: selected
+                                  ? "var(--color-brand-red)"
+                                  : "var(--color-neutral-800)",
+                                color: "var(--color-brand-cream)",
+                                border: selected
+                                  ? "1px solid var(--color-brand-red)"
+                                  : "1px solid rgba(253, 245, 230, 0.08)",
+                              }}
+                            >
+                              <span className="block font-[family-name:var(--font-body)] text-[13px] font-medium">
+                                {mt.name}
+                              </span>
+                              <span
+                                className="mt-0.5 block font-[family-name:var(--font-body)] text-[11px]"
+                                style={{ opacity: selected ? 0.8 : 0.45 }}
+                              >
+                                {mt.description}
+                              </span>
+                            </button>
+                          </TemplateThumbnail>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
                 <label
                   className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
                   style={{ letterSpacing: "1.5px" }}
                 >
-                  Motion template
+                  Standalone templates
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {availableMotionTemplates.map((mt) => (
-                    <button
-                      key={mt.id}
-                      type="button"
-                      onClick={() => setSelectedMotionTemplate(mt.id)}
-                      className="rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] transition-all"
-                      style={{
-                        backgroundColor:
-                          selectedMotionTemplate === mt.id
-                            ? "var(--color-brand-red)"
-                            : "var(--color-neutral-800)",
-                        color: "var(--color-brand-cream)",
-                        border:
-                          selectedMotionTemplate === mt.id
-                            ? "1px solid var(--color-brand-red)"
-                            : "1px solid rgba(253, 245, 230, 0.08)",
-                      }}
-                    >
-                      {mt.name}
-                      {mt.overlayCapable && (
-                        <span
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {motionOnly.map((mt) => {
+                    const selected = selectedMotionTemplate === mt.id;
+                    return (
+                      <TemplateThumbnail key={mt.id} templateId={mt.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMotionTemplate(mt.id)}
+                          className="w-full rounded-xl px-4 py-3 text-left transition-all"
                           style={{
-                            marginLeft: 6,
-                            fontSize: 9,
-                            opacity: 0.5,
-                            verticalAlign: "super",
+                            backgroundColor: selected
+                              ? "var(--color-brand-red)"
+                              : "var(--color-neutral-800)",
+                            color: "var(--color-brand-cream)",
+                            border: selected
+                              ? "1px solid var(--color-brand-red)"
+                              : "1px solid rgba(253, 245, 230, 0.08)",
                           }}
                         >
-                          overlay
-                        </span>
-                      )}
-                    </button>
-                  ))}
+                          <div className="flex items-center gap-2">
+                            <span className="font-[family-name:var(--font-body)] text-[13px] font-medium">
+                              {mt.name}
+                            </span>
+                            {mt.overlayCapable && (
+                              <span
+                                className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[8px] uppercase"
+                                style={{
+                                  letterSpacing: "0.6px",
+                                  backgroundColor: "rgba(253, 245, 230, 0.08)",
+                                  color: selected
+                                    ? "rgba(253, 245, 230, 0.7)"
+                                    : "var(--color-neutral-500)",
+                                }}
+                              >
+                                overlay
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className="mt-0.5 block font-[family-name:var(--font-body)] text-[11px]"
+                            style={{ opacity: selected ? 0.8 : 0.45 }}
+                          >
+                            {mt.description}
+                          </span>
+                        </button>
+                      </TemplateThumbnail>
+                    );
+                  })}
                 </div>
+              </div>
+            )}
+
+            {/* Static template selector — shown when motion is off */}
+            {!motionEnabled && staticTemplates.length > 0 && (
+              <div>
+                <label
+                  className="mb-2 block font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
+                  style={{ letterSpacing: "1.5px" }}
+                >
+                  Template
+                </label>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {staticTemplates.map((st) => {
+                    const selected = selectedStaticTemplate === st.id;
+                    return (
+                      <StaticTemplateThumbnail key={st.id} template={st}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedStaticTemplate(
+                              selected ? null : st.id,
+                            )
+                          }
+                          className="w-full rounded-xl px-4 py-3 text-left transition-all"
+                          style={{
+                            backgroundColor: selected
+                              ? "var(--color-brand-red)"
+                              : "var(--color-neutral-800)",
+                            color: "var(--color-brand-cream)",
+                            border: selected
+                              ? "1px solid var(--color-brand-red)"
+                              : "1px solid rgba(253, 245, 230, 0.08)",
+                          }}
+                        >
+                          <span className="block font-[family-name:var(--font-body)] text-[13px] font-medium">
+                            {st.name}
+                          </span>
+                        </button>
+                      </StaticTemplateThumbnail>
+                    );
+                  })}
+                </div>
+                {!selectedStaticTemplate && (
+                  <p
+                    className="mt-2 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]"
+                  >
+                    No selection = auto-picked to match your brief.
+                  </p>
+                )}
               </div>
             )}
 

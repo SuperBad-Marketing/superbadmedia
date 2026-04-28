@@ -183,6 +183,32 @@ export const StatCounterMotion: React.FC<MotionTemplateProps> = ({
 
       <div
         style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: FONT_DISPLAY,
+          fontWeight: 900,
+          fontSize: height * 1.6,
+          lineHeight: 0.85,
+          color: palette.primary,
+          opacity: interpolate(
+            spring({ frame: frame - ROLL_START, fps, config: { mass: 2, stiffness: 80, damping: 30 } }),
+            [0, 0.3], [0, 0.06],
+            { extrapolateRight: "clamp" },
+          ),
+          letterSpacing: -height * 0.05,
+          pointerEvents: "none",
+          userSelect: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {copy.stat || "0"}
+      </div>
+
+      <div
+        style={{
           position: "relative",
           zIndex: 1,
           textAlign: "center",

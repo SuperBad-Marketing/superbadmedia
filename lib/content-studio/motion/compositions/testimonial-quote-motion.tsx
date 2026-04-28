@@ -88,6 +88,24 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
 
         <div
           style={{
+            position: "absolute",
+            top: -lyt.headlineFontSize * 1.8,
+            left: -lyt.paddingX * 0.3,
+            fontFamily: FONT_DISPLAY,
+            fontWeight: 900,
+            fontSize: lyt.headlineFontSize * 5,
+            color: palette.primary,
+            lineHeight: 0.5,
+            opacity: quoteMarkOpacity * 0.08,
+            transform: `scale(${quoteMarkScale})`,
+            pointerEvents: "none",
+          }}
+        >
+          {"“"}
+        </div>
+
+        <div
+          style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
             fontSize: lyt.headlineFontSize * 2,
