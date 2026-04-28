@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { houseSpring } from "@/lib/design-tokens";
 import type { TrialShootTier } from "@/lib/db/schema/intro-funnel-submissions";
@@ -273,6 +273,29 @@ function TierCard({
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+function Reveal({
+  children,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
+  const reduced = useReducedMotion();
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={reduced ? false : { opacity: 0, y: 24 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay, ease: EASE }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export function LandingClient() {
   const [selectedTier, setSelectedTier] = useState<TrialShootTier | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -507,35 +530,26 @@ export function LandingClient() {
                   textAlign: "center",
                 }}
               >
-                <p
-                  style={{
-                    fontFamily: "var(--font-narrative)",
-                    fontStyle: "italic",
-                    fontSize: "clamp(1rem, 2vw, 1.375rem)",
-                    lineHeight: 1.45,
-                    color: "var(--neutral-300)",
-                    maxWidth: 600,
-                    margin: "0 auto 12px",
-                  }}
-                >
-                  Real deliverables you&rsquo;d actually use.{" "}
-                  <span style={{ color: "var(--brand-cream)" }}>
-                    And a six-week marketing plan written for you
-                  </span>{" "}
-                  &mdash; one you can run yourself if you decide
-                  we&rsquo;re not the right call.
-                </p>
-                <p
-                  style={{
-                    fontSize: 14,
-                    fontStyle: "italic",
-                    color: "var(--brand-pink)",
-                    opacity: 0.8,
-                  }}
-                >
-                  no subscriptions to cancel. no upsell in the follow-up. we
-                  don&rsquo;t do that.
-                </p>
+                <Reveal>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-narrative)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(1rem, 2vw, 1.375rem)",
+                      lineHeight: 1.45,
+                      color: "var(--neutral-300)",
+                      maxWidth: 600,
+                      margin: "0 auto 12px",
+                    }}
+                  >
+                    A small, paid piece of real work.{" "}
+                    <span style={{ color: "var(--brand-cream)" }}>
+                      Real deliverables, a six-week marketing plan,
+                      and 60 days of portal access
+                    </span>{" "}
+                    &mdash; yours to keep whether you come back or not.
+                  </p>
+                </Reveal>
               </section>
 
               {/* ---- Tier cards (side by side) ---- */}
@@ -546,27 +560,29 @@ export function LandingClient() {
                   padding: "0 var(--lp-px) 100px",
                 }}
               >
-                <div className="landing-tier-grid">
-                  {TIERS.map((tier) => (
-                    <TierCard
-                      key={tier.id}
-                      tier={tier}
-                      onSelect={() => handleTierSelect(tier.id)}
-                    />
-                  ))}
-                </div>
-                <p
-                  style={{
-                    marginTop: 16,
-                    textAlign: "center",
-                    fontSize: 13,
-                    color: "var(--neutral-500)",
-                    fontStyle: "italic",
-                  }}
-                >
-                  Both include the same six-week plan. The difference is what
-                  you walk away with from the shoot itself.
-                </p>
+                <Reveal>
+                  <div className="landing-tier-grid">
+                    {TIERS.map((tier) => (
+                      <TierCard
+                        key={tier.id}
+                        tier={tier}
+                        onSelect={() => handleTierSelect(tier.id)}
+                      />
+                    ))}
+                  </div>
+                  <p
+                    style={{
+                      marginTop: 16,
+                      textAlign: "center",
+                      fontSize: 13,
+                      color: "var(--neutral-500)",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Both include the same six-week plan. The difference is what
+                    you walk away with from the shoot itself.
+                  </p>
+                </Reveal>
               </section>
 
               {/* ---- Pullquote ---- */}
@@ -578,33 +594,128 @@ export function LandingClient() {
                   textAlign: "center",
                 }}
               >
-                <blockquote style={{ margin: 0 }}>
-                  <p
+                <Reveal>
+                  <blockquote style={{ margin: 0 }}>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        fontStyle: "italic",
+                        fontSize: "clamp(1.5rem, 3.5vw, 2.25rem)",
+                        lineHeight: 1.3,
+                        color: "var(--brand-cream)",
+                        letterSpacing: "-0.3px",
+                        margin: 0,
+                      }}
+                    >
+                      &ldquo;{QUOTES.pullquote.text}&rdquo;
+                    </p>
+                    <footer
+                      style={{
+                        marginTop: 24,
+                        fontFamily: "var(--font-label)",
+                        fontSize: 11,
+                        letterSpacing: "2px",
+                        textTransform: "uppercase",
+                        color: "var(--brand-pink)",
+                      }}
+                    >
+                      &mdash; {QUOTES.pullquote.attr}
+                    </footer>
+                  </blockquote>
+                </Reveal>
+              </section>
+
+              {/* ---- How it works ---- */}
+              <section
+                style={{
+                  maxWidth: 900,
+                  margin: "0 auto",
+                  padding: "0 var(--lp-px) 100px",
+                }}
+              >
+                <Reveal>
+                  <div
                     style={{
-                      fontFamily: "var(--font-narrative)",
-                      fontStyle: "italic",
-                      fontSize: "clamp(1.5rem, 3.5vw, 2.25rem)",
-                      lineHeight: 1.3,
-                      color: "var(--brand-cream)",
-                      letterSpacing: "-0.3px",
-                      margin: 0,
-                    }}
-                  >
-                    &ldquo;{QUOTES.pullquote.text}&rdquo;
-                  </p>
-                  <footer
-                    style={{
-                      marginTop: 24,
                       fontFamily: "var(--font-label)",
-                      fontSize: 11,
-                      letterSpacing: "2px",
+                      fontSize: 10,
+                      letterSpacing: "3px",
                       textTransform: "uppercase",
-                      color: "var(--brand-pink)",
+                      color: "var(--brand-orange)",
+                      marginBottom: 32,
+                      textAlign: "center",
                     }}
                   >
-                    &mdash; {QUOTES.pullquote.attr}
-                  </footer>
-                </blockquote>
+                    How it works
+                  </div>
+                </Reveal>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                    gap: 32,
+                  }}
+                >
+                  {[
+                    {
+                      step: "01",
+                      title: "You book",
+                      body: "Pick a tier, fill in the basics. Takes about two minutes. We’ll confirm a date that works.",
+                    },
+                    {
+                      step: "02",
+                      title: "We come to you",
+                      body: "On-site at your business. We shoot, you do your thing. No posing, no scripts, no awkward directing.",
+                    },
+                    {
+                      step: "03",
+                      title: "Everything lands in your portal",
+                      body: "Edited content, your six-week marketing plan, and 60 days of access. Yours to keep either way.",
+                    },
+                  ].map((item, i) => (
+                    <Reveal key={item.step} delay={i * 0.1}>
+                      <div
+                        style={{
+                          padding: "28px 24px",
+                          borderTop: "1px solid rgba(253,245,230,0.08)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: 32,
+                            lineHeight: 1,
+                            color: "var(--brand-red)",
+                            marginBottom: 12,
+                          }}
+                        >
+                          {item.step}
+                        </div>
+                        <p
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: 20,
+                            lineHeight: 1.2,
+                            color: "var(--brand-cream)",
+                            margin: "0 0 10px",
+                          }}
+                        >
+                          {item.title}
+                        </p>
+                        <p
+                          style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: 15,
+                            lineHeight: 1.6,
+                            color: "var(--neutral-400)",
+                            margin: 0,
+                          }}
+                        >
+                          {item.body}
+                        </p>
+                      </div>
+                    </Reveal>
+                  ))}
+                </div>
               </section>
 
               {/* ---- Editorial explainer ---- */}
@@ -616,117 +727,121 @@ export function LandingClient() {
                   padding: "60px var(--lp-px) 100px",
                 }}
               >
-                <div>
+                <Reveal>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-label)",
+                        fontSize: 10,
+                        letterSpacing: "3px",
+                        textTransform: "uppercase",
+                        color: "var(--brand-orange)",
+                        marginBottom: 16,
+                      }}
+                    >
+                      What a trial shoot actually is
+                    </div>
+                    <h2
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
+                        lineHeight: 1,
+                        letterSpacing: "-1px",
+                        color: "var(--brand-cream)",
+                        margin: 0,
+                      }}
+                    >
+                      Not a sales call.
+                      <br />
+                      <span
+                        style={{
+                          fontFamily: "var(--font-narrative)",
+                          fontStyle: "italic",
+                          color: "var(--brand-pink)",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Not a free sample.
+                      </span>
+                    </h2>
+                  </div>
+                </Reveal>
+                <Reveal delay={0.15}>
                   <div
                     style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: 10,
-                      letterSpacing: "3px",
-                      textTransform: "uppercase",
-                      color: "var(--brand-orange)",
-                      marginBottom: 16,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 24,
                     }}
                   >
-                    What a trial shoot actually is
+                    <p
+                      style={{
+                        fontSize: 18,
+                        lineHeight: 1.65,
+                        fontFamily: "var(--font-body)",
+                        color: "var(--neutral-300)",
+                        margin: 0,
+                      }}
+                    >
+                      We come to you, we shoot, we edit, we deliver &mdash;
+                      inside a portal that&rsquo;s yours to keep whether you
+                      come back or not.{" "}
+                      <em
+                        style={{
+                          fontFamily: "var(--font-narrative)",
+                          color: "var(--brand-cream)",
+                        }}
+                      >
+                        The brief is deliberately narrow
+                      </em>{" "}
+                      so we can&rsquo;t fake it with volume.
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 18,
+                        lineHeight: 1.65,
+                        fontFamily: "var(--font-body)",
+                        color: "var(--neutral-300)",
+                        margin: 0,
+                      }}
+                    >
+                      A few days later, you&rsquo;ll get a six-week marketing
+                      plan &mdash; written for your business, not a template.{" "}
+                      <em
+                        style={{
+                          fontFamily: "var(--font-narrative)",
+                          color: "var(--brand-cream)",
+                        }}
+                      >
+                        It&rsquo;s a step-by-step plan we&rsquo;d happily run
+                        ourselves.
+                      </em>{" "}
+                      If you&rsquo;d rather take it and run it in-house,
+                      you&rsquo;re welcome to. It&rsquo;s yours either way.
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 18,
+                        lineHeight: 1.65,
+                        fontFamily: "var(--font-body)",
+                        color: "var(--neutral-300)",
+                        margin: 0,
+                      }}
+                    >
+                      About a third of the people who do a trial shoot end up on
+                      a retainer. About a third take the plan and run it
+                      themselves. About a third disappear entirely.{" "}
+                      <em
+                        style={{
+                          fontFamily: "var(--font-narrative)",
+                          color: "var(--brand-cream)",
+                        }}
+                      >
+                        All three are fine.
+                      </em>
+                    </p>
                   </div>
-                  <h2
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
-                      lineHeight: 1,
-                      letterSpacing: "-1px",
-                      color: "var(--brand-cream)",
-                      margin: 0,
-                    }}
-                  >
-                    Not a sales call.
-                    <br />
-                    <span
-                      style={{
-                        fontFamily: "var(--font-narrative)",
-                        fontStyle: "italic",
-                        color: "var(--brand-pink)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Not a free sample.
-                    </span>
-                  </h2>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 24,
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: 18,
-                      lineHeight: 1.65,
-                      fontFamily: "var(--font-body)",
-                      color: "var(--neutral-300)",
-                      margin: 0,
-                    }}
-                  >
-                    It&rsquo;s a small, paid piece of real work. We come to you,
-                    we shoot, we edit, we deliver &mdash; inside a portal
-                    that&rsquo;s yours to keep whether you come back or not.{" "}
-                    <em
-                      style={{
-                        fontFamily: "var(--font-narrative)",
-                        color: "var(--brand-cream)",
-                      }}
-                    >
-                      The brief is deliberately narrow
-                    </em>{" "}
-                    so we can&rsquo;t fake it with volume.
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 18,
-                      lineHeight: 1.65,
-                      fontFamily: "var(--font-body)",
-                      color: "var(--neutral-300)",
-                      margin: 0,
-                    }}
-                  >
-                    A few days later, you&rsquo;ll get a six-week marketing plan
-                    &mdash; written for your business, not a template.{" "}
-                    <em
-                      style={{
-                        fontFamily: "var(--font-narrative)",
-                        color: "var(--brand-cream)",
-                      }}
-                    >
-                      It&rsquo;s a step-by-step plan we&rsquo;d happily run
-                      ourselves.
-                    </em>{" "}
-                    If you&rsquo;d rather take it and run it in-house,
-                    you&rsquo;re welcome to. It&rsquo;s yours either way.
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 18,
-                      lineHeight: 1.65,
-                      fontFamily: "var(--font-body)",
-                      color: "var(--neutral-300)",
-                      margin: 0,
-                    }}
-                  >
-                    About a third of the people who do a trial shoot end up on a
-                    retainer. About a third take the plan and run it themselves.
-                    About a third disappear entirely.{" "}
-                    <em
-                      style={{
-                        fontFamily: "var(--font-narrative)",
-                        color: "var(--brand-cream)",
-                      }}
-                    >
-                      All three are fine.
-                    </em>
-                  </p>
-                </div>
+                </Reveal>
               </section>
 
               {/* ---- Scattered quote ---- */}
@@ -737,120 +852,97 @@ export function LandingClient() {
                   margin: "0 auto",
                 }}
               >
-                <PullQuote
-                  text={QUOTES.experience.text}
-                  attr={QUOTES.experience.attr}
-                  align="center"
-                />
+                <Reveal>
+                  <PullQuote
+                    text={QUOTES.experience.text}
+                    attr={QUOTES.experience.attr}
+                    align="center"
+                  />
+                </Reveal>
               </section>
 
-              {/* ---- Vertical range statement ---- */}
+              {/* ---- You don't need to... (objection handler) ---- */}
               <section
                 style={{
-                  padding: "80px var(--lp-px)",
-                  maxWidth: 1200,
+                  maxWidth: 700,
                   margin: "0 auto",
+                  padding: "80px var(--lp-px)",
                   textAlign: "center",
                 }}
               >
-                <h2
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "clamp(1.75rem, 4vw, 3rem)",
-                    lineHeight: 1.15,
-                    letterSpacing: "-1px",
-                    color: "var(--brand-cream)",
-                    margin: 0,
-                  }}
-                >
-                  LSKD. A pilates studio in Truganina.
-                  <br />
-                  Melbourne Storm. A deli in Brighton.
-                  <br />
-                  Thetford Australia.{" "}
-                  <span
+                <Reveal>
+                  <div
                     style={{
-                      fontFamily: "var(--font-narrative)",
-                      fontStyle: "italic",
-                      color: "var(--brand-pink)",
-                      fontWeight: 500,
+                      fontFamily: "var(--font-label)",
+                      fontSize: 10,
+                      letterSpacing: "3px",
+                      textTransform: "uppercase",
+                      color: "var(--brand-orange)",
+                      marginBottom: 32,
                     }}
                   >
-                    A psychologist in Coburg.
-                  </span>
-                </h2>
-                <p
-                  style={{
-                    marginTop: 28,
-                    fontFamily: "var(--font-narrative)",
-                    fontStyle: "italic",
-                    fontSize: "clamp(1rem, 2vw, 1.25rem)",
-                    lineHeight: 1.6,
-                    color: "var(--neutral-300)",
-                    maxWidth: 640,
-                    margin: "28px auto 0",
-                  }}
-                >
-                  Gyms in Hoppers Crossing and Ferntree Gully. Interior
-                  designers in Richmond. Migration agents in the CBD.
-                </p>
-                <p
-                  style={{
-                    marginTop: 24,
-                    fontFamily: "var(--font-body)",
-                    fontSize: 18,
-                    lineHeight: 1.6,
-                    color: "var(--neutral-300)",
-                  }}
-                >
-                  If it&rsquo;s a real business, we&rsquo;ll find the story.
-                </p>
-              </section>
-
-              {/* ---- Six-week plan callout ---- */}
-              <section
-                style={{
-                  padding: "0 var(--lp-px) 60px",
-                  maxWidth: 700,
-                  margin: "0 auto",
-                }}
-              >
+                    Before you ask
+                  </div>
+                </Reveal>
                 <div
                   style={{
-                    fontFamily: "var(--font-label)",
-                    fontSize: 10,
-                    letterSpacing: "3px",
-                    textTransform: "uppercase",
-                    color: "var(--brand-orange)",
-                    marginBottom: 20,
-                    textAlign: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 20,
+                    textAlign: "left",
                   }}
                 >
-                  The part nobody else does
+                  {[
+                    {
+                      q: "Do I need to prepare anything?",
+                      a: "No. We handle the brief, the shot list, the direction. You just need to be there and do what you normally do.",
+                    },
+                    {
+                      q: "What if I’m awkward on camera?",
+                      a: "Most people are. We don’t pose you or hand you a script. We shoot you working, talking, existing — and edit it so it looks like you knew what you were doing the whole time.",
+                    },
+                    {
+                      q: "What if I don’t know what I need?",
+                      a: "That’s the point of the six-week plan. We figure that out for you — based on your business, your audience, and what’s actually going to move the needle.",
+                    },
+                    {
+                      q: "Is there a sales pitch at the end?",
+                      a: "No. About a third of people end up on a retainer. About a third take the plan and run it themselves. About a third disappear entirely. All three are fine.",
+                    },
+                  ].map((item, i) => (
+                    <Reveal key={i} delay={i * 0.08}>
+                      <div
+                        style={{
+                          padding: "20px 24px",
+                          borderLeft: "2px solid rgba(178,40,72,0.3)",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: 16,
+                            fontWeight: 500,
+                            color: "var(--brand-cream)",
+                            margin: "0 0 8px",
+                          }}
+                        >
+                          {item.q}
+                        </p>
+                        <p
+                          style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: 15,
+                            lineHeight: 1.6,
+                            color: "var(--neutral-400)",
+                            margin: 0,
+                          }}
+                        >
+                          {item.a}
+                        </p>
+                      </div>
+                    </Reveal>
+                  ))}
                 </div>
-                <p
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 18,
-                    lineHeight: 1.7,
-                    color: "var(--neutral-300)",
-                    textAlign: "center",
-                    margin: 0,
-                  }}
-                >
-                  You&rsquo;ll also get a six-week marketing plan. Not a
-                  template. Written for your business, by someone who&rsquo;s
-                  already done the research. Take it and run it yourself if you
-                  want.{" "}
-                  <em
-                    style={{
-                      fontFamily: "var(--font-narrative)",
-                      color: "var(--brand-cream)",
-                    }}
-                  >
-                    It&rsquo;s yours either way.
-                  </em>
-                </p>
               </section>
 
               {/* ---- Scattered quote: strategy ---- */}
@@ -861,105 +953,110 @@ export function LandingClient() {
                   margin: "0 auto",
                 }}
               >
-                <PullQuote
-                  text={QUOTES.strategy.text}
-                  attr={QUOTES.strategy.attr}
-                  align="center"
-                />
+                <Reveal>
+                  <PullQuote
+                    text={QUOTES.strategy.text}
+                    attr={QUOTES.strategy.attr}
+                    align="center"
+                  />
+                </Reveal>
               </section>
 
               {/* ---- Final CTA ---- */}
               <section
                 style={{
-                  padding: "0 var(--lp-px) 100px",
+                  padding: "80px var(--lp-px) 100px",
                   maxWidth: 900,
                   margin: "0 auto",
                 }}
               >
-                <div className="landing-tier-grid">
-                  {TIERS.map((tier) => (
-                    <div
-                      key={tier.id}
+                <Reveal>
+                  <h2
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+                      lineHeight: 0.95,
+                      letterSpacing: "-1px",
+                      color: "var(--brand-cream)",
+                      margin: 0,
+                    }}
+                  >
+                    Two minutes.
+                    <br />
+                    No obligation
+                    <span style={{ color: "var(--brand-red)" }}>.</span>
+                  </h2>
+                </Reveal>
+                <Reveal delay={0.1}>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: 18,
+                      lineHeight: 1.6,
+                      color: "var(--neutral-400)",
+                      margin: "24px 0 0",
+                      maxWidth: "44ch",
+                    }}
+                  >
+                    Pick a tier. Fill in the basics. We&rsquo;ll be in touch to
+                    lock in a date.
+                  </p>
+                </Reveal>
+                <Reveal delay={0.18}>
+                  <div
+                    className="flex flex-col gap-4 sm:flex-row sm:gap-5"
+                    style={{ marginTop: 36 }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleTierSelect("session")}
                       style={{
-                        background: "rgba(34,34,31,0.6)",
-                        backdropFilter: "blur(10px)",
-                        border: tier.recommended
-                          ? "1px solid rgba(178,40,72,0.5)"
-                          : "1px solid rgba(253,245,230,0.08)",
-                        borderRadius: 20,
-                        padding: "32px 28px",
-                        textAlign: "center",
-                        position: "relative",
-                        overflow: "hidden",
+                        padding: "16px 28px",
+                        fontFamily: "var(--font-label)",
+                        fontSize: 12,
+                        letterSpacing: "2px",
+                        textTransform: "uppercase",
+                        background: "var(--brand-cream)",
+                        color: "var(--neutral-900)",
+                        border: "none",
+                        cursor: "pointer",
+                        transition: "opacity 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = "0.85";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = "1";
                       }}
                     >
-                      <div
-                        style={{
-                          position: "absolute",
-                          inset: 0,
-                          background: tier.recommended
-                            ? "linear-gradient(135deg, rgba(178,40,72,0.12), transparent 50%)"
-                            : "linear-gradient(135deg, rgba(178,40,72,0.05), transparent 50%)",
-                          borderRadius: 20,
-                          pointerEvents: "none",
-                        }}
-                      />
-                      <div style={{ position: "relative" }}>
-                        <div
-                          style={{
-                            fontFamily: "var(--font-label)",
-                            fontSize: 10,
-                            letterSpacing: "2px",
-                            textTransform: "uppercase",
-                            color: "var(--brand-orange)",
-                            marginBottom: 8,
-                          }}
-                        >
-                          {tier.name}
-                        </div>
-                        <p
-                          style={{
-                            fontFamily: "var(--font-display)",
-                            fontSize: "clamp(2.5rem, 6vw, 3.5rem)",
-                            lineHeight: 1,
-                            color: "var(--brand-cream)",
-                            margin: "0 0 4px",
-                          }}
-                        >
-                          ${tier.price}
-                        </p>
-                        <p
-                          style={{
-                            fontFamily: "var(--font-body)",
-                            fontSize: 13,
-                            color: "var(--neutral-500)",
-                            margin: "0 0 20px",
-                          }}
-                        >
-                          GST inclusive
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => handleTierSelect(tier.id)}
-                          className="landing-cta-btn"
-                        >
-                          Choose {tier.name}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p
-                  style={{
-                    marginTop: 16,
-                    textAlign: "center",
-                    fontSize: 12,
-                    fontStyle: "italic",
-                    color: "var(--neutral-500)",
-                  }}
-                >
-                  takes about two minutes. no obligation after that.
-                </p>
+                      Session &mdash; $397
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTierSelect("production")}
+                      style={{
+                        padding: "16px 28px",
+                        fontFamily: "var(--font-label)",
+                        fontSize: 12,
+                        letterSpacing: "2px",
+                        textTransform: "uppercase",
+                        background: "var(--brand-red)",
+                        color: "var(--brand-cream)",
+                        border: "none",
+                        cursor: "pointer",
+                        transition: "opacity 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = "0.85";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = "1";
+                      }}
+                    >
+                      Production &mdash; $597
+                    </button>
+                  </div>
+                </Reveal>
               </section>
 
               {/* ---- Footer ---- */}

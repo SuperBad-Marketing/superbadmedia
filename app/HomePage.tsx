@@ -266,6 +266,9 @@ export default function HomePage() {
   const emotionRef = useRef<HTMLDivElement>(null);
   const emotionInView = useInView(emotionRef, { once: true, amount: 0.4 });
 
+  const patienceRef = useRef<HTMLDivElement>(null);
+  const patienceInView = useInView(patienceRef, { once: true, amount: 0.4 });
+
   const revealWords = (text: string, inView: boolean, delayOffset = 0, stagger = 0.07) =>
     text.split(" ").map((word, i) => (
       <motion.span
@@ -438,6 +441,59 @@ export default function HomePage() {
               Not&nbsp;vanity&nbsp;metrics.
             </motion.p>
           </motion.div>
+
+            {/* Decorative concentric circles */}
+            <div
+              className="pointer-events-none absolute inset-0 hidden items-center justify-end overflow-hidden sm:flex"
+              aria-hidden
+              style={{ paddingRight: "8%" }}
+            >
+              <div
+                className="relative"
+                style={{
+                  width: "clamp(260px, 30vw, 420px)",
+                  height: "clamp(260px, 30vw, 420px)",
+                }}
+              >
+                <motion.div
+                  className="absolute inset-0"
+                  style={{
+                    borderRadius: "50%",
+                    border: "1px solid rgba(178, 40, 72, 0.1)",
+                  }}
+                  animate={reduced ? undefined : { rotate: 360 }}
+                  transition={
+                    reduced
+                      ? undefined
+                      : { duration: 80, repeat: Infinity, ease: "linear" }
+                  }
+                />
+                <motion.div
+                  className="absolute"
+                  style={{
+                    inset: "15%",
+                    borderRadius: "50%",
+                    border: "1px solid rgba(244, 160, 176, 0.07)",
+                  }}
+                  animate={reduced ? undefined : { rotate: -360 }}
+                  transition={
+                    reduced
+                      ? undefined
+                      : { duration: 120, repeat: Infinity, ease: "linear" }
+                  }
+                />
+                <div
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    backgroundColor: "var(--brand-red)",
+                    opacity: 0.25,
+                  }}
+                />
+              </div>
+            </div>
         </Screen>
 
         {/* ── Screen 2 — Statement: entertainment platform ── */}
@@ -481,7 +537,8 @@ export default function HomePage() {
             >
               Not a sales platform. Not a brochure with a comments section.
               People open Instagram for the same reason they turn on Netflix
-              — to feel something.
+              — to relate to something, or to be entertained. Not to be sold
+              something.
             </motion.p>
           </div>
         </Screen>
@@ -507,8 +564,8 @@ export default function HomePage() {
                   margin: 0,
                 }}
               >
-                Then we use that audience data to build campaigns that actually
-                perform.
+                And when they do watch? We capture that attention and turn
+                it into revenue.
               </p>
             }
           />
@@ -583,10 +640,12 @@ export default function HomePage() {
               animate={alignInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.8, ease: EASE }}
             >
-              Ad strategist at one firm. Creative director at another. Content
-              creator somewhere else. Brand strategist from last year.
-              Everything they each make is fine. But it doesn&rsquo;t sound
-              like you — because none of them really know you.
+              Your ad strategist works at one agency. Your creative director
+              at another. Your content creator at a third. Your brand
+              strategist at a fourth. Four different businesses, none of
+              which have met — all producing work that pulls in different
+              directions. The messaging doesn&rsquo;t align. The trust
+              doesn&rsquo;t build. And the results don&rsquo;t compound.
             </motion.p>
             <motion.p
               className="text-pretty"
@@ -669,8 +728,7 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 1.0, ease: EASE }}
             >
               Every purchase decision is emotional first. The logic comes after
-              — to justify what they already wanted. Connection will always
-              outsell a feature list.
+              — to justify what they already wanted.
             </motion.p>
           </div>
         </Screen>
@@ -717,41 +775,83 @@ export default function HomePage() {
             generic="Our proven methodology delivers measurable ROI through strategic multi-channel campaigns and performance-driven creative."
             honest={
               <>
-                The best way to sell is to never try
+                The best way to sell is to never try selling
                 <span style={{ color: "var(--brand-red)" }}>.</span>
               </>
             }
             honestSub={
-              <p
-                className="text-pretty"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "clamp(16px, 1.8vw, 22px)",
-                  lineHeight: 1.6,
-                  color: "var(--neutral-500)",
-                  margin: 0,
-                }}
-              >
-                People love to buy. They hate being sold to. There&rsquo;s a
-                difference — and most marketing gets it backwards.
-              </p>
+              <>
+                <p
+                  className="text-pretty"
+                  style={{
+                    fontFamily: "var(--font-narrative)",
+                    fontSize: "clamp(18px, 2vw, 26px)",
+                    lineHeight: 1.5,
+                    fontStyle: "italic",
+                    color: "var(--brand-pink)",
+                    margin: 0,
+                  }}
+                >
+                  Make people want to buy instead.
+                </p>
+                <p
+                  className="text-pretty"
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "clamp(16px, 1.8vw, 22px)",
+                    lineHeight: 1.6,
+                    color: "var(--neutral-500)",
+                    margin: 0,
+                    marginTop: "clamp(12px, 1.5vw, 20px)",
+                  }}
+                >
+                  They love to buy. They just hate being sold to.
+                </p>
+              </>
             }
           />
         </Screen>
 
         {/* ── Screen 6 — Quiet screen (small text, huge space) ── */}
         <Screen align="center" surface={1}>
+          <div
+            ref={patienceRef}
+            style={{
+              display: "flex",
+              gap: "clamp(8px, 1.2vw, 14px)",
+              justifyContent: "center",
+              marginBottom: "clamp(24px, 3vw, 40px)",
+            }}
+            aria-hidden
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <motion.div
+                key={i}
+                style={{
+                  width: "clamp(6px, 0.8vw, 10px)",
+                  height: "clamp(6px, 0.8vw, 10px)",
+                  borderRadius: "50%",
+                  backgroundColor:
+                    i < 2 ? "var(--brand-red)" : "var(--brand-pink)",
+                }}
+                initial={
+                  reduced ? { opacity: 0.15 } : { opacity: 0.15, scale: 0.5 }
+                }
+                animate={
+                  patienceInView
+                    ? { opacity: i < 2 ? 0.9 : 0.4, scale: 1 }
+                    : {}
+                }
+                transition={{
+                  delay: i < 2 ? 0.2 + i * 0.15 : 0.7 + (i - 2) * 0.15,
+                  type: "spring",
+                  damping: 15,
+                  stiffness: 200,
+                }}
+              />
+            ))}
+          </div>
           <Statement>
-            <div
-              aria-hidden
-              style={{
-                width: "48px",
-                height: "2px",
-                backgroundColor: "var(--brand-red)",
-                margin: "0 auto clamp(24px, 3vw, 40px)",
-                opacity: 0.6,
-              }}
-            />
             <p
               style={{
                 fontFamily: "var(--font-body)",
@@ -826,8 +926,8 @@ export default function HomePage() {
                 maxWidth: "36ch",
               }}
             >
-              A creative media and marketing company that thinks about this
-              stuff all day.
+              A creative media and marketing company that thinks about what
+              makes people feel something. All&nbsp;day.
             </p>
           </Statement>
           <Statement delay={0.25}>
@@ -853,172 +953,105 @@ export default function HomePage() {
 
         {/* ── Screen 9 — CTA ── */}
         <Screen>
-          <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 sm:grid sm:grid-cols-5 sm:gap-8">
-            <Statement className="sm:col-span-3">
+          <Statement>
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(44px, 8vw, 100px)",
+                lineHeight: 0.95,
+                color: "var(--neutral-100)",
+                margin: 0,
+                maxWidth: "14ch",
+              }}
+              className="text-balance"
+            >
+              See if we&rsquo;re any good
+              <span style={{ color: "var(--brand-red)" }}>.</span>
+            </p>
+          </Statement>
+          <Statement delay={0.12}>
+            <p
+              className="text-pretty"
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(16px, 1.8vw, 22px)",
+                lineHeight: 1.6,
+                color: "var(--neutral-500)",
+                margin: 0,
+                marginTop: "clamp(20px, 3vw, 36px)",
+                maxWidth: "44ch",
+              }}
+            >
+              One shoot. Real deliverables. A six-week marketing plan
+              written for your business. No commitment required.
+            </p>
+          </Statement>
+          <Statement delay={0.2}>
+            <div
+              className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-10"
+              style={{ marginTop: "clamp(32px, 4vw, 56px)" }}
+            >
               <Link
                 href="/trial-shoot"
-                className="block h-full"
-                style={{ textDecoration: "none" }}
+                style={{
+                  fontFamily: "var(--font-label)",
+                  fontSize: "var(--text-micro)",
+                  letterSpacing: "0.35em",
+                  textTransform: "uppercase",
+                  color: "var(--neutral-900)",
+                  backgroundColor: "var(--neutral-100)",
+                  padding: "14px 32px",
+                  textDecoration: "none",
+                  transition: "opacity 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.opacity = "0.85";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.opacity = "1";
+                }}
               >
-                <div
-                  data-slot="card"
-                  style={{
-                    backgroundColor: "var(--surface-2)",
-                    borderRadius: "var(--radius-generous)",
-                    padding: "clamp(28px, 4vw, 44px)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "var(--space-3)",
-                    height: "100%",
-                    borderBottom: "3px solid var(--brand-orange)",
-                    transition:
-                      "transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-3px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  <p
-                    style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: "var(--text-micro)",
-                      letterSpacing: "0.4em",
-                      textTransform: "uppercase",
-                      color: "var(--brand-orange)",
-                      margin: 0,
-                    }}
-                  >
-                    Trial Shoot
-                  </p>
-                  <p
-                    className="text-balance"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "clamp(22px, 2.5vw, 32px)",
-                      lineHeight: 1.1,
-                      color: "var(--neutral-100)",
-                      margin: 0,
-                    }}
-                  >
-                    Find out if
-                    <br />
-                    we&rsquo;re any good
-                  </p>
-                  <p
-                    className="text-pretty"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "var(--text-small)",
-                      lineHeight: "var(--text-small-lh)",
-                      color: "var(--neutral-500)",
-                      margin: 0,
-                      maxWidth: "36ch",
-                    }}
-                  >
-                    One shoot. Real deliverables. A six-week marketing plan
-                    written for your business. No commitment required.
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: "var(--text-micro)",
-                      letterSpacing: "0.2em",
-                      textTransform: "uppercase",
-                      color: "var(--neutral-300)",
-                      margin: 0,
-                      marginTop: "auto",
-                    }}
-                  >
-                    From $397 &rarr;
-                  </p>
-                </div>
+                Trial shoot &mdash; from $397
               </Link>
-            </Statement>
-
-            <Statement delay={0.08} className="sm:col-span-2">
               <a
                 href="mailto:andy@superbadmedia.com.au"
-                className="block h-full"
-                style={{ textDecoration: "none" }}
+                style={{
+                  fontFamily: "var(--font-label)",
+                  fontSize: "var(--text-micro)",
+                  letterSpacing: "0.35em",
+                  textTransform: "uppercase",
+                  color: "var(--neutral-500)",
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = "var(--neutral-300)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = "var(--neutral-500)";
+                }}
               >
-                <div
-                  data-slot="card"
-                  style={{
-                    backgroundColor: "var(--surface-2)",
-                    borderRadius: "var(--radius-generous)",
-                    padding: "clamp(28px, 4vw, 44px)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "var(--space-3)",
-                    height: "100%",
-                    transition:
-                      "transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-3px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  <p
-                    style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: "var(--text-micro)",
-                      letterSpacing: "0.4em",
-                      textTransform: "uppercase",
-                      color: "var(--brand-pink)",
-                      margin: 0,
-                    }}
-                  >
-                    Get in Touch
-                  </p>
-                  <p
-                    className="text-balance"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "clamp(22px, 2.5vw, 32px)",
-                      lineHeight: 1.1,
-                      color: "var(--neutral-100)",
-                      margin: 0,
-                    }}
-                  >
-                    Already know what
-                    <br />
-                    you need?
-                  </p>
-                  <p
-                    className="text-pretty"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "var(--text-small)",
-                      lineHeight: "var(--text-small-lh)",
-                      color: "var(--neutral-500)",
-                      margin: 0,
-                    }}
-                  >
-                    Tell us what you&rsquo;re working on. We&rsquo;ll tell you
-                    honestly whether we can help.
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "var(--text-small)",
-                      lineHeight: "var(--text-small-lh)",
-                      color: "var(--neutral-500)",
-                      margin: 0,
-                      marginTop: "auto",
-                    }}
-                  >
-                    andy@superbadmedia.com.au
-                  </p>
-                </div>
+                Get in touch
               </a>
-            </Statement>
-          </div>
+            </div>
+          </Statement>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "12px",
+              color: "var(--neutral-600)",
+              margin: 0,
+              position: "absolute",
+              bottom: "clamp(20px, 3vw, 40px)",
+              left: "clamp(32px, 5vw, 64px)",
+            }}
+          >
+            no tricks
+          </motion.p>
         </Screen>
       </div>
     </main>
