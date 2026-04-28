@@ -24,6 +24,13 @@ export async function register() {
       );
       startWorker({ handlers: HANDLER_REGISTRY });
       console.info("[instrumentation] scheduled-tasks worker started");
+
+      const { ensureLeadGenDailySearchEnqueued } = await import(
+        "./lib/scheduled-tasks/handlers/lead-gen-daily-search"
+      );
+      ensureLeadGenDailySearchEnqueued().catch((err) => {
+        console.error("[instrumentation] lead-gen bootstrap failed:", err);
+      });
     }
   }
 

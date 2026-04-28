@@ -388,6 +388,8 @@ export async function runDailySearch(
 
         if (draftOutcome.ok) {
           draftedCount++;
+        } else {
+          console.warn(`[daily-search] Draft failed for ${entry.discovered.company_name}: ${draftOutcome.reason}`);
         }
       }
     }

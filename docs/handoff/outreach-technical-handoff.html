@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Generation &amp; Outreach — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Lead Generation &amp; Outreach</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the automated outreach pipeline &mdash; from prospect discovery to earned autonomy.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the Outreach System Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#discovery"><span class="num">03</span> Discovery Sources</a>
+    <a href="#enrichment"><span class="num">04</span> Enrichment Pipeline</a>
+    <a href="#scoring"><span class="num">05</span> ICP Scoring</a>
+    <a href="#email-gen"><span class="num">06</span> Email Generation</a>
+    <a href="#sequences"><span class="num">07</span> 4-Touch Sequences</a>
+    <a href="#autonomy"><span class="num">08</span> Autonomy State Machine</a>
+    <a href="#replies"><span class="num">09</span> Reply Classification</a>
+    <a href="#database"><span class="num">10</span> Database Schema</a>
+    <a href="#safety"><span class="num">11</span> Kill Switches &amp; Safety</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE OUTREACH SYSTEM DOES ────────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the Outreach System Does</h2>
+  <p>The outreach system is a fully automated cold-email pipeline. Every day at 3am Melbourne time, it discovers local businesses through public APIs, enriches them with nine categories of signal data, scores each prospect against two track rulesets (retainer and SaaS), generates a unique LLM-drafted cold email for every qualified prospect, and queues those drafts for human approval.</p>
+  <p>There are no templates. No variable substitution. Every email is written end-to-end by Claude Opus for that specific prospect, referencing their actual advertising spend, their Google reviews, their website quality, their Instagram cadence &mdash; whatever the enrichment pipeline found. The email identifies a specific gap in their marketing and gives them a free win they can act on without SuperBad.</p>
+  <p>Andy approves drafts from a single queue. As he approves enough without edits, the system earns autonomy per track &mdash; eventually auto-sending with a 15-minute cancellation window. If anything goes wrong (spam complaint, hard bounce, voice drift), a circuit breaker fires and the system drops back to manual approval.</p>
+  <p>Two tracks share one pipeline:</p>
+  <ul>
+    <li><strong>Retainer track</strong> &mdash; higher-revenue, multi-stakeholder businesses that would benefit from SuperBad&rsquo;s creative + performance retainer.</li>
+    <li><strong>SaaS track</strong> &mdash; lean-team, DIY-leaning businesses that would benefit from SuperBad&rsquo;s subscription products.</li>
+  </ul>
+  <p class="mutter">Every prospect gets scored against both tracks. Highest qualifying score wins. Below the floor on both? Discarded. No second chances.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>The Daily Run Pipeline</h3>
+  <div class="diagram"><pre><span class="highlight">3am Cron</span> <span class="dim">(or &ldquo;Run Now&rdquo; click, or manual brief)</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">1.</span> <span class="accent">Compute send budget</span>
+    warmup_cap &minus; scheduled_sequence_touches = effective_cap
+    <span class="dim">If 0: log &amp; exit</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">2.</span> <span class="accent">Discovery</span> <span class="dim">&mdash; 3 sources in parallel</span>
+    Meta Ad Library + Instagram Location + Google Maps
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">3.</span> <span class="accent">Dedup + DNC filter</span>
+    vs lead_candidates (90d) + deals + dnc_emails + dnc_domains
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">4.</span> <span class="accent">Enrichment</span> <span class="dim">&mdash; 9 signal sources in parallel</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">5.</span> <span class="accent">Build ViabilityProfile</span> <span class="dim">(graceful degradation)</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">6.</span> <span class="highlight">Score + Track Assignment</span>
+    scoreForSaasTrack() + scoreForRetainerTrack()
+    Winner-takes-all &rarr; discard if below both floors
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">7.</span> <span class="accent">Take top N by score</span> <span class="dim">(within warmup budget)</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">8.</span> <span class="accent">Contact discovery</span> <span class="dim">(Hunter.io + pattern inference)</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">9.</span> <span class="highlight">Generate draft</span> <span class="dim">(Claude Opus, per-prospect)</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">10.</span> <span class="accent">Brand voice drift check</span> <span class="dim">(auto-regen once on failure)</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">11.</span> Insert into <span class="highlight">lead_candidates</span> + enqueue in approval queue
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="num">12.</span> Write <span class="accent">lead_runs</span> audit row</pre></div>
+
+  <h3>Post-Send Lifecycle</h3>
+  <div class="diagram"><pre><span class="highlight">Approve &amp; Send</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="accent">createDealFromLead()</span> <span class="dim">&mdash; promotes candidate to Pipeline Deal</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="accent">sendEmail()</span> via Resend adapter <span class="dim">&mdash; records outreach_sends row</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+Resend webhooks <span class="dim">&rarr;</span> <span class="highlight">engagement tier evaluator</span> <span class="dim">(24h cooloff)</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="accent">Reactive rescore</span> <span class="dim">&rarr; score adjustments, possible track change</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+<span class="accent">Sequence scheduler</span> <span class="dim">&rarr; follow-up drafts at cadence intervals</span>
+    <span class="dim">|</span>
+    <span class="dim">v</span>
+3 consecutive non-engagements <span class="dim">&rarr;</span> <span class="highlight">sequence stopped</span></pre></div>
+
+  <h3>Key Files</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Area</th><th>Path</th></tr></thead>
+      <tbody>
+        <tr><td>Discovery</td><td><code>lib/lead-gen/discovery.ts</code></td></tr>
+        <tr><td>Discovery sources</td><td><code>lib/lead-gen/sources/*.ts</code></td></tr>
+        <tr><td>Enrichment</td><td><code>lib/lead-gen/enrich/*.ts</code></td></tr>
+        <tr><td>Scoring</td><td><code>lib/lead-gen/scoring.ts</code></td></tr>
+        <tr><td>Draft generator</td><td><code>lib/lead-gen/draft-generator.ts</code></td></tr>
+        <tr><td>Autonomy</td><td><code>lib/lead-gen/autonomy.ts</code></td></tr>
+        <tr><td>Warmup</td><td><code>lib/lead-gen/warmup.ts</code></td></tr>
+        <tr><td>DNC</td><td><code>lib/lead-gen/dnc.ts</code></td></tr>
+        <tr><td>Engagement eval</td><td><code>lib/lead-gen/engagement-evaluator.ts</code></td></tr>
+        <tr><td>Sequence engine</td><td><code>lib/lead-gen/sequence-engine.ts</code></td></tr>
+        <tr><td>Reply handling</td><td><code>lib/lead-gen/reply-handler.ts</code></td></tr>
+        <tr><td>Daily search</td><td><code>lib/lead-gen/daily-search.ts</code></td></tr>
+        <tr><td>Sender identity</td><td><code>lib/lead-gen/sender.ts</code></td></tr>
+        <tr><td>Types</td><td><code>lib/lead-gen/types.ts</code></td></tr>
+        <tr><td>Admin UI</td><td><code>app/lite/admin/lead-gen/**</code></td></tr>
+        <tr><td>Schema</td><td><code>lib/db/schema/lead-candidates.ts</code> + 8 others</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 3. DISCOVERY SOURCES ────────────────────────────────────── -->
+
+<div class="section" id="discovery">
+  <div class="section-num">Section 03</div>
+  <h2>Discovery Sources</h2>
+
+  <p>Three discovery sources run in parallel on every daily search. No Apollo.io, no purchased contact databases. Everything is built from publicly available APIs.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>What It Finds</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Meta Ad Library</strong></td>
+          <td>Businesses actively running Facebook/Instagram ads. Filters: location, active-ad status, ad count, estimated spend bracket.</td>
+          <td><code>sources/apify-meta-ad-library.ts</code> &mdash; Apify actor runner</td>
+        </tr>
+        <tr>
+          <td><strong>Instagram Location</strong></td>
+          <td>Businesses with local Instagram content presence &mdash; tagged posts, geo-anchored accounts.</td>
+          <td><code>sources/apify-instagram-location.ts</code> &mdash; Apify actor runner</td>
+        </tr>
+        <tr>
+          <td><strong>Google Maps</strong></td>
+          <td>Location-based businesses not necessarily running ads. Query shape: category + location from search verticals.</td>
+          <td><code>sources/google-maps.ts</code> &mdash; SerpAPI <code>google_maps</code> engine</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Broad Sweep Category Rotation</h3>
+  <p>Google Maps searches auto-cycle through 12 categories on each run &mdash; restaurants, retail, health and beauty, professional services, fitness, trades, automotive, hospitality, creative, education, food and beverage, medical. This catches businesses that don&rsquo;t run ads and wouldn&rsquo;t appear in the Meta library. The category rotates automatically; no manual input required.</p>
+
+  <h3>Search Verticals</h3>
+  <p>The <code>search_verticals</code> table defines standing search parameters: name, category, location (lat/lng + radius), country code, standing brief, weight (priority), and active status. The daily search runner picks verticals by weighted rotation, favouring those searched least recently. Andy manages these from the admin verticals page.</p>
+
+  <h3>Deduplication</h3>
+  <p>After discovery, every candidate is checked against:</p>
+  <ol>
+    <li><code>lead_candidates.domain</code> within a 90-day dedup window</li>
+    <li><code>deals</code> (any existing deal for the same company/domain)</li>
+    <li><code>dnc_emails</code>, <code>dnc_domains</code>, <code>companies.do_not_contact</code> via <code>isBlockedFromOutreach()</code></li>
+  </ol>
+  <p>Cross-source priority for duplicates: Meta Ads &gt; Instagram &gt; Maps. If Meta and Maps find the same business, the Meta entry wins because it carries richer advertising signals.</p>
+</div>
+
+<!-- ── 4. ENRICHMENT PIPELINE ──────────────────────────────────── -->
+
+<div class="section" id="enrichment">
+  <div class="section-num">Section 04</div>
+  <h2>Enrichment Pipeline</h2>
+
+  <p>Every discovered candidate flows through nine enrichment sources in parallel. Each source is optional &mdash; the pipeline degrades gracefully when any source fails, returns nothing, or times out. The combination builds a <code>ViabilityProfile</code> stored as JSON on the candidate row.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Signal</th><th>Source</th><th>What It Tells Us</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Active ads + spend bracket</strong></td>
+          <td>Meta Ad Library API</td>
+          <td>Marketing maturity + budget presence. High spend = retainer signal. Any spend = not DIY-only.</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Google Ads activity</strong></td>
+          <td>Google Ads Transparency Center (SerpAPI)</td>
+          <td>Cross-platform marketing maturity. Catches &ldquo;runs Google ads but not Meta&rdquo; segment.</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Website technical quality</strong></td>
+          <td>Google PageSpeed Insights API</td>
+          <td>Proxy for agency-vs-DIY website. Low score = needs help (SaaS signal). High score = existing investment (retainer signal).</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Domain age</strong></td>
+          <td><code>whois</code> lookup</td>
+          <td>Business longevity. Newer businesses lean SaaS; established businesses lean retainer.</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Instagram presence</strong></td>
+          <td>Instagram Business Discovery API</td>
+          <td>Follower count, post count, recent post cadence. Social maturity + audience size.</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>YouTube presence</strong></td>
+          <td>YouTube Data API v3</td>
+          <td>Subscriber count, video count, upload cadence. Long-form content = strong retainer signal.</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><strong>Google Maps reviews + rating</strong></td>
+          <td>SerpAPI</td>
+          <td>Review count, average rating, business category. Consumer business legitimacy + size proxy.</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><strong>Website scrape</strong></td>
+          <td>Custom fetch + cheerio</td>
+          <td>About page, team page, pricing page. Team size signal, service list, stated pricing tier.</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><strong>Maps photo count + recency</strong></td>
+          <td>SerpAPI</td>
+          <td>Photo count + last photo date. Recency of business activity. Recent photos = actively managed.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Deep Enrichment (Post-Scoring)</h3>
+  <p>After initial scoring, qualified candidates get a second enrichment pass via Apify actors: Facebook page data, LinkedIn company info, TikTok profile, and full website content crawl. This produces a <code>distilled_brief</code> &mdash; an LLM-summarised description of the business that feeds into the email generator&rsquo;s prompt. Deep enrichment data lives inside the same <code>ViabilityProfile</code> under <code>facebook</code>, <code>linkedin</code>, <code>tiktok</code>, and <code>website_content</code> fields.</p>
+
+  <h3>The ViabilityProfile Shape</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; lib/lead-gen/types.ts</div>
+    <pre><span class="kw">interface</span> <span class="type">ViabilityProfile</span> {
+  meta_ads?: { active_ad_count: <span class="type">number</span>; estimated_spend_bracket: <span class="str">'unknown'</span>|<span class="str">'low'</span>|<span class="str">'medium'</span>|<span class="str">'high'</span>; has_active_creatives: <span class="type">boolean</span> }
+  google_ads?: { active_creative_count: <span class="type">number</span>; has_active_campaigns: <span class="type">boolean</span> }
+  website?: { domain_age_years: <span class="type">number</span>|<span class="type">null</span>; pagespeed_performance_score: <span class="type">number</span>|<span class="type">null</span>; has_about_page: <span class="type">boolean</span>;
+              has_pricing_page: <span class="type">boolean</span>; team_size_signal: <span class="str">'solo'</span>|<span class="str">'small'</span>|<span class="str">'medium'</span>|<span class="str">'large'</span>|<span class="str">'unknown'</span>;
+              stated_pricing_tier: <span class="str">'unknown'</span>|<span class="str">'budget'</span>|<span class="str">'mid'</span>|<span class="str">'premium'</span> }
+  instagram?: { follower_count: <span class="type">number</span>; post_count: <span class="type">number</span>; posts_last_30d: <span class="type">number</span>|<span class="type">null</span> }
+  youtube?: { subscriber_count: <span class="type">number</span>; video_count: <span class="type">number</span>; uploads_last_90d: <span class="type">number</span>|<span class="type">null</span> }
+  maps?: { category: <span class="type">string</span>; rating: <span class="type">number</span>|<span class="type">null</span>; review_count: <span class="type">number</span>; photo_count: <span class="type">number</span>; last_photo_date: <span class="type">string</span>|<span class="type">null</span> }
+  facebook?: { page_name: <span class="type">string</span>|<span class="type">null</span>; follower_count: <span class="type">number</span>|<span class="type">null</span>; has_active_page: <span class="type">boolean</span> }
+  linkedin?: { company_name: <span class="type">string</span>|<span class="type">null</span>; employee_count_range: <span class="type">string</span>|<span class="type">null</span>; industry: <span class="type">string</span>|<span class="type">null</span>; has_active_page: <span class="type">boolean</span> }
+  tiktok?: { follower_count: <span class="type">number</span>|<span class="type">null</span>; video_count: <span class="type">number</span>|<span class="type">null</span>; has_active_profile: <span class="type">boolean</span> }
+  website_content?: { services_offered: <span class="type">string</span>[]; unique_selling_points: <span class="type">string</span>[]; distilled_brief: <span class="type">string</span>|<span class="type">null</span> }
+  fetch_errors?: <span class="type">Record</span>&lt;<span class="type">string</span>, <span class="type">string</span>&gt;
+}</pre>
+  </div>
+  <p class="mutter">Every field is optional. A candidate with only Google Maps data can still score and qualify. The pipeline never blocks on a single API.</p>
+</div>
+
+<!-- ── 5. ICP SCORING ──────────────────────────────────────────── -->
+
+<div class="section" id="scoring">
+  <div class="section-num">Section 05</div>
+  <h2>ICP Scoring</h2>
+
+  <h3>The Scoring Engine</h3>
+  <p>All scoring rules live in one file: <code>lib/lead-gen/scoring.ts</code>. Pure functions, no I/O, no side effects, fully unit-testable. Both track scorers decompose into four sub-scorers &mdash; advertising, web, social, and maps &mdash; each capped at a maximum contribution.</p>
+
+  <div class="code-block">
+    <div class="code-header">Scoring Interface</div>
+    <pre><span class="kw">function</span> <span class="type">scoreForSaasTrack</span>(profile: <span class="type">ViabilityProfile</span>, softAdjustment = <span class="num">0</span>): { score: <span class="type">number</span>; breakdown: <span class="type">ScoringBreakdown</span>; qualifies: <span class="type">boolean</span> }
+<span class="kw">function</span> <span class="type">scoreForRetainerTrack</span>(profile: <span class="type">ViabilityProfile</span>, softAdjustment = <span class="num">0</span>): { score: <span class="type">number</span>; breakdown: <span class="type">ScoringBreakdown</span>; qualifies: <span class="type">boolean</span> }</pre>
+  </div>
+
+  <h3>Qualification Floors</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Constant</th><th>Value</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>SAAS_FLOOR</code></td><td><strong>8</strong></td><td>Minimum score to qualify for the SaaS track. Below this the candidate is too thin to justify a cold touch.</td></tr>
+        <tr><td><code>RETAINER_FLOOR</code></td><td><strong>14</strong></td><td>Minimum score to qualify for the retainer track. Higher bar because retainer pitches are higher-stakes and higher-cost.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Floors are constants in <code>scoring.ts</code>. Changes ship as deploys, not config. There is no scoring rules UI.</p>
+
+  <h3>How Scores Are Computed (SaaS Example)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sub-Scorer</th><th>Max</th><th>Key Rules</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Advertising</strong></td>
+          <td>20</td>
+          <td>Active Meta creatives +5, 3+ ads +3, medium spend +4. Active Google campaigns +4. High spend only +2 (too big for SaaS).</td>
+        </tr>
+        <tr>
+          <td><strong>Web</strong></td>
+          <td>30</td>
+          <td>Bad PageSpeed +5 (needs help), young domain +4, solo team +6, small team +4, budget pricing +3.</td>
+        </tr>
+        <tr>
+          <td><strong>Social</strong></td>
+          <td>25</td>
+          <td>Moderate Instagram (0&ndash;5k) +5, active posting +3, any YouTube +2.</td>
+        </tr>
+        <tr>
+          <td><strong>Maps</strong></td>
+          <td>25</td>
+          <td>5+ reviews +3, 20+ reviews +2 more, 4.0+ rating +3, 5+ photos +2, recent photos +2.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Retainer scoring inverts several signals: high PageSpeed is rewarded (existing web investment), large teams are preferred, premium pricing signals high LTV, big Instagram followings are valuable. The same enrichment data tells different stories depending on the track.</p>
+
+  <h3>Winner-Takes-All Track Assignment</h3>
+  <div class="code-block">
+    <div class="code-header">lib/lead-gen/scoring.ts</div>
+    <pre><span class="kw">function</span> <span class="type">assignTrack</span>(profile): { track: <span class="str">'saas'</span> | <span class="str">'retainer'</span> | <span class="type">null</span>; score: <span class="type">number</span> } {
+  <span class="kw">const</span> saas = scoreForSaasTrack(profile)
+  <span class="kw">const</span> retainer = scoreForRetainerTrack(profile)
+
+  <span class="kw">if</span> (!saas.qualifies &amp;&amp; !retainer.qualifies) <span class="kw">return</span> { track: <span class="type">null</span>, score: <span class="num">0</span> }
+  <span class="kw">if</span> (saas.qualifies &amp;&amp; !retainer.qualifies) <span class="kw">return</span> { track: <span class="str">'saas'</span>, score: saas.score }
+  <span class="kw">if</span> (retainer.qualifies &amp;&amp; !saas.qualifies) <span class="kw">return</span> { track: <span class="str">'retainer'</span>, score: retainer.score }
+  <span class="kw">return</span> saas.score &gt;= retainer.score
+    ? { track: <span class="str">'saas'</span>, score: saas.score }
+    : { track: <span class="str">'retainer'</span>, score: retainer.score }
+}</pre>
+  </div>
+
+  <h3>Reactive ICP Scoring (Post-Send)</h3>
+  <p>Pre-send scoring is a snapshot. Once outreach begins, the prospect&rsquo;s behaviour generates new signal. <code>rescoreCandidate()</code> adjusts scores based on engagement, replies, responsiveness, file notes, and bounces.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Signal</th><th>Adjustment</th><th>Cap</th></tr></thead>
+      <tbody>
+        <tr><td>Click on any touch</td><td>+5 per unique click</td><td>+15</td></tr>
+        <tr><td>Full open (tier 2)</td><td>+2 per event</td><td>+6</td></tr>
+        <tr><td>No engagement (tier 4)</td><td>&minus;2 per event</td><td>&minus;8</td></tr>
+        <tr><td>Positive reply</td><td>+12 (one-time)</td><td>&mdash;</td></tr>
+        <tr><td>Objection / question reply</td><td>+5</td><td>&mdash;</td></tr>
+        <tr><td>Negative reply</td><td>&minus;15</td><td>&mdash;</td></tr>
+        <tr><td>Replied within 24h</td><td>+4</td><td>&mdash;</td></tr>
+        <tr><td>No reply after 3+ touches</td><td>&minus;3</td><td>&mdash;</td></tr>
+        <tr><td>File note exists on Deal</td><td>+3</td><td>&mdash;</td></tr>
+        <tr><td>Hard bounce</td><td>&minus;10</td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Total reactive adjustment is bounded: <code>[&minus;20, +25]</code> (constants <code>REACTIVE_MIN</code> and <code>REACTIVE_MAX</code>). Final score = clamp(base + adjustment, 0, 100). A rescore can change the qualified track, but only once per candidate &mdash; second flips are suppressed and logged.</p>
+</div>
+
+<!-- ── 6. EMAIL GENERATION ─────────────────────────────────────── -->
+
+<div class="section" id="email-gen">
+  <div class="section-num">Section 06</div>
+  <h2>Email Generation</h2>
+
+  <h3>The Core Principle</h3>
+  <div class="callout">
+    <div class="callout-label">No Templates</div>
+    <p>Every email is generated end-to-end per prospect by Claude Opus. No variable substitution, no fill-in-the-blank templates. Each email references specific signals from the prospect&rsquo;s actual enrichment data. A/B testing happens at the strategy level, not the copy level.</p>
+  </div>
+
+  <h3>Email Structure: Gap + Free Win + Soft CTA</h3>
+  <ol>
+    <li><strong>The Gap</strong> &mdash; a specific disconnect identified from enrichment data. Not flattery, not criticism. An observation that proves you actually looked. &ldquo;Your Google reviews say one thing, your website says another.&rdquo;</li>
+    <li><strong>The Free Win</strong> &mdash; actionable advice matched to signal complexity. Simple fix (under 30 min) = be prescriptive. Complex issue = be directional.</li>
+    <li><strong>The Soft CTA</strong> &mdash; proportional to zero prior relationship. &ldquo;Worth a conversation if you&rsquo;re curious.&rdquo;</li>
+  </ol>
+
+  <h3>What the Prompt Sees</h3>
+  <p>The system prompt composes these layers:</p>
+  <ul>
+    <li><strong>SuperBad&rsquo;s own Brand DNA profile</strong> &mdash; outreach sounds like Andy, not a generic bot. Not the client&rsquo;s Brand DNA (they&rsquo;re not a client yet).</li>
+    <li><strong>Brand voice examples</strong> &mdash; 5 real approved outreach emails loaded from the <code>brand_voice_examples</code> table (surface: <code>&ldquo;outreach&rdquo;</code>).</li>
+    <li><strong>Viability profile</strong> &mdash; full structured JSON so the prompt can reference specific signals.</li>
+    <li><strong>Deep enrichment brief</strong> &mdash; the <code>website_content.distilled_brief</code> (LLM-summarised description of the business).</li>
+    <li><strong>Prior touches + engagement signals</strong> &mdash; for follow-ups, so the LLM never repeats an observation.</li>
+    <li><strong>Funnel history</strong> &mdash; if the prospect previously started the trial shoot funnel and dropped off, the draft generator knows about it.</li>
+    <li><strong>Standing brief</strong> &mdash; Andy&rsquo;s strategic context for targeting.</li>
+    <li><strong>Case snippet</strong> &mdash; if an approved anonymised proof point exists for the prospect&rsquo;s vertical, it&rsquo;s included.</li>
+  </ul>
+
+  <h3>Length Adapts to Touch Type</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Situation</th><th>Guidance</th></tr></thead>
+      <tbody>
+        <tr><td>First touch</td><td>3&ndash;4 sentences. Gap + free win + soft CTA.</td></tr>
+        <tr><td>Cold follow-up #2</td><td>3&ndash;4 sentences. Completely different signal. Must stand alone.</td></tr>
+        <tr><td>Proof touch #3</td><td>3&ndash;4 sentences. One sentence of proof from a similar business.</td></tr>
+        <tr><td>Breakup (touch 4+)</td><td>2 sentences max. Acknowledge you&rsquo;re done. No guilt.</td></tr>
+        <tr><td>Engaged follow-up (clicked)</td><td>2&ndash;3 short paragraphs. They showed real interest &mdash; add substance.</td></tr>
+        <tr><td>Engaged follow-up (opened only)</td><td>3&ndash;4 sentences. New angle, they read the last one.</td></tr>
+        <tr><td>Bonus touch (opened but never replied)</td><td>2 sentences. Self-aware, dry.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Drift Check</h3>
+  <p>Every generated draft passes through <code>checkBrandVoiceDrift()</code> using SuperBad&rsquo;s own Brand DNA profile. On failure, one automatic regeneration with drift feedback. Second failure flags the draft with a visible amber warning in the queue &mdash; but does not block approval.</p>
+
+  <h3>Subject Line Rules</h3>
+  <ul>
+    <li>Lowercase, conversational. Like a text from someone you know.</li>
+    <li>Vary style across touches: observation-lead, name-anchor, conversational, human.</li>
+    <li><strong>Banned:</strong> fake &ldquo;re:&rdquo;, fake &ldquo;fw:&rdquo;, implied prior conversation, question hooks, exclamation marks, ALL CAPS, emoji.</li>
+  </ul>
+  <p class="mutter">If the subject needs a trick to get opened, the observation isn&rsquo;t sharp enough. Fix the observation.</p>
+</div>
+
+<!-- ── 7. 4-TOUCH SEQUENCES ────────────────────────────────────── -->
+
+<div class="section" id="sequences">
+  <div class="section-num">Section 07</div>
+  <h2>4-Touch Sequences</h2>
+
+  <h3>Cold Sequence Structure</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Touch</th><th>Timing</th><th>Content</th><th>Subject Style</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>1</strong></td>
+          <td>Day 0</td>
+          <td>Gap + free win from primary enrichment signal</td>
+          <td>Observation-lead: &ldquo;87 reviews, 0 instagram posts&rdquo;</td>
+        </tr>
+        <tr>
+          <td><strong>2</strong></td>
+          <td>Day 4</td>
+          <td>Different signal, different observation, completely standalone</td>
+          <td>Name-anchor: &ldquo;quick thought about [business]&rdquo;</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>Day 11</td>
+          <td>One-sentence proof from similar business + connection</td>
+          <td>Conversational: &ldquo;something worth mentioning&rdquo;</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td>Day 21</td>
+          <td>Breakup &mdash; honest exit, no guilt</td>
+          <td>Human: &ldquo;last one from me&rdquo;</td>
+        </tr>
+        <tr>
+          <td><strong>5 (bonus)</strong></td>
+          <td>Day 30</td>
+          <td>Only if opened but never replied. Self-aware, dry.</td>
+          <td>Just their first name</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Cadence Constants</h3>
+  <div class="code-block">
+    <div class="code-header">Sequence Timing</div>
+    <pre>Touch 1: sent on approval
+Touch 2: <span class="num">4</span> days after Touch 1
+Touch 3: <span class="num">7</span> days after Touch 2
+Touch 4+: <span class="num">10</span> days after prior touch</pre>
+  </div>
+
+  <h3>Engagement-Gated Continuation</h3>
+  <p>The 4-tier engagement model determines whether a sequence continues:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier</th><th>Condition</th><th>Cutoff Counter Effect</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1 &mdash; Click</strong></td><td>Any link click</td><td>Reset <code>consecutive_non_engagements</code> to 0</td></tr>
+        <tr><td><strong>2 &mdash; Full Open</strong></td><td>Dwell &ge;60s OR multiple opens</td><td>Reset to 0</td></tr>
+        <tr><td><strong>3 &mdash; Sub-60s Open</strong></td><td>Single open, dwell &lt;60s, no clicks</td><td>Increment by 1 (treated as non-engagement)</td></tr>
+        <tr><td><strong>4 &mdash; None</strong></td><td>No opens, no clicks</td><td>Increment by 1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>After <strong>3 consecutive non-engagements</strong>, the sequence transitions to <code>stopped_engagement</code>. Clicks always trump opens. Sub-60s opens are treated as noise because Apple Mail Privacy Protection prefetches typically dwell under 60 seconds.</p>
+  <p>After touch 4 with zero engagement: archive. Protect domain reputation. No sequence &ldquo;ages out&rdquo; &mdash; a highly engaged prospect could receive 20 touches over 8 months if they keep engaging.</p>
+
+  <h3>Terminal States</h3>
+  <div class="tag-domain">
+    <div class="tag-grid">
+      <span class="tag">stopped_engagement</span>
+      <span class="tag">stopped_reply</span>
+      <span class="tag">stopped_bounce</span>
+      <span class="tag">stopped_unsubscribe</span>
+      <span class="tag">stopped_manual</span>
+    </div>
+  </div>
+
+  <h3>Reply Drop-Off Sequence</h3>
+  <p>When a prospect replies and then goes quiet, a separate 3-step drop-off sequence activates:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Step</th><th>Timing</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Nudge 1</strong></td><td>Day 3</td><td>New angle related to their original reply. Add something &mdash; don&rsquo;t just check in.</td></tr>
+        <tr><td><strong>Nudge 2</strong></td><td>Day 7</td><td>Different approach. Proof or value reframe depending on their original question.</td></tr>
+        <tr><td><strong>Soft close</strong></td><td>Day 14</td><td>&ldquo;The offer&rsquo;s there whenever the timing&rsquo;s right.&rdquo; Warm exit.</td></tr>
+        <tr><td><strong>Long-tail</strong></td><td>Day 60</td><td>Genuinely new information. If prices went up, honour old price for 7 days via discount code.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 8. AUTONOMY STATE MACHINE ───────────────────────────────── -->
+
+<div class="section" id="autonomy">
+  <div class="section-num">Section 08</div>
+  <h2>Autonomy State Machine</h2>
+
+  <p>The system earns the right to auto-send by demonstrating consistent draft quality. Autonomy is tracked <strong>per track</strong> &mdash; SaaS and retainer graduate independently.</p>
+
+  <h3>State Diagram</h3>
+  <div class="diagram"><pre><span class="highlight">MANUAL</span>  <span class="dim">&mdash; every draft needs explicit Approve click</span>
+    <span class="dim">|</span>  <span class="accent">5 clean approvals</span>
+    <span class="dim">v</span>
+<span class="highlight">PROBATION</span>  <span class="dim">&mdash; auto-send with 15-minute cancel window</span>
+    <span class="dim">|</span>  <span class="accent">5 probation sends without intervention</span>
+    <span class="dim">v</span>
+<span class="highlight">AUTO_SEND</span>  <span class="dim">&mdash; auto-send with 15-minute delay, maintenance enforced</span>
+    <span class="dim">|</span>  <span class="accent">maintenance floor breached OR circuit breaker</span>
+    <span class="dim">v</span>
+<span class="highlight">MANUAL</span>  <span class="dim">&mdash; streak resets to 0, must re-earn</span></pre></div>
+
+  <h3>Clean vs Non-Clean Approvals</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Edit Type</th><th>Classification</th><th>Streak Effect</th></tr></thead>
+      <tbody>
+        <tr><td>No edits</td><td>Clean</td><td>Increments streak</td></tr>
+        <tr><td>Typo fix (&le;3 chars, subject unchanged)</td><td>Minor</td><td><strong>Does not break streak</strong></td></tr>
+        <tr><td>Phrasing tweak (body changed &lt;20%, subject unchanged)</td><td>Minor</td><td><strong>Does not break streak</strong></td></tr>
+        <tr><td>Subject line changed</td><td>Material</td><td>Resets streak to 0</td></tr>
+        <tr><td>Body substantially rewritten (&gt;20%)</td><td>Material</td><td>Resets streak to 0</td></tr>
+        <tr><td>Nudge regeneration</td><td>Always material</td><td>Resets streak to 0</td></tr>
+        <tr><td>Rejection</td><td>&mdash;</td><td>Resets streak to 0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Edit classification uses Levenshtein distance. The thresholds are configurable via settings: <code>autonomy.minor_edit_char_threshold</code> (default 3) and <code>autonomy.material_edit_ratio_threshold</code> (default 0.2).</p>
+
+  <h3>Maintenance Standard</h3>
+  <p>Once in <code>auto_send</code>, a rolling window of the last 20 sends is monitored. If the clean approval rate drops below 80%, the track demotes back to <code>manual</code>.</p>
+
+  <h3>Circuit Breakers</h3>
+  <p>Immediate demotion to <code>manual</code> with streak reset on any of:</p>
+  <ul>
+    <li>Any <strong>hard bounce</strong> from an auto-send</li>
+    <li>Any <strong>spam complaint</strong> from any send</li>
+    <li>Any <strong>unsubscribe within 60 seconds</strong> of a send</li>
+    <li><strong>Drift check flagged</strong> on any auto-send draft</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-label">Single Write Path</div>
+    <p>All autonomy state transitions route through one function: <code>transitionAutonomyState(track, event)</code> in <code>lib/lead-gen/autonomy.ts</code>. No direct writes to <code>autonomy_state</code> anywhere else. Every transition writes to <code>activity_log</code>. No silent flips.</p>
+  </div>
+</div>
+
+<!-- ── 9. REPLY CLASSIFICATION ─────────────────────────────────── -->
+
+<div class="section" id="replies">
+  <div class="section-num">Section 09</div>
+  <h2>Reply Classification</h2>
+
+  <h3>The Reply Intelligence Primitive</h3>
+  <p>When a prospect replies, the system classifies the reply intent via a Haiku-tier LLM call and routes it to the appropriate handler. The classifier is a shared primitive &mdash; also consumed by the Hiring Pipeline and the Unified Inbox.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/reply-intelligence/classify.ts</div>
+    <pre><span class="kw">function</span> <span class="type">classifyReply</span>({
+  threadContext: { originalOutboundBody, recentMessages },
+  replyBody: <span class="type">string</span>,
+  classificationContext: <span class="str">'outreach'</span> | <span class="str">'hiring_invite'</span> | ...,
+}): <span class="type">Promise</span>&lt;{
+  intent: <span class="str">'positive'</span> | <span class="str">'objection'</span> | <span class="str">'question'</span> | <span class="str">'negative'</span> | <span class="str">'auto_responder'</span>,
+  confidence: <span class="type">number</span>,     <span class="comment">// 0..1</span>
+  signals: <span class="type">string</span>[],      <span class="comment">// e.g. ['price_concern', 'timeline_pushback']</span>
+  summary: <span class="type">string</span>,        <span class="comment">// one-line human-readable</span>
+}&gt;</pre>
+  </div>
+
+  <h3>Classification &rarr; Action Map</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Classification</th><th>LLM Draft?</th><th>Andy Approves?</th><th>Auto Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Positive</strong></td>
+          <td>Yes &mdash; warm, match energy, answer what they asked. Include booking link when contextually relevant.</td>
+          <td>Yes</td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td><strong>Question</strong></td>
+          <td>Yes &mdash; answer directly in 2&ndash;3 sentences, then soft CTA.</td>
+          <td>Yes</td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td><strong>Objection</strong></td>
+          <td>Yes &mdash; acknowledge honestly, don&rsquo;t argue. Leave door open.</td>
+          <td>Yes</td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td><strong>Negative</strong></td>
+          <td>No</td>
+          <td>No</td>
+          <td>Auto-DNC, auto-archive, send &ldquo;Done. Apologies for the interruption.&rdquo;</td>
+        </tr>
+        <tr>
+          <td><strong>Auto-responder</strong></td>
+          <td>No</td>
+          <td>No</td>
+          <td>Note return date on candidate. Re-queue touch for return date + 2 days.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Dispatch Table Pattern</h3>
+  <p>Each consumer registers a handler map at module load. Dispatch lookup resolves <code>(classificationContext, intent) &rarr; handler</code>. Missing handler = structured error logged + fallback to <code>queueForAndyReview</code>.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/reply-intelligence/dispatch.ts</div>
+    <pre><span class="type">registerReplyDispatch</span>(<span class="str">'outreach'</span>, {
+  positive: handlePositiveOutreachReply,
+  objection: queueForAndyReview,
+  question: queueForAndyReview,
+  negative: suppressAndAutoArchive,
+  auto_responder: ignoreAndRequeue,
+})</pre>
+  </div>
+
+  <h3>Reply Draft Prompt Layers</h3>
+  <ol>
+    <li><strong>The original outreach email</strong> &mdash; subject, body, touch number, which gap/observation it used</li>
+    <li><strong>Their reply</strong> &mdash; full text, classified intent</li>
+    <li><strong>Viability profile + deep enrichment</strong> &mdash; full profile including the distilled business brief</li>
+    <li><strong>Standing brief</strong> &mdash; strategic context</li>
+    <li><strong>Brand voice + outreach voice examples</strong> &mdash; same anchors as outreach drafts</li>
+    <li><strong>Rules</strong> &mdash; match their energy, answer their actual question first, don&rsquo;t repeat the original observation, don&rsquo;t pitch</li>
+  </ol>
+  <p class="mutter">Andy can add a one-liner nudge that reshapes the reply draft: &ldquo;mention ProTraxx&rdquo;, &ldquo;lead with the trial shoot.&rdquo; The nudge overrides default behaviour.</p>
+</div>
+
+<!-- ── 10. DATABASE SCHEMA ─────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 10</div>
+  <h2>Database Schema</h2>
+
+  <h3>lead_candidates</h3>
+  <p>The core prospect table. Append-only for audit trail &mdash; rows are never deleted, only promoted to Deals or skipped.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>ULID</td></tr>
+        <tr><td><code>company_name</code></td><td>text</td><td>Business name from discovery source</td></tr>
+        <tr><td><code>domain</code></td><td>text</td><td>Website domain (nullable &mdash; Maps-sourced candidates may have none)</td></tr>
+        <tr><td><code>contact_email</code></td><td>text</td><td>Resolved by Hunter.io (nullable until resolved)</td></tr>
+        <tr><td><code>contact_name</code>, <code>contact_role</code></td><td>text</td><td>Contact identity</td></tr>
+        <tr><td><code>email_confidence</code></td><td>enum</td><td><code>verified</code> | <code>inferred</code> | <code>unknown</code></td></tr>
+        <tr><td><code>viability_profile_json</code></td><td>JSON</td><td>Full enrichment payload (ViabilityProfile)</td></tr>
+        <tr><td><code>saas_score</code>, <code>retainer_score</code></td><td>integer</td><td>Pre-send scores from both track rulesets</td></tr>
+        <tr><td><code>qualified_track</code></td><td>enum</td><td><code>saas</code> | <code>retainer</code></td></tr>
+        <tr><td><code>scoring_debug_json</code></td><td>JSON</td><td>Full scoring breakdown for auditability</td></tr>
+        <tr><td><code>sourced_from</code></td><td>enum</td><td><code>meta_ad_library</code> | <code>google_maps</code> | <code>google_ads_transparency</code> | <code>instagram_location</code> | <code>manual_brief</code> | <code>manual_entry</code></td></tr>
+        <tr><td><code>lead_run_id</code></td><td>text FK</td><td>Which daily run produced this candidate</td></tr>
+        <tr><td><code>pending_draft_id</code></td><td>text FK</td><td>Current draft awaiting approval</td></tr>
+        <tr><td><code>promoted_to_deal_id</code></td><td>text FK</td><td>Set when first send fires &rarr; candidate becomes a Pipeline Deal</td></tr>
+        <tr><td><code>reactive_adjustment</code></td><td>integer</td><td>Post-send score adjustment [&minus;20, +25]</td></tr>
+        <tr><td><code>rescore_count</code></td><td>integer</td><td>How many times this candidate has been rescored</td></tr>
+        <tr><td><code>below_floor_after_rescore</code></td><td>boolean</td><td>True if rescore dropped below track floor</td></tr>
+        <tr><td><code>track_change_used</code></td><td>boolean</td><td>True if track has already flipped once (cap: 1)</td></tr>
+        <tr><td><code>reply_status</code></td><td>text</td><td>Drop-off sequence state tracking</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>outreach_drafts</h3>
+  <p>Every Claude-generated draft for a cold touch. Lives here through approval, mutates into an <code>outreach_sends</code> row on send.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>candidate_id</code>, <code>deal_id</code>, <code>sequence_id</code></td><td>text FK</td><td>Links to prospect, deal, sequence</td></tr>
+        <tr><td><code>touch_kind</code></td><td>enum</td><td><code>first_touch</code> | <code>follow_up</code> | <code>stale_nudge</code></td></tr>
+        <tr><td><code>touch_index</code></td><td>integer</td><td>1 for first, 2+ for follow-ups</td></tr>
+        <tr><td><code>subject</code>, <code>body_markdown</code></td><td>text</td><td>Draft content</td></tr>
+        <tr><td><code>model_used</code>, <code>prompt_version</code></td><td>text</td><td>Generation audit trail</td></tr>
+        <tr><td><code>drift_check_score</code></td><td>integer</td><td>Brand voice drift score (0&ndash;100)</td></tr>
+        <tr><td><code>drift_check_flagged</code></td><td>boolean</td><td>True if failed drift check twice</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>pending_approval</code> &rarr; <code>approved_queued</code> &rarr; <code>sent</code> | <code>rejected</code> | <code>superseded</code> | <code>expired</code></td></tr>
+        <tr><td><code>approval_kind</code></td><td>enum</td><td><code>manual</code> | <code>auto_send</code> | <code>nudged_manual</code> | <code>minor_edit_manual</code> | <code>edited_manual</code></td></tr>
+        <tr><td><code>nudge_thread_json</code></td><td>JSON</td><td>Andy&rsquo;s feedback history for iterative regeneration</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>outreach_sends</h3>
+  <p>Authoritative send record. Written after <code>sendEmail()</code> succeeds. Tracks engagement for the tier evaluator.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>draft_id</code>, <code>sequence_id</code>, <code>deal_id</code></td><td>text FK</td><td>Links to draft, sequence, deal</td></tr>
+        <tr><td><code>resend_message_id</code></td><td>text unique</td><td>Resend&rsquo;s message ID for webhook correlation</td></tr>
+        <tr><td><code>sent_at</code></td><td>timestamp_ms</td><td>When the email actually left</td></tr>
+        <tr><td><code>first_opened_at</code>, <code>open_count</code></td><td>timestamp + int</td><td>Open tracking from Resend webhooks</td></tr>
+        <tr><td><code>first_open_dwell_sec</code></td><td>integer</td><td>Dwell time &mdash; key for tier 2 vs 3 classification</td></tr>
+        <tr><td><code>first_clicked_at</code>, <code>click_count</code></td><td>timestamp + int</td><td>Click tracking from Resend webhooks</td></tr>
+        <tr><td><code>bounced_at</code>, <code>bounce_kind</code></td><td>timestamp + enum</td><td><code>hard</code> | <code>soft</code> | <code>complaint</code></td></tr>
+        <tr><td><code>engagement_tier</code></td><td>integer</td><td>1=click, 2=full open, 3=sub-60s, 4=none</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>outreach_sequences</h3>
+  <p>One per active contact thread. State machine for engagement-gated continuation.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>deal_id</code></td><td>text FK</td><td>Associated Pipeline Deal</td></tr>
+        <tr><td><code>track</code></td><td>enum</td><td><code>saas</code> | <code>retainer</code> &mdash; can change once mid-sequence</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>active</code> | <code>paused</code> | <code>stopped_engagement</code> | <code>stopped_reply</code> | <code>stopped_bounce</code> | <code>stopped_unsubscribe</code> | <code>stopped_manual</code></td></tr>
+        <tr><td><code>consecutive_non_engagements</code></td><td>integer</td><td>Cutoff counter &mdash; 3 = stop</td></tr>
+        <tr><td><code>cutoff_threshold</code></td><td>integer</td><td>Default 3</td></tr>
+        <tr><td><code>next_touch_due_at</code></td><td>timestamp_ms</td><td>When the next follow-up should fire</td></tr>
+        <tr><td><code>touches_sent</code></td><td>integer</td><td>Total sends in this sequence</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Other Tables</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>lead_runs</code></td><td>Append-only audit log of every daily/ad-hoc run. Tracks found, filtered, qualified, drafted counts + warmup state at run time.</td></tr>
+        <tr><td><code>autonomy_state</code></td><td>Per-track graduation state: mode, streak, thresholds, circuit breaker status. Primary key is the track name.</td></tr>
+        <tr><td><code>resend_warmup_state</code></td><td>Single-row warmup ramp: current week, daily cap, sends today. Read/written only by <code>enforceWarmupCap()</code>.</td></tr>
+        <tr><td><code>dnc_emails</code></td><td>Email-level Do Not Contact. Unique on email. Sources: unsubscribe, manual, CSV, complaint.</td></tr>
+        <tr><td><code>dnc_domains</code></td><td>Domain-level Do Not Contact. Unique on domain.</td></tr>
+        <tr><td><code>search_verticals</code></td><td>Standing search parameters: category, location, radius, weight, active status. Drives daily search rotation.</td></tr>
+        <tr><td><code>case_snippets</code></td><td>Anonymised proof points auto-drafted from client milestones. 48h auto-approve window. Fed into outreach drafts.</td></tr>
+        <tr><td><code>reply_drafts</code></td><td>LLM-drafted replies to prospect responses. Tracks classification, Andy&rsquo;s nudge, approval status.</td></tr>
+        <tr><td><code>discount_codes</code></td><td>Per-candidate price-hold codes for the long-tail drop-off touch. 7-day expiry.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 11. KILL SWITCHES & SAFETY ──────────────────────────────── -->
+
+<div class="section" id="safety">
+  <div class="section-num">Section 11</div>
+  <h2>Kill Switches &amp; Safety</h2>
+
+  <h3>Two Gate Functions</h3>
+  <p>Every outbound send must pass through exactly two gate functions. No other code path adds candidates or sends email without calling both.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Gate</th><th>File</th><th>What It Checks</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>enforceWarmupCap()</code></td>
+          <td><code>lib/lead-gen/warmup.ts</code></td>
+          <td>Current warmup week, daily cap, sends today, scheduled touches. Returns <code>{ can_send, remaining }</code>.</td>
+        </tr>
+        <tr>
+          <td><code>isBlockedFromOutreach()</code></td>
+          <td><code>lib/lead-gen/dnc.ts</code></td>
+          <td>Three-tier check: company &rarr; email &rarr; domain. First match wins. Returns <code>{ blocked, reason }</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Warmup Ramp</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Week</th><th>Daily Cap</th></tr></thead>
+      <tbody>
+        <tr><td>Week 1</td><td>5</td></tr>
+        <tr><td>Week 2</td><td>10</td></tr>
+        <tr><td>Week 3</td><td>15</td></tr>
+        <tr><td>Week 4</td><td>20</td></tr>
+        <tr><td>Week 5+</td><td>30</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Per calendar day in Melbourne timezone. Resets at midnight Melbourne. Non-overrideable &mdash; there is no &ldquo;skip ahead&rdquo; option. Week progression is computed from <code>started_at</code>, not manually advanced. The cap applies to all outbound cold outreach sends combined &mdash; first touches, follow-ups, stale nudges.</p>
+
+  <h3>Do Not Contact (Three Tiers)</h3>
+  <ol>
+    <li><strong>Company-level:</strong> <code>companies.do_not_contact</code> flag on the company record.</li>
+    <li><strong>Email-level:</strong> <code>dnc_emails</code> table. Normalised (lowercase + trimmed). Unique constraint.</li>
+    <li><strong>Domain-level:</strong> <code>dnc_domains</code> table. Normalised. Unique constraint.</li>
+  </ol>
+  <p>Population paths: unsubscribe link click, Resend spam complaint webhook (triple-writes: email + company + contact status), manual DNC management, CSV import.</p>
+
+  <h3>Quiet Window</h3>
+  <p>Automated outreach sends only during 08:00&ndash;18:00 Mon&ndash;Fri Melbourne time. Manual approvals are exempt (Andy is awake, he just clicked Approve). Rejected sends are deferred to the next safe window, not dropped.</p>
+
+  <h3>Single Sender Identity</h3>
+  <div class="code-block">
+    <div class="code-header">lib/lead-gen/sender.ts</div>
+    <pre><span class="kw">export const</span> SUPERBAD_SENDER = {
+  display_name: <span class="str">'Andy Robinson'</span>,
+  local_part: <span class="str">'hi'</span>,
+  domain: <span class="str">'contact.superbadmedia.com.au'</span>,
+  reply_to: <span class="str">'hi@contact.superbadmedia.com.au'</span>,
+} <span class="kw">as const</span></pre>
+  </div>
+  <p>Cold outreach uses a dedicated subdomain (<code>contact.superbadmedia.com.au</code>) with its own SPF, DKIM, and DMARC records, fully isolated from the main domain. Every send imports this constant &mdash; no inline from-strings anywhere.</p>
+
+  <h3>Unsubscribe Compliance</h3>
+  <ul>
+    <li>Every email includes a visible footer unsubscribe link + <code>List-Unsubscribe</code> + <code>List-Unsubscribe-Post</code> headers (RFC 8058 one-click).</li>
+    <li>Unsubscribe tokens are server-signed (<code>lib/lead-gen/unsubscribe-token.ts</code>). No unsigned URLs anywhere.</li>
+    <li>Tokens never expire (legal requirement).</li>
+    <li>Handler: validates token &rarr; inserts to <code>dnc_emails</code> (idempotent) &rarr; renders confirmation page.</li>
+  </ul>
+
+  <h3>Retargeting Pixels on Outreach Links</h3>
+  <p>All outreach email links (except unsubscribe) are wrapped through a redirect endpoint that fires Meta Pixel and Google Ads conversion tags before redirecting to the target URL. HMAC-signed tokens prevent URL tampering. Pixel IDs are configured via settings; if unconfigured, the redirect silently skips. No cookies are set by the redirect page itself.</p>
+
+  <div class="callout">
+    <div class="callout-label">Spam Act Footer</div>
+    <p>Every outbound email includes: <strong>Andy Robinson &middot; SuperBad Media &middot; Melbourne, Australia</strong>, reason for sending (&ldquo;Your business appeared in public advertising directories&rdquo;), and the unsubscribe link. Non-negotiable. The system prompt instructs the LLM to always include this.</p>
+  </div>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Build enrichment before scoring.</strong> The enrichment pipeline is the largest failure surface (nine APIs, each with its own rate limits and failure modes). Get each enrichment source working independently, verify graceful degradation when sources fail, then wire them into the viability profile. Scoring is trivially testable once you have profile fixtures.</li>
+
+    <li><strong>Scoring is pure functions &mdash; test it first.</strong> <code>scoreForSaasTrack()</code> and <code>scoreForRetainerTrack()</code> take a <code>ViabilityProfile</code> and return a number. No I/O, no database, no API calls. Write unit tests for every sub-scorer path before anything else. The <code>scoring_debug_json</code> field exists specifically so you can eyeball &ldquo;why did this score 74.&rdquo;</li>
+
+    <li><strong>Two gate functions are the whole safety model.</strong> <code>enforceWarmupCap()</code> and <code>isBlockedFromOutreach()</code> are the only two functions that protect compliance and domain reputation. Every new code path that touches outbound email must call both. If you bypass either, you have a regression.</li>
+
+    <li><strong>The autonomy state machine is the trickiest part.</strong> Four failure modes to test: graduates too early, graduates too late, circuit breaker fires silently, state machine bug. Manufacture test scenarios for all four. The metrics panel surfaces all states visibly &mdash; use it to verify.</li>
+
+    <li><strong>Prompts are the product.</strong> The draft generator&rsquo;s system prompt is long and very specific. The quality of outreach emails is 90% prompt engineering. Invest in prompt iteration with real viability profiles. The voice examples table (<code>brand_voice_examples</code> where <code>surface = 'outreach'</code>) is critical &mdash; without them the LLM will default to generic marketing copy.</li>
+
+    <li><strong>The engagement evaluator has a 24-hour cooloff.</strong> Sends are not classified until 24 hours after sending. This prevents Apple Mail Privacy Protection prefetches from triggering immediate tier classification. The evaluator runs periodically, picks up unclassified sends past the cooloff, and processes them in batch.</li>
+
+    <li><strong>Reactive scoring is additive, not replacement.</strong> The rescore function does not re-run enrichment. It takes the existing base score and applies bounded adjustments from engagement/reply/responsiveness signals. The adjustment is clamped to [&minus;20, +25] &mdash; it can never push a zero-score candidate into qualification.</li>
+
+    <li><strong>Track changes are capped at one.</strong> A rescore can flip a candidate&rsquo;s track (e.g. SaaS &rarr; Retainer) exactly once. The second flip is suppressed and logged. This prevents ping-pong between tracks on noisy engagement signals.</li>
+
+    <li><strong>Reply handling needs the full thread context.</strong> The reply draft prompt sees the original outreach email, the prospect&rsquo;s reply, the viability profile, deep enrichment, and brand voice examples. Without thread context the LLM will produce generic replies that repeat the original observation. The &ldquo;don&rsquo;t repeat the observation&rdquo; instruction is a hard rule.</li>
+
+    <li><strong>The 15-minute auto-send delay is enforced server-side.</strong> Not in the UI. Auto-send drafts are queued with a delay timestamp in the sequence runner. The cancel mechanism is a pure database operation that flips the draft status before the delay expires. No cron dependency for cancellation &mdash; the sequence runner checks status before firing.</li>
+
+    <li><strong>Case snippets auto-approve after 48 hours.</strong> If Andy doesn&rsquo;t act on a pending case snippet within 48 hours, a scheduled task flips it to approved. This ensures the outreach pipeline always has fresh social proof without requiring Andy to manually curate it.</li>
+
+    <li><strong>Every mutation writes to <code>activity_log</code>.</strong> No Lead Gen code path writes to a Lead Gen table without an adjacent activity log row in the same transaction. This is non-negotiable. The activity log is how debugging and auditing work.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">This system sends real cold emails to real businesses. The warmup ramp, DNC enforcement, brand voice drift check, and quiet window gate are not features you can defer. They are the legal and reputational guardrails that make everything else safe to automate. Build them first, verify them thoroughly, and never route around them.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

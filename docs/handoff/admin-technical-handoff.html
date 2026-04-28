@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard &amp; Cockpit — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); font-weight: 700; }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Admin Dashboard &amp; Cockpit</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the Admin Dashboard, Daily Cockpit, and all operator-facing systems in SuperBad Lite.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the Admin Dashboard Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#cockpit"><span class="num">03</span> Daily Cockpit</a>
+    <a href="#health"><span class="num">04</span> Health Banners</a>
+    <a href="#tasks"><span class="num">05</span> Task Management</a>
+    <a href="#calendar"><span class="num">06</span> Calendar</a>
+    <a href="#braindump"><span class="num">07</span> Brain Dump</a>
+    <a href="#inbox"><span class="num">08</span> Unified Inbox</a>
+    <a href="#shell"><span class="num">09</span> Admin Shell &amp; Navigation</a>
+    <a href="#eggs"><span class="num">10</span> Easter Egg System</a>
+    <a href="#database"><span class="num">11</span> Database Schema</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE ADMIN DASHBOARD DOES ───────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the Admin Dashboard Does</h2>
+  <p>The Admin Dashboard is the single operator&rsquo;s command centre. One person &mdash; Andy, the solo founder of a Melbourne marketing business &mdash; runs everything through this surface: sales pipeline, client management, content production, finances, lead generation, hiring, and daily planning. Every admin page lives under <code>/lite/admin/*</code> or <code>/lite/cockpit</code>.</p>
+  <p>The <strong>Daily Cockpit</strong> (<code>/lite/cockpit</code>) is the default morning surface. It aggregates signals from every other system into a single-screen briefing: an AI-written daily narrative, a list of things waiting on the operator, system health warnings, today&rsquo;s calendar, and a kanban-style task planning board. Three AI briefs a day &mdash; morning, midday, evening &mdash; watch the business unfold in the operator&rsquo;s own dry, observational voice.</p>
+  <p>Beyond the cockpit, the admin surface spans ~20 pages covering Pipeline, Clients, Lead Gen, Proposals, Campaigns, Briefs, Content, Hiring, Products, Finance, Invoices, Inbox, Tasks, Calendar, Settings, and an Observatory (system observability). Every page wraps in a shared <code>AdminShellWithNav</code> component that provides a sidebar, animated navigation, a bottom nav for mobile, and a persistent braindump FAB.</p>
+  <p class="mutter">One person runs a marketing business through a single browser tab. The cockpit&rsquo;s job is to make sure that person always knows what matters right now.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>Application Structure</h3>
+  <p>SuperBad Lite is a Next.js App Router application. The admin area consists of two route groups: <code>app/lite/admin/*</code> (pipeline, clients, settings, etc.) and <code>app/lite/cockpit/*</code> (daily cockpit, health, waiting). Both wrap their children in the same <code>AdminShellWithNav</code> component.</p>
+
+  <div class="diagram"><pre><span class="highlight">app/lite/admin/</span>
+  <span class="accent">layout.tsx</span>      <span class="dim">── AdminShellWithNav + EggOrchestrator + event toasts</span>
+  <span class="dim">page.tsx</span>         <span class="dim">── redirects to /lite/admin/pipeline</span>
+  <span class="accent">pipeline/</span>       <span class="dim">── sales pipeline (kanban board)</span>
+  <span class="accent">clients/</span>        <span class="dim">── client list &amp; detail</span>
+  <span class="accent">lead-gen/</span>       <span class="dim">── outreach queue + verticals manager</span>
+  <span class="accent">proposals/</span>      <span class="dim">── proposal builder</span>
+  <span class="accent">campaigns/</span>      <span class="dim">── campaign management</span>
+  <span class="accent">briefs/</span>         <span class="dim">── production briefs</span>
+  <span class="accent">hiring/</span>         <span class="dim">── contractor hiring pipeline</span>
+  <span class="accent">products/</span>       <span class="dim">── SaaS product management</span>
+  <span class="accent">invoices/</span>       <span class="dim">── invoice list &amp; actions</span>
+  <span class="accent">settings/</span>       <span class="dim">── admin settings</span>
+  <span class="accent">errors/</span>         <span class="dim">── error log viewer</span>
+  <span class="accent">contacts/[id]/</span>  <span class="dim">── contact detail &amp; context</span>
+  <span class="accent">companies/[id]/</span> <span class="dim">── company detail</span>
+  <span class="accent">deals/[id]/</span>     <span class="dim">── deal detail &amp; call prep</span>
+
+<span class="highlight">app/lite/cockpit/</span>
+  <span class="accent">layout.tsx</span>      <span class="dim">── AdminShellWithNav + event toasts</span>
+  <span class="accent">page.tsx</span>        <span class="dim">── the daily cockpit (main surface)</span>
+  <span class="accent">actions.ts</span>      <span class="dim">── regenerate brief, toggle habits</span>
+  <span class="accent">health/</span>         <span class="dim">── full health banner list</span>
+  <span class="accent">waiting/</span>        <span class="dim">── full waiting-items list</span></pre></div>
+
+  <h3>Auth Pattern</h3>
+  <p>Every admin page runs its own <code>auth()</code> check server-side and redirects to <code>/lite/login</code> if the user is not an admin. The shell layouts never enforce auth themselves &mdash; they&rsquo;re pure chrome. This means each page is independently testable and independently deployable.</p>
+
+  <h3>Data Flow</h3>
+  <div class="diagram"><pre><span class="accent">Page (RSC)</span> <span class="dim">──→</span> <span class="highlight">Server queries</span> <span class="dim">──→</span> <span class="accent">DB (SQLite + Drizzle)</span>
+     <span class="dim">│</span>
+     <span class="dim">├──→</span> <span class="highlight">Aggregator</span> <span class="dim">──→ mergeWaitingItems() / mergeHealthBanners()</span>
+     <span class="dim">│</span>                      <span class="dim">↳ parallel Promise.allSettled across all source specs</span>
+     <span class="dim">│</span>
+     <span class="dim">├──→</span> <span class="highlight">Brief Generator</span> <span class="dim">──→ LLM (Claude via model registry)</span>
+     <span class="dim">│</span>
+     <span class="dim">└──→</span> <span class="accent">Client Components</span> <span class="dim">──→ Framer Motion + houseSpring</span></pre></div>
+
+  <p>The cockpit page fetches seven data sources in parallel using <code>Promise.all</code>: the current brief, waiting items, health banners, calendar events, task kanban, today&rsquo;s braindump status, and today&rsquo;s habits. Each source is fault-isolated &mdash; if one fails, the others still render.</p>
+</div>
+
+<!-- ── 3. DAILY COCKPIT ───────────────────────────────────────── -->
+
+<div class="section" id="cockpit">
+  <div class="section-num">Section 03</div>
+  <h2>Daily Cockpit</h2>
+
+  <h3>What Andy Sees</h3>
+  <p>The cockpit is the first thing the operator sees each morning. It&rsquo;s a single-column layout (max-width 720px) with six zones stacked vertically:</p>
+  <ol>
+    <li><strong>Greeting header</strong> &mdash; time-of-day greeting (&ldquo;Morning.&rdquo; / &ldquo;Afternoon.&rdquo; / &ldquo;Evening.&rdquo;) plus a rotating tagline from a pool of 6 dry one-liners. Changes daily by day-index modulo.</li>
+    <li><strong>AI narrative brief</strong> &mdash; hero card with 2&ndash;3 sentences in SuperBad&rsquo;s voice. The brief tells Andy what&rsquo;s happening, what&rsquo;s stuck, and what needs him.</li>
+    <li><strong>Habits panel</strong> &mdash; daily routine checklist with streak tracking, optimistic UI toggles, and flame icons for active streaks.</li>
+    <li><strong>Braindump section</strong> &mdash; quick capture entry point (or confirmation if already done today).</li>
+    <li><strong>Attention rail</strong> &mdash; horizontal chip row of up to 6 &ldquo;waiting on Andy&rdquo; items, sorted by urgency. Overflow links to <code>/lite/cockpit/waiting</code>.</li>
+    <li><strong>Health banners</strong> &mdash; conditional. Only renders when something is broken. Up to 2 visible, overflow to <code>/lite/cockpit/health</code>.</li>
+    <li><strong>Calendar preview</strong> &mdash; today&rsquo;s bookings (shoots, meetings) with time-ordered chips.</li>
+    <li><strong>Planning view</strong> &mdash; kanban board (Must Do / Should Do / If Time) with a list-view toggle. Mobile uses a tabbed interface with animated transitions between columns.</li>
+  </ol>
+  <p>Two floating action buttons sit in the corners: an <strong>AI chat FAB</strong> (bottom-left) for conversational queries against the platform, and a <strong>braindump FAB</strong> (bottom-right) for quick brain dumps from any admin surface.</p>
+
+  <h3>Three Daily Briefs</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Slot</th><th>Melbourne Time</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>morning</code></td><td>06:00</td><td>Orientation &mdash; state of the business, what today looks like</td></tr>
+        <tr><td><code>midday</code></td><td>12:00</td><td>Progress check &mdash; what&rsquo;s moved, what&rsquo;s stuck</td></tr>
+        <tr><td><code>evening</code></td><td>18:30</td><td>Day wrap + tomorrow preview &mdash; how the day closed</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Brief Generation Pipeline</h3>
+  <div class="diagram"><pre><span class="num">1.</span> <span class="accent">Determine slot</span> (morning/midday/evening) from Melbourne wall-clock time
+<span class="num">2.</span> <span class="accent">Check kill switches</span>: <span class="str">cockpit_briefs_enabled</span> + <span class="str">llm_calls_enabled</span>
+<span class="num">3.</span> <span class="accent">Gather context</span> in parallel:
+     <span class="dim">├──</span> mergeWaitingItems()
+     <span class="dim">├──</span> mergeHealthBanners()
+     <span class="dim">├──</span> getTodayCalendarEvents()
+     <span class="dim">└──</span> getAndyFacingActivitySince(slotStart)
+<span class="num">4.</span> <span class="accent">Quiet-slot check</span>: if zero items + zero banners + zero events &rarr; <span class="highlight">skip</span>
+<span class="num">5.</span> <span class="accent">Load prior briefs</span>: midday reads morning; evening reads morning + midday
+<span class="num">6.</span> <span class="accent">Build prompt</span> (slot-specific template with all context injected)
+<span class="num">7.</span> <span class="accent">Invoke LLM</span> via <span class="str">invokeLlmText({ job: "cockpit-brief", ... })</span>
+<span class="num">8.</span> <span class="accent">Upsert</span> result into <span class="str">cockpit_briefs</span> table
+<span class="num">9.</span> <span class="accent">Log activity</span> (generated / regenerated / skipped)</pre></div>
+
+  <h3>Chained Continuity</h3>
+  <p>Each brief&rsquo;s prompt includes the prior briefs from the same day. The morning brief gets today&rsquo;s raw signals. The midday brief gets the morning&rsquo;s prose plus an event trail since 6 AM. The evening brief gets both prior briefs, the full day&rsquo;s event trail, and tomorrow&rsquo;s calendar. The prompts explicitly instruct: &ldquo;reference earlier briefs if useful, but don&rsquo;t invent continuity.&rdquo;</p>
+
+  <h3>Event Trail</h3>
+  <p>The function <code>getAndyFacingActivitySince()</code> queries the <code>activity_log</code> table for a curated allow-list of 25 event kinds that are relevant to the operator: task completions, quote acceptances, invoice payments, subscription state changes, outreach replies, intro funnel bookings, content publications, hiring events, and more. Capped at 50 events to keep the prompt within token budget.</p>
+
+  <h3>Material-Event Regeneration</h3>
+  <p>When a significant business event fires (deal won, payment failed, large invoice paid), the source spec calls <code>maybeRegenerateBrief(eventKey)</code>. This helper debounces via a <code>scheduled_tasks</code> check (configurable debounce window in minutes) and enqueues a <code>cockpit_brief_regenerate</code> task. The regeneration replaces the cached brief for the current slot.</p>
+
+  <div class="callout">
+    <div class="callout-label">Material Event Denylist</div>
+    <p>Events that trigger brief regeneration: <code>subscription_payment_failed</code>, <code>subscription_cancelled</code>, <code>invoice_paid_large</code>, <code>outreach_reply_positive</code>, <code>intro_funnel_booking_confirmed</code>, <code>deal_won</code>, <code>deal_lost</code>, <code>graph_api_token_expired</code>, <code>graph_api_subscription_lapsed</code>, <code>cost_anomaly_detected</code>.</p>
+  </div>
+
+  <h3>Prompt Structure (Morning Example)</h3>
+  <div class="code-block">
+    <div class="code-header">lib/cockpit/prompts/morning.ts</div>
+    <pre><span class="comment">// System message (shared across all slots):</span>
+<span class="str">"You are SuperBad &mdash; a Melbourne marketing business with a dry,
+ observational, self-deprecating voice. Short sentences. Leave room
+ for the mutter. Never explain the joke. No motivational fluff.
+ No 'synergy', 'leverage', 'solutions'. You're writing a brief
+ for Andy, the sole operator."</span>
+
+<span class="comment">// User prompt includes:</span>
+<span class="dim">## Today's signals</span>
+Waiting items: <span class="type">{count}</span>
+Health banners: <span class="type">{count}</span>
+Calendar events today: <span class="type">{count}</span>
+
+Top waiting items:
+<span class="dim">- [task_manager] Overdue: Update brand guidelines</span>
+<span class="dim">- [invoicing] Invoice #047 for Acme (7 days overdue)</span>
+
+Active health banners:
+<span class="dim">- [critical] Graph API subscription lapsed</span>
+
+Today's calendar:
+<span class="dim">- intro funnel shoot (10:00 AM)</span></pre>
+  </div>
+
+  <h3>Quiet Fallback</h3>
+  <p>When there&rsquo;s nothing to report (zero waiting items, zero banners, zero events), the brief generator skips the LLM call entirely. The UI falls back to a rotating pool of 10 static lines:</p>
+  <div class="code-block">
+    <div class="code-header">Quiet Fallback Pool</div>
+    <pre><span class="str">"Nothing on fire. Rare day."</span>
+<span class="str">"All quiet. Go make something."</span>
+<span class="str">"Inbox zero. Rail empty. You know what to do."</span>
+<span class="str">"The business is breathing. You should too."</span>
+<span class="str">"No fires, no flags. Just a Tuesday."</span>
+<span class="str">"Quiet morning. Suspicious, but welcome."</span>
+<span class="str">"Nothing needs you right now. That's the goal."</span>
+<span class="str">"Lite has nothing to report. Enjoy it."</span>
+<span class="str">"Everything's ticking over. Go get a coffee."</span>
+<span class="str">"No dramas. That's the update."</span></pre>
+  </div>
+  <p class="mutter">Selection is pseudo-random by day-index modulo. Same line all day, different tomorrow.</p>
+</div>
+
+<!-- ── 4. HEALTH BANNERS ──────────────────────────────────────── -->
+
+<div class="section" id="health">
+  <div class="section-num">Section 04</div>
+  <h2>Health Banners</h2>
+
+  <h3>What They Are</h3>
+  <p>Health banners are system-level warnings that something is broken or degrading across the platform. They surface on the cockpit as a strip of up to 2 coloured banners &mdash; red for critical, orange for warning. Overflow links to a dedicated <code>/lite/cockpit/health</code> page showing all active issues.</p>
+
+  <h3>Banner Shape</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; HealthBanner Interface</div>
+    <pre><span class="kw">interface</span> <span class="type">HealthBanner</span> {
+  id: <span class="type">string</span>;
+  severity: <span class="str">"warning"</span> | <span class="str">"critical"</span>;
+  summary: <span class="type">string</span>;       <span class="comment">// single-line human description</span>
+  href: <span class="type">string</span>;          <span class="comment">// tap-through to the relevant admin page</span>
+  source: <span class="type">string</span>;        <span class="comment">// which system flagged it (e.g. "task_manager")</span>
+}</pre>
+  </div>
+
+  <h3>Banner Sources</h3>
+  <p>The aggregator (<code>lib/cockpit/aggregator.ts</code>) calls <code>Promise.allSettled</code> across 8 source functions in parallel. If any source throws, the others still report:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>Function</th><th>Example Trigger</th></tr></thead>
+      <tbody>
+        <tr><td>Task Manager</td><td><code>getTaskHealthBanners()</code></td><td>5+ overdue tasks &rarr; critical</td></tr>
+        <tr><td>Observatory</td><td><code>getObservatoryHealthBanners()</code></td><td>External API anomalies</td></tr>
+        <tr><td>SaaS Products</td><td><code>getSaasHealthBanners()</code></td><td>Headline metric degradation</td></tr>
+        <tr><td>Hiring</td><td><code>getHiringHealthBanners()</code></td><td>Stale candidate applications</td></tr>
+        <tr><td>Finance</td><td><code>getFinanceHealthBanners()</code></td><td>Cost anomalies</td></tr>
+        <tr><td>Inbox</td><td><code>getInboxHealthBanners()</code></td><td>Graph API token expiry</td></tr>
+        <tr><td>Content</td><td><code>getContentHealthBanners()</code></td><td>Content queue stalls</td></tr>
+        <tr><td>Wizards</td><td><code>getWizardHealthBanners()</code></td><td>Integration setup failures</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Sort Order</h3>
+  <p>Banners sort by severity (critical first), then alphabetically by ID for stability. The cockpit shows at most 2; the health page shows all.</p>
+
+  <div class="callout">
+    <div class="callout-label">Severity Escalation</div>
+    <p>The task manager example: 1&ndash;4 overdue tasks = <code>warning</code>. 5+ overdue tasks = <code>critical</code>. Each source defines its own escalation thresholds. There&rsquo;s no shared severity config &mdash; it&rsquo;s per-source business logic.</p>
+  </div>
+</div>
+
+<!-- ── 5. TASK MANAGEMENT ─────────────────────────────────────── -->
+
+<div class="section" id="tasks">
+  <div class="section-num">Section 05</div>
+  <h2>Task Management</h2>
+
+  <h3>Task Model</h3>
+  <p>Tasks are the core planning primitive. Every task has a kind, status, priority, optional due date, optional entity link (to a contact or company), and an optional checklist.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dimension</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Kinds</strong></td><td><code>personal</code>, <code>admin</code>, <code>prospect_followup</code>, <code>client_deliverable</code>, <code>client_task</code></td></tr>
+        <tr><td><strong>Statuses</strong></td><td><code>todo</code> &rarr; <code>in_progress</code> &rarr; <code>blocked</code> / <code>awaiting_approval</code> &rarr; <code>delivered</code> / <code>done</code> / <code>cancelled</code></td></tr>
+        <tr><td><strong>Priorities</strong></td><td><code>high</code>, <code>normal</code>, <code>low</code></td></tr>
+        <tr><td><strong>Recurrences</strong></td><td><code>daily</code>, <code>weekly</code>, <code>biweekly</code>, <code>monthly</code>, <code>quarterly</code>, <code>yearly</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Cockpit Kanban Columns</h3>
+  <p>The cockpit&rsquo;s planning view sorts tasks into three columns based on due date and priority:</p>
+  <div class="code-block">
+    <div class="code-header">Column Logic (lib/tasks/cockpit.ts)</div>
+    <pre><span class="comment">// Must Do:</span>
+<span class="kw">if</span> (due &lt; todayStart)                         <span class="comment">// overdue</span>
+<span class="kw">if</span> (due is today &amp;&amp; priority === <span class="str">"high"</span>)       <span class="comment">// due today + high priority</span>
+
+<span class="comment">// Should Do:</span>
+<span class="kw">if</span> (due is today &amp;&amp; priority !== <span class="str">"high"</span>)       <span class="comment">// due today + normal/low</span>
+
+<span class="comment">// If Time:</span>
+<span class="kw">if</span> (due is this week &amp;&amp; priority === <span class="str">"high"</span>)  <span class="comment">// upcoming + high priority</span></pre>
+  </div>
+
+  <h3>Approval Workflow</h3>
+  <p>Tasks of kind <code>client_deliverable</code> support a client-facing approval flow. The task moves to <code>awaiting_approval</code> status with a one-time approval token. The client can approve or reject with feedback. Approved/rejected timestamps and feedback are stored on the task row. Pending approvals surface as waiting items on the cockpit&rsquo;s attention rail.</p>
+
+  <h3>Braindump Integration</h3>
+  <p>Tasks can originate from the braindump system. The <code>source_braindump_id</code> column tracks provenance. Braindump-created tasks are indexed for fast lookup.</p>
+</div>
+
+<!-- ── 6. CALENDAR ─────────────────────────────────────────────── -->
+
+<div class="section" id="calendar">
+  <div class="section-num">Section 06</div>
+  <h2>Calendar</h2>
+
+  <h3>Booking Types</h3>
+  <p>The calendar manages Andy&rsquo;s availability and bookings. Three booking types exist:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>intro_funnel_shoot</code></td><td>Trial photo shoot booked through the intro funnel</td></tr>
+        <tr><td><code>followup_conversation</code></td><td>Sales meeting / follow-up call</td></tr>
+        <tr><td><code>marketing_site_booking</code></td><td>Generic booking from the marketing site</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Configuration</h3>
+  <p>A singleton <code>calendar_config</code> row stores timezone (<code>Australia/Melbourne</code>), business hours as JSON, blackout dates, intro funnel advance-notice rules (default 5 business days), and a per-week cap on intro funnel shoots (default 3). All time calculations use Melbourne wall-clock time via <code>lib/time/melbourne.ts</code>.</p>
+
+  <h3>Cockpit Integration</h3>
+  <p>The cockpit&rsquo;s calendar preview shows today&rsquo;s active bookings in time order. Each event displays as a time + type label chip (&ldquo;10:00 AM Shoot&rdquo;). The empty state: <em>&ldquo;Nothing on the calendar today. Unscheduled time is underrated.&rdquo;</em></p>
+  <p>The evening brief prompt additionally receives tomorrow&rsquo;s calendar via <code>getTomorrowCalendarSummary()</code>, so it can warn about early morning shoots or dense days.</p>
+</div>
+
+<!-- ── 7. BRAIN DUMP ──────────────────────────────────────────── -->
+
+<div class="section" id="braindump">
+  <div class="section-num">Section 07</div>
+  <h2>Brain Dump</h2>
+
+  <h3>Concept</h3>
+  <p>The braindump is a quick-capture surface. Andy types raw text &mdash; tasks, content ideas, script concepts &mdash; and an LLM parses it into structured items. The parsed items go through a review screen where Andy can adjust kind, priority, due date, and entity links before committing them into the task and content systems.</p>
+
+  <h3>Access Points</h3>
+  <ul>
+    <li><strong>Braindump FAB</strong> &mdash; floating action button in the bottom-right corner, visible on every admin surface. Pulses once if not used today (controlled by <code>localStorage</code> date tracking). Keyboard shortcut: <code>Cmd+Shift+D</code>.</li>
+    <li><strong>Cockpit section</strong> &mdash; inline braindump card on the cockpit. Shows a prompt if not done today (&ldquo;Morning brain. Go.&rdquo;), or a summary with stat pills if already committed (tasks created, posts suggested, scripts drafted).</li>
+  </ul>
+
+  <h3>Parse &rarr; Review &rarr; Commit</h3>
+  <div class="diagram"><pre><span class="accent">Raw text</span> <span class="dim">──→</span> <span class="highlight">LLM parse</span> <span class="dim">(parseBraindumpAction)</span>
+               <span class="dim">│</span>
+               <span class="dim">↓</span>
+         <span class="accent">Structured items</span>
+         <span class="dim">├──</span> <span class="accent">ParsedTask[]</span>      <span class="dim">(kind, title, priority, due, entity)</span>
+         <span class="dim">├──</span> <span class="accent">ParsedContentIdea[]</span> <span class="dim">(type, caption, notes)</span>
+         <span class="dim">└──</span> <span class="accent">ParsedScriptIdea[]</span>  <span class="dim">(pillar, format, hook, notes)</span>
+               <span class="dim">│</span>
+               <span class="dim">↓</span>
+         <span class="highlight">Review UI</span> <span class="dim">(edit kind, priority, dates, entity links)</span>
+               <span class="dim">│</span>
+               <span class="dim">↓</span>
+         <span class="accent">commitBraindumpAction()</span> <span class="dim">──→ insert tasks + content + scripts</span></pre></div>
+
+  <h3>Database Record</h3>
+  <p>Each braindump creates a <code>braindumps</code> row storing the raw text, surface context (which page triggered it), LLM parse timestamp, commit timestamp, and count of each created item type. A braindump with <code>committed_at_ms</code> set is considered &ldquo;done&rdquo; for today&rsquo;s cockpit display.</p>
+
+  <h3>Daily Prompt Rotation</h3>
+  <div class="code-block">
+    <div class="code-header">Prompt Pool</div>
+    <pre><span class="str">"What's rattling around in your head?"</span>
+<span class="str">"Dump it. We'll sort it."</span>
+<span class="str">"Tasks, ideas, scripts. All welcome."</span>
+<span class="str">"Morning brain. Go."</span>
+<span class="str">"What's on the list today?"</span>
+<span class="str">"Anything brewing?"</span></pre>
+  </div>
+</div>
+
+<!-- ── 8. UNIFIED INBOX ───────────────────────────────────────── -->
+
+<div class="section" id="inbox">
+  <div class="section-num">Section 08</div>
+  <h2>Unified Inbox</h2>
+
+  <h3>What It Does</h3>
+  <p>The Unified Inbox (<code>/lite/inbox</code>) aggregates messages across channels (email, Instagram DMs, SMS, etc.) into a single three-column desktop layout. The left column contains view/address/sort controls, the middle column lists threads, and the right column shows thread detail with conversation history.</p>
+
+  <h3>URL-Driven State</h3>
+  <p>The inbox is fully server-driven via URL search params:</p>
+  <div class="code-block">
+    <div class="code-header">URL Shape</div>
+    <pre>/lite/inbox?view=<span class="type">focus</span>&amp;address=<span class="type">all</span>&amp;thread=<span class="type">&lt;id&gt;</span>&amp;sort=<span class="type">recent</span></pre>
+  </div>
+  <ul>
+    <li><strong><code>view</code></strong> &mdash; <code>focus</code> (needs attention), <code>all</code> (everything), <code>sent</code> (outbound)</li>
+    <li><strong><code>address</code></strong> &mdash; filter by connected email/channel address, or <code>all</code></li>
+    <li><strong><code>sort</code></strong> &mdash; <code>recent</code> (newest first), <code>oldest</code>, <code>unread</code></li>
+    <li><strong><code>thread</code></strong> &mdash; selected thread ID for the detail panel</li>
+  </ul>
+
+  <h3>Key Features</h3>
+  <ul>
+    <li><strong>Compose modal</strong> with contact picker (searches existing contacts)</li>
+    <li><strong>Customer context panel</strong> in thread detail &mdash; shows the contact&rsquo;s company, pipeline stage, and relevant context</li>
+    <li><strong>Sync actions</strong> for pulling in new messages from connected channels</li>
+    <li><strong>Cleanup modal</strong> for bulk archiving old threads</li>
+    <li><strong>Mobile layout</strong> collapses to a single-column thread list with a dedicated mobile thread detail view</li>
+    <li><strong>Offline banner</strong> detecting connectivity loss</li>
+  </ul>
+
+  <h3>Cockpit Integration</h3>
+  <p>The inbox contributes waiting items to the cockpit&rsquo;s attention rail via <code>getInboxWaitingItems()</code> (unread threads needing response) and health banners via <code>getInboxHealthBanners()</code> (Graph API token expiry, sync failures).</p>
+</div>
+
+<!-- ── 9. ADMIN SHELL & NAVIGATION ────────────────────────────── -->
+
+<div class="section" id="shell">
+  <div class="section-num">Section 09</div>
+  <h2>Admin Shell &amp; Navigation</h2>
+
+  <h3>Shell Architecture</h3>
+  <p>The admin surface is built from three nested components:</p>
+  <div class="diagram"><pre><span class="highlight">AdminShellWithNav</span> <span class="dim">(components/lite/admin-shell-with-nav.tsx)</span>
+  <span class="dim">├──</span> <span class="accent">AdminShell</span> <span class="dim">(sidebar + main layout)</span>
+  <span class="dim">│     ├──</span> <span class="accent">&lt;aside&gt;</span> <span class="dim">240px sidebar (hidden on mobile)</span>
+  <span class="dim">│     └──</span> <span class="accent">&lt;main&gt;</span>  <span class="dim">scrollable content area</span>
+  <span class="dim">├──</span> <span class="accent">AdminBottomNav</span> <span class="dim">(mobile-only fixed bottom bar)</span>
+  <span class="dim">└──</span> <span class="accent">BraindumpFab</span> <span class="dim">(persistent bottom-right FAB)</span></pre></div>
+
+  <h3>Sidebar Navigation</h3>
+  <p>The sidebar is defined as a static data structure in <code>admin-shell-nav.tsx</code>, organized into 5 named groups:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Group</th><th>Items</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Daily</strong></td><td>Cockpit, Inbox, Calendar, Tasks</td></tr>
+        <tr><td><strong>Sales</strong></td><td>Pipeline, Clients, Lead Gen, Proposals</td></tr>
+        <tr><td><strong>Marketing</strong></td><td>Campaigns</td></tr>
+        <tr><td><strong>Production</strong></td><td>Briefs, Content, Hiring</td></tr>
+        <tr><td><strong>Business</strong></td><td>Products, Channels (soon), Finance, Settings</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Plus a utility section: Invoices, Observatory, Errors.</p>
+
+  <h3>Nav Item Shape</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; AdminNavItem</div>
+    <pre><span class="kw">type</span> <span class="type">AdminNavItem</span> = {
+  id: <span class="type">string</span>;             <span class="comment">// unique identifier</span>
+  label: <span class="type">string</span>;          <span class="comment">// display text</span>
+  href: <span class="type">string</span> | <span class="kw">null</span>;    <span class="comment">// null = disabled/coming soon</span>
+  icon: <span class="type">LucideIcon</span>;       <span class="comment">// Lucide React icon component</span>
+  status: <span class="str">"live"</span> | <span class="str">"soon"</span>;  <span class="comment">// "soon" renders muted + aria-disabled</span>
+  matchPrefix: <span class="type">string</span> | <span class="kw">null</span>; <span class="comment">// for active-state resolution</span>
+}</pre>
+  </div>
+
+  <h3>Active-State Resolution</h3>
+  <p>The <code>matchActiveId()</code> function resolves which nav item is active by matching the current <code>usePathname()</code> against each item&rsquo;s <code>matchPrefix</code>. Longest prefix match wins, so <code>/lite/admin/pipeline</code> beats <code>/lite/admin</code>.</p>
+
+  <h3>Animated Active Bar</h3>
+  <p>The active nav item gets a 3px pink vertical bar on its left edge. This bar is a shared Framer Motion <code>layoutId="admin-nav-active-bar"</code>, so when the route changes, the bar animates between items using the house spring. All nav items are wrapped in a <code>LayoutGroup</code> to enable this shared animation.</p>
+  <div class="code-block">
+    <div class="code-header">House Spring</div>
+    <pre><span class="comment">// The platform-wide spring config from lib/design-tokens.ts</span>
+<span class="kw">export const</span> houseSpring = {
+  type: <span class="str">"spring"</span>,
+  stiffness: <span class="num">300</span>,
+  damping: <span class="num">30</span>,
+  mass: <span class="num">1</span>,
+};</pre>
+  </div>
+  <p>Reduced-motion users get an instant reposition (<code>duration: 0</code>) without breaking layout.</p>
+
+  <h3>Mobile Bottom Nav</h3>
+  <p>On viewports below <code>md</code> (768px), the sidebar hides and a fixed bottom navigation bar appears. It shows 5 priority items: Cockpit, Pipeline, Inbox, Tasks, Settings. Uses the same <code>matchActiveId()</code> function and nav data structure as the sidebar.</p>
+
+  <h3>Global Search</h3>
+  <p>A <code>GlobalSearchTrigger</code> component sits between the primary and utility nav groups. It opens a search overlay for finding contacts, companies, deals, and tasks across the platform.</p>
+
+  <h3>Profile Chip</h3>
+  <p>Pinned to the bottom of the sidebar: Andy&rsquo;s name, role badge (&ldquo;admin&rdquo; in the brand accent colour), and a link to settings.</p>
+
+  <div class="callout">
+    <div class="callout-label">Premium Finish Requirement</div>
+    <p>Every admin page must use the <code>AdminShellWithNav</code> layout, brand font/colour tokens, a display heading, the breadcrumb/eyebrow pattern, and a narrative tagline. No generic Tailwind styling on page chrome. This is enforced at the project level &mdash; spec says &ldquo;pages must have the premium finish.&rdquo;</p>
+  </div>
+</div>
+
+<!-- ── 10. EASTER EGG SYSTEM ──────────────────────────────────── -->
+
+<div class="section" id="eggs">
+  <div class="section-num">Section 10</div>
+  <h2>Easter Egg System</h2>
+
+  <h3>Philosophy</h3>
+  <p>SuperBad Lite runs a hidden &ldquo;surprise &amp; delight&rdquo; system inspired by Metal Gear Solid&rsquo;s fourth-wall breaks. The platform notices patterns in the operator&rsquo;s behaviour and occasionally surfaces dry, observational commentary. 80% ambient platform-awareness in a closed list, 20% hidden MGS-style &ldquo;the platform has been watching&rdquo; moments. Maximum frequency: once per month per egg.</p>
+
+  <h3>Two Registers</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Register</th><th>Audience</th><th>Personality</th></tr></thead>
+      <tbody>
+        <tr><td><code>admin-roommate</code></td><td>Andy (authenticated admin)</td><td>Dry roommate who notices your habits</td></tr>
+        <tr><td><code>public-bartender</code></td><td>Anonymous website visitors</td><td>Observant bartender who reads the room</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Admin Eggs (6 registered)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Egg ID</th><th>Trigger</th><th>Cooldown</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td><code>crt_turn_off</code></td><td>Working past 2 AM three nights running</td><td>30 days</td><td>Full-screen CRT shutdown animation + &ldquo;I&rsquo;m pulling the plug&rdquo; message</td></tr>
+        <tr><td><code>milestone_spotter</code></td><td>Upcoming personal/business milestone detected in contact notes</td><td>Per-contact 60d window</td><td>Card with LLM-drafted congratulations message, send via email or SMS</td></tr>
+        <tr><td><code>three_wons</code></td><td>Third deal moved to Won stage in a single session</td><td>30 days</td><td>Dry toast notification</td></tr>
+        <tr><td><code>weekend_warrior</code></td><td>Working 2+ hours on Saturday or Sunday</td><td>30 days</td><td>&ldquo;It&rsquo;s the weekend. Log off. The leads will still be there Monday.&rdquo;</td></tr>
+        <tr><td><code>inbox_zero</code></td><td>All pending tasks cleared in a session</td><td>30 days</td><td>&ldquo;Nothing pending. Either you&rsquo;re efficient or something&rsquo;s broken.&rdquo;</td></tr>
+        <tr><td><code>first_client_won</code></td><td>First-ever deal reaching Won stage</td><td>&infin; (one-shot)</td><td>&ldquo;First one. Remember this feeling &mdash; it gets quieter from here.&rdquo;</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Public Eggs (11 registered)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Egg ID</th><th>Trigger</th><th>Cooldown</th></tr></thead>
+      <tbody>
+        <tr><td><code>late_night_visitor</code></td><td>Visit between 2&ndash;5 AM local time</td><td>14 days</td></tr>
+        <tr><td><code>sunday_researcher</code></td><td>Sunday + search engine referrer + 45s dwell</td><td>One-shot</td></tr>
+        <tr><td><code>fifth_time_visitor</code></td><td>5th distinct calendar-day visit</td><td>One-shot</td></tr>
+        <tr><td><code>returning_visitor</code></td><td>2nd+ visit within 30 days</td><td>14 days</td></tr>
+        <tr><td><code>linkedin_referrer</code></td><td>Referrer from LinkedIn</td><td>30 days</td></tr>
+        <tr><td><code>google_intent_cheap</code></td><td>Search query contains cheap/discount/budget</td><td>One-shot</td></tr>
+        <tr><td><code>rapid_scroller</code></td><td>Scrolled top-to-bottom in under 6 seconds</td><td>14 days</td></tr>
+        <tr><td><code>deep_reader</code></td><td>4+ minutes dwell, 70%+ scroll depth</td><td>14 days</td></tr>
+        <tr><td><code>abandoned_tab</code></td><td>Tab backgrounded 10+ min then refocused</td><td>14 days</td></tr>
+        <tr><td><code>melbourne_rain</code></td><td>Melbourne timezone + active precipitation</td><td>14 days</td></tr>
+        <tr><td><code>public_crt_turn_off</code></td><td>Late-night Melbourne visitor structural closure</td><td>30 days</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Orchestration Architecture</h3>
+  <div class="diagram"><pre><span class="highlight">AdminLayout</span> mounts <span class="accent">AdminEggOrchestrator</span> (client component)
+  <span class="dim">│</span>
+  <span class="dim">↓</span>
+<span class="accent">useAdminEggs()</span> hook <span class="dim">──→</span> calls <span class="highlight">orchestrateAdminEggs(userId)</span> on server
+  <span class="dim">│</span>
+  <span class="dim">├── 1.</span> Check global kill switch: <span class="str">surprise.hidden_eggs_enabled</span>
+  <span class="dim">├── 2.</span> Load user cadence state (last fired, recent IDs, tricks enabled)
+  <span class="dim">├── 3.</span> For each egg in <span class="type">ADMIN_EGGS</span>:
+  <span class="dim">│     ├──</span> <span class="accent">canFireAuthenticatedEgg()</span> <span class="dim">— cadence + cooldown gate</span>
+  <span class="dim">│     └──</span> <span class="accent">evaluate trigger</span> <span class="dim">— egg-specific async evaluator</span>
+  <span class="dim">├── 4.</span> First match fires via <span class="highlight">fireEgg()</span> <span class="dim">— writes hidden_egg_fires row</span>
+  <span class="dim">└── 5.</span> Dispatch <span class="str">"admin-egg-fired"</span> CustomEvent on window
+           <span class="dim">↓</span>
+     Dedicated UI components listen and render:
+     <span class="dim">├──</span> <span class="accent">CrtTurnOffOverlay</span>   <span class="dim">(full-screen CRT shutdown)</span>
+     <span class="dim">├──</span> <span class="accent">MilestoneSpotterCard</span> <span class="dim">(card with draft message)</span>
+     <span class="dim">├──</span> <span class="accent">ThreeWonsToast</span>       <span class="dim">(dry toast notification)</span>
+     <span class="dim">└──</span> <span class="accent">AdminEggToast</span>        <span class="dim">(generic toast for weekend_warrior, inbox_zero, etc.)</span></pre></div>
+
+  <h3>Suppression Gates</h3>
+  <p>Hard gates that prevent any egg from firing, regardless of trigger match:</p>
+  <ul>
+    <li>Payment element is mounted (Stripe checkout in progress)</li>
+    <li>Email compose is focused</li>
+    <li>Quote acceptance flow active</li>
+    <li>Error page displayed</li>
+    <li>Onboarding wizard active</li>
+    <li>First-ever login (user hasn&rsquo;t seen the platform yet)</li>
+    <li>Session age under 30 seconds</li>
+  </ul>
+
+  <h3>Cadence System</h3>
+  <p>Two independent cadence controls prevent egg fatigue:</p>
+  <ul>
+    <li><strong>Global cadence</strong> &mdash; configurable via <code>surprise.admin_egg_cadence_per_days</code> setting. No egg fires if the last egg fired within this window.</li>
+    <li><strong>Per-egg cooldown</strong> &mdash; each egg has its own <code>cooldownDays</code>. Some use <code>Infinity</code> (one-shot, never re-fires). The fired egg ID is tracked in <code>user.fired_egg_ids_recent</code> (JSON array, max 50 entries).</li>
+  </ul>
+
+  <h3>Trigger Evaluator Framework</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; TriggerContext</div>
+    <pre><span class="kw">interface</span> <span class="type">TriggerContext</span> {
+  nowMs: <span class="type">number</span>;
+  localHour: <span class="type">number</span>;
+  dayOfWeek: <span class="type">number</span>;
+  referrer: <span class="type">string</span>;
+  dwellMs: <span class="type">number</span>;
+  scrollDepth: <span class="type">number</span>;
+  scrollDurationMs: <span class="type">number</span>;
+  tabBackgroundedMs: <span class="type">number</span>;
+  timezone: <span class="type">string</span>;
+  visitCount: <span class="type">number</span>;
+  sessionId: <span class="type">string</span>;
+  isMobile: <span class="type">boolean</span>;
+  melbourneDateISO?: <span class="type">string</span>;
+  melbourneHour?: <span class="type">number</span>;
+  holidayName?: <span class="type">string</span> | <span class="kw">null</span>;
+  weatherPrecipitationMm?: <span class="type">number</span> | <span class="kw">null</span>;
+  firedEggIdsInSession?: <span class="type">string</span>[];
+}</pre>
+  </div>
+  <p>Each trigger is a pure function: <code>(context) =&gt; evidence | null</code>. Returns evidence on match, <code>null</code> on no-match. Fail-closed: ambiguous state returns <code>null</code>.</p>
+
+  <h3>CRT Turn-Off Effect</h3>
+  <p>The most theatrical egg. When triggered, a full-screen overlay plays a 4-phase CRT television shutdown animation:</p>
+  <ol>
+    <li><strong>Dim</strong> (300ms) &mdash; screen darkens to 70% black</li>
+    <li><strong>Static</strong> (180ms) &mdash; SVG fractal noise overlay simulating analogue static</li>
+    <li><strong>Collapse</strong> (600ms) &mdash; viewport collapses to a 2px horizontal line with glow, like an old TV powering off</li>
+    <li><strong>Frozen</strong> &mdash; black screen with message: <em>&ldquo;you&rsquo;ve been up until 2am three nights running. I&rsquo;m pulling the plug.&rdquo;</em> and a directive: <em>&ldquo;close this tab.&rdquo;</em></li>
+  </ol>
+  <p>CRT scanlines are layered throughout using a repeating CSS gradient with <code>mix-blend-mode: multiply</code>.</p>
+
+  <p class="mutter">The platform literally turns itself off on you. That&rsquo;s the joke.</p>
+</div>
+
+<!-- ── 11. DATABASE SCHEMA ─────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 11</div>
+  <h2>Database Schema</h2>
+
+  <p>All tables use SQLite via Drizzle ORM. Primary keys are text (CUID or UUID). Timestamps are stored as integer milliseconds.</p>
+
+  <h3>cockpit_briefs</h3>
+  <p>AI-generated daily narrative briefs. One row per slot per day.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>user_id</code></td><td>text</td><td>Always <code>"admin"</code> (single operator)</td></tr>
+        <tr><td><code>slot</code></td><td>enum</td><td><code>morning</code>, <code>midday</code>, <code>evening</code></td></tr>
+        <tr><td><code>brief_date</code></td><td>text</td><td>YYYY-MM-DD in Melbourne time</td></tr>
+        <tr><td><code>generated_at_ms</code></td><td>integer</td><td>When the LLM generated this brief</td></tr>
+        <tr><td><code>trigger</code></td><td>enum</td><td><code>cron</code> or <code>material_event</code></td></tr>
+        <tr><td><code>trigger_event</code></td><td>text</td><td>Material event key that triggered regen (nullable)</td></tr>
+        <tr><td><code>prose</code></td><td>text</td><td>The 2&ndash;3 sentence brief</td></tr>
+        <tr><td><code>signals_snapshot</code></td><td>JSON</td><td>Context snapshot at generation time</td></tr>
+        <tr><td><code>model_version</code></td><td>text</td><td>Model registry slug used</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer</td><td>Row creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> <code>(user_id, brief_date)</code> for daily lookup. <code>(user_id, slot, brief_date)</code> for unique slot enforcement.</p>
+
+  <h3>tasks</h3>
+  <p>The core task table powering the task manager and cockpit kanban.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>title</code></td><td>text</td><td>Task title</td></tr>
+        <tr><td><code>body</code></td><td>text</td><td>Optional rich description</td></tr>
+        <tr><td><code>kind</code></td><td>enum</td><td><code>personal</code>, <code>admin</code>, <code>prospect_followup</code>, <code>client_deliverable</code>, <code>client_task</code></td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>todo</code> &rarr; <code>in_progress</code> &rarr; <code>blocked</code> / <code>awaiting_approval</code> &rarr; <code>delivered</code> / <code>done</code> / <code>cancelled</code></td></tr>
+        <tr><td><code>priority</code></td><td>enum</td><td><code>high</code>, <code>normal</code>, <code>low</code></td></tr>
+        <tr><td><code>due_at_ms</code></td><td>integer</td><td>Due date (nullable)</td></tr>
+        <tr><td><code>entity_type</code></td><td>text</td><td>Linked entity type (contact, company, etc.)</td></tr>
+        <tr><td><code>entity_id</code></td><td>text</td><td>Linked entity ID</td></tr>
+        <tr><td><code>checklist</code></td><td>JSON</td><td>Array of <code>{ id, text, checked, checked_at }</code></td></tr>
+        <tr><td><code>checklist_auto_complete</code></td><td>boolean</td><td>Mark task done when all checklist items checked</td></tr>
+        <tr><td><code>recurrence</code></td><td>enum</td><td>Optional: daily, weekly, biweekly, monthly, quarterly, yearly</td></tr>
+        <tr><td><code>recurrence_day</code></td><td>integer</td><td>Day-of-week/month for recurring tasks</td></tr>
+        <tr><td><code>parent_recurrence_id</code></td><td>text</td><td>Links recurrence instances to their parent</td></tr>
+        <tr><td><code>source_braindump_id</code></td><td>text</td><td>Braindump that created this task (nullable)</td></tr>
+        <tr><td><code>approval_requested_at_ms</code></td><td>integer</td><td>When client approval was requested</td></tr>
+        <tr><td><code>approved_at_ms</code></td><td>integer</td><td>When client approved</td></tr>
+        <tr><td><code>approved_by_contact_id</code></td><td>text FK</td><td>Which contact approved</td></tr>
+        <tr><td><code>rejected_at_ms</code></td><td>integer</td><td>When client rejected</td></tr>
+        <tr><td><code>rejection_feedback</code></td><td>text</td><td>Client&rsquo;s rejection reason</td></tr>
+        <tr><td><code>approval_token</code></td><td>text</td><td>One-time token for client approval link</td></tr>
+        <tr><td><code>created_by</code></td><td>text FK</td><td>References user table</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer</td><td>Row creation timestamp</td></tr>
+        <tr><td><code>updated_at_ms</code></td><td>integer</td><td>Last modification</td></tr>
+        <tr><td><code>completed_at_ms</code></td><td>integer</td><td>When marked done (nullable)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> <code>(status, due_at_ms)</code>, <code>(entity_type, entity_id)</code>, <code>(kind, status)</code>, <code>(approval_token)</code>, <code>(parent_recurrence_id)</code>, <code>(source_braindump_id)</code>.</p>
+
+  <h3>braindumps</h3>
+  <p>Raw text captures from the braindump surface, tracking what was parsed and committed.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>raw_text</code></td><td>text</td><td>The operator&rsquo;s unstructured input</td></tr>
+        <tr><td><code>surface_context</code></td><td>JSON</td><td>Which page/context triggered the dump</td></tr>
+        <tr><td><code>parsed_at_ms</code></td><td>integer</td><td>When LLM parsed the text (nullable)</td></tr>
+        <tr><td><code>committed_at_ms</code></td><td>integer</td><td>When items were committed to task/content systems (nullable)</td></tr>
+        <tr><td><code>task_count</code></td><td>integer</td><td>Number of tasks created</td></tr>
+        <tr><td><code>content_count</code></td><td>integer</td><td>Number of content ideas created</td></tr>
+        <tr><td><code>script_count</code></td><td>integer</td><td>Number of script ideas created</td></tr>
+        <tr><td><code>created_by</code></td><td>text FK</td><td>References user table</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer</td><td>Row creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>calendar_bookings</h3>
+  <p>Booking records for shoots, meetings, and site bookings.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>booking_type</code></td><td>enum</td><td><code>intro_funnel_shoot</code>, <code>followup_conversation</code>, <code>marketing_site_booking</code></td></tr>
+        <tr><td><code>start_at_ms</code></td><td>integer</td><td>Booking start time</td></tr>
+        <tr><td><code>end_at_ms</code></td><td>integer</td><td>Booking end time</td></tr>
+        <tr><td><code>subject_ref_table</code></td><td>text</td><td>Which table the booking references (polymorphic FK)</td></tr>
+        <tr><td><code>subject_ref_id</code></td><td>text</td><td>ID in the referenced table</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>active</code> or <code>cancelled</code></td></tr>
+        <tr><td><code>metadata_json</code></td><td>JSON</td><td>Booking-type-specific metadata</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer</td><td>Row creation timestamp</td></tr>
+        <tr><td><code>updated_at_ms</code></td><td>integer</td><td>Last modification</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>calendar_config</h3>
+  <p>Singleton configuration row for the calendar system.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>timezone</code></td><td>text</td><td>Default: <code>Australia/Melbourne</code></td></tr>
+        <tr><td><code>business_hours_json</code></td><td>JSON</td><td>Available hours per day of week</td></tr>
+        <tr><td><code>blackout_dates_json</code></td><td>JSON</td><td>Dates with no availability</td></tr>
+        <tr><td><code>intro_funnel_advance_notice_business_days</code></td><td>integer</td><td>Default: 5</td></tr>
+        <tr><td><code>intro_funnel_per_week_cap</code></td><td>integer</td><td>Default: 3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>habits / habit_completions</h3>
+  <p>Daily routine tracking with streak support.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>habits.id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>habits.title</code></td><td>text</td><td>Habit name</td></tr>
+        <tr><td><code>habits.cadence</code></td><td>enum</td><td><code>daily</code>, <code>weekdays</code>, <code>3x_week</code>, <code>2x_week</code>, <code>custom</code></td></tr>
+        <tr><td><code>habits.icon</code></td><td>text</td><td>Lucide icon name for UI display</td></tr>
+        <tr><td><code>habits.link_href</code></td><td>text</td><td>Optional deep link (e.g. to Inbox)</td></tr>
+        <tr><td><code>habits.sort_order</code></td><td>integer</td><td>Display order</td></tr>
+        <tr><td><code>habits.active</code></td><td>boolean</td><td>Whether habit is currently tracked</td></tr>
+        <tr><td><code>habit_completions.habit_id</code></td><td>text FK</td><td>Links to habit</td></tr>
+        <tr><td><code>habit_completions.completed_date</code></td><td>text</td><td>YYYY-MM-DD (unique per habit+date)</td></tr>
+        <tr><td><code>habit_completions.completed_at_ms</code></td><td>integer</td><td>Exact completion time</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>hidden_egg_fires</h3>
+  <p>Audit log for every easter egg that fires.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>egg_id</code></td><td>text</td><td>Which egg fired (e.g. <code>crt_turn_off</code>)</td></tr>
+        <tr><td><code>actor_type</code></td><td>enum</td><td><code>public</code>, <code>admin</code>, <code>customer</code></td></tr>
+        <tr><td><code>user_id</code></td><td>text FK</td><td>Authenticated user (nullable for public)</td></tr>
+        <tr><td><code>visitor_id</code></td><td>text</td><td>Anonymous visitor tracking ID (nullable)</td></tr>
+        <tr><td><code>fired_at_ms</code></td><td>integer</td><td>When the egg fired</td></tr>
+        <tr><td><code>trigger_evidence</code></td><td>JSON</td><td>The evidence object from the trigger evaluator</td></tr>
+        <tr><td><code>session_id</code></td><td>text</td><td>Which session triggered it</td></tr>
+        <tr><td><code>outcome</code></td><td>text</td><td>What happened after (dismissed, acted on, etc.)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Start with the aggregator pattern.</strong> The cockpit&rsquo;s <code>mergeWaitingItems()</code> and <code>mergeHealthBanners()</code> use <code>Promise.allSettled</code> to call every source in parallel. If you&rsquo;re building a dashboard that aggregates data from multiple domains, this fault-isolation pattern is essential &mdash; one broken source doesn&rsquo;t crash the whole page.</li>
+    <li><strong>The brief generator is a pure function composition.</strong> Context gathering, prompt building, and LLM invocation are completely separate concerns. You can test each independently: mock the context, test the prompt template, mock the LLM response.</li>
+    <li><strong>Quiet-slot detection saves real money.</strong> Checking for zero signals before calling the LLM means you&rsquo;re not paying for &ldquo;nothing to report&rdquo; briefs. The static fallback pool handles that for free.</li>
+    <li><strong>Melbourne wall-clock time is load-bearing.</strong> Every time calculation &mdash; brief slots, calendar queries, braindump &ldquo;today&rdquo; detection, habit completions &mdash; uses <code>lib/time/melbourne.ts</code> to convert UTC to local time. If you&rsquo;re adapting this for a different timezone, centralise the conversion and don&rsquo;t scatter <code>new Date()</code> calls through your codebase.</li>
+    <li><strong>The nav data structure is static, not dynamic.</strong> Navigation items are a TypeScript array, not fetched from a database. Active-state resolution runs client-side via <code>usePathname()</code>. This means zero network requests for nav state. Add items by editing the array.</li>
+    <li><strong>Framer Motion <code>layoutId</code> is how the active bar animates.</strong> The pink indicator bar has <code>layoutId="admin-nav-active-bar"</code>. When the active item changes (route change), Framer Motion automatically animates the bar between positions using the house spring. The entire nav tree must be inside a <code>LayoutGroup</code> for this to work.</li>
+    <li><strong>Easter eggs are fail-closed.</strong> Every trigger function returns <code>null</code> by default. Ambiguous state = no fire. Suppression gates block all eggs during sensitive moments (payment flows, onboarding, first login). Build your delight features the same way &mdash; they should never interrupt important user flows.</li>
+    <li><strong>The egg cadence system prevents fatigue.</strong> Global cadence (days since any egg), per-egg cooldown, and a recent-fires list (capped at 50 entries) work together. For your own version, start with the per-egg cooldown and add the global budget later.</li>
+    <li><strong>Custom events for cross-component communication.</strong> Eggs fire on the server but render on the client. The bridge is a <code>window.dispatchEvent(new CustomEvent("admin-egg-fired", { detail }))</code> pattern. Each egg renderer listens for its own <code>eggId</code>. Clean separation: orchestration is server-side, presentation is client-side.</li>
+    <li><strong>Material-event regen needs debouncing.</strong> Without it, 3 quick deal-won events in a row would generate 3 briefs. The <code>scheduled_tasks</code> check with a configurable debounce window (in minutes) ensures at most one regen per burst.</li>
+    <li><strong>The braindump is an LLM parsing pipeline.</strong> Raw text in, structured <code>ParsedTask[]</code> / <code>ParsedContentIdea[]</code> / <code>ParsedScriptIdea[]</code> out, human review step, then commit. Never auto-commit LLM output into your production data. Always give the user a review step.</li>
+    <li><strong>Optimistic UI on habits.</strong> The habits panel uses React 19&rsquo;s <code>useOptimistic</code> hook. Toggle fires instantly client-side while the server action runs in a transition. If the server action fails, the state reverts. This makes daily check-offs feel instantaneous.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">The cockpit is an aggregation layer over a dozen independent systems. It composes; it does not duplicate. Every waiting item, every health banner, every calendar event comes from its source spec&rsquo;s own query function. The cockpit&rsquo;s only original content is the AI brief &mdash; and even that is built from everyone else&rsquo;s signals. If you&rsquo;re building something similar, resist the urge to re-derive data at the dashboard level. Let each domain own its own queries.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

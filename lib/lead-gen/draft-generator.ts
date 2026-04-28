@@ -96,13 +96,15 @@ export async function generateDraft(
       prompt: userPrompt,
       maxTokens: 1024,
     });
-  } catch {
+  } catch (err) {
+    console.error("[draft-generator] LLM call failed:", err);
     return { ok: false, reason: "generation_failed" };
   }
   const generationMs = Date.now() - startMs;
 
   let parsed = parseResponse(rawResponse);
   if (!parsed) {
+    console.error("[draft-generator] Failed to parse LLM response:", rawResponse.slice(0, 500));
     return { ok: false, reason: "generation_failed" };
   }
 

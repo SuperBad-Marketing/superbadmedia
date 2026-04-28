@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Studio &amp; Engine — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Content Studio &amp; Engine</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the Content Studio, Content Engine, and all the systems that turn a one-line brief into published, voice-matched content across every channel.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What Content Studio Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#compositions"><span class="num">03</span> Post Compositions</a>
+    <a href="#layouts"><span class="num">04</span> Layout System</a>
+    <a href="#animation"><span class="num">05</span> Animation System</a>
+    <a href="#remotion"><span class="num">06</span> Remotion Video Generation</a>
+    <a href="#engine"><span class="num">07</span> Content Engine Pipeline</a>
+    <a href="#instagram"><span class="num">08</span> Instagram Integration</a>
+    <a href="#newsletter"><span class="num">09</span> Newsletter System</a>
+    <a href="#database"><span class="num">10</span> Database Schema</a>
+    <a href="#llm"><span class="num">11</span> LLM Integration</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT CONTENT STUDIO DOES ─────────────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What Content Studio Does</h2>
+
+  <p>Content Studio is a visual post creation tool for social media. You type a brief in plain English &mdash; &ldquo;announce our new pricing&rdquo; or &ldquo;portfolio piece from the Thetford shoot&rdquo; &mdash; and the system generates copy, renders it into branded typography images or animated videos, and uploads the output to Cloudinary. The result is publication-ready social content.</p>
+
+  <p>Content Engine is the autonomous pipeline that sits behind (and beside) the studio. It researches SEO keywords, generates full blog posts, rewrites them for newsletters, drafts social media versions per platform, tracks search rankings, and publishes &mdash; all voice-matched to the owner&rsquo;s Brand DNA profile. It runs for SuperBad&rsquo;s own content and as a SaaS product sold to subscribers.</p>
+
+  <p>Together they cover the full lifecycle: create &rarr; render &rarr; distribute &rarr; measure.</p>
+
+  <p class="mutter">One brief in, published content out. The boring middle is the whole product.</p>
+
+  <h3>The Two Systems at a Glance</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>System</th><th>What It Does</th><th>Who Uses It</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Content Studio</strong></td>
+          <td>Manual post creation &mdash; brief &rarr; copy &rarr; visual render &rarr; motion video</td>
+          <td>Andy (admin), direct in the UI</td>
+        </tr>
+        <tr>
+          <td><strong>Content Engine</strong></td>
+          <td>Autonomous SEO pipeline &mdash; keyword research &rarr; blog &rarr; newsletter &rarr; social &rarr; rankings</td>
+          <td>SuperBad + SaaS subscribers, mostly autonomous</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Adjacent Systems</h3>
+  <ul>
+    <li><strong>Talking Head Script Studio</strong> &mdash; generates camera-to-face scripts across 6 content pillars. Session packs with energy levels. Separate from Content Studio but shares the braindump pipeline.</li>
+    <li><strong>Video Studio</strong> &mdash; AI video generation via Higgsfield + Remotion. Content Studio motion exports land here automatically.</li>
+    <li><strong>Instagram Channel</strong> &mdash; publishing, metrics, strategy reports, reply handling. Consumes Content Studio renders.</li>
+  </ul>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>Content Studio &mdash; Post Creation Pipeline</h3>
+  <div class="diagram"><pre><span class="highlight">Brief</span> <span class="dim">──→</span> <span class="accent">LLM picks template</span> <span class="dim">──→</span> <span class="accent">LLM generates copy</span> <span class="dim">──→</span> <span class="highlight">Draft post</span>
+                                                        <span class="dim">│</span>
+                                    <span class="dim">┌───────────────────┴────────────────────┐</span>
+                              <span class="accent">Static path</span>                          <span class="accent">Motion path</span>
+                                    <span class="dim">│</span>                                    <span class="dim">│</span>
+                         HTML template render              Remotion composition render
+                                    <span class="dim">│</span>                                    <span class="dim">│</span>
+                        Puppeteer screenshot               <span class="highlight">@remotion/renderer</span>
+                                    <span class="dim">│</span>                                    <span class="dim">│</span>
+                             PNG buffer                         MP4 / WebM
+                                    <span class="dim">│</span>                                    <span class="dim">│</span>
+                                    <span class="dim">└───────────┬───────────────────────────┘</span>
+                                                <span class="dim">│</span>
+                                    <span class="highlight">Cloudinary upload</span>
+                                                <span class="dim">│</span>
+                                    content_studio_renders row</pre></div>
+
+  <h3>Content Engine &mdash; Autonomous Pipeline</h3>
+  <div class="diagram"><pre><span class="num">1.</span> <span class="highlight">Research</span>      SerpAPI keyword research → rankability scoring → content gap analysis
+<span class="num">2.</span> <span class="accent">Topic Queue</span>   Haiku outlines each candidate → visible queue → subscriber can veto
+<span class="num">3.</span> <span class="highlight">Generation</span>    Opus two-pass: outline → full blog post → drift check → in_review
+<span class="num">4.</span> <span class="accent">Review</span>        Split-pane: rendered preview + rejection chat → approve or iterate
+<span class="num">5.</span> <span class="highlight">Publish</span>       Blog live at subscriber domain → SEO elements → inline newsletter CTA
+<span class="num">6.</span> <span class="accent">Fan-out</span>       Newsletter rewrite + social drafts per platform + visual assets
+                  <span class="dim">+ content-to-outreach matching for SuperBad's own posts</span></pre></div>
+
+  <h3>File Structure</h3>
+  <div class="code-block">
+    <div class="code-header">Key Directories</div>
+    <pre>app/lite/content/                    <span class="comment">// Pages and routes</span>
+  studio/                              <span class="comment">// Post creation UI + actions</span>
+  instagram/                           <span class="comment">// Instagram dashboard + posting</span>
+  video-studio/                        <span class="comment">// AI video generation</span>
+  script-studio/                       <span class="comment">// Talking head scripts</span>
+  review/[postId]/                     <span class="comment">// Content Engine review pane</span>
+  onboarding/                          <span class="comment">// Subscriber onboarding wizard</span>
+
+lib/content-studio/                  <span class="comment">// Core studio logic</span>
+  templates.ts                         <span class="comment">// 7 static templates + HTML renderers</span>
+  generate-copy.ts                     <span class="comment">// LLM copy generation + correction</span>
+  render-image.ts                      <span class="comment">// Puppeteer screenshot pipeline</span>
+  render-motion.ts                     <span class="comment">// Remotion video rendering</span>
+  upload.ts                            <span class="comment">// Cloudinary upload helper</span>
+  font-pairings.ts                     <span class="comment">// 8 font pairing definitions</span>
+  inspiration.ts                       <span class="comment">// Inspiration library CRUD</span>
+  motion/                              <span class="comment">// Motion subsystem</span>
+    registry.ts                        <span class="comment">// 15 motion template definitions</span>
+    layouts.ts                         <span class="comment">// 10 preset layouts + compute engine</span>
+    palettes.ts                        <span class="comment">// 5 brand palettes + custom builder</span>
+    types.ts                           <span class="comment">// Shared motion types</span>
+    compositions/                      <span class="comment">// 18 Remotion React compositions</span>
+
+lib/content-engine/                  <span class="comment">// Autonomous pipeline</span>
+  research.ts                          <span class="comment">// SerpAPI keyword research</span>
+  rankability.ts                       <span class="comment">// Domain authority scoring</span>
+  topic-queue.ts                       <span class="comment">// Topic lifecycle management</span>
+  generate-blog-post.ts                <span class="comment">// Opus blog generation + drift check</span>
+  publish.ts                           <span class="comment">// Blog publishing + SEO</span>
+  newsletter-rewrite.ts                <span class="comment">// Haiku newsletter rewrite</span>
+  newsletter-send.ts                   <span class="comment">// Resend delivery</span>
+  social-drafts.ts                     <span class="comment">// Per-platform social generation</span>
+  subscriber-list.ts                   <span class="comment">// Newsletter list management</span>
+  ranking-snapshot.ts                  <span class="comment">// SEO ranking tracker</span></pre>
+  </div>
+</div>
+
+<!-- ── 3. POST COMPOSITIONS ────────────────────────────────────── -->
+
+<div class="section" id="compositions">
+  <div class="section-num">Section 03</div>
+  <h2>Post Compositions</h2>
+
+  <h3>The Composition Model</h3>
+  <p>Every post in Content Studio is built from three layers: a <strong>template</strong> (defines copy slots and HTML structure), a <strong>palette</strong> (colours), and a <strong>layout</strong> (spatial arrangement). Templates come in two flavours: static (rendered to PNG via Puppeteer) and motion (rendered to video via Remotion).</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; TemplateDef (Static)</div>
+    <pre><span class="kw">interface</span> <span class="type">TemplateDef</span> {
+  id: <span class="type">string</span>;                     <span class="comment">// e.g. "announcement-bold"</span>
+  name: <span class="type">string</span>;                   <span class="comment">// Human label</span>
+  contentType: <span class="type">ContentType</span>;        <span class="comment">// Which content category</span>
+  copySlots: <span class="type">string</span>[];             <span class="comment">// e.g. ["headline", "detail", "tagline"]</span>
+  renderHtml: (
+    copy: Record&lt;<span class="type">string</span>, <span class="type">string</span>&gt;,
+    ratio: <span class="type">AspectRatio</span>,
+    options?: <span class="type">RenderOptions</span>,
+  ) =&gt; <span class="type">string</span>;                    <span class="comment">// Returns full HTML document</span>
+}</pre>
+  </div>
+
+  <h3>Content Types</h3>
+  <div class="tag-domain">
+    <div class="tag-domain-header">6 Content Types</div>
+    <div class="tag-grid">
+      <span class="tag">announcement</span>
+      <span class="tag">anti_motivation</span>
+      <span class="tag">portfolio</span>
+      <span class="tag">tips</span>
+      <span class="tag">testimonial</span>
+      <span class="tag">behind_the_scenes</span>
+    </div>
+  </div>
+
+  <h3>Static Templates (7)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Template ID</th><th>Name</th><th>Content Type</th><th>Copy Slots</th></tr></thead>
+      <tbody>
+        <tr><td><code>announcement-bold</code></td><td>Bold Announcement</td><td>announcement</td><td>headline, detail, subtext, tagline</td></tr>
+        <tr><td><code>announcement-minimal</code></td><td>Minimal Announcement</td><td>announcement</td><td>headline, detail, tagline</td></tr>
+        <tr><td><code>anti-motivation-typography</code></td><td>Anti-Motivation Typography</td><td>anti_motivation</td><td>headline, tagline</td></tr>
+        <tr><td><code>tips-value</code></td><td>Value Post</td><td>tips</td><td>headline, detail, tagline</td></tr>
+        <tr><td><code>testimonial-quote</code></td><td>Testimonial Quote</td><td>testimonial</td><td>headline, detail, subtext</td></tr>
+        <tr><td><code>bts-caption</code></td><td>Behind the Scenes</td><td>behind_the_scenes</td><td>headline, tagline</td></tr>
+        <tr><td><code>portfolio-showcase</code></td><td>Portfolio Showcase</td><td>portfolio</td><td>headline, detail, tagline</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Aspect Ratios</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Ratio</th><th>Dimensions</th><th>Primary Use</th></tr></thead>
+      <tbody>
+        <tr><td><code>portrait</code></td><td>1080 &times; 1920</td><td>Instagram Stories / Reels (9:16)</td></tr>
+        <tr><td><code>square</code></td><td>1080 &times; 1080</td><td>Instagram feed, LinkedIn (1:1)</td></tr>
+        <tr><td><code>landscape</code></td><td>1200 &times; 630</td><td>Open Graph / link previews</td></tr>
+        <tr><td><code>portrait_3x4</code></td><td>1080 &times; 1440</td><td>Instagram feed tall (3:4)</td></tr>
+        <tr><td><code>portrait_4x5</code></td><td>1080 &times; 1350</td><td>Instagram feed max height (4:5)</td></tr>
+        <tr><td><code>landscape_16x9</code></td><td>1920 &times; 1080</td><td>YouTube / widescreen (16:9)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>How Static Rendering Works</h3>
+  <p>Each static template has a <code>renderHtml()</code> method that produces a complete HTML document with inline CSS. The template injects the copy, palette colours, layout metrics, and font faces into the HTML. Puppeteer launches headless Chrome, sets the viewport to the exact pixel dimensions of the chosen aspect ratio at 2&times; device scale, loads the HTML, screenshots it as PNG, and returns the buffer.</p>
+
+  <div class="code-block">
+    <div class="code-header">Render Flow</div>
+    <pre><span class="accent">template.renderHtml</span>(copy, ratio, options)  <span class="comment">// → HTML string</span>
+  <span class="dim">↓</span>
+<span class="highlight">puppeteer.launch</span>() → page.setViewport({ width, height, deviceScaleFactor: <span class="num">2</span> })
+  <span class="dim">↓</span>
+page.setContent(html) → page.screenshot({ type: <span class="str">"png"</span> })
+  <span class="dim">↓</span>
+<span class="accent">uploadToCloudinary</span>(buffer) → <span class="type">content_studio_renders</span> row</pre>
+  </div>
+
+  <h3>Carousel Support</h3>
+  <p>When <code>slide_count &gt; 1</code>, the post is a carousel. The LLM generates an array of copy objects &mdash; one per slide &mdash; with instructions to build a narrative arc: &ldquo;Slide 1 hooks, middle slides develop, final slide lands.&rdquo; Each slide is rendered independently across all selected aspect ratios, producing <code>slideCount &times; ratioCount</code> total images.</p>
+
+  <h3>Copy Correction</h3>
+  <p>After initial generation, Andy can type a correction (&ldquo;too corporate, pull it back&rdquo;) which feeds the current copy + correction text back to the LLM. The correction history is stored as a JSON array on the post, preserving every edit request and timestamp. Corrections can target a specific slide in a carousel.</p>
+</div>
+
+<!-- ── 4. LAYOUT SYSTEM ────────────────────────────────────────── -->
+
+<div class="section" id="layouts">
+  <div class="section-num">Section 04</div>
+  <h2>Layout System</h2>
+
+  <p>Layouts control how text is arranged on the canvas &mdash; alignment, vertical position, type scale, spacing, content width. Every static template and every layout-supported motion template reads a <code>MotionLayoutConfig</code> object that drives computed pixel values via the <code>computeLayout()</code> function.</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; MotionLayoutConfig</div>
+    <pre><span class="kw">interface</span> <span class="type">MotionLayoutConfig</span> {
+  id: <span class="type">string</span>;
+  name: <span class="type">string</span>;
+  description: <span class="type">string</span>;
+  textAlign: <span class="str">"left"</span> | <span class="str">"center"</span> | <span class="str">"right"</span>;
+  verticalPosition: <span class="type">number</span>;     <span class="comment">// 0–100 (top to bottom)</span>
+  headlineScale: <span class="type">number</span>;        <span class="comment">// multiplier on base font size</span>
+  detailScale: <span class="type">number</span>;          <span class="comment">// multiplier on detail font size</span>
+  lineHeight: <span class="type">number</span>;           <span class="comment">// headline line-height</span>
+  letterSpacing: <span class="type">number</span>;        <span class="comment">// px letter-spacing</span>
+  paddingScale: <span class="type">number</span>;         <span class="comment">// multiplier on base padding</span>
+  contentWidth: <span class="type">number</span>;         <span class="comment">// percentage of canvas width</span>
+  elementGap: <span class="type">number</span>;           <span class="comment">// px gap between elements</span>
+  isPreset: <span class="type">boolean</span>;
+}</pre>
+  </div>
+
+  <h3>10 Preset Layouts</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Layout</th><th>Align</th><th>Description</th><th>Headline Scale</th></tr></thead>
+      <tbody>
+        <tr><td><code>editorial</code></td><td>left</td><td>Left-aligned authority. Strong hierarchy, generous space.</td><td>1.0</td></tr>
+        <tr><td><code>hero</code></td><td>center</td><td>Centered and balanced. Classic hero treatment.</td><td>1.1</td></tr>
+        <tr><td><code>lower-third</code></td><td>left</td><td>Broadcast placement. Content sits low, frame stays open.</td><td>0.88</td></tr>
+        <tr><td><code>statement</code></td><td>center</td><td>One massive headline. Everything else whispers.</td><td>1.4</td></tr>
+        <tr><td><code>compact</code></td><td>left</td><td>Dense and efficient. Information-first layout.</td><td>0.88</td></tr>
+        <tr><td><code>breathe</code></td><td>center</td><td>Luxurious negative space. Small type, big presence.</td><td>0.82</td></tr>
+        <tr><td><code>asymmetric</code></td><td>left</td><td>Off-center tension. Empty space does the talking.</td><td>1.05</td></tr>
+        <tr><td><code>title-card</code></td><td>center</td><td>Cinematic spacing. Wide tracking, measured rhythm.</td><td>1.0</td></tr>
+        <tr><td><code>right-flush</code></td><td>right</td><td>Right-aligned. Breaks the reading axis.</td><td>1.0</td></tr>
+        <tr><td><code>stacked</code></td><td>center</td><td>Tight and modern. Words pile up like a poster.</td><td>1.15</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Aspect-Ratio-Aware Scaling</h3>
+  <p>The <code>computeLayout()</code> function takes canvas width and height, computes a base scale factor from <code>canvasWidth / 1080</code>, then applies an aspect-ratio adjustment: taller canvases (<code>aspect &lt; 0.8</code>) scale up 8%, wider canvases (<code>aspect &gt; 1.3</code>) scale down 8%. All font sizes, paddings, and gaps are computed from this scale factor multiplied by the layout&rsquo;s individual scale parameters.</p>
+
+  <div class="code-block">
+    <div class="code-header">Scale Computation</div>
+    <pre><span class="kw">function</span> <span class="type">getCanvasScale</span>(canvasWidth: <span class="type">number</span>, canvasHeight: <span class="type">number</span>): <span class="type">number</span> {
+  <span class="kw">const</span> widthScale = canvasWidth / <span class="num">1080</span>;
+  <span class="kw">const</span> aspect = canvasWidth / canvasHeight;
+  <span class="kw">const</span> aspectAdjust = aspect &lt; <span class="num">0.8</span> ? <span class="num">1.08</span> : aspect &gt; <span class="num">1.3</span> ? <span class="num">0.92</span> : <span class="num">1.0</span>;
+  <span class="kw">return</span> widthScale * aspectAdjust;
+}</pre>
+  </div>
+
+  <h3>Custom Layout Sliders</h3>
+  <p>Beyond the 10 presets, users can create custom layouts by adjusting slider values. Each parameter has a defined range:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Parameter</th><th>Min</th><th>Max</th><th>Step</th></tr></thead>
+      <tbody>
+        <tr><td><code>headlineScale</code></td><td>0.6</td><td>1.5</td><td>0.05</td></tr>
+        <tr><td><code>detailScale</code></td><td>0.6</td><td>1.5</td><td>0.05</td></tr>
+        <tr><td><code>lineHeight</code></td><td>0.85</td><td>1.3</td><td>0.05</td></tr>
+        <tr><td><code>letterSpacing</code></td><td>-3</td><td>3</td><td>0.5</td></tr>
+        <tr><td><code>paddingScale</code></td><td>0.5</td><td>2.0</td><td>0.1</td></tr>
+        <tr><td><code>contentWidth</code></td><td>50%</td><td>100%</td><td>5</td></tr>
+        <tr><td><code>elementGap</code></td><td>4</td><td>48</td><td>2</td></tr>
+        <tr><td><code>verticalPosition</code></td><td>0</td><td>100</td><td>5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Custom layout JSON is stored on the post&rsquo;s <code>animation_params_json</code> field under a <code>_layout</code> key, serialised as a string within the params object.</p>
+</div>
+
+<!-- ── 5. ANIMATION SYSTEM ─────────────────────────────────────── -->
+
+<div class="section" id="animation">
+  <div class="section-num">Section 05</div>
+  <h2>Animation System</h2>
+
+  <h3>Two Categories of Motion Templates</h3>
+  <p>Motion templates fall into two categories: <strong>paired</strong> (animated versions of static templates, sharing the same copy slots) and <strong>motion-only</strong> (designed specifically for animation with no static counterpart). Paired templates inherit their copy from the static version; motion-only templates define their own slots.</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; MotionTemplateDef</div>
+    <pre><span class="kw">interface</span> <span class="type">MotionTemplateDef</span> {
+  id: <span class="type">string</span>;
+  name: <span class="type">string</span>;
+  category: <span class="str">"paired"</span> | <span class="str">"motion-only"</span>;
+  staticCounterpart: <span class="type">string</span> | <span class="type">null</span>;  <span class="comment">// links to TemplateDef.id</span>
+  overlayCapable: <span class="type">boolean</span>;            <span class="comment">// can export with transparent bg</span>
+  layoutSupported: <span class="type">boolean</span>;            <span class="comment">// respects MotionLayoutConfig</span>
+  copySlots: <span class="type">string</span>[];
+  animationParams: <span class="type">AnimationParamDef</span>[];
+  defaultDuration: <span class="type">number</span>;            <span class="comment">// frames at 30fps</span>
+  minDuration: <span class="type">number</span>;
+  maxDuration: <span class="type">number</span>;
+}</pre>
+  </div>
+
+  <h3>Paired Motion Templates (7)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Motion Template</th><th>Static Counterpart</th><th>Key Animation</th></tr></thead>
+      <tbody>
+        <tr><td><code>announcement-bold-motion</code></td><td><code>announcement-bold</code></td><td>Headline slide up, gradient pulse</td></tr>
+        <tr><td><code>announcement-minimal-motion</code></td><td><code>announcement-minimal</code></td><td>Character-by-character reveal</td></tr>
+        <tr><td><code>anti-motivation-typography-motion</code></td><td><code>anti-motivation-typography</code></td><td>Kinetic text, letter-spacing breathe</td></tr>
+        <tr><td><code>tips-value-motion</code></td><td><code>tips-value</code></td><td>Headline drop, detail typewriter</td></tr>
+        <tr><td><code>testimonial-quote-motion</code></td><td><code>testimonial-quote</code></td><td>Quote marks scale in, attribution slide</td></tr>
+        <tr><td><code>bts-caption-motion</code></td><td><code>bts-caption</code></td><td>Headline blur-to-sharp reveal</td></tr>
+        <tr><td><code>portfolio-showcase-motion</code></td><td><code>portfolio-showcase</code></td><td>Label wipe, headline slide</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Motion-Only Templates (8)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Template</th><th>Purpose</th><th>Overlay</th><th>Layout</th></tr></thead>
+      <tbody>
+        <tr><td><code>stat-counter</code></td><td>Large number count-up with label</td><td>Yes</td><td>No</td></tr>
+        <tr><td><code>text-reveal</code></td><td>Words appear in sequence with emphasis</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td><code>logo-sting</code></td><td>Logo animation with tagline (intro/outro)</td><td>Yes</td><td>No</td></tr>
+        <tr><td><code>word-slam</code></td><td>Words slam in with stagger</td><td>Yes</td><td>No</td></tr>
+        <tr><td><code>cinematic-reveal</code></td><td>Slow cinematic text entrance</td><td>No</td><td>Yes</td></tr>
+        <tr><td><code>focus-pull</code></td><td>Rack-focus depth effect on text</td><td>No</td><td>Yes</td></tr>
+        <tr><td><code>whip-pan</code></td><td>Horizontal whip transition</td><td>Yes</td><td>No</td></tr>
+        <tr><td><code>zoom-through</code></td><td>Zoom into layered text</td><td>Yes</td><td>No</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Animation Parameters</h3>
+  <p>Each motion template declares its own tuneable parameters. Three types exist:</p>
+  <ul>
+    <li><strong><code>timing</code></strong> &mdash; numeric frame values (e.g. headline delay in frames)</li>
+    <li><strong><code>easing</code></strong> &mdash; easing function names</li>
+    <li><strong><code>toggle</code></strong> &mdash; boolean on/off (e.g. gradient pulse enabled)</li>
+  </ul>
+  <p>Default values come from the template definition. User adjustments are stored as JSON on the post&rsquo;s <code>animation_params_json</code> column.</p>
+
+  <h3>Duration Control</h3>
+  <p>All motion renders at 30fps. Each template defines <code>defaultDuration</code>, <code>minDuration</code>, and <code>maxDuration</code> in frames. Typical range: 2&ndash;6 seconds (60&ndash;180 frames). Duration is stored on the post as <code>motion_duration_frames</code> and overrides the template default when set.</p>
+
+  <h3>SFX Timeline</h3>
+  <p>Sound effects can be placed at specific frames on the motion timeline. Four built-in sounds ship with the system:</p>
+  <div class="tag-grid" style="margin-top: 0.5rem;">
+    <span class="tag">tick</span>
+    <span class="tag">whoosh</span>
+    <span class="tag">impact</span>
+    <span class="tag">riser</span>
+  </div>
+  <p style="margin-top: 1rem;">Custom SFX can be uploaded to the <code>sfx_library</code> table. Each cue is a <code>SfxCueData</code> object: <code>{ sfxId, url, startFrame, volume }</code>. Cues are stored in the animation params under an <code>_sfxCues</code> key.</p>
+</div>
+
+<!-- ── 6. REMOTION VIDEO GENERATION ────────────────────────────── -->
+
+<div class="section" id="remotion">
+  <div class="section-num">Section 06</div>
+  <h2>Remotion Video Generation</h2>
+
+  <p>Motion posts are rendered to video using <a href="https://www.remotion.dev/" style="color: var(--retro-pink);">Remotion</a> &mdash; a React-based programmatic video framework. Each motion template is a React component registered as a Remotion <code>&lt;Composition&gt;</code> in <code>remotion/index.ts</code>.</p>
+
+  <h3>Render Pipeline</h3>
+  <div class="diagram"><pre><span class="num">1.</span> <span class="highlight">Bundle</span>          <span class="accent">@remotion/bundler</span>.bundle() → webpack bundle of all compositions
+                     <span class="dim">(cached — built once, reused across renders)</span>
+
+<span class="num">2.</span> <span class="highlight">Select</span>          selectComposition({ serveUrl, id: templateId, inputProps })
+                     <span class="dim">→ resolves the composition React component</span>
+
+<span class="num">3.</span> <span class="highlight">Render</span>          renderMedia({
+                       composition,  <span class="comment">// with overridden width/height/duration</span>
+                       codec: <span class="str">"h264"</span> | <span class="str">"vp8"</span>,
+                       outputLocation: <span class="str">"/tmp/motion-{id}-{ts}.{fmt}"</span>,
+                       inputProps     <span class="comment">// copy, palette, params, sfx, layout</span>
+                     })
+
+<span class="num">4.</span> <span class="highlight">Upload</span>          uploadToCloudinary(filePath, <span class="str">"superbad/content-studio/{postId}/motion"</span>)
+
+<span class="num">5.</span> <span class="highlight">Record</span>          Insert <span class="type">content_studio_renders</span> row (render_type: <span class="str">"motion"</span>)
+                     Insert <span class="type">video_jobs</span> row (engine: <span class="str">"remotion"</span>, status: <span class="str">"ready"</span>)</pre></div>
+
+  <h3>Input Props</h3>
+  <p>Every Remotion composition receives the same props interface:</p>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; MotionTemplateProps</div>
+    <pre><span class="kw">interface</span> <span class="type">MotionTemplateProps</span> {
+  copy: Record&lt;<span class="type">string</span>, <span class="type">string</span>&gt;;
+  palette: <span class="type">ColourPalette</span>;
+  transparent: <span class="type">boolean</span>;
+  animationParams: Record&lt;<span class="type">string</span>, <span class="type">number</span> | <span class="type">string</span> | <span class="type">boolean</span>&gt;;
+  fontPairingId?: <span class="type">string</span>;
+  sfxCues?: <span class="type">SfxCueData</span>[];
+  layout?: <span class="type">MotionLayoutConfig</span>;
+}</pre>
+  </div>
+
+  <h3>Format Options</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Format</th><th>Codec</th><th>Use Case</th></tr></thead>
+      <tbody>
+        <tr><td><code>mp4</code></td><td>H.264</td><td>Standard social media video</td></tr>
+        <tr><td><code>webm</code></td><td>VP8 + yuva420p</td><td>Transparent background for compositing over other video</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Promote Static to Motion</h3>
+  <p>Any static post can be &ldquo;promoted&rdquo; to a motion post. The <code>promoteToMotionAction</code> creates a new post record with <code>motion_enabled = 1</code>, copies the copy from the selected slide, maps it to the motion template&rsquo;s copy slots, and links back to the source via <code>promoted_from_post_id</code>. The original static post is preserved.</p>
+
+  <h3>Shared Composition Components</h3>
+  <p>The <code>compositions/</code> directory contains shared React components used across motion templates:</p>
+  <ul>
+    <li><code>shared.tsx</code> &mdash; common animation primitives</li>
+    <li><code>atmosphere.tsx</code> &mdash; gradient overlay and ambient background effects</li>
+    <li><code>accent-shapes.tsx</code> &mdash; decorative geometric accent elements</li>
+    <li><code>motion-fonts.tsx</code> &mdash; font loading for Remotion renders</li>
+    <li><code>motion-sfx.tsx</code> &mdash; SFX audio cue integration</li>
+  </ul>
+</div>
+
+<!-- ── 7. CONTENT ENGINE PIPELINE ──────────────────────────────── -->
+
+<div class="section" id="engine">
+  <div class="section-num">Section 07</div>
+  <h2>Content Engine Pipeline</h2>
+
+  <p>The Content Engine is a 6-stage autonomous pipeline that runs for SuperBad and for SaaS subscribers. It is the first product on the SaaS billing infrastructure. The differentiator: every piece of output reads the owner&rsquo;s Brand DNA profile as perpetual context, producing voice-matched content rather than generic AI text.</p>
+
+  <h3>Stage 1 &mdash; Research</h3>
+  <p>Weekly <code>scheduled_tasks</code> job per owner. SerpAPI keyword research from seed keywords (auto-derived from Brand DNA + vertical + location). Each candidate keyword is:</p>
+  <ol>
+    <li>Rankability-scored against a static high-authority domain list (~500 entries in <code>/data/high-authority-domains.json</code>) plus live SERP data</li>
+    <li>Content-gap-analysed: fetch + cheerio on top 3 ranking pages, Haiku identifies underserved angles</li>
+    <li>Ranked. Top candidates enter the topic queue</li>
+  </ol>
+
+  <h3>Stage 2 &mdash; Topic Queue</h3>
+  <p>Each topic gets a Haiku-generated outline (sections, key points, target word count, featured snippet flags). The queue is subscriber-visible but engine-managed &mdash; subscribers can veto topics but not reorder or add. Lifecycle: <code>queued</code> &rarr; <code>generating</code> &rarr; <code>generated</code> (or <code>vetoed</code> / <code>skipped</code>).</p>
+
+  <h3>Stage 3 &mdash; Generation</h3>
+  <p>Opus two-pass: the outline (from Stage 2) feeds into a full blog post generation call. The system prompt includes the owner&rsquo;s complete Brand DNA profile (prose portrait, first impression, signal tags). The user prompt includes keyword, outline, content gaps, and competitor titles.</p>
+
+  <div class="callout">
+    <div class="callout-label">Drift Check</div>
+    <p>Every generated post passes a brand-voice drift check before entering the review queue. If the draft fails the drift threshold, it&rsquo;s automatically regenerated once. A second failure surfaces a &ldquo;voice drift flagged&rdquo; warning but still enters review.</p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">One Draft Maximum</div>
+    <p>The engine enforces a hard rule: only one unreviewed draft per owner at any time. It will not generate a new draft until the current one is approved or rejected. This prevents unreviewed content from piling up.</p>
+  </div>
+
+  <h3>Stage 4 &mdash; Review</h3>
+  <p>Split-pane surface: rendered preview left (~60%), rejection chat right (~40%). Approve triggers automatic fan-out. Reject triggers a feedback chat where the subscriber types corrections (&ldquo;too corporate, pull it back&rdquo;) and the LLM regenerates with the feedback as added context. Chat history persists.</p>
+
+  <h3>Stage 5 &mdash; Publish</h3>
+  <p>Blog publishes immediately on approval at <code>[subscriber-domain]/blog/[slug]</code>. Full SEO package: title tag, meta description, OG image, JSON-LD Article schema, canonical URL, table of contents, internal links, inline newsletter opt-in CTA.</p>
+
+  <h3>Stage 6 &mdash; Fan-out</h3>
+  <div class="diagram"><pre><span class="accent">Approved post</span> <span class="dim">──→</span> <span class="highlight">Newsletter rewrite</span>  <span class="dim">(Haiku: single standalone or editorial digest)</span>
+               <span class="dim">──→</span> <span class="highlight">Social drafts</span>       <span class="dim">(Haiku: one per platform &mdash; IG, LinkedIn, X, Facebook)</span>
+               <span class="dim">──→</span> <span class="highlight">Visual assets</span>       <span class="dim">(template render or AI image generation per draft)</span>
+               <span class="dim">──→</span> <span class="accent">Outreach matching</span>   <span class="dim">(SuperBad only: match to prospect pool for content emails)</span></pre></div>
+
+  <h3>Subscriber Onboarding</h3>
+  <p>Three wizard steps after Brand DNA completion:</p>
+  <ol>
+    <li><strong>Domain verification</strong> &mdash; required, includes optional Google Search Console OAuth</li>
+    <li><strong>Seed keyword review</strong> &mdash; auto-derived from Brand DNA signals, subscriber approves/tweaks</li>
+    <li><strong>Newsletter preferences</strong> &mdash; send window day/time/timezone + optional list import</li>
+  </ol>
+  <p>Engine starts research immediately after step 2.</p>
+</div>
+
+<!-- ── 8. INSTAGRAM INTEGRATION ────────────────────────────────── -->
+
+<div class="section" id="instagram">
+  <div class="section-num">Section 08</div>
+  <h2>Instagram Integration</h2>
+
+  <p>Instagram is a full channel module at <code>/lite/content/instagram</code>. It covers publishing from Content Studio, metrics tracking, AI strategy recommendations, post boosting, and autonomous reply handling.</p>
+
+  <h3>Publishing Flow</h3>
+  <ol>
+    <li>User renders a Content Studio post (already uploaded to Cloudinary)</li>
+    <li>&ldquo;Post to Instagram&rdquo; button opens the post modal</li>
+    <li>Modal shows: account selector, image preview, aspect ratio picker (defaults 4:5), auto-drafted caption (LLM via <code>instagram-draft-caption</code> Sonnet job), drift score badge</li>
+    <li>Server action creates media container(s) via Instagram Graph API, publishes, polls for <code>FINISHED</code> status</li>
+    <li>Success creates an <code>instagram_media</code> row linked to the source Content Studio post via <code>source_post_id</code></li>
+  </ol>
+
+  <h3>Metrics Dashboard</h3>
+  <ul>
+    <li><strong>Account growth</strong> &mdash; follower count over time, reach, impressions, profile visits, website clicks</li>
+    <li><strong>Content performance</strong> &mdash; per-post engagement score: <code>(saves &times; 4 + shares &times; 3 + comments &times; 2 + likes &times; 1) / reach &times; 100</code></li>
+    <li><strong>Audience insights</strong> &mdash; age/gender demographics, top cities, top countries, online hours</li>
+  </ul>
+
+  <h3>Strategy Engine</h3>
+  <p>Two report types generated by LLM from metrics data:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Report Type</th><th>Schedule</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td><code>weekly_digest</code></td><td>Every Monday</td><td>Performance summary, top/bottom posts, content type analysis, content ideas for next week</td></tr>
+        <tr><td><code>realtime_alert</code></td><td>When thresholds hit</td><td>Viral post detection, engagement spikes, follower milestones</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Reply Handling</h3>
+  <p>Inbound comments and DMs are classified by LLM (<code>instagram-classify-inbound</code>, Haiku) into: lead, complaint, collab, question, praise, spam, or simple. Draft replies are generated per type (Sonnet for comments and DMs). Replies flow through a review queue: <code>pending_review</code> &rarr; <code>approved</code> &rarr; <code>sent</code>. Lead-classified replies auto-create deals in the CRM. Voice corrections feed back into the reply model via <code>instagram_voice_corrections</code>.</p>
+
+  <h3>Content Plans</h3>
+  <p>Weekly content plans generated from strategy reports. Each plan contains typed slots (carousel, single, reel, story) with suggested dates, topics, and caption directions. Subscriber approves individual slots. One plan per account per week, enforced by a unique index.</p>
+</div>
+
+<!-- ── 9. NEWSLETTER SYSTEM ────────────────────────────────────── -->
+
+<div class="section" id="newsletter">
+  <div class="section-num">Section 09</div>
+  <h2>Newsletter System</h2>
+
+  <h3>How It Works</h3>
+  <p>Newsletters are a fan-out product of the Content Engine. When a blog post is approved, the engine automatically rewrites it for email format using Haiku. The hybrid format rule:</p>
+  <ul>
+    <li><strong>Single post</strong> since last send &rarr; standalone newsletter rewrite</li>
+    <li><strong>Multiple posts</strong> since last send &rarr; editorial digest with brief intro and per-post excerpts</li>
+  </ul>
+  <p>One email per send window maximum. The rewrite includes a <code>{{READ_MORE_LINK}}</code> placeholder replaced at send time.</p>
+
+  <h3>Send Window</h3>
+  <p>Configurable per company: day of week, time, timezone. Default: Tuesday 10:00 AM AEST. The <code>computeNextSendWindow()</code> function handles DST-safe timezone conversion using <code>Intl.DateTimeFormat</code>.</p>
+
+  <h3>List Growth Channels</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Channel</th><th>Consent Source</th><th>Permission Pass?</th></tr></thead>
+      <tbody>
+        <tr><td>CSV import</td><td><code>csv_import</code></td><td>Yes &mdash; mandatory double opt-in</td></tr>
+        <tr><td>Embeddable opt-in form</td><td><code>embed_form</code></td><td>No &mdash; direct opt-in</td></tr>
+        <tr><td>Blog inline CTA</td><td><code>blog_cta</code></td><td>No &mdash; direct opt-in</td></tr>
+        <tr><td>Outreach reply</td><td><code>outreach_reply</code></td><td>No &mdash; reply = consent</td></tr>
+        <tr><td>Permission pass</td><td><code>permission_pass</code></td><td>This is the pass itself</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>List Hygiene</h3>
+  <p>Automated and aggressive. No manual override.</p>
+  <ul>
+    <li><strong>Hard bounces</strong> &mdash; removed immediately</li>
+    <li><strong>Soft bounces</strong> &mdash; 3 strikes then removed</li>
+    <li><strong>Unsubscribes</strong> &mdash; permanent, irreversible</li>
+    <li><strong>90-day inactive</strong> &mdash; auto-removed (no opens in 90 days)</li>
+  </ul>
+  <p>Subscriber status lifecycle: <code>pending_confirmation</code> &rarr; <code>active</code> &rarr; <code>bounced</code> / <code>unsubscribed</code> / <code>inactive_removed</code>.</p>
+
+  <h3>Multi-Tenant Isolation</h3>
+  <p>Every newsletter table is scoped by <code>company_id</code>. Each SaaS subscriber has their own isolated list, send history, and config. The same pipeline serves SuperBad&rsquo;s own newsletter and subscriber newsletters.</p>
+</div>
+
+<!-- ── 10. DATABASE SCHEMA ─────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 10</div>
+  <h2>Database Schema</h2>
+
+  <h3>content_studio_posts</h3>
+  <p>The main post record. One per created post (static or motion).</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>brief</code></td><td>text</td><td>Original plain-English brief</td></tr>
+        <tr><td><code>content_type</code></td><td>enum</td><td>announcement, anti_motivation, portfolio, tips, testimonial, behind_the_scenes</td></tr>
+        <tr><td><code>template_id</code></td><td>text</td><td>Which static template was used</td></tr>
+        <tr><td><code>slide_count</code></td><td>integer</td><td>1 for single, &gt;1 for carousel</td></tr>
+        <tr><td><code>generated_copy_json</code></td><td>JSON</td><td>Array of <code>{ slot: text }</code> objects, one per slide</td></tr>
+        <tr><td><code>correction_history_json</code></td><td>JSON</td><td>Array of <code>{ correction, timestamp, slideIndex? }</code></td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>draft</code> &rarr; <code>rendering</code> &rarr; <code>rendered</code> (or <code>failed</code>)</td></tr>
+        <tr><td><code>motion_enabled</code></td><td>integer</td><td>0 = static, 1 = motion post</td></tr>
+        <tr><td><code>motion_template_id</code></td><td>text</td><td>Motion template ID (null for static)</td></tr>
+        <tr><td><code>palette_id</code></td><td>text</td><td>Motion palette ID</td></tr>
+        <tr><td><code>static_palette_id</code></td><td>text</td><td>Static palette ID (separate from motion)</td></tr>
+        <tr><td><code>custom_palette_json</code></td><td>JSON</td><td><code>{ background, primary, accent, text }</code></td></tr>
+        <tr><td><code>animation_params_json</code></td><td>text</td><td>JSON: template-specific params + <code>_layout</code> + <code>_sfxCues</code></td></tr>
+        <tr><td><code>primary_aspect_ratio</code></td><td>text</td><td>Preferred editing ratio for motion</td></tr>
+        <tr><td><code>font_pairing_id</code></td><td>text</td><td>Font pairing selection</td></tr>
+        <tr><td><code>motion_duration_frames</code></td><td>integer</td><td>Override for template default duration</td></tr>
+        <tr><td><code>promoted_from_post_id</code></td><td>text</td><td>Links to source static post (if promoted)</td></tr>
+        <tr><td><code>source_braindump_id</code></td><td>text</td><td>Links to braindump if brief came from braindump parse</td></tr>
+        <tr><td><code>inspiration_refs_json</code></td><td>text</td><td>References to inspiration library items</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>content_studio_renders</h3>
+  <p>One row per rendered output (slide + aspect ratio combination).</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>post_id</code></td><td>text FK</td><td>Links to content_studio_posts</td></tr>
+        <tr><td><code>slide_index</code></td><td>integer</td><td>0-based slide position</td></tr>
+        <tr><td><code>aspect_ratio</code></td><td>enum</td><td>Which ratio this render is for</td></tr>
+        <tr><td><code>width / height</code></td><td>integer</td><td>Actual pixel dimensions (at 2x for static)</td></tr>
+        <tr><td><code>cloudinary_public_id</code></td><td>text</td><td>Cloudinary asset identifier</td></tr>
+        <tr><td><code>cloudinary_url</code></td><td>text</td><td>Public CDN URL</td></tr>
+        <tr><td><code>render_type</code></td><td>enum</td><td><code>static</code> or <code>motion</code></td></tr>
+        <tr><td><code>format</code></td><td>enum</td><td><code>png</code>, <code>mp4</code>, or <code>webm</code></td></tr>
+        <tr><td><code>video_job_id</code></td><td>text</td><td>Links to video_jobs for motion renders</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>content_engine_config</h3>
+  <p>Per-company configuration for the Content Engine. One row per owner.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>company_id</code></td><td>text FK (unique)</td><td>Which company this config belongs to</td></tr>
+        <tr><td><code>seed_keywords</code></td><td>JSON</td><td>Array of seed keywords for research</td></tr>
+        <tr><td><code>send_window_day</code></td><td>enum</td><td>Day of week for newsletter (default: tuesday)</td></tr>
+        <tr><td><code>send_window_time</code></td><td>text</td><td>Time string e.g. &ldquo;10:00&rdquo;</td></tr>
+        <tr><td><code>send_window_tz</code></td><td>text</td><td>IANA timezone (default: Australia/Melbourne)</td></tr>
+        <tr><td><code>gsc_refresh_token</code></td><td>text</td><td>Encrypted Google Search Console OAuth token</td></tr>
+        <tr><td><code>embed_form_token</code></td><td>text (unique)</td><td>Token for embeddable opt-in form</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>content_topics</h3>
+  <p>Topic queue &mdash; keyword-researched candidates with outlines.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>keyword</code></td><td>text</td><td>Target keyword</td></tr>
+        <tr><td><code>rankability_score</code></td><td>integer</td><td>0&ndash;100 score from Haiku</td></tr>
+        <tr><td><code>content_gaps</code></td><td>JSON</td><td>Array of <code>{ angle, evidence, snippetOpportunity }</code></td></tr>
+        <tr><td><code>outline</code></td><td>JSON</td><td>Haiku-generated blog outline (sections, key points, word count)</td></tr>
+        <tr><td><code>serp_snapshot</code></td><td>JSON</td><td>Top 10 SERP results at research time</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>queued</code> &rarr; <code>generating</code> &rarr; <code>generated</code> / <code>vetoed</code> / <code>skipped</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>blog_posts</h3>
+  <p>Generated blog posts. Two-pass Haiku outline &rarr; Opus draft.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>topic_id</code></td><td>text FK</td><td>Links to content_topics</td></tr>
+        <tr><td><code>title</code></td><td>text</td><td>SEO-optimised title</td></tr>
+        <tr><td><code>slug</code></td><td>text</td><td>URL-safe slug</td></tr>
+        <tr><td><code>body</code></td><td>text</td><td>Full blog post in markdown</td></tr>
+        <tr><td><code>meta_description</code></td><td>text</td><td>&le;155 characters</td></tr>
+        <tr><td><code>structured_data</code></td><td>JSON</td><td>JSON-LD Article schema</td></tr>
+        <tr><td><code>internal_links</code></td><td>JSON</td><td>Suggested slugs for cross-linking</td></tr>
+        <tr><td><code>snippet_target_section</code></td><td>text</td><td>Heading targeting featured snippet (nullable)</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>draft</code> &rarr; <code>in_review</code> &rarr; <code>approved</code> &rarr; <code>publishing</code> &rarr; <code>published</code> / <code>rejected</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Other Content Tables</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>social_drafts</code></td><td>Per-platform social media drafts from blog posts (IG, LinkedIn, X, Facebook)</td></tr>
+        <tr><td><code>newsletter_subscribers</code></td><td>Per-company subscriber lists with consent tracking and hygiene status</td></tr>
+        <tr><td><code>newsletter_sends</code></td><td>Send records with subject, body, format, scheduling, open/click counts</td></tr>
+        <tr><td><code>ranking_snapshots</code></td><td>SEO position tracking per keyword per post (SerpAPI + optional GSC)</td></tr>
+        <tr><td><code>blog_post_feedback</code></td><td>Rejection chat thread per post (user/assistant role pattern)</td></tr>
+        <tr><td><code>video_jobs</code></td><td>Video generation jobs (Remotion + Higgsfield engines)</td></tr>
+        <tr><td><code>inspiration_library</code></td><td>Saved style references (links + uploads) for Content Studio</td></tr>
+        <tr><td><code>sfx_library</code></td><td>Custom sound effects for motion timeline</td></tr>
+        <tr><td><code>instagram_accounts</code></td><td>Connected IG accounts (own + client) with access tokens</td></tr>
+        <tr><td><code>instagram_media</code></td><td>Published IG posts with engagement metrics, boost status</td></tr>
+        <tr><td><code>instagram_metrics_snapshots</code></td><td>Daily account-level metrics (followers, reach, impressions)</td></tr>
+        <tr><td><code>instagram_audience_snapshots</code></td><td>Audience demographics (age, gender, cities, countries, online hours)</td></tr>
+        <tr><td><code>instagram_strategy_reports</code></td><td>LLM-generated weekly digests and realtime alerts</td></tr>
+        <tr><td><code>instagram_content_plans</code></td><td>Weekly content plans with typed slots and approval tracking</td></tr>
+        <tr><td><code>instagram_replies</code></td><td>Inbound comments/DMs with classification, draft replies, review status</td></tr>
+        <tr><td><code>instagram_voice_corrections</code></td><td>Voice correction feedback loop (AI draft vs human-edited version)</td></tr>
+        <tr><td><code>talking_head_session_packs</code></td><td>Script filming session packs with energy level and target date</td></tr>
+        <tr><td><code>talking_head_scripts</code></td><td>Generated scripts across 6 content pillars with teleprompter data</td></tr>
+        <tr><td><code>braindumps</code></td><td>Raw text brain dumps that parse into tasks, content ideas, and scripts</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 11. LLM INTEGRATION ─────────────────────────────────────── -->
+
+<div class="section" id="llm">
+  <div class="section-num">Section 11</div>
+  <h2>LLM Integration</h2>
+
+  <h3>Model Registry</h3>
+  <p>All LLM calls route through a central registry at <code>lib/ai/models.ts</code>. Feature code asks for a job slug; the registry resolves the model. No model ID ever appears in feature code.</p>
+
+  <div class="code-block">
+    <div class="code-header">How It Works</div>
+    <pre><span class="comment">// Feature code:</span>
+<span class="kw">const</span> raw = <span class="kw">await</span> <span class="type">invokeLlmText</span>({
+  job: <span class="str">"content-studio-generate-copy"</span>,  <span class="comment">// ← job slug, never a model ID</span>
+  system: COPY_SYSTEM_PROMPT,
+  prompt: buildPrompt(brief),
+  maxTokens: <span class="num">1024</span>,
+});
+
+<span class="comment">// Registry resolves: "content-studio-generate-copy" → "sonnet" → "claude-sonnet-4-6"</span></pre>
+  </div>
+
+  <h3>Content-Related Job Slugs</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Job Slug</th><th>Tier</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>content-studio-generate-copy</code></td><td>Sonnet</td><td>Generate copy for Content Studio posts from brief</td></tr>
+        <tr><td><code>content-studio-correct-copy</code></td><td>Sonnet</td><td>Apply corrections to existing copy</td></tr>
+        <tr><td><code>content-studio-pick-template</code></td><td>Haiku</td><td>Select best template for a brief</td></tr>
+        <tr><td><code>content-score-keyword-rankability</code></td><td>Haiku</td><td>Score keyword + identify content gaps from SERP data</td></tr>
+        <tr><td><code>content-generate-topic-outline</code></td><td>Haiku</td><td>Generate structured blog outline from keyword + gaps</td></tr>
+        <tr><td><code>content-generate-blog-post</code></td><td>Opus</td><td>Full blog post from outline + Brand DNA (the big one)</td></tr>
+        <tr><td><code>content-rewrite-for-newsletter</code></td><td>Haiku</td><td>Rewrite blog post(s) for email format</td></tr>
+        <tr><td><code>content-generate-social-draft</code></td><td>Haiku</td><td>Per-platform social media draft from blog post</td></tr>
+        <tr><td><code>content-select-visual-template</code></td><td>Haiku</td><td>Pick visual template for social draft</td></tr>
+        <tr><td><code>content-generate-image-prompt</code></td><td>Haiku</td><td>Generate AI image prompt when no template fits</td></tr>
+        <tr><td><code>content-match-content-to-prospects</code></td><td>Haiku</td><td>Score published post against prospect pool</td></tr>
+        <tr><td><code>content-draft-outreach-email</code></td><td>Opus</td><td>Draft content-forward outreach email for matched prospects</td></tr>
+        <tr><td><code>content-generate-embed-form-styles</code></td><td>Haiku</td><td>Generate Brand DNA-styled embed form CSS</td></tr>
+        <tr><td><code>instagram-draft-caption</code></td><td>Sonnet</td><td>Draft Instagram caption from Content Studio post</td></tr>
+        <tr><td><code>instagram-classify-inbound</code></td><td>Haiku</td><td>Classify comments/DMs (lead, complaint, collab, etc.)</td></tr>
+        <tr><td><code>instagram-draft-comment-reply</code></td><td>Sonnet</td><td>Generate reply to Instagram comment</td></tr>
+        <tr><td><code>instagram-draft-dm-reply</code></td><td>Sonnet</td><td>Generate reply to Instagram DM</td></tr>
+        <tr><td><code>instagram-strategy-digest</code></td><td>Sonnet</td><td>Weekly performance analysis + content recommendations</td></tr>
+        <tr><td><code>talking-head-generate-script</code></td><td>Opus</td><td>Generate camera script across 6 content pillars</td></tr>
+        <tr><td><code>drift-check-grader</code></td><td>Haiku</td><td>Grade brand-voice drift on generated content</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The Copy System Prompt</h3>
+  <div class="callout">
+    <div class="callout-label">Voice Rules</div>
+    <p>Dry, observational, self-deprecating. Never explain the joke. Short sentences. Leave room for the mutter. Ban &ldquo;synergy&rdquo;, &ldquo;leverage&rdquo;, &ldquo;solutions&rdquo;, &ldquo;elevate&rdquo;, &ldquo;game-changer&rdquo;. Real first. Headlines punchy and typographic. Taglines quieter, italic, one line. Return ONLY valid JSON.</p>
+  </div>
+
+  <h3>Brand DNA as Perpetual Context</h3>
+  <p>Every content generation call reads the owner&rsquo;s Brand DNA profile. The injection follows a tiered pattern:</p>
+  <ul>
+    <li><strong>Haiku calls</strong> (research, outlines, social drafts, newsletter rewrites) &mdash; signal tags only</li>
+    <li><strong>Opus calls</strong> (blog generation, outreach emails) &mdash; full prose portrait + first impression + signal tags</li>
+    <li><strong>Sonnet calls</strong> (Content Studio copy, Instagram captions) &mdash; brand voice rules as system prompt</li>
+  </ul>
+
+  <h3>Cost Logging</h3>
+  <p>Every LLM call logs input/output token counts and estimated AUD cost to <code>external_call_log</code> via the Cost &amp; Usage Observatory. Logging is fire-and-forget &mdash; never blocks the response or throws on insert failure. Actor attribution tracks whether the call was internal (SuperBad), external (client), shared, or prospect.</p>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Start with the template system.</strong> The <code>TemplateDef</code> interface is the foundation. Get one template rendering to PNG via Puppeteer before touching anything else. The <code>renderHtml()</code> method is just string interpolation &mdash; no framework magic, just HTML with inline CSS.</li>
+
+    <li><strong>The layout system is just maths.</strong> <code>computeLayout()</code> takes a config and canvas dimensions, returns pixel values. Build a preview that updates in real-time as you tweak sliders. The 10 presets are just hardcoded <code>MotionLayoutConfig</code> objects.</li>
+
+    <li><strong>Puppeteer needs a real Chromium binary.</strong> The <code>resolveExecutablePath()</code> helper finds the local Chrome/Chromium install. On CI/production, install <code>puppeteer</code> (with bundled Chromium) instead of <code>puppeteer-core</code>. The 2&times; device scale factor is important &mdash; without it, renders look fuzzy on retina screens.</li>
+
+    <li><strong>Remotion bundles once.</strong> The webpack bundle is cached via a module-level promise. First render is slow (~5s for the bundle), subsequent renders are fast. If you change a composition component, you need to restart the server to invalidate the bundle cache.</li>
+
+    <li><strong>Motion and static share copy slots.</strong> Paired motion templates declare the same <code>copySlots</code> as their static counterpart. Copy generated for a static post works for its motion version. The promote-to-motion flow exploits this directly.</li>
+
+    <li><strong>The Content Engine pipeline is gated at every step.</strong> Kill switches (<code>content_automations_enabled</code>, <code>content_newsletter_enabled</code>) gate the pipeline. The one-draft-maximum rule prevents runaway generation. The drift check prevents off-voice content from reaching subscribers. Build these gates first, then the generation logic.</li>
+
+    <li><strong>Brand DNA is not optional for the Content Engine.</strong> Without a completed Brand DNA profile, the engine falls back to generic voice descriptors (&ldquo;professional, clear, approachable&rdquo;). The entire value proposition is voice-matched content. Build and test with real Brand DNA profiles from the start.</li>
+
+    <li><strong>Newsletter scheduling is timezone-aware.</strong> The <code>computeNextSendWindow()</code> function uses <code>Intl.DateTimeFormat</code> for DST-safe conversions. Don&rsquo;t use naive UTC offsets &mdash; Melbourne switches between AEST and AEDT, and the send window needs to land at the right local time year-round.</li>
+
+    <li><strong>SerpAPI is the expensive call.</strong> Keyword research hits a paid API with per-query pricing. The weekly research cadence is intentional &mdash; don&rsquo;t increase it without understanding the cost impact. Ranking snapshots are similarly paced.</li>
+
+    <li><strong>Instagram Graph API has aggressive rate limits.</strong> Respect the container creation &rarr; publish &rarr; poll cycle. Carousel posts require child containers created before the parent. The 30-second polling timeout on publish status is a practical ceiling before giving up and logging the failure.</li>
+
+    <li><strong>Font pairings need the actual font files.</strong> Eight font pairings are defined, each mapping to woff2 files in <code>/public/fonts/</code>. For Puppeteer (server) rendering, fonts are loaded via <code>file://</code> URLs. For browser preview, via <code>/fonts/</code>. If fonts look wrong, check the path resolution in <code>getFontFacesForServer()</code> vs <code>getFontFacesForBrowser()</code>.</li>
+
+    <li><strong>The model registry is the single source of truth for LLM costs.</strong> Changing a job from Opus to Haiku is a one-line edit in <code>lib/ai/models.ts</code>. No feature code changes required. This is how you control costs &mdash; move jobs between tiers based on quality requirements and budget.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">The Content Studio and Content Engine share a philosophy: the human provides direction, the machine does the labour, and Brand DNA is the bridge between generic and genuine. Every LLM call, every template render, every newsletter rewrite reads the same personality profile. That&rsquo;s the product. Everything else is plumbing.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

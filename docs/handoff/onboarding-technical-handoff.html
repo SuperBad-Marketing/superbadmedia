@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onboarding System — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); font-weight: 700; }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Onboarding System</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the Onboarding system &mdash; the two-path journey that turns a payment into a fully profiled, portal-ready client.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the Onboarding System Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#retainer"><span class="num">03</span> Retainer Onboarding Flow</a>
+    <a href="#saas"><span class="num">04</span> SaaS Onboarding Flow</a>
+    <a href="#trial-shoot"><span class="num">05</span> Trial Shoot Flow</a>
+    <a href="#wizards"><span class="num">06</span> Setup Wizards</a>
+    <a href="#revenue-seg"><span class="num">07</span> Revenue Segmentation</a>
+    <a href="#get-started"><span class="num">08</span> Get-Started Funnel</a>
+    <a href="#nudges"><span class="num">09</span> Nudge Scheduling</a>
+    <a href="#database"><span class="num">10</span> Database Schema</a>
+    <a href="#integration"><span class="num">11</span> Integration with Other Systems</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE ONBOARDING SYSTEM DOES ──────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the Onboarding System Does</h2>
+  <p>The Onboarding System is a composition layer that takes two very different kinds of paying customers &mdash; retainer clients who pay thousands per month for hands-on marketing and SaaS subscribers who self-serve for $19&ndash;$897/month &mdash; and walks them both through a structured sequence that ends with a complete Brand DNA profile, an authenticated portal account, and enough data for the platform to work on their behalf from day one.</p>
+  <p>There are two distinct paths, with a shared core:</p>
+  <ul>
+    <li><strong>Retainer path (4 steps):</strong> Welcome &rarr; Brand DNA Assessment &rarr; Practical Setup &rarr; Credential Creation</li>
+    <li><strong>SaaS path (5 steps):</strong> Welcome &rarr; Brand DNA Assessment &rarr; Revenue Segmentation &rarr; Product Config &rarr; Credential Creation</li>
+  </ul>
+  <p>Brand DNA is a hard gate. No client or subscriber gets product access until they complete the ~30 minute personality assessment. This is a deliberate quality decision, not an oversight &mdash; the platform is better because every user has a full profile.</p>
+  <p>There is also a third entry path: the <strong>Trial Shoot</strong> via the Intro Funnel. Trial shoot prospects are not &ldquo;onboarded&rdquo; in the traditional sense &mdash; they go through a separate funnel (landing page &rarr; questionnaire &rarr; payment &rarr; booking &rarr; shoot &rarr; deliverables &rarr; reflection) and only enter the retainer or SaaS onboarding path if they convert.</p>
+  <p class="mutter">Two audiences, one promise: by the time you reach the product, we already know who you are.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>The Orchestrator Pattern</h3>
+  <p>The onboarding system owns no state table. Instead, it reads from the primitives it composes &mdash; Brand DNA profile status, Revenue Segmentation timestamps, wizard completion records, user credential state &mdash; and derives the current step at read time. This is a thin orchestration layer, not a state machine.</p>
+
+  <div class="diagram"><pre><span class="highlight">getOnboardingState</span>(companyId, audience) → <span class="accent">OnboardingState</span>
+
+  Reads:
+    <span class="dim">brand_dna_profiles.status</span>           → is Brand DNA complete?
+    <span class="dim">companies.revenue_segmentation_completed_at_ms</span> → Rev Seg done? (SaaS only)
+    <span class="dim">wizard_completions</span>                   → practical setup done? (retainer only)
+    <span class="dim">user.emailVerified</span>                   → credentials created?
+    <span class="dim">contacts.onboarding_welcome_seen_at_ms</span> → welcome screen shown?
+
+  Returns:
+    { <span class="accent">currentStep</span>, <span class="accent">completedSteps</span>, <span class="accent">totalSteps</span>, <span class="accent">audience</span> }</pre></div>
+
+  <h3>Entry Points</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Audience</th><th>Trigger</th><th>What Happens</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Retainer</td>
+          <td>Quote accepted via Quote Builder</td>
+          <td>Deal &rarr; Won, welcome email + portal token generated, onboarding nudges scheduled</td>
+        </tr>
+        <tr>
+          <td>SaaS</td>
+          <td>Stripe payment success</td>
+          <td>Company + contact auto-created, welcome email sent, onboarding nudges scheduled</td>
+        </tr>
+        <tr>
+          <td>Trial shoot</td>
+          <td>Section 1 form submit on <code>/trial-shoot</code></td>
+          <td>Enters Intro Funnel &mdash; separate flow, may convert to retainer/SaaS later</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Portal Auth Model</h3>
+  <div class="diagram"><pre><span class="highlight">First visit:</span>  /portal/[token]  <span class="dim">→ token-based access, no login needed</span>
+                                  <span class="dim">→ token authenticates the session for onboarding</span>
+
+<span class="highlight">Final step:</span>   Credential creation  <span class="dim">→ "Confirm your email — this is how you'll log in"</span>
+                                     <span class="dim">→ magic link email sent → first authenticated login</span>
+
+<span class="highlight">After that:</span>   /portal  <span class="dim">→ standard Auth.js magic link authentication</span>
+                       <span class="dim">→ token-based URL redirects to standard auth</span></pre></div>
+
+  <p>Tokens are single-use for initial authentication, scoped to one client, and expire after 30 days if unused. No passwords anywhere. Magic link only via Auth.js v5.</p>
+</div>
+
+<!-- ── 3. RETAINER ONBOARDING FLOW ─────────────────────────────── -->
+
+<div class="section" id="retainer">
+  <div class="section-num">Section 03</div>
+  <h2>Retainer Onboarding Flow</h2>
+
+  <p>The retainer flow is deeper and more personal. Every retainer client enters via quote acceptance &mdash; no alternative trigger. This means the system always has deal context, quote details, and sales conversation history to personalise with.</p>
+
+  <h3>The 4-Step Journey</h3>
+
+  <div class="diagram"><pre><span class="highlight">Quote Accepted</span>
+  <span class="dim">│</span>
+  <span class="dim">├──</span> Company + contact already exist (from sales process)
+  <span class="dim">├──</span> Welcome email sent (Claude-drafted, drift-checked)
+  <span class="dim">├──</span> Portal token generated
+  <span class="dim">├──</span> Onboarding nudge scheduled (24h)
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 1 — Welcome Screen</span> (/portal/[token])
+  <span class="dim">│  Client name (large, prominent)</span>
+  <span class="dim">│  Dry SuperBad-voice welcome line</span>
+  <span class="dim">│  "What we already know about you" — Opus-generated summary</span>
+  <span class="dim">│  Step preview with time estimates</span>
+  <span class="dim">│  Single CTA: "Let's get started"</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 2 — Brand DNA Assessment</span> (~30 min)
+  <span class="dim">│  Hard gate — must complete before proceeding</span>
+  <span class="dim">│  Full 98-question assessment, cinematic reveal at end</span>
+  <span class="dim">│  If abandoned: resume screen on return</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 3 — Practical Setup</span> (return-when-ready)
+  <span class="dim">│  Three independent wizard steps, any order:</span>
+  <span class="dim">│  ├── Contact details (names, emails, phone numbers)</span>
+  <span class="dim">│  ├── Ad account access (Meta Business Manager, Google Ads wizards)</span>
+  <span class="dim">│  └── Content archive links (Google Drive, Dropbox, etc.)</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 4 — Credential Creation</span>
+  <span class="dim">│  "Confirm your email — this is how you'll log in"</span>
+  <span class="dim">│  Magic link email sent → first authenticated login</span>
+  <span class="dim">│  Token-based access expires</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="highlight">Portal Access — Full retainer client</span></pre></div>
+
+  <h3>Entry-Path Branching</h3>
+  <p>Not all retainer clients see the welcome screen. Trial-shoot graduates who convert to retainer <strong>bypass the welcome screen entirely</strong> &mdash; their portal experience is continuous, and a fresh &ldquo;welcome to SuperBad&rdquo; interstitial would break the lived continuity.</p>
+
+  <div class="callout">
+    <div class="callout-label">Detection Logic</div>
+    <p>Trial-shoot graduate = a row exists in <code>intro_funnel_submissions</code> for this contact&rsquo;s company. Direct/referral = no such row. The welcome screen only renders for direct/referral entrants.</p>
+  </div>
+
+  <h3>The &ldquo;What We Already Know&rdquo; Paragraph</h3>
+  <p>This is the highest-leverage creative moment in the onboarding spec. An Opus LLM call reads deal notes, quote context, and outreach research &mdash; all unstructured data &mdash; and synthesises a warm, observant paragraph that makes the client feel known before the assessment starts. If it&rsquo;s generic or wrong, the welcome screen fails.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/onboarding/generate-welcome-summary.ts</div>
+    <pre><span class="kw">interface</span> <span class="type">GenerateWelcomeSummaryInput</span> {
+  customerName: <span class="type">string</span>;
+  companyName: <span class="type">string</span>;
+  dealContext: <span class="type">string</span>;               <span class="comment">// deal notes, quote, outreach research</span>
+  superbadBrandDna: <span class="type">BrandDnaProfile</span>; <span class="comment">// SuperBad's own voice profile</span>
+}
+
+<span class="comment">// Prompt instructions:</span>
+<span class="comment">// - 3-5 sentences, warm, observant, specific to THIS client</span>
+<span class="comment">// - Reference something concrete from context</span>
+<span class="comment">// - Admin-roommate register: perceptive, wry, never pitchy</span>
+<span class="comment">// - Source hierarchy: client-supplied > direct answers > owned web > scrapes > LLM inference</span></pre>
+  </div>
+</div>
+
+<!-- ── 4. SAAS ONBOARDING FLOW ────────────────────────────────── -->
+
+<div class="section" id="saas">
+  <div class="section-num">Section 04</div>
+  <h2>SaaS Onboarding Flow</h2>
+
+  <p>The SaaS flow is standardised but holds to the same quality bar. Every subscriber completes a full Brand DNA profile before product access &mdash; no shortcuts, no skip buttons.</p>
+
+  <h3>The 5-Step Journey</h3>
+
+  <div class="diagram"><pre><span class="highlight">Stripe Payment Success</span>
+  <span class="dim">│</span>
+  <span class="dim">├──</span> <span class="accent">createCompanyFromSignup()</span> auto-creates company + contact
+  <span class="dim">│   (even solo operators get a company record — Rev Seg lives there)</span>
+  <span class="dim">├──</span> Welcome email sent (Claude-drafted with graceful degradation)
+  <span class="dim">├──</span> Portal token generated
+  <span class="dim">├──</span> Onboarding nudge chain started (24h → 72h → weekly)
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 1 — Welcome Screen</span> (/portal/[token])
+  <span class="dim">│  Customer name + dry welcome line + step preview</span>
+  <span class="dim">│  No pre-populated summary (insufficient context for cold signups)</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 2 — Brand DNA Assessment</span> (~30 min)
+  <span class="dim">│  Hard gate — identical assessment as retainer clients</span>
+  <span class="dim">│  Abandoned: "Welcome back. You're X% through."</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 3 — Revenue Segmentation</span> (~2 min)
+  <span class="dim">│  5 multiple-choice questions about the business</span>
+  <span class="dim">│  Stored as columns on the companies table</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 4 — Product Config</span> (~3–5 min)
+  <span class="dim">│  Product-specific setup wizard per interface contract</span>
+  <span class="dim">│  Receives company record with Brand DNA + Rev Seg data</span>
+  <span class="dim">│  Must complete in under 5 minutes</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="accent">Step 5 — Credential Creation</span>
+  <span class="dim">│  Same as retainer: confirm email, magic link, first login</span>
+  <span class="dim">│</span>
+  <span class="dim">▼</span>
+<span class="highlight">Product Unlocked → firstRunView</span>
+  <span class="dim">Pre-populated where outreach data exists</span></pre></div>
+
+  <h3>Company Auto-Creation</h3>
+  <p>On Stripe payment success, the system creates a company and contact record in a single transaction. Solo operators who skip the business name field get their full name as the company name &mdash; the record exists so Revenue Segmentation and location data always have a home on <code>companies</code>.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/onboarding/create-company-from-signup.ts</div>
+    <pre><span class="kw">function</span> <span class="type">createCompanyFromSignup</span>(input: {
+  name: <span class="type">string</span>;          <span class="comment">// customer's full name</span>
+  email: <span class="type">string</span>;         <span class="comment">// customer email</span>
+  businessName?: <span class="type">string</span>; <span class="comment">// falls back to name for solo operators</span>
+  location?: <span class="type">string</span>;     <span class="comment">// free text, e.g. "Melbourne, VIC"</span>
+  phone?: <span class="type">string</span>;
+  industry?: <span class="type">string</span>;
+}): { companyId, contactId, companyName }
+
+<span class="comment">// Transaction creates:</span>
+<span class="comment">// 1. companies row (billing_mode: 'stripe')</span>
+<span class="comment">// 2. contacts row (is_primary: true, relationship_type: 'client')</span></pre>
+  </div>
+
+  <h3>Product Config Interface Contract</h3>
+  <p>Every SaaS product declares a metadata object and two components. The onboarding orchestrator renders the config wizard as one step in the sequence, then hands off to the product entirely at first run.</p>
+
+  <div class="code-block">
+    <div class="code-header">Product Contract</div>
+    <pre><span class="comment">// Metadata — read by the orchestrator for step previews + nudge emails</span>
+{ name: <span class="str">"ContentEngine"</span>,
+  description: <span class="str">"one-line plain-English description"</span>,
+  configStepCount: <span class="num">3</span>,
+  estimatedConfigTime: <span class="str">"about 3 minutes"</span> }
+
+<span class="comment">// productConfig component</span>
+<span class="comment">// Receives: company record (Brand DNA + Rev Seg + outreach research)</span>
+<span class="comment">// Format: setup wizard, back/next nav, under 5 min</span>
+<span class="comment">// Returns: configComplete signal to orchestrator</span>
+
+<span class="comment">// firstRunView component</span>
+<span class="comment">// The customer's first moment inside the unlocked product</span>
+<span class="comment">// Must show value immediately — pre-populated where data exists</span></pre>
+  </div>
+</div>
+
+<!-- ── 5. TRIAL SHOOT FLOW ────────────────────────────────────── -->
+
+<div class="section" id="trial-shoot">
+  <div class="section-num">Section 05</div>
+  <h2>Trial Shoot Flow</h2>
+
+  <p>The trial shoot is SuperBad&rsquo;s primary customer acquisition surface. A $297 on-site photography/video shoot that functions as both a lead qualifier and a relationship builder. The experience lives in the Intro Funnel &mdash; a separate system from onboarding proper, but a critical feeder into it.</p>
+
+  <h3>The 12-Stage Funnel State Machine</h3>
+  <div class="diagram"><pre><span class="highlight">contact_submitted</span>         <span class="dim">Section 1 form → deal created at Trial Shoot stage</span>
+  <span class="dim">↓</span>
+<span class="accent">questionnaire_in_progress</span>  <span class="dim">Shape-branched questions, one per screen</span>
+  <span class="dim">↓</span>
+<span class="accent">questionnaire_complete</span>     <span class="dim">"Pay now & book" card activates</span>
+  <span class="dim">↓</span>
+<span class="highlight">paid</span>                       <span class="dim">Stripe Payment Element, cinematic reveal</span>
+  <span class="dim">↓</span>
+<span class="accent">shoot_booked</span>               <span class="dim">Native calendar, 5-day advance + 3/week cap</span>
+  <span class="dim">↓</span>
+<span class="accent">shoot_approaching</span>          <span class="dim">48h out — automatic transition</span>
+  <span class="dim">↓</span>
+<span class="accent">shoot_morning_of</span>           <span class="dim">Day of the shoot</span>
+  <span class="dim">↓</span>
+<span class="accent">shoot_completed_awaiting_deliverables</span>
+  <span class="dim">↓</span>
+<span class="highlight">deliverables_ready</span>         <span class="dim">Gallery + six-week plan both approved → bundled release</span>
+  <span class="dim">↓</span>
+<span class="accent">reflection_complete</span>        <span class="dim">8-question self-persuasion arc + Claude synthesis</span>
+  <span class="dim">↓</span>
+<span class="accent">portal_dormant</span>             <span class="dim">60 days post-shoot, then archive</span>
+  <span class="dim">↓</span>
+<span class="accent">portal_archived_migrated</span>   <span class="dim">Won → migrated to full client portal</span></pre></div>
+
+  <h3>Key Design Details</h3>
+  <ul>
+    <li><strong>60 minutes on-site only.</strong> No studio variant in v1.</li>
+    <li><strong>A bespoke six-week marketing plan</strong> is included as a deliverable alongside the photo/video output.</li>
+    <li><strong>Reschedule is free up to 48h before</strong> the shoot. Inside 48h, the booking is lost (extenuating circumstances case-by-case).</li>
+    <li><strong>Deliverables are bundled</strong> &mdash; gallery and six-week plan must both be ready before the portal flips. Whichever lands second fires the transition.</li>
+    <li><strong>Non-converter portal lifecycle:</strong> 60 days of access post-shoot-completion, then the portal archives. The six-week plan PDF is emailed one last time. Cloudinary gallery media persists.</li>
+  </ul>
+
+  <h3>Shape-Branched Questionnaire</h3>
+  <p>A single branching dimension drives the questionnaire variant: <code>solo_founder</code> / <code>founder_led_team</code> / <code>multi_stakeholder_company</code>. Three variants across 4 sections yield 12 question banks. The shape is captured at Section 1 submit and written to both the submission snapshot and the canonical <code>companies.shape</code> column.</p>
+
+  <h3>Retainer-Fit Recommendation</h3>
+  <p>After the reflection questionnaire, Claude Opus generates a structured recommendation: <code>retainer</code> / <code>saas</code> / <code>neither</code> / <code>either_strong</code> with confidence level and reasoning. This surfaces in the Daily Cockpit for Andy&rsquo;s review &mdash; never shown to the prospect.</p>
+
+  <div class="code-block">
+    <div class="code-header">intro_funnel_retainer_fit columns</div>
+    <pre>recommendation_type: <span class="str">"retainer"</span> | <span class="str">"saas"</span> | <span class="str">"neither"</span> | <span class="str">"either_strong"</span>
+confidence:          <span class="str">"high"</span> | <span class="str">"medium"</span> | <span class="str">"low"</span>
+reasoning_text:      <span class="type">string</span>   <span class="comment">// Opus-generated reasoning</span>
+flags_json:          <span class="type">JSON</span>     <span class="comment">// structured concern flags</span>
+drift_check_passed:  <span class="type">boolean</span>  <span class="comment">// brand-voice check on the reasoning</span></pre>
+  </div>
+</div>
+
+<!-- ── 6. SETUP WIZARDS ───────────────────────────────────────── -->
+
+<div class="section" id="wizards">
+  <div class="section-num">Section 06</div>
+  <h2>Setup Wizards</h2>
+
+  <p>Every integration, configuration, and multi-step setup task in the platform runs through a shared wizard shell. No raw forms. No self-serve config panels. Every setup is hand-held, step-by-step, with save-and-resume, a completion ceremony, and a typed completion contract.</p>
+
+  <h3>Shell Architecture</h3>
+  <div class="diagram"><pre><span class="highlight">WizardShell</span> <span class="dim">(routing, save-resume, progress, cancel, audience tone)</span>
+  <span class="dim">└──</span> <span class="accent">Wizard instance</span> <span class="dim">(specific wizard: Stripe, Cloudinary, Brand DNA, etc.)</span>
+       <span class="dim">└──</span> <span class="accent">Step instance</span> <span class="dim">(one screen in the wizard)</span>
+            <span class="dim">└──</span> <span class="highlight">Step type</span> <span class="dim">(form | oauth-consent | api-key-paste | webhook-probe |</span>
+                       <span class="dim"> dns-verify | csv-import | async-check | content-picker |</span>
+                       <span class="dim"> review-and-confirm | celebration | custom)</span></pre></div>
+
+  <h3>Wizard Definition Shape</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript — WizardDefinition</div>
+    <pre><span class="kw">type</span> <span class="type">WizardDefinition</span>&lt;TCompletionPayload&gt; = {
+  key: <span class="type">string</span>;                    <span class="comment">// 'stripe-admin', 'onboarding-segmentation', etc.</span>
+  audience: <span class="str">'admin'</span> | <span class="str">'client'</span>;
+  renderMode: <span class="str">'slideover'</span> | <span class="str">'dedicated-route'</span>;
+  steps: <span class="type">WizardStepDefinition</span>[];
+  completionContract: <span class="type">CompletionContract</span>&lt;TCompletionPayload&gt;;
+  vendorManifest?: <span class="type">VendorManifest</span>;
+  voiceTreatment: {
+    introCopy: <span class="type">string</span>;
+    outroCopy: <span class="type">string</span>;
+    tabTitlePool: <span class="type">TabTitlePool</span>;
+    capstone?: <span class="type">CapstoneConfig</span>;
+  };
+};</pre>
+  </div>
+
+  <h3>Two Rendering Modes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mode</th><th>When Used</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>slideover</code></td>
+          <td>Default for integrations + configs</td>
+          <td>Parent surface behind with backdrop blur, 60% width desktop, 100% mobile</td>
+        </tr>
+        <tr>
+          <td><code>dedicated-route</code></td>
+          <td>Flagship flows: Brand DNA, Onboarding, Intro Funnel</td>
+          <td>Full-page takeover at the wizard&rsquo;s canonical URL</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Audience Tone Switching</h3>
+  <p>One shell, two personalities. The <code>audience</code> prop drives spacing (compact vs generous), copy register (terse vs branded), celebration intensity (quiet check vs cinematic motion), and sprinkle eligibility.</p>
+
+  <h3>Completion Contract</h3>
+  <p>The shell refuses to mark a wizard complete without the required artefacts. The contract declares which keys must be present in the payload, runs a real <code>verify()</code> call against the vendor, and specifies which database rows must exist. If verification fails, the step rewinds and shows a branded error message.</p>
+
+  <h3>Save-and-Resume</h3>
+  <p>Auto-saves every step. Deep-link resume URLs. A <code>wizard_progress</code> row tracks the in-flight state. 24h email nudge for abandoned wizards. 30-day expiry with a day-29 warning. Non-resumable steps (like OAuth consent) rewind to the last safe step.</p>
+
+  <h3>10 Step Types + Custom Escape Hatch</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Type</th><th>Purpose</th><th>Resumable</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>form</code></td><td>Fields with Zod schema validation</td><td>Yes</td></tr>
+        <tr><td>2</td><td><code>oauth-consent</code></td><td>OAuth redirect flows</td><td>No</td></tr>
+        <tr><td>3</td><td><code>api-key-paste</code></td><td>Key paste + immediate test-call</td><td>Yes</td></tr>
+        <tr><td>4</td><td><code>webhook-probe</code></td><td>Wait for incoming webhook event</td><td>No</td></tr>
+        <tr><td>5</td><td><code>dns-verify</code></td><td>DNS record check with 10s retry</td><td>No</td></tr>
+        <tr><td>6</td><td><code>csv-import</code></td><td>Upload + preview + field-map + confirm</td><td>Partial</td></tr>
+        <tr><td>7</td><td><code>async-check</code></td><td>Wait for background job completion</td><td>Yes</td></tr>
+        <tr><td>8</td><td><code>content-picker</code></td><td>3-option card grid (Brand DNA style)</td><td>Yes</td></tr>
+        <tr><td>9</td><td><code>review-and-confirm</code></td><td>Summary of all prior steps</td><td>Yes</td></tr>
+        <tr><td>10</td><td><code>celebration</code></td><td>Always the final step &mdash; motion + sound + outro</td><td>N/A</td></tr>
+        <tr><td>11</td><td><code>custom</code></td><td>Arbitrary JSX inside the shell chrome</td><td>Declared per-use</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Critical Flight (Admin First-Run)</h3>
+  <p>Three wizards must complete in fixed order on first admin sign-in: <strong>Stripe</strong> &rarr; <strong>Resend</strong> (email) &rarr; <strong>Graph API</strong> (mailbox). They run as one continuous arc. The capstone moment after the third wizard: &ldquo;SuperBad is open for business.&rdquo;</p>
+</div>
+
+<!-- ── 7. REVENUE SEGMENTATION ────────────────────────────────── -->
+
+<div class="section" id="revenue-seg">
+  <div class="section-num">Section 07</div>
+  <h2>Revenue Segmentation</h2>
+
+  <p>A structured short questionnaire capturing business-stage data for upsell targeting. SaaS-only &mdash; retainer clients do not complete it (they&rsquo;re already in a direct relationship).</p>
+
+  <h3>Five Questions</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Question</th><th>Options</th><th>Column</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Q1</td>
+          <td>Monthly revenue</td>
+          <td>Under $250K / $250K&ndash;$500K / $500K&ndash;$1M / $1M&ndash;$3M / $3M+</td>
+          <td><code>revenue_range</code></td>
+        </tr>
+        <tr>
+          <td>Q2</td>
+          <td>Team size</td>
+          <td>Just me / 2&ndash;5 / 6&ndash;15 / 16&ndash;50 / 50+</td>
+          <td><code>team_size</code></td>
+        </tr>
+        <tr>
+          <td>Q3</td>
+          <td>Biggest constraint</td>
+          <td>6 plain-spoken options (e.g. &ldquo;Not enough of the right customers&rdquo;)</td>
+          <td><code>biggest_constraint</code></td>
+        </tr>
+        <tr>
+          <td>Q4</td>
+          <td>12-month goal</td>
+          <td>5 options: steady / grow / scale / launch new / figure out</td>
+          <td><code>twelve_month_goal</code></td>
+        </tr>
+        <tr>
+          <td>Q5</td>
+          <td>Industry vertical</td>
+          <td>8 broad categories + Other with free-text</td>
+          <td><code>industry_vertical</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>All five answers are stored as <strong>columns directly on the <code>companies</code> table</strong>. No separate table, no JSON blob. This is deliberate &mdash; Revenue Segmentation data is queried alongside company records for upsell filtering, and denormalising it avoids joins in every pipeline query.</p>
+
+  <h3>Upsell Targeting Layer</h3>
+  <p>Revenue Segmentation feeds a two-tier upsell model evaluated by <code>evaluateUpsellTier(companyId)</code>:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier</th><th>Criteria</th><th>Surface</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Warm</strong></td>
+          <td>Revenue $500K+ <strong>OR</strong> logged in 10+ of last 14 days. Must match location gate.</td>
+          <td>Pipeline &ldquo;Upsell candidates&rdquo; filter</td>
+        </tr>
+        <tr>
+          <td><strong>Hot</strong></td>
+          <td>Revenue $500K+ <strong>AND</strong> high engagement (10+ login days + 3+ features) <strong>AND</strong> goal = scale/launch. Must match location gate.</td>
+          <td>Daily Cockpit alert</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>All thresholds read from <code>settings.get()</code> &mdash; no hardcoded values. The location gate defaults to Victoria, Australia and is configurable for geographic expansion.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/onboarding/upsell-targeting.ts — Return Shape</div>
+    <pre><span class="kw">interface</span> <span class="type">UpsellEvaluation</span> {
+  tier: <span class="str">"hot"</span> | <span class="str">"warm"</span> | <span class="str">"none"</span>;
+  revenueQualified: <span class="type">boolean</span>;
+  engagementQualified: <span class="type">boolean</span>;
+  goalAligned: <span class="type">boolean</span>;
+  locationMatch: <span class="type">boolean</span>;
+  loginDays: <span class="type">number</span>;
+  featureAreas: <span class="type">number</span>;
+}</pre>
+  </div>
+</div>
+
+<!-- ── 8. GET-STARTED FUNNEL ──────────────────────────────────── -->
+
+<div class="section" id="get-started">
+  <div class="section-num">Section 08</div>
+  <h2>Get-Started Funnel</h2>
+
+  <p>The get-started funnel is not a single page &mdash; it&rsquo;s the constellation of public-facing entry points that feed into the onboarding system. Three surfaces converge on the same eventual outcome: a paying customer entering the onboarding sequence.</p>
+
+  <h3>Three Entry Surfaces</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Surface</th><th>URL</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Trial Shoot Landing</strong></td>
+          <td><code>/trial-shoot</code></td>
+          <td>Editorial landing page &rarr; contact form &rarr; questionnaire &rarr; Stripe payment &rarr; calendar booking. The warm acquisition path.</td>
+        </tr>
+        <tr>
+          <td><strong>Free Audit Tool</strong></td>
+          <td><code>/get-started/audit</code></td>
+          <td>Business name + URL &rarr; automated enrichment pipeline &rarr; graded A&ndash;F scorecard with branded PDF report. Creates a warm lead with auto-drafted follow-up referencing their weakest score.</td>
+        </tr>
+        <tr>
+          <td><strong>SaaS Product Pages</strong></td>
+          <td><code>/products/[slug]</code></td>
+          <td>Interactive demo + pricing comparison &rarr; checkout with Stripe Payment Element &rarr; onboarding triggers on payment success.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>SaaS Checkout Shape</h3>
+  <p>SaaS checkout uses an anti-conventional pricing model. Three commitment cards framed around identity, not discounts:</p>
+  <ul>
+    <li><strong>Getting started</strong> (monthly) &mdash; same per-month price + one-time setup fee</li>
+    <li><strong>Committed</strong> (annual, monthly-billed) &mdash; same per-month price, no setup fee, 12-month commitment</li>
+    <li><strong>All in</strong> (annual, upfront) &mdash; pay the full year, no setup fee</li>
+  </ul>
+  <p>The setup fee on every new monthly subscription naturally closes the cancel-and-resubscribe loophole. No anti-gaming logic needed.</p>
+
+  <h3>Free Audit Tool &rarr; Pipeline</h3>
+  <p>The audit tool creates a deal via <code>createDealFromLead(source: 'audit_tool')</code> immediately &mdash; no manual step. The auto-drafted follow-up email leads with the customer&rsquo;s weakest category, not a generic pitch. The prospect also receives a branded PDF report (cover page, scorecard, per-category recommendations, earned soft CTA on the final page).</p>
+
+  <div class="callout">
+    <div class="callout-label">Abuse Protection</div>
+    <p>IP rate limit (3 audits per 24h) + invisible Cloudflare Turnstile + honeypot field. Each audit costs ~$0.15&ndash;$0.30 in API calls, so abuse protection is about cost, not just security.</p>
+  </div>
+</div>
+
+<!-- ── 9. NUDGE SCHEDULING ────────────────────────────────────── -->
+
+<div class="section" id="nudges">
+  <div class="section-num">Section 09</div>
+  <h2>Nudge Scheduling</h2>
+
+  <p>Two nudge systems run in parallel: <strong>onboarding nudges</strong> (for non-starters and abandoned Brand DNA) and <strong>practical setup reminders</strong> (for retainer clients who haven&rsquo;t completed their admin tasks). Both use the platform&rsquo;s shared <code>scheduled_tasks</code> worker.</p>
+
+  <h3>Onboarding Nudge Cadence</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Audience</th><th>Cadence</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Retainer</td>
+          <td>Single nudge at 24h</td>
+          <td>One automated reminder. After that, cockpit flag for Andy &mdash; personal follow-up territory.</td>
+        </tr>
+        <tr>
+          <td>SaaS</td>
+          <td>24h &rarr; 72h &rarr; weekly</td>
+          <td>Escalating automated chain. Self-re-enqueuing &mdash; the handler schedules the next nudge when it fires.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Self-Re-Enqueueing Pattern</h3>
+  <p>Nudge handlers are defensive: they re-read onboarding state at fire time and skip if the target step is already complete. When they do send, they enqueue the next nudge in the chain using the <code>scheduled_tasks</code> enqueue primitive with an idempotency key that prevents double-scheduling.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/onboarding/schedule-nudges.ts</div>
+    <pre><span class="kw">async function</span> <span class="type">scheduleOnboardingNudges</span>(input: {
+  contactId: <span class="type">string</span>;
+  companyId: <span class="type">string</span>;
+  audience: <span class="str">"retainer"</span> | <span class="str">"saas"</span>;
+}): <span class="type">Promise</span>&lt;<span class="type">void</span>&gt; {
+  <span class="kw">if</span> (!killSwitches.onboarding_nudges_enabled) <span class="kw">return</span>;
+
+  <span class="kw">const</span> delayHours = audience === <span class="str">"retainer"</span>
+    ? <span class="kw">await</span> settings.get(<span class="str">"onboarding.retainer_non_start_nudge_hours"</span>)
+    : <span class="kw">await</span> settings.get(<span class="str">"onboarding.saas_nudge_first_hours"</span>);
+
+  <span class="kw">await</span> enqueueTask({
+    task_type: <span class="str">"onboarding_nudge_email"</span>,
+    runAt: Date.now() + delayHours * <span class="num">60</span> * <span class="num">60</span> * <span class="num">1000</span>,
+    payload: { contactId, companyId, audience, nudgeIndex: <span class="num">0</span> },
+    idempotencyKey: <span class="str">`onboarding_nudge_${contactId}_0`</span>,
+  });
+}</pre>
+  </div>
+
+  <h3>Practical Setup Reminders</h3>
+  <p>Retainer-only. Per-step targeting &mdash; the reminder only mentions the steps that are actually incomplete. Three wizard keys are tracked: <code>practical-contact-details</code>, <code>practical-ad-accounts</code>, <code>practical-content-archive</code>. Cadence: 24h &rarr; 72h &rarr; weekly until all three are done.</p>
+
+  <h3>Nudge Email Tone</h3>
+  <ul>
+    <li>SaaS nudges reference progress if they started: &ldquo;You&rsquo;re 40% through Brand DNA &mdash; pick up where you left off.&rdquo;</li>
+    <li>Practical setup reminders are brief and specific: &ldquo;Quick one &mdash; we still need your Meta Business Manager access. Takes about 2 minutes.&rdquo;</li>
+    <li>Never guilt. Never &ldquo;your subscription is active but you haven&rsquo;t started.&rdquo;</li>
+    <li>All nudge emails classified as <code>transactional</code> &mdash; bypass the outreach quiet window.</li>
+  </ul>
+
+  <h3>Kill Switches</h3>
+  <p>Both nudge types are gated by <code>onboarding_nudges_enabled</code>. If flipped off, all scheduling and sending silently stops. The wizard resume nudge (<code>wizard_resume_nudge</code>) is a separate system owned by the Setup Wizards spec.</p>
+</div>
+
+<!-- ── 10. DATABASE SCHEMA ─────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 10</div>
+  <h2>Database Schema</h2>
+
+  <p>The onboarding system is notable for what it <strong>doesn&rsquo;t</strong> create. There is no dedicated <code>onboarding</code> table. State is derived from existing primitives at read time. The system does add columns to existing tables and relies on several others.</p>
+
+  <h3>companies (Revenue Segmentation columns)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>revenue_range</code></td><td>enum</td><td><code>under_250k</code> | <code>250k_500k</code> | <code>500k_1m</code> | <code>1m_3m</code> | <code>3m_plus</code></td></tr>
+        <tr><td><code>team_size</code></td><td>enum</td><td><code>solo</code> | <code>2_5</code> | <code>6_15</code> | <code>16_50</code> | <code>50_plus</code></td></tr>
+        <tr><td><code>biggest_constraint</code></td><td>enum</td><td>6 values (e.g. <code>not_enough_right_customers</code>)</td></tr>
+        <tr><td><code>twelve_month_goal</code></td><td>enum</td><td><code>steady</code> | <code>grow</code> | <code>scale</code> | <code>launch_new</code> | <code>figure_out</code></td></tr>
+        <tr><td><code>industry_vertical</code></td><td>enum</td><td>8 values + <code>other</code></td></tr>
+        <tr><td><code>industry_vertical_other</code></td><td>text</td><td>Free-text when <code>industry_vertical = 'other'</code></td></tr>
+        <tr><td><code>location</code></td><td>text</td><td>Geography gate for upsell targeting</td></tr>
+        <tr><td><code>revenue_segmentation_completed_at_ms</code></td><td>integer</td><td>Timestamp when Rev Seg finished</td></tr>
+        <tr><td><code>shape</code></td><td>enum</td><td>Canonical company shape: <code>solo_founder</code> | <code>founder_led_team</code> | <code>multi_stakeholder_company</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>contacts (onboarding column)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>onboarding_welcome_seen_at_ms</code></td><td>integer, nullable</td><td>Set on first render of the welcome screen. One-shot flag to prevent re-showing.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>wizard_progress (in-flight wizard state)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>Primary key</td></tr>
+        <tr><td><code>wizard_key</code></td><td>text</td><td>Matches <code>WizardDefinition.key</code></td></tr>
+        <tr><td><code>user_id</code></td><td>text</td><td>Admin or client user</td></tr>
+        <tr><td><code>audience</code></td><td>enum</td><td><code>admin</code> | <code>client</code></td></tr>
+        <tr><td><code>current_step</code></td><td>integer</td><td>0-indexed step position</td></tr>
+        <tr><td><code>step_state</code></td><td>JSON</td><td>Accumulated output from completed steps</td></tr>
+        <tr><td><code>abandoned_at_ms</code></td><td>integer</td><td>Null until abandoned or expired</td></tr>
+        <tr><td><code>expires_at_ms</code></td><td>integer</td><td>Auto-expire after configured days (default 30)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Unique constraint on <code>(user_id, wizard_key)</code> where <code>abandoned_at_ms IS NULL</code> &mdash; one live attempt per user per wizard.</p>
+
+  <h3>wizard_completions (ledger)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>wizard_key</code></td><td>text</td><td>Which wizard completed</td></tr>
+        <tr><td><code>user_id</code></td><td>text</td><td>Who completed it</td></tr>
+        <tr><td><code>completion_payload</code></td><td>JSON</td><td>Typed payload per the completion contract</td></tr>
+        <tr><td><code>contract_version</code></td><td>text</td><td>Hash of the contract shape at completion time</td></tr>
+        <tr><td><code>completed_at_ms</code></td><td>integer</td><td>When completed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>No uniqueness constraint on <code>(user_id, wizard_key)</code> &mdash; some wizards can be completed repeatedly (e.g. one per connected mailbox).</p>
+
+  <h3>intro_funnel_submissions (trial shoot state)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>token</code></td><td>text, unique</td><td>Public URL slug for <code>/lite/intro/[token]</code></td></tr>
+        <tr><td><code>deal_id</code></td><td>text FK</td><td>Links to the pipeline deal</td></tr>
+        <tr><td><code>funnel_state</code></td><td>enum (12 values)</td><td>The 12-stage state machine</td></tr>
+        <tr><td><code>shape</code></td><td>enum</td><td>Historical snapshot of the shape answered at Section 1</td></tr>
+        <tr><td><code>questionnaire_answers_json</code></td><td>JSON</td><td>Serialised answers + extracted signal tags</td></tr>
+        <tr><td><code>abandon_sequence_state</code></td><td>enum</td><td>Tracks abandon cadence position</td></tr>
+        <tr><td><code>gallery_ready_at_ms</code> / <code>plan_ready_at_ms</code></td><td>integer</td><td>Bundled-deliverables gate (both must be set)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>integration_connections (vendor credential store)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>vendor_key</code></td><td>text</td><td><code>'stripe'</code>, <code>'cloudinary'</code>, <code>'graph-api'</code>, etc.</td></tr>
+        <tr><td><code>credentials</code></td><td>text</td><td>Encrypted blob via <code>lib/crypto/vault.ts</code></td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>active</code> | <code>revoked</code> | <code>lapsed</code> | <code>disabled-kill-switch</code></td></tr>
+        <tr><td><code>band_registration_hash</code></td><td>text</td><td>Ties to Observatory cost-tracking bands</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Feature code reads <code>integration_connections</code> (not <code>wizard_completions</code>) to check whether a vendor is available. Kill-switch flips <code>status</code> without destroying the row.</p>
+</div>
+
+<!-- ── 11. INTEGRATION WITH OTHER SYSTEMS ─────────────────────── -->
+
+<div class="section" id="integration">
+  <div class="section-num">Section 11</div>
+  <h2>Integration with Other Systems</h2>
+
+  <p>The onboarding system is a composition layer &mdash; it touches almost every major subsystem in the platform. Here is how each connection works.</p>
+
+  <h3>Brand DNA Assessment</h3>
+  <p>Direct composition. The onboarding orchestrator routes to Brand DNA as a step. Brand DNA handles save/resume, the reveal, and retake independently. The onboarding system reads <code>brand_dna_profiles.status</code> and <code>is_current</code> to determine if the gate has been passed. Crucially, the gate checks for an <strong>existing completed profile</strong>, not whether Brand DNA was done during this onboarding flow &mdash; a contact who completed Brand DNA during a trial shoot skips it on retainer conversion.</p>
+
+  <h3>Sales Pipeline + Quote Builder</h3>
+  <p>Quote acceptance is the retainer onboarding trigger. The <code>handleQuoteAccepted</code> event fires the entire sequence: welcome email, portal token generation, nudge scheduling. Pipeline provides <code>companies.location</code> for retainer clients and the upsell filter (&ldquo;Warm&rdquo; and &ldquo;Hot&rdquo; subscribers) surfaces as a standing filter on the pipeline board.</p>
+
+  <h3>SaaS Subscription Billing (Stripe)</h3>
+  <p>Stripe payment success triggers SaaS onboarding. The <code>OnboardingDashboardClient</code> component handles four subscription states: <code>active</code> (shows Brand DNA CTA), <code>at_cap</code> (tier upgrade hero), <code>past_due</code> (card update with SetupIntent), and <code>waiting</code> (Stripe confirmation pending). Tier changes are handled via <code>applyTierChange()</code> with upgrade-only enforcement from the subscriber surface.</p>
+
+  <h3>Daily Cockpit</h3>
+  <p>Consumes: new Hot upsell candidate alerts, stalled onboarding counts (retainer + SaaS), incomplete practical setup flags, Brand DNA retake notifications. The cockpit is the primary surface for Andy to monitor onboarding health across all clients and subscribers.</p>
+
+  <h3>Client Management Portal</h3>
+  <p>The portal is where the welcome screen and Brand DNA assessment render. The welcome screen (<code>/portal/welcome</code>) marks <code>onboarding_welcome_seen_at_ms</code> on first view. The portal also hosts the Brand DNA retake nudge card (12-month threshold).</p>
+
+  <h3>Email System (Resend)</h3>
+  <p>All onboarding emails route through <code>sendEmail()</code> with <code>classification: 'transactional'</code>. Welcome emails are Claude-drafted with brand-voice drift checking. Nudge emails use static templates with personalisation tokens.</p>
+
+  <h3>LLM Pipeline (Claude Opus)</h3>
+  <p>Three LLM calls in the onboarding flow, all routed through the model registry via <code>invokeLlmText()</code>:</p>
+  <ul>
+    <li><code>onboarding-welcome-email</code> &mdash; generates the welcome email (subject + body HTML)</li>
+    <li><code>onboarding-welcome-summary</code> &mdash; generates the &ldquo;what we already know&rdquo; paragraph for retainer welcome screens</li>
+    <li><code>intro-funnel-retainer-fit</code> &mdash; generates the retainer-fit recommendation after reflection</li>
+  </ul>
+
+  <h3>Activity Log</h3>
+  <p>Eight <code>activity_log.kind</code> values for onboarding events:</p>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Activity Log Kinds</div>
+    <div class="tag-grid">
+      <span class="tag">onboarding_started</span>
+      <span class="tag">onboarding_welcome_email_sent</span>
+      <span class="tag">onboarding_brand_dna_started</span>
+      <span class="tag">onboarding_revenue_seg_completed</span>
+      <span class="tag">onboarding_product_config_completed</span>
+      <span class="tag">onboarding_practical_setup_step_completed</span>
+      <span class="tag">onboarding_credentials_created</span>
+      <span class="tag">onboarding_completed</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Start with the orchestrator, not the UI.</strong> <code>getOnboardingState()</code> is the foundation. Build and test the step-derivation logic against real database states before touching any frontend. The orchestrator is a pure read function &mdash; no side effects, easy to unit test.</li>
+
+    <li><strong>The Brand DNA gate is non-negotiable.</strong> Every path through the code must enforce it. If you find yourself writing a &ldquo;skip Brand DNA&rdquo; escape hatch, stop. The only exception is the dev-mode bypass (<code>BRAND_DNA_GATE_BYPASS=true</code>) for local development.</li>
+
+    <li><strong>Derived state means no state table &mdash; but also no single point of truth.</strong> The onboarding state is reconstructed on every read from 5+ different tables. This is architecturally clean but means edge cases can emerge (e.g. Brand DNA marked complete but portrait generation failed). The orchestrator checks for <em>actual</em> completion conditions &mdash; <code>status = 'complete' AND completed_at_ms IS NOT NULL</code> &mdash; not just a status flag.</li>
+
+    <li><strong>Token-based portal access is the bridge between anonymous and authenticated.</strong> The first visit uses a URL token. The last step creates a real Auth.js user. The tricky part is the transition: the token session must persist through the entire onboarding flow, then the credential creation step issues a magic link that establishes a proper Auth.js session. Make sure token expiry doesn&rsquo;t race with slow completers.</li>
+
+    <li><strong>Nudge handlers must be defensive.</strong> Always re-read the onboarding state at fire time. The customer may have completed the step in the 24 hours since the nudge was scheduled. The <code>scheduled_tasks</code> idempotency key prevents double-scheduling, but the handler itself must validate that the nudge is still relevant.</li>
+
+    <li><strong>Welcome email generation is an Opus API call per signup.</strong> At scale, this is real cost. The <code>llm_calls_enabled</code> kill switch gates it &mdash; if disabled, <code>generateWelcomeEmail()</code> returns null and the caller should fall back to a static template. Build the fallback from day one.</li>
+
+    <li><strong>Revenue Segmentation columns are on <code>companies</code>, not a separate table.</strong> This was a deliberate design decision to avoid joins in every pipeline query. If you need to add more segmentation questions later, add columns to the companies table following the same enum pattern. Don&rsquo;t reach for a JSON blob.</li>
+
+    <li><strong>The upsell targeting layer reads from <code>settings.get()</code> for every threshold.</strong> No hardcoded values. This means you can tune thresholds post-launch without a deploy. Test with different settings values &mdash; the defaults are educated guesses.</li>
+
+    <li><strong>Practical setup wizards are independent.</strong> They can be completed in any order. The nudge system sends per-step reminders &mdash; only mentioning the steps that are actually incomplete. Build each wizard as a standalone unit, then wire them into the orchestrator&rsquo;s practical-setup check.</li>
+
+    <li><strong>Client-facing surfaces say &ldquo;SuperBad&rdquo;, never &ldquo;SuperBad Lite&rdquo;.</strong> Lite is the internal/admin name. This applies to welcome emails, portal titles, step preview copy, nudge emails, and every other customer-visible string. The browser tab titles are specified: &ldquo;SuperBad &mdash; welcome, [First Name]&rdquo;, &ldquo;SuperBad &mdash; almost there&rdquo;, etc.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">The Biggest Risk</div>
+    <p>Brand DNA as a 30-minute hard SaaS gate is the biggest bet. If 60% of paying subscribers abandon during the assessment, that&rsquo;s a real problem. The mitigation is that Brand DNA is designed to be engaging, not boring &mdash; but it&rsquo;s still 30 minutes before product access. Monitor signup-to-completion rates and adjust the assessment experience if abandonment is too high &mdash; but don&rsquo;t remove the gate.</p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Key Files</div>
+    <p><code>lib/onboarding/</code> &mdash; the entire onboarding library: orchestrator, nudge scheduling, company creation, welcome email/summary generation, credential creation, upsell targeting.</p>
+    <p><code>app/lite/onboarding/page.tsx</code> &mdash; dual-purpose landing for admin (Brand DNA gate) and SaaS subscriber (status-aware dashboard).</p>
+    <p><code>app/lite/portal/welcome/</code> &mdash; the branded welcome screen (server component + client component + actions).</p>
+    <p><code>lib/scheduled-tasks/handlers/onboarding-nudges.ts</code> &mdash; the nudge email handlers with self-re-enqueuing logic.</p>
+    <p><code>docs/specs/onboarding-and-segmentation.md</code> &mdash; the authoritative spec (34 locked decisions, end-to-end journeys, data model, all cross-spec contracts).</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

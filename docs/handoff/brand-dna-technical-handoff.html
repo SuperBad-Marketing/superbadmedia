@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand DNA Assessment — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Brand DNA Assessment</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the Brand DNA system.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What Brand DNA Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#branching"><span class="num">03</span> Branching Logic</a>
+    <a href="#questions"><span class="num">04</span> Question Bank</a>
+    <a href="#tags"><span class="num">05</span> Signal Tag Taxonomy</a>
+    <a href="#prompts"><span class="num">06</span> LLM Prompts</a>
+    <a href="#database"><span class="num">07</span> Database Schema</a>
+    <a href="#actions"><span class="num">08</span> Server Actions</a>
+    <a href="#pipeline"><span class="num">09</span> Generation Pipeline</a>
+    <a href="#navigation"><span class="num">10</span> Navigation Flow</a>
+    <a href="#decisions"><span class="num">11</span> Design Decisions</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT BRAND DNA DOES ──────────────────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What Brand DNA Does</h2>
+  <p>Brand DNA is a personality assessment for businesses and their founders. A respondent answers ~98 multiple-choice questions across 5 themed sections. Each answer silently awards 1&ndash;3 &ldquo;signal tags&rdquo; from a taxonomy of 79 traits. After completion, an LLM (Claude Opus) reads the accumulated tag frequencies and generates a narrative profile &mdash; a written portrait that captures who the person or brand actually is.</p>
+  <p>The output is not a personality type or a score. It&rsquo;s a prose document that names through-lines, tensions, and absent signals in the respondent&rsquo;s choices.</p>
+  <p class="mutter">No Myers-Briggs letters. No colour quadrants. Just prose that makes you feel genuinely known.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>User Journey</h3>
+  <div class="diagram"><pre><span class="highlight">Alignment Gate</span> <span class="dim">──→</span> <span class="highlight">Business Context</span> <span class="dim">──→</span> <span class="accent">Section 1</span> <span class="dim">──→</span> Insight
+                                             <span class="accent">Section 2</span> <span class="dim">──→</span> Insight
+                                             <span class="accent">Section 3</span> <span class="dim">──→</span> Insight
+                                             <span class="accent">Section 4</span> <span class="dim">──→</span> Insight
+                                             <span class="accent">Section 5</span> <span class="dim">──→</span> Reflection <span class="dim">──→</span> <span class="highlight">Reveal</span>
+
+<span class="dim">(founder_supplement only: +15 supplement questions after section 5)</span></pre></div>
+
+  <h3>Data Pipeline</h3>
+  <div class="diagram"><pre><span class="accent">Answer</span> → tags_awarded[] → <span class="highlight">signal_tags{}</span> <span class="dim">(frequency map on profile)</span>
+
+After each section (1&ndash;4):
+  → Opus generates <span class="accent">between-section insight</span> (3&ndash;4 sentences)
+
+After section 5:
+  → Optional <span class="accent">free-form reflection</span>
+  → Opus generates <span class="highlight">first impression</span> (2&ndash;3 sentences)
+  → Opus generates <span class="highlight">prose portrait</span> (500&ndash;800 words)
+
+Multi-stakeholder (&ge;2 profiles):
+  → Opus generates <span class="accent">company blend</span>
+
+On retake:
+  → Opus generates <span class="accent">retake comparison</span></pre></div>
+</div>
+
+<!-- ── 3. BRANCHING LOGIC ──────────────────────────────────────── -->
+
+<div class="section" id="branching">
+  <div class="section-num">Section 03</div>
+  <h2>Branching Logic &mdash; The Three Tracks</h2>
+
+  <h3>The Alignment Gate</h3>
+  <p>Before any questions, the respondent answers one routing question:</p>
+  <div class="callout">
+    <div class="callout-label">Gate Question</div>
+    <p><strong>&ldquo;How much of your business is you?&rdquo;</strong></p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Option</th><th>Track</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>&ldquo;It&rsquo;s me. The business is an extension of who I am.&rdquo;</td>
+          <td><code>founder</code></td>
+          <td>Questions framed as &ldquo;you&rdquo;</td>
+        </tr>
+        <tr>
+          <td>&ldquo;It starts from me, but the brand has its own thing going.&rdquo;</td>
+          <td><code>founder_supplement</code></td>
+          <td>Full founder track + 15 supplement questions</td>
+        </tr>
+        <tr>
+          <td>&ldquo;We&rsquo;re separate. The brand has its own identity.&rdquo;</td>
+          <td><code>business</code></td>
+          <td>Questions framed as &ldquo;the brand&rdquo; / &ldquo;we&rdquo;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>No tags are awarded at the gate. It&rsquo;s pure routing.</p>
+
+  <h3>Question Selection by Track</h3>
+  <p>Each question has a <code>track</code> field:</p>
+  <ul>
+    <li><strong><code>shared</code></strong> &mdash; shown to both tracks. Dual-framed text selects the right version.</li>
+    <li><strong><code>founder</code></strong> &mdash; only shown to founder and founder_supplement tracks.</li>
+    <li><strong><code>business</code></strong> &mdash; only shown to the business track.</li>
+  </ul>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript</div>
+    <pre><span class="kw">function</span> <span class="type">getQuestionsForTrack</span>(section: SectionNumber, track: <span class="str">"founder"</span> | <span class="str">"business"</span>): Question[] {
+  <span class="kw">return</span> QUESTION_BANK.filter(
+    (q) =&gt; q.section === section &amp;&amp; (q.track === <span class="str">"shared"</span> || q.track === track),
+  );
+}</pre>
+  </div>
+
+  <h3>Company Shape</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Shape</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>solo_founder</code></td><td>One person = the business</td></tr>
+        <tr><td><code>founder_led_team</code></td><td>Founder + team</td></tr>
+        <tr><td><code>multi_stakeholder_company</code></td><td>Multiple decision-makers</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Shape affects downstream prompt context but does not change which questions are shown.</p>
+</div>
+
+<!-- ── 4. QUESTION BANK ────────────────────────────────────────── -->
+
+<div class="section" id="questions">
+  <div class="section-num">Section 04</div>
+  <h2>Question Bank</h2>
+
+  <h3>Totals</h3>
+  <ul>
+    <li><strong>98</strong> core questions across 5 sections (~18&ndash;20 per section)</li>
+    <li><strong>15</strong> supplement questions (founder_supplement track only)</li>
+    <li><strong>113</strong> total questions in the bank</li>
+  </ul>
+
+  <h3>The Five Sections</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Title</th><th>What It Measures</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Aesthetic Identity</td><td>Visual taste, sensory world, cultural touchpoints</td></tr>
+        <tr><td>2</td><td>Communication DNA</td><td>How they write, speak, handle conflict, exist in a room</td></tr>
+        <tr><td>3</td><td>Values &amp; Instincts</td><td>Decision drivers, risk appetite, gut reactions. The deepest section.</td></tr>
+        <tr><td>4</td><td>Creative Compass</td><td>Taste in others' creative work, process, weaknesses</td></tr>
+        <tr><td>5</td><td>Brand Aspiration</td><td>Desired brand feeling, current vs ideal gap</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Question Shape</h3>
+  <p>Every question has exactly 4 options (a/b/c/d). Each option awards 1&ndash;3 signal tags.</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; Question Interface</div>
+    <pre><span class="kw">interface</span> <span class="type">Question</span> {
+  id: <span class="type">string</span>;                    <span class="comment">// e.g. "s1_q01"</span>
+  section: <span class="num">1</span> | <span class="num">2</span> | <span class="num">3</span> | <span class="num">4</span> | <span class="num">5</span>;
+  track: <span class="str">"shared"</span> | <span class="str">"founder"</span> | <span class="str">"business"</span>;
+  text: <span class="type">string</span> | { founder: <span class="type">string</span>; business: <span class="type">string</span> };
+  options: {
+    a: { text: <span class="type">string</span>; tags: <span class="type">string</span>[] };
+    b: { text: <span class="type">string</span>; tags: <span class="type">string</span>[] };
+    c: { text: <span class="type">string</span>; tags: <span class="type">string</span>[] };
+    d: { text: <span class="type">string</span>; tags: <span class="type">string</span>[] };
+  };
+  visual?: <span class="type">boolean</span>;  <span class="comment">// colour swatches, images, etc.</span>
+}</pre>
+  </div>
+
+  <h3>Example Question</h3>
+  <div class="code-block">
+    <div class="code-header">Section 1 &mdash; Aesthetic Identity</div>
+    <pre>q(<span class="str">"s1_q04"</span>, <span class="num">1</span>, <span class="str">"shared"</span>,
+  { founder: <span class="str">"Which colour palette would you trust to represent you?"</span>,
+    business: <span class="str">"Which colour palette would you trust to represent the brand?"</span> },
+  [<span class="str">"Warm earth &mdash; terracotta, sage, cream, clay."</span>,
+    [<span class="str">"warmth"</span>, <span class="str">"muted_palette"</span>, <span class="str">"organic_forms"</span>]],
+  [<span class="str">"Monochrome with one accent &mdash; black, white, grey, one sharp red."</span>,
+    [<span class="str">"high_contrast"</span>, <span class="str">"minimalism"</span>, <span class="str">"geometric_precision"</span>]],
+  [<span class="str">"Desaturated quiet &mdash; dusty rose, muted blue, warm grey, off-white."</span>,
+    [<span class="str">"muted_palette"</span>, <span class="str">"warmth"</span>, <span class="str">"introversion"</span>]],
+  [<span class="str">"Saturated bold &mdash; deep navy, burnt orange, mustard, forest green."</span>,
+    [<span class="str">"maximalism"</span>, <span class="str">"high_contrast"</span>, <span class="str">"extraversion"</span>]],
+  <span class="kw">true</span>  <span class="comment">// visual = true</span>
+)</pre>
+  </div>
+
+  <h3>Supplement Questions</h3>
+  <p>Only shown to the <code>founder_supplement</code> track. These ask where the brand intentionally diverges from the founder. Tags are prefixed with <code>brand_override.&lt;domain&gt;.&lt;tag&gt;</code> so downstream prompts can distinguish personal identity from brand identity.</p>
+  <p>Options that select &ldquo;same as me&rdquo; award no tags (empty array).</p>
+</div>
+
+<!-- ── 5. SIGNAL TAGS ──────────────────────────────────────────── -->
+
+<div class="section" id="tags">
+  <div class="section-num">Section 05</div>
+  <h2>Signal Tag Taxonomy</h2>
+
+  <p>79 tags across 5 domains. No weights &mdash; frequency across all answers is the only scoring mechanism. Higher frequency = stronger signal. Zero frequency = absence (also informative).</p>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Aesthetic <span class="tag-count">(12 tags)</span></div>
+    <div class="tag-grid">
+      <span class="tag">warmth</span>
+      <span class="tag">minimalism</span>
+      <span class="tag">maximalism</span>
+      <span class="tag">organic_forms</span>
+      <span class="tag">geometric_precision</span>
+      <span class="tag">analogue_texture</span>
+      <span class="tag">high_contrast</span>
+      <span class="tag">muted_palette</span>
+      <span class="tag">cinematic_eye</span>
+      <span class="tag">tactile_craft</span>
+      <span class="tag">sensory_memory</span>
+      <span class="tag">curation_instinct</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Communication <span class="tag-count">(16 tags)</span></div>
+    <div class="tag-grid">
+      <span class="tag">directness</span>
+      <span class="tag">dry_humour</span>
+      <span class="tag">brevity</span>
+      <span class="tag">warmth_in_voice</span>
+      <span class="tag">storytelling</span>
+      <span class="tag">formality</span>
+      <span class="tag">confrontation_comfort</span>
+      <span class="tag">metaphor_use</span>
+      <span class="tag">listen_first</span>
+      <span class="tag">provocation</span>
+      <span class="tag">selective_vulnerability</span>
+      <span class="tag">tonal_awareness</span>
+      <span class="tag">introversion</span>
+      <span class="tag">extraversion</span>
+      <span class="tag">conflict_avoidant</span>
+      <span class="tag">agreeableness</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Values <span class="tag-count">(21 tags)</span></div>
+    <div class="tag-grid">
+      <span class="tag">authenticity</span>
+      <span class="tag">risk_appetite</span>
+      <span class="tag">risk_caution</span>
+      <span class="tag">patience</span>
+      <span class="tag">perfectionism</span>
+      <span class="tag">pragmatism</span>
+      <span class="tag">independence</span>
+      <span class="tag">loyalty</span>
+      <span class="tag">transparency</span>
+      <span class="tag">conviction</span>
+      <span class="tag">control_need</span>
+      <span class="tag">legacy_drive</span>
+      <span class="tag">gut_first</span>
+      <span class="tag">head_first</span>
+      <span class="tag">high_sensitivity</span>
+      <span class="tag">thick_skin</span>
+      <span class="tag">openness</span>
+      <span class="tag">conscientiousness</span>
+      <span class="tag">neuroticism</span>
+      <span class="tag">resilience</span>
+      <span class="tag">curiosity</span>
+      <span class="tag">prudence</span>
+      <span class="tag">ambition</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Creative <span class="tag-count">(13 tags)</span></div>
+    <div class="tag-grid">
+      <span class="tag">admires_restraint</span>
+      <span class="tag">admires_boldness</span>
+      <span class="tag">admires_craft</span>
+      <span class="tag">rejects_trend</span>
+      <span class="tag">genre_fluency</span>
+      <span class="tag">nostalgia_pull</span>
+      <span class="tag">innovation_pull</span>
+      <span class="tag">emotional_resonance</span>
+      <span class="tag">intellectual_depth</span>
+      <span class="tag">visual_storytelling</span>
+      <span class="tag">taste_as_identity</span>
+      <span class="tag">anti_polish</span>
+      <span class="tag">improviser</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Aspiration <span class="tag-count">(15 tags)</span></div>
+    <div class="tag-grid">
+      <span class="tag">premium_positioning</span>
+      <span class="tag">underdog_energy</span>
+      <span class="tag">quiet_confidence</span>
+      <span class="tag">category_creation</span>
+      <span class="tag">community_building</span>
+      <span class="tag">thought_leadership</span>
+      <span class="tag">local_roots</span>
+      <span class="tag">global_ambition</span>
+      <span class="tag">personality_forward</span>
+      <span class="tag">systems_forward</span>
+      <span class="tag">reputation_weight</span>
+      <span class="tag">proving_ground</span>
+      <span class="tag">achievement_orientation</span>
+      <span class="tag">affiliation</span>
+      <span class="tag">power_drive</span>
+    </div>
+  </div>
+
+  <h3>How Tags Accumulate</h3>
+  <div class="diagram"><pre><span class="accent">Answer selected</span> → option.tags[] extracted → merged into <span class="highlight">profile.signal_tags</span>
+
+signal_tags is a Record&lt;string, number&gt;:
+  { <span class="str">"warmth"</span>: <span class="num">7</span>, <span class="str">"minimalism"</span>: <span class="num">4</span>, <span class="str">"directness"</span>: <span class="num">6</span>, ... }
+
+Higher frequency = stronger signal. Zero = absence (also a signal).</pre></div>
+
+  <h3>Known Tension Pairs</h3>
+  <p>These combinations signal contradictory pulls. They make the most interesting profiles.</p>
+
+  <div class="tension-row"><span class="tension-tag">risk_appetite</span> <span class="tension-vs">vs</span> <span class="tension-tag">perfectionism</span></div>
+  <div class="tension-row"><span class="tension-tag">risk_appetite</span> <span class="tension-vs">vs</span> <span class="tension-tag">risk_caution</span></div>
+  <div class="tension-row"><span class="tension-tag">introversion</span> <span class="tension-vs">vs</span> <span class="tension-tag">extraversion</span></div>
+  <div class="tension-row"><span class="tension-tag">patience</span> <span class="tension-vs">vs</span> <span class="tension-tag">ambition</span></div>
+  <div class="tension-row"><span class="tension-tag">independence</span> <span class="tension-vs">vs</span> <span class="tension-tag">affiliation</span></div>
+  <div class="tension-row"><span class="tension-tag">minimalism</span> <span class="tension-vs">vs</span> <span class="tension-tag">maximalism</span></div>
+  <div class="tension-row"><span class="tension-tag">directness</span> <span class="tension-vs">vs</span> <span class="tension-tag">conflict_avoidant</span></div>
+  <div class="tension-row"><span class="tension-tag">gut_first</span> <span class="tension-vs">vs</span> <span class="tension-tag">head_first</span></div>
+  <div class="tension-row"><span class="tension-tag">admires_restraint</span> <span class="tension-vs">vs</span> <span class="tension-tag">admires_boldness</span></div>
+  <div class="tension-row"><span class="tension-tag">warmth_in_voice</span> <span class="tension-vs">vs</span> <span class="tension-tag">formality</span></div>
+  <div class="tension-row"><span class="tension-tag">innovation_pull</span> <span class="tension-vs">vs</span> <span class="tension-tag">nostalgia_pull</span></div>
+  <div class="tension-row"><span class="tension-tag">conviction</span> <span class="tension-vs">vs</span> <span class="tension-tag">agreeableness</span></div>
+  <div class="tension-row"><span class="tension-tag">control_need</span> <span class="tension-vs">vs</span> <span class="tension-tag">loyalty</span></div>
+  <div class="tension-row"><span class="tension-tag">pragmatism</span> <span class="tension-vs">vs</span> <span class="tension-tag">perfectionism</span></div>
+  <div class="tension-row"><span class="tension-tag">quiet_confidence</span> <span class="tension-vs">vs</span> <span class="tension-tag">proving_ground</span></div>
+</div>
+
+<!-- ── 6. LLM PROMPTS ──────────────────────────────────────────── -->
+
+<div class="section" id="prompts">
+  <div class="section-num">Section 06</div>
+  <h2>LLM Prompts</h2>
+
+  <p>All five prompts use Claude Opus. Every prompt is routed through a model registry (<code>modelFor("slug")</code>) so the model ID never appears in feature code.</p>
+
+  <!-- 6.1 -->
+  <h3>6.1 &mdash; Section Insight (between-section reveal)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>When</strong></td><td>After completing each of sections 1&ndash;4</td></tr>
+        <tr><td><strong>Input</strong></td><td>Section answers (chosen + rejected options), top 8 tags, prior insights, track</td></tr>
+        <tr><td><strong>Output</strong></td><td>3&ndash;4 sentences</td></tr>
+        <tr><td><strong>Tokens</strong></td><td>max_tokens: 400</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>Prompt structure:</strong></p>
+  <ol>
+    <li>Subject name and section context (what this section was measuring)</li>
+    <li>Track note (founder = personal address, business = brand address)</li>
+    <li>Full answer traces: for each question, the chosen text AND the three rejected options</li>
+    <li>Aggregate signal pattern (top 8 tags by frequency)</li>
+    <li>Prior insights from earlier sections (for continuity or contradiction)</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Two-move Structure</div>
+    <p><strong>Move 1 (1&ndash;2 sentences):</strong> Name something specific they did &mdash; a choice, a pattern across choices, a telling rejection. &ldquo;Every room you picked had warm light in it&rdquo; hits harder than &ldquo;you gravitate toward warmth.&rdquo;</p>
+    <p><strong>Move 2 (1&ndash;2 sentences):</strong> Make a leap. Infer something they didn&rsquo;t tell you. Predict an everyday preference, name a real-world behaviour, surface what their workspace looks like. The leap must feel earned by their choices.</p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Audience Context &mdash; Critical</div>
+    <p>These are business owners, tradies, caf&eacute; owners, professionals &mdash; not designers or creatives. Inferences must land in their everyday world. Reference their shopfront, their home, their office, their morning routine. Never reference galleries, art movements, or design culture unless their answers explicitly signal that world.</p>
+  </div>
+
+  <p><strong>Voice constraints:</strong></p>
+  <ul>
+    <li>Flat delivery. Perceptive. Slightly warm. Like a sharp friend.</li>
+    <li>Never &ldquo;I notice&rdquo;, &ldquo;it seems like&rdquo;, &ldquo;what stands out&rdquo;, &ldquo;there&rsquo;s a clear pattern&rdquo;.</li>
+    <li>Never start with &ldquo;You&rdquo;. Vary sentence structure.</li>
+    <li>No hedging. No qualifiers. No marketing speak. No praise.</li>
+  </ul>
+
+  <!-- 6.2 -->
+  <h3>6.2 &mdash; First Impression (emotional peak)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>When</strong></td><td>Start of the reveal (all sections + reflection complete)</td></tr>
+        <tr><td><strong>Input</strong></td><td>Full tag map (top 15), domain summaries, tension pairs, section insights, reflection, track, shape, industry</td></tr>
+        <tr><td><strong>Output</strong></td><td>2&ndash;3 sentences</td></tr>
+        <tr><td><strong>Tokens</strong></td><td>max_tokens: 400</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>What to look for:</strong></p>
+  <ul>
+    <li>The through-line connecting seemingly unrelated signals across domains</li>
+    <li>The central tension that defines them</li>
+    <li>What the reflection reveals that structured answers tried to hide</li>
+    <li>What&rsquo;s conspicuously absent from their signals</li>
+  </ul>
+
+  <p><strong>Tension pair detection:</strong> The prompt builder automatically detects which of the 15 known tension pairs appear in the respondent&rsquo;s tag map and surfaces them to the LLM.</p>
+
+  <p><strong>Domain grouping:</strong> Tags are grouped by domain (aesthetic, communication, values, creative, aspiration) with top-4 tags per domain surfaced.</p>
+
+  <!-- 6.3 -->
+  <h3>6.3 &mdash; Prose Portrait (full narrative)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>When</strong></td><td>After first impression is generated</td></tr>
+        <tr><td><strong>Input</strong></td><td>Full tag map (top 25), section insights, reflection, first impression, brand overrides, business context, industry</td></tr>
+        <tr><td><strong>Output</strong></td><td>500&ndash;800 words, 4&ndash;6 plain paragraphs</td></tr>
+        <tr><td><strong>Tokens</strong></td><td>max_tokens: 2000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>6-point capture framework:</strong></p>
+  <ol>
+    <li><strong>Through-lines</strong> &mdash; where signals from different domains reinforce each other</li>
+    <li><strong>Tensions</strong> &mdash; contradictory signals described as productive contradictions (never averaged)</li>
+    <li><strong>Personality</strong> &mdash; the human being that emerges, not a trait list</li>
+    <li><strong>Reflection contrast</strong> &mdash; what the free-form text revealed that structured answers couldn&rsquo;t</li>
+    <li><strong>Absent signals</strong> &mdash; what tags are missing and what that means</li>
+    <li><strong>Brand split</strong> <em>(founder_supplement only)</em> &mdash; where the brand diverges from the founder</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Brand Override Handling</div>
+    <p>When a founder_supplement profile has override tags, they&rsquo;re injected as a separate block. The prompt instructs: &ldquo;The person is X, but the brand reaches for Y&rdquo; &mdash; described as the most valuable insight in the entire profile.</p>
+  </div>
+
+  <!-- 6.4 -->
+  <h3>6.4 &mdash; Company Blend (multi-stakeholder synthesis)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>When</strong></td><td>&ge;2 individual profiles complete for the same company</td></tr>
+        <tr><td><strong>Input</strong></td><td>All stakeholder profiles (top 15 tags, first impressions, portrait excerpts, brand overrides)</td></tr>
+        <tr><td><strong>Output</strong></td><td>Three sections: Shared Signals, Divergences, Company Portrait (300&ndash;500 words)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mutter">Not an average. A synthesis. Divergences are productive tensions, not problems to solve.</p>
+
+  <!-- 6.5 -->
+  <h3>6.5 &mdash; Retake Comparison</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>When</strong></td><td>A retake completes</td></tr>
+        <tr><td><strong>Input</strong></td><td>Both profiles&rsquo; tags, first impressions, portrait excerpts, days between assessments</td></tr>
+        <tr><td><strong>Output</strong></td><td>200&ndash;400 words</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>Automated tag movement computation:</strong></p>
+  <div class="code-block">
+    <div class="code-header">Logic</div>
+    <pre><span class="kw">if</span> (prev === <span class="num">0</span> &amp;&amp; curr &gt; <span class="num">0</span>)    → <span class="str">"gained"</span>
+<span class="kw">if</span> (prev &gt; <span class="num">0</span> &amp;&amp; curr === <span class="num">0</span>)    → <span class="str">"lost"</span>
+<span class="kw">if</span> (curr &gt; prev + <span class="num">1</span>)          → <span class="str">"strengthened"</span>
+<span class="kw">if</span> (prev &gt; curr + <span class="num">1</span>)          → <span class="str">"weakened"</span>
+<span class="kw">if</span> (prev &gt; <span class="num">0</span> &amp;&amp; curr &gt; <span class="num">0</span>)    → <span class="str">"stable"</span></pre>
+  </div>
+
+  <p><strong>Time-aware framing:</strong></p>
+  <ul>
+    <li>&le;30 days: &ldquo;likely re-answering from a similar place, look for subtle shifts&rdquo;</li>
+    <li>31&ndash;180 days: &ldquo;enough time for real change, look for genuine evolution&rdquo;</li>
+    <li>&gt;180 days: &ldquo;substantial time has passed, expect meaningful shifts&rdquo;</li>
+  </ul>
+</div>
+
+<!-- ── 7. DATABASE SCHEMA ──────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 07</div>
+  <h2>Database Schema</h2>
+
+  <h3>brand_dna_profiles</h3>
+  <p>The main profile record. One per assessment attempt.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>CUID</td></tr>
+        <tr><td><code>subject_type</code></td><td>enum</td><td><code>superbad_self</code> or <code>client</code></td></tr>
+        <tr><td><code>track</code></td><td>enum</td><td><code>founder</code>, <code>business</code>, or <code>founder_supplement</code></td></tr>
+        <tr><td><code>shape</code></td><td>enum</td><td><code>solo_founder</code>, <code>founder_led_team</code>, <code>multi_stakeholder_company</code></td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>pending</code> &rarr; <code>in_progress</code> &rarr; <code>complete</code></td></tr>
+        <tr><td><code>signal_tags</code></td><td>JSON text</td><td><code>{ tag: frequency }</code> map</td></tr>
+        <tr><td><code>prose_portrait</code></td><td>text</td><td>500&ndash;800 word Opus output</td></tr>
+        <tr><td><code>first_impression</code></td><td>text</td><td>2&ndash;3 sentence Opus output</td></tr>
+        <tr><td><code>reflection_text</code></td><td>text</td><td>Optional free-form reflection</td></tr>
+        <tr><td><code>business_context</code></td><td>JSON text</td><td><code>{ businessDoes, customers, differentiator }</code></td></tr>
+        <tr><td><code>section_insights</code></td><td>JSON text</td><td><code>string[]</code> &mdash; 4 between-section insights</td></tr>
+        <tr><td><code>version</code></td><td>integer</td><td>Auto-incremented per retake</td></tr>
+        <tr><td><code>is_current</code></td><td>boolean</td><td>Only one current profile per subject</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>brand_dna_answers</h3>
+  <p>One row per answered question.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>profile_id</code></td><td>text FK</td><td>Links to profile</td></tr>
+        <tr><td><code>question_id</code></td><td>text</td><td>References static question bank (e.g. <code>s1_q04</code>)</td></tr>
+        <tr><td><code>section</code></td><td>integer</td><td>1&ndash;5 (or 6 for supplement)</td></tr>
+        <tr><td><code>selected_option</code></td><td>enum</td><td><code>a</code>, <code>b</code>, <code>c</code>, or <code>d</code></td></tr>
+        <tr><td><code>tags_awarded</code></td><td>JSON text</td><td><code>string[]</code> of tags this answer produced</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>brand_dna_blends</h3>
+  <p>Company-level synthesis from &ge;2 profiles.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>company_id</code></td><td>text FK</td><td>Which company</td></tr>
+        <tr><td><code>source_profile_ids</code></td><td>JSON text</td><td>Array of profile IDs used</td></tr>
+        <tr><td><code>tags_json</code></td><td>JSON text</td><td>Blended frequency map</td></tr>
+        <tr><td><code>prose_portrait</code></td><td>text</td><td>Opus-generated company narrative</td></tr>
+        <tr><td><code>divergences_json</code></td><td>JSON text</td><td>Structured divergence flags</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>brand_dna_invites</h3>
+  <p>Tokenised one-time invite links for client assessments.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>contact_id</code></td><td>text FK</td><td>Who the invite is for</td></tr>
+        <tr><td><code>token_hash</code></td><td>text</td><td>SHA-256 of the raw token (raw token only in the URL)</td></tr>
+        <tr><td><code>expires_at_ms</code></td><td>integer</td><td>Expiry timestamp</td></tr>
+        <tr><td><code>used_at_ms</code></td><td>integer</td><td>Null until redeemed (one-time use)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 8. SERVER ACTIONS ───────────────────────────────────────── -->
+
+<div class="section" id="actions">
+  <div class="section-num">Section 08</div>
+  <h2>Server Actions</h2>
+
+  <h3>submitAlignmentGate</h3>
+  <p>Creates or resumes the profile, sets the track, redirects to business context page.</p>
+
+  <h3>submitAnswer</h3>
+  <ol>
+    <li>Validates question exists in the bank</li>
+    <li>Inserts answer row (idempotent &mdash; skips if already answered)</li>
+    <li>Merges <code>tags_awarded</code> into <code>profile.signal_tags</code></li>
+    <li>Counts answered questions in section</li>
+    <li>If section complete and sections 1&ndash;4 &rarr; redirect to between-section insight</li>
+    <li>If section complete and section 5 &rarr; redirect to reflection page</li>
+    <li>If section incomplete &rarr; redirect back to section page</li>
+  </ol>
+
+  <h3>submitReflection</h3>
+  <p>Saves optional free-form text, redirects to reveal page (which triggers Opus generation).</p>
+
+  <h3>goBack</h3>
+  <p>Deletes the most recent answer in the section, removes its tags from the frequency map, redirects back so the question reappears. Handles cross-section navigation.</p>
+
+  <h3>submitBusinessContext</h3>
+  <p>Saves three pre-assessment fields (<code>businessDoes</code>, <code>customers</code>, <code>differentiator</code>) as JSON on the profile. Feeds into portrait generation for industry-specific output.</p>
+</div>
+
+<!-- ── 9. GENERATION PIPELINE ──────────────────────────────────── -->
+
+<div class="section" id="pipeline">
+  <div class="section-num">Section 09</div>
+  <h2>Generation Pipeline</h2>
+
+  <h3>Execution Order</h3>
+  <div class="diagram"><pre><span class="num">1.</span> Section 1 complete → <span class="accent">generateSectionInsight</span>(profileId, 1)
+<span class="num">2.</span> Section 2 complete → <span class="accent">generateSectionInsight</span>(profileId, 2)
+<span class="num">3.</span> Section 3 complete → <span class="accent">generateSectionInsight</span>(profileId, 3)
+<span class="num">4.</span> Section 4 complete → <span class="accent">generateSectionInsight</span>(profileId, 4)
+<span class="num">5.</span> Section 5 complete → <span class="dim">(optional reflection captured)</span>
+<span class="num">6.</span> Reveal page loads  → <span class="highlight">generateFirstImpression</span>(profileId)
+<span class="num">7.</span> After first impression → <span class="highlight">generateProsePortrait</span>(profileId)
+<span class="num">8.</span> If &ge;2 profiles      → <span class="accent">generateCompanyBlend</span>(companyId)</pre></div>
+
+  <h3>Caching Strategy</h3>
+  <p>Every generator checks if its output field is already populated before calling Opus. Page refreshes and navigation back-and-forth do not trigger additional API calls.</p>
+
+  <h3>Kill Switches</h3>
+  <ul>
+    <li><code>brand_dna_assessment_enabled</code> &mdash; gates the entire assessment flow</li>
+    <li><code>llm_calls_enabled</code> &mdash; gates Opus API calls specifically (generators return stub text when off)</li>
+  </ul>
+</div>
+
+<!-- ── 10. NAVIGATION ──────────────────────────────────────────── -->
+
+<div class="section" id="navigation">
+  <div class="section-num">Section 10</div>
+  <h2>Navigation Flow</h2>
+
+  <div class="diagram"><pre><span class="highlight">/brand-dna</span>                      → Alignment gate
+<span class="highlight">/brand-dna/context</span>              → Business context (3 text fields)
+<span class="accent">/brand-dna/section/1</span>            → Section 1 questions (one at a time)
+<span class="dim">/brand-dna/section/1/insight</span>     → Opus-generated insight reveal
+<span class="accent">/brand-dna/section/2</span>            → Section 2 questions
+<span class="dim">/brand-dna/section/2/insight</span>     → Insight reveal
+<span class="accent">/brand-dna/section/3</span>            → Section 3 questions
+<span class="dim">/brand-dna/section/3/insight</span>     → Insight reveal
+<span class="accent">/brand-dna/section/4</span>            → Section 4 questions
+<span class="dim">/brand-dna/section/4/insight</span>     → Insight reveal
+<span class="accent">/brand-dna/section/5</span>            → Section 5 questions
+<span class="dim">/brand-dna/section/5/reflection</span>  → Optional free-form reflection
+<span class="highlight">/brand-dna/reveal</span>               → Cinematic reveal (first impression + portrait)</pre></div>
+</div>
+
+<!-- ── 11. DESIGN DECISIONS ────────────────────────────────────── -->
+
+<div class="section" id="decisions">
+  <div class="section-num">Section 11</div>
+  <h2>Design Decisions</h2>
+
+  <ol>
+    <li><strong>Frequency-only scoring.</strong> No weighted tags, no manual adjustments. If a tag appears 7 times across 98 questions, it&rsquo;s 7&times; important. Simplicity is the feature.</li>
+    <li><strong>Tensions are features.</strong> Contradictory tags are never averaged away. They&rsquo;re explicitly surfaced as productive contradictions.</li>
+    <li><strong>Absence is informative.</strong> A tag at frequency 0 is itself a signal. The prompts instruct Opus to note what&rsquo;s conspicuously missing.</li>
+    <li><strong>Answer traces, not just tags.</strong> Section insight prompts receive the full answer traces &mdash; what the respondent chose AND what they rejected.</li>
+    <li><strong>Prior insight continuity.</strong> Each section insight prompt receives all prior insights. &ldquo;Build on what&rsquo;s come before &mdash; or contradict it.&rdquo;</li>
+    <li><strong>Brand override separation.</strong> Supplement tags use a <code>brand_override.</code> prefix so they never contaminate the founder&rsquo;s personal signal map.</li>
+    <li><strong>One question at a time.</strong> Single question per screen. Forces the respondent to sit with each choice.</li>
+    <li><strong>Model registry abstraction.</strong> All LLM calls route through <code>modelFor("job-name")</code>. Feature code never references a model ID.</li>
+  </ol>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Start with the question bank and tag taxonomy.</strong> These are the foundation. Get the taxonomy right first &mdash; changing tags after launch means regenerating every profile.</li>
+    <li><strong>Build tag aggregation before touching the LLM.</strong> You can test the entire question&rarr;tag&rarr;frequency pipeline without any API calls.</li>
+    <li><strong>Prompts are the product.</strong> The quality of the output is 90% prompt engineering. The code is plumbing. Invest in prompt iteration with real test profiles.</li>
+    <li><strong>Cache everything.</strong> Every Opus call should be idempotent &mdash; check if the output already exists before calling. This saves money and prevents inconsistency on refresh.</li>
+    <li><strong>The &ldquo;back&rdquo; button is harder than you think.</strong> Going back means deleting the answer AND removing its tags from the frequency map. Test this thoroughly.</li>
+    <li><strong>Supplement questions are a separate concern.</strong> Build and ship the founder and business tracks first. Add founder_supplement as a second pass.</li>
+    <li><strong>Company blends are expensive.</strong> They read multiple full profiles and generate a synthesis. Only trigger on explicit completion events, never on page loads.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">The prompts above are the actual prompts from production. The voice constraints aren&rsquo;t suggestions &mdash; they&rsquo;re what makes the output feel like a real observation instead of a horoscope. Guard them.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

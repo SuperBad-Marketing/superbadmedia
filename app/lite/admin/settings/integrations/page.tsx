@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { integration_connections } from "@/lib/db/schema/integration-connections";
+import { getCredential } from "@/lib/integrations/getCredential";
 
 export const metadata: Metadata = {
   title: "SuperBad — Integrations",
@@ -137,18 +138,22 @@ export default async function IntegrationsPage() {
     .from(integration_connections)
     .orderBy(integration_connections.vendor_key);
 
-  const statusByVendor = new Map<
-    string,
-    { status: string; verifiedAt: number }
-  >();
+  type ConnectionStatus = "active" | "broken" | "none";
+  const statusByVendor = new Map<string, ConnectionStatus>();
+
+  const dbVendors = new Set<string>();
   for (const c of connections) {
-    const existing = statusByVendor.get(c.vendor_key);
-    if (!existing || c.connection_verified_at_ms > existing.verifiedAt) {
-      statusByVendor.set(c.vendor_key, {
-        status: c.status,
-        verifiedAt: c.connection_verified_at_ms,
-      });
-    }
+    if (c.status === "active") dbVendors.add(c.vendor_key);
+  }
+
+  const credentialChecks = await Promise.all(
+    INTEGRATIONS.map(async (integration) => {
+      const cred = await getCredential(integration.vendorKey);
+      return { vendorKey: integration.vendorKey, hasCred: cred !== null };
+    }),
+  );
+  for (const { vendorKey, hasCred } of credentialChecks) {
+    statusByVendor.set(vendorKey, hasCred ? "active" : "none");
   }
 
   return (
@@ -182,25 +187,36 @@ export default async function IntegrationsPage() {
 
       <div className="grid gap-2 px-4 pb-8">
         {INTEGRATIONS.map((integration) => {
-          const conn = statusByVendor.get(integration.vendorKey);
-          const isActive = conn?.status === "active";
+          const status = statusByVendor.get(integration.vendorKey) ?? "none";
+          const isActive = status === "active";
+          const isBroken = status === "broken";
 
           return (
             <div
               key={integration.vendorKey}
-              className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--color-neutral-700)] bg-[color:var(--color-neutral-900)] px-4 py-3"
+              className="flex items-center justify-between gap-4 rounded-xl border bg-[color:var(--color-neutral-900)] px-4 py-3"
+              style={{
+                borderColor: isBroken
+                  ? "var(--color-brand-red)"
+                  : "var(--color-neutral-700)",
+              }}
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-[family-name:var(--font-label)] text-[12px] uppercase tracking-[1.5px] text-[color:var(--color-brand-cream)]">
                     {integration.label}
                   </span>
-                  <StatusDot active={isActive} />
+                  <StatusDot status={status} />
                 </div>
                 <p className="mt-0.5 font-[family-name:var(--font-body)] text-[13px] leading-[1.5] text-[color:var(--color-neutral-400)]">
                   {integration.description}
                 </p>
-                {integration.envHint && !isActive ? (
+                {isBroken ? (
+                  <p className="mt-0.5 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-red)]">
+                    Credential missing — reconfigure or add{" "}
+                    {integration.envHint ?? "env var"} to .env.local
+                  </p>
+                ) : integration.envHint && !isActive ? (
                   <p className="mt-0.5 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
                     env: {integration.envHint}
                   </p>
@@ -211,6 +227,10 @@ export default async function IntegrationsPage() {
                   <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-500)]">
                     Connected
                   </span>
+                ) : isBroken ? (
+                  <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-brand-red)]">
+                    Broken
+                  </span>
                 ) : null}
                 {integration.wizardPath ? (
                   <Link
@@ -219,10 +239,12 @@ export default async function IntegrationsPage() {
                       "rounded-lg px-4 py-2 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-all " +
                       (isActive
                         ? "border border-[color:var(--color-neutral-600)] bg-transparent text-[color:var(--color-neutral-400)] hover:border-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]"
-                        : "border border-[color:var(--color-brand-pink)] bg-[color:var(--color-brand-pink)]/10 text-[color:var(--color-brand-pink)] hover:bg-[color:var(--color-brand-pink)]/20")
+                        : isBroken
+                          ? "border border-[color:var(--color-brand-red)] bg-[color:var(--color-brand-red)]/10 text-[color:var(--color-brand-red)] hover:bg-[color:var(--color-brand-red)]/20"
+                          : "border border-[color:var(--color-brand-pink)] bg-[color:var(--color-brand-pink)]/10 text-[color:var(--color-brand-pink)] hover:bg-[color:var(--color-brand-pink)]/20")
                     }
                   >
-                    {isActive ? "Reconfigure" : "Set up"}
+                    {isActive ? "Reconfigure" : isBroken ? "Reconnect" : "Set up"}
                   </Link>
                 ) : null}
               </div>
@@ -234,16 +256,24 @@ export default async function IntegrationsPage() {
   );
 }
 
-function StatusDot({ active }: { active: boolean }) {
+function StatusDot({ status }: { status: "active" | "broken" | "none" }) {
+  const color =
+    status === "active"
+      ? "var(--color-brand-pink)"
+      : status === "broken"
+        ? "var(--color-brand-red)"
+        : "var(--color-neutral-600)";
+  const title =
+    status === "active"
+      ? "Connected"
+      : status === "broken"
+        ? "Broken — credential missing"
+        : "Not connected";
   return (
     <span
       className="inline-block size-1.5 rounded-full"
-      style={{
-        backgroundColor: active
-          ? "var(--color-brand-pink)"
-          : "var(--color-neutral-600)",
-      }}
-      title={active ? "Connected" : "Not connected"}
+      style={{ backgroundColor: color }}
+      title={title}
     />
   );
 }

@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database &amp; Infrastructure &mdash; Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* -- NAV -------------------------------------------------------- */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* -- HERO ------------------------------------------------------- */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* -- TOC -------------------------------------------------------- */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* -- CONTENT ---------------------------------------------------- */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* -- DIAGRAM ---------------------------------------------------- */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* -- TABLES ----------------------------------------------------- */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* -- CODE BLOCKS ------------------------------------------------ */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* -- TAG GRID --------------------------------------------------- */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* -- CALLOUT ---------------------------------------------------- */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* -- TENSION TABLE ---------------------------------------------- */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* -- LISTS ------------------------------------------------------ */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* -- DIVIDER ---------------------------------------------------- */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* -- FOOTER ----------------------------------------------------- */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* -- RESPONSIVE ------------------------------------------------- */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">Super<span>Bad</span></a>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Database &amp; Infrastructure</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">SQLite, Drizzle ORM, migrations, the scheduled-tasks worker, kill switches, activity logging, settings registry, environment config, monitoring, and the full tech stack.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#overview"><span class="num">01</span> System Overview</a>
+    <a href="#sqlite"><span class="num">02</span> SQLite &amp; WAL Mode</a>
+    <a href="#drizzle"><span class="num">03</span> Drizzle ORM Layer</a>
+    <a href="#schema"><span class="num">04</span> Schema Architecture</a>
+    <a href="#migrations"><span class="num">05</span> Migration System</a>
+    <a href="#worker"><span class="num">06</span> Scheduled-Tasks Worker</a>
+    <a href="#kill-switches"><span class="num">07</span> Kill-Switch System</a>
+    <a href="#settings"><span class="num">08</span> Settings Registry</a>
+    <a href="#activity"><span class="num">09</span> Activity Logging</a>
+    <a href="#monitoring"><span class="num">10</span> Monitoring &amp; Observability</a>
+    <a href="#env"><span class="num">11</span> Environment &amp; Boot Sequence</a>
+    <a href="#stack"><span class="num">12</span> Full Tech Stack</a>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- 01 SYSTEM OVERVIEW -->
+
+<div class="section" id="overview">
+  <div class="section-num">Section 01</div>
+  <h2>System Overview</h2>
+
+  <p>SuperBad Lite runs on a single SQLite database file in WAL mode, accessed through Drizzle ORM with better-sqlite3 as the driver. The entire platform &mdash; CRM, billing, content studio, AI infrastructure, client portal &mdash; shares one database file, one connection pool, and one schema barrel export.</p>
+
+  <p>This is a deliberate architectural choice. SQLite eliminates network latency to a database server, simplifies deployment to a single process, and makes backups trivial (Litestream streams WAL frames to Cloudflare R2 in real time). The trade-off is single-writer concurrency, which is fine for a solo-operator agency platform that processes requests sequentially.</p>
+
+  <div class="diagram"><pre>
+<span class="highlight">DATABASE ARCHITECTURE</span>
+<span class="dim">---------------------</span>
+
+<span class="accent">Next.js App</span>                     <span class="accent">SQLite File</span>
+<span class="dim">-----------</span>                     <span class="dim">-----------</span>
+Server Components <span class="dim">--&gt;</span>           dev.db <span class="dim">(development)</span>
+API Routes        <span class="dim">--&gt;</span>  Drizzle  /data/superbad.db <span class="dim">(prod)</span>
+Server Actions    <span class="dim">--&gt;</span>  ORM <span class="dim">--&gt;</span>  better-sqlite3 <span class="dim">--&gt;</span> WAL mode
+Scheduled Worker  <span class="dim">--&gt;</span>           foreign_keys = ON
+
+<span class="highlight">BACKUP PIPELINE</span>
+<span class="dim">---------------</span>
+SQLite WAL <span class="dim">--&gt;</span> Litestream <span class="dim">--&gt;</span> Cloudflare R2
+
+<span class="highlight">BY THE NUMBERS</span>
+<span class="dim">--------------</span>
+<span class="accent">112</span> schema files          <span class="accent">194</span> enum definitions
+<span class="accent">100</span> migration files        <span class="accent">370</span> database indexes
+<span class="accent">248</span> table definitions      <span class="accent">7,574</span> lines of schema code
+<span class="accent">27</span> kill switches           <span class="accent">190+</span> settings keys
+<span class="accent">400+</span> activity log kinds    <span class="accent">60</span> scheduled task handlers
+  </pre></div>
+
+  <p class="mutter">One file. 248 tables. No connection strings. No network hops. Just a file on disk with a write-ahead log.</p>
+</div>
+
+<hr>
+
+<!-- 02 SQLITE & WAL MODE -->
+
+<div class="section" id="sqlite">
+  <div class="section-num">Section 02</div>
+  <h2>SQLite &amp; WAL Mode</h2>
+
+  <p>The database connection is established in <code>lib/db/index.ts</code>. It uses <code>better-sqlite3</code> (a native Node.js addon) for synchronous access, wrapped by Drizzle ORM for type safety. Two PRAGMA directives are set immediately on connection:</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/db/index.ts</div>
+    <pre>
+<span class="kw">import</span> Database <span class="kw">from</span> <span class="str">"better-sqlite3"</span>;
+<span class="kw">import</span> { drizzle } <span class="kw">from</span> <span class="str">"drizzle-orm/better-sqlite3"</span>;
+<span class="kw">import</span> * <span class="kw">as</span> schema <span class="kw">from</span> <span class="str">"./schema"</span>;
+
+<span class="kw">const</span> databaseUrl = process.env.DATABASE_URL ?? <span class="str">"file:./dev.db"</span>;
+
+<span class="kw">const</span> sqlite = <span class="kw">new</span> Database(filePath);
+sqlite.pragma(<span class="str">"journal_mode = WAL"</span>);    <span class="comment">// Write-Ahead Logging</span>
+sqlite.pragma(<span class="str">"foreign_keys = ON"</span>);     <span class="comment">// Enforce FK constraints</span>
+
+<span class="kw">export const</span> db = drizzle(sqlite, { schema });</pre>
+  </div>
+
+  <h3>Why WAL Mode?</h3>
+
+  <p><strong>Write-Ahead Logging</strong> (WAL) is the recommended journaling mode for SQLite in server applications. Instead of writing changes directly to the database file and maintaining a rollback journal, WAL appends changes to a separate <code>-wal</code> file. This gives you:</p>
+
+  <ul>
+    <li><strong>Concurrent readers.</strong> Readers don't block writers and writers don't block readers. Multiple server components can read simultaneously while the scheduled-tasks worker writes.</li>
+    <li><strong>Better write performance.</strong> Writes only need to append to the WAL file, not rewrite pages in the main database file.</li>
+    <li><strong>Crash safety.</strong> If the process crashes, SQLite replays the WAL on next open. No data loss for committed transactions.</li>
+    <li><strong>Streamable backups.</strong> Litestream watches the WAL file for new frames and replicates them to R2 in near-real-time without stopping the database.</li>
+  </ul>
+
+  <h3>Global Singleton Pattern</h3>
+
+  <p>The database connection is cached on <code>globalThis</code> in development to survive Next.js hot module reloading (HMR). Without this, every HMR cycle would open a new connection, eventually exhausting file handles:</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/db/index.ts &mdash; singleton guard</div>
+    <pre>
+<span class="kw">const</span> globalForDb = globalThis <span class="kw">as unknown as</span> {
+  __sblite_sqlite?: Database.Database;
+};
+
+<span class="kw">const</span> sqlite =
+  globalForDb.__sblite_sqlite ?? <span class="kw">new</span> Database(filePath);
+
+<span class="kw">if</span> (process.env.NODE_ENV !== <span class="str">"production"</span>) {
+  globalForDb.__sblite_sqlite = sqlite;
+}</pre>
+  </div>
+
+  <p>In production, a new connection is created per process start (there's only one). In development, the same connection is reused across HMR cycles.</p>
+
+  <div class="callout">
+    <div class="callout-label">Why Foreign Keys Matter</div>
+    <p>SQLite disables foreign key enforcement by default. The <code>foreign_keys = ON</code> pragma is essential &mdash; without it, cascading deletes and referential integrity checks are silently skipped. Every <code>onDelete: "cascade"</code> and <code>onDelete: "set null"</code> in the schema depends on this pragma being active.</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- 03 DRIZZLE ORM LAYER -->
+
+<div class="section" id="drizzle">
+  <div class="section-num">Section 03</div>
+  <h2>Drizzle ORM Layer</h2>
+
+  <p>Drizzle is a TypeScript-first ORM that generates SQL at build time rather than using a query builder at runtime. The key selling point: your schema files <em>are</em> your type definitions. When you define a column as <code>text("tier", { enum: DISCOUNT_TIERS })</code>, Drizzle infers both the SQL DDL and the TypeScript type from the same declaration.</p>
+
+  <h3>Schema-as-Types Pattern</h3>
+
+  <p>Every schema file exports three things:</p>
+
+  <ol>
+    <li><strong>The table definition</strong> &mdash; a <code>sqliteTable()</code> call that defines columns, constraints, and indexes.</li>
+    <li><strong>The select type</strong> &mdash; <code>typeof table.$inferSelect</code>, representing a row as read from the database.</li>
+    <li><strong>The insert type</strong> &mdash; <code>typeof table.$inferInsert</code>, representing the shape needed to insert a new row (optional columns are optional in the type).</li>
+  </ol>
+
+  <div class="code-block">
+    <div class="code-header">lib/db/schema/sequences.ts &mdash; typical pattern</div>
+    <pre>
+<span class="kw">import</span> { sqliteTable, text, integer } <span class="kw">from</span> <span class="str">"drizzle-orm/sqlite-core"</span>;
+
+<span class="kw">export const</span> sequences = sqliteTable(<span class="str">"sequences"</span>, {
+  name: text(<span class="str">"name"</span>).primaryKey(),
+  current_value: integer(<span class="str">"current_value"</span>).notNull().default(<span class="num">0</span>),
+});
+
+<span class="kw">export type</span> <span class="type">SequenceRow</span> = <span class="kw">typeof</span> sequences.$inferSelect;
+<span class="comment">// { name: string; current_value: number }</span></pre>
+  </div>
+
+  <h3>Enum-as-Const Pattern</h3>
+
+  <p>TypeScript enums are avoided throughout the codebase. Instead, every enumerated value is defined as a <code>const</code> array and passed to Drizzle's <code>text()</code> column with an <code>enum</code> option:</p>
+
+  <div class="code-block">
+    <div class="code-header">Enum pattern used everywhere</div>
+    <pre>
+<span class="kw">export const</span> WEBHOOK_RESULTS = [<span class="str">"ok"</span>, <span class="str">"error"</span>, <span class="str">"skipped"</span>] <span class="kw">as const</span>;
+<span class="kw">export type</span> <span class="type">WebhookResult</span> = (<span class="kw">typeof</span> WEBHOOK_RESULTS)[<span class="type">number</span>];
+
+<span class="comment">// Used in schema:</span>
+result: text(<span class="str">"result"</span>, { enum: WEBHOOK_RESULTS }).notNull(),</pre>
+  </div>
+
+  <p>This gives you: runtime array for validation/iteration, TypeScript union type for compile-time checks, and SQLite TEXT column with Drizzle-enforced constraints. The same array can be used in API validation (Zod), UI select options, and database queries.</p>
+
+  <h3>JSON Columns</h3>
+
+  <p>SQLite stores JSON as TEXT. Drizzle's <code>{ mode: "json" }</code> option automatically serialises on write and parses on read:</p>
+
+  <div class="code-block">
+    <div class="code-header">JSON column pattern</div>
+    <pre>
+payload: text(<span class="str">"payload"</span>, { mode: <span class="str">"json"</span> }).notNull(),
+<span class="comment">// TypeScript type: unknown</span>
+<span class="comment">// SQLite storage: TEXT containing JSON string</span>
+<span class="comment">// Drizzle handles JSON.stringify on write, JSON.parse on read</span></pre>
+  </div>
+
+  <h3>The Barrel Export</h3>
+
+  <p><code>lib/db/schema/index.ts</code> re-exports every schema file (110 export lines). This single import is passed to Drizzle at connection time via <code>import * as schema from "./schema"</code>, enabling Drizzle's relational query API to resolve joins across the entire schema graph.</p>
+
+  <div class="callout">
+    <div class="callout-label">Drizzle-Kit for Migrations</div>
+    <p><code>drizzle.config.ts</code> at the project root points Drizzle-Kit at the barrel export and the migrations folder. Running <code>npx drizzle-kit generate</code> diffs the TypeScript schema against the existing migrations and produces a new <code>.sql</code> file. The platform applies these automatically at boot via <code>instrumentation.ts</code>.</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- 04 SCHEMA ARCHITECTURE -->
+
+<div class="section" id="schema">
+  <div class="section-num">Section 04</div>
+  <h2>Schema Architecture</h2>
+
+  <p>The 112 schema files in <code>lib/db/schema/</code> fall into natural clusters. Here's how the major table groups relate to each other and which systems own them.</p>
+
+  <div class="diagram"><pre>
+<span class="highlight">CRM CORE</span>                            <span class="highlight">BILLING</span>
+<span class="dim">--------</span>                            <span class="dim">-------</span>
+<span class="accent">companies</span> <span class="dim">--+-&gt;</span> contacts            <span class="accent">quotes</span> <span class="dim">--&gt;</span> catalogue_items
+           <span class="dim">+-&gt;</span> deals <span class="dim">--------&gt;</span>    <span class="accent">invoices</span> <span class="dim">--&gt;</span> sequences
+           <span class="dim">+-&gt;</span> activity_log       <span class="accent">saas_products</span> <span class="dim">--&gt;</span> saas_tiers
+           <span class="dim">+-&gt;</span> private_notes                    <span class="dim">--&gt;</span> saas_tier_limits
+                                                   <span class="dim">--&gt;</span> saas_usage_dimensions
+                                    <span class="accent">usage_records</span>
+<span class="highlight">CONTENT</span>                              <span class="accent">expenses</span> / <span class="accent">recurring_expenses</span>
+<span class="dim">-------</span>
+<span class="accent">content_studio</span> <span class="dim">(compositions)</span>
+<span class="accent">content_topics</span> <span class="dim">--&gt;</span> blog_posts       <span class="highlight">OUTREACH</span>
+<span class="accent">social_drafts</span>                        <span class="dim">--------</span>
+<span class="accent">newsletter_subscribers</span>               <span class="accent">lead_candidates</span> <span class="dim">--&gt;</span> lead_runs
+<span class="accent">newsletter_sends</span>                     <span class="accent">outreach_sequences</span> <span class="dim">--&gt;</span> outreach_sends
+<span class="accent">compose_drafts</span>                       <span class="accent">outreach_drafts</span>
+<span class="accent">instagram</span> <span class="dim">(accounts, posts,</span>          <span class="accent">autonomy_state</span>
+<span class="dim">           comments, strategies)</span>     <span class="accent">dnc</span> / <span class="accent">dnc_phones</span>
+
+<span class="highlight">AI + LLM</span>                             <span class="highlight">INFRASTRUCTURE</span>
+<span class="dim">--------</span>                             <span class="dim">--------------</span>
+<span class="accent">external_call_log</span> <span class="dim">(every API call)</span>  <span class="accent">settings</span> <span class="dim">(190+ keys)</span>
+<span class="accent">llm_usage_log</span> <span class="dim">(token counts)</span>       <span class="accent">scheduled_tasks</span> + <span class="accent">worker_heartbeats</span>
+<span class="accent">cost_anomalies</span>                      <span class="accent">webhook_events</span> <span class="dim">(Stripe + Resend)</span>
+<span class="accent">band_overrides</span>                      <span class="accent">deploy_events</span> <span class="dim">(Vercel)</span>
+                                    <span class="accent">user</span> <span class="dim">(roles, preferences)</span>
+                                    <span class="accent">activity_log</span> <span class="dim">(400+ event kinds)</span>
+  </pre></div>
+
+  <h3>Core Infrastructure Tables</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Table</th><th>Purpose</th><th>Key Design</th></tr></thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>Auth.js user records + SuperBad preferences</td><td>4 roles: admin/client/prospect/anonymous. Preference columns for motion, density, theme.</td></tr>
+        <tr><td><code>settings</code></td><td>Runtime configuration store</td><td>Key-value with typed schema validation. 190+ keys across 20 domains.</td></tr>
+        <tr><td><code>activity_log</code></td><td>Cross-system audit trail</td><td>400+ event kinds, FK cascade from companies/contacts/deals. JSON <code>meta</code> for structured payloads.</td></tr>
+        <tr><td><code>scheduled_tasks</code></td><td>Deferred work queue</td><td>87 task types, 5 statuses, exponential backoff, idempotency key, reclaim-on-stale.</td></tr>
+        <tr><td><code>worker_heartbeats</code></td><td>Worker health monitoring</td><td>Single row per worker. Admin cockpit shows red banner if last tick &gt; 5 minutes ago.</td></tr>
+        <tr><td><code>webhook_events</code></td><td>Webhook idempotency</td><td>PK = provider event ID. Result enum: ok/error/skipped. Only "ok" events are skipped on replay.</td></tr>
+        <tr><td><code>external_call_log</code></td><td>API call cost ledger</td><td>Every Stripe, LLM, Resend, Twilio call logged with estimated AUD cost. Feeds Cost Observatory.</td></tr>
+        <tr><td><code>sequences</code></td><td>Monotonic counter store</td><td>Atomic increment for quote numbers (SB-YYYY-NNNN), invoice numbers (SB-INV-YYYY-NNNN).</td></tr>
+        <tr><td><code>deploy_events</code></td><td>Vercel deploy tracking</td><td>Feeds anomaly diagnoser for "did a recent deploy cause this cost spike?"</td></tr>
+        <tr><td><code>cost_anomalies</code></td><td>Detected cost spikes</td><td>3 detectors (hard_threshold, rate, learned_band), 3 severity tiers, acknowledge/resolve lifecycle.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Index Strategy</h3>
+
+  <p>The schema defines 370 indexes across all tables. The indexing strategy follows two rules:</p>
+
+  <ol>
+    <li><strong>Composite indexes lead with the filter column.</strong> <code>index("activity_log_company_idx").on(t.company_id, t.created_at_ms)</code> supports both "all events for company X" and "all events for company X after date Y" queries efficiently.</li>
+    <li><strong>Every foreign key has an index.</strong> SQLite doesn't auto-create indexes on FK columns (unlike PostgreSQL). Without explicit indexes, cascading deletes do table scans.</li>
+  </ol>
+
+  <p class="mutter">370 indexes for 248 tables. About 1.5 per table. Enough to make queries fast, not so many that writes suffer.</p>
+</div>
+
+<hr>
+
+<!-- 05 MIGRATION SYSTEM -->
+
+<div class="section" id="migrations">
+  <div class="section-num">Section 05</div>
+  <h2>Migration System</h2>
+
+  <p>Migrations live in <code>lib/db/migrations/</code> as numbered SQL files. There are 100 migration files spanning from <code>0000_init.sql</code> (the initial schema) through <code>0099_add_intro_funnel_instagram_handle.sql</code>. The system uses Drizzle-Kit's journal-based migration tracking.</p>
+
+  <h3>How Migrations Run</h3>
+
+  <p>Migrations are applied automatically at server boot via Next.js's <code>instrumentation.ts</code> hook. This means zero manual migration commands in production &mdash; deploy the code and the database schema updates itself:</p>
+
+  <div class="code-block">
+    <div class="code-header">instrumentation.ts &mdash; boot sequence</div>
+    <pre>
+<span class="kw">export async function</span> register() {
+  <span class="kw">if</span> (process.env.NEXT_RUNTIME === <span class="str">"nodejs"</span>) {
+    <span class="kw">if</span> (process.env.NEXT_PHASE !== <span class="str">"phase-production-build"</span>) {
+      <span class="kw">const</span> { runMigrations } = <span class="kw">await import</span>(<span class="str">"./lib/db/migrate"</span>);
+      runMigrations(dbUrl);
+    }
+    <span class="comment">// ... Sentry init, worker start</span>
+  }
+}</pre>
+  </div>
+
+  <p>The <code>NEXT_PHASE !== "phase-production-build"</code> guard is critical. During <code>next build</code>, Next.js imports server modules to collect page data. Running migrations during build would fail because the production database isn't available. The guard skips migrations during build and only runs them at actual server start.</p>
+
+  <h3>The Migration Runner</h3>
+
+  <p><code>lib/db/migrate.ts</code> does three things in sequence:</p>
+
+  <ol>
+    <li><strong>Drizzle migrations.</strong> Reads the journal in <code>migrations/meta/_journal.json</code>, applies any un-applied SQL files via <code>drizzle-orm/better-sqlite3/migrator</code>.</li>
+    <li><strong>Seed files.</strong> Any SQL file in the migrations folder that isn't tracked in the journal (convention: seed files like <code>0001_seed_settings.sql</code>) is executed. These use <code>INSERT OR IGNORE</code> for idempotency.</li>
+    <li><strong>Admin user seed.</strong> Ensures the admin user (<code>andy@superbadmedia.com.au</code>) exists with the correct password hash. If <code>ADMIN_PASSWORD</code> is set in the environment, updates the hash if it changed.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Migration Best Practice</div>
+    <p>Never modify an existing migration file. If you need to change a table, create a new migration. The journal tracks which files have been applied by filename; editing an applied migration corrupts the state. Drizzle-Kit handles this automatically when you run <code>npx drizzle-kit generate</code>.</p>
+  </div>
+
+  <h3>Generating a New Migration</h3>
+
+  <ol>
+    <li>Edit the schema file in <code>lib/db/schema/</code>.</li>
+    <li>Run <code>npx drizzle-kit generate</code>. This diffs the TypeScript schema against the existing migrations and creates a new <code>.sql</code> file.</li>
+    <li>Review the generated SQL. Drizzle-Kit is generally good but sometimes generates unnecessary statements.</li>
+    <li>The migration applies automatically on next server start.</li>
+  </ol>
+
+  <div class="code-block">
+    <div class="code-header">drizzle.config.ts</div>
+    <pre>
+<span class="kw">export default</span> {
+  schema: <span class="str">"./lib/db/schema/index.ts"</span>,
+  out: <span class="str">"./lib/db/migrations"</span>,
+  dialect: <span class="str">"sqlite"</span>,
+  dbCredentials: {
+    url: process.env.DATABASE_URL ?? <span class="str">"file:./dev.db"</span>,
+  },
+} <span class="kw">satisfies</span> <span class="type">Config</span>;</pre>
+  </div>
+</div>
+
+<hr>
+
+<!-- 06 SCHEDULED-TASKS WORKER -->
+
+<div class="section" id="worker">
+  <div class="section-num">Section 06</div>
+  <h2>Scheduled-Tasks Worker</h2>
+
+  <p>The scheduled-tasks worker is the platform's deferred execution engine. Every feature that needs to do something later &mdash; send an email in 3 days, check for overdue invoices, generate a cockpit brief at 8am, run the lead-gen daily search &mdash; inserts a row into <code>scheduled_tasks</code> and the worker picks it up when it's due.</p>
+
+  <h3>Worker Architecture</h3>
+
+  <div class="diagram"><pre>
+<span class="highlight">WORKER LOOP</span> <span class="dim">(1-minute interval)</span>
+<span class="dim">-------------------------------</span>
+
+<span class="accent">1. Kill-switch check</span>
+   <span class="dim">-&gt;</span> If <span class="accent">scheduled_tasks_enabled</span> is OFF, write heartbeat, return 0
+
+<span class="accent">2. Reclaim stale</span>
+   <span class="dim">-&gt;</span> Any row with status="running" for &gt;15 min: reset to "pending"
+   <span class="dim">-&gt;</span> Covers worker crashes mid-processing
+
+<span class="accent">3. Pull batch</span>
+   <span class="dim">-&gt;</span> SELECT up to 50 rows WHERE status="pending" AND run_at_ms &lt;= now
+
+<span class="accent">4. Process each</span>
+   <span class="dim">-&gt;</span> Atomic claim: UPDATE status="running" WHERE status="pending"
+   <span class="dim">-&gt;</span> Dispatch to handler by task_type
+   <span class="dim">-&gt;</span> Success: status="done", done_at_ms=now
+   <span class="dim">-&gt;</span> Failure: attempts++, exponential backoff
+
+<span class="accent">5. Sweep overdue invoices</span>
+   <span class="dim">-&gt;</span> Piggybacks on every tick (separate from task queue)
+
+<span class="accent">6. Write heartbeat</span>
+   <span class="dim">-&gt;</span> Upsert worker_heartbeats with tick timestamp + tasks processed
+  </pre></div>
+
+  <h3>Task Lifecycle</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Status</th><th>Meaning</th><th>Next Transition</th></tr></thead>
+      <tbody>
+        <tr><td><code>pending</code></td><td>Waiting for its <code>run_at_ms</code> time</td><td>Worker claims it &rarr; <code>running</code></td></tr>
+        <tr><td><code>running</code></td><td>Currently being processed</td><td>Success &rarr; <code>done</code>, Failure &rarr; back to <code>pending</code> with backoff</td></tr>
+        <tr><td><code>done</code></td><td>Completed successfully</td><td>Terminal</td></tr>
+        <tr><td><code>failed</code></td><td>Exhausted all 3 attempts</td><td>Terminal</td></tr>
+        <tr><td><code>skipped</code></td><td>Deliberately not executed</td><td>Terminal</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Failure &amp; Retry</h3>
+
+  <p>The worker uses exponential backoff with a base of 5 minutes and a multiplier of 6:</p>
+
+  <ul>
+    <li><strong>Attempt 1 fails:</strong> retry in 5 min x 6^1 = 30 minutes</li>
+    <li><strong>Attempt 2 fails:</strong> retry in 5 min x 6^2 = 3 hours</li>
+    <li><strong>Attempt 3 fails:</strong> status = <code>failed</code> (terminal)</li>
+  </ul>
+
+  <p>This is deliberately aggressive. If a task fails 3 times with hours between attempts, something is structurally wrong. Manual triage is needed.</p>
+
+  <h3>Task Types</h3>
+
+  <p>There are 87 registered task types across all features. Each type has exactly one handler registered in <code>lib/scheduled-tasks/handlers/</code> (60 handler files):</p>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Quote Builder (8)</div>
+    <div class="tag-grid">
+      <span class="tag">quote_expire</span>
+      <span class="tag">quote_reminder_3d</span>
+      <span class="tag">quote_pdf_render</span>
+      <span class="tag">quote_email_send</span>
+      <span class="tag">manual_invoice_generate</span>
+      <span class="tag">manual_invoice_send</span>
+      <span class="tag">subscription_pause_resume_reminder</span>
+      <span class="tag">subscription_pause_resume</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">SaaS Billing (5)</div>
+    <div class="tag-grid">
+      <span class="tag">saas_data_loss_warning</span>
+      <span class="tag">saas_annual_renewal_reminder</span>
+      <span class="tag">saas_card_expiry_warning</span>
+      <span class="tag">saas_subscription_usage_reset</span>
+      <span class="tag">saas_subscription_tier_downgrade_apply</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Lead Generation (7)</div>
+    <div class="tag-grid">
+      <span class="tag">lead_gen_daily_search</span>
+      <span class="tag">sequence_scheduler</span>
+      <span class="tag">engagement_tier_evaluator</span>
+      <span class="tag">auto_send_execute</span>
+      <span class="tag">stale_nudge_generator</span>
+      <span class="tag">case_snippet_auto_approve</span>
+      <span class="tag">case_snippet_retainer_90d</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Content &amp; Social (6)</div>
+    <div class="tag-grid">
+      <span class="tag">content_keyword_research</span>
+      <span class="tag">content_generate_draft</span>
+      <span class="tag">content_fan_out</span>
+      <span class="tag">content_newsletter_send</span>
+      <span class="tag">content_ranking_snapshot</span>
+      <span class="tag">content_outreach_match</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Unified Inbox (7)</div>
+    <div class="tag-grid">
+      <span class="tag">inbox_draft_reply</span>
+      <span class="tag">inbox_draft_generate</span>
+      <span class="tag">inbox_hygiene_purge</span>
+      <span class="tag">inbox_morning_digest</span>
+      <span class="tag">inbox_graph_subscription_renew</span>
+      <span class="tag">inbox_initial_import</span>
+      <span class="tag">inbox_ticket_auto_resolve_idle</span>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Idempotency Key</div>
+    <p>The <code>idempotency_key</code> column has a unique index. Features use this to prevent duplicate task scheduling. For example, <code>manual_invoice_generate</code> uses <code>deal:{deal_id}:cycle:{cycle_number}</code> as its key. If you try to schedule the same invoice generation twice, the unique constraint rejects the duplicate.</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- 07 KILL-SWITCH SYSTEM -->
+
+<div class="section" id="kill-switches">
+  <div class="section-num">Section 07</div>
+  <h2>Kill-Switch System</h2>
+
+  <p>Every feature that can spend money, send email, or hit an external API autonomously is gated by a kill switch. The switches are defined in <code>lib/kill-switches.ts</code> as a typed registry with compile-time enforcement: if you add a feature that calls an external service without gating it behind a switch, you're breaking the autonomy protocol.</p>
+
+  <h3>How Kill Switches Work</h3>
+
+  <div class="code-block">
+    <div class="code-header">lib/kill-switches.ts &mdash; usage pattern</div>
+    <pre>
+<span class="kw">import</span> { killSwitches } <span class="kw">from</span> <span class="str">"@/lib/kill-switches"</span>;
+
+<span class="comment">// In any feature handler:</span>
+<span class="kw">if</span> (!killSwitches.outreach_send_enabled) {
+  <span class="kw">return</span> { skipped: <span class="kw">true</span> };
+}</pre>
+  </div>
+
+  <p>The registry ships with all switches defaulting to their safe state. Switches that gate autonomous outreach, content sending, and monitoring default to <code>false</code> (off). Switches for core infrastructure like <code>scheduled_tasks_enabled</code> and <code>llm_calls_enabled</code> default to <code>true</code> because the platform doesn't function without them.</p>
+
+  <h3>All 27 Kill Switches</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Switch</th><th>Default</th><th>What It Gates</th></tr></thead>
+      <tbody>
+        <tr><td><code>scheduled_tasks_enabled</code></td><td>ON</td><td>Entire worker loop. OFF = heartbeat only, zero tasks processed.</td></tr>
+        <tr><td><code>llm_calls_enabled</code></td><td>ON</td><td>All Claude API calls. OFF = every LLM invocation returns early.</td></tr>
+        <tr><td><code>outreach_send_enabled</code></td><td>OFF</td><td>Outreach email sending. OFF = sequences generate but don't send.</td></tr>
+        <tr><td><code>drift_check_enabled</code></td><td>OFF</td><td>Brand voice drift checking on outgoing emails.</td></tr>
+        <tr><td><code>sentry_enabled</code></td><td>OFF</td><td>Error reporting to Sentry. OFF = events suppressed in beforeSend.</td></tr>
+        <tr><td><code>brand_dna_assessment_enabled</code></td><td>ON</td><td>Brand DNA questionnaire accessibility.</td></tr>
+        <tr><td><code>setup_wizards_enabled</code></td><td>ON</td><td>Integration setup wizards.</td></tr>
+        <tr><td><code>saas_usage_enforcement_enabled</code></td><td>OFF</td><td>Usage cap enforcement. OFF = caps display but don't block actions.</td></tr>
+        <tr><td><code>saas_tier_change_enabled</code></td><td>ON</td><td>Subscription tier upgrade/downgrade mutations.</td></tr>
+        <tr><td><code>saas_payment_recovery_enabled</code></td><td>ON</td><td>Branded SetupIntent card recovery on past_due.</td></tr>
+        <tr><td><code>saas_cancel_flow_enabled</code></td><td>ON</td><td>Subscriber-facing cancel surface. OFF = route 404s.</td></tr>
+        <tr><td><code>inbox_sync_enabled</code></td><td>ON</td><td>All Microsoft Graph API calls.</td></tr>
+        <tr><td><code>inbox_send_enabled</code></td><td>ON</td><td>Outbound email via Graph specifically.</td></tr>
+        <tr><td><code>inbox_digest_enabled</code></td><td>OFF</td><td>Daily morning digest email.</td></tr>
+        <tr><td><code>onboarding_nudges_enabled</code></td><td>OFF</td><td>Onboarding reminder emails.</td></tr>
+        <tr><td><code>content_automations_enabled</code></td><td>OFF</td><td>Content Engine automated pipelines.</td></tr>
+        <tr><td><code>content_newsletter_enabled</code></td><td>OFF</td><td>Newsletter sends specifically.</td></tr>
+        <tr><td><code>content_outreach_enabled</code></td><td>OFF</td><td>Content-to-outreach matching pipeline.</td></tr>
+        <tr><td><code>lead_gen_enabled</code></td><td>ON</td><td>Lead generation discovery pipeline.</td></tr>
+        <tr><td><code>plan_automations_enabled</code></td><td>ON</td><td>Six-week plan generation, expiry, migration.</td></tr>
+        <tr><td><code>tasks_digest_enabled</code></td><td>OFF</td><td>Morning task digest email.</td></tr>
+        <tr><td><code>hiring_discovery_enabled</code></td><td>OFF</td><td>Hiring discovery pipeline (LLM+search agent).</td></tr>
+        <tr><td><code>observatory_detectors_enabled</code></td><td>OFF</td><td>Cost anomaly detectors.</td></tr>
+        <tr><td><code>cockpit_briefs_enabled</code></td><td>ON</td><td>Daily cockpit brief generation.</td></tr>
+        <tr><td><code>admin_sse_enabled</code></td><td>ON</td><td>Server-Sent Events for admin dashboard.</td></tr>
+        <tr><td><code>invoicing_manual_cycle_enqueue_enabled</code></td><td>ON</td><td>Auto-scheduling invoice generation on quote acceptance.</td></tr>
+        <tr><td><code>saas_headlines_enabled</code></td><td>ON</td><td>SaaS headlines strip on admin cockpit.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Environment Override</h3>
+
+  <p>The <code>KILL_SWITCHES_ON</code> environment variable is a comma-separated list of switch keys to force ON at boot. This is used for Playwright testing and local development:</p>
+
+  <div class="code-block">
+    <div class="code-header">Environment override</div>
+    <pre>
+<span class="comment"># In .env.local or Playwright config:</span>
+KILL_SWITCHES_ON=outreach_send_enabled,drift_check_enabled,sentry_enabled</pre>
+  </div>
+
+  <p class="mutter">27 switches. All autonomous features off by default. Flip them on one at a time in production, watch what happens, sleep at night.</p>
+</div>
+
+<hr>
+
+<!-- 08 SETTINGS REGISTRY -->
+
+<div class="section" id="settings">
+  <div class="section-num">Section 08</div>
+  <h2>Settings Registry</h2>
+
+  <p>Kill switches are the on/off gates. The <strong>settings registry</strong> is the fine-tuning knobs. Every autonomy-sensitive threshold, interval, cap, and configuration value lives in the <code>settings</code> database table and is accessed through a typed registry in <code>lib/settings.ts</code>.</p>
+
+  <h3>Architecture</h3>
+
+  <div class="diagram"><pre>
+<span class="highlight">SETTINGS FLOW</span>
+<span class="dim">-------------</span>
+
+<span class="accent">docs/settings-registry.md</span>     <span class="dim">(source of truth -- all keys documented)</span>
+        <span class="dim">|</span>
+        <span class="dim">v</span>
+<span class="accent">seed migration</span>                 <span class="dim">(INSERT OR IGNORE into settings table)</span>
+        <span class="dim">|</span>
+        <span class="dim">v</span>
+<span class="accent">lib/settings.ts</span>                <span class="dim">(typed registry with Zod validation)</span>
+        <span class="dim">|</span>
+        <span class="dim">v</span>
+<span class="accent">settings.get("key")</span>            <span class="dim">(in-memory cache -- DB lookup -- Zod parse)</span>
+        <span class="dim">|</span>
+        <span class="dim">v</span>
+Feature code reads value       <span class="dim">(never uses literal constants)</span>
+  </pre></div>
+
+  <p>The critical design constraint: <strong>feature code must never use literal constants for autonomy-sensitive values.</strong> Instead of writing <code>if (days > 30)</code>, you write <code>if (days > await settings.get("portal.non_converter_archive_days"))</code>. An ESLint rule enforces this boundary.</p>
+
+  <h3>How the Registry Works</h3>
+
+  <div class="code-block">
+    <div class="code-header">lib/settings.ts &mdash; typed read</div>
+    <pre>
+<span class="kw">const</span> registry = {
+  <span class="str">"finance.gst_rate"</span>: decimal,
+  <span class="str">"portal.non_converter_archive_days"</span>: integer,
+  <span class="str">"lead_generation.daily_max_per_day"</span>: integer,
+  <span class="str">"warmup.week_one_cap"</span>: integer,
+  <span class="comment">// ... 190+ keys</span>
+};
+
+<span class="comment">// Usage in feature code:</span>
+<span class="kw">const</span> gstRate = <span class="kw">await</span> settingsRegistry.get(<span class="str">"finance.gst_rate"</span>);
+<span class="comment">// TypeScript knows this is a number. Type-safe all the way down.</span></pre>
+  </div>
+
+  <p>The registry uses Zod schemas to validate and coerce stored values. The <code>settings</code> table stores everything as TEXT strings; the registry transforms them to the correct runtime type (number, boolean, parsed JSON array, enum).</p>
+
+  <h3>In-Memory Cache</h3>
+
+  <p>Settings are cached in a <code>Map</code> after first read. The cache is invalidated on write via <code>settings.set()</code>. This avoids hitting the database on every settings read (which happens hundreds of times per request in a platform with 190+ configurable thresholds).</p>
+
+  <h3>Settings Domains</h3>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Key Domains (190+ keys)</div>
+    <div class="tag-grid">
+      <span class="tag">finance.*<span class="tag-count">11</span></span>
+      <span class="tag">hiring.*<span class="tag-count">28</span></span>
+      <span class="tag">instagram.*<span class="tag-count">19</span></span>
+      <span class="tag">lead_generation.*<span class="tag-count">17</span></span>
+      <span class="tag">onboarding.*<span class="tag-count">14</span></span>
+      <span class="tag">plan.*<span class="tag-count">10</span></span>
+      <span class="tag">wizards.*<span class="tag-count">10</span></span>
+      <span class="tag">pipeline.*<span class="tag-count">10</span></span>
+      <span class="tag">portal.*<span class="tag-count">6</span></span>
+      <span class="tag">inbox.*<span class="tag-count">10</span></span>
+      <span class="tag">warmup.*<span class="tag-count">5</span></span>
+      <span class="tag">surprise.*<span class="tag-count">8</span></span>
+      <span class="tag">observatory.*<span class="tag-count">6</span></span>
+      <span class="tag">content.*<span class="tag-count">5</span></span>
+      <span class="tag">email.*<span class="tag-count">4</span></span>
+      <span class="tag">billing.*<span class="tag-count">5</span></span>
+      <span class="tag">quote.*<span class="tag-count">4</span></span>
+      <span class="tag">tasks.*<span class="tag-count">4</span></span>
+      <span class="tag">cockpit.*<span class="tag-count">3</span></span>
+      <span class="tag">alerts.*<span class="tag-count">3</span></span>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Adding a New Setting</div>
+    <p>Four steps, always in order: (1) Add the row to <code>docs/settings-registry.md</code>. (2) Add the <code>INSERT OR IGNORE</code> to a seed migration. (3) Add the key + Zod schema to <code>lib/settings.ts</code>. (4) Use <code>settings.get("key")</code> in feature code. Skip any step and something breaks silently.</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- 09 ACTIVITY LOGGING -->
+
+<div class="section" id="activity">
+  <div class="section-num">Section 09</div>
+  <h2>Activity Logging</h2>
+
+  <p>The <code>activity_log</code> table is the platform's universal audit trail. Every meaningful state change &mdash; from "quote sent" to "cost anomaly fired" to "hidden egg dismissed" &mdash; is recorded as a row with a typed <code>kind</code>, optional FK references to companies/contacts/deals, a human-readable <code>body</code>, and structured <code>meta</code> JSON.</p>
+
+  <h3>Scale</h3>
+
+  <p>There are <strong>400+ activity log kinds</strong> spread across every feature in the platform. The full enum is defined in a single file (<code>lib/db/schema/activity-log.ts</code>) as the canonical source of truth. Each feature block adds its kinds to the array:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Kind Count</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td>Unified Inbox</td><td>31</td><td><code>inbox_message_received</code>, <code>inbox_draft_sent</code>, <code>inbox_ticket_resolved</code></td></tr>
+        <tr><td>Intro Funnel</td><td>24</td><td><code>intro_funnel_paid</code>, <code>shoot_booked</code>, <code>deliverables_ready</code></td></tr>
+        <tr><td>Six-Week Plans</td><td>20</td><td><code>six_week_plan_approved</code>, <code>six_week_plan_released</code></td></tr>
+        <tr><td>Hiring Pipeline</td><td>20</td><td><code>candidate_sourced</code>, <code>candidate_benched</code>, <code>bench_magic_link_sent</code></td></tr>
+        <tr><td>Quote Builder</td><td>17</td><td><code>quote_accepted</code>, <code>subscription_paused</code>, <code>subscription_cancelled_post_term</code></td></tr>
+        <tr><td>Lead Generation</td><td>20</td><td><code>outreach_sent</code>, <code>autonomy_graduated</code>, <code>candidate_rescored</code></td></tr>
+        <tr><td>Content Engine</td><td>16</td><td><code>content_draft_generated</code>, <code>content_social_published</code></td></tr>
+        <tr><td>Task Manager</td><td>13</td><td><code>task_created</code>, <code>braindump_parsed</code>, <code>task_digest_sent</code></td></tr>
+        <tr><td>SaaS Billing</td><td>12</td><td><code>saas_subscription_created</code>, <code>saas_payment_failed_lockout</code></td></tr>
+        <tr><td>Sales Pipeline</td><td>11</td><td><code>stage_change</code>, <code>payment_received</code>, <code>trial_shoot_booked</code></td></tr>
+        <tr><td>Cost Observatory</td><td>10</td><td><code>cost_anomaly_fired</code>, <code>kill_switch_triggered</code></td></tr>
+        <tr><td>Brand DNA</td><td>9</td><td><code>assessment_completed</code>, <code>profile_generated</code>, <code>blend_generated</code></td></tr>
+        <tr><td>Branded Invoicing</td><td>8</td><td><code>invoice_generated</code>, <code>invoice_paid_online</code>, <code>invoice_voided</code></td></tr>
+        <tr><td>Finance Dashboard</td><td>8</td><td><code>finance_expense_created</code>, <code>finance_bas_filed</code></td></tr>
+        <tr><td>Onboarding</td><td>9</td><td><code>onboarding_started</code>, <code>onboarding_credentials_created</code></td></tr>
+        <tr><td>Daily Cockpit</td><td>8</td><td><code>cockpit_brief_generated</code>, <code>cockpit_chip_tapped</code></td></tr>
+        <tr><td>Surprise &amp; Delight</td><td>8</td><td><code>hidden_egg_fired</code>, <code>riddle_resolved</code>, <code>ambient_copy_generated</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Table Design</h3>
+
+  <div class="code-block">
+    <div class="code-header">lib/db/schema/activity-log.ts &mdash; table definition</div>
+    <pre>
+<span class="kw">export const</span> activity_log = sqliteTable(<span class="str">"activity_log"</span>, {
+  id: text(<span class="str">"id"</span>).primaryKey(),
+  company_id: text(<span class="str">"company_id"</span>).references(() =&gt; companies.id, {
+    onDelete: <span class="str">"cascade"</span>,
+  }),
+  contact_id: text(<span class="str">"contact_id"</span>).references(() =&gt; contacts.id, {
+    onDelete: <span class="str">"set null"</span>,
+  }),
+  deal_id: text(<span class="str">"deal_id"</span>).references(() =&gt; deals.id, {
+    onDelete: <span class="str">"cascade"</span>,
+  }),
+  kind: text(<span class="str">"kind"</span>, { enum: ACTIVITY_LOG_KINDS }).notNull(),
+  body: text(<span class="str">"body"</span>).notNull(),
+  meta: text(<span class="str">"meta"</span>, { mode: <span class="str">"json"</span> }),
+  created_at_ms: integer(<span class="str">"created_at_ms"</span>).notNull(),
+  created_by: text(<span class="str">"created_by"</span>),
+});</pre>
+  </div>
+
+  <p>The FK references are nullable because not every event belongs to a company, contact, or deal. Platform-level events (cost anomalies, cockpit briefs, admin sessions) only set the relevant FK. The <code>meta</code> JSON column carries structured data specific to each kind &mdash; for example, a <code>stage_change</code> event stores <code>{ from: "lead", to: "contacted" }</code>.</p>
+
+  <p>Four composite indexes cover the common query patterns: events by company, by contact, by deal, and by kind. All are compound with <code>created_at_ms</code> for time-range filtering.</p>
+</div>
+
+<hr>
+
+<!-- 10 MONITORING & OBSERVABILITY -->
+
+<div class="section" id="monitoring">
+  <div class="section-num">Section 10</div>
+  <h2>Monitoring &amp; Observability</h2>
+
+  <p>The platform has four observability layers, each serving a different audience and time horizon.</p>
+
+  <h3>1. Sentry (Error Tracking)</h3>
+
+  <p>Sentry is configured across three runtimes: server (Node.js), client (browser), and edge. All three are gated by the <code>sentry_enabled</code> kill switch. When the switch is off (the default), the <code>beforeSend</code> callback returns <code>null</code> to suppress all events:</p>
+
+  <div class="code-block">
+    <div class="code-header">sentry.server.config.ts</div>
+    <pre>
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: killSwitches.sentry_enabled ? <span class="num">0.15</span> : <span class="num">0</span>,
+  beforeSend(event) {
+    <span class="kw">if</span> (!killSwitches.sentry_enabled) <span class="kw">return null</span>;
+    <span class="kw">return</span> event;
+  },
+});</pre>
+  </div>
+
+  <p>The sampling rate is 15% when enabled. This is enough to catch patterns without burning through Sentry's event quota on every request.</p>
+
+  <h3>2. PostHog (Analytics)</h3>
+
+  <p>PostHog captures user interactions on admin and portal surfaces. It's a client-side SDK (<code>posthog-js</code>) that auto-captures page views and custom events. The data feeds into retention analysis and feature adoption metrics.</p>
+
+  <h3>3. Cost &amp; Usage Observatory</h3>
+
+  <p>The platform's own cost monitoring system, built around three database tables:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>external_call_log</code></td><td>Every API call with estimated AUD cost. The raw ledger.</td></tr>
+        <tr><td><code>cost_anomalies</code></td><td>Detected spikes from 3 detectors (hard threshold, rate of change, learned band).</td></tr>
+        <tr><td><code>band_overrides</code></td><td>Runtime adjustments to per-job cost ceilings and learned-band multipliers.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Three anomaly detectors run on a scheduled cadence:</p>
+
+  <ol>
+    <li><strong>Hard threshold:</strong> fires if a single call or daily total exceeds a configured ceiling.</li>
+    <li><strong>Rate detector:</strong> fires if the rate of spending accelerates beyond a configured multiplier.</li>
+    <li><strong>Learned band:</strong> builds a rolling 7-day average and fires if the current value exceeds the band multiplier.</li>
+  </ol>
+
+  <p>Anomalies are tiered (low / mid / severe) and carry an acknowledgement lifecycle. Severe anomalies can auto-trigger kill switches to halt runaway spending.</p>
+
+  <h3>4. Worker Heartbeat</h3>
+
+  <p>The simplest monitor: the scheduled-tasks worker writes a timestamp to <code>worker_heartbeats</code> on every tick (1 minute). The admin cockpit renders a red health banner if the last heartbeat is more than 5 minutes old. If the banner shows, the worker has stopped.</p>
+
+  <div class="diagram"><pre>
+<span class="highlight">OBSERVABILITY STACK</span>
+<span class="dim">-------------------</span>
+
+<span class="accent">Sentry</span>      <span class="dim">-&gt;</span> Errors &amp; traces      <span class="dim">(gated by kill switch)</span>
+<span class="accent">PostHog</span>     <span class="dim">-&gt;</span> User analytics        <span class="dim">(client-side auto-capture)</span>
+<span class="accent">Observatory</span> <span class="dim">-&gt;</span> API cost monitoring   <span class="dim">(3 detectors, 3 tiers)</span>
+<span class="accent">Heartbeat</span>   <span class="dim">-&gt;</span> Worker health         <span class="dim">(1-minute cadence, admin banner)</span>
+  </pre></div>
+</div>
+
+<hr>
+
+<!-- 11 ENVIRONMENT & BOOT SEQUENCE -->
+
+<div class="section" id="env">
+  <div class="section-num">Section 11</div>
+  <h2>Environment &amp; Boot Sequence</h2>
+
+  <h3>Environment Validation</h3>
+
+  <p>Environment variables are validated at boot via a Zod schema in <code>lib/env.ts</code>. If any required variable is missing or invalid, the server refuses to start with a clear error message listing every issue:</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/env.ts</div>
+    <pre>
+<span class="kw">const</span> envSchema = z.object({
+  NODE_ENV: z.enum([<span class="str">"development"</span>, <span class="str">"test"</span>, <span class="str">"production"</span>]).default(<span class="str">"development"</span>),
+  NEXT_PUBLIC_APP_URL: z.url(),
+  NEXTAUTH_URL: z.url(),
+  NEXTAUTH_SECRET: z.string().min(<span class="num">1</span>).optional(),
+  DATABASE_URL: z.string().min(<span class="num">1</span>).default(<span class="str">"file:./dev.db"</span>),
+  ADMIN_EMAIL: z.string().email().default(<span class="str">"andy@superbadmedia.com.au"</span>),
+  ADMIN_PASSWORD: z.string().min(<span class="num">1</span>).optional(),
+});
+
+<span class="kw">const</span> parsed = envSchema.safeParse(process.env);
+<span class="kw">if</span> (!parsed.success) {
+  <span class="kw">throw new</span> Error(<span class="str">`[env] SuperBad Lite refused to boot...`</span>);
+}</pre>
+  </div>
+
+  <p>This runs at the end of <code>instrumentation.ts</code> via <code>await import("@/lib/env")</code>. The fail-loudly pattern means you never get a running server with missing config &mdash; you get a clear crash with a list of what's wrong.</p>
+
+  <h3>Boot Sequence</h3>
+
+  <p>The <code>instrumentation.ts</code> file defines the complete server boot sequence. On the Node.js runtime (not edge, not build):</p>
+
+  <div class="diagram"><pre>
+<span class="highlight">BOOT SEQUENCE</span> <span class="dim">(instrumentation.ts -- register())</span>
+<span class="dim">--------------------------------------------</span>
+
+<span class="accent">1.</span> Set AUTH_TRUST_HOST=true <span class="dim">(if not already set)</span>
+
+<span class="accent">2.</span> Run database migrations
+   <span class="dim">-&gt;</span> Drizzle journal migrations
+   <span class="dim">-&gt;</span> Seed SQL files (INSERT OR IGNORE)
+   <span class="dim">-&gt;</span> Admin user seed (create or update password)
+
+<span class="accent">3.</span> Import Sentry server config
+   <span class="dim">-&gt;</span> Sentry.init() with kill-switch-gated sampling
+
+<span class="accent">4.</span> Start scheduled-tasks worker
+   <span class="dim">-&gt;</span> 1-minute poll interval
+   <span class="dim">-&gt;</span> Handler registry loaded from lib/scheduled-tasks/handlers
+
+<span class="accent">5.</span> Bootstrap lead-gen daily search
+   <span class="dim">-&gt;</span> Ensure the daily search task is enqueued
+
+<span class="accent">6.</span> Validate environment variables <span class="dim">(lib/env.ts)</span>
+   <span class="dim">-&gt;</span> Zod schema parse
+   <span class="dim">-&gt;</span> Fail-loud on missing/invalid vars
+  </pre></div>
+
+  <div class="callout">
+    <div class="callout-label">Build-Time Guards</div>
+    <p>Steps 2, 4, and 5 are wrapped in <code>NEXT_PHASE !== "phase-production-build"</code> guards. During <code>next build</code>, Next.js imports instrumentation to discover route metadata. Running migrations or starting a worker during build would crash. The guards skip all side-effects during build and only execute at actual server start.</p>
+  </div>
+
+  <h3>Key Environment Variables</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Required</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>DATABASE_URL</code></td><td>No (defaults to <code>file:./dev.db</code>)</td><td>SQLite database file path</td></tr>
+        <tr><td><code>NEXT_PUBLIC_APP_URL</code></td><td>Yes</td><td>Canonical URL for link generation</td></tr>
+        <tr><td><code>NEXTAUTH_URL</code></td><td>Yes</td><td>Auth.js callback URL</td></tr>
+        <tr><td><code>NEXTAUTH_SECRET</code></td><td>Production</td><td>JWT signing secret</td></tr>
+        <tr><td><code>ADMIN_PASSWORD</code></td><td>No</td><td>Admin user password hash seed</td></tr>
+        <tr><td><code>STRIPE_SECRET_KEY</code></td><td>For billing</td><td>Stripe API access</td></tr>
+        <tr><td><code>STRIPE_WEBHOOK_SECRET</code></td><td>For webhooks</td><td>Webhook signature verification</td></tr>
+        <tr><td><code>ANTHROPIC_API_KEY</code></td><td>For AI</td><td>Claude API access</td></tr>
+        <tr><td><code>RESEND_API_KEY</code></td><td>For email</td><td>Email delivery</td></tr>
+        <tr><td><code>SENTRY_DSN</code></td><td>No</td><td>Server-side error reporting</td></tr>
+        <tr><td><code>NEXT_PUBLIC_SENTRY_DSN</code></td><td>No</td><td>Client-side error reporting</td></tr>
+        <tr><td><code>KILL_SWITCHES_ON</code></td><td>No</td><td>Comma-separated switches to force ON at boot</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr>
+
+<!-- 12 FULL TECH STACK -->
+
+<div class="section" id="stack">
+  <div class="section-num">Section 12</div>
+  <h2>Full Tech Stack</h2>
+
+  <p>Everything the platform depends on, grouped by role. The version numbers are from <code>package.json</code> as of April 2026.</p>
+
+  <h3>Framework &amp; Runtime</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>next</code></td><td>16.2.3</td><td>Full-stack React framework. App Router, server components, API routes, server actions.</td></tr>
+        <tr><td><code>react</code> / <code>react-dom</code></td><td>19.2.4</td><td>UI library. Server components by default, client components where interaction is needed.</td></tr>
+        <tr><td><code>typescript</code></td><td>5.x</td><td>Type safety across the entire codebase. Strict mode enabled.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Database</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>better-sqlite3</code></td><td>12.9.0</td><td>Native Node.js SQLite driver. Synchronous API, WAL support.</td></tr>
+        <tr><td><code>drizzle-orm</code></td><td>0.45.2</td><td>Type-safe ORM. Schema = types. SQL at build time, not runtime.</td></tr>
+        <tr><td><code>drizzle-kit</code></td><td>0.31.10</td><td>Migration generator. Diffs TypeScript schema against existing migrations.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Authentication</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>next-auth</code></td><td>5.0.0-beta.30</td><td>Auth.js v5. JWT strategy, credential provider, dual magic-link systems.</td></tr>
+        <tr><td><code>@auth/drizzle-adapter</code></td><td>1.11.1</td><td>Drizzle adapter for Auth.js session/account storage.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>External Services</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>stripe</code></td><td>22.0.1</td><td>Payments. Subscriptions, invoices, one-off charges, webhook verification.</td></tr>
+        <tr><td><code>@anthropic-ai/sdk</code></td><td>0.88.0</td><td>Claude API. All LLM calls route through the model registry.</td></tr>
+        <tr><td><code>resend</code></td><td>6.11.0</td><td>Transactional email delivery. Outreach sequences + system notifications.</td></tr>
+        <tr><td><code>cloudinary</code></td><td>2.9.0</td><td>Image hosting and transformation. Portfolio gallery, deliverables.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>UI &amp; Styling</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>tailwindcss</code></td><td>4.x</td><td>Utility-first CSS. Custom design tokens for SuperBad brand.</td></tr>
+        <tr><td><code>framer-motion</code></td><td>12.38.0</td><td>Animation library. House spring for every state change.</td></tr>
+        <tr><td><code>react-hook-form</code></td><td>7.72.1</td><td>Form state management. Used in admin surfaces and questionnaires.</td></tr>
+        <tr><td><code>react-day-picker</code></td><td>9.14.0</td><td>Calendar date picker. Shoot booking, task scheduling.</td></tr>
+        <tr><td><code>next-themes</code></td><td>0.4.6</td><td>Theme switching (standard/dark). Respects user density/typeface preferences.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Video &amp; Media</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>remotion</code></td><td>4.0.451</td><td>Programmatic video rendering. Content Studio compositions, post animations.</td></tr>
+        <tr><td><code>next-mdx-remote</code></td><td>6.0.0</td><td>MDX rendering for blog content. Content Engine output format.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Monitoring &amp; Validation</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>@sentry/nextjs</code></td><td>10.48.0</td><td>Error tracking. Server + client + edge runtimes. Kill-switch gated.</td></tr>
+        <tr><td><code>posthog-js</code></td><td>1.372.1</td><td>Product analytics. Client-side auto-capture.</td></tr>
+        <tr><td><code>zod</code></td><td>4.3.6</td><td>Runtime validation. API inputs, env vars, settings values, form data.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Infrastructure (Not in package.json)</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>Litestream</td><td>Continuous SQLite replication to Cloudflare R2. Streams WAL frames in near-real-time.</td></tr>
+        <tr><td>Cloudflare R2</td><td>Object storage for database backups. S3-compatible API, no egress fees.</td></tr>
+        <tr><td>Coolify</td><td>Self-hosted deployment platform (Docker). Manages Next.js container, env vars, domains.</td></tr>
+        <tr><td>Vercel</td><td>Deploy webhook source for the Cost Observatory's <code>deploy_events</code> table.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Implementation Tips</div>
+    <p><strong>When adding a new table:</strong> Create the schema file in <code>lib/db/schema/</code>, re-export it from <code>index.ts</code>, run <code>npx drizzle-kit generate</code> to create the migration, and restart the dev server (migrations auto-apply).</p>
+    <p><strong>When adding a new scheduled task type:</strong> Add the type to the <code>SCHEDULED_TASK_TYPES</code> array in <code>scheduled-tasks.ts</code>, register the handler in <code>lib/scheduled-tasks/handlers/</code>, and export it from the handler barrel file.</p>
+    <p><strong>When adding a new activity log kind:</strong> Add the kind to the <code>ACTIVITY_LOG_KINDS</code> array in <code>activity-log.ts</code>. The type system auto-infers the new kind in all consumers.</p>
+    <p><strong>When querying across tables:</strong> Use Drizzle's relational queries or manual joins. The full schema graph is available because the barrel export passes <code>* as schema</code> to the <code>drizzle()</code> constructor.</p>
+  </div>
+
+  <p class="mutter">One SQLite file, 248 tables, 370 indexes, 87 task types, 400 log kinds, 190 settings, 27 kill switches. All in a single Next.js process. Sometimes boring tech is the superpower.</p>
+</div>
+
+</div>
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

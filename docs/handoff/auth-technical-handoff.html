@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auth &amp; Access Control — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); font-weight: 700; }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Auth &amp; Access Control</div>
+  <h1>Auth<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the authentication and access control system in SuperBad Lite.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the Auth System Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#flows"><span class="num">03</span> Authentication Flows</a>
+    <a href="#middleware"><span class="num">04</span> Middleware Gates</a>
+    <a href="#rbac"><span class="num">05</span> RBAC &amp; Permissions</a>
+    <a href="#database"><span class="num">06</span> Database Schema</a>
+    <a href="#magic-links"><span class="num">07</span> Magic Link System</a>
+    <a href="#portal-auth"><span class="num">08</span> Portal Authentication</a>
+    <a href="#sessions"><span class="num">09</span> Session Management</a>
+    <a href="#security"><span class="num">10</span> Security Considerations</a>
+    <a href="#kill-switches"><span class="num">11</span> Kill Switches</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE AUTH SYSTEM DOES ────────────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the Auth System Does</h2>
+  <p>SuperBad Lite has three entirely separate authentication surfaces, each serving a different audience and using a different mechanism. They share no session state.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Surface</th><th>Who</th><th>Mechanism</th><th>Session Storage</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Admin</strong></td>
+          <td>Andy (sole admin)</td>
+          <td>Email + password via NextAuth v5 Credentials provider</td>
+          <td>JWT (httpOnly cookie managed by Auth.js)</td>
+        </tr>
+        <tr>
+          <td><strong>Subscriber</strong></td>
+          <td>SaaS subscribers (prospects promoted to clients)</td>
+          <td>Magic link emailed on first Stripe payment or on demand</td>
+          <td>JWT (same NextAuth session &mdash; user gets a real <code>user</code> row)</td>
+        </tr>
+        <tr>
+          <td><strong>Portal</strong></td>
+          <td>Prospects and clients (intro funnel, client management)</td>
+          <td>Magic link &rarr; base64url-encoded httpOnly cookie</td>
+          <td>Lightweight custom cookie (<code>sbl_portal_session</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The admin surface is gated by two sequential middleware checks &mdash; the Brand DNA Gate and the Critical Flight Gate &mdash; that force onboarding completion before the admin dashboard is accessible. The portal surface is entirely outside middleware; it validates its own session cookie in Server Components.</p>
+
+  <p>There is also a <strong>Bench</strong> surface for hiring candidates, which uses the same magic-link-to-cookie pattern as the portal but with its own cookie (<code>sbl_bench_session</code>) and a separate token table.</p>
+
+  <p class="mutter">Three auth surfaces, zero shared sessions. That&rsquo;s not an accident.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>The Split Config Pattern</h3>
+  <p>NextAuth v5 (Auth.js) requires special care in Next.js because middleware runs on the <strong>Edge Runtime</strong>, which cannot load native Node.js modules. SuperBad Lite solves this with a &ldquo;split config&rdquo; pattern &mdash; two files that share the same base configuration but diverge on what they import:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>File</th><th>Runtime</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>lib/auth/auth.config.ts</code></td>
+          <td>Edge-safe</td>
+          <td>Session strategy (<code>jwt</code>), page routes, JWT + session callbacks. No DB imports. Imported by middleware.</td>
+        </tr>
+        <tr>
+          <td><code>lib/auth/auth.ts</code></td>
+          <td>Node.js only</td>
+          <td>Extends <code>authConfig</code> with the Credentials provider (DB lookup), JWT override (Brand DNA + Critical Flight checks), sign-in events. Never imported from middleware.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="diagram"><pre><span class="accent">proxy.ts (middleware)</span>
+  <span class="dim">&darr; imports</span>
+  <span class="highlight">auth.config.ts</span> <span class="dim">&larr; Edge-safe, no DB, no native modules</span>
+    <span class="dim">&bull;</span> session strategy: <span class="str">"jwt"</span>
+    <span class="dim">&bull;</span> pages: signIn &rarr; <span class="str">"/lite/login"</span>
+    <span class="dim">&bull;</span> jwt callback: sets id, role, brand_dna_complete, critical_flight_complete
+    <span class="dim">&bull;</span> session callback: shapes session.user for Server Components
+
+<span class="accent">lib/auth/auth.ts</span>
+  <span class="dim">&darr; imports</span>
+  <span class="highlight">auth.config.ts</span> <span class="dim">+ extends with:</span>
+    <span class="dim">&bull;</span> Credentials provider (DB lookup via better-sqlite3)
+    <span class="dim">&bull;</span> jwt override: re-queries Brand DNA + Critical Flight status on signIn/update
+    <span class="dim">&bull;</span> signIn event: logs admin activity, enqueues morning digest
+
+<span class="accent">lib/auth/session.ts</span>
+  <span class="dim">&bull;</span> Re-exports auth(), signIn(), signOut() from auth.ts
+  <span class="dim">&bull;</span> TypeScript module augmentation for session.user</pre></div>
+
+  <h3>Provider Configuration</h3>
+  <p>A single <strong>Credentials</strong> provider handles both admin and subscriber login. The <code>authorize()</code> function branches on the presence of a <code>subscriberLoginToken</code> field:</p>
+  <ul>
+    <li><strong>If a token is present:</strong> subscriber magic-link flow &mdash; redeems the token, promotes prospect &rarr; client, returns the user.</li>
+    <li><strong>If email + password are present:</strong> admin login flow &mdash; looks up the user, verifies the password hash, confirms role is <code>admin</code>.</li>
+  </ul>
+  <p>No OAuth providers are configured. No email/magic-link providers are configured at the NextAuth level &mdash; magic links are handled through custom route handlers that call <code>signIn()</code> server-side.</p>
+</div>
+
+<!-- ── 3. AUTHENTICATION FLOWS ─────────────────────────────────── -->
+
+<div class="section" id="flows">
+  <div class="section-num">Section 03</div>
+  <h2>Authentication Flows</h2>
+
+  <h3>3.1 &mdash; Admin Login (Email + Password)</h3>
+  <div class="diagram"><pre><span class="num">1.</span> User visits <span class="accent">/lite/login</span>
+<span class="num">2.</span> Client-side form calls <span class="highlight">signIn("credentials", { email, password })</span>
+   <span class="dim">(uses next-auth/react &mdash; NOT a server action)</span>
+<span class="num">3.</span> Auth.js POST to <span class="accent">/api/auth/callback/credentials</span>
+<span class="num">4.</span> <span class="highlight">authorize()</span> runs:
+   a. DB lookup by email
+   b. Verify role === <span class="str">"admin"</span>
+   c. Verify password via <span class="accent">scrypt</span> timing-safe comparison
+   d. Return user object { id, email, name, role }
+<span class="num">5.</span> JWT callback fires:
+   a. Edge-safe base: sets token.id, token.role, defaults brand_dna_complete = false
+   b. Node-side override: queries DB for Brand DNA status + Critical Flight status
+<span class="num">6.</span> Session callback fires: shapes session.user with all custom claims
+<span class="num">7.</span> signIn event fires: logs <span class="str">"admin_session_started"</span>, enqueues task digest
+<span class="num">8.</span> Client-side redirect to <span class="accent">/lite/admin/pipeline</span> (or callbackUrl)</pre></div>
+
+  <div class="callout">
+    <div class="callout-label">Why Client-Side signIn</div>
+    <p>NextAuth v5 beta has a known issue where server-action <code>signIn()</code> silently breaks credential passing. The login page uses <code>next-auth/react</code> client-side <code>signIn()</code> with <code>redirect: false</code> and handles the redirect manually. This is intentional.</p>
+  </div>
+
+  <h3>3.2 &mdash; Subscriber Magic Link</h3>
+  <div class="diagram"><pre><span class="num">1.</span> Stripe <span class="accent">invoice.payment_succeeded</span> webhook fires (first successful cycle)
+   <span class="dim">OR</span> subscriber clicks <span class="str">"send me my login"</span> on <span class="accent">/get-started/welcome</span>
+<span class="num">2.</span> <span class="highlight">issueSubscriberMagicLink({ userId })</span>:
+   a. Generate 32-byte random token (base64url)
+   b. SHA-256 hash the token
+   c. Store hash + metadata in <span class="accent">subscriber_magic_link_tokens</span>
+   d. Build URL: <span class="str">/api/auth/magic-link?token=&lt;raw&gt;</span>
+<span class="num">3.</span> Token emailed to subscriber (raw token only in email body)
+<span class="num">4.</span> Subscriber clicks link &rarr; GET <span class="accent">/api/auth/magic-link?token=...</span>
+<span class="num">5.</span> Route handler calls <span class="highlight">signIn("credentials", { subscriberLoginToken })</span>
+<span class="num">6.</span> <span class="highlight">authorize()</span> &rarr; <span class="highlight">redeemSubscriberMagicLink()</span>:
+   a. Hash the raw token, look up the row
+   b. Reject if consumed / expired / user missing
+   c. Mark token consumed (double-consume guard via WHERE consumed_at_ms IS NULL)
+   d. If user.role = <span class="str">"prospect"</span> &rarr; promote to <span class="str">"client"</span>, set first_signed_in_at_ms
+   e. Mark email as verified (idempotent)
+   f. Log activity
+   g. Return user object
+<span class="num">7.</span> Auth.js issues JWT session cookie
+<span class="num">8.</span> Redirect to <span class="accent">/lite/onboarding</span> (or custom redirect param)</pre></div>
+
+  <h3>3.3 &mdash; Portal Magic Link (Prospects &amp; Clients)</h3>
+  <div class="diagram"><pre><span class="num">1.</span> System issues a portal link (journey-beat email, admin action, recovery form):
+   <span class="highlight">issueMagicLink({ contactId, clientId?, submissionId? })</span>
+   a. Generate 32-byte random token (base64url)
+   b. SHA-256 hash &rarr; store in <span class="accent">portal_magic_links.ott_hash</span>
+   c. Build URL: <span class="str">/lite/portal/r/&lt;raw-token&gt;</span>
+<span class="num">2.</span> Recipient clicks link &rarr; GET <span class="accent">/lite/portal/r/[token]</span>
+<span class="num">3.</span> <span class="highlight">redeemMagicLink(rawToken)</span>:
+   a. Hash token, look up row
+   b. Reject if consumed or expired
+   c. Mark consumed, log activity
+   d. Return { contactId, clientId, submissionId }
+<span class="num">4.</span> Encode session payload as base64url JSON
+<span class="num">5.</span> Set <span class="accent">sbl_portal_session</span> cookie (httpOnly, Secure, SameSite=Lax, 90-day TTL)
+<span class="num">6.</span> Redirect to <span class="accent">/lite/portal/welcome</span> (first visit) or <span class="accent">/lite/portal/home</span></pre></div>
+
+  <p class="mutter">Portal sessions do not go through NextAuth at all. Completely separate cookie, completely separate validation.</p>
+
+  <h3>3.4 &mdash; Bench Magic Link (Hiring Candidates)</h3>
+  <p>Identical pattern to portal magic links but uses the <code>bench_magic_links</code> table and a separate <code>sbl_bench_session</code> cookie. Candidates get a link, click it, the token is redeemed, and a lightweight cookie session is issued. Archived candidates are rejected at redemption.</p>
+</div>
+
+<!-- ── 4. MIDDLEWARE GATES ──────────────────────────────────────── -->
+
+<div class="section" id="middleware">
+  <div class="section-num">Section 04</div>
+  <h2>Middleware Gates</h2>
+
+  <p>The middleware (<code>proxy.ts</code> at project root) runs on every request matching <code>/((?!_next/static|_next/image|favicon.ico).*)</code>. It implements two sequential gates that only apply to authenticated admin routes under <code>/lite/</code>.</p>
+
+  <h3>Public Route Bypass</h3>
+  <p>These paths skip both gates entirely &mdash; no auth check at all:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/auth/*</code></td><td>NextAuth endpoints (signin, signout, session, CSRF)</td></tr>
+        <tr><td><code>/lite/portal/*</code></td><td>Portal has its own cookie auth</td></tr>
+        <tr><td><code>/lite/onboarding</code></td><td>Brand DNA gate target &mdash; must not loop</td></tr>
+        <tr><td><code>/lite/login</code></td><td>Admin sign-in page</td></tr>
+        <tr><td><code>/lite/design</code></td><td>Design gallery (dev tool)</td></tr>
+        <tr><td><code>/lite/legal/*</code></td><td>Legal pages are publicly accessible</td></tr>
+        <tr><td><code>/lite/quotes/*</code></td><td>Client-facing quotes (token-gated internally)</td></tr>
+        <tr><td><code>/lite/invoices/*</code></td><td>Client-facing invoices (token-gated internally)</td></tr>
+        <tr><td><code>/lite/brand-dna/*</code></td><td>Brand DNA assessment (auth resolved inside Server Components)</td></tr>
+        <tr><td><code>/api/*</code></td><td>API routes handle their own auth</td></tr>
+        <tr><td><code>/_next/*</code></td><td>Next.js internals</td></tr>
+        <tr><td><code>/favicon.ico</code></td><td>Static asset</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Auth Check</h3>
+  <p>If the request is not public and starts with <code>/lite</code>, middleware checks <code>req.auth</code>. If absent, redirects to <code>/lite/login?callbackUrl=&lt;current-path&gt;</code>.</p>
+
+  <h3>Gate 1 &mdash; Brand DNA Gate</h3>
+  <div class="diagram"><pre><span class="highlight">Gate 1: Brand DNA</span>
+
+Condition: <span class="accent">session.user.brand_dna_complete === false</span>
+Redirect:  <span class="str">/lite/onboarding</span>
+Bypass:    env <span class="type">BRAND_DNA_GATE_BYPASS=true</span>
+
+<span class="dim">Purpose: Forces Andy to complete his own Brand DNA assessment
+before he can access the admin dashboard. Self-terminates when
+the SuperBad-self profile is completed and a session refresh
+flips brand_dna_complete to true.</span>
+
+<span class="dim">The brand_dna_complete flag is cached in the JWT. It starts as
+false at sign-in. The Node-side jwt callback re-queries the DB
+via isBrandDnaCompleteForUser() on signIn, signUp, or
+session.update() triggers.</span></pre></div>
+
+  <h3>Gate 2 &mdash; Critical Flight Gate</h3>
+  <div class="diagram"><pre><span class="highlight">Gate 2: Critical Flight</span>
+
+Condition: <span class="accent">session.user.critical_flight_complete === false</span>
+Redirect:  <span class="str">/lite/first-run</span>
+Bypass:    Routes starting with <span class="str">/lite/first-run</span> or <span class="str">/lite/setup/</span>
+
+<span class="dim">Purpose: Ensures every critical setup wizard has been completed
+before the admin dashboard is accessible. The /lite/first-run
+page reads the wizard sequencer and redirects to the next
+incomplete wizard.</span>
+
+<span class="dim">Critical wizards (from settings): stripe-admin, resend, graph-api-admin
+All three must have at least one wizard_completions row for the user.</span>
+
+<span class="dim">The critical_flight_complete flag is cached in the JWT and
+refreshed on signIn / session.update() via
+hasCompletedCriticalFlight(), which delegates to
+getCriticalFlightStatus().</span></pre></div>
+
+  <h3>Gate Execution Order</h3>
+  <div class="diagram"><pre>Request to <span class="accent">/lite/admin/*</span>
+  <span class="dim">&darr;</span>
+Is public route? <span class="dim">&rarr; Yes &rarr;</span> NextResponse.next()
+  <span class="dim">&darr; No</span>
+Starts with /lite? <span class="dim">&rarr; No &rarr;</span> NextResponse.next()
+  <span class="dim">&darr; Yes</span>
+Has auth? <span class="dim">&rarr; No &rarr;</span> Redirect to <span class="str">/lite/login</span>
+  <span class="dim">&darr; Yes</span>
+<span class="highlight">Gate 1:</span> brand_dna_complete? <span class="dim">&rarr; No &rarr;</span> Redirect to <span class="str">/lite/onboarding</span>
+  <span class="dim">&darr; Yes</span>
+<span class="highlight">Gate 2:</span> critical_flight_complete? <span class="dim">&rarr; No &rarr;</span> Redirect to <span class="str">/lite/first-run</span>
+  <span class="dim">&darr; Yes</span>
+NextResponse.next() <span class="dim">&larr; request proceeds</span></pre></div>
+</div>
+
+<!-- ── 5. RBAC & PERMISSIONS ───────────────────────────────────── -->
+
+<div class="section" id="rbac">
+  <div class="section-num">Section 05</div>
+  <h2>RBAC &amp; Permissions</h2>
+
+  <h3>Roles</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Role</th><th>Who</th><th>How They Get It</th></tr></thead>
+      <tbody>
+        <tr><td><code>admin</code></td><td>Andy (sole operator)</td><td>Seeded in the database at setup</td></tr>
+        <tr><td><code>client</code></td><td>Active SaaS subscribers or retainer clients</td><td>Promoted from <code>prospect</code> on magic-link redeem</td></tr>
+        <tr><td><code>prospect</code></td><td>Users who have signed up but not yet subscribed</td><td>Default role on <code>user</code> row creation</td></tr>
+        <tr><td><code>anonymous</code></td><td>Unauthenticated visitors</td><td>Not stored &mdash; implicit when no session exists</td></tr>
+        <tr><td><code>system</code></td><td>Cron-initiated actions</td><td>Never attached to a user row &mdash; used explicitly by cron handlers</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The <code>can()</code> Function</h3>
+  <p>Route-level access control is enforced by <code>can(role, action, resource)</code> in <code>lib/auth/permissions.ts</code>. Default-deny: any rule miss returns <code>false</code>.</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; lib/auth/permissions.ts</div>
+    <pre><span class="kw">function</span> <span class="type">can</span>(role: <span class="type">Role</span>, action: <span class="type">Action</span>, resource: <span class="type">string</span>): <span class="type">boolean</span>
+
+<span class="comment">// Example usage in a Server Component or API route:</span>
+<span class="kw">if</span> (!can(session.user.role, <span class="str">"GET"</span>, <span class="str">"/lite/finance/expenses"</span>)) {
+  <span class="kw">return</span> <span class="kw">new</span> Response(<span class="str">"Forbidden"</span>, { status: <span class="num">403</span> });
+}</pre>
+  </div>
+
+  <h3>Action Types</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Values</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>HttpAction</code></td><td><code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code></td><td>Route handlers, Server Components</td></tr>
+        <tr><td><code>CronAction</code></td><td><code>CRON</code></td><td>Scheduled task handlers (cron jobs)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Pattern Matching</h3>
+  <p>Resource patterns support three matching modes:</p>
+  <ul>
+    <li><strong>Exact match:</strong> <code>/lite/finance/expenses</code></li>
+    <li><strong>Trailing wildcard:</strong> <code>/lite/finance/*</code> &mdash; matches any path under <code>/lite/finance/</code></li>
+    <li><strong>Parameter segments:</strong> <code>/lite/finance/expenses/:id</code> &mdash; matches any single segment</li>
+  </ul>
+
+  <h3>Current Access Matrix</h3>
+  <p>Seeded from the Finance Dashboard spec. Other routes extend the matrix as they land.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>Resource</th><th>Roles</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td><code>/lite/finance/*</code></td><td>admin</td></tr>
+        <tr><td><code>POST</code></td><td><code>/lite/finance/expenses</code></td><td>admin</td></tr>
+        <tr><td><code>PUT</code></td><td><code>/lite/finance/expenses/:id</code></td><td>admin</td></tr>
+        <tr><td><code>POST</code></td><td><code>/lite/finance/recurring</code></td><td>admin</td></tr>
+        <tr><td><code>POST</code></td><td><code>/lite/finance/export</code></td><td>admin</td></tr>
+        <tr><td><code>GET</code></td><td><code>/lite/finance/exports/:file</code></td><td>admin</td></tr>
+        <tr><td><code>CRON</code></td><td><code>finance_snapshot_take</code></td><td>system</td></tr>
+        <tr><td><code>CRON</code></td><td><code>finance_narrative_regenerate</code></td><td>system</td></tr>
+        <tr><td><code>CRON</code></td><td><code>finance_observatory_rollup</code></td><td>system</td></tr>
+        <tr><td><code>CRON</code></td><td><code>finance_stripe_fee_rollup</code></td><td>system</td></tr>
+        <tr><td><code>CRON</code></td><td><code>recurring_expense_book</code></td><td>system</td></tr>
+        <tr><td><code>CRON</code></td><td><code>finance_export_generate</code></td><td>system</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Incremental Extension</div>
+    <p>The access matrix is designed to grow incrementally. Each feature wave adds its own rules to the <code>RULES</code> array. The matrix is not a complete picture of all gated routes &mdash; many routes rely on middleware (admin-only by default) and only routes that need finer-grained control (e.g. cron vs admin) use <code>can()</code>.</p>
+  </div>
+</div>
+
+<!-- ── 6. DATABASE SCHEMA ──────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 06</div>
+  <h2>Database Schema</h2>
+
+  <h3>user</h3>
+  <p>The primary user record. Extended from Auth.js v5&rsquo;s default shape with SuperBad-specific columns.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>User identifier (CUID or UUID)</td></tr>
+        <tr><td><code>email</code></td><td>text, unique, NOT NULL</td><td>Login identifier</td></tr>
+        <tr><td><code>name</code></td><td>text, nullable</td><td>Display name</td></tr>
+        <tr><td><code>emailVerified</code></td><td>integer (epoch ms)</td><td>Set when magic link is clicked (proves email ownership)</td></tr>
+        <tr><td><code>image</code></td><td>text, nullable</td><td>Profile image URL (unused currently)</td></tr>
+        <tr><td><code>password_hash</code></td><td>text, nullable</td><td>scrypt hash for admin login (<code>salt:derivedKey</code> format)</td></tr>
+        <tr><td><code>role</code></td><td>enum: <code>admin</code>, <code>client</code>, <code>prospect</code>, <code>anonymous</code></td><td>Coarse access bucket. Default: <code>prospect</code></td></tr>
+        <tr><td><code>timezone</code></td><td>text, default <code>Australia/Melbourne</code></td><td>User&rsquo;s timezone for scheduling</td></tr>
+        <tr><td><code>motion_preference</code></td><td>enum: <code>full</code>, <code>reduced</code>, <code>off</code></td><td>Animation preference</td></tr>
+        <tr><td><code>sounds_enabled</code></td><td>boolean, default true</td><td>UI sound effects toggle</td></tr>
+        <tr><td><code>density_preference</code></td><td>enum: <code>comfort</code>, <code>compact</code></td><td>Layout density</td></tr>
+        <tr><td><code>text_size_preference</code></td><td>enum: <code>standard</code>, <code>large</code></td><td>Text scaling</td></tr>
+        <tr><td><code>theme_preset</code></td><td>text, default <code>standard</code></td><td>UI theme</td></tr>
+        <tr><td><code>typeface_preset</code></td><td>text, default <code>house</code></td><td>Typography preset</td></tr>
+        <tr><td><code>first_signed_in_at_ms</code></td><td>integer (epoch ms)</td><td>Set on first magic-link redeem (prospect &rarr; client promotion)</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer (epoch ms), NOT NULL</td><td>Row creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>subscriber_magic_link_tokens</h3>
+  <p>Single-use login tokens for SaaS subscribers. Issued on first Stripe payment success or on-demand resend.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>user_id</code></td><td>text, NOT NULL</td><td>FK to <code>user.id</code></td></tr>
+        <tr><td><code>token_hash</code></td><td>text, unique, NOT NULL</td><td>SHA-256 of the raw 32-byte token</td></tr>
+        <tr><td><code>issued_for</code></td><td>text, default <code>subscriber_login</code></td><td>Label describing the issuance context</td></tr>
+        <tr><td><code>expires_at_ms</code></td><td>integer, NOT NULL</td><td>Absolute expiry (epoch ms). Default TTL: 24 hours.</td></tr>
+        <tr><td><code>consumed_at_ms</code></td><td>integer, nullable</td><td>Null until redeemed. Subsequent attempts rejected.</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer, NOT NULL</td><td>Row creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> <code>(user_id, created_at_ms)</code>, <code>(token_hash)</code></p>
+
+  <h3>portal_magic_links</h3>
+  <p>One-time tokens for portal session recovery and journey-beat email entry links. Shared between Intro Funnel and Client Management.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>contact_id</code></td><td>text, NOT NULL</td><td>Who the link is for (FK to <code>contacts.id</code>)</td></tr>
+        <tr><td><code>client_id</code></td><td>text, nullable</td><td>Non-null for Client Management; null for Intro Funnel</td></tr>
+        <tr><td><code>submission_id</code></td><td>text, nullable</td><td>Scopes to an intro-funnel submission row</td></tr>
+        <tr><td><code>ott_hash</code></td><td>text, unique, NOT NULL</td><td>SHA-256 of the raw 32-byte token</td></tr>
+        <tr><td><code>issued_for</code></td><td>text, default <code>portal_access</code></td><td>Label e.g. <code>portal_access</code>, <code>journey_beat</code>, <code>recovery_form</code>, <code>brand_dna_invite</code></td></tr>
+        <tr><td><code>expires_at_ms</code></td><td>integer, NOT NULL</td><td>Absolute expiry (epoch ms). Default TTL: 168 hours (7 days).</td></tr>
+        <tr><td><code>consumed_at_ms</code></td><td>integer, nullable</td><td>Null until redeemed</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer, NOT NULL</td><td>Row creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> <code>(ott_hash)</code>, <code>(contact_id, created_at_ms)</code></p>
+
+  <h3>bench_magic_links</h3>
+  <p>Same pattern as portal_magic_links but for hiring candidates.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>candidate_id</code></td><td>text, NOT NULL</td><td>FK to <code>candidates.id</code></td></tr>
+        <tr><td><code>ott_hash</code></td><td>text, unique, NOT NULL</td><td>SHA-256 of the raw 32-byte token</td></tr>
+        <tr><td><code>issued_for</code></td><td>text, default <code>bench_access</code></td><td>Issuance label</td></tr>
+        <tr><td><code>expires_at_ms</code></td><td>integer, NOT NULL</td><td>Absolute expiry</td></tr>
+        <tr><td><code>consumed_at_ms</code></td><td>integer, nullable</td><td>Null until redeemed</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer, NOT NULL</td><td>Row creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> <code>(ott_hash)</code>, <code>(candidate_id, created_at_ms)</code></p>
+
+  <h3>brand_dna_invites</h3>
+  <p>Invite-specific metadata layer on top of <code>portal_magic_links</code>. The underlying portal_magic_links row handles URL routing; this table stores the Brand DNA assessment context.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>contact_id</code></td><td>text, NOT NULL</td><td>Who the invite is for</td></tr>
+        <tr><td><code>token_hash</code></td><td>text, unique, NOT NULL</td><td>SHA-256 &mdash; matches <code>portal_magic_links.ott_hash</code></td></tr>
+        <tr><td><code>created_by</code></td><td>text, NOT NULL</td><td>Admin user who issued the invite</td></tr>
+        <tr><td><code>expires_at_ms</code></td><td>integer, NOT NULL</td><td>Absolute expiry</td></tr>
+        <tr><td><code>used_at_ms</code></td><td>integer, nullable</td><td>Null until redeemed</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer, NOT NULL</td><td>Row creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>wizard_completions</h3>
+  <p>Ledger of completed setup wizards. Drives the Critical Flight Gate (gate 2).</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>wizard_key</code></td><td>text, NOT NULL</td><td>Which wizard (e.g. <code>stripe-admin</code>, <code>resend</code>, <code>graph-api-admin</code>)</td></tr>
+        <tr><td><code>user_id</code></td><td>text, NOT NULL</td><td>Who completed it</td></tr>
+        <tr><td><code>audience</code></td><td>enum: <code>admin</code>, <code>client</code></td><td>Audience scope</td></tr>
+        <tr><td><code>completion_payload</code></td><td>JSON text, NOT NULL</td><td>Wizard-specific completion data</td></tr>
+        <tr><td><code>contract_version</code></td><td>text, NOT NULL</td><td>Version tag of the completion contract at time of write</td></tr>
+        <tr><td><code>completed_at_ms</code></td><td>integer, NOT NULL</td><td>Completion timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> <code>(user_id, wizard_key, completed_at_ms)</code>, <code>(wizard_key, completed_at_ms)</code></p>
+  <p>No unique constraint on <code>(user_id, wizard_key)</code> &mdash; some wizards (e.g. graph-api-client) can be completed repeatedly.</p>
+</div>
+
+<!-- ── 7. MAGIC LINK SYSTEM ────────────────────────────────────── -->
+
+<div class="section" id="magic-links">
+  <div class="section-num">Section 07</div>
+  <h2>Magic Link System</h2>
+
+  <p>Three separate magic-link implementations serve different audiences, but they all follow the same cryptographic pattern:</p>
+
+  <h3>Token Lifecycle</h3>
+  <div class="diagram"><pre><span class="num">1.</span> <span class="highlight">Generate</span>
+   raw = randomBytes(32).toString(<span class="str">"base64url"</span>)   <span class="dim">&larr; 256-bit entropy</span>
+   hash = SHA-256(raw).hex()
+
+<span class="num">2.</span> <span class="highlight">Store</span>
+   INSERT token_hash, user_id/contact_id, expires_at_ms, consumed_at_ms = NULL
+   <span class="dim">Only the hash is persisted. The raw token is returned to the caller</span>
+   <span class="dim">and embedded in the email body. It never touches the database.</span>
+
+<span class="num">3.</span> <span class="highlight">Deliver</span>
+   Email body contains the full URL with the raw token:
+   <span class="accent">Subscriber:</span> <span class="str">/api/auth/magic-link?token=&lt;raw&gt;</span>
+   <span class="accent">Portal:</span>     <span class="str">/lite/portal/r/&lt;raw&gt;</span>
+   <span class="accent">Bench:</span>      <span class="str">/bench/r/&lt;raw&gt;</span>
+
+<span class="num">4.</span> <span class="highlight">Redeem</span>
+   hash = SHA-256(raw).hex()
+   SELECT WHERE token_hash = hash
+   Reject if: not found, consumed_at_ms IS NOT NULL, expires_at_ms &lt; now
+   UPDATE SET consumed_at_ms = now
+   <span class="dim">(Double-consume guard: subscriber tokens use a WHERE clause</span>
+   <span class="dim"> with consumed_at_ms IS NULL + expires_at_ms >= now in the UPDATE)</span>
+
+<span class="num">5.</span> <span class="highlight">Expire</span>
+   Tokens past their TTL are implicitly dead &mdash; the redeem check
+   rejects them. No cleanup cron needed.</pre></div>
+
+  <h3>TTL Configuration</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Setting Key</th><th>Default</th><th>Token Type</th></tr></thead>
+      <tbody>
+        <tr><td><code>subscriber.magic_link_ttl_hours</code></td><td>24 hours</td><td>Subscriber login tokens</td></tr>
+        <tr><td><code>portal.magic_link_ttl_hours</code></td><td>168 hours (7 days)</td><td>Portal + Brand DNA invite tokens</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Key Differences Between Token Types</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Subscriber</th><th>Portal</th><th>Bench</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Table</strong></td><td><code>subscriber_magic_link_tokens</code></td><td><code>portal_magic_links</code></td><td><code>bench_magic_links</code></td></tr>
+        <tr><td><strong>Linked to</strong></td><td><code>user.id</code></td><td><code>contacts.id</code></td><td><code>candidates.id</code></td></tr>
+        <tr><td><strong>Session type</strong></td><td>NextAuth JWT (full session)</td><td>Custom cookie (base64url JSON)</td><td>Custom cookie (base64url JSON)</td></tr>
+        <tr><td><strong>Side effects</strong></td><td>Promotes prospect &rarr; client, verifies email</td><td>Logs activity</td><td>Logs activity</td></tr>
+        <tr><td><strong>Default TTL</strong></td><td>24 hours</td><td>7 days</td><td>7 days (shared portal setting)</td></tr>
+        <tr><td><strong>Double-consume guard</strong></td><td>Yes (atomic WHERE clause)</td><td>Basic (check then update)</td><td>Basic (check then update)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Why Store Only Hashes</div>
+    <p>If the database is compromised, an attacker who has token hashes cannot use them to log in. The raw token only ever exists in the email body and the URL at click time. This is the same pattern used by password reset tokens in any serious auth system.</p>
+  </div>
+</div>
+
+<!-- ── 8. PORTAL AUTHENTICATION ────────────────────────────────── -->
+
+<div class="section" id="portal-auth">
+  <div class="section-num">Section 08</div>
+  <h2>Portal Authentication</h2>
+
+  <p>The portal (for prospects and clients) runs a completely separate authentication system from the admin NextAuth flow. No <code>user</code> table row is required &mdash; portal sessions are tied to <code>contacts</code> rows.</p>
+
+  <h3>Session Cookie Shape</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; PortalSession</div>
+    <pre><span class="kw">type</span> <span class="type">PortalSession</span> = {
+  contactId: <span class="type">string</span>;       <span class="comment">// Always present — the contact row id</span>
+  clientId: <span class="type">string</span> | <span class="type">null</span>;  <span class="comment">// Non-null for Client Management portal</span>
+  submissionId: <span class="type">string</span> | <span class="type">null</span>; <span class="comment">// Non-null for Intro Funnel flows</span>
+};
+
+<span class="comment">// Cookie name: "sbl_portal_session"</span>
+<span class="comment">// Encoding: base64url(JSON.stringify(session))</span>
+<span class="comment">// TTL: 90 days (from settings.get('portal.session_cookie_ttl_days'))</span>
+<span class="comment">// Flags: httpOnly, Secure (production), SameSite=Lax</span></pre>
+  </div>
+
+  <h3>Session Guard Functions</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Function</th><th>File</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>getPortalSession()</code></td>
+          <td><code>lib/portal/guard.ts</code></td>
+          <td>Reads + decodes the cookie. Returns null if absent or malformed.</td>
+        </tr>
+        <tr>
+          <td><code>requirePortalSession()</code></td>
+          <td><code>lib/portal/require-session.ts</code></td>
+          <td>Calls <code>getPortalSession()</code>; redirects to <code>/lite/portal/recover</code> if null.</td>
+        </tr>
+        <tr>
+          <td><code>requireIntroSession(token)</code></td>
+          <td><code>lib/portal/require-intro-session.ts</code></td>
+          <td>Same, but redirect includes a <code>returnTo</code> param for the intro funnel.</td>
+        </tr>
+        <tr>
+          <td><code>encodePortalSession()</code></td>
+          <td><code>lib/portal/guard.ts</code></td>
+          <td>Encodes a PortalSession to base64url for cookie setting.</td>
+        </tr>
+        <tr>
+          <td><code>decodePortalSession()</code></td>
+          <td><code>lib/portal/guard.ts</code></td>
+          <td>Decodes cookie value back to PortalSession. Returns null on invalid.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Portal Modes</h3>
+  <p>The portal determines rendering mode from the contact&rsquo;s subscription status:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mode</th><th>Condition</th><th>Visible Sections</th></tr></thead>
+      <tbody>
+        <tr><td><code>pre_retainer</code></td><td>Default (trial-shoot, in-progress)</td><td>Chat, Deliverables, Brand DNA, Gallery, Plan</td></tr>
+        <tr><td><code>retainer</code></td><td>Deal stage <code>won</code> + active subscription</td><td>All sections (+ Invoices, Package, Messages, Data Export)</td></tr>
+        <tr><td><code>archived</code></td><td>60-day post-shoot non-converter</td><td>Not yet implemented; falls back to <code>pre_retainer</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Session Recovery</h3>
+  <p>When a portal session cookie is missing or expired, the user is redirected to <code>/lite/portal/recover</code>. The recovery form takes an email, looks up the contact (first in <code>intro_funnel_submissions</code>, then in <code>contacts</code>), and issues a fresh magic link. Both success and &ldquo;not found&rdquo; return silently to prevent email enumeration.</p>
+
+  <div class="callout">
+    <div class="callout-label">PATCHES_OWED: Cookie Signing</div>
+    <p>The portal session cookie is currently base64-encoded JSON without cryptographic signing. A future session adds signing (e.g. iron-session or JWT). Tracked as <code>a8_portal_cookie_unsigned</code>. Do not store sensitive data beyond the contact/client id in this cookie.</p>
+  </div>
+</div>
+
+<!-- ── 9. SESSION MANAGEMENT ───────────────────────────────────── -->
+
+<div class="section" id="sessions">
+  <div class="section-num">Section 09</div>
+  <h2>Session Management</h2>
+
+  <h3>JWT Strategy (Admin + Subscriber)</h3>
+  <p>SuperBad Lite uses JWT sessions (not database sessions). The session strategy is declared in <code>auth.config.ts</code>:</p>
+  <div class="code-block">
+    <div class="code-header">Configuration</div>
+    <pre>session: { strategy: <span class="str">"jwt"</span> }</pre>
+  </div>
+  <p>This means session data lives entirely in a signed, httpOnly cookie. No session table in the database. The tradeoff: you cannot revoke individual sessions server-side without changing the JWT secret (which invalidates all sessions).</p>
+
+  <h3>JWT Token Shape</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; Custom JWT Claims</div>
+    <pre><span class="comment">// Set by the Edge-safe jwt callback (auth.config.ts):</span>
+token.id: <span class="type">string</span>              <span class="comment">// User row id</span>
+token.role: <span class="type">string</span>            <span class="comment">// "admin" | "client" | "prospect"</span>
+token.brand_dna_complete: <span class="type">boolean</span>  <span class="comment">// Starts false; refreshed on signIn/update</span>
+token.critical_flight_complete: <span class="type">boolean</span>  <span class="comment">// Starts false; refreshed on signIn/update</span>
+
+<span class="comment">// Plus standard Auth.js fields: sub, iat, exp, jti</span></pre>
+  </div>
+
+  <h3>Session Object Shape</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; session.user (Server Components)</div>
+    <pre>session.user.id: <span class="type">string</span>
+session.user.role: <span class="type">string</span>
+session.user.brand_dna_complete: <span class="type">boolean</span>
+session.user.critical_flight_complete: <span class="type">boolean</span>
+session.user.name?: <span class="type">string</span>
+session.user.email?: <span class="type">string</span>
+session.user.image?: <span class="type">string</span></pre>
+  </div>
+
+  <h3>Token Refresh Triggers</h3>
+  <p>The Node-side jwt callback (in <code>auth.ts</code>) overrides the Edge-safe base and re-queries the database for <code>brand_dna_complete</code> and <code>critical_flight_complete</code> on three triggers:</p>
+  <ul>
+    <li><strong><code>signIn</code></strong> &mdash; initial login</li>
+    <li><strong><code>signUp</code></strong> &mdash; first-time sign-up</li>
+    <li><strong><code>update</code></strong> &mdash; explicit <code>session.update()</code> call (e.g. after Brand DNA completion or wizard finish)</li>
+  </ul>
+  <p>On all other token renewals (page navigation, cookie refresh), the cached values carry forward unchanged. This means the gates only lift after a deliberate session update.</p>
+
+  <h3>Module Augmentation</h3>
+  <p><code>lib/auth/session.ts</code> augments the NextAuth types so <code>session.user</code> is fully typed across the codebase:</p>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; Module Augmentation</div>
+    <pre><span class="kw">declare module</span> <span class="str">"next-auth"</span> {
+  <span class="kw">interface</span> <span class="type">Session</span> {
+    user: {
+      id: <span class="type">string</span>;
+      role: <span class="type">string</span>;
+      brand_dna_complete: <span class="type">boolean</span>;
+      critical_flight_complete: <span class="type">boolean</span>;
+    } &amp; DefaultSession[<span class="str">"user"</span>];
+  }
+}</pre>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Usage Pattern</div>
+    <p>Import <code>auth</code> from <code>@/lib/auth/session</code> (not from <code>@/lib/auth/auth</code> directly). The session module re-exports <code>auth</code>, <code>signIn</code>, and <code>signOut</code> and ensures the type augmentation is always loaded.</p>
+  </div>
+</div>
+
+<!-- ── 10. SECURITY CONSIDERATIONS ─────────────────────────────── -->
+
+<div class="section" id="security">
+  <div class="section-num">Section 10</div>
+  <h2>Security Considerations</h2>
+
+  <h3>Password Hashing</h3>
+  <p>Admin passwords are hashed using <strong>scrypt</strong> (Node.js built-in <code>crypto.scryptSync</code>) with the following parameters:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Parameter</th><th>Value</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td>Key length</td><td>64 bytes</td><td>Output hash size</td></tr>
+        <tr><td>Cost (N)</td><td>16384</td><td>CPU/memory cost factor (2<sup>14</sup>)</td></tr>
+        <tr><td>Block size (r)</td><td>8</td><td>Memory usage multiplier</td></tr>
+        <tr><td>Parallelization (p)</td><td>1</td><td>Parallelism factor</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Storage format: <code>salt:derivedKey</code> (both hex-encoded). Salt is 16 random bytes per password. Comparison uses <code>timingSafeEqual</code> to prevent timing attacks.</p>
+
+  <h3>Token Security</h3>
+  <ul>
+    <li><strong>256-bit entropy:</strong> all magic-link tokens are 32 random bytes (base64url-encoded), giving 2<sup>256</sup> possible values.</li>
+    <li><strong>Hash-only storage:</strong> only the SHA-256 hash is stored in the database. A database breach does not leak usable tokens.</li>
+    <li><strong>Single use:</strong> tokens are marked consumed on first redemption. The subscriber flow uses an atomic <code>UPDATE ... WHERE consumed_at_ms IS NULL</code> to prevent race conditions.</li>
+    <li><strong>TTL enforcement:</strong> every redeem checks <code>expires_at_ms &lt; now</code> before accepting.</li>
+  </ul>
+
+  <h3>CSRF Protection</h3>
+  <p>NextAuth v5 handles CSRF protection automatically via its <code>/api/auth/csrf</code> endpoint. The Credentials provider login form uses the client-side <code>signIn()</code> from <code>next-auth/react</code>, which includes the CSRF token in the request.</p>
+
+  <h3>Cookie Security</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Cookie</th><th>httpOnly</th><th>Secure</th><th>SameSite</th><th>Signing</th></tr></thead>
+      <tbody>
+        <tr><td>NextAuth session (JWT)</td><td>Yes</td><td>Yes (prod)</td><td>Lax</td><td>Yes (Auth.js signs JWTs)</td></tr>
+        <tr><td><code>sbl_portal_session</code></td><td>Yes</td><td>Yes (prod)</td><td>Lax</td><td>No (base64 only &mdash; PATCHES_OWED)</td></tr>
+        <tr><td><code>sbl_bench_session</code></td><td>Yes</td><td>Yes (prod)</td><td>Lax</td><td>No (base64 only)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Open Redirect Prevention</h3>
+  <p>The subscriber magic-link route handler validates the <code>redirect</code> parameter starts with <code>/lite/</code> before using it. Arbitrary URLs are rejected and the flow falls back to <code>/lite/onboarding</code>. The portal redeem endpoint validates that <code>callbackUrl</code> starts with <code>/lite/</code> as well.</p>
+
+  <h3>Email Enumeration Prevention</h3>
+  <p>The portal recovery form (<code>requestPortalLink</code>) always returns void regardless of whether the email was found. Both &ldquo;success&rdquo; and &ldquo;not found&rdquo; look identical to the caller, preventing attackers from confirming which emails have accounts.</p>
+
+  <h3>Admin-Only Password Login</h3>
+  <p>The <code>authorize()</code> function explicitly checks that the user&rsquo;s role is <code>admin</code> before allowing email + password login. Non-admin users (clients, prospects) cannot authenticate via the password form &mdash; they must use magic links. This prevents credential-stuffing attacks on the broader user base.</p>
+</div>
+
+<!-- ── 11. KILL SWITCHES ───────────────────────────────────────── -->
+
+<div class="section" id="kill-switches">
+  <div class="section-num">Section 11</div>
+  <h2>Kill Switches</h2>
+
+  <p>Three kill switches directly affect the auth system. They are defined in <code>lib/kill-switches.ts</code> and evaluated at runtime.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Switch</th><th>Default</th><th>What It Gates</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>brand_dna_assessment_enabled</code></td>
+          <td><code>true</code></td>
+          <td>When false, <code>isBrandDnaCompleteForUser()</code> short-circuits to <code>false</code> &mdash; the Brand DNA gate in middleware will always redirect to onboarding. In practice, this switch controls the entire Brand DNA feature, and the gate bypasses via <code>BRAND_DNA_GATE_BYPASS=true</code> env var.</td>
+        </tr>
+        <tr>
+          <td><code>setup_wizards_enabled</code></td>
+          <td><code>true</code></td>
+          <td>When false, <code>hasCompletedCriticalFlight()</code> short-circuits to <code>true</code> &mdash; gate 2 is effectively disabled. All wizard sequencing, nudges, and completion checks are bypassed.</td>
+        </tr>
+        <tr>
+          <td><code>llm_calls_enabled</code></td>
+          <td><code>true</code></td>
+          <td>Indirectly affects auth: when false, Brand DNA generation returns stub text, which means the profile may not reach <code>status = "complete"</code> through the normal flow. Does not gate auth itself.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Runtime Override</h3>
+  <p>Kill switches can be overridden at process boot via the <code>KILL_SWITCHES_ON</code> environment variable (comma-separated list of switch keys). This is intended for development and Playwright tests, not production. Example:</p>
+  <div class="code-block">
+    <div class="code-header">Environment</div>
+    <pre>KILL_SWITCHES_ON=brand_dna_assessment_enabled,setup_wizards_enabled</pre>
+  </div>
+
+  <h3>Middleware Bypass</h3>
+  <p>The Brand DNA gate has a dedicated bypass separate from kill switches:</p>
+  <div class="code-block">
+    <div class="code-header">Environment</div>
+    <pre>BRAND_DNA_GATE_BYPASS=<span class="str">true</span>  <span class="comment">// Skips gate 1 in middleware</span></pre>
+  </div>
+  <p>This does not disable the Brand DNA feature &mdash; it only stops the middleware redirect. The assessment can still be taken; it just isn&rsquo;t forced.</p>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li>
+      <strong>Respect the Edge/Node split.</strong> The most common NextAuth v5 mistake is importing Node.js modules (database drivers, <code>crypto</code>) into a file that runs in Edge middleware. Keep your middleware config pure &mdash; no DB calls, no native modules. Move all database-dependent logic into the Node.js-only auth file.
+    </li>
+    <li>
+      <strong>Use client-side signIn for Credentials.</strong> NextAuth v5 beta has a known issue where server-action <code>signIn()</code> silently drops credential fields. Always use <code>next-auth/react</code> with <code>redirect: false</code> and handle the redirect manually.
+    </li>
+    <li>
+      <strong>Magic links are cheap and reliable.</strong> If you are building a SaaS where users are invited (not self-registering with passwords), magic links are the right default. Users do not need to remember a password, and you do not need a password-reset flow. Store only the hash, enforce TTL, mark consumed on first use.
+    </li>
+    <li>
+      <strong>Keep portal auth separate from admin auth.</strong> If you have different audiences (admins vs customers), give them completely separate session mechanisms. Trying to make one auth system serve both will create role-escalation risks and make middleware impossibly complex.
+    </li>
+    <li>
+      <strong>Gate onboarding at the middleware level.</strong> If there are setup steps the admin must complete before the platform is useful, enforce them in middleware with JWT-cached flags. This is vastly more robust than checking completion status on individual pages.
+    </li>
+    <li>
+      <strong>Default-deny in your RBAC.</strong> Your <code>can()</code> function should return <code>false</code> for any rule it does not explicitly recognise. Forgetting to add a rule should lock people out, not let them in.
+    </li>
+    <li>
+      <strong>Use timing-safe comparison everywhere.</strong> Not just passwords. If you ever compare two secrets (tokens, hashes, API keys), use <code>timingSafeEqual</code>. Timing attacks are real and trivially exploitable.
+    </li>
+    <li>
+      <strong>Prevent email enumeration on recovery forms.</strong> Always return the same response whether the email exists or not. The recovery form says &ldquo;if that email has an account, we sent a link&rdquo; &mdash; never &ldquo;email not found.&rdquo;
+    </li>
+    <li>
+      <strong>Validate redirect URLs.</strong> Any <code>callbackUrl</code> or <code>redirect</code> parameter that influences where the user ends up after auth must be validated against a known prefix (e.g. <code>/lite/</code>). Otherwise you have an open redirect vulnerability that phishing campaigns love.
+    </li>
+    <li>
+      <strong>Kill switches let you ship and gate independently.</strong> Deploy auth-gated features with the kill switch off, verify in production, then flip the switch. Rolling back is one env var change, not a redeploy.
+    </li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">File Map</div>
+    <p>Here is the full set of files in the auth system, in dependency order:</p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">Auth File Map</div>
+    <pre><span class="comment">// ── Core Auth ──────────────────────────────────</span>
+lib/auth/auth.config.ts       <span class="dim">Edge-safe config (middleware + Node)</span>
+lib/auth/auth.ts              <span class="dim">Full config (Credentials provider + jwt override)</span>
+lib/auth/session.ts           <span class="dim">Re-exports + TypeScript augmentation</span>
+lib/auth/password.ts          <span class="dim">scrypt hash + verify</span>
+lib/auth/permissions.ts       <span class="dim">RBAC can() function + access matrix</span>
+
+<span class="comment">// ── Magic Links ────────────────────────────────</span>
+lib/auth/subscriber-magic-link.ts   <span class="dim">Issue + redeem subscriber tokens</span>
+lib/portal/issue-magic-link.ts      <span class="dim">Issue portal tokens</span>
+lib/portal/redeem-magic-link.ts     <span class="dim">Redeem portal tokens</span>
+
+<span class="comment">// ── Session Guards ─────────────────────────────</span>
+lib/portal/guard.ts                 <span class="dim">Portal session encode/decode/read</span>
+lib/portal/require-session.ts       <span class="dim">Redirect-on-missing wrapper</span>
+lib/portal/require-intro-session.ts <span class="dim">Intro funnel variant</span>
+
+<span class="comment">// ── Middleware Gate Checks ──────────────────────</span>
+lib/auth/brand-dna-complete-check.ts  <span class="dim">DB query for gate 1</span>
+lib/auth/has-completed-critical-flight.ts <span class="dim">DB query for gate 2</span>
+lib/wizards/critical-flight.ts      <span class="dim">Wizard sequencer for gate 2</span>
+lib/kill-switches.ts                <span class="dim">Central kill-switch registry</span>
+
+<span class="comment">// ── Route Handlers ─────────────────────────────</span>
+proxy.ts                            <span class="dim">Middleware (two sequential gates)</span>
+app/api/auth/[...nextauth]/route.ts <span class="dim">NextAuth route handler</span>
+app/api/auth/magic-link/route.ts    <span class="dim">Subscriber magic-link redeem</span>
+app/lite/portal/r/[token]/route.ts  <span class="dim">Portal magic-link redeem</span>
+app/bench/r/[token]/route.ts        <span class="dim">Bench magic-link redeem</span>
+app/lite/portal/recover/actions.ts  <span class="dim">Portal session recovery</span>
+app/lite/login/page.tsx             <span class="dim">Admin login page (dev scaffold)</span>
+
+<span class="comment">// ── Database Schema ────────────────────────────</span>
+lib/db/schema/user.ts                       <span class="dim">User table</span>
+lib/db/schema/subscriber-magic-link-tokens.ts <span class="dim">Subscriber tokens</span>
+lib/db/schema/portal-magic-links.ts         <span class="dim">Portal tokens</span>
+lib/db/schema/bench-magic-links.ts          <span class="dim">Bench tokens</span>
+lib/db/schema/brand-dna-invites.ts          <span class="dim">Brand DNA invites</span>
+lib/db/schema/wizard-completions.ts         <span class="dim">Wizard completion ledger</span></pre>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">Three separate auth surfaces, each serving a different audience. The temptation is to unify them. Resist it. The separation is what makes each surface simple, and simple is what keeps it secure.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

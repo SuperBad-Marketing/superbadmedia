@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI/LLM Infrastructure — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">AI / LLM Infrastructure</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the centralised AI layer that powers every LLM call in SuperBad Lite.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the AI Infrastructure Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#registry"><span class="num">03</span> Model Registry</a>
+    <a href="#invoke"><span class="num">04</span> Invocation Entry Point</a>
+    <a href="#prompts"><span class="num">05</span> Prompt Library</a>
+    <a href="#cost-logging"><span class="num">06</span> Cost Logging</a>
+    <a href="#drift-check"><span class="num">07</span> Brand Voice Drift Checking</a>
+    <a href="#tiers"><span class="num">08</span> Model Tiers</a>
+    <a href="#kill-switches"><span class="num">09</span> Kill Switches</a>
+    <a href="#database"><span class="num">10</span> Database Schema</a>
+    <a href="#error-handling"><span class="num">11</span> Error Handling &amp; Anomaly Detection</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE AI INFRASTRUCTURE DOES ──────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the AI Infrastructure Does</h2>
+  <p>SuperBad Lite is a SaaS operations platform that runs 115 distinct LLM jobs across 20+ features &mdash; everything from drafting outreach emails to generating brand personality portraits to classifying inbound support tickets. Every single one of those calls flows through a centralised AI layer: three files that sit between feature code and the Anthropic API.</p>
+
+  <p>The core design principle is <strong>feature code never knows which model it&rsquo;s calling</strong>. A quote builder asks for <code>quote-builder-draft-intro-paragraph</code>. A Brand DNA generator asks for <code>brand-dna-generate-prose-portrait</code>. The AI layer resolves the model, makes the call, logs the cost, and returns the text. Feature code doesn&rsquo;t import the SDK. Feature code doesn&rsquo;t reference <code>claude-opus-4-6</code>. Feature code names the job.</p>
+
+  <p>This matters because model IDs change. Pricing changes. You might want to downgrade a Haiku job to a cheaper tier, or upgrade a Sonnet job to Opus because the output quality isn&rsquo;t good enough. With a centralised registry, that&rsquo;s a one-line change in one file. Without it, you&rsquo;re grepping through 115 call sites.</p>
+
+  <p class="mutter">The boring architecture that lets you sleep at night.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>The Three-File Core</h3>
+  <div class="diagram"><pre><span class="accent">Feature Code</span>
+    <span class="dim">│</span>
+    <span class="dim">│</span>  calls <span class="highlight">invokeLlmText</span>({ job: <span class="str">"job-slug"</span>, prompt, maxTokens })
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="highlight">lib/ai/invoke.ts</span>           <span class="dim">← single SDK entry point</span>
+    <span class="dim">│</span>
+    <span class="dim">│</span>  calls <span class="accent">modelFor</span>(<span class="str">"job-slug"</span>) → <span class="str">"claude-opus-4-6"</span>
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="highlight">lib/ai/models.ts</span>          <span class="dim">← model registry (115 job slugs → model IDs)</span>
+    <span class="dim">│</span>
+    <span class="dim">│</span>  after response, fires <span class="accent">logExternalCall</span>()
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="highlight">lib/observatory/</span>          <span class="dim">← cost logging + anomaly detection</span>
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="accent">external_call_log</span> table   <span class="dim">← every call recorded with cost estimate</span></pre></div>
+
+  <h3>Data Flow for a Typical LLM Call</h3>
+  <div class="diagram"><pre><span class="num">1.</span> Feature builds prompt using a <span class="accent">prompt builder</span> from lib/ai/prompts/
+<span class="num">2.</span> Feature calls <span class="highlight">invokeLlmText</span>({ job, prompt, maxTokens })
+<span class="num">3.</span> invoke.ts resolves API key (DB-stored &gt; env var fallback)
+<span class="num">4.</span> invoke.ts calls <span class="accent">modelFor(job)</span> → concrete model ID
+<span class="num">5.</span> invoke.ts calls <span class="highlight">Anthropic messages.create</span>()
+<span class="num">6.</span> Response arrives → extract text, extract token usage
+<span class="num">7.</span> <span class="accent">logExternalCall</span>() fires (async, fire-and-forget)
+<span class="num">8.</span> Cost estimate computed via <span class="accent">estimateAnthropicCostAud</span>()
+<span class="num">9.</span> Anomaly detectors check per-call thresholds
+<span class="num">10.</span> Text returned to feature code</pre></div>
+
+  <h3>Enforcement</h3>
+  <p>A custom ESLint rule &mdash; <code>lite/no-direct-anthropic-import</code> &mdash; blocks any file outside <code>lib/ai/</code> from importing <code>@anthropic-ai/sdk</code>. If a developer tries to bypass the registry and call Anthropic directly from feature code, the linter catches it.</p>
+</div>
+
+<!-- ── 3. MODEL REGISTRY ───────────────────────────────────────── -->
+
+<div class="section" id="registry">
+  <div class="section-num">Section 03</div>
+  <h2>Model Registry</h2>
+
+  <p>The registry lives in <code>lib/ai/models.ts</code>. It&rsquo;s a single <code>MODELS</code> object mapping 115 job slugs to one of three tiers: Opus, Sonnet, or Haiku. The concrete model IDs are resolved through a separate <code>MODEL_IDS</code> constant.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/ai/models.ts &mdash; Core Types</div>
+    <pre><span class="kw">export type</span> <span class="type">ModelTier</span> = <span class="str">"opus"</span> | <span class="str">"sonnet"</span> | <span class="str">"haiku"</span>;
+
+<span class="kw">export const</span> <span class="type">MODEL_IDS</span> = {
+  opus:   <span class="str">"claude-opus-4-6"</span>,
+  sonnet: <span class="str">"claude-sonnet-4-6"</span>,
+  haiku:  <span class="str">"claude-haiku-4-5-20251001"</span>,
+} <span class="kw">as const</span>;
+
+<span class="kw">export function</span> <span class="type">modelFor</span>(job: <span class="type">ModelJobSlug</span>): <span class="type">ModelId</span> {
+  <span class="kw">return</span> MODEL_IDS[MODELS[job]];
+}</pre>
+  </div>
+
+  <h3>Tier Distribution</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier</th><th>Model ID</th><th>Job Count</th><th>Use Case</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Opus</strong></td><td><code>claude-opus-4-6</code></td><td>48</td><td>Creative writing, high-stakes reasoning, narrative generation</td></tr>
+        <tr><td><strong>Sonnet</strong></td><td><code>claude-sonnet-4-6</code></td><td>14</td><td>Mid-complexity tasks: parsing, caption drafting, hiring analysis</td></tr>
+        <tr><td><strong>Haiku</strong></td><td><code>claude-haiku-4-5-20251001</code></td><td>53</td><td>Classification, short templates, reformatting, low-latency tasks</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>All 115 Job Slugs by Feature</h3>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Quote Builder <span class="tag-count">(8 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">quote-builder-draft-from-context</span>
+      <span class="tag">quote-builder-draft-intro-paragraph</span>
+      <span class="tag">quote-builder-draft-send-email</span>
+      <span class="tag">quote-builder-draft-scope-summary</span>
+      <span class="tag">quote-builder-draft-pdf-cover-line</span>
+      <span class="tag">quote-builder-draft-settle-email</span>
+      <span class="tag">quote-builder-draft-cancel-intercept-email</span>
+      <span class="tag">quote-builder-draft-reminder-3d</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Branded Invoicing <span class="tag-count">(3 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">invoice-draft-send-email</span>
+      <span class="tag">invoice-draft-reminder</span>
+      <span class="tag">invoice-draft-supersede-notification</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Intro Funnel <span class="tag-count">(5 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">intro-funnel-signal-tag-extraction</span>
+      <span class="tag">intro-funnel-reflection-synthesis</span>
+      <span class="tag">intro-funnel-retainer-fit-recommendation</span>
+      <span class="tag">intro-funnel-abandon-email</span>
+      <span class="tag">intro-funnel-apology-email</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Client Context Engine <span class="tag-count">(5 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">client-context-summarise</span>
+      <span class="tag">client-context-extract-action-items</span>
+      <span class="tag">client-context-draft-reply</span>
+      <span class="tag">client-context-regenerate-draft-with-nudge</span>
+      <span class="tag">client-context-reformat-draft-for-channel</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Brand DNA Assessment <span class="tag-count">(6 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">brand-dna-generate-section-insight</span>
+      <span class="tag">brand-dna-generate-first-impression</span>
+      <span class="tag">brand-dna-generate-prose-portrait</span>
+      <span class="tag">brand-dna-generate-company-blend</span>
+      <span class="tag">brand-dna-generate-retake-comparison</span>
+      <span class="tag">brand-dna-generate-brand-pack</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Content Engine <span class="tag-count">(10 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">content-score-keyword-rankability</span>
+      <span class="tag">content-generate-topic-outline</span>
+      <span class="tag">content-generate-blog-post</span>
+      <span class="tag">content-rewrite-for-newsletter</span>
+      <span class="tag">content-generate-social-draft</span>
+      <span class="tag">content-select-visual-template</span>
+      <span class="tag">content-generate-image-prompt</span>
+      <span class="tag">content-match-content-to-prospects</span>
+      <span class="tag">content-draft-outreach-email</span>
+      <span class="tag">content-generate-embed-form-styles</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Six-Week Plan Generator <span class="tag-count">(4 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">six-week-plan-strategy</span>
+      <span class="tag">six-week-plan-weeks</span>
+      <span class="tag">six-week-plan-review</span>
+      <span class="tag">six-week-plan-revision-reply</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Cost &amp; Usage Observatory <span class="tag-count">(3 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">observatory-diagnose-cost-anomaly</span>
+      <span class="tag">observatory-draft-negative-margin-email</span>
+      <span class="tag">observatory-draft-weekly-digest</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Daily Cockpit <span class="tag-count">(1 job)</span></div>
+    <div class="tag-grid">
+      <span class="tag">cockpit-brief</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Lead Generation <span class="tag-count">(11 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">lead-gen-outreach-draft</span>
+      <span class="tag">lead-gen-nudge-rewrite</span>
+      <span class="tag">lead-gen-case-snippet</span>
+      <span class="tag">lead-gen-candidate-summary</span>
+      <span class="tag">lead-gen-suggest-search</span>
+      <span class="tag">lead-gen-discovery-suggestions</span>
+      <span class="tag">lead-gen-icp-prefilter</span>
+      <span class="tag">lead-gen-deep-website-distill</span>
+      <span class="tag">lead-gen-reply-draft</span>
+      <span class="tag">lead-gen-reply-nudge</span>
+      <span class="tag">lead-gen-reply-long-tail</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Lead Gen &mdash; Classification <span class="tag-count">(1 job)</span></div>
+    <div class="tag-grid">
+      <span class="tag">lead-gen-reply-classify</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Video Studio <span class="tag-count">(1 job)</span></div>
+    <div class="tag-grid">
+      <span class="tag">video-brief-builder</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Client Management <span class="tag-count">(3 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">client-mgmt-bartender-opening-line</span>
+      <span class="tag">client-mgmt-chat-response</span>
+      <span class="tag">client-mgmt-escalation-summary</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Unified Inbox <span class="tag-count">(8 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">inbox-classify-inbound-route</span>
+      <span class="tag">inbox-classify-notification-priority</span>
+      <span class="tag">inbox-classify-signal-noise</span>
+      <span class="tag">inbox-classify-support-ticket-type</span>
+      <span class="tag">inbox-draft-reply</span>
+      <span class="tag">inbox-compose-draft</span>
+      <span class="tag">inbox-compose-subject</span>
+      <span class="tag">inbox-draft-refine</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Hiring Pipeline <span class="tag-count">(9 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">hiring-brief-synthesize</span>
+      <span class="tag">hiring-discovery-agent</span>
+      <span class="tag">hiring-candidate-score</span>
+      <span class="tag">hiring-invite-draft</span>
+      <span class="tag">hiring-followup-question-draft</span>
+      <span class="tag">hiring-trial-task-author</span>
+      <span class="tag">hiring-portfolio-ingest-vision</span>
+      <span class="tag">hiring-archive-reflection-ingest</span>
+      <span class="tag">hiring-reply-classify</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Onboarding <span class="tag-count">(2 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">onboarding-welcome-email</span>
+      <span class="tag">onboarding-welcome-summary</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Setup &amp; Cockpit Assistants <span class="tag-count">(2 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">admin-setup-assistant</span>
+      <span class="tag">cockpit-assistant</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Surprise &amp; Delight <span class="tag-count">(4 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">sd-generate-in-voice</span>
+      <span class="tag">sd-milestone-extract</span>
+      <span class="tag">sd-milestone-draft</span>
+      <span class="tag">sd-riddle-wrong-fallback</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Free Audit Tool <span class="tag-count">(2 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">audit-category-explanation</span>
+      <span class="tag">audit-followup-draft</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Content Studio <span class="tag-count">(4 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">content-studio-generate-copy</span>
+      <span class="tag">content-studio-generate-motion-copy</span>
+      <span class="tag">content-studio-correct-copy</span>
+      <span class="tag">content-studio-pick-template</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Miscellaneous <span class="tag-count">(7 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">referral-follow-up-draft</span>
+      <span class="tag">braindump-parse</span>
+      <span class="tag">drift-check-grader</span>
+      <span class="tag">finance-draft-narrative</span>
+      <span class="tag">catalogue-chat-recommend</span>
+      <span class="tag">brief-storyboard-generate</span>
+      <span class="tag">brief-storyboard-revise</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Instagram Channel <span class="tag-count">(8 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">instagram-draft-caption</span>
+      <span class="tag">instagram-classify-inbound</span>
+      <span class="tag">instagram-draft-comment-reply</span>
+      <span class="tag">instagram-draft-dm-reply</span>
+      <span class="tag">instagram-escalation-summary</span>
+      <span class="tag">instagram-strategy-digest</span>
+      <span class="tag">instagram-realtime-alert</span>
+      <span class="tag">instagram-boost-rationale</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Talking Head Scripts <span class="tag-count">(3 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">talking-head-generate-script</span>
+      <span class="tag">talking-head-generate-edit-brief</span>
+      <span class="tag">talking-head-generate-publish-meta</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Call Notes <span class="tag-count">(3 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">call-pre-briefing</span>
+      <span class="tag">call-custom-questions</span>
+      <span class="tag">call-post-synthesis</span>
+    </div>
+  </div>
+
+  <div class="tag-domain">
+    <div class="tag-domain-header">Meta Campaigns <span class="tag-count">(2 jobs)</span></div>
+    <div class="tag-grid">
+      <span class="tag">meta-campaign-strategy-builder</span>
+      <span class="tag">meta-ad-copy-generate</span>
+    </div>
+  </div>
+
+  <p class="mutter">Swap any job&rsquo;s tier by changing one word in the MODELS map. The feature that uses it doesn&rsquo;t even notice.</p>
+</div>
+
+<!-- ── 4. INVOCATION ENTRY POINT ───────────────────────────────── -->
+
+<div class="section" id="invoke">
+  <div class="section-num">Section 04</div>
+  <h2>Invocation Entry Point</h2>
+
+  <p><code>lib/ai/invoke.ts</code> is the only file in the entire codebase that calls <code>Anthropic.messages.create()</code> for feature work. It exports three functions, each serving a different response shape:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Function</th><th>Returns</th><th>When to Use</th></tr></thead>
+      <tbody>
+        <tr><td><code>invokeLlmText</code></td><td><code>string</code></td><td>Most jobs &mdash; you just want the text output</td></tr>
+        <tr><td><code>invokeLlmTextWithMeta</code></td><td><code>{ text, inputTokens, outputTokens }</code></td><td>When the caller needs token counts (e.g. showing cost)</td></tr>
+        <tr><td><code>invokeLlmVision</code></td><td><code>{ text, inputTokens, outputTokens }</code></td><td>When the prompt includes images (e.g. portfolio ingest)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The Options Object</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; InvokeLlmTextOptions</div>
+    <pre><span class="kw">export interface</span> <span class="type">InvokeLlmTextOptions</span> {
+  job: <span class="type">ModelJobSlug</span>;          <span class="comment">// registry key, never a model ID</span>
+  prompt: <span class="type">string</span>;              <span class="comment">// user message content</span>
+  system?: <span class="type">string</span>;             <span class="comment">// optional system message</span>
+  maxTokens: <span class="type">number</span>;           <span class="comment">// output cap</span>
+  actorType?: <span class="str">"internal"</span> | <span class="str">"external"</span> | <span class="str">"shared"</span> | <span class="str">"prospect"</span>;
+  actorId?: <span class="type">string</span> | <span class="type">null</span>;    <span class="comment">// links cost to a specific entity</span>
+}</pre>
+  </div>
+
+  <h3>API Key Resolution</h3>
+  <p>The client resolves the API key through a two-tier fallback:</p>
+  <ol>
+    <li><strong>Database first:</strong> Queries <code>integration_connections</code> for an active <code>anthropic</code> row. The key is stored encrypted via the vault module and decrypted at runtime.</li>
+    <li><strong>Env var fallback:</strong> If the DB lookup fails (or the table is empty), falls back to <code>process.env.ANTHROPIC_API_KEY</code>. This is the local dev path.</li>
+  </ol>
+  <p>The resolved client is cached for 5 minutes to avoid hitting the DB on every call.</p>
+
+  <h3>How a Feature Call Looks</h3>
+  <div class="code-block">
+    <div class="code-header">Typical Usage</div>
+    <pre><span class="kw">import</span> { invokeLlmText } <span class="kw">from</span> <span class="str">"@/lib/ai/invoke"</span>;
+
+<span class="kw">const</span> text = <span class="kw">await</span> invokeLlmText({
+  job: <span class="str">"brand-dna-generate-section-insight"</span>,
+  prompt: buildSectionInsightPrompt(input),
+  maxTokens: <span class="num">400</span>,
+  actorType: <span class="str">"external"</span>,
+  actorId: profileId,
+});</pre>
+  </div>
+
+  <p>That&rsquo;s it. The feature doesn&rsquo;t know it&rsquo;s calling Opus. It doesn&rsquo;t know the model ID. It doesn&rsquo;t handle cost logging. All of that is the invoke layer&rsquo;s responsibility.</p>
+</div>
+
+<!-- ── 5. PROMPT LIBRARY ───────────────────────────────────────── -->
+
+<div class="section" id="prompts">
+  <div class="section-num">Section 05</div>
+  <h2>Prompt Library</h2>
+
+  <p>All prompts live under <code>lib/ai/prompts/</code>. The directory is organised by owning feature, with each prompt implemented as a TypeScript file that exports a typed builder function.</p>
+
+  <h3>Directory Structure</h3>
+  <div class="diagram"><pre>lib/ai/prompts/
+  <span class="accent">INDEX.md</span>                              <span class="dim">← master index of all prompts</span>
+  <span class="accent">README.md</span>                             <span class="dim">← conventions and philosophy</span>
+  brand-dna-assessment.md               <span class="dim">← spec-level intent doc</span>
+  <span class="highlight">brand-dna-assessment/</span>
+    generate-section-insight.ts         <span class="dim">← prompt builder</span>
+    generate-first-impression.ts
+    generate-prose-portrait.ts
+    generate-company-blend.ts
+    generate-retake-comparison.ts
+  <span class="highlight">quote-builder/</span>
+    draft-intro-paragraph.ts
+    draft-send-email.ts
+    draft-reminder-3d.ts
+  <span class="highlight">branded-invoicing/</span>
+    draft-send-email.ts
+    draft-reminder.ts
+    draft-supersede-notification.ts
+  <span class="highlight">six-week-plan/</span>
+    strategy.ts
+    weeks.ts
+    review.ts
+    revision-reply.ts
+  <span class="highlight">hiring/</span>
+    discovery-agent.ts
+    followup-question-draft.ts
+    trial-task-author.ts
+    archive-reflection-ingest.ts
+  <span class="dim">... (one folder per feature that owns prompts)</span></pre></div>
+
+  <h3>The Prompt Builder Pattern</h3>
+  <p>Every prompt file exports three things:</p>
+  <ol>
+    <li><strong>An input type</strong> &mdash; a TypeScript interface declaring exactly what context the prompt needs.</li>
+    <li><strong>An output type</strong> (optional) &mdash; the shape of the expected JSON response, if the prompt requests structured output.</li>
+    <li><strong>A builder function</strong> &mdash; takes the input, returns the complete prompt string.</li>
+  </ol>
+
+  <div class="code-block">
+    <div class="code-header">Anatomy of a Prompt Builder</div>
+    <pre><span class="comment">// 1. Typed input</span>
+<span class="kw">export type</span> <span class="type">SectionInsightInput</span> = {
+  subjectName: <span class="type">string</span>;
+  sectionNumber: <span class="num">1</span> | <span class="num">2</span> | <span class="num">3</span> | <span class="num">4</span>;
+  topTags: <span class="type">string</span>;
+  answerTraces: <span class="type">AnswerTrace</span>[];
+  priorInsights: <span class="type">string</span>[];
+  track: <span class="type">string</span>;
+};
+
+<span class="comment">// 2. Builder function</span>
+<span class="kw">export function</span> <span class="type">buildSectionInsightPrompt</span>(
+  input: <span class="type">SectionInsightInput</span>
+): <span class="type">string</span> {
+  <span class="comment">// Composes the full prompt from input fields</span>
+  <span class="comment">// Includes voice constraints, structural rules, output format</span>
+  <span class="kw">return</span> <span class="str">`You're revealing the brand DNA of ${input.subjectName}...`</span>;
+}</pre>
+  </div>
+
+  <h3>Key Conventions</h3>
+  <ul>
+    <li><strong>Prompts never name the model.</strong> That&rsquo;s the registry&rsquo;s job. The builder outputs a string; the caller passes it to <code>invokeLlmText</code> with a job slug.</li>
+    <li><strong>Spec prose describes intent; prompt files have the actual text.</strong> If the spec says &ldquo;generate an email&rdquo;, the prompt file contains the exact system instructions, voice constraints, banned words, output format.</li>
+    <li><strong>INDEX.md is the discovery entry point.</strong> It lists every prompt with its job slug, owning spec, model tier, and one-line intent. Start there when looking for something.</li>
+    <li><strong>Voice constraints are non-negotiable.</strong> Most prompts include explicit banned phrases (&ldquo;I notice&rdquo;, &ldquo;it seems like&rdquo;, &ldquo;synergy&rdquo;, &ldquo;leverage&rdquo;), sentence structure rules, and audience context.</li>
+  </ul>
+
+  <h3>Prompt Scope by Feature</h3>
+  <p>Some prompts are massive (the Brand DNA prose portrait prompt runs hundreds of lines with detailed voice calibration). Others are tight templates (the invoice supersede notification is a short Haiku classification). The complexity scales with the tier &mdash; Opus prompts tend to be longer and more carefully voice-tuned because the stakes and cost are higher.</p>
+
+  <div class="callout">
+    <div class="callout-label">Non-Prompt Features</div>
+    <p>Four specs have no LLM prompts at all: <strong>sales-pipeline</strong>, <strong>saas-subscription-billing</strong>, <strong>hiring-pipeline</strong> (the pipeline itself; hiring discovery has prompts), and <strong>design-system-baseline</strong>. Everything they do is deterministic.</p>
+  </div>
+</div>
+
+<!-- ── 6. COST LOGGING ─────────────────────────────────────────── -->
+
+<div class="section" id="cost-logging">
+  <div class="section-num">Section 06</div>
+  <h2>Cost Logging</h2>
+
+  <p>Every external API call &mdash; not just LLM calls, but Stripe, Resend, Twilio, SerpAPI, everything &mdash; is logged to the <code>external_call_log</code> table. This powers the Cost &amp; Usage Observatory, which gives the admin real-time visibility into what the platform is spending.</p>
+
+  <h3>How It Works</h3>
+  <div class="diagram"><pre><span class="highlight">invokeLlmText</span>() completes
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="accent">logCost</span>() fires (fire-and-forget)
+    <span class="dim">│</span>
+    <span class="dim">├──</span> Computes <span class="highlight">estimateAnthropicCostAud</span>(tier, { inputTokens, outputTokens })
+    <span class="dim">│</span>
+    <span class="dim">├──</span> Calls <span class="accent">logExternalCall</span>({ job, actorType, actorId, units, estimatedCostAud })
+    <span class="dim">│</span>       <span class="dim">│</span>
+    <span class="dim">│</span>       <span class="dim">├──</span> INSERT into <span class="highlight">external_call_log</span>
+    <span class="dim">│</span>       <span class="dim">│</span>
+    <span class="dim">│</span>       <span class="dim">├──</span> Check: is job registered? If not → <span class="accent">cost_anomaly</span> created
+    <span class="dim">│</span>       <span class="dim">│</span>
+    <span class="dim">│</span>       <span class="dim">└──</span> <span class="accent">checkPerCallThreshold</span>() → anomaly if cost exceeds ceiling
+    <span class="dim">│</span>
+    <span class="dim">└──</span> Never blocks the response. Never throws on insert failure.</pre></div>
+
+  <h3>Cost Estimation</h3>
+  <p>Cost estimates use hardcoded Anthropic rate-card pricing with a static USD &rarr; AUD multiplier (1.55). Accuracy target: &plusmn;15%.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier</th><th>Input (per M tokens)</th><th>Output (per M tokens)</th></tr></thead>
+      <tbody>
+        <tr><td>Opus</td><td>$15 USD</td><td>$75 USD</td></tr>
+        <tr><td>Sonnet</td><td>$3 USD</td><td>$15 USD</td></tr>
+        <tr><td>Haiku</td><td>$0.80 USD</td><td>$4 USD</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Actor Attribution</h3>
+  <p>Every logged call carries an <code>actorType</code> that classifies who triggered the cost:</p>
+  <ul>
+    <li><code>internal</code> &mdash; Andy or the system (admin operations, cockpit briefs)</li>
+    <li><code>external</code> &mdash; a specific client (their Brand DNA, their portal chat)</li>
+    <li><code>shared</code> &mdash; operations that benefit multiple entities (newsletter generation)</li>
+    <li><code>prospect</code> &mdash; a lead-gen or outreach target (not yet a paying client)</li>
+  </ul>
+  <p>This distinction is critical for the Observatory&rsquo;s per-subscriber margin calculations. If a single SaaS subscriber is generating excessive LLM costs, the system can detect negative margin at the subscriber level.</p>
+</div>
+
+<!-- ── 7. BRAND VOICE DRIFT CHECKING ───────────────────────────── -->
+
+<div class="section" id="drift-check">
+  <div class="section-num">Section 07</div>
+  <h2>Brand Voice Drift Checking</h2>
+
+  <p>Before the platform sends any AI-drafted email on behalf of a client, it runs the draft through a brand-voice consistency checker. This is a Haiku-tier call that scores how well the draft matches the client&rsquo;s Brand DNA profile.</p>
+
+  <h3>How It Works</h3>
+  <div class="diagram"><pre><span class="accent">Draft email generated</span> (Opus)
+    <span class="dim">│</span>
+    <span class="dim">▼</span>
+<span class="highlight">checkBrandVoiceDrift</span>(draftText, brandDnaProfile)
+    <span class="dim">│</span>
+    <span class="dim">├──</span> Check kill switches: <span class="accent">llm_calls_enabled</span> AND <span class="accent">drift_check_enabled</span>
+    <span class="dim">│</span>   <span class="dim">(if either is off → { pass: true, score: 1.0, notes: "skipped" })</span>
+    <span class="dim">│</span>
+    <span class="dim">├──</span> Read threshold from settings: <span class="accent">email.drift_check_threshold</span> (default 0.7)
+    <span class="dim">│</span>
+    <span class="dim">├──</span> Build prompt: brand profile + draft → Haiku scores 0.0–1.0
+    <span class="dim">│</span>
+    <span class="dim">└──</span> Return <span class="highlight">{ pass, score, notes }</span>
+         <span class="dim">pass = score &ge; threshold</span></pre></div>
+
+  <h3>The Brand DNA Profile Input</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; BrandDnaProfile</div>
+    <pre><span class="kw">export interface</span> <span class="type">BrandDnaProfile</span> {
+  voiceDescription: <span class="type">string</span>;   <span class="comment">// "dry, direct, Melbourne wit"</span>
+  toneMarkers: <span class="type">string</span>[];      <span class="comment">// single words / short phrases</span>
+  avoidWords?: <span class="type">string</span>[];      <span class="comment">// words the brand explicitly avoids</span>
+  targetAudience?: <span class="type">string</span>;   <span class="comment">// audience descriptor for context</span>
+}</pre>
+  </div>
+
+  <h3>The Return Value</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; DriftCheckResult</div>
+    <pre><span class="kw">export interface</span> <span class="type">DriftCheckResult</span> {
+  pass: <span class="type">boolean</span>;       <span class="comment">// true when score &ge; threshold</span>
+  score: <span class="type">number</span>;       <span class="comment">// 0.0 (severe drift) to 1.0 (perfect match)</span>
+  notes?: <span class="type">string</span>;      <span class="comment">// one-sentence explanation from the grader</span>
+}</pre>
+  </div>
+
+  <p>When a draft fails the drift check, the calling feature can regenerate with adjusted constraints. The threshold (default 0.7) is configurable via the <code>settings</code> table so it can be tuned without a code change.</p>
+
+  <div class="callout">
+    <div class="callout-label">Two Kill Switches</div>
+    <p>The drift checker is gated by <strong>both</strong> <code>llm_calls_enabled</code> (global) and <code>drift_check_enabled</code> (specific). This means you can turn off drift checking without disabling all LLM calls, or disable all LLM calls and drift checking follows. Belt and braces.</p>
+  </div>
+</div>
+
+<!-- ── 8. MODEL TIERS ──────────────────────────────────────────── -->
+
+<div class="section" id="tiers">
+  <div class="section-num">Section 08</div>
+  <h2>Model Tiers &mdash; When to Use What</h2>
+
+  <p>The tier decision for each job was made based on three factors: output quality requirements, latency sensitivity, and cost. Here&rsquo;s the thinking:</p>
+
+  <h3>Opus (48 jobs) &mdash; The Heavy Hitter</h3>
+  <ul>
+    <li><strong>Creative writing</strong> &mdash; Brand DNA portraits, outreach emails, blog posts, talking-head scripts. Anything where voice quality directly affects user perception.</li>
+    <li><strong>High-stakes reasoning</strong> &mdash; Retainer-fit recommendations, cost anomaly diagnosis, six-week marketing strategy generation. Decisions that have real business consequences.</li>
+    <li><strong>Context-heavy synthesis</strong> &mdash; Jobs that ingest large amounts of context (Brand DNA tags + answer traces + prior insights + business context) and need to produce coherent narrative from it.</li>
+    <li><strong>Client-facing prose</strong> &mdash; Quote intro paragraphs, welcome emails, invoice cover letters. Anything that goes in front of a client with the SuperBad name on it.</li>
+  </ul>
+
+  <h3>Sonnet (14 jobs) &mdash; The Middle Ground</h3>
+  <ul>
+    <li><strong>Structured parsing</strong> &mdash; Braindump parsing (freeform text &rarr; structured tasks + content ideas + scripts). Needs to be smarter than classification but doesn&rsquo;t need Opus-level prose.</li>
+    <li><strong>Mid-complexity drafts</strong> &mdash; Instagram captions, DM replies, content studio copy. Good enough that the admin won&rsquo;t need to rewrite, but not mission-critical prose.</li>
+    <li><strong>Hiring intelligence</strong> &mdash; Discovery agent, portfolio vision analysis, brief synthesis. Multi-step reasoning at moderate cost.</li>
+    <li><strong>Internal assistants</strong> &mdash; The cockpit assistant (tool-calling chat) uses Sonnet because it needs reliable tool use but the prose quality bar is lower than client-facing work.</li>
+  </ul>
+
+  <h3>Haiku (53 jobs) &mdash; The Workhorse</h3>
+  <ul>
+    <li><strong>Classification</strong> &mdash; Inbound routing, notification priority, signal/noise filtering, support ticket typing, reply classification. Binary or categorical decisions.</li>
+    <li><strong>Short templates</strong> &mdash; Scope summaries, subject lines, supersede notifications, abandon emails. Tight-format outputs where the template does most of the work.</li>
+    <li><strong>Reformatting</strong> &mdash; Channel reformatting (email &rarr; SMS), newsletter rewrites from blog posts. The content exists; it just needs reshaping.</li>
+    <li><strong>High-volume pipelines</strong> &mdash; Keyword rankability scoring, content-to-prospect matching, ICP prefiltering. Jobs that run dozens of times per day where latency and cost compound.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-label">The Upgrade Path</div>
+    <p>If a Haiku job is producing poor results, promote it to Sonnet by changing one word in <code>models.ts</code>. If a Sonnet job needs better prose, promote to Opus. The feature code doesn&rsquo;t change at all. This is the whole point of the registry pattern.</p>
+  </div>
+</div>
+
+<!-- ── 9. KILL SWITCHES ────────────────────────────────────────── -->
+
+<div class="section" id="kill-switches">
+  <div class="section-num">Section 09</div>
+  <h2>Kill Switches</h2>
+
+  <p>Every feature that can spend money, send email, or hit an external API is gated by a kill switch. Kill switches live in <code>lib/kill-switches.ts</code> as a typed registry with boolean defaults. All switches ship <strong>disabled</strong> at v1.0 and are explicitly enabled during launch.</p>
+
+  <h3>LLM-Relevant Kill Switches</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Switch</th><th>Default</th><th>What It Gates</th></tr></thead>
+      <tbody>
+        <tr><td><code>llm_calls_enabled</code></td><td><code>true</code></td><td>Global gate for all Anthropic API calls. When off, generators return stub text.</td></tr>
+        <tr><td><code>drift_check_enabled</code></td><td><code>false</code></td><td>Brand-voice drift grader specifically. Can be off while LLM calls are on.</td></tr>
+        <tr><td><code>brand_dna_assessment_enabled</code></td><td><code>true</code></td><td>The entire Brand DNA assessment flow (includes its LLM generators).</td></tr>
+        <tr><td><code>cockpit_briefs_enabled</code></td><td><code>true</code></td><td>Daily cockpit Opus brief generation.</td></tr>
+        <tr><td><code>lead_gen_enabled</code></td><td><code>true</code></td><td>All lead-gen LLM jobs (outreach drafts, ICP filtering, reply classification).</td></tr>
+        <tr><td><code>content_automations_enabled</code></td><td><code>false</code></td><td>Content Engine pipelines (keyword scoring, blog generation, fan-out).</td></tr>
+        <tr><td><code>observatory_detectors_enabled</code></td><td><code>false</code></td><td>Cost anomaly detectors + diagnosis tasks.</td></tr>
+        <tr><td><code>hiring_discovery_enabled</code></td><td><code>false</code></td><td>Hiring discovery pipeline (LLM + search agent).</td></tr>
+        <tr><td><code>plan_automations_enabled</code></td><td><code>true</code></td><td>Six-week plan generator pipeline.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Override Mechanisms</h3>
+  <p>Two ways to override defaults without a rebuild:</p>
+  <ol>
+    <li><strong>Environment variable:</strong> <code>KILL_SWITCHES_ON=llm_calls_enabled,drift_check_enabled</code> &mdash; comma-separated list of switches to force on at process boot. Used for Playwright tests and dev workflows.</li>
+    <li><strong>Runtime proxy:</strong> The exported <code>killSwitches</code> object is writable, so test code can toggle switches directly. Production enablement will come from a DB-backed path.</li>
+  </ol>
+
+  <p>There are 27 kill switches total across the platform, covering not just LLM calls but email sending, Stripe operations, inbox sync, onboarding nudges, and more. The LLM-relevant subset is above.</p>
+</div>
+
+<!-- ── 10. DATABASE SCHEMA ─────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 10</div>
+  <h2>Database Schema</h2>
+
+  <h3>external_call_log</h3>
+  <p>The primary ledger. Every external API call &mdash; LLM, Stripe, Resend, Twilio, SerpAPI &mdash; gets a row. Source of truth for the Cost &amp; Usage Observatory.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>job</code></td><td>text</td><td>Registry slug (e.g. <code>brand-dna-generate-prose-portrait</code>)</td></tr>
+        <tr><td><code>actor_type</code></td><td>enum</td><td><code>internal</code>, <code>external</code>, <code>shared</code>, <code>prospect</code></td></tr>
+        <tr><td><code>actor_id</code></td><td>text</td><td>Links cost to a specific contact/company</td></tr>
+        <tr><td><code>shared_cohort_id</code></td><td>text</td><td>For shared costs: which cohort (e.g. newsletter batch)</td></tr>
+        <tr><td><code>units</code></td><td>JSON</td><td><code>{ inputTokens, outputTokens }</code> for LLM; varies per vendor</td></tr>
+        <tr><td><code>estimated_cost_aud</code></td><td>real</td><td>Estimated cost in AUD</td></tr>
+        <tr><td><code>prompt_version_hash</code></td><td>text</td><td>Hash of the prompt version (for A/B tracking)</td></tr>
+        <tr><td><code>converted_from_candidate_id</code></td><td>text</td><td>Links to lead candidate if this was a conversion</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer</td><td>Epoch milliseconds</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> by job + timestamp, by actor_id + timestamp, by actor_type + timestamp.</p>
+
+  <h3>cost_anomalies</h3>
+  <p>Detected cost anomalies. One row per {detector, job} per 24-hour window.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>detector</code></td><td>enum</td><td><code>hard_threshold</code>, <code>rate</code>, <code>learned_band</code></td></tr>
+        <tr><td><code>job</code></td><td>text</td><td>Which job triggered the anomaly</td></tr>
+        <tr><td><code>tier</code></td><td>enum</td><td><code>low</code>, <code>mid</code>, <code>severe</code></td></tr>
+        <tr><td><code>observed_value</code></td><td>real</td><td>The actual cost that triggered the anomaly</td></tr>
+        <tr><td><code>expected_band</code></td><td>JSON</td><td>What the detector expected (thresholds, bands)</td></tr>
+        <tr><td><code>diagnosis_json</code></td><td>JSON</td><td>Opus-generated diagnosis (if COB-5 ran)</td></tr>
+        <tr><td><code>fire_count</code></td><td>integer</td><td>How many times this anomaly fired in the window</td></tr>
+        <tr><td><code>kill_switch_triggered_at_ms</code></td><td>integer</td><td>If the anomaly auto-disabled a kill switch</td></tr>
+        <tr><td><code>resolved_at_ms</code></td><td>integer</td><td>Null until acknowledged/resolved</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>llm_usage_log (Legacy)</h3>
+  <p>An older, simpler logging table from before the Observatory was built. Tracks call type, contact, model, and token counts. Retained for backward compatibility but <code>external_call_log</code> is the canonical source.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>call_type</code></td><td>enum</td><td><code>summary_regeneration</code>, <code>action_item_extraction</code>, <code>draft_generation</code>, <code>draft_nudge</code>, <code>draft_reformat</code></td></tr>
+        <tr><td><code>contact_id</code></td><td>text</td><td>Optional contact link</td></tr>
+        <tr><td><code>model</code></td><td>text</td><td>Model string (raw ID)</td></tr>
+        <tr><td><code>input_tokens</code></td><td>integer</td><td>Input token count</td></tr>
+        <tr><td><code>output_tokens</code></td><td>integer</td><td>Output token count</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer</td><td>Epoch milliseconds</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>band_overrides</h3>
+  <p>Runtime overrides for the Observatory&rsquo;s job band thresholds. Allows the admin to tune per-call ceilings and daily limits without a code change. Merges with the registry defaults &mdash; null fields fall through.</p>
+
+  <h3>settings</h3>
+  <p>Key-value store for autonomy thresholds. LLM-relevant keys include <code>email.drift_check_threshold</code> (the minimum score for a draft to pass drift check). Values are typed (<code>integer</code>, <code>decimal</code>, <code>string</code>, <code>boolean</code>, <code>json</code>, <code>enum</code>).</p>
+</div>
+
+<!-- ── 11. ERROR HANDLING & ANOMALY DETECTION ───────────────────── -->
+
+<div class="section" id="error-handling">
+  <div class="section-num">Section 11</div>
+  <h2>Error Handling &amp; Anomaly Detection</h2>
+
+  <h3>Invocation Errors</h3>
+  <p>The invoke layer does not retry or catch Anthropic API errors. If the API call throws, the exception propagates to the feature code. This is deliberate &mdash; each feature has different requirements for how to handle failure:</p>
+  <ul>
+    <li><strong>Brand DNA insight generation</strong> &mdash; can show a &ldquo;generation unavailable&rdquo; state and retry on next page load.</li>
+    <li><strong>Outreach draft</strong> &mdash; surfaces the error to the admin for manual intervention.</li>
+    <li><strong>Classification</strong> &mdash; may have a deterministic fallback (e.g. default to <code>"other"</code> ticket type).</li>
+  </ul>
+  <p>The invoke layer&rsquo;s responsibility is narrow: resolve the model, make the call, log the cost. Error handling is the feature&rsquo;s problem.</p>
+
+  <h3>Cost Logging Failures</h3>
+  <p>Cost logging is fire-and-forget. The <code>logCost</code> call uses <code>.catch(() =&gt; {})</code> &mdash; if the insert fails (DB unavailable, schema mismatch, whatever), the response still returns to the feature. You never lose an LLM response because the logging layer broke.</p>
+
+  <h3>Unregistered Job Trap</h3>
+  <p>If a call logs a job slug that isn&rsquo;t in the Observatory&rsquo;s job registry, two things happen:</p>
+  <ol>
+    <li><strong>In development:</strong> Hard throw. Forces the developer to register the job before shipping.</li>
+    <li><strong>In production:</strong> The log insert succeeds (never lose data), but a synthetic <code>tier: severe</code> cost anomaly is created. The admin sees it immediately in the Observatory.</li>
+  </ol>
+
+  <h3>Three Anomaly Detectors</h3>
+  <p>The Cost &amp; Usage Observatory runs three detectors against the <code>external_call_log</code> data:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Detector</th><th>Mechanism</th><th>When It Fires</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Hard Threshold</strong></td>
+          <td>Compares each call&rsquo;s cost against the job&rsquo;s <code>per_call_ceiling_aud</code>, and daily aggregates against <code>daily_ceiling_aud</code></td>
+          <td>Sync (per-call check) + 5-min sweep (daily aggregates)</td>
+        </tr>
+        <tr>
+          <td><strong>Rate</strong></td>
+          <td>Detects unusual call frequency spikes for a job</td>
+          <td>Periodic sweep</td>
+        </tr>
+        <tr>
+          <td><strong>Learned Band</strong></td>
+          <td>Builds a rolling baseline of normal cost per job, flags deviations beyond the <code>learned_band_multiplier</code></td>
+          <td>Periodic sweep</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Anomaly Severity Tiers</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier</th><th>Threshold</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><code>low</code></td><td>1&times;&ndash;2&times; ceiling</td><td>Logged, visible in Observatory dashboard</td></tr>
+        <tr><td><code>mid</code></td><td>2&times;&ndash;5&times; ceiling</td><td>Logged + enqueues Opus diagnosis task</td></tr>
+        <tr><td><code>severe</code></td><td>&gt;5&times; ceiling</td><td>Logged + diagnosis + severe alert email + can auto-disable job</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Per-Job Cost Bands</h3>
+  <p>Every registered job has a cost band in <code>lib/observatory/job-registry.ts</code>. Bands are derived from the model tier with manual overrides for heavy-context jobs:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier Default</th><th>Per-Call Ceiling (AUD)</th><th>Daily Ceiling (AUD)</th></tr></thead>
+      <tbody>
+        <tr><td>Opus</td><td>$1.50</td><td>$75</td></tr>
+        <tr><td>Sonnet</td><td>$0.25</td><td>$25</td></tr>
+        <tr><td>Haiku</td><td>$0.05</td><td>$10</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Heavy-context overrides raise the ceiling for specific jobs. For example, <code>cockpit-brief</code> gets $5.00 per call and $150 daily because it ingests the entire day&rsquo;s operational context. <code>brand-dna-generate-prose-portrait</code> gets $3.00 per call because it reads 25+ tags, prior insights, reflection text, and business context.</p>
+
+  <p>High-volume Haiku classifiers (inbox routing, keyword scoring, ICP filtering) get elevated daily ceilings ($25 vs the default $10) because they fire many times per day by design.</p>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Start with the registry pattern.</strong> Before writing a single prompt, set up the three-file structure: <code>models.ts</code> (registry), <code>invoke.ts</code> (entry point), and a cost-logging helper. Every LLM call you add later flows through this. Retrofitting a registry onto spaghetti SDK imports is miserable work.</li>
+
+    <li><strong>Enforce the boundary with a lint rule.</strong> SuperBad Lite uses a custom ESLint rule that blocks <code>@anthropic-ai/sdk</code> imports outside <code>lib/ai/</code>. This is not optional &mdash; without enforcement, someone will eventually bypass the registry &ldquo;just this once&rdquo; and the pattern erodes. Write the rule before the first feature ships.</li>
+
+    <li><strong>Name the job, not the model.</strong> Feature code says <code>"brand-dna-generate-prose-portrait"</code>, never <code>"claude-opus-4-6"</code>. This is the single design decision that makes the whole system flexible. When Anthropic releases a new model, you update one constant. When you realise a Haiku job needs better output, you change one word.</li>
+
+    <li><strong>Typed prompt builders are worth the overhead.</strong> Every prompt builder takes a typed input and returns a string. This means you catch missing context at compile time, not at runtime when the LLM produces garbage because it didn&rsquo;t get the tags it needed.</li>
+
+    <li><strong>Cost logging must be fire-and-forget.</strong> Never let a logging failure block an LLM response. The user does not care that your analytics insert failed. They care that their Brand DNA portrait didn&rsquo;t generate.</li>
+
+    <li><strong>Kill switches are not optional.</strong> Every autonomous LLM call &mdash; anything that fires without a human clicking a button &mdash; must be gated by a kill switch. The switch should default to <code>false</code>. You flip it on when you&rsquo;re confident. When something goes wrong at 3am, you flip it off without deploying code.</li>
+
+    <li><strong>Track cost per actor, not just per call.</strong> The <code>actorType</code> + <code>actorId</code> fields on cost logs are what make per-subscriber margin analysis possible. Without them, you know how much you&rsquo;re spending on LLMs total &mdash; but not whether any single subscriber is costing you more than they&rsquo;re paying. For a SaaS product, that distinction is everything.</li>
+
+    <li><strong>Anomaly detection pays for itself.</strong> A runaway loop calling Opus 500 times because of a pagination bug will cost you real money. Per-call ceiling checks (sync, on every call) catch individual expensive calls. Daily sweeps catch accumulation. The learned-band detector catches drift that doesn&rsquo;t violate hard thresholds but is still unusual.</li>
+
+    <li><strong>Brand voice drift checking is a feature, not overhead.</strong> If your platform sends emails on behalf of clients, those emails carry the client&rsquo;s brand. A cheap Haiku call that scores the draft against the client&rsquo;s voice profile is insurance. The threshold is configurable &mdash; start at 0.7 and tune from there.</li>
+
+    <li><strong>Separate the API key from env vars.</strong> SuperBad Lite stores the Anthropic API key encrypted in the database (via a setup wizard), with <code>process.env</code> as a local dev fallback. This means the production key never touches <code>.env</code> files, and rotating the key is a database update, not a redeploy.</li>
+
+    <li><strong>The prompt is the product.</strong> The code is plumbing. The registry is infrastructure. The thing that determines whether your Brand DNA portrait makes someone feel genuinely understood or reads like a horoscope is the prompt. Invest 80% of your effort there. Every voice constraint, every banned phrase, every structural rule in the prompt builders exists because the output was worse without it.</li>
+
+    <li><strong>Don&rsquo;t build the observatory on day one.</strong> Ship the registry + invoke + basic cost logging first. Add anomaly detection when you have enough call volume that a runaway bug could hurt. Add the learned-band detector when you have enough historical data to establish baselines. The infrastructure grows with the product.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">115 jobs, three tiers, one entry point, every call logged. The whole thing is designed so that when Anthropic changes their pricing or releases a new model, the fix is one line in one file. The boring architecture that makes everything else possible.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

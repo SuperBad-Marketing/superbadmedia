@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBad Lite — Technical Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand { font-family: 'Black Han Sans', sans-serif; font-size: 1.5rem; color: var(--warm-cream); text-decoration: none; }
+  .nav-brand span { color: var(--superbad-red); }
+  .nav-label { font-family: 'Righteous', sans-serif; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--retro-pink); }
+
+  .hero {
+    padding: 6rem 2rem 3rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.25em;
+    font-size: 0.75rem; color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05; color: var(--warm-cream);
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem; max-width: 650px;
+  }
+  .hero-meta {
+    margin-top: 2.5rem; font-size: 0.8rem; color: var(--muted);
+    display: flex; gap: 2rem; flex-wrap: wrap;
+  }
+
+  .overview {
+    max-width: 1000px; margin: 0 auto;
+    padding: 2rem 2rem 1rem;
+  }
+  .overview p {
+    color: rgba(253,245,230,0.85); font-size: 0.95rem;
+    margin-bottom: 1rem; max-width: 700px;
+  }
+
+  .stats {
+    max-width: 1000px; margin: 0 auto;
+    padding: 0 2rem 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.25rem;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem; color: var(--superbad-red);
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    font-size: 0.6rem; color: var(--muted);
+    margin-top: 0.5rem;
+  }
+
+  .section-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    font-size: 0.65rem; color: var(--retro-pink);
+    margin-bottom: 1rem;
+  }
+
+  .arch {
+    max-width: 1000px; margin: 0 auto; padding: 0 2rem 3rem;
+  }
+  .arch-diagram {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem; overflow-x: auto;
+    margin-top: 1rem;
+  }
+  .arch-diagram pre {
+    font-family: 'DM Sans', monospace; font-size: 0.78rem;
+    line-height: 1.9; color: var(--warm-cream); white-space: pre;
+  }
+  .arch-diagram .hl { color: var(--superbad-red); font-weight: 700; }
+  .arch-diagram .pk { color: var(--retro-pink); }
+  .arch-diagram .dm { color: var(--muted); }
+
+  .docs {
+    max-width: 1000px; margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .doc-card {
+    display: block;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem;
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  }
+  .doc-card:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+    transform: translateY(-2px);
+  }
+  .doc-card-num {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 0.2em; color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+  .doc-card-title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem; color: var(--warm-cream);
+    margin-bottom: 0.5rem; line-height: 1.2;
+  }
+  .doc-card-desc {
+    font-size: 0.82rem; color: var(--muted); line-height: 1.5;
+  }
+  .doc-card-file {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.72rem; color: var(--retro-orange);
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .stack {
+    max-width: 1000px; margin: 0 auto; padding: 0 2rem 4rem;
+  }
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem; margin-top: 1rem;
+  }
+  .stack-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.75rem 1rem;
+  }
+  .stack-item-name {
+    font-weight: 600; font-size: 0.85rem; color: var(--warm-cream);
+  }
+  .stack-item-role {
+    font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;
+  }
+
+  .footer {
+    max-width: 1000px; margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-brand { font-family: 'Black Han Sans', sans-serif; font-size: 1.2rem; color: var(--warm-cream); }
+  .footer-brand span { color: var(--superbad-red); }
+  .footer-meta { font-size: 0.75rem; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .overview, .stats, .arch, .docs, .stack { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .docs-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">SuperBad Lite</div>
+  <h1>Platform<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">The complete technical reference for SuperBad Lite. Everything your team needs to understand the platform, its systems, and how they connect.</p>
+  <div class="hero-meta">
+    <span>Stack: Next.js 16 + SQLite + Drizzle</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<div class="overview">
+  <p>SuperBad Lite is an operations platform for a marketing agency. It handles lead generation, sales pipeline, client onboarding, invoicing, content creation, and a client-facing portal &mdash; all run by a solo founder with AI doing the heavy lifting. Every LLM call routes through a central model registry. Every state change is logged. Every feature is gated by a kill switch.</p>
+  <p>The documents below cover each system independently. Start with whichever system you&rsquo;re building into. The architecture diagram shows how they connect.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">112</div><div class="stat-label">Database Tables</div></div>
+  <div class="stat"><div class="stat-num">30</div><div class="stat-label">Feature Specs</div></div>
+  <div class="stat"><div class="stat-num">53</div><div class="stat-label">LLM Job Slugs</div></div>
+  <div class="stat"><div class="stat-num">79</div><div class="stat-label">Brand DNA Tags</div></div>
+  <div class="stat"><div class="stat-num">400+</div><div class="stat-label">Activity Log Kinds</div></div>
+  <div class="stat"><div class="stat-num">28</div><div class="stat-label">Kill Switches</div></div>
+</div>
+
+<div class="arch">
+  <div class="section-label">Architecture Overview</div>
+  <div class="arch-diagram"><pre>
+<span class="hl">PUBLIC SURFACES</span>                        <span class="hl">ADMIN SURFACES</span>
+<span class="dm">───────────────</span>                        <span class="dm">──────────────</span>
+Marketing Site  <span class="dm">─────────────────────</span>   Daily Cockpit
+  /                                     /lite/cockpit
+  /trial-shoot                        Sales Pipeline
+  /production                           /lite/admin/pipeline
+Get-Started Funnel                    CRM (Companies + Contacts)
+  /get-started/pricing                  /lite/admin/companies
+  /get-started/checkout                 /lite/admin/contacts
+  /get-started/audit                  Lead Generation
+                                        /lite/admin/lead-gen
+<span class="hl">CLIENT PORTAL</span>                          Content Studio
+<span class="dm">─────────────</span>                            /lite/content/studio
+/lite/portal/[token]                  Unified Inbox
+  Chat (AI Bartender)                   /lite/inbox
+  Deliverables + Gallery              Finance Dashboard
+  6-Week Plan                           /lite/admin/finance
+  Invoices <span class="dm">(retainer only)</span>            Settings + Integrations
+  Brand DNA Assessment                  /lite/admin/settings
+
+<span class="hl">SHARED INFRASTRUCTURE</span>
+<span class="dm">─────────────────────</span>
+<span class="pk">Auth</span> <span class="dm">──→</span> NextAuth v5 (JWT, magic links, RBAC)
+<span class="pk">Database</span> <span class="dm">──→</span> SQLite + Drizzle ORM (112 tables, WAL mode)
+<span class="pk">AI/LLM</span> <span class="dm">──→</span> Claude API via model registry (53 job slugs)
+<span class="pk">Email</span> <span class="dm">──→</span> Resend (transactional + outreach)
+<span class="pk">Payments</span> <span class="dm">──→</span> Stripe (subscriptions + invoices + one-offs)
+<span class="pk">Media</span> <span class="dm">──→</span> Cloudinary (images) + Remotion (video)
+<span class="pk">Backup</span> <span class="dm">──→</span> Litestream → Cloudflare R2
+<span class="pk">Monitoring</span> <span class="dm">──→</span> Sentry + PostHog + Cost Observatory
+  </pre></div>
+</div>
+
+<div class="docs">
+  <div class="section-label">System Documentation</div>
+  <div class="docs-grid">
+
+    <a class="doc-card" href="brand-dna-technical-handoff.html">
+      <div class="doc-card-num">01</div>
+      <div class="doc-card-title">Brand DNA Assessment</div>
+      <div class="doc-card-desc">Personality assessment for businesses. 98 questions, 79 signal tags, 5 Opus prompts generating narrative profiles. The flagship experience.</div>
+      <div class="doc-card-file">brand-dna-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="auth-technical-handoff.html">
+      <div class="doc-card-num">02</div>
+      <div class="doc-card-title">Auth &amp; Access Control</div>
+      <div class="doc-card-desc">NextAuth v5 with JWT strategy, dual magic-link systems, two middleware gates (Brand DNA + Critical Flight), RBAC permissions.</div>
+      <div class="doc-card-file">auth-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="crm-technical-handoff.html">
+      <div class="doc-card-num">03</div>
+      <div class="doc-card-title">CRM &amp; Sales Pipeline</div>
+      <div class="doc-card-desc">Companies, contacts, deals. 8-stage pipeline with Kanban board, legal transitions, stale detection, trial shoot state machine, activity logging.</div>
+      <div class="doc-card-file">crm-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="portal-technical-handoff.html">
+      <div class="doc-card-num">04</div>
+      <div class="doc-card-title">Client Portal</div>
+      <div class="doc-card-desc">Token-authenticated client area. AI bartender chat, deliverables gallery, 6-week plans, Brand DNA gate, referral system, portal mode switching.</div>
+      <div class="doc-card-file">portal-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="onboarding-technical-handoff.html">
+      <div class="doc-card-num">05</div>
+      <div class="doc-card-title">Onboarding</div>
+      <div class="doc-card-desc">Two audience flows (retainer 4-step, SaaS 5-step). Setup wizards, revenue segmentation, credential creation, nudge scheduling.</div>
+      <div class="doc-card-file">onboarding-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="outreach-technical-handoff.html">
+      <div class="doc-card-num">06</div>
+      <div class="doc-card-title">Lead Generation &amp; Outreach</div>
+      <div class="doc-card-desc">Discovery from 7 sources, 9-signal enrichment, ICP scoring, LLM-drafted emails (no templates), 4-touch sequences, autonomy state machine, reply classification.</div>
+      <div class="doc-card-file">outreach-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="billing-technical-handoff.html">
+      <div class="doc-card-num">07</div>
+      <div class="doc-card-title">Billing &amp; Payments</div>
+      <div class="doc-card-desc">Stripe integration for subscriptions, invoices, and one-off payments. Quote-to-invoice conversion, GST handling, webhook idempotency, SaaS tier management.</div>
+      <div class="doc-card-file">billing-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="content-technical-handoff.html">
+      <div class="doc-card-num">08</div>
+      <div class="doc-card-title">Content Studio &amp; Engine</div>
+      <div class="doc-card-desc">Post composition with layout/animation editors, Remotion video generation, content engine pipeline, Instagram integration, newsletter system, SEO tracking.</div>
+      <div class="doc-card-file">content-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="admin-technical-handoff.html">
+      <div class="doc-card-num">09</div>
+      <div class="doc-card-title">Admin Dashboard &amp; Cockpit</div>
+      <div class="doc-card-desc">Daily cockpit with AI briefs, health banners, task management, calendar, brain dump. Admin shell with animated navigation, easter egg system.</div>
+      <div class="doc-card-file">admin-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="ai-infrastructure-technical-handoff.html">
+      <div class="doc-card-num">10</div>
+      <div class="doc-card-title">AI / LLM Infrastructure</div>
+      <div class="doc-card-desc">Central model registry (53 jobs across Opus/Sonnet/Haiku), single invocation entry point, cost logging, brand voice drift checking, prompt library.</div>
+      <div class="doc-card-file">ai-infrastructure-technical-handoff.html</div>
+    </a>
+
+    <a class="doc-card" href="database-technical-handoff.html">
+      <div class="doc-card-num">11</div>
+      <div class="doc-card-title">Database &amp; Infrastructure</div>
+      <div class="doc-card-desc">SQLite + Drizzle ORM, 112 tables, 99 migrations, kill-switch system, activity logging, environment config, backup strategy, full tech stack.</div>
+      <div class="doc-card-file">database-technical-handoff.html</div>
+    </a>
+
+  </div>
+</div>
+
+<div class="stack">
+  <div class="section-label">Tech Stack</div>
+  <div class="stack-grid">
+    <div class="stack-item"><div class="stack-item-name">Next.js 16</div><div class="stack-item-role">App Router framework</div></div>
+    <div class="stack-item"><div class="stack-item-name">React 19</div><div class="stack-item-role">UI library</div></div>
+    <div class="stack-item"><div class="stack-item-name">TypeScript 5</div><div class="stack-item-role">Type safety</div></div>
+    <div class="stack-item"><div class="stack-item-name">SQLite + WAL</div><div class="stack-item-role">Database</div></div>
+    <div class="stack-item"><div class="stack-item-name">Drizzle ORM</div><div class="stack-item-role">Type-safe queries</div></div>
+    <div class="stack-item"><div class="stack-item-name">Auth.js v5</div><div class="stack-item-role">Authentication</div></div>
+    <div class="stack-item"><div class="stack-item-name">Stripe SDK</div><div class="stack-item-role">Payments &amp; billing</div></div>
+    <div class="stack-item"><div class="stack-item-name">Claude API</div><div class="stack-item-role">AI generation</div></div>
+    <div class="stack-item"><div class="stack-item-name">Resend</div><div class="stack-item-role">Email delivery</div></div>
+    <div class="stack-item"><div class="stack-item-name">Tailwind v4</div><div class="stack-item-role">Styling</div></div>
+    <div class="stack-item"><div class="stack-item-name">Framer Motion</div><div class="stack-item-role">Animations</div></div>
+    <div class="stack-item"><div class="stack-item-name">Remotion</div><div class="stack-item-role">Video rendering</div></div>
+    <div class="stack-item"><div class="stack-item-name">Cloudinary</div><div class="stack-item-role">Media delivery</div></div>
+    <div class="stack-item"><div class="stack-item-name">Litestream</div><div class="stack-item-role">SQLite backup to R2</div></div>
+    <div class="stack-item"><div class="stack-item-name">Sentry</div><div class="stack-item-role">Error tracking</div></div>
+    <div class="stack-item"><div class="stack-item-name">PostHog</div><div class="stack-item-role">Analytics</div></div>
+  </div>
+</div>
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

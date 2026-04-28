@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Portal — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Client Portal</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the Client Portal system &mdash; authentication, AI chat, deliverables, plans, and the lifecycle that holds it together.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the Client Portal Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#modes"><span class="num">03</span> Portal Modes</a>
+    <a href="#auth"><span class="num">04</span> Authentication</a>
+    <a href="#bartender"><span class="num">05</span> AI Bartender</a>
+    <a href="#brand-dna-gate"><span class="num">06</span> Brand DNA Gate</a>
+    <a href="#deliverables"><span class="num">07</span> Deliverables &amp; Gallery</a>
+    <a href="#plan"><span class="num">08</span> 6-Week Plan</a>
+    <a href="#referrals"><span class="num">09</span> Referral System</a>
+    <a href="#database"><span class="num">10</span> Database Schema</a>
+    <a href="#lifecycle"><span class="num">11</span> Portal Lifecycle</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE CLIENT PORTAL DOES ──────────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the Client Portal Does</h2>
+  <p>The Client Portal is the customer-facing half of SuperBad Lite. Every client &mdash; from a prospect who just booked a trial shoot to a retainer client paying monthly &mdash; gets their own portal at <code>/lite/portal/[token]</code>. It is a passwordless, token-authenticated environment that feels like the client&rsquo;s own private room, not a shared platform.</p>
+  <p>The portal is chat-first. The landing page is always the AI Bartender &mdash; a conversational AI concierge that greets the client by name, knows their deal stage, invoice status, and Brand DNA profile, and can answer questions or escalate to the human operator. Navigation to other sections (gallery, deliverables, invoices, plan) happens through a floating menu bubble.</p>
+  <p>Client-facing surfaces never show &ldquo;SuperBad Lite.&rdquo; Clients see &ldquo;SuperBad&rdquo; everywhere. The &ldquo;Lite&rdquo; label is internal only.</p>
+  <p class="mutter">Their room. Their name on the door. The bartender knows what they&rsquo;re drinking.</p>
+
+  <h3>Who uses it</h3>
+  <ul>
+    <li><strong>Pre-retainer prospects</strong> &mdash; people who booked a trial shoot. They get a subset of the portal: chat, gallery, Brand DNA, and their 6-week marketing plan.</li>
+    <li><strong>Retainer clients</strong> &mdash; paying monthly subscribers. Full portal access: invoices, messaging, package details, data export, plus everything above.</li>
+    <li><strong>SaaS subscribers</strong> &mdash; users of standalone products. They enter through the subscription/welcome path and follow a separate onboarding flow with revenue segmentation.</li>
+  </ul>
+
+  <h3>What they see</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Section</th><th>Pre-Retainer</th><th>Retainer</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Chat (home)</td><td>Yes</td><td>Yes</td><td>AI bartender &mdash; first surface on every visit</td></tr>
+        <tr><td>Deliverables</td><td>Yes</td><td>Yes</td><td>Tasks, approvals, client work</td></tr>
+        <tr><td>Gallery</td><td>Yes</td><td>Yes</td><td>Photos and video from shoots (Cloudinary)</td></tr>
+        <tr><td>Brand DNA</td><td>Yes</td><td>Yes</td><td>Personality assessment + prose portrait</td></tr>
+        <tr><td>Your Plan</td><td>Yes</td><td>Yes</td><td>6-week marketing plan with task tracking</td></tr>
+        <tr><td>Invoices</td><td>Locked</td><td>Yes</td><td>Payment history and statements</td></tr>
+        <tr><td>Package</td><td>Locked</td><td>Yes</td><td>Subscription and billing details</td></tr>
+        <tr><td>Messages</td><td>Locked</td><td>Yes</td><td>Direct thread with the operator</td></tr>
+        <tr><td>Data Export</td><td>Locked</td><td>Yes</td><td>GDPR-style full data download</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>Routing Map</h3>
+  <div class="diagram"><pre><span class="highlight">/lite/portal</span>                     <span class="dim">─→ Index: redirect to /welcome or /home</span>
+<span class="highlight">/lite/portal/login</span>               <span class="dim">─→ Email input → magic link</span>
+<span class="highlight">/lite/portal/recover</span>             <span class="dim">─→ Session recovery form</span>
+<span class="highlight">/lite/portal/r/[token]</span>           <span class="dim">─→ Magic link redemption (GET route)</span>
+<span class="highlight">/lite/portal/welcome</span>             <span class="dim">─→ One-shot branded welcome screen</span>
+
+<span class="accent">/lite/portal/[token]</span>             <span class="dim">─→ Chat home (AI Bartender)</span>
+<span class="accent">/lite/portal/[token]/gallery</span>      <span class="dim">─→ Cloudinary photo/video gallery</span>
+<span class="accent">/lite/portal/[token]/deliverables</span> <span class="dim">─→ Tasks + approval workflow</span>
+<span class="accent">/lite/portal/[token]/plan</span>         <span class="dim">─→ 6-week marketing plan</span>
+<span class="accent">/lite/portal/[token]/invoices</span>     <span class="dim">─→ Retainer-only: payment history</span>
+<span class="accent">/lite/portal/[token]/messages</span>     <span class="dim">─→ Retainer-only: direct thread</span>
+<span class="accent">/lite/portal/[token]/package</span>      <span class="dim">─→ Retainer-only: subscription details</span>
+<span class="accent">/lite/portal/[token]/data-export</span>  <span class="dim">─→ Retainer-only: GDPR export</span>
+
+<span class="highlight">/lite/portal/brand-dna</span>           <span class="dim">─→ Brand DNA assessment entry</span>
+<span class="highlight">/lite/portal/brand-dna/section/[n]</span> <span class="dim">─→ Section questions</span>
+<span class="highlight">/lite/portal/brand-dna/reveal</span>    <span class="dim">─→ Cinematic reveal after completion</span>
+<span class="highlight">/lite/portal/brand-dna/profile</span>   <span class="dim">─→ Completed profile view</span>
+
+<span class="dim">/lite/portal/approve/[token]</span>      <span class="dim">─→ One-click deliverable approval</span>
+<span class="dim">/lite/portal/subscription</span>        <span class="dim">─→ Cancel/pause flow (SaaS)</span>
+<span class="dim">/lite/portal/onboarding/*</span>        <span class="dim">─→ Segmentation + credentials wizards</span>
+<span class="dim">/api/lite/portal/chat</span>            <span class="dim">─→ Chat API (GET history, POST message)</span>
+<span class="dim">/api/lite/portal/plan/[id]/pdf</span>   <span class="dim">─→ PDF download endpoint</span></pre></div>
+
+  <h3>Shell Architecture</h3>
+  <p>The <code>[token]</code> layout wraps all portal sub-pages in a <code>PortalShell</code> component. The shell provides:</p>
+  <ul>
+    <li><strong>Top bar</strong> &mdash; &ldquo;SuperBad&rdquo; brand mark on the left, &ldquo;[name]&rsquo;s room&rdquo; on the right.</li>
+    <li><strong>Ambient background</strong> &mdash; layered radial gradients (orange, red, pink) + SVG noise overlay. These are fixed-position, pointer-events-none, and create a warm atmosphere without affecting content.</li>
+    <li><strong>Menu bubble</strong> &mdash; floating button that opens a full-page overlay menu. Sections are filtered by portal mode (pre-retainer sees fewer items).</li>
+    <li><strong>Chat bubble</strong> &mdash; persistent bottom-right floating button on all non-chat pages. Navigates back to the chat home.</li>
+    <li><strong>Referral prompt</strong> &mdash; contextual prompt shown at milestone moments (cooldown-gated).</li>
+  </ul>
+
+  <div class="code-block">
+    <div class="code-header">Layout hierarchy</div>
+    <pre><span class="type">PortalShell</span> (client component)
+  &boxvr; <span class="accent">header</span> (brand mark + contact name)
+  &boxvr; <span class="accent">main</span> (page content via children)
+  &boxvr; <span class="type">MenuBubble</span> (floating menu trigger + overlay)
+  &boxvr; <span class="type">ChatBubble</span> (visible on non-chat pages)
+  &boxur; <span class="type">ReferralPrompt</span> + <span class="type">ReferralForm</span> (conditional)</pre>
+  </div>
+
+  <h3>Two Authentication Systems</h3>
+  <p>The portal does <strong>not</strong> use the admin NextAuth session. Portal and admin auth are completely separate:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>System</th><th>Mechanism</th><th>Cookie</th><th>Audience</th></tr></thead>
+      <tbody>
+        <tr><td>Admin auth</td><td>NextAuth v5 (credentials)</td><td>Standard NextAuth session</td><td>Andy (platform operator)</td></tr>
+        <tr><td>Portal auth</td><td>Magic link &rarr; base64url session cookie</td><td><code>sbl_portal_session</code></td><td>Clients + prospects</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 3. PORTAL MODES ─────────────────────────────────────────── -->
+
+<div class="section" id="modes">
+  <div class="section-num">Section 03</div>
+  <h2>Portal Modes</h2>
+
+  <p>Every portal visit computes a mode from the contact&rsquo;s deal state. The mode determines which sections are visible, which are locked, and what the AI bartender knows about the relationship.</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; lib/portal/mode.ts</div>
+    <pre><span class="kw">type</span> <span class="type">PortalMode</span> = <span class="str">"pre_retainer"</span> | <span class="str">"retainer"</span> | <span class="str">"archived"</span>;
+
+<span class="kw">interface</span> <span class="type">PortalModeResult</span> {
+  mode: <span class="type">PortalMode</span>;
+  brandDnaComplete: <span class="type">boolean</span>;
+  retainerKickoffSaid: <span class="type">boolean</span>;
+}</pre>
+  </div>
+
+  <h3>Mode derivation logic</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mode</th><th>Condition</th><th>Sections Visible</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>retainer</code></td>
+          <td>Company has a deal with <code>stage = "won"</code> and <code>subscription_state</code> in <code>["active_current", "past_due", "paused"]</code></td>
+          <td>All 9 sections</td>
+        </tr>
+        <tr>
+          <td><code>pre_retainer</code></td>
+          <td>Everything else &mdash; trial-shoot prospect, in-progress deal, non-converter</td>
+          <td>Chat, Deliverables, Brand DNA, Gallery, Your Plan</td>
+        </tr>
+        <tr>
+          <td><code>archived</code></td>
+          <td>60-day post-shoot non-converter (future &mdash; currently falls back to <code>pre_retainer</code>)</td>
+          <td>Read-only archive view</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The <code>getPortalMode()</code> function runs three queries: contact lookup, deal status check, and Brand DNA profile check. The Brand DNA completion flag is used by the retainer mode&rsquo;s hard lock (see Section 6).</p>
+
+  <h3>Section definitions</h3>
+  <p>Sections are declared in a static <code>PORTAL_SECTIONS</code> array. Each section has a <code>preRetainer: boolean</code> flag that controls visibility in pre-retainer mode. The menu bubble filters sections based on this flag.</p>
+
+  <div class="code-block">
+    <div class="code-header">Section registry</div>
+    <pre><span class="kw">const</span> PORTAL_SECTIONS = [
+  { key: <span class="str">"chat"</span>,         label: <span class="str">"Chat"</span>,            preRetainer: <span class="kw">true</span>  },
+  { key: <span class="str">"deliverables"</span>, label: <span class="str">"Deliverables"</span>,    preRetainer: <span class="kw">true</span>  },
+  { key: <span class="str">"invoices"</span>,     label: <span class="str">"Invoices"</span>,        preRetainer: <span class="kw">false</span> },
+  { key: <span class="str">"brand-dna"</span>,    label: <span class="str">"Brand DNA"</span>,       preRetainer: <span class="kw">true</span>  },
+  { key: <span class="str">"package"</span>,      label: <span class="str">"Package"</span>,         preRetainer: <span class="kw">false</span> },
+  { key: <span class="str">"messages"</span>,     label: <span class="str">"Messages"</span>,        preRetainer: <span class="kw">false</span> },
+  { key: <span class="str">"gallery"</span>,      label: <span class="str">"Gallery"</span>,         preRetainer: <span class="kw">true</span>  },
+  { key: <span class="str">"plan"</span>,         label: <span class="str">"Your Plan"</span>,       preRetainer: <span class="kw">true</span>  },
+  { key: <span class="str">"data-export"</span>,  label: <span class="str">"Download My Data"</span>, preRetainer: <span class="kw">false</span> },
+];</pre>
+  </div>
+
+  <p>When a pre-retainer user navigates to a locked section (invoices, messages, package, data export), the server component renders a <code>SectionLocked</code> component instead of the actual content. No data is fetched, no content is leaked.</p>
+</div>
+
+<!-- ── 4. AUTHENTICATION ───────────────────────────────────────── -->
+
+<div class="section" id="auth">
+  <div class="section-num">Section 04</div>
+  <h2>Authentication</h2>
+
+  <h3>The Magic Link Flow</h3>
+  <div class="diagram"><pre><span class="num">1.</span> <span class="accent">Issue</span>: Generate 32-byte random token → SHA-256 hash
+   Store hash in <span class="highlight">portal_magic_links</span> table
+   Send raw token via email: <span class="str">/lite/portal/r/{rawToken}</span>
+
+<span class="num">2.</span> <span class="accent">Redeem</span>: Client clicks link → GET /lite/portal/r/[token]
+   Hash the incoming token → look up in DB
+   Reject if: consumed, expired, or not found
+   Mark row as consumed (set <span class="type">consumed_at_ms</span>)
+
+<span class="num">3.</span> <span class="accent">Session</span>: Encode { contactId, clientId, submissionId } as base64url
+   Set <span class="highlight">sbl_portal_session</span> httpOnly cookie (90-day TTL)
+   Redirect to /welcome (first visit) or /home (returning)
+
+<span class="num">4.</span> <span class="accent">Guard</span>: Every portal page calls <span class="type">requirePortalSession()</span>
+   Decode cookie → return session or redirect to /recover</pre></div>
+
+  <h3>Token generation</h3>
+  <p>The <code>issueMagicLink()</code> function at <code>lib/portal/issue-magic-link.ts</code> handles token creation:</p>
+  <ul>
+    <li>Generates a cryptographically random 32-byte token using <code>crypto.randomBytes()</code>, encoded as base64url.</li>
+    <li>Stores only the SHA-256 hash (<code>ott_hash</code>) in the database. The raw token exists only in the email and the URL.</li>
+    <li>Default TTL is 168 hours (7 days), configurable via <code>settings.get('portal.magic_link_ttl_hours')</code>.</li>
+    <li>Logs the issuance to the activity log with context (submission_id, client_id, purpose).</li>
+  </ul>
+
+  <h3>Token redemption</h3>
+  <p>The <code>redeemMagicLink()</code> function at <code>lib/portal/redeem-magic-link.ts</code> validates and consumes tokens:</p>
+  <ol>
+    <li>Hash the incoming raw token with SHA-256.</li>
+    <li>Look up the hash in <code>portal_magic_links</code>.</li>
+    <li>Reject if not found, already consumed (<code>consumed_at_ms</code> not null), or expired.</li>
+    <li>Set <code>consumed_at_ms = Date.now()</code> &mdash; the token is now single-use.</li>
+    <li>Return the session payload: <code>contactId</code>, <code>clientId</code>, <code>submissionId</code>.</li>
+  </ol>
+
+  <h3>Session cookie</h3>
+  <div class="code-block">
+    <div class="code-header">TypeScript &mdash; lib/portal/guard.ts</div>
+    <pre><span class="kw">type</span> <span class="type">PortalSession</span> = {
+  contactId: <span class="type">string</span>;         <span class="comment">// always present</span>
+  clientId: <span class="type">string</span> | <span class="kw">null</span>;  <span class="comment">// non-null for Client Management portals</span>
+  submissionId: <span class="type">string</span> | <span class="kw">null</span>; <span class="comment">// scopes to an intro-funnel submission</span>
+};
+
+<span class="kw">const</span> PORTAL_SESSION_COOKIE = <span class="str">"sbl_portal_session"</span>;
+<span class="comment">// base64url(JSON.stringify(session))</span>
+<span class="comment">// httpOnly, Secure (prod), SameSite=Lax, path=/</span>
+<span class="comment">// Max-age: settings.get('portal.session_cookie_ttl_days') × 86400 (default 90 days)</span></pre>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Security Note</div>
+    <p>The session cookie is base64-encoded but <strong>not signed or encrypted</strong>. This is a known limitation with a patch owed (<code>a8_portal_cookie_unsigned</code>). In production, this should be upgraded to use <code>iron-session</code> or JWT signing. Do not store sensitive data in the cookie beyond the contact/client ID.</p>
+  </div>
+
+  <h3>Recovery flow</h3>
+  <p>When a session cookie is missing or malformed, users are redirected to <code>/lite/portal/recover</code>. This page has one field: email address. On submit:</p>
+  <ol>
+    <li>Look up the email in <code>intro_funnel_submissions</code> and <code>contacts</code>.</li>
+    <li>If found, issue a fresh magic link via email.</li>
+    <li>Always show &ldquo;Check your inbox&rdquo; &mdash; same response for match or no-match to prevent email enumeration.</li>
+  </ol>
+
+  <h3>The require pattern</h3>
+  <p>Two guard functions are used throughout the portal:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Function</th><th>Location</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr><td><code>requirePortalSession()</code></td><td><code>lib/portal/require-session.ts</code></td><td>Read cookie, redirect to <code>/recover</code> if absent</td></tr>
+        <tr><td><code>requireIntroSession(token)</code></td><td><code>lib/portal/require-intro-session.ts</code></td><td>Same, but passes a <code>returnTo</code> param for intro funnel</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 5. AI BARTENDER ─────────────────────────────────────────── -->
+
+<div class="section" id="bartender">
+  <div class="section-num">Section 05</div>
+  <h2>AI Bartender</h2>
+
+  <p>The AI Bartender is the heart of the portal. It is a conversational AI that greets clients, answers questions about their account, and escalates anything it cannot handle to the human operator. The chat is persistent &mdash; every message (both client and assistant) is stored in the database and survives across sessions.</p>
+
+  <h3>System prompt</h3>
+  <div class="callout">
+    <div class="callout-label">Bartender System Prompt</div>
+    <p>&ldquo;You are the SuperBad portal bartender &mdash; the AI concierge for a creative marketing agency run by Andy Robinson in Melbourne. Your register is warm, observational, dry-humoured, never pitchy. You know the client&rsquo;s name and use it naturally. Short responses preferred &mdash; bartender efficiency, not chatbot verbosity.&rdquo;</p>
+  </div>
+
+  <p><strong>Hard rules baked into the system prompt:</strong></p>
+  <ul>
+    <li>Never pitch services. Never use &ldquo;synergy&rdquo;, &ldquo;leverage&rdquo;, or &ldquo;solutions&rdquo;.</li>
+    <li>If asked whether you&rsquo;re human: &ldquo;No &mdash; but Andy is. Want me to get him?&rdquo;</li>
+    <li>Never reveal other clients&rsquo; data or internal pipeline state.</li>
+    <li>Never hallucinate data not provided in context.</li>
+    <li>Keep responses to 1&ndash;3 sentences unless the client asks for detail.</li>
+    <li>No exclamation marks. No slogans. No emoji unless the client uses them first.</li>
+  </ul>
+
+  <h3>Context assembly</h3>
+  <p>Before every response, the system assembles a context block from the database. This gives the LLM grounding in real data:</p>
+
+  <div class="code-block">
+    <div class="code-header">Context block structure</div>
+    <pre><span class="type">ChatContext</span> {
+  contactName: <span class="type">string</span>;         <span class="comment">// "Sarah Chen"</span>
+  companyName: <span class="type">string</span>;         <span class="comment">// "Good Earth Caf&eacute;"</span>
+  contactRole: <span class="type">string</span> | <span class="kw">null</span>;  <span class="comment">// "owner"</span>
+  brandDnaStatus: <span class="type">string</span> | <span class="kw">null</span>; <span class="comment">// "complete", "in_progress", null</span>
+  brandDnaProse: <span class="type">string</span> | <span class="kw">null</span>;  <span class="comment">// full prose portrait (fed to LLM)</span>
+  dealStage: <span class="type">string</span> | <span class="kw">null</span>;    <span class="comment">// "won", "trial_shoot", "quoted"</span>
+  wonOutcome: <span class="type">string</span> | <span class="kw">null</span>;   <span class="comment">// "retainer", "project"</span>
+  valueCents: <span class="type">number</span> | <span class="kw">null</span>;   <span class="comment">// deal value</span>
+  subscriptionState: <span class="type">string</span> | <span class="kw">null</span>;
+  billingCadence: <span class="type">string</span> | <span class="kw">null</span>;
+  pendingInvoiceCount: <span class="type">number</span>;
+  overdueInvoiceCount: <span class="type">number</span>;
+  isRetainer: <span class="type">boolean</span>;
+}</pre>
+  </div>
+
+  <h3>Two chat endpoints</h3>
+
+  <p><strong>Opening line</strong> &mdash; generated on every portal home page load. Uses a lighter prompt that produces one contextual greeting sentence. Has a special <code>kickoffVariant</code> for the first login after a deal closes (retainer kickoff). The system deduplicates: if the most recent message is already from the assistant, it returns that instead of generating a new one.</p>
+
+  <p><strong>Chat response</strong> &mdash; the main conversation handler. Receives the client message, fetches the last 20 messages of conversation history, and feeds the full context (including the Brand DNA prose portrait) to the LLM. If the client&rsquo;s Brand DNA is complete, the bartender literally has a psychological profile of the person it&rsquo;s talking to.</p>
+
+  <h3>Rate limiting</h3>
+  <p>Daily chat limits are configurable via the settings table and differ by relationship type:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Setting Key</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>portal.chat_calls_per_day_retainer</code></td><td>Daily limit for retainer clients</td></tr>
+        <tr><td><code>portal.chat_calls_per_day_pre_retainer</code></td><td>Daily limit for prospects</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>When the limit is hit, the API returns a 429 with a message directing the client to email the operator directly.</p>
+
+  <h3>Escalation</h3>
+  <p>When the bartender cannot handle a request (reschedule, cancel, edit profile, anything out of scope), it signals escalation by prefixing its response with <code>[ESCALATE]</code>. The system then:</p>
+  <ol>
+    <li>Strips the <code>[ESCALATE]</code> tag from the client-facing reply.</li>
+    <li>Generates a separate internal summary using a Haiku prompt (concise, factual, internal voice).</li>
+    <li>Creates a new thread in the unified inbox with channel <code>"portal_chat"</code>.</li>
+    <li>Inserts the summary as an inbound message on the thread.</li>
+    <li>Logs the escalation to the activity log.</li>
+  </ol>
+  <p>The client sees a clean response. Andy sees the escalation in his inbox with full context.</p>
+
+  <h3>LLM jobs</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Job Name</th><th>Purpose</th><th>Max Tokens</th></tr></thead>
+      <tbody>
+        <tr><td><code>client-mgmt-bartender-opening-line</code></td><td>Opening greeting</td><td>150</td></tr>
+        <tr><td><code>client-mgmt-chat-response</code></td><td>Conversation reply</td><td>500</td></tr>
+        <tr><td><code>client-mgmt-escalation-summary</code></td><td>Internal summary for Andy</td><td>300</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>All calls route through the model registry via <code>invokeLlmText()</code>. Feature code never references a model ID.</p>
+</div>
+
+<!-- ── 6. BRAND DNA GATE ───────────────────────────────────────── -->
+
+<div class="section" id="brand-dna-gate">
+  <div class="section-num">Section 06</div>
+  <h2>Brand DNA Gate</h2>
+
+  <p>When a retainer client visits the portal and their Brand DNA assessment is <strong>not complete</strong>, the portal does not show the chat home. Instead, it renders the <code>BrandDnaGate</code> component &mdash; a full-page lock screen with a single CTA: &ldquo;Complete your Brand DNA.&rdquo;</p>
+
+  <h3>Gate logic</h3>
+  <div class="diagram"><pre><span class="accent">Portal home loads</span>
+  &boxur; <span class="kw">if</span> mode === <span class="str">"retainer"</span> AND <span class="kw">NOT</span> brandDnaComplete:
+      → render <span class="highlight">BrandDnaGate</span>
+      → log <span class="str">"retainer_mode_brand_dna_gate_entered"</span>
+  &boxur; <span class="kw">else</span>:
+      → continue to chat home / bundle hub</pre></div>
+
+  <h3>What the gate shows</h3>
+  <ul>
+    <li>A lock icon in a circular badge.</li>
+    <li>Eyebrow text: &ldquo;one thing first.&rdquo;</li>
+    <li>Heading: &ldquo;Brand DNA.&rdquo;</li>
+    <li>Personal message: &ldquo;{firstName}, before we unlock the rest of your room &mdash; we need to understand your brand. takes about ten minutes.&rdquo;</li>
+    <li>CTA button linking to <code>/lite/portal/brand-dna</code>.</li>
+    <li>Below: a grid of blurred section cards (Chat, Invoices, Deliverables, Package, Messages, Data Export) at reduced opacity with a slight CSS blur &mdash; showing the client what they&rsquo;ll unlock.</li>
+  </ul>
+
+  <h3>Why this exists</h3>
+  <p>Brand DNA is the data that powers everything downstream &mdash; the bartender&rsquo;s personality awareness, the marketing plan&rsquo;s strategic foundation, and the operator&rsquo;s understanding of the client. Without it, the portal is running blind. The gate ensures retainer clients complete the assessment before they can use any other feature.</p>
+  <p>Pre-retainer prospects are <strong>not</strong> gated. They can explore the portal freely. The gate only applies to retainer clients because their portal experience is deeper and depends more heavily on Brand DNA data.</p>
+</div>
+
+<!-- ── 7. DELIVERABLES & GALLERY ───────────────────────────────── -->
+
+<div class="section" id="deliverables">
+  <div class="section-num">Section 07</div>
+  <h2>Deliverables &amp; Gallery</h2>
+
+  <h3>Deliverables (task-based)</h3>
+  <p>The deliverables page surfaces tasks from the platform&rsquo;s task management system. There is no separate deliverables data model &mdash; everything comes from the <code>tasks</code> table filtered by <code>kind IN ('client_deliverable', 'client_task')</code> and the client&rsquo;s company.</p>
+
+  <div class="code-block">
+    <div class="code-header">Portal task shape</div>
+    <pre><span class="kw">interface</span> <span class="type">PortalTask</span> {
+  id: <span class="type">string</span>;
+  title: <span class="type">string</span>;
+  body: <span class="type">string</span>;
+  kind: <span class="str">"client_deliverable"</span> | <span class="str">"client_task"</span>;
+  status: <span class="str">"todo"</span> | <span class="str">"in_progress"</span> | <span class="str">"awaiting_approval"</span> | <span class="str">"delivered"</span> | <span class="str">"done"</span>;
+  priority: <span class="str">"urgent"</span> | <span class="str">"high"</span> | <span class="str">"medium"</span> | <span class="str">"low"</span>;
+  due_at: <span class="type">string</span> | <span class="kw">null</span>;
+  checklist: <span class="type">Array</span>&lt;{ id: <span class="type">string</span>; text: <span class="type">string</span>; checked: <span class="type">boolean</span> }&gt; | <span class="kw">null</span>;
+  approval_requested_at: <span class="type">string</span> | <span class="kw">null</span>;
+  approved_at: <span class="type">string</span> | <span class="kw">null</span>;
+  rejected_at: <span class="type">string</span> | <span class="kw">null</span>;
+  rejection_feedback: <span class="type">string</span> | <span class="kw">null</span>;
+}</pre>
+  </div>
+
+  <p><strong>Client actions on deliverables:</strong></p>
+  <ul>
+    <li><strong>Approve</strong> &mdash; single click, marks the task as approved.</li>
+    <li><strong>Reject</strong> &mdash; requires feedback text explaining the rejection.</li>
+  </ul>
+  <p>There is also a separate <code>/lite/portal/approve/[token]</code> route for one-click approvals via email links, using a separate token-based auth that validates the token before executing the approval.</p>
+
+  <h3>Gallery (Cloudinary-based)</h3>
+  <p>The gallery serves photos and video from shoots. Media is stored in Cloudinary, organised by folder per deal.</p>
+
+  <div class="diagram"><pre><span class="accent">Gallery page loads</span>
+  &boxur; Read portal session
+  &boxur; Look up contact → company → deal with <span class="type">cloudinary_gallery_folder</span>
+  &boxur; Call <span class="highlight">listFolder(folder)</span> → Cloudinary Admin API
+  &boxur; Transform each resource into <span class="type">GalleryItem</span>
+  &boxur; Generate ZIP archive URL via <span class="highlight">generateArchiveUrl(folder)</span>
+  &boxur; Render gallery grid + &ldquo;Download All&rdquo; button</pre></div>
+
+  <p>Each gallery item provides:</p>
+  <ul>
+    <li><strong>Thumbnail URL</strong> &mdash; 600px-wide Cloudinary transform with auto quality/format.</li>
+    <li><strong>Full URL</strong> &mdash; original resolution via <code>secure_url</code>.</li>
+    <li><strong>Download URL</strong> &mdash; same as full URL with <code>?fl_attachment</code> to force browser download.</li>
+    <li><strong>Archive URL</strong> &mdash; Cloudinary ZIP generation for the entire folder (graceful degradation if ZIP fails).</li>
+  </ul>
+
+  <h3>Bundle hub</h3>
+  <p>On first visit after deliverables are ready, the portal shows a <code>BundleHub</code> instead of the normal chat home. This is a two-tile card layout: &ldquo;Your photos &amp; video&rdquo; (gallery) and &ldquo;Your plan&rdquo; (6-week plan). The hub is one-shot &mdash; once the client clicks either tile, <code>bundled_hub_seen_at_ms</code> is set on the contact and the hub never re-shows.</p>
+</div>
+
+<!-- ── 8. 6-WEEK PLAN ──────────────────────────────────────────── -->
+
+<div class="section" id="plan">
+  <div class="section-num">Section 08</div>
+  <h2>6-Week Plan</h2>
+
+  <p>Every trial-shoot prospect receives a bespoke 6-week marketing plan, generated by the LLM pipeline and reviewed by the operator before release. The plan is a real deliverable &mdash; framed as &ldquo;what we&rsquo;d implement if we were your agency.&rdquo; If the prospect converts to a retainer, the plan migrates into the Client Context Engine as their active strategy.</p>
+
+  <h3>Plan lifecycle in the portal</h3>
+  <div class="diagram"><pre><span class="accent">generating</span> <span class="dim">→</span> <span class="accent">pending_strategy_review</span> <span class="dim">→</span> <span class="accent">pending_detail_review</span> <span class="dim">→</span> <span class="accent">approved</span> <span class="dim">→</span> <span class="highlight">released</span>
+
+<span class="dim">Only</span> <span class="str">"approved"</span> <span class="dim">and</span> <span class="str">"released"</span> <span class="dim">plans are visible in the portal.</span>
+<span class="dim">If no plan is ready, the portal shows a placeholder: &ldquo;a bespoke 6-week marketing plan, built for you.&rdquo;</span></pre></div>
+
+  <h3>Portal plan features</h3>
+  <ul>
+    <li><strong>View</strong> &mdash; plan intro, week-by-week breakdown with tasks, rendered via <code>PlanView</code> component.</li>
+    <li><strong>Activate</strong> &mdash; self-run activation. Creates task progress tracking rows for every task in every week. Sets <code>activation_path = "self_run"</code>.</li>
+    <li><strong>Task tracking</strong> &mdash; toggle individual tasks as complete/incomplete after activation. Each toggle updates <code>six_week_plan_task_progress</code>.</li>
+    <li><strong>Revision request</strong> &mdash; client can submit a revision note (minimum character count enforced via settings). One revision per plan. The note is stored on the plan row and a review task is enqueued.</li>
+    <li><strong>Revision reply</strong> &mdash; when the operator resolves the revision, the reply is shown to the client with a dismiss action.</li>
+    <li><strong>PDF download</strong> &mdash; via <code>/api/lite/portal/plan/[planId]/pdf</code>. Generates a branded PDF using an HTML template rendered through Puppeteer. PDFs are cached in memory with a configurable TTL.</li>
+  </ul>
+
+  <div class="code-block">
+    <div class="code-header">PDF generation pipeline</div>
+    <pre><span class="accent">renderPlanPdf</span>(planId, contactId)
+  &boxur; Check plan exists + status is <span class="str">"approved"</span> or <span class="str">"released"</span>
+  &boxur; Check in-memory cache (keyed by planId + generation_version)
+  &boxur; If miss: build HTML via <span class="type">buildPlanPdfHtml()</span>
+  &boxur; Render to PDF via <span class="type">renderToPdf()</span> (Puppeteer)
+  &boxur; Cache result, log download activity
+  &boxur; Return { buffer, filename, generationVersion }</pre>
+  </div>
+
+  <p>The PDF filename is branded: the output comes from <code>planPdfFilename()</code> which incorporates the company name.</p>
+</div>
+
+<!-- ── 9. REFERRAL SYSTEM ──────────────────────────────────────── -->
+
+<div class="section" id="referrals">
+  <div class="section-num">Section 09</div>
+  <h2>Referral System</h2>
+
+  <p>The portal includes a lightweight referral mechanism. At milestone moments (determined by a cooldown timer), the portal shell shows a <code>ReferralPrompt</code> &mdash; a non-intrusive prompt asking if the client knows someone who could use SuperBad&rsquo;s services.</p>
+
+  <h3>Flow</h3>
+  <div class="diagram"><pre><span class="num">1.</span> <span class="accent">Milestone check</span>: <span class="type">shouldShowMilestonePrompt</span>(contactId)
+   → Check <span class="type">last_referral_prompt_at_ms</span> on contact
+   → If null or past cooldown → show prompt
+
+<span class="num">2.</span> <span class="accent">Client responds</span>: clicks "Refer" → <span class="type">ReferralForm</span> opens
+   → Fields: name, email, optional note
+
+<span class="num">3.</span> <span class="accent">Submit</span>: <span class="type">submitReferral()</span>
+   → Create company from email domain (or fallback name)
+   → Create deal via <span class="type">createDealFromLead()</span> with source = "referral"
+   → Link deal to referrer (company + contact)
+   → Log activity on both sides (referrer + referred)
+   → Insert bartender &ldquo;Thanks — we&rsquo;ll reach out&rdquo; chat message
+   → Generate LLM follow-up email draft (if LLM enabled)
+
+<span class="num">4.</span> <span class="accent">Dismiss</span>: sets <span class="type">last_referral_prompt_at_ms</span> = now (starts cooldown)</pre></div>
+
+  <h3>Follow-up email generation</h3>
+  <p>When LLM calls are enabled, the system auto-generates a warm follow-up email to the referred person. The prompt enforces SuperBad&rsquo;s voice: dry, direct, no jargon, no hard sell. The opening line always references the referrer by name as social proof. If the referrer included a note, it is woven into the email naturally.</p>
+
+  <h3>Settings</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Setting</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>referral.milestone_prompt_cooldown_days</code></td><td>Minimum days between referral prompts per contact</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 10. DATABASE SCHEMA ─────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 10</div>
+  <h2>Database Schema</h2>
+
+  <h3>portal_magic_links</h3>
+  <p>One-time tokens for portal access. Shared between Intro Funnel and Client Management portals.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>contact_id</code></td><td>text NOT NULL</td><td>Who the link is for</td></tr>
+        <tr><td><code>client_id</code></td><td>text</td><td>Non-null for Client Management; null for Intro Funnel</td></tr>
+        <tr><td><code>submission_id</code></td><td>text</td><td>Scopes to an intro-funnel submission row</td></tr>
+        <tr><td><code>ott_hash</code></td><td>text NOT NULL UNIQUE</td><td>SHA-256 hash of the raw 32-byte token</td></tr>
+        <tr><td><code>issued_for</code></td><td>text NOT NULL</td><td>Human-readable label: <code>"portal_access"</code>, <code>"recovery_form"</code>, <code>"journey_beat_email_footer"</code></td></tr>
+        <tr><td><code>expires_at_ms</code></td><td>integer NOT NULL</td><td>Absolute expiry timestamp (default: now + 168 hours)</td></tr>
+        <tr><td><code>consumed_at_ms</code></td><td>integer</td><td>Null until redeemed; non-null = token is spent</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer NOT NULL</td><td>Creation timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indexes:</strong> <code>ott_hash</code> (for redemption lookup), <code>contact_id + created_at_ms</code> (for audit queries).</p>
+
+  <h3>portal_chat_messages</h3>
+  <p>Every message in the AI bartender conversation. One row per message, whether from the client or the assistant.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>integer PK (auto-increment)</td><td>Row ID</td></tr>
+        <tr><td><code>contact_id</code></td><td>text FK &rarr; contacts</td><td>Which contact&rsquo;s conversation (CASCADE delete)</td></tr>
+        <tr><td><code>role</code></td><td>enum: <code>"client"</code> | <code>"assistant"</code></td><td>Who sent the message</td></tr>
+        <tr><td><code>content</code></td><td>text NOT NULL</td><td>Message body</td></tr>
+        <tr><td><code>escalated_to_inbox</code></td><td>boolean (default false)</td><td>True if this response triggered an escalation to Andy</td></tr>
+        <tr><td><code>tool_action</code></td><td>text</td><td>Reserved for safe actions (approve, export, etc.)</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer NOT NULL</td><td>Timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Index:</strong> <code>contact_id + created_at_ms</code> (for ordered chat history retrieval).</p>
+
+  <h3>six_week_plans</h3>
+  <p>The core plan record. One row per plan generation.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>deal_id</code></td><td>text FK &rarr; deals (CASCADE)</td><td>Which deal this plan belongs to</td></tr>
+        <tr><td><code>company_id</code></td><td>text FK &rarr; companies</td><td>Company reference</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>generating</code> &rarr; <code>pending_strategy_review</code> &rarr; <code>pending_detail_review</code> &rarr; <code>approved</code> &rarr; <code>released</code> | <code>superseded</code> | <code>archived</code></td></tr>
+        <tr><td><code>generation_version</code></td><td>integer (default 1)</td><td>Increments on regeneration</td></tr>
+        <tr><td><code>strategy_json</code></td><td>JSON text</td><td>Stage 1 LLM output: strategic framework</td></tr>
+        <tr><td><code>weeks_json</code></td><td>JSON text</td><td>Stage 2 LLM output: week-by-week plan with tasks</td></tr>
+        <tr><td><code>activated_at_ms</code></td><td>integer</td><td>When the client self-activated</td></tr>
+        <tr><td><code>activation_path</code></td><td>enum: <code>"self_run"</code> | <code>"retainer_payment"</code></td><td>How the plan was activated</td></tr>
+        <tr><td><code>revision_requested_at_ms</code></td><td>integer</td><td>When the client asked for changes</td></tr>
+        <tr><td><code>revision_note</code></td><td>text</td><td>Client&rsquo;s revision feedback</td></tr>
+        <tr><td><code>revision_resolution</code></td><td>enum: <code>"regenerated"</code> | <code>"explained"</code> | <code>"hand_rejected"</code></td><td>How the revision was handled</td></tr>
+        <tr><td><code>revision_reply_body</code></td><td>text</td><td>Operator&rsquo;s response to client</td></tr>
+        <tr><td><code>portal_archived_at_ms</code></td><td>integer</td><td>When the plan was archived for non-converters</td></tr>
+        <tr><td><code>portal_expiry_email_sent_at_ms</code></td><td>integer</td><td>When the expiry warning email was sent</td></tr>
+        <tr><td><code>portal_extended_until_ms</code></td><td>integer</td><td>Extension deadline (if granted)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>six_week_plan_task_progress</h3>
+  <p>Task-level completion tracking for activated plans. One row per task.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>plan_id</code></td><td>text FK &rarr; six_week_plans (CASCADE)</td><td>Parent plan</td></tr>
+        <tr><td><code>week_number</code></td><td>integer</td><td>Which week (1&ndash;6)</td></tr>
+        <tr><td><code>task_index</code></td><td>integer</td><td>Position within the week&rsquo;s task list</td></tr>
+        <tr><td><code>completed_at_ms</code></td><td>integer</td><td>Null = incomplete, non-null = completed timestamp</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Columns on existing tables</h3>
+  <p>The portal system also adds columns to existing tables:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Table</th><th>Column</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>contacts</code></td><td><code>portal_last_visited_at_ms</code></td><td>Tour completion tracking</td></tr>
+        <tr><td><code>contacts</code></td><td><code>onboarding_welcome_seen_at_ms</code></td><td>One-shot welcome screen flag</td></tr>
+        <tr><td><code>contacts</code></td><td><code>bundled_hub_seen_at_ms</code></td><td>One-shot bundle hub flag</td></tr>
+        <tr><td><code>contacts</code></td><td><code>retainer_kickoff_bartender_said_at_ms</code></td><td>Retainer kickoff opening line flag</td></tr>
+        <tr><td><code>contacts</code></td><td><code>last_referral_prompt_at_ms</code></td><td>Referral prompt cooldown tracker</td></tr>
+        <tr><td><code>deals</code></td><td><code>cloudinary_gallery_folder</code></td><td>Cloudinary folder path for the gallery</td></tr>
+        <tr><td><code>deals</code></td><td><code>referral_from_company_id</code></td><td>Referral source tracking</td></tr>
+        <tr><td><code>deals</code></td><td><code>referral_from_contact_id</code></td><td>Referral source tracking</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 11. PORTAL LIFECYCLE ────────────────────────────────────── -->
+
+<div class="section" id="lifecycle">
+  <div class="section-num">Section 11</div>
+  <h2>Portal Lifecycle</h2>
+
+  <h3>Entry paths</h3>
+  <p>Clients enter the portal through different paths. All paths converge on the same portal experience, but the welcome screen adapts:</p>
+  <div class="diagram"><pre><span class="highlight">Trial Shoot Prospect</span>
+  Magic link in journey email → redeem → welcome (bypassed) → chat home
+  <span class="dim">Sees: chat, gallery, plan, deliverables, Brand DNA</span>
+
+<span class="highlight">Direct/Referral Retainer Client</span>
+  Magic link in welcome email → redeem → welcome screen
+  <span class="dim">Shows &ldquo;what we already know&rdquo; from company notes</span>
+  → Brand DNA gate → complete assessment → full portal
+
+<span class="highlight">SaaS Subscriber</span>
+  Magic link in onboarding email → redeem → welcome screen
+  <span class="dim">Generic welcome without pre-populated summary</span>
+  → onboarding sequence (segmentation, credentials) → portal</pre></div>
+
+  <h3>Welcome screen</h3>
+  <p>The welcome page at <code>/lite/portal/welcome</code> is a one-shot surface. It shows once per contact (tracked via <code>contacts.onboarding_welcome_seen_at_ms</code>). Trial-shoot graduates bypass it entirely &mdash; their portal experience is continuous.</p>
+  <p>The welcome page checks the <code>audience</code> (retainer vs SaaS) and renders accordingly. Retainer clients see a &ldquo;what we already know&rdquo; summary drawn from company notes. SaaS subscribers see a cleaner onboarding start.</p>
+
+  <h3>First-visit flow</h3>
+  <div class="diagram"><pre><span class="accent">Magic link redeemed</span>
+  &boxvr; <span class="kw">if</span> onboarding_welcome_seen_at_ms === <span class="kw">null</span>
+  &boxv;   → redirect to <span class="str">/lite/portal/welcome</span>
+  &boxv;   → mark as seen → redirect to <span class="str">/lite/portal/home</span>
+  &boxur; <span class="kw">else</span>
+      → redirect to <span class="str">/lite/portal/home</span></pre></div>
+
+  <h3>Retainer kickoff</h3>
+  <p>The first portal visit after a deal is won triggers a special bartender opening line. The <code>kickoffVariant</code> prompt acknowledges the new chapter, references the first invoice if one is pending, and surfaces first-shoot scheduling as the single next action. After delivery, <code>retainer_kickoff_bartender_said_at_ms</code> is set on the contact so the kickoff never repeats.</p>
+
+  <h3>Bundle hub intercept</h3>
+  <p>When deliverables become ready (detected by the presence of a Cloudinary gallery folder on the deal), the portal shows the bundle hub on next visit &mdash; a two-card layout linking to the gallery and the 6-week plan. The hub is one-shot: clicking either card sets <code>bundled_hub_seen_at_ms</code> and the normal chat home resumes on future visits.</p>
+
+  <h3>60-day non-converter archival</h3>
+  <p>Non-converting prospects (trial-shoot completers who don&rsquo;t become retainer clients) retain portal access for 60 days after shoot completion. The plan tracks this via <code>portal_expiry_email_sent_at_ms</code> (warning email) and <code>portal_archived_at_ms</code> (archive date). An optional extension is possible via <code>portal_extended_until_ms</code>.</p>
+  <p>After the 60-day window:</p>
+  <ul>
+    <li>The portal archives &mdash; read-only or locked.</li>
+    <li>The Brand DNA prose portrait remains accessible as a PDF takeaway.</li>
+    <li>Chat is no longer available.</li>
+    <li>The 6-week plan stays as a standalone reference document.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-label">Implementation Status</div>
+    <p>The <code>archived</code> portal mode is defined in the type system but not yet fully wired. The <code>getPortalMode()</code> function currently returns <code>pre_retainer</code> for non-converters. The 60-day archival logic, expiry emails, and read-only archive view are logged as future work.</p>
+  </div>
+
+  <h3>Subscription cancel flow</h3>
+  <p>SaaS subscribers can access a cancel/pause flow at <code>/lite/portal/subscription</code>. The page handles three branches:</p>
+  <ul>
+    <li><strong>Paused</strong> &mdash; subscriber has already paused; shows current state.</li>
+    <li><strong>Pre-term</strong> &mdash; within a commitment period; shows exit math (remainder, buyout cost) and alternative products/tiers.</li>
+    <li><strong>Post-term</strong> &mdash; past commitment; shows tier up/down options and product switching before confirming cancellation.</li>
+  </ul>
+  <p>The flow is gated by the <code>saas_cancel_flow_enabled</code> kill switch. When disabled, a fallback message directs the subscriber to get in touch directly.</p>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Build auth first.</strong> The magic link &rarr; cookie &rarr; guard chain is the foundation. Every portal page depends on <code>requirePortalSession()</code>. Get this working end-to-end with a real email send before touching anything else.</li>
+    <li><strong>Keep portal auth separate from admin auth.</strong> Clients never log into an admin session. The two cookie systems coexist on the same domain without interference. Do not try to unify them.</li>
+    <li><strong>Token security matters.</strong> Store only the SHA-256 hash, never the raw token. Mark tokens as consumed on redemption. Set real TTLs. The recovery form must give the same response regardless of whether the email exists.</li>
+    <li><strong>Mode gating is server-side.</strong> Never trust the client to hide locked sections. The server components check <code>getPortalMode()</code> and render <code>SectionLocked</code> for pre-retainer users. No data leaves the server for locked sections.</li>
+    <li><strong>The bartender prompt is the product.</strong> The chat system&rsquo;s value comes from the system prompt, the context assembly, and the voice constraints. The code is plumbing. Spend your prompt iteration budget here.</li>
+    <li><strong>Rate-limit LLM calls aggressively.</strong> Daily chat limits, cached opening lines, and idempotent generation checks all exist to prevent runaway API costs. Never call the LLM on a page refresh if the output already exists.</li>
+    <li><strong>Escalation creates real inbox threads.</strong> When the bartender escalates, it creates a real thread in the operator&rsquo;s unified inbox. This is not a log entry &mdash; it is a first-class message that expects a response. Build the inbox integration early.</li>
+    <li><strong>One-shot flags are cheap insurance.</strong> The welcome screen, bundle hub, kickoff line, and tour all use timestamp columns on the contacts table. Set them to <code>Date.now()</code> on first occurrence. Check for <code>null</code> to determine if they should fire. Simple, reliable, no race conditions.</li>
+    <li><strong>The gallery is just a Cloudinary folder.</strong> No separate media table, no upload pipeline on the portal side. The operator sets <code>cloudinary_gallery_folder</code> on the deal, and the portal reads from it. Keep it that simple.</li>
+    <li><strong>PDF generation is expensive.</strong> It spins up Puppeteer to render HTML to PDF. Cache the result in memory with a TTL. Never regenerate on every download. The cache key should include the plan&rsquo;s <code>generation_version</code> so cache invalidation happens automatically on plan regeneration.</li>
+    <li><strong>Task progress is toggleable.</strong> Plan tasks flip between complete and incomplete. The <code>completed_at_ms</code> field alternates between a timestamp and null. This is intentional &mdash; people change their minds.</li>
+    <li><strong>Test the recovery flow.</strong> Sessions expire. Cookies get cleared. Mobile browsers are hostile to httpOnly cookies. The recovery flow is the safety net &mdash; it must work flawlessly or clients get permanently locked out.</li>
+    <li><strong>Brand DNA gate is retainer-only.</strong> Pre-retainer users can explore freely. Only paying retainer clients are hard-gated behind Brand DNA completion. This is a deliberate design choice: you gate people who are committed, not people who are exploring.</li>
+    <li><strong>Motion is part of the product.</strong> The portal uses a house spring (<code>stiffness: 300, damping: 30</code>) for all transitions. The gate, hub, chat, and menu all animate with Framer Motion and respect <code>prefers-reduced-motion</code>. If a state change doesn&rsquo;t animate, something is missing.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">The portal is their room, not your dashboard. Every surface should feel like it was built for one person. The bartender knows their name. The gallery has their photos. The plan is about their business. If it ever feels communal, something went wrong.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM &amp; Sales Pipeline — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); font-weight: 700; }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">CRM &amp; Sales Pipeline</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand, rebuild, or extend the CRM &mdash; companies, contacts, deals, the 8-stage pipeline, trial shoot state machine, and the activity log that records it all.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the CRM Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#companies"><span class="num">03</span> Companies</a>
+    <a href="#contacts"><span class="num">04</span> Contacts</a>
+    <a href="#pipeline"><span class="num">05</span> Sales Pipeline</a>
+    <a href="#transitions"><span class="num">06</span> Deal Stage Transitions</a>
+    <a href="#trial-shoot"><span class="num">07</span> Trial Shoot State Machine</a>
+    <a href="#activity-log"><span class="num">08</span> Activity Logging</a>
+    <a href="#stale"><span class="num">09</span> Stale Detection</a>
+    <a href="#database"><span class="num">10</span> Database Schema</a>
+    <a href="#actions"><span class="num">11</span> Server Actions</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE CRM DOES ───────────────────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the CRM Does</h2>
+  <p>The CRM is the operational backbone of SuperBad Lite. It tracks every business relationship from first contact through to retained client &mdash; across three core entities: <strong>Companies</strong>, <strong>Contacts</strong>, and <strong>Deals</strong>.</p>
+  <p>Companies are the top-level entity. Every contact belongs to a company. Every deal belongs to a company and optionally links to a primary contact. This three-table structure supports everything from a solo founder with one decision-maker to a multi-stakeholder organisation with several contacts and concurrent deals.</p>
+  <p>The sales pipeline is an 8-stage Kanban board that visualises where every deal sits. Deals move forward through defined legal transitions, with validation rules enforced at terminal stages (Won and Lost). A separate trial shoot sub-state machine tracks the on-site photography session that is the primary conversion mechanism.</p>
+  <p>Everything that happens &mdash; every stage change, every email, every note, every payment &mdash; writes a row to the unified activity log. 334 distinct event kinds, across 40+ feature domains, all flowing into the same table.</p>
+  <p class="mutter">One table to log them all. One table to find them.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>Entity Relationships</h3>
+  <div class="diagram"><pre><span class="highlight">Company</span>
+  <span class="dim">├──</span> <span class="accent">Contact</span> <span class="dim">(1:many, cascade delete)</span>
+  <span class="dim">│     └──</span> stripe_customer_id <span class="dim">(canonical Stripe identity)</span>
+  <span class="dim">├──</span> <span class="accent">Deal</span> <span class="dim">(1:many, cascade delete)</span>
+  <span class="dim">│     ├──</span> primary_contact_id <span class="dim">(FK → Contact, set null on delete)</span>
+  <span class="dim">│     ├──</span> referral_from_company_id <span class="dim">(FK → Company, set null)</span>
+  <span class="dim">│     └──</span> referral_from_contact_id <span class="dim">(FK → Contact, set null)</span>
+  <span class="dim">└──</span> <span class="accent">Activity Log</span> <span class="dim">(1:many per company, contact, deal)</span></pre></div>
+
+  <h3>Tech Stack</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+      <tbody>
+        <tr><td>Framework</td><td>Next.js App Router (React Server Components)</td></tr>
+        <tr><td>Database</td><td>SQLite via better-sqlite3 (synchronous)</td></tr>
+        <tr><td>ORM</td><td>Drizzle ORM</td></tr>
+        <tr><td>Auth</td><td>Auth.js v5 (NextAuth)</td></tr>
+        <tr><td>Mutations</td><td>Next.js Server Actions (<code>"use server"</code>)</td></tr>
+        <tr><td>Settings</td><td>Central <code>settings</code> table with typed <code>settings.get(key)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Data Flow</h3>
+  <div class="diagram"><pre><span class="accent">Ingress</span>                           <span class="highlight">CRM Core</span>                    <span class="accent">Downstream</span>
+
+Manual admin entry  <span class="dim">────→</span>  createDealFromLead()  <span class="dim">────→</span>  Pipeline board
+Intro Funnel paid   <span class="dim">────→</span>     <span class="dim">(dedupe + merge)</span>     <span class="dim">────→</span>  Deal detail page
+Outreach reply      <span class="dim">────→</span>                            <span class="dim">────→</span>  Daily Cockpit
+Lead gen scored     <span class="dim">────→</span>                            <span class="dim">────→</span>  Brand DNA invites
+Stripe webhook      <span class="dim">────→</span>  finaliseDealAsWon()  <span class="dim">────→</span>  Onboarding flow
+                          transitionDealStage() <span class="dim">────→</span>  Activity log
+                          advanceTrialShoot()   <span class="dim">────→</span>  Six-week plan</pre></div>
+
+  <h3>File Structure</h3>
+  <div class="code-block">
+    <div class="code-header">Key Paths</div>
+    <pre>lib/db/schema/companies.ts      <span class="comment">// Company table + enums</span>
+lib/db/schema/contacts.ts       <span class="comment">// Contact table + enums</span>
+lib/db/schema/deals.ts          <span class="comment">// Deal table + enums</span>
+lib/db/schema/activity-log.ts   <span class="comment">// Activity log + 334 event kinds</span>
+lib/crm/                        <span class="comment">// All CRM business logic</span>
+  index.ts                      <span class="comment">// Public re-exports</span>
+  create-deal-from-lead.ts      <span class="comment">// Lookup-or-create + dedupe</span>
+  transition-deal-stage.ts      <span class="comment">// Stage transitions + validation</span>
+  legal-transitions.ts          <span class="comment">// Adjacency map</span>
+  validate-deal.ts              <span class="comment">// Finalisation guards</span>
+  finalise-deal.ts              <span class="comment">// Won/Lost with side-effects</span>
+  snooze-deal.ts                <span class="comment">// Snooze suppression</span>
+  is-stale.ts                   <span class="comment">// Pure staleness check</span>
+  trial-shoot-status.ts         <span class="comment">// Trial shoot state helpers</span>
+  advance-trial-shoot-status.ts <span class="comment">// Forward-only status changes</span>
+  mark-company-trial-shoot-booked.ts
+  update-trial-shoot-plan.ts
+  normalise.ts                  <span class="comment">// Email, phone, name, domain normalisation</span>
+app/lite/admin/pipeline/
+  page.tsx                      <span class="comment">// Kanban board (server component)</span>
+  actions.ts                    <span class="comment">// Stage change, add lead, Won/Lost</span>
+  snooze-action.ts              <span class="comment">// Snooze server action</span>
+  [id]/page.tsx                 <span class="comment">// Deal detail page</span>
+  [id]/actions.ts               <span class="comment">// Update deal, contact, company, quotes</span>
+lib/activity-log.ts             <span class="comment">// Generic logActivity() helper</span></pre>
+  </div>
+</div>
+
+<!-- ── 3. COMPANIES ───────────────────────────────────────────── -->
+
+<div class="section" id="companies">
+  <div class="section-num">Section 03</div>
+  <h2>Companies</h2>
+
+  <p>The company is the top-level CRM entity. Every contact and deal hangs off a company. A company can represent anything from a one-person business to a large multi-stakeholder organisation.</p>
+
+  <h3>Company Shapes</h3>
+  <p>Shape describes the organisational structure. It affects downstream prompt context (Brand DNA, six-week plans) but does not gate any CRM logic.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Shape</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>solo_founder</code></td><td>One person = the business</td></tr>
+        <tr><td><code>founder_led_team</code></td><td>Founder + team, founder is the decision-maker</td></tr>
+        <tr><td><code>multi_stakeholder_company</code></td><td>Multiple decision-makers, potentially multiple Brand DNA profiles</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Size Bands</h3>
+  <div class="tag-grid" style="margin: 1rem 0;">
+    <span class="tag">small</span>
+    <span class="tag">medium</span>
+    <span class="tag">large</span>
+  </div>
+
+  <h3>Billing Modes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mode</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>stripe</code></td><td>Default. Payments via Stripe Checkout / Subscriptions.</td></tr>
+        <tr><td><code>manual</code></td><td>Invoice-based billing. Manual payment tracking.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Revenue Segmentation</h3>
+  <p>SaaS-specific fields, nullable for retainer clients. Captured during onboarding.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>Options</th></tr></thead>
+      <tbody>
+        <tr><td><code>revenue_range</code></td><td><code>under_250k</code>, <code>250k_500k</code>, <code>500k_1m</code>, <code>1m_3m</code>, <code>3m_plus</code></td></tr>
+        <tr><td><code>team_size</code></td><td><code>solo</code>, <code>2_5</code>, <code>6_15</code>, <code>16_50</code>, <code>50_plus</code></td></tr>
+        <tr><td><code>biggest_constraint</code></td><td><code>not_enough_right_customers</code>, <code>no_time_marketing</code>, <code>dont_know_whats_working</code>, <code>brand_doesnt_reflect</code>, <code>burned_before</code>, <code>growing_not_kept_up</code></td></tr>
+        <tr><td><code>twelve_month_goal</code></td><td><code>steady</code>, <code>grow</code>, <code>scale</code>, <code>launch_new</code>, <code>figure_out</code></td></tr>
+        <tr><td><code>industry_vertical</code></td><td><code>health_wellness</code>, <code>professional_services</code>, <code>trades_construction</code>, <code>hospitality_food</code>, <code>education</code>, <code>retail</code>, <code>creative_media</code>, <code>other</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Dedupe Logic</h3>
+  <p>On creation, companies are deduplicated by normalised name (case-folded, whitespace-squeezed, punctuation stripped). If a domain is provided, it further narrows the match. Existing companies are never overwritten &mdash; only null fields get backfilled from incoming data.</p>
+  <div class="code-block">
+    <div class="code-header">Normalisation</div>
+    <pre><span class="kw">function</span> <span class="type">normaliseCompanyName</span>(raw: <span class="type">string</span>): <span class="type">string</span> | <span class="type">null</span> {
+  <span class="kw">return</span> raw.trim().toLowerCase()
+    .replace(<span class="str">/\s+/g</span>, <span class="str">" "</span>)
+    .replace(<span class="str">/[.,'"!?]/g</span>, <span class="str">""</span>);
+}
+
+<span class="kw">function</span> <span class="type">normaliseDomain</span>(raw: <span class="type">string</span>): <span class="type">string</span> | <span class="type">null</span> {
+  <span class="kw">return</span> raw.trim().toLowerCase()
+    .replace(<span class="str">/^https?:\/\//</span>, <span class="str">""</span>)
+    .replace(<span class="str">/^www\./</span>, <span class="str">""</span>)
+    .replace(<span class="str">/\/.*$/</span>, <span class="str">""</span>);
+}</pre>
+  </div>
+
+  <h3>Trial Shoot Fields</h3>
+  <p>These live on the company, not the deal, because a trial shoot is a company-level event even though it is tracked through a deal&rsquo;s pipeline stage.</p>
+  <ul>
+    <li><code>trial_shoot_status</code> &mdash; the sub-state machine (see Section 07)</li>
+    <li><code>trial_shoot_completed_at_ms</code> &mdash; stamped on first completion</li>
+    <li><code>trial_shoot_plan</code> &mdash; free-text plan notes</li>
+    <li><code>trial_shoot_feedback</code> &mdash; post-shoot feedback text</li>
+  </ul>
+</div>
+
+<!-- ── 4. CONTACTS ────────────────────────────────────────────── -->
+
+<div class="section" id="contacts">
+  <div class="section-num">Section 04</div>
+  <h2>Contacts</h2>
+
+  <p>A contact is a human being, always attached to a company. One company can have many contacts &mdash; critical for multi-stakeholder clients where different people make different decisions.</p>
+
+  <h3>Key Fields</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>is_primary</code></td><td>boolean</td><td>The main point of contact. Used for fallback resolution on deals.</td></tr>
+        <tr><td><code>email_normalised</code></td><td>text</td><td>Lowercased, trimmed. Used for dedupe lookups.</td></tr>
+        <tr><td><code>phone_normalised</code></td><td>text</td><td>Digits only. Used for dedupe fallback.</td></tr>
+        <tr><td><code>email_status</code></td><td>enum</td><td>Tracks deliverability: <code>unknown</code> &rarr; <code>valid</code> | <code>soft_bounce</code> | <code>invalid</code> | <code>complained</code> | <code>unsubscribed</code></td></tr>
+        <tr><td><code>stripe_customer_id</code></td><td>text (unique)</td><td>Canonical Stripe identity. Created lazily on first payment.</td></tr>
+        <tr><td><code>relationship_type</code></td><td>enum</td><td><code>lead</code>, <code>client</code>, <code>past_client</code>, <code>non_client</code>, <code>supplier</code>, <code>personal</code></td></tr>
+        <tr><td><code>preferred_channel</code></td><td>enum</td><td>Currently <code>email</code> only. Extensible for SMS/WhatsApp later.</td></tr>
+        <tr><td><code>sms_opt_in</code></td><td>boolean</td><td>Explicit SMS consent. <code>sms_consent_at_ms</code> timestamps it.</td></tr>
+        <tr><td><code>notification_weight</code></td><td>integer</td><td>Ambient correction for notification frequency. High positive = always push.</td></tr>
+        <tr><td><code>inbox_alt_emails</code></td><td>JSON string[]</td><td>Secondary email addresses detected by LLM matching.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Contact Dedupe</h3>
+  <p>On deal creation, contacts are matched within their company by:</p>
+  <ol>
+    <li><strong>Normalised email</strong> &mdash; primary match key</li>
+    <li><strong>Normalised phone</strong> &mdash; fallback if no email match</li>
+  </ol>
+  <p>Like companies, existing contacts are never overwritten. Only null fields are backfilled.</p>
+
+  <div class="code-block">
+    <div class="code-header">Contact Normalisation</div>
+    <pre><span class="kw">function</span> <span class="type">normaliseEmail</span>(raw: <span class="type">string</span>): <span class="type">string</span> | <span class="type">null</span> {
+  <span class="kw">return</span> raw.trim().toLowerCase();  <span class="comment">// Empty → null</span>
+}
+
+<span class="kw">function</span> <span class="type">normalisePhone</span>(raw: <span class="type">string</span>): <span class="type">string</span> | <span class="type">null</span> {
+  <span class="kw">return</span> raw.replace(<span class="str">/\D+/g</span>, <span class="str">""</span>);  <span class="comment">// Strip all non-digits</span>
+}</pre>
+  </div>
+
+  <h3>Portal Tracking</h3>
+  <p>Several fields track the contact&rsquo;s interaction with the client portal:</p>
+  <ul>
+    <li><code>portal_chat_last_seen_at_ms</code> &mdash; drives &ldquo;new messages&rdquo; indicators</li>
+    <li><code>portal_last_visited_at_ms</code> &mdash; drives &ldquo;new deliverables&rdquo; badge logic</li>
+    <li><code>onboarding_welcome_seen_at_ms</code> &mdash; set on first render of the welcome screen</li>
+    <li><code>retainer_kickoff_bartender_said_at_ms</code> &mdash; when the ambient &ldquo;bartender&rdquo; opener fired</li>
+    <li><code>bundled_hub_seen_at_ms</code> &mdash; when the first-visit hub was dismissed</li>
+  </ul>
+</div>
+
+<!-- ── 5. SALES PIPELINE ──────────────────────────────────────── -->
+
+<div class="section" id="pipeline">
+  <div class="section-num">Section 05</div>
+  <h2>Sales Pipeline</h2>
+
+  <p>The pipeline is an 8-stage Kanban board. Every deal sits in exactly one stage. The board is the primary admin view for tracking all active sales.</p>
+
+  <h3>The Eight Stages</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Stage</th><th>What it means</th><th>Terminal?</th></tr></thead>
+      <tbody>
+        <tr><td><code>lead</code></td><td>Initial contact. No conversation yet.</td><td>No</td></tr>
+        <tr><td><code>contacted</code></td><td>First outreach sent. Awaiting response.</td><td>No</td></tr>
+        <tr><td><code>conversation</code></td><td>Active dialogue. Understanding needs.</td><td>No</td></tr>
+        <tr><td><code>trial_shoot</code></td><td>Trial photography session booked/in progress.</td><td>No</td></tr>
+        <tr><td><code>quoted</code></td><td>Formal quote sent. Ball in their court.</td><td>No</td></tr>
+        <tr><td><code>negotiating</code></td><td>Price/scope discussion underway.</td><td>No</td></tr>
+        <tr><td><code>won</code></td><td>Deal closed. Client acquired.</td><td>Yes</td></tr>
+        <tr><td><code>lost</code></td><td>Deal dead. Reason captured.</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Won Outcomes</h3>
+  <p>Every Won deal must specify an outcome type:</p>
+  <div class="tag-grid" style="margin: 1rem 0;">
+    <span class="tag">retainer</span>
+    <span class="tag">saas</span>
+    <span class="tag">project</span>
+  </div>
+
+  <h3>Loss Reasons</h3>
+  <p>Every Lost deal must specify a reason. If the reason is <code>other</code>, free-text <code>loss_notes</code> are required.</p>
+  <div class="tag-grid" style="margin: 1rem 0;">
+    <span class="tag">price</span>
+    <span class="tag">timing</span>
+    <span class="tag">went_with_someone_else</span>
+    <span class="tag">not_a_fit</span>
+    <span class="tag">ghosted</span>
+    <span class="tag">internal_change</span>
+    <span class="tag">other</span>
+    <span class="tag">trial_only_no_retainer_fit</span>
+    <span class="tag">intro_funnel_abandoned</span>
+    <span class="tag">intro_funnel_cancelled_refunded</span>
+    <span class="tag">intro_funnel_cancelled_no_refund</span>
+    <span class="tag">intro_funnel_no_show</span>
+    <span class="tag">intro_funnel_cancelled_by_superbad</span>
+    <span class="tag">prospect_unresponsive_reschedules</span>
+  </div>
+
+  <h3>Deal Value</h3>
+  <p>Value is stored in <strong>cents</strong> (integer, not float). A separate <code>value_estimated</code> boolean tracks whether the amount is a guess or a confirmed figure. On a Stripe-driven Won, the exact payment amount stamps the deal and flips <code>value_estimated</code> to <code>false</code>.</p>
+
+  <h3>Subscription Columns</h3>
+  <p>Won deals that become subscriptions carry additional state directly on the deal row:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>subscription_state</code></td><td>enum</td><td><code>active_current</code>, <code>past_due</code>, <code>paused</code>, <code>cancel_scheduled_preterm</code>, <code>cancelled_paid_remainder</code>, <code>cancelled_buyout</code>, <code>cancelled_post_term</code>, <code>ended_gracefully</code></td></tr>
+        <tr><td><code>billing_cadence</code></td><td>enum</td><td><code>monthly</code>, <code>annual_monthly</code>, <code>annual_upfront</code></td></tr>
+        <tr><td><code>committed_until_date_ms</code></td><td>integer</td><td>End of current commitment period</td></tr>
+        <tr><td><code>pause_used_this_commitment</code></td><td>boolean</td><td>One pause per commitment cycle</td></tr>
+        <tr><td><code>stripe_subscription_id</code></td><td>text</td><td>Stripe subscription reference</td></tr>
+        <tr><td><code>stripe_customer_id</code></td><td>text</td><td>Denormalised from contact for fast lookup</td></tr>
+        <tr><td><code>payment_failure_count</code></td><td>integer</td><td>Per-cycle failure counter. Resets on successful payment.</td></tr>
+        <tr><td><code>first_payment_failure_at_ms</code></td><td>integer</td><td>Data-loss escalation fires 7 days after this timestamp.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Pipeline Board UI</h3>
+  <p>The board is a server component that loads all deals in a single query joined across <code>deals</code>, <code>companies</code>, and <code>contacts</code>. It computes stale flags, pipeline value totals, and relative activity labels server-side before passing data to the client <code>PipelineBoard</code> component.</p>
+  <p>Summary stats displayed in the header: total deal count, 8 stages, stale count (when &gt; 0), and total pipeline value (active deals only, formatted as AUD).</p>
+</div>
+
+<!-- ── 6. DEAL STAGE TRANSITIONS ──────────────────────────────── -->
+
+<div class="section" id="transitions">
+  <div class="section-num">Section 06</div>
+  <h2>Deal Stage Transitions</h2>
+
+  <h3>Legal Transitions Map</h3>
+  <p>Not every stage can reach every other stage. The <code>LEGAL_TRANSITIONS</code> adjacency map defines exactly which moves are allowed:</p>
+
+  <div class="diagram"><pre><span class="highlight">lead</span>         <span class="dim">→</span>  contacted, conversation, trial_shoot, quoted, lost
+<span class="highlight">contacted</span>    <span class="dim">→</span>  lead, conversation, trial_shoot, quoted, lost
+<span class="highlight">conversation</span> <span class="dim">→</span>  lead, contacted, trial_shoot, quoted, negotiating, lost
+<span class="highlight">trial_shoot</span>  <span class="dim">→</span>  conversation, quoted, negotiating, lost
+<span class="highlight">quoted</span>       <span class="dim">→</span>  conversation, trial_shoot, negotiating, won, lost
+<span class="highlight">negotiating</span>  <span class="dim">→</span>  conversation, trial_shoot, quoted, won, lost
+<span class="accent">won</span>          <span class="dim">→</span>  <span class="dim">(terminal &mdash; no transitions out)</span>
+<span class="accent">lost</span>         <span class="dim">→</span>  lead <span class="dim">(reopen only)</span></pre></div>
+
+  <div class="callout">
+    <div class="callout-label">Key Rules</div>
+    <p><strong>Won is forever.</strong> Once a deal hits <code>won</code>, it stays there. No backsies.</p>
+    <p><strong>Lost can reopen.</strong> A lost deal can be moved back to <code>lead</code> to restart the pipeline. This is the only exit from a terminal stage.</p>
+    <p><strong>Won requires <code>won_outcome</code>.</strong> You must specify <code>retainer</code>, <code>saas</code>, or <code>project</code>.</p>
+    <p><strong>Lost requires <code>loss_reason</code>.</strong> And if the reason is <code>other</code>, free-text <code>loss_notes</code> are mandatory.</p>
+  </div>
+
+  <h3>Transition Function</h3>
+  <p><code>transitionDealStage(dealId, toStage, opts)</code> is the single entry point for all non-terminal transitions. It runs inside a SQLite transaction that:</p>
+  <ol>
+    <li>Reads the current deal row</li>
+    <li>Rejects identity transitions (already in that stage)</li>
+    <li>Validates the move against <code>LEGAL_TRANSITIONS</code></li>
+    <li>Runs <code>validateDeal()</code> on the simulated new state</li>
+    <li>Updates the deal row (<code>stage</code>, <code>last_stage_change_at_ms</code>, clears <code>next_action_overridden_at_ms</code>)</li>
+    <li>Writes a <code>stage_change</code> activity log row with <code>meta: { from_stage, to_stage, by }</code></li>
+    <li>Returns the updated <code>DealRow</code></li>
+  </ol>
+
+  <h3>Finalisation Functions</h3>
+  <p>Terminal transitions use dedicated functions that set required fields before calling <code>transitionDealStage()</code>:</p>
+
+  <div class="code-block">
+    <div class="code-header">Won</div>
+    <pre><span class="kw">function</span> <span class="type">finaliseDealAsWon</span>(dealId, payload, opts) {
+  <span class="comment">// Inside one transaction:</span>
+  <span class="comment">// 1. Set won_outcome, clear loss fields, stamp value if Stripe-driven</span>
+  <span class="comment">// 2. Call transitionDealStage(dealId, "won", ...)</span>
+  <span class="comment">// After transaction:</span>
+  <span class="comment">// 3. Enqueue six_week_plan_migrate_on_won task</span>
+  <span class="comment">// 4. Create onboarding credentials for the primary contact</span>
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">Lost</div>
+    <pre><span class="kw">function</span> <span class="type">finaliseDealAsLost</span>(dealId, payload, opts) {
+  <span class="comment">// Inside one transaction:</span>
+  <span class="comment">// 1. Validate: loss_reason === "other" requires loss_notes</span>
+  <span class="comment">// 2. Set loss_reason + loss_notes on the deal row</span>
+  <span class="comment">// 3. Call transitionDealStage(dealId, "lost", ...)</span>
+}</pre>
+  </div>
+
+  <h3>Source-Stage Overrides</h3>
+  <p>When a deal is created from certain sources, it skips the default <code>lead</code> stage:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>Starting Stage</th></tr></thead>
+      <tbody>
+        <tr><td><code>intro_funnel_contact_submitted</code></td><td><code>trial_shoot</code></td></tr>
+        <tr><td><code>intro_funnel_paid</code></td><td><code>trial_shoot</code></td></tr>
+        <tr><td>Everything else</td><td><code>lead</code> (default)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 7. TRIAL SHOOT STATE MACHINE ───────────────────────────── -->
+
+<div class="section" id="trial-shoot">
+  <div class="section-num">Section 07</div>
+  <h2>Trial Shoot State Machine</h2>
+
+  <p>The trial shoot is the primary conversion mechanism: a free on-site photography session that demonstrates SuperBad&rsquo;s value. While the deal sits in the <code>trial_shoot</code> pipeline stage, the company tracks a separate sub-state machine for the shoot&rsquo;s lifecycle.</p>
+
+  <h3>The Six States</h3>
+  <div class="diagram"><pre><span class="highlight">none</span> <span class="dim">→</span> <span class="accent">booked</span> <span class="dim">→</span> <span class="accent">planned</span> <span class="dim">→</span> <span class="accent">in_progress</span> <span class="dim">→</span> <span class="highlight">completed_awaiting_feedback</span> <span class="dim">→</span> <span class="highlight">completed_feedback_provided</span></pre></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>none</code></td><td>Pre-booking placeholder. Every company starts here.</td></tr>
+        <tr><td><code>booked</code></td><td>Trial shoot booked (via Stripe payment or manual).</td></tr>
+        <tr><td><code>planned</code></td><td>Shoot logistics confirmed. Date/location locked.</td></tr>
+        <tr><td><code>in_progress</code></td><td>Shoot day. Currently happening.</td></tr>
+        <tr><td><code>completed_awaiting_feedback</code></td><td>Shoot done, deliverables in progress, feedback not yet received.</td></tr>
+        <tr><td><code>completed_feedback_provided</code></td><td>Client has given feedback. Full lifecycle complete.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Forward-Only Transitions</h3>
+  <p>The trial shoot state machine is strictly forward-only. Regression throws an error. This is enforced by comparing array indices:</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript</div>
+    <pre><span class="kw">function</span> <span class="type">isForwardTransition</span>(from: <span class="type">TrialShootStatus</span>, to: <span class="type">TrialShootStatus</span>): <span class="type">boolean</span> {
+  <span class="kw">return</span> indexOf(to) &gt; indexOf(from);
+}
+
+<span class="kw">function</span> <span class="type">isTrialShootComplete</span>(status: <span class="type">TrialShootStatus</span>): <span class="type">boolean</span> {
+  <span class="kw">return</span> status === <span class="str">"completed_awaiting_feedback"</span>
+      || status === <span class="str">"completed_feedback_provided"</span>;
+}
+
+<span class="kw">function</span> <span class="type">legalForwardTargets</span>(from: <span class="type">TrialShootStatus</span>): <span class="type">TrialShootStatus</span>[] {
+  <span class="kw">return</span> SEQUENCE.slice(indexOf(from) + <span class="num">1</span>);
+}</pre>
+  </div>
+
+  <h3>Booking Flow</h3>
+  <p><code>markCompanyTrialShootBooked(dealId, opts)</code> is the primary entry point, typically fired by the Intro Funnel Stripe webhook. In one transaction it:</p>
+  <ol>
+    <li>Moves the deal to <code>trial_shoot</code> stage (skipped if already there)</li>
+    <li>Advances the company&rsquo;s <code>trial_shoot_status</code> to <code>booked</code> (skipped if already at or past <code>booked</code>)</li>
+    <li>Writes a <code>trial_shoot_booked</code> activity log row</li>
+  </ol>
+
+  <h3>Completion Timestamp</h3>
+  <p><code>trial_shoot_completed_at_ms</code> is stamped on the company the first time the status enters a <code>completed_*</code> state. Subsequent advances (e.g. <code>completed_awaiting_feedback</code> &rarr; <code>completed_feedback_provided</code>) do not overwrite it.</p>
+
+  <div class="callout">
+    <div class="callout-label">Deal vs Company</div>
+    <p>The deal stays in the <code>trial_shoot</code> pipeline stage for the entire sub-lifecycle. The granular state lives on the company&rsquo;s <code>trial_shoot_status</code> column. This separation means one company can have trial shoot state independent of deal-level pipeline position.</p>
+  </div>
+</div>
+
+<!-- ── 8. ACTIVITY LOGGING ────────────────────────────────────── -->
+
+<div class="section" id="activity-log">
+  <div class="section-num">Section 08</div>
+  <h2>Activity Logging</h2>
+
+  <p>The activity log is a single append-only table that records every meaningful event across the entire platform. 334 distinct event kinds, grouped across 40+ feature domains.</p>
+
+  <h3>Schema</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>company_id</code></td><td>text FK</td><td>Scopes event to a company (nullable for pre-company events)</td></tr>
+        <tr><td><code>contact_id</code></td><td>text FK</td><td>Optionally scopes to a contact (set null on delete)</td></tr>
+        <tr><td><code>deal_id</code></td><td>text FK</td><td>Optionally scopes to a deal (cascade delete)</td></tr>
+        <tr><td><code>kind</code></td><td>enum (334 values)</td><td>The event type. Single source of truth for the full union.</td></tr>
+        <tr><td><code>body</code></td><td>text</td><td>Human-readable description of the event</td></tr>
+        <tr><td><code>meta</code></td><td>JSON</td><td>Structured payload. Shape varies by kind.</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer</td><td>Epoch millisecond timestamp</td></tr>
+        <tr><td><code>created_by</code></td><td>text</td><td>Actor tag (e.g. <code>user:admin</code>, <code>system:cron</code>, <code>stripe:webhook</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Indices</h3>
+  <p>Four composite indices for efficient querying:</p>
+  <ul>
+    <li><code>by_company</code> &mdash; <code>(company_id, created_at_ms)</code></li>
+    <li><code>by_contact</code> &mdash; <code>(contact_id, created_at_ms)</code></li>
+    <li><code>by_deal</code> &mdash; <code>(deal_id, created_at_ms)</code></li>
+    <li><code>by_kind</code> &mdash; <code>(kind, created_at_ms)</code></li>
+  </ul>
+
+  <h3>Event Kind Domains</h3>
+  <p>Every kind belongs to a feature domain. The full count by domain:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Domain</th><th>Kinds</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td>Sales Pipeline</td><td>11</td><td><code>stage_change</code>, <code>note</code>, <code>email_sent</code>, <code>quote_sent</code></td></tr>
+        <tr><td>Unified Inbox</td><td>31</td><td><code>inbox_message_received</code>, <code>inbox_routed</code>, <code>inbox_draft_sent</code></td></tr>
+        <tr><td>Intro Funnel</td><td>22</td><td><code>intro_funnel_paid</code>, <code>shoot_booked</code>, <code>deliverables_ready</code></td></tr>
+        <tr><td>Lead Generation</td><td>31</td><td><code>outreach_sent</code>, <code>outreach_replied</code>, <code>candidate_rescored</code></td></tr>
+        <tr><td>Hiring Pipeline</td><td>20</td><td><code>candidate_sourced</code>, <code>candidate_trial_sent</code>, <code>bench_magic_link_sent</code></td></tr>
+        <tr><td>Six-Week Plan</td><td>19</td><td><code>six_week_plan_approved</code>, <code>six_week_plan_released</code></td></tr>
+        <tr><td>Quote Builder</td><td>17</td><td><code>quote_draft_started</code>, <code>quote_accepted</code>, <code>subscription_paused</code></td></tr>
+        <tr><td>Content Engine</td><td>16</td><td><code>content_draft_generated</code>, <code>content_post_published</code></td></tr>
+        <tr><td>Client Context</td><td>15</td><td><code>active_strategy_created</code>, <code>action_item_completed</code>, <code>draft_sent</code></td></tr>
+        <tr><td>SaaS Billing</td><td>14</td><td><code>saas_subscription_created</code>, <code>saas_payment_failed_lockout</code></td></tr>
+        <tr><td>Task Manager</td><td>13</td><td><code>task_created</code>, <code>braindump_parsed</code>, <code>task_digest_sent</code></td></tr>
+        <tr><td>Cost Observatory</td><td>10</td><td><code>cost_anomaly_fired</code>, <code>kill_switch_triggered</code></td></tr>
+        <tr><td>Brand DNA</td><td>11</td><td><code>assessment_started</code>, <code>profile_generated</code>, <code>brand_dna_invite_sent</code></td></tr>
+        <tr><td>Onboarding</td><td>9</td><td><code>onboarding_started</code>, <code>onboarding_brand_dna_completed</code></td></tr>
+        <tr><td>Surprise &amp; Delight</td><td>9</td><td><code>hidden_egg_fired</code>, <code>riddle_resolved</code>, <code>ambient_copy_generated</code></td></tr>
+        <tr><td>Client Management</td><td>10</td><td><code>portal_chat_message_sent</code>, <code>data_export_requested</code></td></tr>
+        <tr><td>Finance</td><td>8</td><td><code>finance_expense_created</code>, <code>finance_bas_filed</code></td></tr>
+        <tr><td>Branded Invoicing</td><td>8</td><td><code>invoice_generated</code>, <code>invoice_paid_online</code></td></tr>
+        <tr><td>Daily Cockpit</td><td>8</td><td><code>cockpit_brief_generated</code>, <code>cockpit_chip_tapped</code></td></tr>
+        <tr><td>Contractor Portal</td><td>7</td><td><code>contractor_deliverable_submitted</code>, <code>contractor_invoice_submitted</code></td></tr>
+        <tr><td>Setup Wizards</td><td>6</td><td><code>wizard_started</code>, <code>wizard_completed</code>, <code>integration_registered</code></td></tr>
+        <tr><td>Others</td><td>39</td><td>Briefs, storyboards, Instagram, portal, call notes, data management</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>How Events Are Written</h3>
+  <p>Two patterns coexist:</p>
+  <ol>
+    <li><strong>Inline in transactions</strong> &mdash; CRM functions (e.g. <code>transitionDealStage</code>, <code>advanceTrialShootStatus</code>) write activity rows inside the same SQLite transaction as the data mutation. Guarantees consistency.</li>
+    <li><strong>Via <code>logActivity()</code> helper</strong> &mdash; An async function that inserts a row using the default database connection. Used by server actions and background tasks where the event is independent of a transaction boundary.</li>
+  </ol>
+
+  <div class="code-block">
+    <div class="code-header">logActivity Helper</div>
+    <pre><span class="kw">async function</span> <span class="type">logActivity</span>(input: {
+  companyId?: <span class="type">string</span>;
+  contactId?: <span class="type">string</span>;
+  dealId?: <span class="type">string</span>;
+  kind: <span class="type">ActivityLogKind</span>;
+  body: <span class="type">string</span>;
+  meta?: <span class="type">Record</span>&lt;<span class="type">string</span>, <span class="type">unknown</span>&gt;;
+  createdBy?: <span class="type">string</span>;
+  createdAtMs?: <span class="type">number</span>;
+}): <span class="type">Promise</span>&lt;<span class="type">ActivityLogRow</span>&gt;</pre>
+  </div>
+
+  <h3>Meta Shape Convention</h3>
+  <p>The <code>meta</code> column is unstructured JSON, but conventions exist by kind:</p>
+  <ul>
+    <li><strong>stage_change:</strong> <code>{ from_stage, to_stage, by, source? }</code></li>
+    <li><strong>note (snooze):</strong> <code>{ kind: "snooze", until_ms, by }</code></li>
+    <li><strong>note (trial shoot):</strong> <code>{ kind: "trial_shoot_status_change", from, to, by }</code></li>
+    <li><strong>note (plan update):</strong> <code>{ kind: "trial_shoot_plan_updated", by, length }</code></li>
+  </ul>
+  <p class="mutter">The <code>note</code> kind doubles as a catch-all. Distinguish sub-types via <code>meta.kind</code>.</p>
+</div>
+
+<!-- ── 9. STALE DETECTION ─────────────────────────────────────── -->
+
+<div class="section" id="stale">
+  <div class="section-num">Section 09</div>
+  <h2>Stale Detection</h2>
+
+  <p>A deal is &ldquo;stale&rdquo; when it has sat in a stage too long without advancing. Stale detection runs on every pipeline page load and drives visual indicators on the Kanban board.</p>
+
+  <h3>Per-Stage Thresholds</h3>
+  <p>Each non-terminal stage has a configurable threshold in days, stored in the <code>settings</code> table:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Setting Key</th><th>Stage</th></tr></thead>
+      <tbody>
+        <tr><td><code>pipeline.stale_thresholds.lead_days</code></td><td>lead</td></tr>
+        <tr><td><code>pipeline.stale_thresholds.contacted_days</code></td><td>contacted</td></tr>
+        <tr><td><code>pipeline.stale_thresholds.conversation_days</code></td><td>conversation</td></tr>
+        <tr><td><code>pipeline.stale_thresholds.trial_shoot_days</code></td><td>trial_shoot</td></tr>
+        <tr><td><code>pipeline.stale_thresholds.quoted_days</code></td><td>quoted</td></tr>
+        <tr><td><code>pipeline.stale_thresholds.negotiating_days</code></td><td>negotiating</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Staleness Logic</h3>
+  <p><code>isDealStale()</code> is a pure function &mdash; no database access, no side effects. It takes the deal&rsquo;s stage, timestamps, and the threshold config:</p>
+
+  <div class="code-block">
+    <div class="code-header">TypeScript</div>
+    <pre><span class="kw">function</span> <span class="type">isDealStale</span>(deal, thresholds, nowMs): <span class="type">boolean</span> {
+  <span class="comment">// 1. Won / Lost are terminal → never stale</span>
+  <span class="comment">// 2. Null last_stage_change_at_ms → not stale (defensive)</span>
+  <span class="comment">// 3. Snoozed until future date → suppressed (not stale)</span>
+  <span class="comment">// 4. Compare: (now - last_stage_change) > (threshold_days * 86400000)</span>
+  <span class="kw">const</span> key = THRESHOLD_KEY_FOR_STAGE[deal.stage];
+  <span class="kw">if</span> (!key) <span class="kw">return</span> <span class="num">false</span>;
+  <span class="kw">if</span> (deal.snoozed_until_ms != <span class="type">null</span> &amp;&amp; deal.snoozed_until_ms &gt; nowMs)
+    <span class="kw">return</span> <span class="num">false</span>;
+  <span class="kw">return</span> nowMs - deal.last_stage_change_at_ms &gt; thresholds[key] * DAY_MS;
+}</pre>
+  </div>
+
+  <h3>Snooze Suppression</h3>
+  <p>A deal can be snoozed until a future date. While snoozed, it is excluded from stale detection. Once the snooze expires, normal staleness computation resumes.</p>
+  <p><code>snoozeDeal(dealId, untilMs, opts)</code> sets the <code>snoozed_until_ms</code> column and writes a <code>note</code> activity row with <code>meta: { kind: "snooze" }</code>. The snooze date must be strictly in the future.</p>
+  <p>The default snooze duration is configurable via <code>pipeline.snooze_default_days</code> in the settings table.</p>
+
+  <div class="callout">
+    <div class="callout-label">No Background Job</div>
+    <p>Stale detection is computed on read, not written by a cron job. Every time the pipeline page loads, every deal is evaluated against the current time and current thresholds. This means threshold changes take effect immediately with zero migration.</p>
+  </div>
+</div>
+
+<!-- ── 10. DATABASE SCHEMA ────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 10</div>
+  <h2>Database Schema</h2>
+
+  <h3>companies</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID (CUID)</td></tr>
+        <tr><td><code>name</code></td><td>text NOT NULL</td><td>Display name</td></tr>
+        <tr><td><code>name_normalised</code></td><td>text NOT NULL</td><td>Lowercased, squeezed, de-punctuated. Indexed.</td></tr>
+        <tr><td><code>domain</code></td><td>text</td><td>Website domain (normalised). Indexed.</td></tr>
+        <tr><td><code>industry</code></td><td>text</td><td>Free-text industry</td></tr>
+        <tr><td><code>size_band</code></td><td>enum</td><td><code>small</code> | <code>medium</code> | <code>large</code></td></tr>
+        <tr><td><code>billing_mode</code></td><td>enum NOT NULL</td><td><code>stripe</code> (default) | <code>manual</code>. Indexed.</td></tr>
+        <tr><td><code>do_not_contact</code></td><td>boolean NOT NULL</td><td>Global suppression flag. Default <code>false</code>.</td></tr>
+        <tr><td><code>notes</code></td><td>text</td><td>Free-text admin notes</td></tr>
+        <tr><td><code>trial_shoot_status</code></td><td>enum NOT NULL</td><td>Default <code>none</code>. Six-state machine.</td></tr>
+        <tr><td><code>trial_shoot_completed_at_ms</code></td><td>integer</td><td>Stamped on first completion</td></tr>
+        <tr><td><code>trial_shoot_plan</code></td><td>text</td><td>Free-text plan</td></tr>
+        <tr><td><code>trial_shoot_feedback</code></td><td>text</td><td>Post-shoot feedback</td></tr>
+        <tr><td><code>shape</code></td><td>enum</td><td>Company shape (nullable)</td></tr>
+        <tr><td><code>gst_applicable</code></td><td>boolean NOT NULL</td><td>Default <code>true</code>. Invoicing flag.</td></tr>
+        <tr><td><code>abn</code></td><td>text</td><td>Australian Business Number</td></tr>
+        <tr><td><code>payment_terms_days</code></td><td>integer NOT NULL</td><td>Default 14. Inherited by invoices.</td></tr>
+        <tr><td><code>revenue_range</code></td><td>enum</td><td>SaaS segmentation</td></tr>
+        <tr><td><code>team_size</code></td><td>enum</td><td>SaaS segmentation</td></tr>
+        <tr><td><code>biggest_constraint</code></td><td>enum</td><td>SaaS segmentation</td></tr>
+        <tr><td><code>twelve_month_goal</code></td><td>enum</td><td>SaaS segmentation</td></tr>
+        <tr><td><code>industry_vertical</code></td><td>enum</td><td>8 options including <code>other</code></td></tr>
+        <tr><td><code>industry_vertical_other</code></td><td>text</td><td>Free-text when vertical = <code>other</code></td></tr>
+        <tr><td><code>location</code></td><td>text</td><td>Geography</td></tr>
+        <tr><td><code>revenue_segmentation_completed_at_ms</code></td><td>integer</td><td>Timestamp</td></tr>
+        <tr><td><code>first_seen_at_ms</code></td><td>integer NOT NULL</td><td>When first created</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer NOT NULL</td><td></td></tr>
+        <tr><td><code>updated_at_ms</code></td><td>integer NOT NULL</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indices:</strong> <code>companies_name_norm_idx</code>, <code>companies_domain_idx</code>, <code>companies_billing_mode_idx</code></p>
+
+  <h3>contacts</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>company_id</code></td><td>text FK NOT NULL</td><td>Cascade delete with company</td></tr>
+        <tr><td><code>name</code></td><td>text NOT NULL</td><td></td></tr>
+        <tr><td><code>role</code></td><td>text</td><td></td></tr>
+        <tr><td><code>email</code></td><td>text</td><td>Raw input</td></tr>
+        <tr><td><code>email_normalised</code></td><td>text</td><td>Lowercased. Indexed.</td></tr>
+        <tr><td><code>email_status</code></td><td>enum NOT NULL</td><td>Default <code>unknown</code></td></tr>
+        <tr><td><code>phone</code></td><td>text</td><td>Raw input</td></tr>
+        <tr><td><code>phone_normalised</code></td><td>text</td><td>Digits only. Indexed.</td></tr>
+        <tr><td><code>sms_opt_in</code></td><td>boolean NOT NULL</td><td>Default <code>false</code></td></tr>
+        <tr><td><code>sms_consent_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>is_primary</code></td><td>boolean NOT NULL</td><td>Default <code>false</code></td></tr>
+        <tr><td><code>notes</code></td><td>text</td><td></td></tr>
+        <tr><td><code>stripe_customer_id</code></td><td>text UNIQUE</td><td>Lazily created on first payment</td></tr>
+        <tr><td><code>relationship_type</code></td><td>enum</td><td>6 options</td></tr>
+        <tr><td><code>inbox_alt_emails</code></td><td>JSON string[]</td><td>Default <code>[]</code></td></tr>
+        <tr><td><code>preferred_channel</code></td><td>enum NOT NULL</td><td>Default <code>email</code></td></tr>
+        <tr><td><code>notification_weight</code></td><td>integer NOT NULL</td><td>Default 0</td></tr>
+        <tr><td><code>always_keep_noise</code></td><td>boolean NOT NULL</td><td>Default <code>false</code></td></tr>
+        <tr><td><code>portal_chat_last_seen_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>portal_last_visited_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>onboarding_welcome_seen_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>retainer_kickoff_bartender_said_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>bundled_hub_seen_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>last_referral_prompt_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer NOT NULL</td><td></td></tr>
+        <tr><td><code>updated_at_ms</code></td><td>integer NOT NULL</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indices:</strong> <code>contacts_company_idx</code>, <code>contacts_email_norm_idx</code>, <code>contacts_phone_norm_idx</code></p>
+
+  <h3>deals</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>company_id</code></td><td>text FK NOT NULL</td><td>Cascade delete</td></tr>
+        <tr><td><code>primary_contact_id</code></td><td>text FK</td><td>Set null on contact delete</td></tr>
+        <tr><td><code>title</code></td><td>text NOT NULL</td><td></td></tr>
+        <tr><td><code>stage</code></td><td>enum NOT NULL</td><td>8 stages. Default <code>lead</code>.</td></tr>
+        <tr><td><code>value_cents</code></td><td>integer</td><td>Nullable. Always in cents.</td></tr>
+        <tr><td><code>value_estimated</code></td><td>boolean NOT NULL</td><td>Default <code>true</code>. Flips on confirmed payment.</td></tr>
+        <tr><td><code>won_outcome</code></td><td>enum</td><td>Required when stage = <code>won</code></td></tr>
+        <tr><td><code>loss_reason</code></td><td>enum</td><td>Required when stage = <code>lost</code></td></tr>
+        <tr><td><code>loss_notes</code></td><td>text</td><td>Required when loss_reason = <code>other</code></td></tr>
+        <tr><td><code>next_action_text</code></td><td>text</td><td>Free-text next step</td></tr>
+        <tr><td><code>next_action_overridden_at_ms</code></td><td>integer</td><td>Cleared on stage change</td></tr>
+        <tr><td><code>snoozed_until_ms</code></td><td>integer</td><td>Stale suppression</td></tr>
+        <tr><td><code>last_stage_change_at_ms</code></td><td>integer NOT NULL</td><td>Drives staleness calculation</td></tr>
+        <tr><td><code>source</code></td><td>text</td><td>Origin tag (e.g. <code>manual_admin</code>, <code>intro_funnel_paid</code>)</td></tr>
+        <tr><td><code>subscription_state</code></td><td>enum</td><td>8 subscription states</td></tr>
+        <tr><td><code>billing_cadence</code></td><td>enum</td><td>3 billing cadences</td></tr>
+        <tr><td><code>committed_until_date_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>pause_used_this_commitment</code></td><td>boolean NOT NULL</td><td>Default <code>false</code></td></tr>
+        <tr><td><code>stripe_subscription_id</code></td><td>text</td><td>Indexed</td></tr>
+        <tr><td><code>stripe_customer_id</code></td><td>text</td><td>Denormalised from contact</td></tr>
+        <tr><td><code>saas_product_id</code></td><td>text</td><td>Null for retainer/project</td></tr>
+        <tr><td><code>saas_tier_id</code></td><td>text</td><td></td></tr>
+        <tr><td><code>payment_failure_count</code></td><td>integer NOT NULL</td><td>Default 0</td></tr>
+        <tr><td><code>first_payment_failure_at_ms</code></td><td>integer</td><td></td></tr>
+        <tr><td><code>cloudinary_gallery_folder</code></td><td>text</td><td>Media delivery folder</td></tr>
+        <tr><td><code>funnel_submission_id</code></td><td>text</td><td>Intro funnel linkage</td></tr>
+        <tr><td><code>funnel_state</code></td><td>text</td><td></td></tr>
+        <tr><td><code>post_trial_signal</code></td><td>text</td><td></td></tr>
+        <tr><td><code>reschedule_count</code></td><td>integer NOT NULL</td><td>Default 0</td></tr>
+        <tr><td><code>referral_from_company_id</code></td><td>text FK</td><td>Set null on company delete</td></tr>
+        <tr><td><code>referral_from_contact_id</code></td><td>text FK</td><td>Set null on contact delete</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer NOT NULL</td><td></td></tr>
+        <tr><td><code>updated_at_ms</code></td><td>integer NOT NULL</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indices:</strong> <code>deals_company_idx</code>, <code>deals_contact_idx</code>, <code>deals_stage_idx (stage, last_stage_change_at_ms)</code>, <code>deals_stripe_subscription_idx</code></p>
+
+  <h3>activity_log</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>UUID</td></tr>
+        <tr><td><code>company_id</code></td><td>text FK</td><td>Cascade delete</td></tr>
+        <tr><td><code>contact_id</code></td><td>text FK</td><td>Set null on contact delete</td></tr>
+        <tr><td><code>deal_id</code></td><td>text FK</td><td>Cascade delete</td></tr>
+        <tr><td><code>kind</code></td><td>enum NOT NULL</td><td>334 values</td></tr>
+        <tr><td><code>body</code></td><td>text NOT NULL</td><td>Human-readable description</td></tr>
+        <tr><td><code>meta</code></td><td>JSON</td><td>Structured payload, shape varies by kind</td></tr>
+        <tr><td><code>created_at_ms</code></td><td>integer NOT NULL</td><td></td></tr>
+        <tr><td><code>created_by</code></td><td>text</td><td>Actor tag</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Indices:</strong> <code>(company_id, created_at_ms)</code>, <code>(contact_id, created_at_ms)</code>, <code>(deal_id, created_at_ms)</code>, <code>(kind, created_at_ms)</code></p>
+</div>
+
+<!-- ── 11. SERVER ACTIONS ──────────────────────────────────────── -->
+
+<div class="section" id="actions">
+  <div class="section-num">Section 11</div>
+  <h2>Server Actions</h2>
+
+  <p>All CRM mutations from the admin UI go through Next.js Server Actions (<code>"use server"</code>). Every action checks admin auth, validates input, calls the CRM lib function, revalidates the page cache, and returns a discriminated <code>{ ok: true } | { ok: false; error: string }</code> result.</p>
+
+  <h3>Pipeline Actions</h3>
+  <p>File: <code>app/lite/admin/pipeline/actions.ts</code></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>transitionDealAction</code></td><td>Non-terminal stage changes. Rejects <code>won</code>/<code>lost</code> &mdash; those use finalisation actions.</td></tr>
+        <tr><td><code>finaliseWonAction</code></td><td>Marks a deal as Won with a <code>won_outcome</code>.</td></tr>
+        <tr><td><code>finaliseLostAction</code></td><td>Marks a deal as Lost with a <code>loss_reason</code> (and <code>loss_notes</code> if <code>other</code>).</td></tr>
+        <tr><td><code>addLeadAction</code></td><td>Creates a new Company + Contact + Deal. Dedupes against existing records. Returns <code>companyReused</code> and <code>contactReused</code> flags.</td></tr>
+        <tr><td><code>snoozeDealAction</code></td><td>Snoozes a deal until a future date. Validates date is in the future.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Deal Detail Actions</h3>
+  <p>File: <code>app/lite/admin/pipeline/[id]/actions.ts</code></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>updateDealAction</code></td><td>Patch deal fields: <code>title</code>, <code>value_cents</code>, <code>next_action_text</code>, <code>stage</code>. Logs <code>deal_updated</code>.</td></tr>
+        <tr><td><code>updateContactAction</code></td><td>Patch contact fields: <code>name</code>, <code>email</code>, <code>phone</code>, <code>role</code>.</td></tr>
+        <tr><td><code>updateCompanyAction</code></td><td>Patch company name.</td></tr>
+        <tr><td><code>deleteDealAction</code></td><td>Deletes a deal. Logs <code>deal_deleted</code>.</td></tr>
+        <tr><td><code>createQuoteAction</code></td><td>Creates a draft quote linked to the deal. Logs <code>quote_drafted</code>.</td></tr>
+        <tr><td><code>deleteQuoteAction</code></td><td>Deletes a quote (unless it&rsquo;s accepted). Logs <code>quote_deleted</code>.</td></tr>
+        <tr><td><code>sendQuoteAction</code></td><td>Transitions a draft quote to &ldquo;sent&rdquo;, sends the email, logs <code>quote_sent</code>.</td></tr>
+        <tr><td><code>resendPortalLinkAction</code></td><td>Re-sends a portal magic link to the contact.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Auth Pattern</h3>
+  <p>Every action uses the same guard:</p>
+  <div class="code-block">
+    <div class="code-header">TypeScript</div>
+    <pre><span class="kw">async function</span> <span class="type">adminActorTag</span>(): <span class="type">Promise</span>&lt;<span class="type">string</span> | <span class="type">null</span>&gt; {
+  <span class="kw">const</span> session = <span class="kw">await</span> auth();
+  <span class="kw">if</span> (!session?.user || session.user.role !== <span class="str">"admin"</span>) <span class="kw">return</span> <span class="type">null</span>;
+  <span class="kw">return</span> <span class="str">`user:${session.user.id ?? "admin"}`</span>;
+}</pre>
+  </div>
+  <p>This tag flows into <code>activity_log.created_by</code> and <code>meta.by</code> on every event.</p>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Start with the three core tables.</strong> Companies, Contacts, Deals &mdash; and the relationships between them. Everything else hangs off these. Get the foreign key cascade rules right first.</li>
+
+    <li><strong>Normalise on write, match on normalised columns.</strong> Store both the raw input (<code>email</code>) and the normalised version (<code>email_normalised</code>). Index the normalised columns. Never normalise on read &mdash; it kills index performance.</li>
+
+    <li><strong>Dedupe is non-destructive.</strong> When a duplicate is found, only null fields are backfilled. Never overwrite existing data. This prevents accidental data loss from bad imports.</li>
+
+    <li><strong>Legal transitions are a map, not a matrix.</strong> A simple <code>Record&lt;DealStage, DealStage[]&gt;</code> is easier to read, extend, and test than a 2D boolean matrix. Loop through the adjacency list to render valid move targets in the UI.</li>
+
+    <li><strong>Terminal stages need dedicated finalisation functions.</strong> Don&rsquo;t let the generic transition function handle Won/Lost. The required metadata fields (<code>won_outcome</code>, <code>loss_reason</code>) must be set in the same transaction as the stage change, or you&rsquo;ll end up with Won deals that don&rsquo;t say what was won.</li>
+
+    <li><strong>Staleness is computed on read, not written by cron.</strong> This means threshold changes take effect immediately. It also means the <code>isDealStale()</code> function must be pure &mdash; no database access, no side effects, just math.</li>
+
+    <li><strong>Snooze suppresses stale, it doesn&rsquo;t reset the clock.</strong> When a snooze expires, staleness is recalculated from the original <code>last_stage_change_at_ms</code>. The deal might be immediately stale when it unsnozes. This is correct.</li>
+
+    <li><strong>Write activity log rows inside the same transaction.</strong> If the stage change succeeds but the activity log insert fails (or vice versa), your audit trail is wrong. SQLite transactions make this free.</li>
+
+    <li><strong>The <code>note</code> kind is a catch-all.</strong> Use <code>meta.kind</code> to sub-type it (<code>"snooze"</code>, <code>"trial_shoot_status_change"</code>, <code>"trial_shoot_plan_updated"</code>). Don&rsquo;t create a new top-level kind for every variation.</li>
+
+    <li><strong>Trial shoot state lives on the company, not the deal.</strong> A company&rsquo;s trial shoot is a single event even if the pipeline deal changes. The deal stays in <code>trial_shoot</code> stage while the company&rsquo;s <code>trial_shoot_status</code> tracks the granular lifecycle.</li>
+
+    <li><strong>Value is always in cents.</strong> Never store dollars as a float. Display formatting happens at the boundary (<code>value_cents / 100</code>). Use <code>Intl.NumberFormat</code> for currency display.</li>
+
+    <li><strong>Every action returns a discriminated union.</strong> <code>{ ok: true }</code> or <code>{ ok: false; error: string }</code>. The client can toast the error directly. Never throw from a server action &mdash; the error serialisation is unreliable.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">The CRM is boring on purpose. Three tables, eight stages, one activity log. The complexity lives in the business rules &mdash; which transitions are legal, when a deal goes stale, what metadata a Won needs. Get the rules right and the code stays simple.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>

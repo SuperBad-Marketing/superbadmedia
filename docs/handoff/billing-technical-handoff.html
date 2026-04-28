@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing &amp; Payments — Technical Handoff | SuperBad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --superbad-red: #B22848;
+    --warm-cream: #FDF5E6;
+    --retro-pink: #F4A0B0;
+    --retro-orange: #F28C52;
+    --dark-charcoal: #1A1A18;
+    --mid-charcoal: #2A2A28;
+    --surface: #222220;
+    --border: #3A3A38;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--dark-charcoal);
+    color: var(--warm-cream);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark-charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--warm-cream);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--superbad-red); }
+
+  .nav-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--retro-pink);
+  }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.75rem;
+    color: var(--retro-pink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    color: var(--warm-cream);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 .dot { color: var(--superbad-red); }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--retro-pink);
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { white-space: nowrap; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+
+  .toc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .toc-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--warm-cream);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .toc a:hover {
+    border-color: var(--superbad-red);
+    background: var(--mid-charcoal);
+  }
+  .toc a .num {
+    color: var(--retro-pink);
+    font-family: 'Righteous', sans-serif;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────────── */
+
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-num {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 2rem;
+    color: var(--warm-cream);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--warm-cream);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: rgba(253, 245, 230, 0.85);
+    font-size: 0.95rem;
+  }
+
+  .mutter {
+    font-style: italic;
+    color: var(--retro-pink);
+    font-size: 0.9rem;
+  }
+
+  /* ── DIAGRAM ─────────────────────────────────────────────── */
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram pre {
+    font-family: 'DM Sans', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--warm-cream);
+    white-space: pre;
+  }
+
+  .diagram .highlight { color: var(--superbad-red); font-weight: 700; }
+  .diagram .dim { color: var(--muted); }
+  .diagram .accent { color: var(--retro-pink); }
+
+  /* ── TABLES ──────────────────────────────────────────────── */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  thead th {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--retro-pink);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: rgba(253, 245, 230, 0.85);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(178, 40, 72, 0.06); }
+
+  td code, p code, li code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-family: 'DM Sans', monospace;
+    color: var(--retro-orange);
+  }
+
+  /* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Righteous', sans-serif;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+
+  .code-block pre {
+    padding: 1rem;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(253, 245, 230, 0.9);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: var(--superbad-red); }
+  .code-block .str { color: var(--retro-pink); }
+  .code-block .comment { color: var(--muted); font-style: italic; }
+  .code-block .type { color: var(--retro-orange); }
+  .code-block .num { color: var(--retro-orange); }
+
+  /* ── TAG GRID ────────────────────────────────────────────── */
+
+  .tag-domain {
+    margin: 1.5rem 0;
+  }
+
+  .tag-domain-header {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+    color: var(--retro-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--warm-cream);
+    font-family: 'DM Sans', monospace;
+    transition: border-color 0.2s;
+  }
+  .tag:hover { border-color: var(--superbad-red); }
+
+  .tag-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 0.3rem;
+  }
+
+  /* ── CALLOUT ─────────────────────────────────────────────── */
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--superbad-red);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-label {
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    color: var(--superbad-red);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── TENSION TABLE ───────────────────────────────────────── */
+
+  .tension-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+  }
+  .tension-tag {
+    font-family: 'DM Sans', monospace;
+    color: var(--warm-cream);
+    font-size: 0.82rem;
+  }
+  .tension-vs {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-family: 'Righteous', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── LISTS ───────────────────────────────────────────────── */
+
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: rgba(253, 245, 230, 0.85);
+  }
+  li strong { color: var(--warm-cream); }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 1.2rem;
+    color: var(--warm-cream);
+  }
+  .footer-brand span { color: var(--superbad-red); }
+
+  .footer-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────── */
+
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .content, .toc { padding: 1.5rem; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .hero-meta { flex-direction: column; gap: 0.5rem; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV                                                           -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<nav>
+  <span class="nav-brand">Super<span>Bad</span></span>
+  <span class="nav-label">Technical Handoff</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="hero">
+  <div class="hero-eyebrow">Billing &amp; Payments</div>
+  <h1>Technical<br>Handoff<span class="dot">.</span></h1>
+  <p class="hero-sub">Everything a developer needs to understand the billing system &mdash; Stripe integration, subscriptions, invoicing, quotes, SaaS tiers, and how money actually moves through the platform.</p>
+  <div class="hero-meta">
+    <span>System: SuperBad Lite</span>
+    <span>Date: 28 April 2026</span>
+    <span>Audience: Dev Team</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a href="#what"><span class="num">01</span> What the Billing System Does</a>
+    <a href="#architecture"><span class="num">02</span> Architecture</a>
+    <a href="#subscriptions"><span class="num">03</span> Subscription Management</a>
+    <a href="#invoices"><span class="num">04</span> Invoice System</a>
+    <a href="#quote-to-invoice"><span class="num">05</span> Quote-to-Invoice Conversion</a>
+    <a href="#one-off"><span class="num">06</span> One-Off Payments</a>
+    <a href="#webhooks"><span class="num">07</span> Stripe Webhook Handler</a>
+    <a href="#gst"><span class="num">08</span> GST &amp; Tax Handling</a>
+    <a href="#finance"><span class="num">09</span> Finance Dashboard</a>
+    <a href="#database"><span class="num">10</span> Database Schema</a>
+    <a href="#saas-tiers"><span class="num">11</span> SaaS Tier Management</a>
+    <a href="#tips"><span class="num">12</span> Implementation Tips</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CONTENT                                                       -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="content">
+
+<!-- ── 1. WHAT THE BILLING SYSTEM DOES ─────────────────────────── -->
+
+<div class="section" id="what">
+  <div class="section-num">Section 01</div>
+  <h2>What the Billing System Does</h2>
+  <p>SuperBad Lite has two revenue arms that share the same underlying Stripe primitives but reach customers through completely different paths:</p>
+  <ul>
+    <li><strong>Retainer arm (Quote Builder):</strong> Andy builds a custom quote for a client. Client accepts. A Stripe Subscription is created. Monthly invoices auto-generate. Commitment is enforced at the Lite UX layer, not by Stripe.</li>
+    <li><strong>SaaS arm (Subscription Billing):</strong> Subscribers self-serve through a public checkout. They pick a product, tier, and commitment length. A Stripe Subscription is created. Usage limits are enforced per billing cycle.</li>
+  </ul>
+  <p>Both arms converge on the same <code>deals</code> table for subscription state, the same cancel flow at <code>/lite/portal/subscription</code>, the same <code>scheduled_tasks</code> worker for lifecycle events, and the same <code>webhook_events</code> idempotency table for Stripe event processing.</p>
+  <p>The billing system also handles: branded invoice generation with ATO-compliant PDFs, a full finance dashboard with P&amp;L and tax provisioning, expense tracking, and accountant-ready export bundles.</p>
+  <p class="mutter">Two revenue arms. One Stripe SDK. Zero spreadsheets.</p>
+</div>
+
+<!-- ── 2. ARCHITECTURE ─────────────────────────────────────────── -->
+
+<div class="section" id="architecture">
+  <div class="section-num">Section 02</div>
+  <h2>Architecture</h2>
+
+  <h3>Stripe Integration Pattern</h3>
+  <p>Stripe is accessed exclusively through <code>lib/stripe/</code>. Feature code never imports the Stripe SDK directly &mdash; an ESLint rule (<code>no-direct-stripe-customer-create</code>) enforces the boundary. The SDK singleton is lazy-initialised via <code>getStripe()</code> to avoid build-time crashes when environment variables are absent.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/stripe/client.ts &mdash; Lazy Singleton</div>
+    <pre><span class="kw">import</span> Stripe <span class="kw">from</span> <span class="str">"stripe"</span>;
+
+<span class="kw">const</span> globalForStripe = globalThis <span class="kw">as</span> <span class="type">unknown</span> <span class="kw">as</span> { _stripe?: Stripe };
+
+<span class="kw">export function</span> <span class="type">getStripe</span>(): Stripe {
+  <span class="kw">if</span> (globalForStripe._stripe) <span class="kw">return</span> globalForStripe._stripe;
+  <span class="kw">const</span> instance = <span class="kw">new</span> Stripe(process.env.STRIPE_SECRET_KEY ?? <span class="str">""</span>, {
+    apiVersion: <span class="str">"2026-03-25.dahlia"</span>,
+    typescript: <span class="kw">true</span>,
+  });
+  <span class="kw">if</span> (process.env.NODE_ENV !== <span class="str">"production"</span>) {
+    globalForStripe._stripe = instance;
+  }
+  <span class="kw">return</span> instance;
+}</pre>
+  </div>
+
+  <h3>Data Flow</h3>
+  <div class="diagram"><pre><span class="highlight">Quote Builder</span>          <span class="highlight">SaaS Checkout</span>          <span class="highlight">Invoice Web View</span>
+       |                       |                         |
+       v                       v                         v
+  <span class="accent">PaymentIntent</span>          <span class="accent">Subscription</span>           <span class="accent">PaymentIntent</span>
+       |                       |                         |
+       v                       v                         v
+   <span class="dim">Stripe API</span> ──────────────────────────────────────────────
+                               |
+                               v
+                      <span class="highlight">Webhook POST</span>
+                      /api/stripe/webhook
+                               |
+                ┌──────────────┼──────────────┐
+                v              v              v
+      <span class="accent">webhook_events</span>   <span class="accent">dispatchStripeEvent()</span>   <span class="accent">external_call_log</span>
+         <span class="dim">(idempotency)</span>         |              <span class="dim">(observability)</span>
+                              v
+                    <span class="highlight">Handler per event type</span>
+                              |
+                  ┌───────────┼───────────┐
+                  v           v           v
+             <span class="accent">deals</span>      <span class="accent">invoices</span>    <span class="accent">activity_log</span></pre></div>
+
+  <h3>Source of Truth</h3>
+  <p>Lite&rsquo;s database is the source of truth for all billing state. Stripe is the payment processor, not the authority. Products, prices, and tiers are configured by Andy in admin &mdash; Stripe Products and Prices are auto-created on publish via <code>lib/billing/stripe-product-sync.ts</code>. Commitment enforcement happens at the Lite UX layer (cancel flow routing), not at the Stripe layer.</p>
+
+  <h3>Key Modules</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Module</th><th>Location</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Stripe Client</td><td><code>lib/stripe/client.ts</code></td><td>Lazy SDK singleton</td></tr>
+        <tr><td>Customer</td><td><code>lib/stripe/customer.ts</code></td><td>Idempotent customer create/lookup by contact ID</td></tr>
+        <tr><td>Subscriptions</td><td><code>lib/stripe/subscriptions.ts</code></td><td>Tier swap, product switch, cancel, period-end read</td></tr>
+        <tr><td>Payment Intents</td><td><code>lib/stripe/payment-intents.ts</code></td><td>Off-session charges for cancel-flow paid exits</td></tr>
+        <tr><td>Setup Intents</td><td><code>lib/stripe/setup-intents.ts</code></td><td>Card update for payment recovery</td></tr>
+        <tr><td>Product Sync</td><td><code>lib/billing/stripe-product-sync.ts</code></td><td>Create/archive Stripe Products &amp; Prices</td></tr>
+        <tr><td>Setup Fee</td><td><code>lib/billing/setup-fee.ts</code></td><td>Monthly setup fee via <code>add_invoice_items</code></td></tr>
+        <tr><td>Webhook Dispatch</td><td><code>lib/stripe/webhook-handlers/index.ts</code></td><td>Route events to CRM handlers</td></tr>
+        <tr><td>Invoice Generation</td><td><code>lib/invoicing/generate.ts</code></td><td>Create draft invoices from deal + quote data</td></tr>
+        <tr><td>Invoice Transitions</td><td><code>lib/invoicing/transitions.ts</code></td><td>State machine enforcement</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 3. SUBSCRIPTION MANAGEMENT ──────────────────────────────── -->
+
+<div class="section" id="subscriptions">
+  <div class="section-num">Section 03</div>
+  <h2>Subscription Management</h2>
+
+  <h3>Pricing Philosophy &mdash; Popcorn Pricing</h3>
+  <p>The pricing model deliberately avoids discounts. Same per-month price for monthly and annual. Monthly includes a one-time setup fee. Annual waives it. The framing is identity and commitment, not bargain-hunting.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Commitment</th><th>Monthly Rate</th><th>Setup Fee</th><th>Identity Frame</th></tr></thead>
+      <tbody>
+        <tr><td>Monthly</td><td>$X/mo</td><td>Yes (one-time)</td><td>&ldquo;Getting started&rdquo;</td></tr>
+        <tr><td>Annual (monthly-billed)</td><td>$X/mo</td><td>Waived</td><td>&ldquo;Committed&rdquo;</td></tr>
+        <tr><td>Annual (upfront)</td><td>$X &times; 12 today</td><td>Waived</td><td>&ldquo;All in&rdquo;</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Stripe Object Mapping</h3>
+  <p>On product publish, <code>syncProductToStripe()</code> creates one Stripe Product per Lite product. Then <code>syncTierPricesToStripe()</code> creates three Stripe Prices per tier:</p>
+  <ul>
+    <li><strong>Monthly recurring</strong> &mdash; <code>interval: 'month'</code></li>
+    <li><strong>Annual monthly-billed</strong> &mdash; <code>interval: 'month'</code> (commitment enforced by Lite, not Stripe)</li>
+    <li><strong>Annual upfront</strong> &mdash; <code>interval: 'year'</code></li>
+  </ul>
+  <p>Prices are immutable in Stripe. Price changes archive the old Price and create a new one. Existing subscribers stay on their current Price until renewal or explicit tier change.</p>
+
+  <h3>Subscription Creation Flow</h3>
+  <div class="diagram"><pre><span class="accent">Subscriber picks product + tier + commitment</span>
+                    |
+                    v
+      <span class="highlight">Stripe Customer</span> created or reused
+      <span class="dim">(ensureStripeCustomer — idempotent by contact_id metadata)</span>
+                    |
+                    v
+      <span class="highlight">Stripe Subscription</span> created with the matching Price
+                    |
+       ┌────────────┼────────────┐
+  <span class="accent">monthly</span>      <span class="accent">annual_monthly</span>    <span class="accent">annual_upfront</span>
+  + setup fee   no setup fee      no setup fee
+  via add_      12-month          full year
+  invoice_items commitment        charged now
+                    |
+                    v
+      <span class="accent">Deal</span> created at Won stage
+      billing_cadence + saas_product_id + saas_tier_id stamped</pre></div>
+
+  <h3>Setup Fee Mechanics</h3>
+  <p>The setup fee is the only place in the codebase that constructs an <code>add_invoice_items</code> payload. A grep-guard test (<code>tests/billing/setup-fee-guard.test.ts</code>) fails if any other file references the literal. The setup fee on every new monthly subscription naturally closes the cancel-and-resubscribe-cheaper loophole.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/billing/setup-fee.ts &mdash; Core Logic</div>
+    <pre><span class="kw">export function</span> <span class="type">buildMonthlySetupFeeInvoiceItems</span>(
+  params: BuildSetupFeeParams
+): Pick&lt;Stripe.SubscriptionCreateParams, <span class="str">"add_invoice_items"</span>&gt; | <span class="kw">undefined</span> {
+  <span class="kw">if</span> (params.cadence !== <span class="str">"monthly"</span>) <span class="kw">return undefined</span>;
+  <span class="kw">if</span> (params.setupFeeCentsIncGst &lt;= <span class="num">0</span>) <span class="kw">return undefined</span>;
+  <span class="kw">return</span> {
+    add_invoice_items: [{
+      price_data: {
+        currency: <span class="str">"aud"</span>,
+        product: params.stripeProductId,
+        unit_amount: params.setupFeeCentsIncGst,
+      },
+      quantity: <span class="num">1</span>,
+    }],
+  };
+}</pre>
+  </div>
+
+  <h3>Tier Changes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>Timing</th><th>Stripe Call</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td>Upgrade</td><td>Immediate</td><td><code>swapSubscriptionPrice({ mode: "immediate" })</code></td><td>Carries over</td></tr>
+        <tr><td>Downgrade</td><td>End of period</td><td><code>swapSubscriptionPrice({ mode: "deferred" })</code></td><td>Resets at new cycle</td></tr>
+        <tr><td>Product switch</td><td>Immediate</td><td><code>switchSubscriptionProduct()</code> &mdash; delete old item + add new</td><td>Resets (new dimensions)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Subscription State Machine</h3>
+  <p>Tracked on <code>deals.subscription_state</code>. Mirrors Stripe status but with Lite-specific terminal states.</p>
+  <div class="diagram"><pre><span class="highlight">active_current</span> <span class="dim">──→</span> <span class="accent">past_due</span> <span class="dim">(payment failed)</span>
+      |                   |
+      |              <span class="dim">payment recovers</span>
+      |                   |
+      v                   v
+<span class="accent">paused</span>           <span class="highlight">active_current</span>
+      |
+<span class="dim">resume</span>
+      |
+      v
+<span class="highlight">active_current</span>
+
+<span class="dim">Cancel paths (pre-term):</span>
+  <span class="accent">cancel_scheduled_preterm</span> → <span class="accent">cancelled_paid_remainder</span>
+                           → <span class="accent">cancelled_buyout</span>
+
+<span class="dim">Cancel paths (post-term):</span>
+  <span class="accent">cancelled_post_term</span>
+  <span class="accent">ended_gracefully</span></pre></div>
+
+  <h3>Cancel Flow</h3>
+  <p>The cancel flow lives at <code>/lite/portal/subscription</code> and branches based on whether the subscriber is within their commitment period:</p>
+  <ul>
+    <li><strong>Pre-term retainer:</strong> &ldquo;Let&rsquo;s chat&rdquo; (no charge), pay remainder, 50% buyout</li>
+    <li><strong>Pre-term SaaS:</strong> pay remainder, 1-month pause (one per commitment), continue</li>
+    <li><strong>Post-term:</strong> upgrade, downgrade, or cancel with &ldquo;here&rsquo;s what you&rsquo;d be losing&rdquo;</li>
+  </ul>
+  <p>Paid exits use off-session Payment Intents via <code>createOffSessionPaymentIntent()</code> with idempotency keys scoped to <code>saas_exit:{deal_id}:{branch}:{today_iso}</code>.</p>
+</div>
+
+<!-- ── 4. INVOICE SYSTEM ───────────────────────────────────────── -->
+
+<div class="section" id="invoices">
+  <div class="section-num">Section 04</div>
+  <h2>Invoice System</h2>
+
+  <h3>What It Handles</h3>
+  <p>Branded Invoicing serves <strong>manual-billed companies</strong> only &mdash; clients whose <code>companies.billing_mode = 'manual'</code>. Stripe-billed clients receive native Stripe invoices. SaaS subscribers have their own billing flow.</p>
+
+  <h3>Invoice Number Format</h3>
+  <p><code>SB-INV-YYYY-NNNN</code> (e.g. <code>SB-INV-2026-0001</code>). Year-scoped sequence allocated atomically via the shared <code>sequences</code> table using upsert + increment.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/invoicing/sequences.ts</div>
+    <pre><span class="kw">export async function</span> <span class="type">allocateInvoiceNumber</span>(opts) {
+  <span class="kw">const</span> rows = <span class="kw">await</span> db
+    .insert(sequences)
+    .values({ name: sequenceName(year), current_value: <span class="num">1</span> })
+    .onConflictDoUpdate({
+      target: sequences.name,
+      set: { current_value: sql<span class="str">`${sequences.current_value} + 1`</span> },
+    })
+    .returning({ value: sequences.current_value });
+  <span class="kw">return</span> formatInvoiceNumber(year, rows[<span class="num">0</span>].value);
+}</pre>
+  </div>
+
+  <h3>Invoice Status Lifecycle</h3>
+  <div class="diagram"><pre><span class="highlight">draft</span> <span class="dim">──→</span> <span class="accent">sent</span> <span class="dim">──→</span> <span class="accent">overdue</span> <span class="dim">──→</span> <span class="highlight">paid</span>
+  |           |           |
+  |           |           └──→ <span class="highlight">paid</span>
+  |           └──→ <span class="highlight">paid</span>
+  └──→ <span class="accent">void</span>
+            <span class="accent">sent</span> ──→ <span class="accent">void</span>
+            <span class="accent">overdue</span> ──→ <span class="accent">void</span>
+
+<span class="dim">Terminal states: paid, void</span></pre></div>
+
+  <p>Transitions are enforced by <code>transitionInvoiceStatus()</code> in <code>lib/invoicing/transitions.ts</code>. The WHERE clause asserts the current status atomically, so concurrent callers cannot collide.</p>
+
+  <h3>Two-Step Generation Primitive</h3>
+  <ol>
+    <li><strong><code>generateInvoice()</code></strong> &mdash; Creates the invoice in <code>draft</code> status. Copies recurring line items from the accepted quote. Derives GST. Allocates invoice number.</li>
+    <li><strong><code>sendInvoice()</code></strong> &mdash; Renders PDF via Puppeteer, drafts a Claude-generated email (drift-checked against Brand DNA), dispatches via <code>sendEmail()</code>, transitions to <code>sent</code>.</li>
+  </ol>
+
+  <h3>Payment Methods</h3>
+  <ul>
+    <li><strong>Bank transfer</strong> (primary for manual-billed clients) &mdash; Andy clicks &ldquo;Mark as paid&rdquo; when the deposit clears</li>
+    <li><strong>Stripe online</strong> &mdash; inline Payment Element on the invoice web view. Payment Intent metadata tags <code>product_type: "invoice"</code> and <code>invoice_id</code> for webhook matching</li>
+  </ul>
+
+  <h3>Automated Monthly Cycle</h3>
+  <div class="diagram"><pre><span class="dim">Quote accepted (manual-billed)</span>
+          |
+          v
+<span class="accent">manual_invoice_generate</span> <span class="dim">(fires 3 days before send date)</span>
+          |  → creates draft invoice
+          |  → cockpit notification
+          |  → enqueues manual_invoice_send
+          v
+<span class="highlight">Review window (3 days)</span>
+          |  Andy can add line items or send early
+          v
+<span class="accent">manual_invoice_send</span> <span class="dim">(fires on send date)</span>
+          |  → if still draft: sendInvoice()
+          |  → if already sent/void: skip
+          |  → enqueue next cycle&rsquo;s generate task
+          v
+<span class="accent">invoice_overdue_reminder</span> <span class="dim">(fires due_date + 3 days)</span>
+          |  → Claude-drafted reminder email
+          v
+<span class="dim">Chain repeats until deal exits &ldquo;won&rdquo; status</span></pre></div>
+</div>
+
+<!-- ── 5. QUOTE-TO-INVOICE CONVERSION ──────────────────────────── -->
+
+<div class="section" id="quote-to-invoice">
+  <div class="section-num">Section 05</div>
+  <h2>Quote-to-Invoice Conversion</h2>
+
+  <h3>Quote Lifecycle</h3>
+  <p>Quotes have 7 statuses: <code>draft</code>, <code>sent</code>, <code>viewed</code>, <code>accepted</code>, <code>superseded</code>, <code>withdrawn</code>, <code>expired</code>. State transitions are enforced by <code>transitionQuoteStatus()</code>.</p>
+
+  <h3>Quote Structure Types</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Structure</th><th>Retainer Component</th><th>One-Off Component</th><th>Stripe Subscription</th></tr></thead>
+      <tbody>
+        <tr><td><code>retainer</code></td><td>Monthly amount</td><td>None</td><td>Created on accept</td></tr>
+        <tr><td><code>project</code></td><td>None</td><td>Full amount</td><td>Not created</td></tr>
+        <tr><td><code>mixed</code></td><td>Monthly amount</td><td>First-invoice items</td><td>Created, one-offs via <code>add_invoice_items</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Accept &rarr; Pay &rarr; Invoice Flow</h3>
+  <div class="diagram"><pre><span class="accent">Client ticks &ldquo;I agree&rdquo;</span>
+          |  → Payment Element mounts (pre-warmed at tick)
+          v
+<span class="accent">Client clicks Accept</span>
+          |  → proof-of-acceptance captured (IP, user agent, content hash)
+          v
+<span class="highlight">Payment Element processes</span>
+          |  → Stripe PaymentIntent succeeded
+          v
+<span class="accent">Webhook: payment_intent.succeeded</span>
+          |  → finaliseDealAsWon()
+          |  → Stripe Subscription created (retainer/mixed)
+          |  → settle email enqueued
+          v
+<span class="dim">For manual-billed quotes:</span>
+          |  → first manual_invoice_generate enqueued
+          |  → monthly invoice chain starts</pre></div>
+
+  <h3>Supersede Pattern (Edit After Send)</h3>
+  <p>A sent quote is immutable. To edit it, Andy creates a new row with <code>supersedes_quote_id</code> pointing to the original. The original is voided. The old URL shows a redirect card. This pattern is reused by Branded Invoicing for invoice corrections.</p>
+
+  <h3>Line Item Projection</h3>
+  <p>The <code>projectCycleLineItems()</code> function in <code>lib/invoicing/generate.ts</code> maps quote content to invoice line items. Cycle 0 carries both retainer and one-off items. All subsequent cycles carry only retainer items.</p>
+</div>
+
+<!-- ── 6. ONE-OFF PAYMENTS ─────────────────────────────────────── -->
+
+<div class="section" id="one-off">
+  <div class="section-num">Section 06</div>
+  <h2>One-Off Payments</h2>
+
+  <h3>Three Contexts for One-Off Charges</h3>
+
+  <p><strong>1. Intro Funnel &mdash; Trial Shoot Payment</strong></p>
+  <p>The <code>intro_funnel_payments</code> table tracks payments for trial shoots. Uses a standard Stripe Checkout Session with <code>metadata.product_type = "intro"</code>. On success, the webhook calls <code>markCompanyTrialShootBooked()</code>.</p>
+
+  <p><strong>2. Invoice Online Payment</strong></p>
+  <p>Manual-billed invoices offer an inline Stripe Payment Element on the web view (<code>/lite/invoices/[token]</code>). A Payment Intent is created with <code>metadata.product_type = "invoice"</code> and <code>metadata.invoice_id</code>. On success, <code>markInvoicePaid()</code> flips the invoice to <code>paid</code>.</p>
+
+  <p><strong>3. Cancel-Flow Paid Exits</strong></p>
+  <p>Pre-term cancellation options (pay remainder, 50% buyout) use off-session Payment Intents charged against the customer&rsquo;s default payment method. No card re-entry required.</p>
+
+  <div class="code-block">
+    <div class="code-header">lib/stripe/payment-intents.ts &mdash; Off-Session Pattern</div>
+    <pre><span class="kw">export async function</span> <span class="type">createOffSessionPaymentIntent</span>(
+  opts: CreateOffSessionPaymentIntentOpts,
+): Promise&lt;Stripe.PaymentIntent&gt; {
+  <span class="kw">const</span> customer = <span class="kw">await</span> stripe.customers.retrieve(opts.stripeCustomerId);
+  <span class="kw">const</span> defaultPm = customer.invoice_settings?.default_payment_method;
+  <span class="kw">if</span> (!defaultPm)
+    <span class="kw">throw new</span> OffSessionPaymentError(<span class="str">"no_default_payment_method"</span>, ...);
+
+  <span class="kw">return</span> stripe.paymentIntents.create(
+    {
+      customer: opts.stripeCustomerId,
+      amount: opts.amountCents,
+      currency: opts.currency ?? <span class="str">"aud"</span>,
+      payment_method: defaultPm,
+      off_session: <span class="kw">true</span>,
+      confirm: <span class="kw">true</span>,
+      metadata: opts.metadata,
+    },
+    { idempotencyKey: opts.idempotencyKey },
+  );
+}</pre>
+  </div>
+
+  <h3>Idempotency Keys for All Charge Types</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Charge Type</th><th>Key Pattern</th></tr></thead>
+      <tbody>
+        <tr><td>SaaS cancel: pay remainder</td><td><code>saas_exit:{deal_id}:paid_remainder:{today_iso}</code></td></tr>
+        <tr><td>SaaS cancel: 50% buyout</td><td><code>saas_exit:{deal_id}:buyout:{today_iso}</code></td></tr>
+        <tr><td>Retainer cancel: pay remainder</td><td><code>quote_exit:{deal_id}:paid_remainder:{today_iso}</code></td></tr>
+        <tr><td>Retainer cancel: buyout</td><td><code>quote_exit:{deal_id}:buyout:{today_iso}</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 7. STRIPE WEBHOOK HANDLER ───────────────────────────────── -->
+
+<div class="section" id="webhooks">
+  <div class="section-num">Section 07</div>
+  <h2>Stripe Webhook Handler</h2>
+
+  <h3>Entry Point</h3>
+  <p><code>app/api/stripe/webhook/route.ts</code> receives POST requests, verifies the <code>stripe-signature</code> header, and dispatches to <code>dispatchStripeEvent()</code>. The route always responds 200 &mdash; even when dispatch returns <code>error</code> or <code>skipped</code>. Triage happens off the <code>webhook_events</code> table, not via Stripe retries.</p>
+
+  <h3>Idempotency Strategy</h3>
+  <p>Every event is written to <code>webhook_events</code> before dispatch. The primary key is the Stripe event ID. Events that previously completed with <code>"ok"</code> are skipped. Events that previously errored or were skipped can be reprocessed on resend &mdash; this prevents &ldquo;stuck&rdquo; events that failed once and can never retry.</p>
+
+  <h3>Kill Switch</h3>
+  <p>The setting <code>pipeline.stripe_webhook_dispatch_enabled</code> gates all dispatch. When false, every event returns <code>skipped:kill_switch</code> without touching the CRM. Useful for maintenance windows.</p>
+
+  <h3>Events Handled</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Event</th><th>Handler</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>checkout.session.completed</code></td>
+          <td><code>handleCheckoutSessionCompleted</code></td>
+          <td>Routes by <code>metadata.product_type</code>: &ldquo;intro&rdquo; books trial shoot, &ldquo;retainer&rdquo;/&ldquo;saas&rdquo; finalises deal as Won</td>
+        </tr>
+        <tr>
+          <td><code>payment_intent.succeeded</code></td>
+          <td><code>handlePaymentIntentSucceeded</code></td>
+          <td>&ldquo;quote&rdquo;: creates Subscription, finalises deal, sends settle email. &ldquo;invoice&rdquo;: flips invoice to paid</td>
+        </tr>
+        <tr>
+          <td><code>payment_intent.payment_failed</code></td>
+          <td><code>handlePaymentIntentFailed</code></td>
+          <td>Audit log only. Quote stays <code>accepted</code>. Invoice stays <code>sent</code>/<code>overdue</code>. Client retries in the Payment Element.</td>
+        </tr>
+        <tr>
+          <td><code>invoice.payment_succeeded</code></td>
+          <td><code>handleInvoicePaymentSucceeded</code></td>
+          <td>Recovers from <code>past_due</code>: resets failure counter, flips to <code>active_current</code>, cancels pending data-loss warning. Issues initial subscriber login link for new SaaS subs.</td>
+        </tr>
+        <tr>
+          <td><code>invoice.payment_failed</code></td>
+          <td><code>handleInvoicePaymentFailed</code></td>
+          <td>Flips to <code>past_due</code>, increments failure counter. First failure: enqueues <code>saas_data_loss_warning</code> scheduled task. Emits admin event + regenerates cockpit brief.</td>
+        </tr>
+        <tr>
+          <td><code>customer.subscription.updated</code></td>
+          <td><code>handleSubscriptionUpdated</code></td>
+          <td>Maps Stripe status to <code>deals.subscription_state</code>. Idempotent &mdash; no-op when state already matches.</td>
+        </tr>
+        <tr>
+          <td><code>customer.subscription.deleted</code></td>
+          <td><code>handleSubscriptionDeleted</code></td>
+          <td>Audit log only. The cancel flow owns state authoritatively &mdash; this webhook is the confirmation handshake.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Payment Failure Escalation</h3>
+  <div class="diagram"><pre><span class="accent">invoice.payment_failed</span> <span class="dim">(1st failure)</span>
+  → subscription_state → <span class="highlight">past_due</span>
+  → failure counter = 1
+  → enqueue <span class="accent">saas_data_loss_warning</span> <span class="dim">(fires in N days)</span>
+  → admin event emitted
+  → cockpit brief regenerated
+
+<span class="accent">invoice.payment_failed</span> <span class="dim">(2nd, 3rd failure)</span>
+  → counter incremented only
+
+<span class="accent">invoice.payment_succeeded</span> <span class="dim">(recovery)</span>
+  → state → <span class="highlight">active_current</span>
+  → counter reset to 0
+  → pending data-loss task cancelled</pre></div>
+</div>
+
+<!-- ── 8. GST & TAX HANDLING ───────────────────────────────────── -->
+
+<div class="section" id="gst">
+  <div class="section-num">Section 08</div>
+  <h2>GST &amp; Tax Handling</h2>
+
+  <h3>Core Principle: Felt Experience Wins</h3>
+  <p>Every amount in the system is stored <strong>GST-inclusive</strong> in integer cents. This is the &ldquo;felt&rdquo; number &mdash; what the customer sees and what Andy thinks in. Convention-compliant values (ex-GST, GST line items) are derived at compliance boundaries: tax invoices, BAS exports, EOFY bundles.</p>
+
+  <div class="callout">
+    <div class="callout-label">The Rule</div>
+    <p>When convention and felt experience conflict, felt experience wins unless compliance forces the convention. Store the felt value. Derive the conventional value at the boundary.</p>
+  </div>
+
+  <h3>GST Derivation</h3>
+  <div class="code-block">
+    <div class="code-header">GST Calculation Logic</div>
+    <pre><span class="comment">// For GST-applicable companies (standard 10% GST):</span>
+total_cents_ex_gst  = Math.round(total_cents_inc_gst / <span class="num">1.1</span>)
+gst_cents           = total_cents_inc_gst - total_cents_ex_gst
+
+<span class="comment">// For non-GST-applicable companies:</span>
+total_cents_ex_gst  = total_cents_inc_gst
+gst_cents           = <span class="num">0</span></pre>
+  </div>
+
+  <h3>GST Applicability</h3>
+  <p>Tracked per company via <code>companies.gst_applicable</code> (boolean, default true). Snapshotted onto each invoice at generation time via <code>invoices.gst_applicable</code>, so a later change to the company record does not retroactively affect existing invoices.</p>
+
+  <h3>ATO Compliance on Invoices</h3>
+  <p>Invoice PDFs include all ATO requirements: &ldquo;Tax Invoice&rdquo; title, invoice number, issue/due dates, supplier ABN, billed-to block, itemised GST, and the GST-inclusive total. When <code>gst_applicable = false</code>, the GST line is omitted with a &ldquo;GST not applicable&rdquo; note.</p>
+
+  <h3>Tax Provisioning (Finance Dashboard)</h3>
+  <p>The finance dashboard calculates two provisions from settings:</p>
+  <ul>
+    <li><strong>GST owed this quarter:</strong> GST collected on paid invoices minus GST paid on confirmed expenses</li>
+    <li><strong>Income tax provisioned:</strong> net profit YTD &times; <code>finance.income_tax_rate</code> (default 0.25)</li>
+  </ul>
+  <p>These are estimates, not accounting outputs. The accountant is authoritative at EOFY. The &ldquo;yours to spend&rdquo; figure (Stripe balance minus provisions) surfaces a dry callout in the narrative when it drops below one month of average expenses.</p>
+</div>
+
+<!-- ── 9. FINANCE DASHBOARD ────────────────────────────────────── -->
+
+<div class="section" id="finance">
+  <div class="section-num">Section 09</div>
+  <h2>Finance Dashboard</h2>
+
+  <h3>Purpose</h3>
+  <p>Admin-only reading surface at <code>/lite/finance</code>. Two jobs: answer &ldquo;how&rsquo;s the business?&rdquo; in under five seconds, and be the accountant handoff surface with one-click export bundles.</p>
+
+  <h3>Above the Fold</h3>
+  <ul>
+    <li><strong>P&amp;L tile:</strong> Revenue (broken down by retainers / SaaS / trial shoots / projects), expenses, net margin, month-over-month delta</li>
+    <li><strong>90-day projection chart:</strong> Contracted MRR + pipeline-weighted open deals with stage-age decay</li>
+  </ul>
+
+  <h3>Below the Fold</h3>
+  <ul>
+    <li><strong>Claude narrative:</strong> 3&ndash;5 sentences in dry voice, numbers are clickable links to drill-downs. Generated by Haiku, drift-checked.</li>
+    <li><strong>Tiles:</strong> MRR + net run-rate, outstanding invoices, top 5 expense categories, tax provision</li>
+    <li><strong>Recent transactions:</strong> last 20 mixed rows (income + expenses)</li>
+  </ul>
+
+  <h3>Daily Snapshot Pipeline</h3>
+  <div class="diagram"><pre><span class="accent">06:00 local</span>  →  <span class="highlight">finance_snapshot_take</span>
+                    → query Stripe balance
+                    → aggregate invoices, expenses, deals
+                    → compute MRR, projections, provisions
+                    → insert finance_snapshots row
+                    → enqueue narrative regeneration
+
+<span class="accent">06:10 local</span>  →  <span class="accent">finance_observatory_rollup</span>
+                    → aggregate API costs from external_call_log
+
+<span class="accent">06:12 local</span>  →  <span class="accent">finance_stripe_fee_rollup</span>
+                    → pull Balance Transactions from Stripe API
+
+<span class="accent">06:15 local</span>  →  <span class="accent">recurring_expense_book</span>
+                    → auto-book due recurring expenses as pending_review</pre></div>
+
+  <h3>Expense Tracking</h3>
+  <p>Four sources feed into the <code>expenses</code> table: manual entry, recurring auto-book, Observatory API cost rollup, and Stripe fee rollup. Each source uses idempotent upserts. Expenses are stored GST-inclusive with a separate <code>gst_amount</code> column.</p>
+
+  <h3>Accountant Bundle Export</h3>
+  <p>One zip file containing: BAS summary PDF, transactions CSV, expenses CSV, invoices CSV, P&amp;L PDF, per-client revenue CSV. All CSVs include <code>amount_inc_gst</code>, <code>gst_amount</code>, and <code>amount_ex_gst</code> columns matching Xero import format.</p>
+
+  <h3>Cockpit Health Banners</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Banner</th><th>Trigger</th><th>Click-Through</th></tr></thead>
+      <tbody>
+        <tr><td><code>finance_bas_due</code></td><td>BAS quarter end &le; 14 days away</td><td><code>/lite/finance/export</code></td></tr>
+        <tr><td><code>finance_eofy_due</code></td><td>FY end &le; 30 days away</td><td><code>/lite/finance/export</code></td></tr>
+        <tr><td><code>finance_invoice_overdue</code></td><td>Any invoice &gt;30 days past due or total outstanding &gt;$5k</td><td><code>/lite/invoices?filter=overdue</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 10. DATABASE SCHEMA ─────────────────────────────────────── -->
+
+<div class="section" id="database">
+  <div class="section-num">Section 10</div>
+  <h2>Database Schema</h2>
+
+  <h3>invoices</h3>
+  <p>One row per invoice. All monetary columns are integer cents. Status machine enforced via <code>transitionInvoiceStatus()</code>.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>CUID</td></tr>
+        <tr><td><code>invoice_number</code></td><td>text unique</td><td><code>SB-INV-2026-0001</code></td></tr>
+        <tr><td><code>deal_id</code></td><td>text FK &rarr; deals</td><td>Owning deal</td></tr>
+        <tr><td><code>company_id</code></td><td>text FK &rarr; companies</td><td>Billed company</td></tr>
+        <tr><td><code>quote_id</code></td><td>text FK &rarr; quotes</td><td>Source quote (nullable for manual invoices)</td></tr>
+        <tr><td><code>token</code></td><td>text unique</td><td>URL token for client-facing access</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>draft</code> / <code>sent</code> / <code>overdue</code> / <code>paid</code> / <code>void</code></td></tr>
+        <tr><td><code>total_cents_inc_gst</code></td><td>integer</td><td>Canonical total (GST-inclusive)</td></tr>
+        <tr><td><code>total_cents_ex_gst</code></td><td>integer</td><td>Derived at generation</td></tr>
+        <tr><td><code>gst_cents</code></td><td>integer</td><td>GST amount (0 if not applicable)</td></tr>
+        <tr><td><code>gst_applicable</code></td><td>boolean</td><td>Snapshot from company record</td></tr>
+        <tr><td><code>line_items_json</code></td><td>JSON</td><td>Array of <code>{ description, quantity, unit_price, line_total, is_recurring }</code></td></tr>
+        <tr><td><code>paid_via</code></td><td>enum</td><td><code>bank_transfer</code> or <code>stripe</code></td></tr>
+        <tr><td><code>stripe_payment_intent_id</code></td><td>text</td><td>Set when paid via Stripe</td></tr>
+        <tr><td><code>supersedes_invoice_id</code></td><td>text</td><td>Void-and-reissue chain</td></tr>
+        <tr><td><code>auto_send_at_ms</code></td><td>integer</td><td>Review window expiry (auto invoices only)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>quotes</h3>
+  <p>One row per quote version. 7-state machine. Content snapshotted at send time.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>Unique ID</td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>draft</code> / <code>sent</code> / <code>viewed</code> / <code>accepted</code> / <code>superseded</code> / <code>withdrawn</code> / <code>expired</code></td></tr>
+        <tr><td><code>structure</code></td><td>enum</td><td><code>retainer</code> / <code>project</code> / <code>mixed</code></td></tr>
+        <tr><td><code>total_cents_inc_gst</code></td><td>integer</td><td>Canonical GST-inclusive total</td></tr>
+        <tr><td><code>retainer_monthly_cents_inc_gst</code></td><td>integer</td><td>Monthly recurring amount</td></tr>
+        <tr><td><code>one_off_cents_inc_gst</code></td><td>integer</td><td>One-time project amount</td></tr>
+        <tr><td><code>content_json</code></td><td>JSON</td><td>Full section structure, line items, prose</td></tr>
+        <tr><td><code>accepted_content_hash</code></td><td>text</td><td>SHA-256 of content at send (immutability proof)</td></tr>
+        <tr><td><code>supersedes_quote_id</code></td><td>text FK</td><td>Supersede chain</td></tr>
+        <tr><td><code>stripe_payment_intent_id</code></td><td>text</td><td>Payment at accept time</td></tr>
+        <tr><td><code>stripe_subscription_id</code></td><td>text</td><td>Subscription created at accept</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>deals (billing-relevant columns)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>subscription_state</code></td><td>enum</td><td>8-state machine (active_current, past_due, paused, etc.)</td></tr>
+        <tr><td><code>billing_cadence</code></td><td>enum</td><td><code>monthly</code> / <code>annual_monthly</code> / <code>annual_upfront</code></td></tr>
+        <tr><td><code>committed_until_date_ms</code></td><td>integer</td><td>Commitment end date</td></tr>
+        <tr><td><code>pause_used_this_commitment</code></td><td>boolean</td><td>Anti-stack rule for SaaS pause</td></tr>
+        <tr><td><code>stripe_subscription_id</code></td><td>text</td><td>Fast webhook resolution</td></tr>
+        <tr><td><code>stripe_customer_id</code></td><td>text</td><td>Fast webhook resolution</td></tr>
+        <tr><td><code>saas_product_id</code></td><td>text FK</td><td>SaaS deals only</td></tr>
+        <tr><td><code>saas_tier_id</code></td><td>text FK</td><td>SaaS deals only</td></tr>
+        <tr><td><code>payment_failure_count</code></td><td>integer</td><td>Reset on successful payment</td></tr>
+        <tr><td><code>first_payment_failure_at_ms</code></td><td>integer</td><td>Escalation timer anchor</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>webhook_events</h3>
+  <p>Idempotency table. PK = Stripe event ID. Never process the same event twice (unless previous attempt errored).</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>text PK</td><td>Stripe event ID</td></tr>
+        <tr><td><code>provider</code></td><td>enum</td><td><code>stripe</code> or <code>resend</code></td></tr>
+        <tr><td><code>event_type</code></td><td>text</td><td>e.g. <code>invoice.payment_failed</code></td></tr>
+        <tr><td><code>payload</code></td><td>JSON</td><td>Full event object</td></tr>
+        <tr><td><code>result</code></td><td>enum</td><td><code>ok</code> / <code>error</code> / <code>skipped</code></td></tr>
+        <tr><td><code>error</code></td><td>text</td><td>Human-readable reason for non-ok</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>expenses</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>amount_inc_gst</code></td><td>integer</td><td>Cents AUD, GST-inclusive</td></tr>
+        <tr><td><code>gst_amount</code></td><td>integer</td><td>Cents AUD (nullable for non-GST)</td></tr>
+        <tr><td><code>category</code></td><td>enum</td><td>9 categories: software, API costs, payment processing, ads, etc.</td></tr>
+        <tr><td><code>source</code></td><td>enum</td><td><code>manual</code> / <code>recurring</code> / <code>observatory_rollup</code> / <code>stripe_fees</code></td></tr>
+        <tr><td><code>status</code></td><td>enum</td><td><code>pending_review</code> / <code>confirmed</code></td></tr>
+        <tr><td><code>manual_override</code></td><td>boolean</td><td>When true, future rollups skip this row</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>usage_records</h3>
+  <p>Append-only log for SaaS usage tracking. One row per capped action. Queried by <code>checkUsageLimit()</code> to tally against <code>saas_tier_limits</code>.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>contact_id</code></td><td>text FK</td><td>Who used it</td></tr>
+        <tr><td><code>product_id</code></td><td>text FK</td><td>Which product</td></tr>
+        <tr><td><code>dimension_key</code></td><td>text</td><td>e.g. <code>api_calls</code>, <code>active_campaigns</code></td></tr>
+        <tr><td><code>amount</code></td><td>integer</td><td>Units consumed (default 1, supports batches)</td></tr>
+        <tr><td><code>idempotency_key</code></td><td>text unique</td><td>Safe to retry (unique partial index)</td></tr>
+        <tr><td><code>billing_period_start_ms</code></td><td>integer</td><td>Pins the period for fast filtering</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 11. SAAS TIER MANAGEMENT ────────────────────────────────── -->
+
+<div class="section" id="saas-tiers">
+  <div class="section-num">Section 11</div>
+  <h2>SaaS Tier Management</h2>
+
+  <h3>The Popcorn Model</h3>
+  <p>Three tiers per product. The gap between medium and large is deliberately small in price relative to the value increase &mdash; the &ldquo;popcorn effect.&rdquo; Across products, the Full Suite is priced so subscribing to 2+ individual products is obviously more expensive.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier Rank</th><th>Name Convention</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>1 (small)</td><td>Capture tier</td><td>Low price, enough to start. Gets people in the door.</td></tr>
+        <tr><td>2 (medium)</td><td>Default tier</td><td>Where most subscribers land. The &ldquo;sensible&rdquo; choice.</td></tr>
+        <tr><td>3 (large)</td><td>Revenue lift tier</td><td>Small price jump from medium, significant limits increase. The no-brainer upgrade.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Product &rarr; Tier &rarr; Dimension &rarr; Limit Hierarchy</h3>
+  <div class="diagram"><pre><span class="highlight">saas_products</span>
+  └── <span class="accent">saas_tiers</span> <span class="dim">(3 per product, ranked 1/2/3)</span>
+        ├── stripe_monthly_price_id
+        ├── stripe_annual_price_id
+        ├── stripe_upfront_price_id
+        ├── monthly_price_cents_inc_gst
+        ├── setup_fee_cents_inc_gst
+        ├── feature_flags <span class="dim">(JSON)</span>
+        └── <span class="accent">saas_tier_limits</span> <span class="dim">(one per dimension per tier)</span>
+              └── limit_value <span class="dim">(null = unlimited)</span>
+
+  └── <span class="accent">saas_usage_dimensions</span> <span class="dim">(1-3 per product)</span>
+        ├── dimension_key <span class="dim">(e.g. "searches", "sends")</span>
+        └── display_name</pre></div>
+
+  <h3>Usage Tracking Primitives</h3>
+  <p>Two functions in <code>lib/billing/</code>:</p>
+
+  <div class="code-block">
+    <div class="code-header">Usage Enforcement API</div>
+    <pre><span class="comment">// Call BEFORE a capped action</span>
+<span class="kw">const</span> { allowed, used, limit, nextTier } =
+  <span class="kw">await</span> <span class="type">checkUsageLimit</span>(contactId, productId, dimensionKey);
+
+<span class="kw">if</span> (!allowed) {
+  <span class="comment">// Show upgrade prompt with nextTier info</span>
+  <span class="kw">return</span>;
+}
+
+<span class="comment">// Execute the action, then:</span>
+<span class="kw">await</span> <span class="type">recordUsage</span>(contactId, productId, dimensionKey);</pre>
+  </div>
+
+  <p>Usage resets with each billing cycle. New cycle = new <code>billing_period_start_ms</code> = counter effectively resets. Old records persist for analytics.</p>
+
+  <h3>Hard Cap with Upgrade Prompt</h3>
+  <p>When <code>checkUsageLimit()</code> returns <code>allowed: false</code>:</p>
+  <ol>
+    <li>Capped action blocked &mdash; feature button disabled</li>
+    <li>Upgrade prompt renders inline with current usage, next tier limits, and pro-rated price</li>
+    <li>One-click upgrade triggers immediate tier swap via <code>swapSubscriptionPrice({ mode: "immediate" })</code></li>
+    <li>If already on highest tier: &ldquo;you&rsquo;ve maxed out&rdquo; message with support link</li>
+  </ol>
+
+  <h3>Stripe Product Sync</h3>
+  <p><code>syncProductToStripe()</code> creates one Stripe Product per Lite product. <code>syncTierPricesToStripe()</code> creates three Prices per tier. Each Price carries <code>metadata.lite_tier_id</code> and <code>metadata.cadence</code> for traceability. Price changes always create new Price objects and archive old ones &mdash; Stripe Prices are immutable.</p>
+
+  <div class="callout">
+    <div class="callout-label">Tier Limits Protect Margin</div>
+    <p>Negative margin at small or medium tiers is a tier-design bug, not a subscriber problem. Only top-tier power users warrant per-subscriber triage. The <code>limit_value = null</code> (unlimited) option is reserved for the large tier&rsquo;s least-expensive dimensions.</p>
+  </div>
+</div>
+
+<!-- ── 12. IMPLEMENTATION TIPS ─────────────────────────────────── -->
+
+<div class="section" id="tips">
+  <div class="section-num">Section 12</div>
+  <h2>Implementation Tips</h2>
+
+  <ol>
+    <li><strong>Start with the webhook handler.</strong> Everything downstream depends on reliable event processing. Get <code>webhook_events</code> idempotency, signature verification, and the dispatch switch working first. Test with Stripe CLI forwarding.</li>
+
+    <li><strong>Every monetary value is integer cents, GST-inclusive.</strong> Never store dollars. Never store floats. Derive ex-GST at the compliance boundary only. The <code>deriveInvoiceTotals()</code> helper in <code>lib/invoicing/totals.ts</code> does this in one place.</li>
+
+    <li><strong>Idempotency keys are non-negotiable.</strong> Every Stripe-mutating call carries one. Every webhook handler checks the <code>webhook_events</code> table first. Every scheduled task has a deterministic key. Double-run of anything should be a no-op.</li>
+
+    <li><strong>Never import Stripe directly in feature code.</strong> Everything goes through <code>lib/stripe/</code>. The ESLint rule <code>no-direct-stripe-customer-create</code> enforces this. The grep-guard test for setup fees ensures <code>add_invoice_items</code> only appears in one file.</li>
+
+    <li><strong>Stripe Prices are immutable.</strong> Price changes always create a new Price and archive the old one. The <code>archiveTierPrices()</code> + <code>syncTierPricesToStripe()</code> pattern handles this. Existing subscribers continue on their current Price.</li>
+
+    <li><strong>State machine transitions assert the current state.</strong> Both <code>transitionInvoiceStatus()</code> and <code>transitionQuoteStatus()</code> use WHERE clauses that check current status. This prevents concurrent callers from corrupting state. If the row count is 0 after the update, the transition was illegal or already happened.</li>
+
+    <li><strong>The scheduled-tasks worker is shared infrastructure.</strong> It polls every minute, reclaims stale rows after 15 minutes, and retries with exponential backoff. Your billing handler should return <code>{ ok: true }</code> or <code>{ ok: false, error, retry }</code>. Never throw from a handler.</li>
+
+    <li><strong>Setup fee logic lives in exactly one file.</strong> <code>lib/billing/setup-fee.ts</code> is the only place that builds <code>add_invoice_items</code>. Callers spread the result into their subscription create params. This constraint is test-enforced.</li>
+
+    <li><strong>The cancel flow is UX-layer enforcement, not Stripe-layer.</strong> Stripe sees a plain rolling subscription. Lite tracks <code>committed_until_date_ms</code> and routes the cancel flow through pre-term or post-term branches. This keeps Stripe simple and gives full control over the exit experience.</li>
+
+    <li><strong>Test payment failure recovery end-to-end.</strong> The <code>past_due</code> &rarr; <code>active_current</code> path touches multiple handlers: <code>invoice.payment_failed</code> sets the state, <code>invoice.payment_succeeded</code> clears it, and the pending <code>saas_data_loss_warning</code> task gets cancelled. Simulate this full cycle with Stripe CLI test clocks.</li>
+
+    <li><strong>The webhook route always returns 200.</strong> Never let a dispatch failure cause a non-2xx response. Stripe retries on non-2xx are worse than a recorded failure. Triage happens off the <code>webhook_events</code> table.</li>
+
+    <li><strong>All email sends go through <code>sendEmail()</code> with <code>classification: 'transactional'</code>.</strong> Billing emails bypass the quiet window. Invoice send, reminder, supersede notification, payment confirmation &mdash; all transactional. Never queue billing-critical emails behind a marketing cadence.</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Final Note</div>
+    <p class="mutter">The billing system has two kinds of bugs: the kind where someone sees the wrong number on a screen, and the kind where someone gets charged twice. Every idempotency key, every state machine assertion, every webhook_events check exists to prevent the second kind. Guard them.</p>
+  </div>
+</div>
+
+</div><!-- /.content -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<div class="footer">
+  <span class="footer-brand">Super<span>Bad</span></span>
+  <span class="footer-meta">Generated 28 April 2026 &middot; Source: SuperBad Lite codebase</span>
+</div>
+
+</body>
+</html>
