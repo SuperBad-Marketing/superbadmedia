@@ -12,6 +12,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getDashboardData } from "@/lib/finance/dashboard-data";
 import { FinanceFullDashboard } from "@/components/lite/finance/finance-full-dashboard";
+import { StripeSyncButton } from "@/components/lite/finance/stripe-sync-button";
 
 export const metadata: Metadata = {
   title: "SuperBad — Finance",
@@ -139,6 +140,7 @@ function FinanceHeader({
           )}
         </div>
         <div className="ml-auto flex items-center gap-3">
+          <StripeSyncButton />
           <Link
             href="/lite/finance/recurring"
             className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-400)] transition-colors duration-150 hover:text-[color:var(--color-brand-cream)]"
