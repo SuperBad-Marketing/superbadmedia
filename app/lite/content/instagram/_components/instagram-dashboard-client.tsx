@@ -20,6 +20,8 @@ import {
   reactToInspirationAction,
   fetchInspirationFeedAction,
   updateSlotStatusAction,
+  deletePlanAction,
+  rescrapeInspirationAction,
 } from "../strategy-actions";
 
 interface AccountSummary {
@@ -409,6 +411,8 @@ function ContentPlanCard({
   const [editTopic, setEditTopic] = useState("");
   const [editCaption, setEditCaption] = useState("");
 
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const badge = STATUS_BADGE[plan.status] ?? STATUS_BADGE.awaiting_review;
   const unapprovedIndices = plan.slots
     .map((s, i) => (s.approved ? null : i))
@@ -463,6 +467,19 @@ function ContentPlanCard({
     router.refresh();
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    const result = await deletePlanAction(plan.id);
+    if (result.ok) {
+      toast.success("Plan deleted.");
+      router.refresh();
+    } else {
+      toast.error(result.error);
+    }
+    setDeleting(false);
+    setConfirmDelete(false);
+  }
+
   return (
     <div
       className="rounded-xl border p-5"
@@ -490,16 +507,44 @@ function ContentPlanCard({
             {formatWeekRange(plan.weekStartDate, plan.weekEndDate)}
           </p>
         </div>
-        <span
-          className="inline-flex rounded-full px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
-          style={{
-            letterSpacing: "1px",
-            background: badge.bg,
-            color: badge.color,
-          }}
-        >
-          {badge.label}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex rounded-full px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+            style={{
+              letterSpacing: "1px",
+              background: badge.bg,
+              color: badge.color,
+            }}
+          >
+            {badge.label}
+          </span>
+          {confirmDelete ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-md px-2 py-1 font-[family-name:var(--font-label)] text-[9px] uppercase tracking-[1px] text-[color:var(--color-brand-cream)] transition-opacity disabled:opacity-50"
+                style={{ backgroundColor: "var(--color-brand-red)" }}
+              >
+                {deleting ? "Deleting…" : "Confirm"}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-red)]"
+              title="Delete plan"
+            >
+              <Trash2 className="size-3.5" strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Theme */}
@@ -1371,6 +1416,7 @@ function InspirationFeed() {
   const [filter, setFilter] = useState<"all" | "liked" | "undecided" | "dismissed">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reacting, setReacting] = useState<string | null>(null);
+  const [rescraping, setRescraping] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1384,6 +1430,19 @@ function InspirationFeed() {
     load();
     return () => { cancelled = true; };
   }, []);
+
+  async function handleRescrape() {
+    setRescraping(true);
+    const result = await rescrapeInspirationAction();
+    if (result.ok) {
+      toast.success(`Scraped ${result.value.postsStored} new posts.`);
+      const fresh = await fetchInspirationFeedAction();
+      if (fresh.ok) setPosts(fresh.value);
+    } else {
+      toast.error(result.error);
+    }
+    setRescraping(false);
+  }
 
   async function handleReact(postId: string, reaction: "like" | "dislike") {
     setReacting(postId);
@@ -1429,11 +1488,11 @@ function InspirationFeed() {
       }}
     >
       {/* Collapsible header */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex w-full items-center justify-between px-5 py-4"
-      >
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between px-5 py-4">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="flex items-center gap-2"
+        >
           <h3 className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
             Inspiration
           </h3>
@@ -1442,13 +1501,36 @@ function InspirationFeed() {
             {likedCount > 0 && ` · ${likedCount} liked`}
             {undecidedCount > 0 && ` · ${undecidedCount} undecided`}
           </span>
+        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRescrape}
+            disabled={rescraping}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-opacity disabled:opacity-50"
+            style={{
+              backgroundColor: "var(--color-neutral-800)",
+              color: "var(--color-brand-cream)",
+              border: "1px solid rgba(253, 245, 230, 0.08)",
+            }}
+          >
+            {rescraping ? (
+              <Loader2 className="size-3 animate-spin" strokeWidth={1.5} />
+            ) : (
+              <RefreshCw className="size-3" strokeWidth={1.5} />
+            )}
+            {rescraping ? "Scraping…" : "Re-scrape"}
+          </button>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed ? (
+              <ChevronDown className="size-4 text-[color:var(--color-neutral-500)]" strokeWidth={1.5} />
+            ) : (
+              <ChevronUp className="size-4 text-[color:var(--color-neutral-500)]" strokeWidth={1.5} />
+            )}
+          </button>
         </div>
-        {collapsed ? (
-          <ChevronDown className="size-4 text-[color:var(--color-neutral-500)]" strokeWidth={1.5} />
-        ) : (
-          <ChevronUp className="size-4 text-[color:var(--color-neutral-500)]" strokeWidth={1.5} />
-        )}
-      </button>
+      </div>
 
       {!collapsed && (
         <div className="px-5 pb-5">

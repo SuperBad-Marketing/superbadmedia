@@ -408,6 +408,73 @@ export async function syncTaskCompletionToSlotAction(
   return { ok: true, value: undefined };
 }
 
+export async function deletePlanAction(
+  planId: string,
+): Promise<ActionResult<void>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const plan = await db
+    .select()
+    .from(instagram_content_plans)
+    .where(eq(instagram_content_plans.id, planId))
+    .get();
+
+  if (!plan) return { ok: false, error: "Plan not found." };
+
+  const slots = plan.slots_json as EnhancedContentPlanSlot[];
+  const taskIds = slots
+    .map((s) => s.task_id)
+    .filter((id): id is string => id !== null);
+
+  for (const taskId of taskIds) {
+    await db.delete(tasks).where(eq(tasks.id, taskId));
+  }
+
+  await db
+    .delete(instagram_content_plans)
+    .where(eq(instagram_content_plans.id, planId));
+
+  await logActivity({
+    kind: "instagram_plan_deleted",
+    body: "Content plan deleted.",
+    meta: { plan_id: planId, tasks_removed: taskIds.length },
+  });
+
+  revalidatePath("/lite/content/instagram");
+  revalidatePath("/lite/tasks");
+  return { ok: true, value: undefined };
+}
+
+export async function rescrapeInspirationAction(): Promise<
+  ActionResult<{ postsStored: number }>
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const watchedCount = await db
+    .select({ id: instagram_watched_accounts.id })
+    .from(instagram_watched_accounts)
+    .where(eq(instagram_watched_accounts.status, "active"))
+    .all();
+
+  if (watchedCount.length === 0)
+    return { ok: false, error: "No watched accounts. Add some in Settings first." };
+
+  try {
+    const result = await scrapeWatchedAccounts();
+    revalidatePath("/lite/content/instagram");
+    return { ok: true, value: { postsStored: result.postsStored } };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Scrape failed.",
+    };
+  }
+}
+
 export async function fetchEnhancedPlanAction(): Promise<
   ActionResult<
     Array<{

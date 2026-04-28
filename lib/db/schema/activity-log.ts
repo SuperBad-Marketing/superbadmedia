@@ -393,9 +393,10 @@ export const ACTIVITY_LOG_KINDS = [
   "storyboard_failed",
   "storyboard_revised",
   "storyboard_regenerated",
-  // --- Instagram Strategy Plans (4) ---
+  // --- Instagram Strategy Plans (5) ---
   "instagram_plan_generated",
   "instagram_plan_approved",
+  "instagram_plan_deleted",
   "instagram_plan_expired",
   "instagram_plan_nudge_sent",
   // --- Instagram Token (2) ---
@@ -423,6 +424,7 @@ export const ACTIVITY_LOG_KINDS = [
   "profile_suggestion_expired",
   "profile_prose_regenerated",
   "profile_health_check_run",
+  "profile_auto_populated",
   // --- Data management ---
   "brand_dna_reset",
   "client_context_reset",
