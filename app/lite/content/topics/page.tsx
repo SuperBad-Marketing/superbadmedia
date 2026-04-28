@@ -5,6 +5,7 @@
  * Shows passive topic queue with outlines, veto power, and seed
  * keyword management for the research pipeline.
  *
+ * Company context resolved from ?company= search param via shared resolver.
  * Admin-only.
  */
 import { redirect } from "next/navigation";
@@ -12,40 +13,53 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { contentEngineConfig } from "@/lib/db/schema/content-engine-config";
+import { eq } from "drizzle-orm";
 import { listQueuedTopics } from "@/lib/content-engine/topic-queue";
 import { ContentTabs } from "../_components/content-tabs";
+import { CompanyContextBar } from "../_components/company-context-bar";
 import { TopicQueueList } from "../_components/topic-queue-list";
 import { SeedKeywordManager } from "../_components/seed-keyword-manager";
 import { RunResearchButton } from "../_components/run-research-button";
+import { resolveContentCompany } from "../_lib/resolve-company";
 
 export const metadata: Metadata = {
   title: "Topics — SuperBad",
 };
 
-export default async function TopicsPage() {
+export default async function TopicsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
     redirect("/api/auth/signin");
   }
 
-  // For now, get the first company config (admin view).
-  // Multi-company filter will come with subscriber fleet overview.
-  const config = await db
-    .select({
-      company_id: contentEngineConfig.company_id,
-      seed_keywords: contentEngineConfig.seed_keywords,
-    })
-    .from(contentEngineConfig)
-    .limit(1)
-    .then((rows) => rows[0] ?? null);
+  const sp = await searchParams;
+  const { companies, activeCompanyId } = await resolveContentCompany(sp);
+  const companyId = activeCompanyId;
 
-  const companyId = config?.company_id ?? null;
+  const config = companyId
+    ? await db
+        .select({ seed_keywords: contentEngineConfig.seed_keywords })
+        .from(contentEngineConfig)
+        .where(eq(contentEngineConfig.company_id, companyId))
+        .limit(1)
+        .then((rows) => rows[0] ?? null)
+    : null;
   const seedKeywords = (config?.seed_keywords as string[] | null) ?? [];
 
   const topics = companyId ? await listQueuedTopics(companyId) : [];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      {companyId && (
+        <CompanyContextBar
+          companies={companies}
+          activeCompanyId={companyId}
+        />
+      )}
       <header className="px-4 pt-6 pb-5">
         <div
           className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"

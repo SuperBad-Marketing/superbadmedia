@@ -2,8 +2,8 @@
  * /lite/content — Content Engine admin landing (CE-3).
  *
  * Spec: docs/specs/content-engine.md §8.1.
- * Shows the Review tab: posts awaiting review. Other tabs (Social,
- * Metrics, Topics, List) ship in later CE sessions.
+ * Shows the Review tab: posts awaiting review. Company context is
+ * resolved from ?company= search param via shared resolver.
  *
  * Admin-only.
  */
@@ -12,64 +12,72 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
-import { Badge } from "@/components/ui/badge";
 import { ContentTabs } from "./_components/content-tabs";
 import { ContentGenerateButton } from "./_components/content-generate-button";
-
-// SuperBad's own company ID — in production this comes from settings or config.
-// For now, list all companies' posts since this is an admin view.
+import { CompanyContextBar } from "./_components/company-context-bar";
+import { resolveContentCompany } from "./_lib/resolve-company";
 
 export const metadata: Metadata = {
   title: "Content Engine — SuperBad",
 };
 
-export default async function ContentPage() {
+export default async function ContentPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
     redirect("/api/auth/signin");
   }
 
+  const sp = await searchParams;
+  const { companies: contentCompanies, activeCompanyId } =
+    await resolveContentCompany(sp);
+
   const { db } = await import("@/lib/db");
   const { blogPosts: blogPostsTable } = await import(
     "@/lib/db/schema/blog-posts"
   );
-  const { contentEngineConfig } = await import(
-    "@/lib/db/schema/content-engine-config"
-  );
-  const { companies: companiesTable } = await import(
-    "@/lib/db/schema/companies"
-  );
-  const { desc, eq, inArray } = await import("drizzle-orm");
+  const { desc, eq, and } = await import("drizzle-orm");
 
-  const configs = await db
-    .select({ company_id: contentEngineConfig.company_id })
-    .from(contentEngineConfig);
-  const configCompanyIds = configs.map((c) => c.company_id);
-  const contentCompanies =
-    configCompanyIds.length > 0
-      ? await db
-          .select({ id: companiesTable.id, name: companiesTable.name })
-          .from(companiesTable)
-          .where(inArray(companiesTable.id, configCompanyIds))
-      : [];
+  const reviewPosts = activeCompanyId
+    ? await db
+        .select()
+        .from(blogPostsTable)
+        .where(
+          and(
+            eq(blogPostsTable.company_id, activeCompanyId),
+            eq(blogPostsTable.status, "in_review"),
+          ),
+        )
+        .orderBy(desc(blogPostsTable.created_at_ms))
+    : [];
 
-  const reviewPosts = await db
-    .select()
-    .from(blogPostsTable)
-    .where(eq(blogPostsTable.status, "in_review"))
-    .orderBy(desc(blogPostsTable.created_at_ms));
-
-  const recentPublished = await db
-    .select()
-    .from(blogPostsTable)
-    .where(eq(blogPostsTable.status, "published"))
-    .orderBy(desc(blogPostsTable.published_at_ms))
-    .limit(10);
+  const recentPublished = activeCompanyId
+    ? await db
+        .select()
+        .from(blogPostsTable)
+        .where(
+          and(
+            eq(blogPostsTable.company_id, activeCompanyId),
+            eq(blogPostsTable.status, "published"),
+          ),
+        )
+        .orderBy(desc(blogPostsTable.published_at_ms))
+        .limit(10)
+    : [];
 
   const totalPosts = reviewPosts.length + recentPublished.length;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      {activeCompanyId && (
+        <CompanyContextBar
+          companies={contentCompanies}
+          activeCompanyId={activeCompanyId}
+        />
+      )}
       <header className="px-4 pt-6 pb-5">
         <div
           className="font-[family-name:var(--font-label)] text-[10px] uppercase leading-none text-[color:var(--color-neutral-500)]"
@@ -84,7 +92,9 @@ export default async function ContentPage() {
           >
             Content Engine
           </h1>
-          <ContentGenerateButton companies={contentCompanies} />
+          {activeCompanyId && (
+            <ContentGenerateButton companyId={activeCompanyId} />
+          )}
         </div>
         <p className="mt-3 max-w-[640px] font-[family-name:var(--font-body)] text-[16px] leading-[1.55] text-[color:var(--color-neutral-300)]">
           What&apos;s been written, what&apos;s waiting.{" "}

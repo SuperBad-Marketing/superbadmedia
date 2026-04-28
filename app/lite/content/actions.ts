@@ -162,7 +162,7 @@ export async function runKeywordResearchAction(companyId: string) {
     return { ok: false as const, error: "unauthorized" };
   }
 
-  const parsedCompany = z.string().uuid().safeParse(companyId);
+  const parsedCompany = z.string().min(1).safeParse(companyId);
   if (!parsedCompany.success)
     return { ok: false as const, error: "invalid_company_id" };
 
@@ -198,7 +198,7 @@ export async function addSeedKeywordAction(
     return { ok: false as const, error: "unauthorized" };
   }
 
-  const parsedCompany = z.string().uuid().safeParse(companyId);
+  const parsedCompany = z.string().min(1).safeParse(companyId);
   if (!parsedCompany.success)
     return { ok: false as const, error: "invalid_company_id" };
 
@@ -225,7 +225,7 @@ export async function removeSeedKeywordAction(
     return { ok: false as const, error: "unauthorized" };
   }
 
-  const parsedCompany = z.string().uuid().safeParse(companyId);
+  const parsedCompany = z.string().min(1).safeParse(companyId);
   if (!parsedCompany.success)
     return { ok: false as const, error: "invalid_company_id" };
 
