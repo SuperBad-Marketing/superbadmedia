@@ -1,9 +1,12 @@
 import type { ContentType, AspectRatio } from "@/lib/db/schema/content-studio";
 import type { ColourPalette } from "./motion/types";
+import type { MotionLayoutConfig } from "./motion/layouts";
+import { DEFAULT_LAYOUT } from "./motion/layouts";
 
 export interface RenderOptions {
   fontFaces?: string;
   palette?: ColourPalette;
+  layout?: MotionLayoutConfig;
 }
 
 export interface TemplateDef {
@@ -31,6 +34,17 @@ export function getDimensions(ratio: AspectRatio) {
   return ASPECT_DIMENSIONS[ratio];
 }
 
+function scaleForRatio(ratio: AspectRatio): number {
+  const { width, height } = ASPECT_DIMENSIONS[ratio];
+  const widthScale = width / 1080;
+  const aspect = width / height;
+  if (aspect > 1.5) return widthScale * 0.65;
+  if (aspect > 1.3) return widthScale * 0.85;
+  if (aspect < 0.7) return widthScale * 1.15;
+  if (aspect < 0.85) return widthScale * 1.05;
+  return widthScale;
+}
+
 const DEFAULT_FONT_FACES = `
   @font-face { font-family: 'Display'; src: local('Inter'); font-weight: 900; }
   @font-face { font-family: 'Body'; src: local('Inter'); font-weight: 400; }
@@ -51,6 +65,39 @@ function baseStyles(ratio: AspectRatio, options?: RenderOptions) {
   const { width, height } = ASPECT_DIMENSIONS[ratio];
   const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
   const p = options?.palette ?? DEFAULT_PALETTE;
+  const layout = options?.layout ?? DEFAULT_LAYOUT;
+  const s = scaleForRatio(ratio);
+
+  const headlineSize = Math.round(80 * s * layout.headlineScale);
+  const detailSize = Math.round(48 * s * layout.detailScale);
+  const brandSize = Math.round(16 * s);
+  const subtextSize = Math.round(20 * s);
+  const taglineSize = Math.round(20 * s);
+  const footerSize = Math.round(12 * s);
+  const padX = Math.round(48 * s * layout.paddingScale);
+  const padY = Math.round(60 * s * layout.paddingScale);
+  const gap = Math.round(layout.elementGap * s);
+  const dividerWidth = Math.round(48 * s);
+
+  const justifyContent =
+    layout.verticalPosition <= 30
+      ? "flex-start"
+      : layout.verticalPosition >= 70
+        ? "flex-end"
+        : "center";
+  const textAlign = layout.textAlign;
+  const alignItems =
+    textAlign === "center"
+      ? "center"
+      : textAlign === "right"
+        ? "flex-end"
+        : "flex-start";
+  const dividerMargin =
+    textAlign === "center"
+      ? `0 auto ${gap}px`
+      : textAlign === "right"
+        ? `0 0 ${gap}px auto`
+        : `0 0 ${gap}px 0`;
 
   return `
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -59,7 +106,7 @@ function baseStyles(ratio: AspectRatio, options?: RenderOptions) {
       width: ${width}px; height: ${height}px;
       background: ${p.background};
       display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
+      justify-content: ${justifyContent}; align-items: ${alignItems};
       font-family: 'Body', sans-serif;
       color: ${p.text};
       overflow: hidden;
@@ -69,20 +116,55 @@ function baseStyles(ratio: AspectRatio, options?: RenderOptions) {
       position: absolute; inset: 0; pointer-events: none;
       background: radial-gradient(ellipse 70% 50% at 50% 30%, ${p.primary}1f, transparent 60%);
     }
-    .content { position: relative; z-index: 1; text-align: center; padding: ${ratio === "landscape" ? "40px 60px" : "60px 48px"}; width: 100%; }
-    .brand-label { font-family: 'Label'; font-size: ${ratio === "landscape" ? "14px" : "16px"}; letter-spacing: 4px; text-transform: uppercase; color: ${p.primary}; margin-bottom: ${ratio === "landscape" ? "20px" : "32px"}; }
-    .headline { font-family: 'Display'; font-weight: 900; color: ${p.text}; line-height: 0.95; letter-spacing: -2px; margin-bottom: ${ratio === "landscape" ? "16px" : "24px"}; }
-    .headline-portrait { font-size: 96px; }
-    .headline-square { font-size: 80px; }
-    .headline-landscape { font-size: 56px; }
-    .divider { width: 48px; height: 3px; background: linear-gradient(90deg, ${p.accent}, ${p.primary}); margin: 0 auto ${ratio === "landscape" ? "16px" : "24px"}; border-radius: 2px; }
-    .detail { font-family: 'Display'; font-weight: 900; color: ${p.primary}; margin-bottom: ${ratio === "landscape" ? "8px" : "12px"}; }
-    .detail-portrait { font-size: 56px; }
-    .detail-square { font-size: 48px; }
-    .detail-landscape { font-size: 36px; }
-    .subtext { font-family: 'Label'; font-size: ${ratio === "landscape" ? "16px" : "20px"}; letter-spacing: 3px; text-transform: uppercase; color: #8A8A80; margin-bottom: ${ratio === "landscape" ? "8px" : "12px"}; }
-    .tagline { font-family: 'Body'; font-style: italic; font-size: ${ratio === "landscape" ? "16px" : "20px"}; color: ${p.accent}; margin-top: ${ratio === "landscape" ? "12px" : "20px"}; }
-    .footer { position: absolute; bottom: ${ratio === "landscape" ? "20px" : "40px"}; font-family: 'Label'; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}40; }
+    .content {
+      position: relative; z-index: 1;
+      text-align: ${textAlign};
+      padding: ${padY}px ${padX}px;
+      width: 100%;
+      max-width: ${layout.contentWidth}%;
+    }
+    .brand-label {
+      font-family: 'Label'; font-size: ${brandSize}px;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: ${p.primary}; margin-bottom: ${gap}px;
+    }
+    .headline {
+      font-family: 'Display'; font-weight: 900;
+      color: ${p.text};
+      font-size: ${headlineSize}px;
+      line-height: ${layout.lineHeight};
+      letter-spacing: ${layout.letterSpacing}px;
+      margin-bottom: ${gap}px;
+    }
+    .divider {
+      width: ${dividerWidth}px; height: 3px;
+      background: linear-gradient(90deg, ${p.accent}, ${p.primary});
+      margin: ${dividerMargin};
+      border-radius: 2px;
+    }
+    .detail {
+      font-family: 'Display'; font-weight: 900;
+      color: ${p.primary};
+      font-size: ${detailSize}px;
+      margin-bottom: ${gap}px;
+    }
+    .subtext {
+      font-family: 'Label'; font-size: ${subtextSize}px;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: #8A8A80; margin-bottom: ${gap}px;
+    }
+    .tagline {
+      font-family: 'Body'; font-style: italic;
+      font-size: ${taglineSize}px;
+      color: ${p.accent}; margin-top: ${gap}px;
+    }
+    .footer {
+      position: absolute; bottom: ${padY}px;
+      left: 0; right: 0; text-align: center;
+      font-family: 'Label'; font-size: ${footerSize}px;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: ${p.text}40;
+    }
   `;
 }
 
@@ -104,9 +186,9 @@ const announcementBold: TemplateDef = {
       <div class="gradient-overlay"></div>
       <div class="content">
         <div class="brand-label">SuperBad</div>
-        <div class="headline headline-${ratio}">${escapeHtml(copy.headline || "")}</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
         <div class="divider"></div>
-        <div class="detail detail-${ratio}">${escapeHtml(copy.detail || "")}</div>
+        <div class="detail">${escapeHtml(copy.detail || "")}</div>
         <div class="subtext">${escapeHtml(copy.subtext || "")}</div>
         <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
       </div>
@@ -129,8 +211,8 @@ const announcementMinimal: TemplateDef = {
       <div class="gradient-overlay"></div>
       <div class="content">
         <div class="brand-label">SuperBad</div>
-        <div class="headline headline-${ratio}">${escapeHtml(copy.headline || "")}</div>
-        <div class="detail detail-${ratio}">${escapeHtml(copy.detail || "")}</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
+        <div class="detail">${escapeHtml(copy.detail || "")}</div>
         <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
       </div>
       <div class="footer">superbadmedia.com.au</div>
@@ -149,7 +231,7 @@ const antiMotivation: TemplateDef = {
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
-        <div class="headline headline-${ratio}">${escapeHtml(copy.headline || "")}</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
         <div class="divider"></div>
         <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
       </div>
@@ -165,13 +247,15 @@ const tipsValue: TemplateDef = {
   copySlots: ["headline", "detail", "tagline"],
   renderHtml(copy, ratio, options) {
     const p = options?.palette ?? DEFAULT_PALETTE;
+    const s = scaleForRatio(ratio);
+    const bodyDetailSize = Math.round(22 * s);
     return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
-      .detail { color: ${p.text}; font-family: 'Body'; font-weight: 400; font-size: ${ratio === "landscape" ? "18px" : "22px"}; line-height: 1.6; letter-spacing: 0; }
+      .detail { color: ${p.text}; font-family: 'Body'; font-weight: 400; font-size: ${bodyDetailSize}px; line-height: 1.6; letter-spacing: 0; }
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
         <div class="brand-label">SuperBad</div>
-        <div class="headline headline-${ratio}">${escapeHtml(copy.headline || "")}</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
         <div class="divider"></div>
         <div class="detail">${escapeHtml(copy.detail || "")}</div>
         <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
@@ -189,17 +273,18 @@ const testimonialQuote: TemplateDef = {
   renderHtml(copy, ratio, options) {
     const p = options?.palette ?? DEFAULT_PALETTE;
     const headlineAccent = mixAccent(p);
+    const s = scaleForRatio(ratio);
+    const layout = options?.layout ?? DEFAULT_LAYOUT;
+    const quoteSize = Math.round(40 * s * layout.headlineScale);
+    const attributionSize = Math.round(16 * s);
     return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
-      .headline { font-family: 'Body'; font-style: italic; font-weight: 400; letter-spacing: 0; line-height: 1.4; }
-      .headline-portrait { font-size: 48px; }
-      .headline-square { font-size: 40px; }
-      .headline-landscape { font-size: 28px; }
-      .detail { font-family: 'Label'; font-size: ${ratio === "landscape" ? "14px" : "16px"}; letter-spacing: 2px; text-transform: uppercase; color: ${headlineAccent}; }
+      .headline { font-family: 'Body'; font-style: italic; font-weight: 400; letter-spacing: 0; line-height: 1.4; font-size: ${quoteSize}px; }
+      .detail { font-family: 'Label'; font-size: ${attributionSize}px; letter-spacing: 2px; text-transform: uppercase; color: ${headlineAccent}; }
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
         <div class="brand-label">SuperBad</div>
-        <div class="headline headline-${ratio}">&ldquo;${escapeHtml(copy.headline || "")}&rdquo;</div>
+        <div class="headline">&ldquo;${escapeHtml(copy.headline || "")}&rdquo;</div>
         <div class="divider"></div>
         <div class="detail">&mdash; ${escapeHtml(copy.detail || "")}</div>
         <div class="subtext">${escapeHtml(copy.subtext || "")}</div>
@@ -215,16 +300,16 @@ const behindTheScenes: TemplateDef = {
   contentType: "behind_the_scenes",
   copySlots: ["headline", "tagline"],
   renderHtml(copy, ratio, options) {
+    const s = scaleForRatio(ratio);
+    const layout = options?.layout ?? DEFAULT_LAYOUT;
+    const captionSize = Math.round(36 * s * layout.headlineScale);
     return `<!DOCTYPE html><html><head><style>${baseStyles(ratio, options)}
-      .headline { font-family: 'Body'; font-weight: 400; letter-spacing: 0; line-height: 1.5; }
-      .headline-portrait { font-size: 44px; }
-      .headline-square { font-size: 36px; }
-      .headline-landscape { font-size: 26px; }
+      .headline { font-family: 'Body'; font-weight: 400; letter-spacing: 0; line-height: 1.5; font-size: ${captionSize}px; }
     </style></head><body>
       <div class="gradient-overlay"></div>
       <div class="content">
         <div class="brand-label">Behind the scenes</div>
-        <div class="headline headline-${ratio}">${escapeHtml(copy.headline || "")}</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
         <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
       </div>
       <div class="footer">superbadmedia.com.au</div>
@@ -245,7 +330,7 @@ const portfolioShowcase: TemplateDef = {
       <div class="gradient-overlay"></div>
       <div class="content">
         <div class="brand-label">Recent work</div>
-        <div class="headline headline-${ratio}">${escapeHtml(copy.headline || "")}</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
         <div class="divider"></div>
         <div class="subtext">${escapeHtml(copy.detail || "")}</div>
         <div class="tagline">${escapeHtml(copy.tagline || "")}</div>

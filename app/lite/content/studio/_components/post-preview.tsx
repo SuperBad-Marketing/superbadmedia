@@ -16,10 +16,13 @@ import type { ColourPalette, CustomPaletteInput as CustomPaletteColors } from "@
 import { getMotionTemplatesForStatic } from "@/lib/content-studio/motion/registry";
 import { getFontFacesForBrowser } from "@/lib/content-studio/font-pairings";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
+import type { MotionLayoutConfig } from "@/lib/content-studio/motion/layouts";
+import { DEFAULT_LAYOUT } from "@/lib/content-studio/motion/layouts";
 import type { ActivePost } from "./studio-client";
 import { PaletteSwatches } from "./palette-swatches";
 import { FontPairingPicker } from "./font-pairing-picker";
 import { CustomPaletteInput } from "./custom-palette-input";
+import { LayoutPicker } from "./layout-picker";
 
 const RATIO_LABELS: Record<AspectRatio, string> = {
   portrait: "Portrait 9:16",
@@ -54,9 +57,11 @@ interface PostPreviewProps {
   onFontPairingChange: (id: string | null) => void;
   onPaletteChange: (paletteId: string | null, customPalette?: CustomPaletteColors | null) => void;
   onPromoteToMotion: (motionTemplateId: string, slideIndex: number) => Promise<void>;
+  onLayoutChange: (layout: MotionLayoutConfig) => void;
   fontPairingId: string | null;
   paletteId: string | null;
   customPalette: CustomPaletteColors | null;
+  initialLayout?: MotionLayoutConfig;
 }
 
 export function PostPreview({
@@ -69,9 +74,11 @@ export function PostPreview({
   onFontPairingChange,
   onPaletteChange,
   onPromoteToMotion,
+  onLayoutChange,
   fontPairingId,
   paletteId,
   customPalette,
+  initialLayout,
 }: PostPreviewProps) {
   const isCarousel = post.slides.length > 1;
   const [activeSlide, setActiveSlide] = useState(0);
@@ -92,6 +99,9 @@ export function PostPreview({
   const [showTemplateDrawer, setShowTemplateDrawer] = useState(false);
   const [showCustomPalette, setShowCustomPalette] = useState(paletteId === "custom");
   const [promoting, setPromoting] = useState(false);
+  const [activeLayout, setActiveLayout] = useState<MotionLayoutConfig>(
+    initialLayout ?? DEFAULT_LAYOUT,
+  );
 
   const [editingSlides, setEditingSlides] = useState<SlideCopy[]>(post.slides);
 
@@ -120,8 +130,9 @@ export function PostPreview({
     return template.renderHtml(currentCopy, previewRatio, {
       fontFaces: previewFontFaces,
       palette: resolvedPalette,
+      layout: activeLayout,
     });
-  }, [template, currentCopy, previewRatio, previewFontFaces, resolvedPalette]);
+  }, [template, currentCopy, previewRatio, previewFontFaces, resolvedPalette, activeLayout]);
 
   const { width: nativeW, height: nativeH } = getDimensions(previewRatio);
 
@@ -178,6 +189,14 @@ export function PostPreview({
       onPaletteChange("custom", colors);
     },
     [onPaletteChange],
+  );
+
+  const handleLayoutChange = useCallback(
+    (layout: MotionLayoutConfig) => {
+      setActiveLayout(layout);
+      onLayoutChange(layout);
+    },
+    [onLayoutChange],
   );
 
   // Sync editingSlides when post.slides changes externally (e.g. from LLM correction)
@@ -342,6 +361,12 @@ export function PostPreview({
           />
         )}
       </div>
+
+      {/* Layout */}
+      <LayoutPicker
+        activeLayout={activeLayout}
+        onChange={handleLayoutChange}
+      />
 
       {/* Live preview */}
       <div>

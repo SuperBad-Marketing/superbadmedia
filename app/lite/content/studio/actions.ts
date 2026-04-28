@@ -25,6 +25,7 @@ function resolveRenderOptions(post: {
   static_palette_id: string | null;
   custom_palette_json: string | null;
   palette_id: string | null;
+  animation_params_json: string | null;
 }): RenderOptions {
   const opts: RenderOptions = {};
 
@@ -39,6 +40,16 @@ function resolveRenderOptions(post: {
   } else if (paletteId) {
     const palette = getPalette(paletteId);
     if (palette) opts.palette = palette;
+  }
+
+  if (post.animation_params_json) {
+    try {
+      const params = JSON.parse(post.animation_params_json as string);
+      const layoutStr = params._layout;
+      if (typeof layoutStr === "string") {
+        opts.layout = JSON.parse(layoutStr);
+      }
+    } catch {}
   }
 
   return opts;
@@ -173,6 +184,7 @@ const updateStaticSchema = z.object({
     accent: z.string(),
     text: z.string(),
   }).nullable().optional(),
+  layoutJson: z.string().nullable().optional(),
 });
 
 export async function updateStaticPostAction(
@@ -200,6 +212,11 @@ export async function updateStaticPostAction(
   if (parsed.data.customPalette !== undefined) {
     updates.custom_palette_json = parsed.data.customPalette
       ? JSON.stringify(parsed.data.customPalette)
+      : null;
+  }
+  if (parsed.data.layoutJson !== undefined) {
+    updates.animation_params_json = parsed.data.layoutJson
+      ? JSON.stringify({ _layout: parsed.data.layoutJson })
       : null;
   }
 

@@ -417,6 +417,17 @@ export function StudioClient() {
     [activePost],
   );
 
+  const handleStaticLayoutChange = useCallback(
+    (layout: MotionLayoutConfig) => {
+      if (!activePost) return;
+      updateStaticPostAction({
+        postId: activePost.id,
+        layoutJson: JSON.stringify(layout),
+      }).catch(() => toast.error("Failed to save layout change."));
+    },
+    [activePost],
+  );
+
   const handleStaticPaletteChange = useCallback(
     (paletteId: string | null, custom?: CustomPaletteInput | null) => {
       setStaticPaletteId(paletteId);
@@ -968,6 +979,7 @@ export function StudioClient() {
             onFontPairingChange={handleStaticFontChange}
             onPaletteChange={handleStaticPaletteChange}
             onPromoteToMotion={handlePromoteToMotion}
+            onLayoutChange={handleStaticLayoutChange}
             fontPairingId={fontPairingId}
             paletteId={staticPaletteId}
             customPalette={customPalette}
