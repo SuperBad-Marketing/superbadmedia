@@ -23,6 +23,15 @@ const PREVIEW_COPY: Record<string, Record<string, string>> = {
   "portfolio-showcase": { headline: "Thetford Estate\nBrand Campaign", detail: "Photography · Strategy · Content", tagline: "delivered in 10 days." },
   "portfolio-split": { headline: "Kindred\nRebrand", detail: "Brand · Content · Strategy", tagline: "six weeks, zero compromises." },
   "portfolio-editorial": { headline: "Revel\nStudios", detail: "Photography · Direction · Content", tagline: "the work speaks." },
+  "announcement-knockout": { headline: "We're\nHere", detail: "And we brought receipts.", tagline: "buckle up." },
+  "anti-motivation-stacked": { headline: "Stop Waiting Start Building", tagline: "nobody's coming to save you." },
+  "anti-motivation-redacted": { headline: "Your Strategy Is Not Working", tagline: "but you already knew that." },
+  "tips-full-bleed-stat": { headline: "97%", detail: "Of marketing content gets scrolled past in under two seconds.", tagline: "be the other 3%." },
+  "tips-marquee": { headline: "Stop Posting Start Creating", detail: "There's a difference between filling a feed and building an audience. One is noise. The other is strategy.", tagline: "you know which one you're doing." },
+  "testimonial-inversion": { headline: "They turned our brand into something we're actually proud of.", detail: "James Liu", subtext: "Co-founder, Offgrid Co" },
+  "bts-crosshair": { headline: "Finding the\nFrame Nobody\nExpects", tagline: "the shot behind the shot." },
+  "portfolio-diagonal": { headline: "Offgrid\nCo", detail: "Brand · Content · Direction", tagline: "three weeks. zero stock photos." },
+  "portfolio-crop-bleed": { headline: "Baseline\nStudio", detail: "Photography\nStrategy\nContent", tagline: "when the work speaks." },
 };
 
 const THUMB_SIZE = 240;
