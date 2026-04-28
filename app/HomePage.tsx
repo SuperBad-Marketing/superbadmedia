@@ -260,6 +260,9 @@ export default function HomePage() {
   const entertainRef = useRef<HTMLDivElement>(null);
   const entertainInView = useInView(entertainRef, { once: true, amount: 0.4 });
 
+  const alignRef = useRef<HTMLDivElement>(null);
+  const alignInView = useInView(alignRef, { once: true, amount: 0.4 });
+
   const emotionRef = useRef<HTMLDivElement>(null);
   const emotionInView = useInView(emotionRef, { once: true, amount: 0.4 });
 
@@ -539,6 +542,73 @@ export default function HomePage() {
               </p>
             }
           />
+        </Screen>
+
+        {/* ── Screen — Four agencies ── */}
+        <Screen surface={1}>
+          <div ref={alignRef}>
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(32px, 5.5vw, 72px)",
+                lineHeight: 1,
+                color: "var(--neutral-100)",
+                margin: 0,
+                maxWidth: "20ch",
+              }}
+              className="text-balance"
+            >
+              {revealWords("Four agencies. None of them have met", alignInView)}
+              <motion.span
+                style={{ display: "inline-block", color: "var(--brand-red)" }}
+                initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={alignInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+                transition={{ duration: 0.5, delay: 7 * 0.07, ease: EASE }}
+              >
+                .
+              </motion.span>
+            </p>
+            <motion.p
+              className="text-pretty"
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(16px, 1.8vw, 22px)",
+                lineHeight: 1.6,
+                color: "var(--neutral-500)",
+                margin: 0,
+                marginTop: "clamp(20px, 3vw, 40px)",
+                maxWidth: "44ch",
+              }}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              animate={alignInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.8, ease: EASE }}
+            >
+              Ad strategist at one firm. Creative director at another. Content
+              creator somewhere else. Brand strategist from last year.
+              Everything they each make is fine. But it doesn&rsquo;t sound
+              like you — because none of them really know you.
+            </motion.p>
+            <motion.p
+              className="text-pretty"
+              style={{
+                fontFamily: "var(--font-narrative)",
+                fontSize: "clamp(18px, 2.2vw, 26px)",
+                lineHeight: 1.5,
+                fontStyle: "italic",
+                color: "var(--brand-pink)",
+                margin: 0,
+                marginTop: "clamp(16px, 2vw, 28px)",
+                maxWidth: "36ch",
+              }}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              animate={alignInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 1.1, ease: EASE }}
+            >
+              Everything your audience sees, hears, and feels is your brand.
+              When all of it comes from the same place, it starts to align.
+              Trust builds. And people only buy from people they trust.
+            </motion.p>
+          </div>
         </Screen>
 
         {/* ── Screen 5 — Statement: emotion over features (brand red) ── */}

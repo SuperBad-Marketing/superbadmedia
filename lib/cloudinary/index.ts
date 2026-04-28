@@ -6,13 +6,33 @@ let configured = false;
 async function ensureConfigured(): Promise<void> {
   if (configured) return;
   const plaintext = await getCredential("cloudinary");
-  if (!plaintext) throw new Error("Cloudinary credentials not found — run the setup wizard first.");
-  const parsed: { cloudName: string; apiKey: string; apiSecret: string } =
-    JSON.parse(plaintext);
+
+  if (plaintext) {
+    try {
+      const parsed = JSON.parse(plaintext);
+      if (parsed && typeof parsed === "object" && parsed.cloudName) {
+        cloudinary.config({
+          cloud_name: parsed.cloudName,
+          api_key: parsed.apiKey,
+          api_secret: parsed.apiSecret,
+          secure: true,
+        });
+        configured = true;
+        return;
+      }
+    } catch {}
+  }
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error("Cloudinary credentials not found — run the setup wizard or set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET env vars.");
+  }
   cloudinary.config({
-    cloud_name: parsed.cloudName,
-    api_key: parsed.apiKey,
-    api_secret: parsed.apiSecret,
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
     secure: true,
   });
   configured = true;
