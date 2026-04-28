@@ -22,6 +22,8 @@ import { getTaskById } from "@/lib/tasks/queries";
 import { db } from "@/lib/db";
 import { contacts } from "@/lib/db/schema/contacts";
 import { companies } from "@/lib/db/schema/companies";
+import { instagram_content_plans } from "@/lib/db/schema/instagram";
+import type { EnhancedContentPlanSlot } from "@/lib/db/schema/instagram-competitive";
 import { like, or, eq, and } from "drizzle-orm";
 
 type ActionResult<T = void> =
@@ -100,7 +102,11 @@ export async function transitionTaskAction(
       createdBy: by,
     });
 
-    // When transitioning to awaiting_approval, issue token + fire email
+    if (to === "done" || to === "delivered") {
+      await syncTaskDoneToInstagramSlot(id);
+      revalidatePath("/lite/content/instagram");
+    }
+
     if (to === "awaiting_approval") {
       const task = await getTaskById(id);
       if (task?.entity_type === "client" && task.entity_id) {
@@ -224,4 +230,31 @@ export async function searchEntitiesAction(
       .limit(10),
   ]);
   return { contacts: contactRows, companies: companyRows };
+}
+
+async function syncTaskDoneToInstagramSlot(taskId: string): Promise<void> {
+  const allPlans = await db
+    .select()
+    .from(instagram_content_plans)
+    .all();
+
+  for (const plan of allPlans) {
+    const slots = plan.slots_json as EnhancedContentPlanSlot[];
+    if (!Array.isArray(slots)) continue;
+    const slotIndex = slots.findIndex((s) => s.task_id === taskId);
+    if (slotIndex === -1) continue;
+
+    const slot = slots[slotIndex];
+    if (slot.status === "pending" || slot.status === "approved") {
+      slot.status = "created";
+      const updated = [...slots];
+      updated[slotIndex] = slot;
+
+      await db
+        .update(instagram_content_plans)
+        .set({ slots_json: updated, updated_at_ms: Date.now() })
+        .where(eq(instagram_content_plans.id, plan.id));
+    }
+    break;
+  }
 }

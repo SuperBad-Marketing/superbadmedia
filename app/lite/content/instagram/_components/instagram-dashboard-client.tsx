@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles } from "lucide-react";
+import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send } from "lucide-react";
 import type { ContentPlanSlot } from "@/lib/db/schema/instagram";
 import type { EnhancedContentPlanSlot } from "@/lib/db/schema/instagram-competitive";
 import {
@@ -17,6 +17,7 @@ import {
   generateStrategyAction,
   reactToInspirationAction,
   fetchInspirationFeedAction,
+  updateSlotStatusAction,
 } from "../strategy-actions";
 
 interface AccountSummary {
@@ -460,126 +461,37 @@ function ContentPlanCard({
 
       {/* Slots */}
       <div className="space-y-2">
-        {plan.slots.map((slot, idx) => (
-          <div
-            key={idx}
-            className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors"
-            style={{
-              background: slot.approved
-                ? "rgba(123, 174, 126, 0.05)"
-                : selected.has(idx)
-                  ? "rgba(244, 160, 176, 0.08)"
-                  : "rgba(253, 245, 230, 0.02)",
-            }}
-          >
-            {/* Checkbox */}
-            <button
-              onClick={() => !slot.approved && toggleSlot(idx)}
-              disabled={slot.approved}
-              className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border transition-colors"
-              style={{
-                borderColor: slot.approved
-                  ? "var(--color-success)"
-                  : selected.has(idx)
-                    ? "var(--color-brand-pink)"
-                    : "rgba(253, 245, 230, 0.15)",
-                backgroundColor: slot.approved
-                  ? "rgba(123, 174, 126, 0.2)"
-                  : selected.has(idx)
-                    ? "rgba(244, 160, 176, 0.2)"
-                    : "transparent",
-              }}
-            >
-              {(slot.approved || selected.has(idx)) && (
-                <Check className="size-3" strokeWidth={2} style={{
-                  color: slot.approved ? "var(--color-success)" : "var(--color-brand-pink)",
-                }} />
-              )}
-            </button>
+        {plan.slots.map((slot, idx) => {
+          const enhanced = slot as EnhancedContentPlanSlot;
+          const slotStatus = enhanced.status ?? (slot.approved ? "approved" : "pending");
+          const isManual = enhanced.requires_manual_input ?? false;
+          const steps = enhanced.creation_steps ?? [];
+          const estimatedMin = enhanced.estimated_minutes ?? 15;
 
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              {editingSlot === idx ? (
-                <div className="space-y-2">
-                  <input
-                    value={editTopic}
-                    onChange={(e) => setEditTopic(e.target.value)}
-                    className="w-full rounded-md border bg-transparent px-2 py-1.5 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-cream)] outline-none focus:border-[color:var(--color-brand-pink)]"
-                    style={{ borderColor: "rgba(253, 245, 230, 0.15)" }}
-                  />
-                  <textarea
-                    value={editCaption}
-                    onChange={(e) => setEditCaption(e.target.value)}
-                    rows={2}
-                    className="w-full rounded-md border bg-transparent px-2 py-1.5 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-300)] outline-none focus:border-[color:var(--color-brand-pink)]"
-                    style={{ borderColor: "rgba(253, 245, 230, 0.15)" }}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={saveEdit}
-                      className="rounded-md px-3 py-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-cream)]"
-                      style={{ backgroundColor: "var(--color-brand-red)" }}
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingSlot(null)}
-                      className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-[family-name:var(--font-body)] text-[13px] font-medium text-[color:var(--color-brand-cream)]"
-                    >
-                      {slot.topic}
-                    </span>
-                    {!slot.approved && (
-                      <button
-                        onClick={() => startEditing(idx)}
-                        className="text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-cream)]"
-                      >
-                        <Pencil className="size-3" strokeWidth={1.5} />
-                      </button>
-                    )}
-                  </div>
-                  <p className="mt-0.5 font-[family-name:var(--font-body)] text-[12px] leading-[1.5] text-[color:var(--color-neutral-400)]">
-                    {slot.caption_direction}
-                  </p>
-                  {slot.approved && slot.task_id && (
-                    <Link
-                      href={`/lite/content/studio?prefill_type=${slot.content_type}&prefill_brief=${encodeURIComponent(slot.topic + ". " + slot.caption_direction)}`}
-                      className="mt-1 inline-block font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
-                    >
-                      Create in Studio →
-                    </Link>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Meta */}
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              <span
-                className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
-                style={{
-                  letterSpacing: "0.8px",
-                  background: "rgba(253, 245, 230, 0.05)",
-                  color: CONTENT_TYPE_COLORS[slot.content_type] ?? "var(--color-neutral-400)",
-                }}
-              >
-                {slot.content_type}
-              </span>
-              <span className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
-                {slot.day_of_week}
-              </span>
-            </div>
-          </div>
-        ))}
+          return (
+            <SlotCard
+              key={idx}
+              slot={slot}
+              enhanced={enhanced}
+              idx={idx}
+              slotStatus={slotStatus}
+              isManual={isManual}
+              steps={steps}
+              estimatedMin={estimatedMin}
+              selected={selected.has(idx)}
+              onToggle={() => !slot.approved && toggleSlot(idx)}
+              editing={editingSlot === idx}
+              editTopic={editTopic}
+              editCaption={editCaption}
+              onEditTopicChange={setEditTopic}
+              onEditCaptionChange={setEditCaption}
+              onStartEdit={() => startEditing(idx)}
+              onSaveEdit={saveEdit}
+              onCancelEdit={() => setEditingSlot(null)}
+              planId={plan.id}
+            />
+          );
+        })}
       </div>
 
       {/* Action bar */}
@@ -615,6 +527,314 @@ function ContentPlanCard({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+const SLOT_STATUS_BADGE: Record<string, { bg: string; color: string; label: string }> = {
+  pending: {
+    bg: "rgba(128, 127, 115, 0.10)",
+    color: "var(--color-neutral-500)",
+    label: "Pending",
+  },
+  approved: {
+    bg: "rgba(96, 165, 250, 0.12)",
+    color: "#60a5fa",
+    label: "Approved",
+  },
+  created: {
+    bg: "rgba(242, 140, 82, 0.12)",
+    color: "var(--color-brand-orange)",
+    label: "Created",
+  },
+  posted: {
+    bg: "rgba(123, 174, 126, 0.12)",
+    color: "var(--color-success)",
+    label: "Posted",
+  },
+};
+
+function SlotCard({
+  slot,
+  enhanced,
+  idx,
+  slotStatus,
+  isManual,
+  steps,
+  estimatedMin,
+  selected,
+  onToggle,
+  editing,
+  editTopic,
+  editCaption,
+  onEditTopicChange,
+  onEditCaptionChange,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  planId,
+}: {
+  slot: ContentPlanSlot;
+  enhanced: EnhancedContentPlanSlot;
+  idx: number;
+  slotStatus: string;
+  isManual: boolean;
+  steps: Array<{ step: number; instruction: string; is_manual: boolean }>;
+  estimatedMin: number;
+  selected: boolean;
+  onToggle: () => void;
+  editing: boolean;
+  editTopic: string;
+  editCaption: string;
+  onEditTopicChange: (v: string) => void;
+  onEditCaptionChange: (v: string) => void;
+  onStartEdit: () => void;
+  onSaveEdit: () => void;
+  onCancelEdit: () => void;
+  planId: string;
+}) {
+  const router = useRouter();
+  const [stepsOpen, setStepsOpen] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const badge = SLOT_STATUS_BADGE[slotStatus] ?? SLOT_STATUS_BADGE.pending;
+
+  async function handleMarkStatus(status: "created" | "posted") {
+    setUpdating(true);
+    const result = await updateSlotStatusAction({
+      planId,
+      slotIndex: idx,
+      status,
+    });
+    if (result.ok) {
+      toast.success(status === "posted" ? "Marked as posted." : "Marked as created.");
+      router.refresh();
+    } else {
+      toast.error(result.error);
+    }
+    setUpdating(false);
+  }
+
+  return (
+    <div
+      className="rounded-lg px-3 py-2.5 transition-colors"
+      style={{
+        background: slotStatus === "posted"
+          ? "rgba(123, 174, 126, 0.05)"
+          : slotStatus === "created"
+            ? "rgba(242, 140, 82, 0.04)"
+            : slot.approved
+              ? "rgba(96, 165, 250, 0.04)"
+              : selected
+                ? "rgba(244, 160, 176, 0.08)"
+                : "rgba(253, 245, 230, 0.02)",
+      }}
+    >
+      <div className="flex items-start gap-3">
+        {/* Checkbox */}
+        <button
+          onClick={onToggle}
+          disabled={slot.approved || slotStatus === "created" || slotStatus === "posted"}
+          className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border transition-colors"
+          style={{
+            borderColor: slotStatus === "posted"
+              ? "var(--color-success)"
+              : slotStatus === "created"
+                ? "var(--color-brand-orange)"
+                : slot.approved
+                  ? "#60a5fa"
+                  : selected
+                    ? "var(--color-brand-pink)"
+                    : "rgba(253, 245, 230, 0.15)",
+            backgroundColor: slotStatus === "posted"
+              ? "rgba(123, 174, 126, 0.2)"
+              : slotStatus === "created"
+                ? "rgba(242, 140, 82, 0.15)"
+                : slot.approved
+                  ? "rgba(96, 165, 250, 0.15)"
+                  : selected
+                    ? "rgba(244, 160, 176, 0.2)"
+                    : "transparent",
+          }}
+        >
+          {(slot.approved || selected || slotStatus === "created" || slotStatus === "posted") && (
+            <Check className="size-3" strokeWidth={2} style={{
+              color: slotStatus === "posted"
+                ? "var(--color-success)"
+                : slotStatus === "created"
+                  ? "var(--color-brand-orange)"
+                  : slot.approved
+                    ? "#60a5fa"
+                    : "var(--color-brand-pink)",
+            }} />
+          )}
+        </button>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {editing ? (
+            <div className="space-y-2">
+              <input
+                value={editTopic}
+                onChange={(e) => onEditTopicChange(e.target.value)}
+                className="w-full rounded-md border bg-transparent px-2 py-1.5 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-cream)] outline-none focus:border-[color:var(--color-brand-pink)]"
+                style={{ borderColor: "rgba(253, 245, 230, 0.15)" }}
+              />
+              <textarea
+                value={editCaption}
+                onChange={(e) => onEditCaptionChange(e.target.value)}
+                rows={2}
+                className="w-full rounded-md border bg-transparent px-2 py-1.5 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-300)] outline-none focus:border-[color:var(--color-brand-pink)]"
+                style={{ borderColor: "rgba(253, 245, 230, 0.15)" }}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={onSaveEdit}
+                  className="rounded-md px-3 py-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-cream)]"
+                  style={{ backgroundColor: "var(--color-brand-red)" }}
+                >
+                  Save
+                </button>
+                <button
+                  onClick={onCancelEdit}
+                  className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="font-[family-name:var(--font-body)] text-[13px] font-medium text-[color:var(--color-brand-cream)]">
+                  {slot.topic}
+                </span>
+                {!slot.approved && slotStatus === "pending" && (
+                  <button
+                    onClick={onStartEdit}
+                    className="text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                  >
+                    <Pencil className="size-3" strokeWidth={1.5} />
+                  </button>
+                )}
+              </div>
+              <p className="mt-0.5 font-[family-name:var(--font-body)] text-[12px] leading-[1.5] text-[color:var(--color-neutral-400)]">
+                {slot.caption_direction}
+              </p>
+
+              {/* Manual input notice */}
+              {isManual && enhanced.manual_input_description && slotStatus !== "posted" && (
+                <div
+                  className="mt-1.5 flex items-start gap-1.5 rounded-md px-2 py-1.5"
+                  style={{ backgroundColor: "rgba(242, 140, 82, 0.08)" }}
+                >
+                  <Camera className="mt-0.5 size-3 shrink-0 text-[color:var(--color-brand-orange)]" strokeWidth={1.5} />
+                  <span className="font-[family-name:var(--font-body)] text-[11px] leading-[1.4] text-[color:var(--color-brand-orange)]">
+                    {enhanced.manual_input_description}
+                  </span>
+                </div>
+              )}
+
+              {/* Creation steps toggle */}
+              {steps.length > 0 && (
+                <button
+                  onClick={() => setStepsOpen(!stepsOpen)}
+                  className="mt-1.5 flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                >
+                  {stepsOpen ? (
+                    <ChevronUp className="size-3" strokeWidth={1.5} />
+                  ) : (
+                    <ChevronDown className="size-3" strokeWidth={1.5} />
+                  )}
+                  {steps.length} step{steps.length !== 1 ? "s" : ""}
+                </button>
+              )}
+
+              {/* Steps list */}
+              {stepsOpen && steps.length > 0 && (
+                <div className="mt-2 space-y-1.5 border-l-2 pl-3" style={{ borderColor: "rgba(253, 245, 230, 0.08)" }}>
+                  {steps.map((step) => (
+                    <div key={step.step} className="flex items-start gap-2">
+                      <span
+                        className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full font-[family-name:var(--font-label)] text-[8px] tabular-nums"
+                        style={{
+                          backgroundColor: step.is_manual ? "rgba(242, 140, 82, 0.15)" : "rgba(253, 245, 230, 0.06)",
+                          color: step.is_manual ? "var(--color-brand-orange)" : "var(--color-neutral-500)",
+                        }}
+                      >
+                        {step.step}
+                      </span>
+                      <span className="font-[family-name:var(--font-body)] text-[11px] leading-[1.4] text-[color:var(--color-neutral-400)]">
+                        {step.instruction}
+                        {step.is_manual && (
+                          <span className="ml-1 text-[color:var(--color-brand-orange)]">(manual)</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action links */}
+              <div className="mt-1.5 flex items-center gap-3">
+                {slot.approved && slotStatus === "approved" && (
+                  <>
+                    <Link
+                      href={`/lite/content/studio?prefill_type=${slot.content_type}&prefill_brief=${encodeURIComponent(slot.topic + ". " + slot.caption_direction)}`}
+                      className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    >
+                      Create in Studio →
+                    </Link>
+                    <button
+                      onClick={() => handleMarkStatus("created")}
+                      disabled={updating}
+                      className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    >
+                      {updating ? "Updating…" : "Mark as created"}
+                    </button>
+                  </>
+                )}
+                {slotStatus === "created" && (
+                  <button
+                    onClick={() => handleMarkStatus("posted")}
+                    disabled={updating}
+                    className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                  >
+                    <Send className="size-3" strokeWidth={1.5} />
+                    {updating ? "Updating…" : "Mark as posted"}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Meta column */}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span
+            className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+            style={{
+              letterSpacing: "0.8px",
+              background: "rgba(253, 245, 230, 0.05)",
+              color: CONTENT_TYPE_COLORS[slot.content_type] ?? "var(--color-neutral-400)",
+            }}
+          >
+            {slot.content_type}
+          </span>
+          <span
+            className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+            style={{ letterSpacing: "0.8px", background: badge.bg, color: badge.color }}
+          >
+            {badge.label}
+          </span>
+          <span className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
+            {slot.day_of_week}
+          </span>
+          <span className="flex items-center gap-0.5 font-[family-name:var(--font-body)] text-[10px] tabular-nums text-[color:var(--color-neutral-600)]">
+            <Clock className="size-2.5" strokeWidth={1.5} />
+            {estimatedMin}m
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

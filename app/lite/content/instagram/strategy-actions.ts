@@ -11,8 +11,10 @@ import {
   instagram_inspiration_reactions,
   type WatchedAccountCategory,
   WATCHED_ACCOUNT_CATEGORIES,
+  type EnhancedContentPlanSlot,
 } from "@/lib/db/schema/instagram-competitive";
-import { instagram_accounts } from "@/lib/db/schema/instagram";
+import { instagram_accounts, instagram_content_plans } from "@/lib/db/schema/instagram";
+import { tasks } from "@/lib/db/schema/tasks";
 import { scrapeWatchedAccounts } from "@/lib/channels/instagram/competitive-scrape";
 import { generateCompetitiveStrategy } from "@/lib/channels/instagram/generate-strategy";
 import { logActivity } from "@/lib/activity-log";
@@ -265,5 +267,131 @@ export async function fetchInspirationFeedAction(): Promise<
       accountFollowers: accountMap.get(p.watched_account_id)?.followers ?? 0,
       reaction: reactionMap.get(p.id) ?? null,
     })),
+  };
+}
+
+export async function updateSlotStatusAction(input: {
+  planId: string;
+  slotIndex: number;
+  status: "pending" | "approved" | "created" | "posted";
+}): Promise<ActionResult<void>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const plan = await db
+    .select()
+    .from(instagram_content_plans)
+    .where(eq(instagram_content_plans.id, input.planId))
+    .get();
+
+  if (!plan) return { ok: false, error: "Plan not found." };
+
+  const slots = [...(plan.slots_json as EnhancedContentPlanSlot[])];
+  const slot = slots[input.slotIndex];
+  if (!slot) return { ok: false, error: "Slot not found." };
+
+  slot.status = input.status;
+  slots[input.slotIndex] = slot;
+
+  await db
+    .update(instagram_content_plans)
+    .set({ slots_json: slots, updated_at_ms: Date.now() })
+    .where(eq(instagram_content_plans.id, plan.id));
+
+  if (input.status === "created" && slot.task_id) {
+    await db
+      .update(tasks)
+      .set({ status: "done", updated_at_ms: Date.now() })
+      .where(eq(tasks.id, slot.task_id));
+    revalidatePath("/lite/tasks");
+  }
+
+  if (input.status === "posted") {
+    await logActivity({
+      kind: "instagram_post_published",
+      body: `Instagram post published: ${slot.topic}`,
+      meta: { plan_id: input.planId, slot_index: input.slotIndex },
+    });
+  }
+
+  revalidatePath("/lite/content/instagram");
+  return { ok: true, value: undefined };
+}
+
+export async function syncTaskCompletionToSlotAction(
+  taskId: string,
+): Promise<ActionResult<void>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const allPlans = await db
+    .select()
+    .from(instagram_content_plans)
+    .all();
+
+  for (const plan of allPlans) {
+    const slots = plan.slots_json as EnhancedContentPlanSlot[];
+    const slotIndex = slots.findIndex((s) => s.task_id === taskId);
+    if (slotIndex === -1) continue;
+
+    const slot = slots[slotIndex];
+    if (slot.status === "pending" || slot.status === "approved") {
+      slot.status = "created";
+      const updated = [...slots];
+      updated[slotIndex] = slot;
+
+      await db
+        .update(instagram_content_plans)
+        .set({ slots_json: updated, updated_at_ms: Date.now() })
+        .where(eq(instagram_content_plans.id, plan.id));
+
+      revalidatePath("/lite/content/instagram");
+    }
+    break;
+  }
+
+  return { ok: true, value: undefined };
+}
+
+export async function fetchEnhancedPlanAction(): Promise<
+  ActionResult<
+    Array<{
+      id: string;
+      accountId: string;
+      weekStartDate: string;
+      weekEndDate: string;
+      themeSummary: string;
+      slots: EnhancedContentPlanSlot[];
+      status: string;
+      strategyReportId: string | null;
+    }>
+  >
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const plans = await db
+    .select()
+    .from(instagram_content_plans)
+    .orderBy(desc(instagram_content_plans.created_at_ms))
+    .all();
+
+  return {
+    ok: true,
+    value: plans
+      .filter((p) => p.status !== "expired")
+      .map((p) => ({
+        id: p.id,
+        accountId: p.account_id,
+        weekStartDate: p.week_start_date,
+        weekEndDate: p.week_end_date,
+        themeSummary: p.theme_summary,
+        slots: p.slots_json as EnhancedContentPlanSlot[],
+        status: p.status,
+        strategyReportId: p.strategy_report_id,
+      })),
   };
 }
