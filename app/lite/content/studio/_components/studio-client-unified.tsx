@@ -30,6 +30,11 @@ import {
   getClientNamesAction,
   createVideoFromStudioAction,
   getWipProjectsAction,
+  getCompositeJobAction,
+  configureCompositeAction,
+  renderOverlayAction,
+  compositeVideoAction,
+  retryCompositeStageAction,
 } from "../actions";
 import { suggestProjectName } from "@/lib/content-studio/project-name";
 import { UnifiedBrief, type UnifiedBriefResult } from "./unified-brief";
@@ -38,6 +43,7 @@ import { PostHistory } from "./post-history";
 import { MotionPreview, type MotionPostData } from "./motion-preview";
 import { WipSection, type WipProject } from "./wip-section";
 import { GenerationProgress } from "./generation-progress";
+import { CompositeEditor, type CompositeJob } from "./composite-editor";
 
 const FORMAT_MAP: Record<ContentType, ContentFormat> = {
   anti_motivation: "animated",
@@ -78,6 +84,8 @@ export function StudioClientUnified() {
 
   // Video state
   const [activeVideoJobId, setActiveVideoJobId] = useState<string | null>(null);
+  const [compositeJob, setCompositeJob] = useState<CompositeJob | null>(null);
+  const [isComposite, setIsComposite] = useState(false);
 
   // WIP projects from DB
   const [wipProjects, setWipProjects] = useState<WipProject[]>([]);
@@ -93,6 +101,12 @@ export function StudioClientUnified() {
   const loadWipProjects = useCallback(() => {
     getWipProjectsAction().then((res) => {
       if (res.ok) setWipProjects(res.projects);
+    });
+  }, []);
+
+  const loadCompositeJob = useCallback((jobId: string) => {
+    getCompositeJobAction(jobId).then((res) => {
+      if (res.ok) setCompositeJob(res.job);
     });
   }, []);
 
@@ -144,6 +158,10 @@ export function StudioClientUnified() {
           }
 
           setActiveVideoJobId(res.jobId);
+          setIsComposite(res.isComposite ?? false);
+          if (res.isComposite) {
+            loadCompositeJob(res.jobId);
+          }
           loadWipProjects();
           toast.success("Video queued — generating footage.");
           setView("preview");
@@ -490,6 +508,8 @@ export function StudioClientUnified() {
     setActivePost(null);
     setMotionPost(null);
     setActiveVideoJobId(null);
+    setCompositeJob(null);
+    setIsComposite(false);
     setFontPairingId(null);
     setStaticPaletteId(null);
     setCustomPalette(null);
@@ -700,49 +720,78 @@ export function StudioClientUnified() {
         )}
 
         {view === "preview" && activeVideoJobId && !activePost && !motionPost && (
-          <div className="space-y-4">
-            <div
-              className="rounded-xl p-6 text-center"
-              style={{
-                backgroundColor: "var(--color-neutral-800)",
-                border: "1px solid rgba(253, 245, 230, 0.06)",
+          isComposite && compositeJob ? (
+            <CompositeEditor
+              job={compositeJob}
+              onConfigureOverlay={async (config) => {
+                const res = await configureCompositeAction({
+                  jobId: activeVideoJobId,
+                  ...config,
+                });
+                if (!res.ok) toast.error("error" in res ? res.error : "Failed");
+                loadCompositeJob(activeVideoJobId);
               }}
-            >
+              onRenderOverlay={async () => {
+                const res = await renderOverlayAction(activeVideoJobId);
+                if (!res.ok) toast.error("error" in res ? res.error : "Overlay render failed");
+                loadCompositeJob(activeVideoJobId);
+              }}
+              onComposite={async () => {
+                const res = await compositeVideoAction(activeVideoJobId);
+                if (!res.ok) toast.error("error" in res ? res.error : "Compositing failed");
+                loadCompositeJob(activeVideoJobId);
+              }}
+              onRetryStage={async (stage) => {
+                const res = await retryCompositeStageAction(activeVideoJobId, stage);
+                if (!res.ok) toast.error("error" in res ? res.error : "Retry failed");
+                loadCompositeJob(activeVideoJobId);
+              }}
+            />
+          ) : (
+            <div className="space-y-4">
               <div
-                className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(242, 140, 82, 0.1)" }}
-              >
-                <div
-                  className="size-3 animate-pulse rounded-full"
-                  style={{ backgroundColor: "var(--color-brand-orange)" }}
-                />
-              </div>
-              <p
-                className="font-[family-name:var(--font-body)] text-[15px]"
-                style={{ color: "var(--color-brand-cream)" }}
-              >
-                Your footage is being generated
-              </p>
-              <p
-                className="mt-1 font-[family-name:var(--font-body)] text-[13px]"
-                style={{ color: "var(--color-neutral-500)" }}
-              >
-                Check the Video Library tab for progress, or start another piece.
-              </p>
-              <button
-                type="button"
-                onClick={handleNewPost}
-                className="mt-4 rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] font-medium transition-colors"
+                className="rounded-xl p-6 text-center"
                 style={{
-                  backgroundColor: "rgba(253, 245, 230, 0.06)",
-                  color: "var(--color-brand-cream)",
-                  border: "1px solid rgba(253, 245, 230, 0.08)",
+                  backgroundColor: "var(--color-neutral-800)",
+                  border: "1px solid rgba(253, 245, 230, 0.06)",
                 }}
               >
-                Create another
-              </button>
+                <div
+                  className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full"
+                  style={{ backgroundColor: "rgba(242, 140, 82, 0.1)" }}
+                >
+                  <div
+                    className="size-3 animate-pulse rounded-full"
+                    style={{ backgroundColor: "var(--color-brand-orange)" }}
+                  />
+                </div>
+                <p
+                  className="font-[family-name:var(--font-body)] text-[15px]"
+                  style={{ color: "var(--color-brand-cream)" }}
+                >
+                  Your footage is being generated
+                </p>
+                <p
+                  className="mt-1 font-[family-name:var(--font-body)] text-[13px]"
+                  style={{ color: "var(--color-neutral-500)" }}
+                >
+                  Check the Video Library tab for progress, or start another piece.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleNewPost}
+                  className="mt-4 rounded-lg px-4 py-2 font-[family-name:var(--font-body)] text-[13px] font-medium transition-colors"
+                  style={{
+                    backgroundColor: "rgba(253, 245, 230, 0.06)",
+                    color: "var(--color-brand-cream)",
+                    border: "1px solid rgba(253, 245, 230, 0.08)",
+                  }}
+                >
+                  Create another
+                </button>
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {view === "history" && <PostHistory />}

@@ -21,6 +21,16 @@ export const VIDEO_STATUSES = [
 ] as const;
 export type VideoStatus = (typeof VIDEO_STATUSES)[number];
 
+export const PIPELINE_STAGES = [
+  "brief",
+  "footage",
+  "overlay",
+  "composite",
+  "export",
+  "complete",
+] as const;
+export type PipelineStage = (typeof PIPELINE_STAGES)[number];
+
 export const videoJobs = sqliteTable(
   "video_jobs",
   {
@@ -57,6 +67,17 @@ export const videoJobs = sqliteTable(
     generation_ms: integer("generation_ms"),
 
     content_studio_post_id: text("content_studio_post_id"),
+
+    // Composite pipeline
+    pipeline_stage: text("pipeline_stage").default("brief"),
+    overlay_template_id: text("overlay_template_id"),
+    overlay_copy_json: text("overlay_copy_json", { mode: "json" }),
+    overlay_params_json: text("overlay_params_json", { mode: "json" }),
+    trim_in_frame: integer("trim_in_frame").default(0),
+    trim_out_frame: integer("trim_out_frame"),
+    footage_url: text("footage_url"),
+    overlay_url: text("overlay_url"),
+    composite_url: text("composite_url"),
   },
   (t) => ({
     by_status: index("video_jobs_status_idx").on(t.status, t.created_at),

@@ -997,9 +997,126 @@ export async function createVideoFromStudioAction(
     revalidatePath("/lite/content/studio");
     revalidatePath("/lite/content/video-studio");
 
-    return { ok: true as const, jobId, videoBrief };
+    return {
+      ok: true as const,
+      jobId,
+      videoBrief,
+      isComposite: parsed.data.format === "composite",
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Video creation failed";
     return { ok: false as const, error: msg };
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Composite pipeline actions                                         */
+/* ------------------------------------------------------------------ */
+
+import {
+  configureComposite,
+  renderOverlay,
+  compositeVideo,
+  retryStage,
+} from "@/lib/video/composite-pipeline";
+import type { PipelineStage } from "@/lib/db/schema/video-jobs";
+
+const compositeConfigSchema = z.object({
+  jobId: z.string(),
+  overlayTemplateId: z.string().min(1),
+  overlayCopy: z.record(z.string(), z.string()),
+  overlayParams: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+  trimInFrame: z.number().int().min(0).optional(),
+  trimOutFrame: z.number().int().min(1).optional(),
+});
+
+export async function configureCompositeAction(
+  input: z.infer<typeof compositeConfigSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = compositeConfigSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const result = await configureComposite(parsed.data.jobId, {
+    overlayTemplateId: parsed.data.overlayTemplateId,
+    overlayCopy: parsed.data.overlayCopy,
+    overlayParams: parsed.data.overlayParams,
+    trimInFrame: parsed.data.trimInFrame,
+    trimOutFrame: parsed.data.trimOutFrame,
+  });
+
+  revalidatePath("/lite/content/studio");
+  return result;
+}
+
+export async function renderOverlayAction(jobId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const result = await renderOverlay(jobId);
+  revalidatePath("/lite/content/studio");
+  return result;
+}
+
+export async function compositeVideoAction(jobId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const result = await compositeVideo(jobId);
+  revalidatePath("/lite/content/studio");
+  return result;
+}
+
+export async function retryCompositeStageAction(
+  jobId: string,
+  stage: PipelineStage,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const result = await retryStage(jobId, stage);
+  revalidatePath("/lite/content/studio");
+  return result;
+}
+
+export async function getCompositeJobAction(jobId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const job = await db.query.videoJobs.findFirst({
+    where: eq(videoJobs.id, jobId),
+  });
+  if (!job) return { ok: false as const, error: "not_found" };
+
+  return {
+    ok: true as const,
+    job: {
+      id: job.id,
+      footageUrl: job.footage_url ?? job.output_url,
+      overlayUrl: job.overlay_url,
+      compositeUrl: job.composite_url,
+      pipelineStage: (job.pipeline_stage ?? "brief") as PipelineStage,
+      status: job.status,
+      errorMessage: job.error_message,
+      overlayTemplateId: job.overlay_template_id,
+      overlayCopy: (job.overlay_copy_json as Record<string, string>) ?? {},
+      overlayParams: (job.overlay_params_json as Record<string, number | string | boolean>) ?? {},
+      trimInFrame: job.trim_in_frame ?? 0,
+      trimOutFrame: job.trim_out_frame,
+      durationSec: job.duration_sec ?? 5,
+      aspectRatio: job.aspect_ratio ?? "16:9",
+    },
+  };
 }
