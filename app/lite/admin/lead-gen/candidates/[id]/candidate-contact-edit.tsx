@@ -6,6 +6,7 @@ import {
   updateCandidateDetailsAction,
   generateCandidateSummaryAction,
   generateDraftEmailAction,
+  approveAndSendManualDraftAction,
 } from "../../actions";
 
 interface CandidateContactEditProps {
@@ -55,6 +56,9 @@ export function CandidateContactEdit({
 
   const [draftEmail, setDraftEmail] = useState<{ subject: string; body: string } | null>(null);
   const [draftPending, setDraftPending] = useState(false);
+  const [sendConfirm, setSendConfirm] = useState(false);
+  const [sendPending, setSendPending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   function handleSave() {
     startTransition(async () => {
@@ -87,11 +91,37 @@ export function CandidateContactEdit({
   function handleDraftEmail() {
     setDraftPending(true);
     setError(null);
+    setSent(false);
+    setSendConfirm(false);
     startTransition(async () => {
       const res = await generateDraftEmailAction(candidateId);
       setDraftPending(false);
       if (!res.ok) setError(res.error);
       else setDraftEmail({ subject: res.subject, body: res.body });
+    });
+  }
+
+  function handleApproveAndSend() {
+    if (!draftEmail) return;
+    if (!sendConfirm) {
+      setSendConfirm(true);
+      return;
+    }
+    setSendPending(true);
+    setError(null);
+    startTransition(async () => {
+      const res = await approveAndSendManualDraftAction(
+        candidateId,
+        draftEmail.subject,
+        draftEmail.body,
+      );
+      setSendPending(false);
+      setSendConfirm(false);
+      if (!res.ok) setError(res.error);
+      else {
+        setSent(true);
+        router.refresh();
+      }
     });
   }
 
@@ -300,6 +330,43 @@ export function CandidateContactEdit({
                 {draftEmail.body}
               </div>
             </div>
+            {sent ? (
+              <div
+                className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-[family-name:var(--font-label)] text-[11px] uppercase"
+                style={{
+                  letterSpacing: "1.2px",
+                  backgroundColor: "rgba(74, 222, 128, 0.1)",
+                  color: "#4ade80",
+                  border: "1px solid rgba(74, 222, 128, 0.15)",
+                }}
+              >
+                Sent
+              </div>
+            ) : (
+              <button
+                disabled={sendPending || pending}
+                onClick={handleApproveAndSend}
+                className={`${btnClass} w-full py-2.5 transition-all`}
+                style={{
+                  ...btnStyle,
+                  fontSize: "11px",
+                  backgroundColor: sendConfirm
+                    ? "rgba(239, 68, 68, 0.2)"
+                    : "rgba(74, 222, 128, 0.12)",
+                  color: sendConfirm ? "#fca5a5" : "#4ade80",
+                  border: sendConfirm
+                    ? "1px solid rgba(239, 68, 68, 0.25)"
+                    : "1px solid rgba(74, 222, 128, 0.15)",
+                }}
+                onBlur={() => setSendConfirm(false)}
+              >
+                {sendPending
+                  ? "Sending..."
+                  : sendConfirm
+                    ? "Confirm — this will send the email"
+                    : "Approve & Send"}
+              </button>
+            )}
           </div>
         ) : (
           <p className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">

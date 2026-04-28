@@ -18,6 +18,15 @@ import { invokeLlmText } from "@/lib/ai/invoke";
 import { getSuperbadBrandProfile } from "@/lib/quote-builder/superbad-brand-profile";
 import { checkBrandVoiceDrift } from "@/lib/ai/drift-check";
 import { randomUUID } from "node:crypto";
+import { outreachSequences } from "@/lib/db/schema/outreach-sequences";
+import { outreachSends } from "@/lib/db/schema/outreach-sends";
+import { sendEmail } from "@/lib/channels/email/send";
+import { isBlockedFromOutreach } from "@/lib/lead-gen/dnc";
+import { enforceWarmupCap, recordWarmupSend } from "@/lib/lead-gen/warmup";
+import { isWithinQuietWindow } from "@/lib/channels/email/quiet-window";
+import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
+import { createUnsubscribeUrl } from "@/lib/lead-gen/unsubscribe-token";
+import { SUPERBAD_SENDER } from "@/lib/lead-gen/sender";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -568,6 +577,198 @@ The email should feel personal, reference something specific about their busines
   } catch {
     return { ok: false, error: "Draft generation failed — try again." };
   }
+}
+
+// ── Approve & send (manual one-off from candidate detail) ──────────
+
+export async function approveAndSendManualDraftAction(
+  candidateId: string,
+  subject: string,
+  bodyMarkdown: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  if (!killSwitches.outreach_send_enabled) {
+    return { ok: false, error: "Outreach sending is paused (kill switch)." };
+  }
+
+  const [candidate] = await db
+    .select()
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+  if (!candidate.contact_email) {
+    return { ok: false, error: "No contact email on this candidate." };
+  }
+
+  const dncResult = await isBlockedFromOutreach(candidate.contact_email);
+  if (dncResult.blocked) {
+    return { ok: false, error: `Blocked: ${dncResult.reason}` };
+  }
+
+  const warmup = await enforceWarmupCap();
+  if (!warmup.can_send) {
+    return { ok: false, error: "Daily warmup cap reached — try again tomorrow." };
+  }
+
+  const inWindow = await isWithinQuietWindow();
+  if (!inWindow) {
+    return { ok: false, error: "Outside send hours — try again during the quiet window." };
+  }
+
+  // Resolve or create deal + sequence
+  let dealId = candidate.promoted_to_deal_id;
+
+  if (!dealId) {
+    try {
+      const dealResult = createDealFromLead({
+        company: {
+          name: candidate.company_name,
+          domain: candidate.domain ?? undefined,
+          billing_mode: "stripe",
+        },
+        contact: {
+          name: candidate.contact_name ?? candidate.company_name,
+          email: candidate.contact_email,
+          role: candidate.contact_role ?? undefined,
+        },
+        source: `lead_gen_${candidate.sourced_from}`,
+      });
+
+      if (!dealResult.deal) {
+        return { ok: false, error: "Failed to create deal for this candidate." };
+      }
+
+      dealId = dealResult.deal.id;
+
+      await db
+        .update(leadCandidates)
+        .set({ promoted_to_deal_id: dealId, promoted_at: new Date() })
+        .where(eq(leadCandidates.id, candidateId));
+    } catch {
+      return { ok: false, error: "Failed to create deal — check candidate data." };
+    }
+  }
+
+  const sequenceId = randomUUID();
+  await db.insert(outreachSequences).values({
+    id: sequenceId,
+    deal_id: dealId,
+    track: candidate.qualified_track as "saas" | "retainer",
+    status: "active",
+    touches_sent: 0,
+  });
+
+  // Persist + approve draft
+  const draftId = randomUUID();
+  await db.insert(outreachDrafts).values({
+    id: draftId,
+    candidate_id: candidateId,
+    deal_id: dealId,
+    sequence_id: sequenceId,
+    touch_kind: "first_touch",
+    touch_index: 1,
+    subject,
+    body_markdown: bodyMarkdown,
+    model_used: "manual_review",
+    prompt_version: "manual_v1",
+    status: "approved_queued",
+    approved_at: new Date(),
+    approved_by: by.replace("user:", ""),
+    approval_kind: "manual",
+  });
+
+  // Build HTML + unsubscribe
+  const htmlBody = bodyMarkdown
+    .split("\n\n")
+    .map((p) => `<p>${p.trim()}</p>`)
+    .join("\n");
+
+  const unsubUrl = createUnsubscribeUrl({
+    email: candidate.contact_email,
+    candidate_id: candidateId,
+    issued_at: Date.now(),
+  });
+
+  const unsubFooter = `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e5e5;font-size:12px;color:#9ca3af;"><a href="${unsubUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></div>`;
+
+  const sendResult = await sendEmail({
+    to: candidate.contact_email,
+    subject,
+    body: htmlBody + unsubFooter,
+    classification: "outreach",
+    purpose: "lead_gen_first_touch_manual",
+    replyTo: SUPERBAD_SENDER.reply_to,
+    headers: {
+      "List-Unsubscribe": `<${unsubUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+    tags: [
+      { name: "track", value: candidate.qualified_track },
+      { name: "touch_kind", value: "first_touch" },
+      { name: "touch_index", value: "1" },
+    ],
+  });
+
+  if (!sendResult.sent) {
+    await db
+      .update(outreachDrafts)
+      .set({ status: "rejected" })
+      .where(eq(outreachDrafts.id, draftId));
+    return { ok: false, error: sendResult.reason ?? "Send failed." };
+  }
+
+  // Record send
+  const sendId = randomUUID();
+  await db.insert(outreachSends).values({
+    id: sendId,
+    draft_id: draftId,
+    sequence_id: sequenceId,
+    deal_id: dealId,
+    resend_message_id: sendResult.messageId ?? randomUUID(),
+    sent_at: new Date(),
+  });
+
+  await db
+    .update(outreachDrafts)
+    .set({ status: "sent" })
+    .where(eq(outreachDrafts.id, draftId));
+
+  // Update sequence
+  const MS_PER_DAY = 86_400_000;
+  await db
+    .update(outreachSequences)
+    .set({
+      touches_sent: 1,
+      last_touch_at: new Date(),
+      next_touch_due_at: new Date(Date.now() + 4 * MS_PER_DAY),
+    })
+    .where(eq(outreachSequences.id, sequenceId));
+
+  await recordWarmupSend();
+
+  await logActivity({
+    kind: "outreach_sent",
+    dealId,
+    body: `Manual approve & send: first touch to ${candidate.contact_email}`,
+    createdBy: by,
+    meta: {
+      send_id: sendId,
+      draft_id: draftId,
+      sequence_id: sequenceId,
+      candidate_id: candidateId,
+      touch_kind: "first_touch",
+      touch_index: 1,
+      track: candidate.qualified_track,
+      autonomy_mode: "manual",
+    },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
 }
 
 // ── Manual run ──────────────────────────────────────────────────────
