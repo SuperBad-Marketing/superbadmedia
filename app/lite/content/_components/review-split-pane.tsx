@@ -13,12 +13,17 @@
  */
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Check, MessageSquare, Send, Loader2 } from "lucide-react";
+import { Check, MessageSquare, Send, Loader2, X, RefreshCw } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { approvePostAction, rejectPostAction } from "../actions";
+import {
+  approvePostAction,
+  rejectPostAction,
+  rejectPostPermanentlyAction,
+  regenerateInBrandVoiceAction,
+} from "../actions";
 import type { FeedbackMessage } from "@/lib/content-engine/review";
 
 interface ReviewSplitPaneProps {
@@ -47,6 +52,9 @@ export function ReviewSplitPane({
   const [feedbackInput, setFeedbackInput] = React.useState("");
   const [isApproving, setIsApproving] = React.useState(false);
   const [isRejecting, setIsRejecting] = React.useState(false);
+  const [isRejectingPermanently, setIsRejectingPermanently] = React.useState(false);
+  const [isRegenerating, setIsRegenerating] = React.useState(false);
+  const [postStatus, setPostStatus] = React.useState(post.status);
   const [approveResult, setApproveResult] = React.useState<{
     ok: boolean;
     publishedUrl?: string;
@@ -57,6 +65,8 @@ export function ReviewSplitPane({
   React.useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [feedback]);
+
+  const anyLoading = isApproving || isRejecting || isRejectingPermanently || isRegenerating;
 
   async function handleApprove() {
     setIsApproving(true);
@@ -72,7 +82,6 @@ export function ReviewSplitPane({
     if (!feedbackInput.trim()) return;
     setIsRejecting(true);
     try {
-      // Optimistic: add user message immediately
       const userMsg: FeedbackMessage = {
         id: `temp-${Date.now()}`,
         role: "user",
@@ -85,7 +94,6 @@ export function ReviewSplitPane({
       const result = await rejectPostAction(post.id, feedbackInput);
 
       if (result.ok) {
-        // Add assistant response
         const assistantMsg: FeedbackMessage = {
           id: `temp-assistant-${Date.now()}`,
           role: "assistant",
@@ -99,7 +107,37 @@ export function ReviewSplitPane({
     }
   }
 
-  const isReviewable = post.status === "in_review";
+  async function handleRejectPermanently() {
+    setIsRejectingPermanently(true);
+    try {
+      const result = await rejectPostPermanentlyAction(post.id);
+      if (result.ok) {
+        setPostStatus("rejected");
+      }
+    } finally {
+      setIsRejectingPermanently(false);
+    }
+  }
+
+  async function handleRegenerateVoice() {
+    setIsRegenerating(true);
+    try {
+      const result = await regenerateInBrandVoiceAction(post.id);
+      if (result.ok) {
+        const assistantMsg: FeedbackMessage = {
+          id: `temp-regen-${Date.now()}`,
+          role: "assistant",
+          content: "Post fully regenerated with brand voice emphasis. Review the new draft.",
+          createdAtMs: Date.now(),
+        };
+        setFeedback((prev) => [...prev, assistantMsg]);
+      }
+    } finally {
+      setIsRegenerating(false);
+    }
+  }
+
+  const isReviewable = postStatus === "in_review";
 
   return (
     <div className="flex h-full min-h-0 gap-4">
@@ -112,7 +150,7 @@ export function ReviewSplitPane({
       >
         <div className="mb-4 flex items-center gap-2">
           <Badge variant="outline" className="text-xs">
-            {post.status}
+            {postStatus}
           </Badge>
           {topic && (
             <span className="text-xs text-muted-foreground">
@@ -203,30 +241,69 @@ export function ReviewSplitPane({
           </div>
         )}
 
+        {/* Rejected state */}
+        {postStatus === "rejected" && (
+          <div className="border-t border-border px-4 py-3">
+            <p className="text-sm text-muted-foreground text-center">
+              This draft has been rejected.
+            </p>
+          </div>
+        )}
+
         {/* Actions */}
         {isReviewable && (
           <div className="border-t border-border px-4 py-3 space-y-2">
+            {/* Top row — reject + regenerate (no feedback needed) */}
             <div className="flex gap-2">
-              <Textarea
-                placeholder="Describe what to change..."
-                value={feedbackInput}
-                onChange={(e) => setFeedbackInput(e.target.value)}
-                className="min-h-[60px] resize-none text-sm"
-                disabled={isRejecting}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleReject();
-                  }
-                }}
-              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRejectPermanently}
+                disabled={anyLoading}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                {isRejectingPermanently ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <X className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Reject
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRegenerateVoice}
+                disabled={anyLoading}
+              >
+                {isRegenerating ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Regenerate in Brand Voice
+              </Button>
             </div>
+
+            {/* Feedback textarea + revise/approve */}
+            <Textarea
+              placeholder="Describe what to change..."
+              value={feedbackInput}
+              onChange={(e) => setFeedbackInput(e.target.value)}
+              className="min-h-[60px] resize-none text-sm"
+              disabled={anyLoading}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleReject();
+                }
+              }}
+            />
             <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={handleReject}
-                disabled={!feedbackInput.trim() || isRejecting}
+                disabled={!feedbackInput.trim() || anyLoading}
                 className="flex-1"
               >
                 {isRejecting ? (
@@ -239,7 +316,7 @@ export function ReviewSplitPane({
               <Button
                 size="sm"
                 onClick={handleApprove}
-                disabled={isApproving}
+                disabled={anyLoading}
                 className="flex-1"
               >
                 {isApproving ? (

@@ -37,6 +37,10 @@ export type RejectResult =
   | { ok: true; updatedBody: string }
   | { ok: false; reason: "not_found" | "wrong_status" | "regeneration_failed" };
 
+export type RejectPermanentResult =
+  | { ok: true }
+  | { ok: false; reason: "not_found" | "wrong_status" };
+
 // ── Approve ──────────────────────────────────────────────────────────────────
 
 /**
@@ -186,6 +190,117 @@ export async function rejectAndRegenerate(
     });
 
     return { ok: true, updatedBody: updated.body };
+  } catch {
+    return { ok: false, reason: "regeneration_failed" };
+  }
+}
+
+// ── Reject (permanent) ──────────────────────────────────────────────────────
+
+/**
+ * Permanently reject a blog post. Transitions to `rejected` and frees
+ * the topic for re-queuing if desired.
+ */
+export async function rejectBlogPost(
+  postId: string,
+): Promise<RejectPermanentResult> {
+  const post = await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.id, postId))
+    .get();
+
+  if (!post) return { ok: false, reason: "not_found" };
+  if (post.status !== "in_review") return { ok: false, reason: "wrong_status" };
+
+  const now = Date.now();
+  await db
+    .update(blogPosts)
+    .set({ status: "rejected", updated_at_ms: now })
+    .where(eq(blogPosts.id, postId));
+
+  await logActivity({
+    companyId: post.company_id,
+    kind: "content_draft_rejected",
+    body: `Blog post "${post.title}" permanently rejected`,
+    meta: { post_id: postId, topic_id: post.topic_id, permanent: true },
+  });
+
+  return { ok: true };
+}
+
+// ── Regenerate in brand voice ───────────────────────────────────────────────
+
+/**
+ * Full regeneration from the original topic with the enhanced brand voice
+ * prompt. No user feedback needed — calls the main generation pipeline
+ * (with SuperBad voice rules if applicable) and replaces the draft in-place.
+ */
+export async function regenerateInBrandVoice(
+  postId: string,
+): Promise<RejectResult> {
+  const post = await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.id, postId))
+    .get();
+
+  if (!post) return { ok: false, reason: "not_found" };
+  if (post.status !== "in_review") return { ok: false, reason: "wrong_status" };
+
+  const topic = await db
+    .select()
+    .from(contentTopics)
+    .where(eq(contentTopics.id, post.topic_id))
+    .get();
+
+  try {
+    const { generateDraftOnly } = await import(
+      "@/lib/content-engine/generate-blog-post"
+    );
+
+    const outline = topic?.outline as import("./topic-queue").TopicOutline | null ?? null;
+    const contentGaps = topic?.content_gaps as import("./rankability").ContentGap[] | null ?? null;
+    const serpSnapshot = topic?.serp_snapshot as { results?: Array<{ title: string; link: string; snippet: string }> } | null ?? null;
+
+    const draft = await generateDraftOnly(
+      post.company_id,
+      topic?.keyword ?? "unknown",
+      outline,
+      contentGaps,
+      serpSnapshot,
+    );
+
+    await db
+      .update(blogPosts)
+      .set({
+        title: draft.title,
+        slug: draft.slug,
+        body: draft.body,
+        meta_description: draft.metaDescription,
+        structured_data: draft.structuredData,
+        internal_links: draft.internalLinks,
+        snippet_target_section: draft.snippetTargetSection,
+        updated_at_ms: Date.now(),
+      })
+      .where(eq(blogPosts.id, postId));
+
+    await db.insert(blogPostFeedback).values({
+      id: randomUUID(),
+      blog_post_id: postId,
+      role: "assistant",
+      content: "Post fully regenerated with brand voice emphasis. Review the new draft.",
+      created_at_ms: Date.now(),
+    });
+
+    await logActivity({
+      companyId: post.company_id,
+      kind: "content_draft_rejected",
+      body: `Blog post "${post.title}" regenerated with brand voice emphasis`,
+      meta: { post_id: postId, topic_id: post.topic_id, brand_voice_regen: true },
+    });
+
+    return { ok: true, updatedBody: draft.body };
   } catch {
     return { ok: false, reason: "regeneration_failed" };
   }

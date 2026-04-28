@@ -28,18 +28,20 @@ export {
 export type { TopicOutline, OutlineSection } from "./topic-queue";
 
 // Blog generation (CE-3)
-export { generateBlogPost } from "./generate-blog-post";
+export { generateBlogPost, generateDraftOnly } from "./generate-blog-post";
 export type { BlogPostDraft, GenerateResult } from "./generate-blog-post";
 
 // Review + feedback (CE-3)
 export {
   approveBlogPost,
   rejectAndRegenerate,
+  rejectBlogPost,
+  regenerateInBrandVoice,
   getBlogPostFeedback,
   getBlogPostForReview,
   listPostsForReview,
 } from "./review";
-export type { FeedbackMessage, ApproveResult, RejectResult } from "./review";
+export type { FeedbackMessage, ApproveResult, RejectResult, RejectPermanentResult } from "./review";
 
 // Scheduled generation bootstrap (CE-4)
 export { ensureContentGenerationEnqueued } from "@/lib/scheduled-tasks/handlers/content-generate-draft";

@@ -12,6 +12,8 @@ import { revalidatePath } from "next/cache";
 import {
   approveBlogPost,
   rejectAndRegenerate,
+  rejectBlogPost,
+  regenerateInBrandVoice,
 } from "@/lib/content-engine/review";
 import { publishBlogPost } from "@/lib/content-engine/publish";
 import { markSocialDraftPublished } from "@/lib/content-engine/social-publish";
@@ -111,6 +113,46 @@ export async function rejectPostAction(postId: string, feedback: string) {
   if (!result.ok) return { ok: false as const, error: result.reason };
 
   revalidatePath(`/lite/content/review/${parsed.data.postId}`);
+  revalidatePath("/lite/content");
+
+  return { ok: true as const };
+}
+
+// ── Reject (permanent) ──────────────────────────────────────────────────────
+
+export async function rejectPostPermanentlyAction(postId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = z.string().uuid().safeParse(postId);
+  if (!parsed.success) return { ok: false as const, error: "invalid_id" };
+
+  const result = await rejectBlogPost(parsed.data);
+  if (!result.ok) return { ok: false as const, error: result.reason };
+
+  revalidatePath("/lite/content");
+  revalidatePath(`/lite/content/review/${parsed.data}`);
+
+  return { ok: true as const };
+}
+
+// ── Regenerate in brand voice ───────────────────────────────────────────────
+
+export async function regenerateInBrandVoiceAction(postId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = z.string().uuid().safeParse(postId);
+  if (!parsed.success) return { ok: false as const, error: "invalid_id" };
+
+  const result = await regenerateInBrandVoice(parsed.data);
+  if (!result.ok) return { ok: false as const, error: result.reason };
+
+  revalidatePath(`/lite/content/review/${parsed.data}`);
   revalidatePath("/lite/content");
 
   return { ok: true as const };

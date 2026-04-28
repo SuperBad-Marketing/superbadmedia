@@ -186,6 +186,31 @@ export async function generateBlogPost(
   }
 }
 
+/**
+ * Generate a fresh blog post draft for a topic without DB side-effects.
+ * Used by the "regenerate in brand voice" review action to get a clean
+ * draft using the full voice prompt pipeline.
+ */
+export async function generateDraftOnly(
+  companyId: string,
+  keyword: string,
+  outline: TopicOutline | null,
+  contentGaps: ContentGap[] | null,
+  serpSnapshot: { results?: Array<{ title: string; link: string; snippet: string }> } | null,
+): Promise<BlogPostDraft> {
+  const brandDna = await loadFullBrandDna(companyId);
+  let draft = await callOpusBlogGeneration(keyword, outline, contentGaps, serpSnapshot, brandDna);
+
+  const driftProfile = buildDriftProfile(brandDna);
+  const driftResult = await checkBrandVoiceDrift(draft.body, driftProfile);
+
+  if (!driftResult.pass) {
+    draft = await callOpusBlogGeneration(keyword, outline, contentGaps, serpSnapshot, brandDna);
+  }
+
+  return draft;
+}
+
 // ── Internal helpers ─────────────────────────────────────────────────────────
 
 interface FullBrandDna {
