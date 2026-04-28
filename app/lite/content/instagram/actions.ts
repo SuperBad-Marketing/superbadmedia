@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import {
   instagram_accounts,
   instagram_content_plans,
@@ -596,4 +597,23 @@ export async function syncInstagramDataAction(): Promise<
       postsSynced,
     },
   };
+}
+
+// ── Start reply polling ──────────────────────────────────────────────────
+
+export async function startReplyPollingAction(): Promise<
+  { ok: true } | { ok: false; error: string }
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Unauthorised" };
+  }
+
+  await enqueueTask({
+    task_type: "instagram_reply_poll",
+    runAt: Date.now(),
+    idempotencyKey: `ig-reply-poll-initial-${new Date().toISOString().slice(0, 10)}`,
+  });
+
+  return { ok: true };
 }

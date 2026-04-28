@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send, MessageSquare } from "lucide-react";
 import type { ContentPlanSlot } from "@/lib/db/schema/instagram";
 import type { EnhancedContentPlanSlot } from "@/lib/db/schema/instagram-competitive";
 import {
@@ -12,6 +12,7 @@ import {
   approvePlanSlotsAction,
   updatePlanSlotAction,
   syncInstagramDataAction,
+  startReplyPollingAction,
 } from "../actions";
 import {
   generateStrategyAction,
@@ -48,6 +49,24 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [startingReplies, setStartingReplies] = useState(false);
+
+  async function handleStartReplies() {
+    setStartingReplies(true);
+    try {
+      const result = await startReplyPollingAction();
+      if (result.ok) {
+        toast.success("Reply polling started. Checking for comments and DMs.");
+        router.refresh();
+      } else {
+        toast.error(result.error);
+      }
+    } catch {
+      toast.error("Failed to start reply polling.");
+    } finally {
+      setStartingReplies(false);
+    }
+  }
 
   async function handleRetry() {
     setRetrying(true);
@@ -204,6 +223,34 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
             )}
             {syncing ? "Syncing…" : "Sync"}
           </button>
+          <button
+            onClick={handleStartReplies}
+            disabled={startingReplies}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-opacity disabled:opacity-50"
+            style={{
+              backgroundColor: "var(--color-neutral-800)",
+              color: "var(--color-brand-cream)",
+              border: "1px solid rgba(253, 245, 230, 0.08)",
+            }}
+          >
+            {startingReplies ? (
+              <Loader2 className="size-3 animate-spin" strokeWidth={1.5} />
+            ) : (
+              <MessageSquare className="size-3" strokeWidth={1.5} />
+            )}
+            {startingReplies ? "Starting…" : "Start replies"}
+          </button>
+          <Link
+            href="/lite/content/instagram/replies"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px]"
+            style={{
+              backgroundColor: "var(--color-neutral-800)",
+              color: "var(--color-brand-pink)",
+              border: "1px solid rgba(253, 245, 230, 0.08)",
+            }}
+          >
+            Reply queue
+          </Link>
           <div className="flex items-center gap-2">
             <span
               className="inline-block h-2 w-2 rounded-full"
