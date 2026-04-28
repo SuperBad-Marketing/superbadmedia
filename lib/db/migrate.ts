@@ -29,11 +29,73 @@ export function runMigrations(databaseUrl: string): void {
 
   const db = drizzle(sqlite);
   const migrationsFolder = path.join(process.cwd(), "lib/db/migrations");
+  patchPendingAlterColumns(sqlite, migrationsFolder);
   drizzleMigrate(db, { migrationsFolder });
 
   runSeeds(sqlite, migrationsFolder);
   seedAdminUser(sqlite);
   sqlite.close();
+}
+
+/**
+ * SQLite ALTER TABLE ADD COLUMN fails if the column already exists, and
+ * Drizzle's migrate() propagates that as a hard error. This pre-flight
+ * detects pending migrations that contain ADD COLUMN on tables where
+ * the column is already present (from a prior manual apply or seed) and
+ * marks them as applied so the migrator skips them.
+ */
+function patchPendingAlterColumns(
+  sqlite: Database.Database,
+  migrationsFolder: string,
+): void {
+  const journalPath = path.join(migrationsFolder, "meta", "_journal.json");
+  const journal = JSON.parse(fs.readFileSync(journalPath, "utf-8")) as {
+    entries: Array<{ tag: string; when: number }>;
+  };
+
+  try {
+    sqlite.prepare("SELECT 1 FROM __drizzle_migrations LIMIT 1").get();
+  } catch {
+    return;
+  }
+
+  const appliedRows = sqlite
+    .prepare("SELECT hash FROM __drizzle_migrations")
+    .all() as { hash: string }[];
+  const appliedHashes = new Set(appliedRows.map((r) => r.hash));
+
+  for (const entry of journal.entries) {
+    const filePath = path.join(migrationsFolder, `${entry.tag}.sql`);
+    if (!fs.existsSync(filePath)) continue;
+
+    const raw = fs.readFileSync(filePath, "utf-8");
+    const addColMatch = raw.match(
+      /ALTER\s+TABLE\s+(\w+)\s+ADD\s+COLUMN\s+(\w+)/i,
+    );
+    if (!addColMatch) continue;
+
+    const [, table, column] = addColMatch;
+    const existingCols = sqlite
+      .prepare(`PRAGMA table_info(${table})`)
+      .all() as { name: string }[];
+    const columnExists = existingCols.some((c) => c.name === column);
+    if (!columnExists) continue;
+
+    const hash = require("crypto")
+      .createHash("sha256")
+      .update(raw)
+      .digest("hex");
+    if (appliedHashes.has(hash)) continue;
+
+    sqlite
+      .prepare(
+        "INSERT OR IGNORE INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
+      )
+      .run(hash, entry.when);
+    console.info(
+      `[migrate] pre-applied ${entry.tag} — column ${table}.${column} already exists`,
+    );
+  }
 }
 
 export function runSeeds(
