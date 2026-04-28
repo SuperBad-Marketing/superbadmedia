@@ -15,6 +15,7 @@ import { searchContacts } from "../_queries/search-contacts";
 import {
   AttachmentUpload,
   type AttachmentUploadFile,
+  MAX_FILE_BYTES,
 } from "./attachment-upload";
 import { encodeAttachmentsForUpload } from "./attachment-encode";
 import { ContactPicker, type ContactSuggestion } from "./contact-picker";
@@ -70,6 +71,7 @@ export function ComposeModal({
   const [intentVisible, setIntentVisible] = React.useState(false);
   const [attachments, setAttachments] = React.useState<AttachmentUploadFile[]>([]);
   const [attachOpen, setAttachOpen] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (!open) return;
@@ -89,6 +91,7 @@ export function ComposeModal({
     setIntentVisible(false);
     setAttachments([]);
     setAttachOpen(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function handleDraftIntent() {
@@ -205,6 +208,32 @@ export function ComposeModal({
     _flags: DraftReplyLowConfidenceFlag[],
   ) {
     setBody(newBody);
+  }
+
+  function handleFilesFromPicker(fileList: FileList | null) {
+    if (!fileList) return;
+    const incoming = Array.from(fileList);
+    const next = [...attachments];
+    let rejected = 0;
+    for (const f of incoming) {
+      if (f.size > MAX_FILE_BYTES) {
+        rejected++;
+        continue;
+      }
+      next.push({
+        file: f,
+        id:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${f.name}-${f.size}-${Date.now()}`,
+      });
+    }
+    if (rejected > 0) {
+      setError(
+        "That file didn't want to go. Try again or drop a different one.",
+      );
+    }
+    setAttachments(next);
   }
 
   const isFullscreen = variant === "fullscreen";
@@ -408,11 +437,14 @@ export function ComposeModal({
               </button>
               <button
                 type="button"
-                onClick={() => setAttachOpen((v) => !v)}
+                onClick={() => {
+                  setAttachOpen(true);
+                  fileInputRef.current?.click();
+                }}
                 title={
                   attachments.length > 0
-                    ? `${attachments.length} attached — click to manage`
-                    : "Drop files into the reply"
+                    ? `${attachments.length} attached — click to add more`
+                    : "Attach files"
                 }
                 className={cn(
                   "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)]",
@@ -424,6 +456,16 @@ export function ComposeModal({
                 <Paperclip size={12} strokeWidth={1.75} aria-hidden />
                 {attachments.length > 0 ? `Attach · ${attachments.length}` : "Attach"}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  handleFilesFromPicker(e.target.files);
+                  e.target.value = "";
+                }}
+              />
               <button
                 type="button"
                 disabled

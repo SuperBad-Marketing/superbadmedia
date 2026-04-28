@@ -25,7 +25,7 @@ export default async function PortalDataExportPage() {
     await logActivity({
       companyId: contact.company_id,
       contactId: session.contactId,
-      kind: "client_profile_viewed_by_admin",
+      kind: "data_export_page_viewed",
       body: "Client viewed data export page",
     });
   }

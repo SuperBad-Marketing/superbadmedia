@@ -3,11 +3,12 @@
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { useState, useCallback } from "react";
 import { houseSpring } from "@/lib/design-tokens";
-import type { GalleryItem } from "@/app/lite/portal/[token]/gallery/actions";
+import type { GalleryItem, GalleryArchive } from "@/app/lite/portal/[token]/gallery/actions";
 
 interface Props {
   items: GalleryItem[];
-  archiveUrl: string | null;
+  archives: GalleryArchive[];
+  hasMore: boolean;
 }
 
 function formatBytes(bytes: number): string {
@@ -180,7 +181,7 @@ function GalleryCard({
   );
 }
 
-export function PortalGallery({ items, archiveUrl }: Props) {
+export function PortalGallery({ items, archives, hasMore }: Props) {
   const shouldReduceMotion = useReducedMotion();
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
 
@@ -239,19 +240,21 @@ export function PortalGallery({ items, archiveUrl }: Props) {
             Gallery
           </h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className="text-xs text-[var(--color-neutral-500)]">
             {items.length} {items.length === 1 ? "file" : "files"}
+            {hasMore && "+"}
           </span>
-          {archiveUrl && (
+          {archives.map((archive) => (
             <a
-              href={archiveUrl}
+              key={archive.label}
+              href={archive.url}
               download
               className="rounded-full border border-[rgba(253,245,230,0.08)] bg-[var(--color-neutral-800)] px-4 py-2 text-xs text-[var(--color-brand-cream)] transition-colors hover:bg-[var(--color-neutral-700)]"
             >
-              download all
+              {archive.label}
             </a>
-          )}
+          ))}
         </div>
       </motion.div>
 
@@ -265,6 +268,14 @@ export function PortalGallery({ items, archiveUrl }: Props) {
           />
         ))}
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center pb-10 pt-6">
+          <p className="font-[family-name:var(--font-playfair-display)] text-[13px] italic text-[var(--color-neutral-500)]">
+            showing first {items.length} files &mdash; more available on request.
+          </p>
+        </div>
+      )}
 
       <AnimatePresence>
         {lightboxItem && (

@@ -6,7 +6,7 @@ import { deals } from "@/lib/db/schema/deals";
 import { eq, and, inArray } from "drizzle-orm";
 import { getPortalSession } from "@/lib/portal/guard";
 import {
-  listFolder,
+  listFolderAll,
   transformUrl,
   generateArchiveUrl,
   type CloudinaryResource,
@@ -23,6 +23,11 @@ export type GalleryItem = {
   width: number;
   height: number;
   bytes: number;
+};
+
+export type GalleryArchive = {
+  label: string;
+  url: string;
 };
 
 async function getGalleryFolder(): Promise<{
@@ -70,15 +75,16 @@ async function getGalleryFolder(): Promise<{
 
 export async function fetchGalleryItems(): Promise<{
   items: GalleryItem[];
-  archiveUrl: string | null;
+  archives: GalleryArchive[];
+  hasMore: boolean;
 }> {
   const { folder, contactId, companyId, dealId } = await getGalleryFolder();
 
   if (!folder) {
-    return { items: [], archiveUrl: null };
+    return { items: [], archives: [], hasMore: false };
   }
 
-  const { resources } = await listFolder(folder, { maxResults: 100 });
+  const { resources, hasMore } = await listFolderAll(folder, { maxResults: 100 });
 
   const items: GalleryItem[] = resources
     .filter(
@@ -89,13 +95,22 @@ export async function fetchGalleryItems(): Promise<{
     )
     .map((r) => ({
       publicId: r.public_id,
-      thumbUrl: transformUrl(r.public_id, {
-        width: 600,
-        height: undefined,
-        crop: "scale",
-        quality: "auto",
-        format: "auto",
-      }),
+      thumbUrl:
+        r.resource_type === "video"
+          ? transformUrl(r.public_id.replace(/\.[^.]+$/, "") + ".jpg", {
+              width: 600,
+              height: undefined,
+              crop: "scale",
+              quality: "auto",
+              format: "auto",
+            })
+          : transformUrl(r.public_id, {
+              width: 600,
+              height: undefined,
+              crop: "scale",
+              quality: "auto",
+              format: "auto",
+            }),
       fullUrl: r.secure_url,
       downloadUrl: `${r.secure_url}?fl_attachment`,
       resourceType: r.resource_type as "image" | "video",
@@ -105,13 +120,40 @@ export async function fetchGalleryItems(): Promise<{
       bytes: r.bytes,
     }));
 
-  let archiveUrl: string | null = null;
+  const hasImages = items.some((i) => i.resourceType === "image");
+  const hasVideos = items.some((i) => i.resourceType === "video");
+
+  const archives: GalleryArchive[] = [];
   if (items.length > 0) {
-    try {
-      archiveUrl = await generateArchiveUrl(folder);
-    } catch {
-      // ZIP generation can fail for large folders — degrade gracefully
+    const archivePromises: Promise<void>[] = [];
+
+    if (hasImages) {
+      archivePromises.push(
+        generateArchiveUrl(folder, "image")
+          .then((url) => {
+            archives.push({
+              label: hasVideos ? "download photos" : "download all",
+              url,
+            });
+          })
+          .catch(() => {}),
+      );
     }
+
+    if (hasVideos) {
+      archivePromises.push(
+        generateArchiveUrl(folder, "video")
+          .then((url) => {
+            archives.push({
+              label: hasImages ? "download videos" : "download all",
+              url,
+            });
+          })
+          .catch(() => {}),
+      );
+    }
+
+    await Promise.all(archivePromises);
   }
 
   void logActivity({
@@ -122,5 +164,5 @@ export async function fetchGalleryItems(): Promise<{
     body: `Gallery viewed (${items.length} items)`,
   });
 
-  return { items, archiveUrl };
+  return { items, archives, hasMore };
 }

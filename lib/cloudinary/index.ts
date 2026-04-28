@@ -47,12 +47,13 @@ export type CloudinaryResource = {
 
 export async function listFolder(
   folder: string,
-  options?: { maxResults?: number; nextCursor?: string },
+  options?: { maxResults?: number; nextCursor?: string; resourceType?: string },
 ): Promise<{ resources: CloudinaryResource[]; nextCursor?: string }> {
   await ensureConfigured();
   const result = await cloudinary.api.resources({
     type: "upload",
     prefix: folder,
+    resource_type: options?.resourceType ?? "image",
     max_results: options?.maxResults ?? 100,
     next_cursor: options?.nextCursor,
   });
@@ -60,6 +61,37 @@ export async function listFolder(
     resources: result.resources as CloudinaryResource[],
     nextCursor: result.next_cursor as string | undefined,
   };
+}
+
+export async function listFolderAll(
+  folder: string,
+  options?: { maxResults?: number },
+): Promise<{ resources: CloudinaryResource[]; hasMore: boolean }> {
+  await ensureConfigured();
+  const perType = options?.maxResults ?? 100;
+  const [images, videos] = await Promise.all([
+    cloudinary.api.resources({
+      type: "upload",
+      prefix: folder,
+      resource_type: "image",
+      max_results: perType,
+    }),
+    cloudinary.api.resources({
+      type: "upload",
+      prefix: folder,
+      resource_type: "video",
+      max_results: perType,
+    }),
+  ]);
+  const all = [
+    ...(images.resources as CloudinaryResource[]),
+    ...(videos.resources as CloudinaryResource[]),
+  ].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+  const hasMore = !!images.next_cursor || !!videos.next_cursor;
+  return { resources: all, hasMore };
 }
 
 export function transformUrl(
@@ -80,11 +112,14 @@ export function transformUrl(
   });
 }
 
-export async function generateArchiveUrl(folder: string): Promise<string> {
+export async function generateArchiveUrl(
+  folder: string,
+  resourceType: "image" | "video" = "image",
+): Promise<string> {
   await ensureConfigured();
   const result = await cloudinary.utils.download_zip_url({
     prefixes: [folder],
-    resource_type: "image",
+    resource_type: resourceType,
   });
   return result as unknown as string;
 }

@@ -26,7 +26,7 @@ import type { PortalSession } from "@/lib/portal/guard";
 // ── encodePortalSession / decodePortalSession ────────────────────────────────
 
 describe("encodePortalSession", () => {
-  it("produces a non-empty base64url string", () => {
+  it("produces a signed cookie value with payload.signature format", () => {
     const session: PortalSession = {
       contactId: "c-001",
       clientId: null,
@@ -34,8 +34,10 @@ describe("encodePortalSession", () => {
     };
     const encoded = encodePortalSession(session);
     expect(encoded).toBeTruthy();
-    // base64url uses A-Za-z0-9_- (no padding =)
-    expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(encoded).toContain(".");
+    const [payload, signature] = encoded.split(".");
+    expect(payload).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(signature).toMatch(/^[0-9a-f]+$/);
   });
 });
 
@@ -66,27 +68,51 @@ describe("decodePortalSession", () => {
     expect(decodePortalSession("")).toBeNull();
   });
 
-  it("returns null for invalid base64url", () => {
+  it("returns null for invalid input", () => {
     expect(decodePortalSession("!!!not-base64!!!")).toBeNull();
   });
 
-  it("returns null for valid base64url but missing contactId", () => {
-    const bad = Buffer.from(JSON.stringify({ clientId: "c" })).toString(
-      "base64url",
-    );
-    expect(decodePortalSession(bad)).toBeNull();
+  it("returns null for unsigned payload (no signature)", () => {
+    const unsigned = Buffer.from(
+      JSON.stringify({ contactId: "c-forged" }),
+    ).toString("base64url");
+    expect(decodePortalSession(unsigned)).toBeNull();
   });
 
-  it("returns null for valid base64url but non-object JSON", () => {
-    const bad = Buffer.from("true").toString("base64url");
-    expect(decodePortalSession(bad)).toBeNull();
+  it("returns null for tampered signature", () => {
+    const session: PortalSession = {
+      contactId: "c-004",
+      clientId: null,
+      submissionId: null,
+    };
+    const encoded = encodePortalSession(session);
+    const [payload] = encoded.split(".");
+    const tampered = `${payload}.deadbeefcafebabe0000000000000000000000000000000000000000000000000`;
+    expect(decodePortalSession(tampered)).toBeNull();
+  });
+
+  it("returns null for tampered payload", () => {
+    const session: PortalSession = {
+      contactId: "c-005",
+      clientId: null,
+      submissionId: null,
+    };
+    const encoded = encodePortalSession(session);
+    const [, signature] = encoded.split(".");
+    const differentPayload = Buffer.from(
+      JSON.stringify({ contactId: "c-forged" }),
+    ).toString("base64url");
+    expect(decodePortalSession(`${differentPayload}.${signature}`)).toBeNull();
   });
 
   it("defaults clientId and submissionId to null when absent in payload", () => {
-    const minimal = Buffer.from(
-      JSON.stringify({ contactId: "c-003" }),
-    ).toString("base64url");
-    const decoded = decodePortalSession(minimal);
+    const minimal: PortalSession = {
+      contactId: "c-003",
+      clientId: null,
+      submissionId: null,
+    };
+    const encoded = encodePortalSession(minimal);
+    const decoded = decodePortalSession(encoded);
     expect(decoded).toEqual({
       contactId: "c-003",
       clientId: null,

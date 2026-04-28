@@ -5,7 +5,7 @@ import { fetchGalleryItems } from "./actions";
 export default async function PortalGalleryPage() {
   await requirePortalSession();
 
-  const { items, archiveUrl } = await fetchGalleryItems();
+  const { items, archives, hasMore } = await fetchGalleryItems();
 
-  return <PortalGallery items={items} archiveUrl={archiveUrl} />;
+  return <PortalGallery items={items} archives={archives} hasMore={hasMore} />;
 }
