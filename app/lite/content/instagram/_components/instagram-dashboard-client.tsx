@@ -1586,10 +1586,18 @@ function InspirationFeed() {
   );
 }
 
+function embedUrlFromPermalink(permalink: string): string | null {
+  try {
+    const url = new URL(permalink);
+    const path = url.pathname.replace(/\/+$/, "");
+    return `https://www.instagram.com${path}/embed/`;
+  } catch {
+    return null;
+  }
+}
+
 function InspirationCard({
   post,
-  expanded,
-  onToggle,
   onReact,
   reacting,
 }: {
@@ -1601,7 +1609,7 @@ function InspirationCard({
 }) {
   const isLiked = post.reaction === "like";
   const isDisliked = post.reaction === "dislike";
-  const [imgError, setImgError] = useState(false);
+  const embedUrl = post.permalink ? embedUrlFromPermalink(post.permalink) : null;
 
   return (
     <div
@@ -1613,47 +1621,40 @@ function InspirationCard({
         opacity: isDisliked ? 0.35 : 1,
       }}
     >
-      {/* Image + overlay */}
-      <button
-        onClick={onToggle}
-        className="relative block w-full"
-      >
-        {imgError ? (
-          <div
-            className="flex aspect-[4/3] w-full items-center justify-center"
-            style={{ backgroundColor: "var(--color-neutral-800)" }}
-          >
-            <div className="text-center">
-              <EyeOff className="mx-auto mb-1 size-5 text-[color:var(--color-neutral-600)]" strokeWidth={1.5} />
-              <span className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
-                Image expired
-              </span>
-            </div>
-          </div>
-        ) : (
-          <img
-            src={post.imageUrl}
-            alt=""
-            className="aspect-[4/3] w-full object-cover"
+      {/* Instagram embed */}
+      {embedUrl ? (
+        <div className="relative w-full" style={{ minHeight: "320px" }}>
+          <iframe
+            src={embedUrl}
+            className="w-full border-0"
+            style={{ minHeight: "320px", background: "var(--color-neutral-800)" }}
             loading="lazy"
-            onError={() => setImgError(true)}
+            allowTransparency
           />
-        )}
+        </div>
+      ) : (
         <div
-          className="absolute inset-x-0 bottom-0 flex items-end justify-between p-3"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)",
-          }}
+          className="flex aspect-[4/3] w-full items-center justify-center"
+          style={{ backgroundColor: "var(--color-neutral-800)" }}
         >
-          <div>
-            <span className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-brand-cream)]" style={{ letterSpacing: "1px" }}>
-              @{post.accountUsername}
-            </span>
-            <span className="ml-2 font-[family-name:var(--font-label)] text-[9px] text-[color:var(--color-neutral-500)]">
-              {post.accountFollowers.toLocaleString()}
+          <div className="text-center">
+            <EyeOff className="mx-auto mb-1 size-5 text-[color:var(--color-neutral-600)]" strokeWidth={1.5} />
+            <span className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
+              No permalink
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Meta bar */}
+      <div
+        className="flex items-center justify-between px-3 py-2"
+        style={{ backgroundColor: "var(--color-neutral-900)" }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-brand-cream)]" style={{ letterSpacing: "1px" }}>
+            @{post.accountUsername}
+          </span>
           <span
             className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[9px] font-semibold tabular-nums"
             style={{
@@ -1664,15 +1665,6 @@ function InspirationCard({
           >
             {post.finalScore.toFixed(1)}× avg
           </span>
-        </div>
-      </button>
-
-      {/* Reaction buttons */}
-      <div
-        className="flex items-center justify-between px-3 py-2"
-        style={{ backgroundColor: "var(--color-neutral-900)" }}
-      >
-        <div className="flex items-center gap-2">
           <span
             className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[8px] uppercase"
             style={{
@@ -1691,10 +1683,7 @@ function InspirationCard({
         </div>
         <div className="flex gap-1">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onReact("like");
-            }}
+            onClick={() => onReact("like")}
             disabled={reacting}
             className="flex size-7 items-center justify-center rounded-full transition-colors"
             aria-label="Like this post"
@@ -1716,10 +1705,7 @@ function InspirationCard({
             />
           </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onReact("dislike");
-            }}
+            onClick={() => onReact("dislike")}
             disabled={reacting}
             className="flex size-7 items-center justify-center rounded-full transition-colors"
             aria-label="Dismiss this post"
@@ -1741,44 +1727,6 @@ function InspirationCard({
           </button>
         </div>
       </div>
-
-      {/* Expanded detail */}
-      {expanded && (
-        <div
-          className="border-t px-3 py-3"
-          style={{ borderColor: "rgba(253, 245, 230, 0.06)" }}
-        >
-          {post.caption && (
-            <p className="mb-2 line-clamp-4 font-[family-name:var(--font-body)] text-[12px] leading-[1.5] text-[color:var(--color-neutral-400)]">
-              {post.caption}
-            </p>
-          )}
-          <div className="flex items-center justify-between">
-            <div className="flex gap-3 font-[family-name:var(--font-body)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]">
-              <span>{post.likes.toLocaleString()} likes</span>
-              <span>{post.comments.toLocaleString()} comments</span>
-              <span>
-                ER: {((post.likes + post.comments) / Math.max(post.accountFollowers, 1) * 100).toFixed(2)}%
-              </span>
-            </div>
-            {post.permalink && (
-              <a
-                href={post.permalink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
-              >
-                View on Instagram →
-              </a>
-            )}
-          </div>
-          {post.whyHigh && (
-            <p className="mt-2 font-[family-name:var(--font-narrative)] text-[11px] italic text-[color:var(--color-brand-pink)]">
-              {post.whyHigh}
-            </p>
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -83,12 +83,12 @@ export async function scrapeWatchedAccounts(): Promise<{
     for (const post of scored) {
       let imageUrl = post.imageUrl;
 
-      if (imageUrl) {
+      if (imageUrl && post.finalScore >= 1.5) {
         try {
           const uploaded = await uploadToCloudinary(imageUrl, `superbad/competitive-intel/${account.username}`);
           imageUrl = uploaded.secure_url;
         } catch {
-          console.warn(`Cloudinary upload failed for ${account.username} post — using original URL`);
+          // Keep original URL as fallback — embeds use permalink anyway
         }
       }
 
