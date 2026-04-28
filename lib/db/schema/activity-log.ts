@@ -212,6 +212,7 @@ export const ACTIVITY_LOG_KINDS = [
   "portal_chat_action_taken",
   "data_export_requested",
   "data_export_completed",
+  "data_export_page_viewed",
   "external_link_added",
   "external_link_removed",
   "client_profile_viewed_by_admin",

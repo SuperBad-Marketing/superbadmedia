@@ -181,6 +181,14 @@ export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
         matchPrefix: "/lite/admin/products",
       },
       {
+        id: "profile",
+        label: "Profile",
+        href: "/lite/admin/profile",
+        icon: User,
+        status: "live",
+        matchPrefix: "/lite/admin/profile",
+      },
+      {
         id: "channels",
         label: "Channels",
         href: "/lite/admin/channels/instagram",

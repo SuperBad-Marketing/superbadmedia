@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Paintbrush, ShoppingBag, FileText, Plug, Mic, Trash2, Volume2, Eye } from "lucide-react";
+import { Paintbrush, ShoppingBag, FileText, Plug, Mic, Trash2, Volume2, Eye, User } from "lucide-react";
 
 import { auth } from "@/lib/auth/session";
 
@@ -12,6 +12,12 @@ export const metadata: Metadata = {
 
 const SECTIONS = [
   {
+    href: "/lite/admin/profile",
+    icon: User,
+    label: "Business Profile",
+    description: "Brand identity, design rules, voice — the source of truth for every AI feature.",
+  },
+  {
     href: "/lite/admin/settings/display",
     icon: Paintbrush,
     label: "Display",
@@ -21,7 +27,7 @@ const SECTIONS = [
     href: "/lite/admin/settings/brand-voice",
     icon: Mic,
     label: "Brand Voice",
-    description: "Voice examples, Brand DNA, how the AI sounds.",
+    description: "Voice examples and how the AI sounds per surface.",
   },
   {
     href: "/lite/admin/settings/integrations",
