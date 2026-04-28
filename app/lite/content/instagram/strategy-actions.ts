@@ -305,7 +305,7 @@ export async function fetchInspirationFeedAction(): Promise<
 export async function updateSlotStatusAction(input: {
   planId: string;
   slotIndex: number;
-  status: "pending" | "approved" | "created" | "posted";
+  status: "pending" | "approved" | "created" | "posted" | "pushed_back" | "dropped";
 }): Promise<ActionResult<void>> {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin")
@@ -324,11 +324,18 @@ export async function updateSlotStatusAction(input: {
   if (!slot) return { ok: false, error: "Slot not found." };
 
   slot.status = input.status;
+  if (input.status === "pushed_back" || input.status === "dropped") {
+    slot.approved = false;
+  }
+  if (input.status === "approved") {
+    slot.approved = true;
+  }
   slots[input.slotIndex] = slot;
 
+  const planStatus = derivePlanStatus(slots);
   await db
     .update(instagram_content_plans)
-    .set({ slots_json: slots, updated_at_ms: Date.now() })
+    .set({ slots_json: slots, status: planStatus, updated_at_ms: Date.now() })
     .where(eq(instagram_content_plans.id, plan.id));
 
   if (input.status === "created" && slot.task_id) {
@@ -349,6 +356,20 @@ export async function updateSlotStatusAction(input: {
 
   revalidatePath("/lite/content/instagram");
   return { ok: true, value: undefined };
+}
+
+function derivePlanStatus(slots: EnhancedContentPlanSlot[]): "awaiting_review" | "partially_approved" | "all_approved" | "expired" {
+  const active = slots.filter((s) => s.status !== "dropped");
+  if (active.length === 0) return "expired";
+  const allApproved = active.every(
+    (s) => s.status === "approved" || s.status === "created" || s.status === "posted",
+  );
+  const someApproved = active.some(
+    (s) => s.status === "approved" || s.status === "created" || s.status === "posted",
+  );
+  if (allApproved) return "all_approved";
+  if (someApproved) return "partially_approved";
+  return "awaiting_review";
 }
 
 export async function syncTaskCompletionToSlotAction(

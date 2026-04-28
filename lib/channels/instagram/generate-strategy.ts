@@ -65,7 +65,9 @@ export async function generateCompetitiveStrategy(
     input.accountUsername,
   );
 
-  const userPrompt = `Generate a weekly Instagram content strategy and exactly 5 post briefs for @${input.accountUsername}. Today is ${new Date().toISOString().slice(0, 10)}.
+  const coldStart = !hasSelfMetrics;
+
+  const userPrompt = `Generate a weekly Instagram content strategy and exactly 5 post briefs for @${input.accountUsername}. Today is ${new Date().toISOString().slice(0, 10)}.${coldStart ? "\n\nIMPORTANT: This is a COLD START — the account has no published posts. Follow the foundational post priorities from the system prompt. The first 3 posts must establish the brand before any regular weekly content." : ""}
 
 Output valid JSON matching this schema:
 {
@@ -88,7 +90,7 @@ Output valid JSON matching this schema:
 }
 
 Rules:
-- Order posts with manual-input posts first (4-5 day lead time), studio-only posts last (1-2 days)
+- ${coldStart ? "Order foundational posts first (pinned intro → authority → brand identity), then regular content" : "Order posts with manual-input posts first (4-5 day lead time), studio-only posts last (1-2 days)"}
 - At least one carousel, one single, and one reel if possible
 - Creation steps must be specific enough that someone can follow them without thinking
 - If a step requires recording video or taking photos, mark is_manual: true
@@ -275,7 +277,16 @@ Reach (latest): ${latestMetrics.reach}`;
       prompt += `\nAudience: ${JSON.stringify(audienceData)}`;
     }
   } else {
-    prompt += `\n\nCOLD START: No existing metrics data. This is a brand-new account or first-time strategy generation. Recommend a diagnostic mix of content types to establish baseline performance data.`;
+    prompt += `\n\nCOLD START — NEW ACCOUNT WITH NO EXISTING POSTS:
+This account has zero published posts. The first strategy must establish the account's foundation before any regular weekly content.
+
+FOUNDATIONAL POST PRIORITIES (in this order):
+1. PINNED INTRO POST — "Who we are" brand carousel. This gets pinned to the grid. Establishes identity, voice, and what followers can expect. Should feel like a confident opening statement, not a mission statement.
+2. AUTHORITY / PROOF POST — Work samples, results, or behind-the-scenes that proves competence. Visual-heavy, minimal text. Let the work talk.
+3. BRAND IDENTITY POST — A single or carousel that captures the brand's personality and visual style. The "vibe check" post. Think typography-forward or anti-motivation style.
+4-5. First regular content posts — these can follow the normal weekly strategy once the foundation is laid.
+
+Order all 5 posts so the foundational posts come first (they establish context for everything after). The first 3 posts should be studio-only (no manual shoots needed) so they can ship immediately.`;
   }
 
   return prompt;

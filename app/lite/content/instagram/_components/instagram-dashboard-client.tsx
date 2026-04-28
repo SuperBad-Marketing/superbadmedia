@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send, MessageSquare } from "lucide-react";
+import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send, MessageSquare, RotateCcw, ArrowRight, Trash2, RefreshCw, Eye, EyeOff } from "lucide-react";
 import type { ContentPlanSlot } from "@/lib/db/schema/instagram";
 import type { EnhancedContentPlanSlot } from "@/lib/db/schema/instagram-competitive";
 import {
@@ -264,6 +264,9 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
         </div>
       </div>
 
+      {/* Generate / Regenerate Strategy */}
+      <GenerateStrategySection hasExistingPlan={plans.length > 0} />
+
       {/* Content plans */}
       {plans.map((plan) => {
         const acct = accounts.find((a) => a.id === plan.accountId);
@@ -275,9 +278,6 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
           />
         );
       })}
-
-      {/* Generate Strategy button — shows when no plans exist */}
-      {plans.length === 0 && <GenerateStrategySection />}
 
       {/* Inspiration Feed */}
       <InspirationFeed />
@@ -600,6 +600,16 @@ const SLOT_STATUS_BADGE: Record<string, { bg: string; color: string; label: stri
     color: "var(--color-success)",
     label: "Posted",
   },
+  pushed_back: {
+    bg: "rgba(96, 165, 250, 0.08)",
+    color: "#60a5fa",
+    label: "Pushed back",
+  },
+  dropped: {
+    bg: "rgba(178, 40, 72, 0.10)",
+    color: "var(--color-brand-red)",
+    label: "Dropped",
+  },
 };
 
 function SlotCard({
@@ -646,7 +656,16 @@ function SlotCard({
   const [updating, setUpdating] = useState(false);
   const badge = SLOT_STATUS_BADGE[slotStatus] ?? SLOT_STATUS_BADGE.pending;
 
-  async function handleMarkStatus(status: "created" | "posted") {
+  const STATUS_TOAST: Record<string, string> = {
+    created: "Marked as created.",
+    posted: "Marked as posted.",
+    pushed_back: "Pushed back.",
+    dropped: "Dropped.",
+    approved: "Restored.",
+    pending: "Reverted to pending.",
+  };
+
+  async function handleMarkStatus(status: "pending" | "approved" | "created" | "posted" | "pushed_back" | "dropped") {
     setUpdating(true);
     const result = await updateSlotStatusAction({
       planId,
@@ -654,7 +673,7 @@ function SlotCard({
       status,
     });
     if (result.ok) {
-      toast.success(status === "posted" ? "Marked as posted." : "Marked as created.");
+      toast.success(STATUS_TOAST[status] ?? "Updated.");
       router.refresh();
     } else {
       toast.error(result.error);
@@ -666,37 +685,50 @@ function SlotCard({
     <div
       className="rounded-lg px-3 py-2.5 transition-colors"
       style={{
-        background: slotStatus === "posted"
-          ? "rgba(123, 174, 126, 0.05)"
-          : slotStatus === "created"
-            ? "rgba(242, 140, 82, 0.04)"
-            : slot.approved
-              ? "rgba(96, 165, 250, 0.04)"
-              : selected
-                ? "rgba(244, 160, 176, 0.08)"
-                : "rgba(253, 245, 230, 0.02)",
+        background: slotStatus === "dropped"
+          ? "rgba(178, 40, 72, 0.04)"
+          : slotStatus === "pushed_back"
+            ? "rgba(96, 165, 250, 0.03)"
+            : slotStatus === "posted"
+              ? "rgba(123, 174, 126, 0.05)"
+              : slotStatus === "created"
+                ? "rgba(242, 140, 82, 0.04)"
+                : slot.approved
+                  ? "rgba(96, 165, 250, 0.04)"
+                  : selected
+                    ? "rgba(244, 160, 176, 0.08)"
+                    : "rgba(253, 245, 230, 0.02)",
+        opacity: slotStatus === "dropped" ? 0.5 : 1,
       }}
     >
       <div className="flex items-start gap-3">
         {/* Checkbox */}
         <button
           onClick={onToggle}
-          disabled={slot.approved || slotStatus === "created" || slotStatus === "posted"}
+          disabled={slot.approved || slotStatus === "created" || slotStatus === "posted" || slotStatus === "pushed_back" || slotStatus === "dropped"}
           className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border transition-colors"
           style={{
-            borderColor: slotStatus === "posted"
-              ? "var(--color-success)"
-              : slotStatus === "created"
-                ? "var(--color-brand-orange)"
-                : slot.approved
-                  ? "#60a5fa"
-                  : selected
-                    ? "var(--color-brand-pink)"
-                    : "rgba(253, 245, 230, 0.15)",
-            backgroundColor: slotStatus === "posted"
-              ? "rgba(123, 174, 126, 0.2)"
-              : slotStatus === "created"
-                ? "rgba(242, 140, 82, 0.15)"
+            borderColor: slotStatus === "dropped"
+              ? "var(--color-brand-red)"
+              : slotStatus === "pushed_back"
+                ? "var(--color-neutral-600)"
+                : slotStatus === "posted"
+                  ? "var(--color-success)"
+                  : slotStatus === "created"
+                    ? "var(--color-brand-orange)"
+                    : slot.approved
+                      ? "#60a5fa"
+                      : selected
+                        ? "var(--color-brand-pink)"
+                        : "rgba(253, 245, 230, 0.15)",
+            backgroundColor: slotStatus === "dropped"
+              ? "rgba(178, 40, 72, 0.15)"
+              : slotStatus === "pushed_back"
+                ? "rgba(128, 127, 115, 0.1)"
+                : slotStatus === "posted"
+                  ? "rgba(123, 174, 126, 0.2)"
+                  : slotStatus === "created"
+                    ? "rgba(242, 140, 82, 0.15)"
                 : slot.approved
                   ? "rgba(96, 165, 250, 0.15)"
                   : selected
@@ -704,7 +736,11 @@ function SlotCard({
                     : "transparent",
           }}
         >
-          {(slot.approved || selected || slotStatus === "created" || slotStatus === "posted") && (
+          {slotStatus === "dropped" ? (
+            <X className="size-3" strokeWidth={2} style={{ color: "var(--color-brand-red)" }} />
+          ) : slotStatus === "pushed_back" ? (
+            <ArrowRight className="size-3" strokeWidth={2} style={{ color: "var(--color-neutral-600)" }} />
+          ) : (slot.approved || selected || slotStatus === "created" || slotStatus === "posted") ? (
             <Check className="size-3" strokeWidth={2} style={{
               color: slotStatus === "posted"
                 ? "var(--color-success)"
@@ -714,7 +750,7 @@ function SlotCard({
                     ? "#60a5fa"
                     : "var(--color-brand-pink)",
             }} />
-          )}
+          ) : null}
         </button>
 
         {/* Content */}
@@ -823,8 +859,8 @@ function SlotCard({
               )}
 
               {/* Action links */}
-              <div className="mt-1.5 flex items-center gap-3">
-                {slot.approved && slotStatus === "approved" && (
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                {slotStatus === "approved" && (
                   <>
                     <Link
                       href={`/lite/content/studio?prefill_type=${slot.content_type}&prefill_brief=${encodeURIComponent(slot.topic + ". " + slot.caption_direction)}`}
@@ -837,18 +873,82 @@ function SlotCard({
                       disabled={updating}
                       className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-brand-cream)]"
                     >
-                      {updating ? "Updating…" : "Mark as created"}
+                      Mark as created
+                    </button>
+                    <button
+                      onClick={() => handleMarkStatus("pushed_back")}
+                      disabled={updating}
+                      className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    >
+                      <ArrowRight className="size-3" strokeWidth={1.5} />
+                      Push back
+                    </button>
+                    <button
+                      onClick={() => handleMarkStatus("dropped")}
+                      disabled={updating}
+                      className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-red)]"
+                    >
+                      <Trash2 className="size-3" strokeWidth={1.5} />
+                      Drop
                     </button>
                   </>
                 )}
                 {slotStatus === "created" && (
+                  <>
+                    <button
+                      onClick={() => handleMarkStatus("posted")}
+                      disabled={updating}
+                      className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    >
+                      <Send className="size-3" strokeWidth={1.5} />
+                      Mark as posted
+                    </button>
+                    <button
+                      onClick={() => handleMarkStatus("pushed_back")}
+                      disabled={updating}
+                      className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    >
+                      <ArrowRight className="size-3" strokeWidth={1.5} />
+                      Push back
+                    </button>
+                    <button
+                      onClick={() => handleMarkStatus("dropped")}
+                      disabled={updating}
+                      className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-red)]"
+                    >
+                      <Trash2 className="size-3" strokeWidth={1.5} />
+                      Drop
+                    </button>
+                  </>
+                )}
+                {slotStatus === "pushed_back" && (
+                  <>
+                    <button
+                      onClick={() => handleMarkStatus("approved")}
+                      disabled={updating}
+                      className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    >
+                      <RotateCcw className="size-3" strokeWidth={1.5} />
+                      Restore
+                    </button>
+                    <button
+                      onClick={() => handleMarkStatus("dropped")}
+                      disabled={updating}
+                      className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-red)]"
+                    >
+                      <Trash2 className="size-3" strokeWidth={1.5} />
+                      Drop
+                    </button>
+                  </>
+                )}
+                {slotStatus === "dropped" && (
                   <button
-                    onClick={() => handleMarkStatus("posted")}
+                    onClick={() => handleMarkStatus("approved")}
                     disabled={updating}
-                    className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)] transition-colors hover:text-[color:var(--color-brand-cream)]"
                   >
-                    <Send className="size-3" strokeWidth={1.5} />
-                    {updating ? "Updating…" : "Mark as posted"}
+                    <RotateCcw className="size-3" strokeWidth={1.5} />
+                    Restore
                   </button>
                 )}
               </div>
@@ -898,7 +998,7 @@ const STRATEGY_PHASES = [
 
 const TOTAL_ESTIMATED_MS = STRATEGY_PHASES.reduce((s, p) => s + p.durationMs, 0);
 
-function GenerateStrategySection() {
+function GenerateStrategySection({ hasExistingPlan = false }: { hasExistingPlan?: boolean }) {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -991,41 +1091,79 @@ function GenerateStrategySection() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="text-center"
+            className={hasExistingPlan ? "" : "text-center"}
           >
-            <div
-              className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full"
-              style={{ backgroundColor: "rgba(244, 160, 176, 0.1)" }}
-            >
-              <Sparkles
-                className="size-6 text-[color:var(--color-brand-pink)]"
-                strokeWidth={1.5}
-              />
-            </div>
-            <h3 className="font-[family-name:var(--font-display)] text-[20px] text-[color:var(--color-brand-cream)] text-balance">
-              Generate your first strategy
-            </h3>
-            <p className="mx-auto mt-2 max-w-[480px] font-[family-name:var(--font-body)] text-[14px] leading-[1.55] text-[color:var(--color-neutral-400)] text-pretty">
-              No existing posts needed. The platform uses your Brand DNA,
-              competitive intelligence from watched accounts, and your braindump
-              ideas to create a step-by-step content plan.
-            </p>
+            {hasExistingPlan ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex size-9 items-center justify-center rounded-full"
+                    style={{ backgroundColor: "rgba(244, 160, 176, 0.1)" }}
+                  >
+                    <RefreshCw
+                      className="size-4 text-[color:var(--color-brand-pink)]"
+                      strokeWidth={1.5}
+                    />
+                  </div>
+                  <div>
+                    <span className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
+                      Regenerate strategy
+                    </span>
+                    <p className="mt-0.5 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+                      Creates a fresh content plan using your latest Brand DNA,
+                      competitor intel, and braindump ideas.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleGenerate}
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg px-4 py-2 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-cream)] transition-opacity hover:opacity-90"
+                  style={{
+                    letterSpacing: "1.5px",
+                    backgroundColor: "var(--color-brand-red)",
+                  }}
+                >
+                  <RefreshCw className="size-3.5" strokeWidth={1.5} />
+                  Regenerate
+                </button>
+              </div>
+            ) : (
+              <>
+                <div
+                  className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full"
+                  style={{ backgroundColor: "rgba(244, 160, 176, 0.1)" }}
+                >
+                  <Sparkles
+                    className="size-6 text-[color:var(--color-brand-pink)]"
+                    strokeWidth={1.5}
+                  />
+                </div>
+                <h3 className="font-[family-name:var(--font-display)] text-[20px] text-[color:var(--color-brand-cream)] text-balance">
+                  Generate your first strategy
+                </h3>
+                <p className="mx-auto mt-2 max-w-[480px] font-[family-name:var(--font-body)] text-[14px] leading-[1.55] text-[color:var(--color-neutral-400)] text-pretty">
+                  No existing posts needed. The platform uses your Brand DNA,
+                  competitive intelligence from watched accounts, and your
+                  braindump ideas to create a step-by-step content plan.
+                </p>
+                <button
+                  onClick={handleGenerate}
+                  className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition-opacity hover:opacity-90"
+                  style={{
+                    letterSpacing: "1.5px",
+                    backgroundColor: "var(--color-brand-red)",
+                  }}
+                >
+                  <Sparkles className="size-4" strokeWidth={1.5} />
+                  Generate Strategy
+                </button>
+              </>
+            )}
             {error && (
               <p className="mt-3 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-red)]">
                 {error}
               </p>
             )}
-            <button
-              onClick={handleGenerate}
-              className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition-opacity hover:opacity-90"
-              style={{
-                letterSpacing: "1.5px",
-                backgroundColor: "var(--color-brand-red)",
-              }}
-            >
-              <Sparkles className="size-4" strokeWidth={1.5} />
-              Generate Strategy
-            </button>
           </motion.div>
         ) : (
           <motion.div
@@ -1229,21 +1367,23 @@ interface InspirationPost {
 function InspirationFeed() {
   const [posts, setPosts] = useState<InspirationPost[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [filter, setFilter] = useState<"all" | "liked" | "undecided" | "dismissed">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reacting, setReacting] = useState<string | null>(null);
 
-  async function loadPosts() {
-    const result = await fetchInspirationFeedAction();
-    if (result.ok) {
-      setPosts(result.value);
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const result = await fetchInspirationFeedAction();
+      if (!cancelled && result.ok) {
+        setPosts(result.value);
+      }
+      if (!cancelled) setLoaded(true);
     }
-    setLoaded(true);
-  }
-
-  useState(() => {
-    loadPosts();
-  });
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   async function handleReact(postId: string, reaction: "like" | "dislike") {
     setReacting(postId);
@@ -1277,62 +1417,87 @@ function InspirationFeed() {
     { key: "dismissed" as const, label: "Dismissed" },
   ];
 
+  const likedCount = posts.filter((p) => p.reaction === "like").length;
+  const undecidedCount = posts.filter((p) => p.reaction === null).length;
+
   return (
     <div
-      className="rounded-xl border p-5"
+      className="rounded-xl border"
       style={{
         backgroundColor: "var(--color-neutral-900)",
         borderColor: "rgba(253, 245, 230, 0.06)",
       }}
     >
-      <div className="mb-4 flex items-baseline justify-between">
-        <h3 className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
-          Inspiration
-        </h3>
-        <div className="flex gap-1">
-          {FILTER_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => setFilter(opt.key)}
-              className="rounded-md px-2 py-1 font-[family-name:var(--font-label)] text-[9px] uppercase transition-colors"
-              style={{
-                letterSpacing: "1px",
-                backgroundColor:
-                  filter === opt.key
-                    ? "rgba(244, 160, 176, 0.15)"
-                    : "transparent",
-                color:
-                  filter === opt.key
-                    ? "var(--color-brand-pink)"
-                    : "var(--color-neutral-500)",
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
+      {/* Collapsible header */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="flex w-full items-center justify-between px-5 py-4"
+      >
+        <div className="flex items-center gap-2">
+          <h3 className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
+            Inspiration
+          </h3>
+          <span className="font-[family-name:var(--font-label)] text-[9px] tabular-nums text-[color:var(--color-neutral-500)]" style={{ letterSpacing: "0.5px" }}>
+            {posts.length} posts
+            {likedCount > 0 && ` · ${likedCount} liked`}
+            {undecidedCount > 0 && ` · ${undecidedCount} undecided`}
+          </span>
         </div>
-      </div>
+        {collapsed ? (
+          <ChevronDown className="size-4 text-[color:var(--color-neutral-500)]" strokeWidth={1.5} />
+        ) : (
+          <ChevronUp className="size-4 text-[color:var(--color-neutral-500)]" strokeWidth={1.5} />
+        )}
+      </button>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {filtered.map((post) => (
-          <InspirationCard
-            key={post.id}
-            post={post}
-            expanded={expandedId === post.id}
-            onToggle={() =>
-              setExpandedId(expandedId === post.id ? null : post.id)
-            }
-            onReact={(r) => handleReact(post.id, r)}
-            reacting={reacting === post.id}
-          />
-        ))}
-      </div>
+      {!collapsed && (
+        <div className="px-5 pb-5">
+          {/* Filter tabs */}
+          <div className="mb-4 flex gap-1">
+            {FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setFilter(opt.key)}
+                className="rounded-md px-2 py-1 font-[family-name:var(--font-label)] text-[9px] uppercase transition-colors"
+                style={{
+                  letterSpacing: "1px",
+                  backgroundColor:
+                    filter === opt.key
+                      ? "rgba(244, 160, 176, 0.15)"
+                      : "transparent",
+                  color:
+                    filter === opt.key
+                      ? "var(--color-brand-pink)"
+                      : "var(--color-neutral-500)",
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
 
-      {filtered.length === 0 && (
-        <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
-          {filter === "all"
-            ? "Add watched accounts in Settings to see inspiration posts."
-            : `No ${filter} posts.`}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((post) => (
+              <InspirationCard
+                key={post.id}
+                post={post}
+                expanded={expandedId === post.id}
+                onToggle={() =>
+                  setExpandedId(expandedId === post.id ? null : post.id)
+                }
+                onReact={(r) => handleReact(post.id, r)}
+                reacting={reacting === post.id}
+              />
+            ))}
+          </div>
+
+          {filtered.length === 0 && (
+            <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
+              {filter === "all"
+                ? "Add watched accounts in Settings to see inspiration posts."
+                : `No ${filter} posts.`}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1354,6 +1519,7 @@ function InspirationCard({
 }) {
   const isLiked = post.reaction === "like";
   const isDisliked = post.reaction === "dislike";
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div
@@ -1370,12 +1536,27 @@ function InspirationCard({
         onClick={onToggle}
         className="relative block w-full"
       >
-        <img
-          src={post.imageUrl}
-          alt=""
-          className="aspect-square w-full object-cover"
-          loading="lazy"
-        />
+        {imgError ? (
+          <div
+            className="flex aspect-[4/3] w-full items-center justify-center"
+            style={{ backgroundColor: "var(--color-neutral-800)" }}
+          >
+            <div className="text-center">
+              <EyeOff className="mx-auto mb-1 size-5 text-[color:var(--color-neutral-600)]" strokeWidth={1.5} />
+              <span className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-600)]">
+                Image expired
+              </span>
+            </div>
+          </div>
+        ) : (
+          <img
+            src={post.imageUrl}
+            alt=""
+            className="aspect-[4/3] w-full object-cover"
+            loading="lazy"
+            onError={() => setImgError(true)}
+          />
+        )}
         <div
           className="absolute inset-x-0 bottom-0 flex items-end justify-between p-3"
           style={{

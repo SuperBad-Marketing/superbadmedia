@@ -145,7 +145,7 @@ export interface EnhancedContentPlanSlot {
   }>;
   requires_manual_input: boolean;
   manual_input_description: string | null;
-  status: "pending" | "approved" | "created" | "posted";
+  status: "pending" | "approved" | "created" | "posted" | "pushed_back" | "dropped";
   task_id: string | null;
   ig_media_id: string | null;
   inspiration_post_ids: string[];
