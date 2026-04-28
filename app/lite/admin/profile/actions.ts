@@ -398,6 +398,18 @@ export async function discardBrandDnaDraftAction(
   return { ok: true };
 }
 
+export async function populateProfileAction(): Promise<ActionResult & { sectionsPopulated?: number; sectionsSkipped?: string[] }> {
+  const userId = await requireAdmin();
+  if (!userId) return { ok: false, error: "Not authorised." };
+
+  const { populateAllSections } = await import("@/lib/business-profile/populate-profile");
+  const result = await populateAllSections(userId);
+  if (!result.ok) return result;
+
+  revalidatePath("/lite/admin/profile");
+  return { ok: true, sectionsPopulated: result.sectionsPopulated, sectionsSkipped: result.sectionsSkipped };
+}
+
 export async function loadSectionHistory(sectionKey: string) {
   const userId = await requireAdmin();
   if (!userId) return [];

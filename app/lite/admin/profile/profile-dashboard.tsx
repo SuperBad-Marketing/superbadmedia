@@ -29,7 +29,9 @@ import {
   dismissSuggestionAction,
   approveBrandDnaAction,
   discardBrandDnaDraftAction,
+  populateProfileAction,
 } from "./actions";
+import { retakeAssessment } from "@/app/lite/brand-dna/actions";
 
 const houseSpring = { type: "spring" as const, stiffness: 220, damping: 25, mass: 1 };
 
@@ -166,6 +168,7 @@ export function ProfileDashboard({
   initialSuggestions,
 }: ProfileDashboardProps) {
   const router = useRouter();
+  const [isPopulating, startPopulate] = useTransition();
   const sectionMap = new Map(
     initialSections.map((s) => [s.section_key, s]),
   );
@@ -175,14 +178,45 @@ export function ProfileDashboard({
   );
   const hasBrandDna = brandDna?.status === "complete" && !!brandDna.prose_portrait;
 
+  function handlePopulate() {
+    startPopulate(async () => {
+      const result = await populateProfileAction();
+      if (result.ok) {
+        toast.success(`Populated ${result.sectionsPopulated} sections.`);
+        router.refresh();
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-16">
+      {isPopulating && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={houseSpring}
+          className="mb-4 flex items-center gap-3 rounded-lg border p-4"
+          style={{
+            backgroundColor: "rgba(244,160,176,0.08)",
+            borderColor: "var(--color-brand-pink)",
+          }}
+        >
+          <RefreshCw size={16} className="animate-spin text-[color:var(--color-brand-pink)]" />
+          <span className="text-[14px] text-[color:var(--color-neutral-300)]">
+            Populating profile sections and generating prose summaries...
+          </span>
+        </motion.div>
+      )}
+
       {/* Health snapshot */}
       <HealthSnapshot
         sectionMap={sectionMap}
         completeSections={completeSections}
         hasBrandDna={hasBrandDna}
         pendingSuggestions={initialSuggestions.length}
+        onPopulate={handlePopulate}
       />
 
       {/* Brand DNA card */}
@@ -213,12 +247,15 @@ function HealthSnapshot({
   completeSections,
   hasBrandDna,
   pendingSuggestions,
+  onPopulate,
 }: {
   sectionMap: Map<string, BusinessProfileSectionRow>;
   completeSections: string[];
   hasBrandDna: boolean;
   pendingSuggestions: number;
+  onPopulate: () => void;
 }) {
+  const emptySections = ALL_SECTION_KEYS.length - completeSections.length;
   return (
     <div
       className="rounded-lg border p-4"
@@ -243,6 +280,27 @@ function HealthSnapshot({
           </div>
         )}
       </div>
+
+      {emptySections > 0 && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={onPopulate}
+            className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[12px] font-[family-name:var(--font-label)] uppercase transition-colors cursor-pointer"
+            style={{
+              letterSpacing: "1px",
+              backgroundColor: "var(--color-brand-red)",
+              color: "var(--color-brand-cream)",
+            }}
+          >
+            <Sparkles size={12} />
+            Populate {emptySections === ALL_SECTION_KEYS.length ? "all" : "empty"} sections
+          </button>
+          <p className="mt-1.5 text-[11px] text-[color:var(--color-neutral-500)]">
+            Pulls from Brand DNA, products, and known business facts. Won&apos;t overwrite existing sections.
+          </p>
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {hasBrandDna && (
@@ -468,18 +526,20 @@ function BrandDnaCard({
               </div>
             )}
             <div className="mt-4">
-              <Link
-                href="/lite/brand-dna"
-                className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-[family-name:var(--font-label)] uppercase transition-colors"
-                style={{
-                  letterSpacing: "1px",
-                  backgroundColor: "rgba(244,160,176,0.1)",
-                  color: "var(--color-brand-pink)",
-                }}
-              >
-                <RefreshCw size={12} />
-                Retake assessment
-              </Link>
+              <form action={retakeAssessment}>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-[family-name:var(--font-label)] uppercase transition-colors cursor-pointer"
+                  style={{
+                    letterSpacing: "1px",
+                    backgroundColor: "rgba(244,160,176,0.1)",
+                    color: "var(--color-brand-pink)",
+                  }}
+                >
+                  <RefreshCw size={12} />
+                  Retake assessment
+                </button>
+              </form>
             </div>
           </>
         ) : (
