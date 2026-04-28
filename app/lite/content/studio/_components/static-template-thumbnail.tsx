@@ -8,11 +8,21 @@ import { DEFAULT_LAYOUT } from "@/lib/content-studio/motion/layouts";
 const PREVIEW_COPY: Record<string, Record<string, string>> = {
   "announcement-bold": { headline: "We Just Hit\n500 Clients", detail: "And we're just warming up.", subtext: "Q2 2026", tagline: "the quiet part, out loud." },
   "announcement-minimal": { headline: "New Work\nDropping Soon", detail: "Stay close.", tagline: "you'll want to see this." },
+  "announcement-stripe": { headline: "Something\nBig Is Coming", detail: "We've been quiet for a reason. Not anymore.", tagline: "you'll see." },
   "anti-motivation-typography": { headline: "Nobody Cares\nHow Hard\nYou Worked", tagline: "they care about the result." },
+  "anti-motivation-void": { headline: "Your Comfort\nZone Is Not\nA Strategy", tagline: "it's a waiting room." },
   "tips-value": { headline: "Three Things\nYour Feed\nIs Missing", detail: "Strategy. Consistency. Taste.", tagline: "start here." },
+  "tips-numbered": { headline: "Fix Your\nContent", detail: "Stop posting without a plan. Lead with value, not vanity. Measure what matters.", tagline: "the basics still win." },
+  "tips-headline-only": { headline: "Post Less\nSay More", tagline: "quality is the algorithm." },
   "testimonial-quote": { headline: "They made our brand feel like us, but better.", detail: "Sarah Chen", subtext: "Founder, Baseline Studio" },
+  "testimonial-card": { headline: "The ROI paid for itself in the first month.", detail: "Marcus Webb", subtext: "CEO, Revel Studios" },
+  "testimonial-oversized": { headline: "We stopped second-guessing our content entirely.", detail: "Priya Sharma", subtext: "Head of Marketing, Kindred" },
   "bts-caption": { headline: "5am Call Sheet Nobody Asked For", tagline: "the work behind the work." },
+  "bts-timestamp": { headline: "The Part You\nNever See", tagline: "but it's the part that matters." },
+  "bts-raw": { headline: "Shoot Day\nIs Not\nGlamorous", tagline: "and that's the point." },
   "portfolio-showcase": { headline: "Thetford Estate\nBrand Campaign", detail: "Photography · Strategy · Content", tagline: "delivered in 10 days." },
+  "portfolio-split": { headline: "Kindred\nRebrand", detail: "Brand · Content · Strategy", tagline: "six weeks, zero compromises." },
+  "portfolio-editorial": { headline: "Revel\nStudios", detail: "Photography · Direction · Content", tagline: "the work speaks." },
 };
 
 const THUMB_SIZE = 240;
