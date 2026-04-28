@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
 import type { CustomPaletteInput, SfxCueData } from "@/lib/content-studio/motion/types";
+import type { MotionLayoutConfig } from "@/lib/content-studio/motion/layouts";
 import {
   ALL_MOTION_TEMPLATES,
   getPairedMotionTemplates,
@@ -539,6 +540,24 @@ export function StudioClient() {
     [motionPost],
   );
 
+  const handleMotionLayoutChange = useCallback(
+    (layout: MotionLayoutConfig) => {
+      if (!motionPost) return;
+      const updated = {
+        ...motionPost.animationParams,
+        _layout: JSON.stringify(layout),
+      };
+      setMotionPost((prev) =>
+        prev ? { ...prev, animationParams: updated } : null,
+      );
+      updateMotionPostAction({
+        postId: motionPost.id,
+        animationParams: updated,
+      }).catch(() => toast.error("Failed to save layout change."));
+    },
+    [motionPost],
+  );
+
   const handleNewPost = useCallback(() => {
     setTopic("");
     setPostGoal("awareness");
@@ -933,6 +952,7 @@ export function StudioClient() {
             onFontPairingChange={handleMotionFontChange}
             onDurationChange={handleMotionDurationChange}
             onSfxChange={handleMotionSfxChange}
+            onLayoutChange={handleMotionLayoutChange}
             onNewPost={handleNewPost}
           />
         )}

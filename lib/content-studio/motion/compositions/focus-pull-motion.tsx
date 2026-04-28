@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -21,15 +22,11 @@ export const FocusPullMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
-
-  const headlineSize = isLandscape ? 68 : isSquare ? 88 : 104;
-  const detailSize = isLandscape ? 20 : isSquare ? 24 : 28;
-  const pad = isLandscape ? "40px 80px" : "60px 48px";
+  const { fps, width, height } = useVideoConfig();
+  const lyt = computeLayout(layout, width, height);
 
   // Headline focus pull: starts oversized + blurred, racks to sharp
   const headlineFocus = spring({
@@ -155,12 +152,12 @@ export const FocusPullMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          padding: pad,
+          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: lyt.justifyContent,
         }}
       >
         {/* Brand mark — sharp while headline is soft */}
@@ -168,11 +165,11 @@ export const FocusPullMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 13 : 15,
+            fontSize: lyt.brandFontSize,
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.primary,
-            marginBottom: isLandscape ? 24 : 32,
+            marginBottom: lyt.elementGap,
             opacity: brandOpacity,
           }}
         >
@@ -184,15 +181,15 @@ export const FocusPullMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
-            fontSize: headlineSize,
-            lineHeight: 0.93,
-            letterSpacing: -2.5,
+            fontSize: lyt.headlineFontSize,
+            lineHeight: lyt.headlineLineHeight,
+            letterSpacing: lyt.headlineLetterSpacing,
             color: palette.text,
             opacity: headlineOpacity,
             transform: `scale(${headlineScale})`,
             transformOrigin: "left center",
             filter: headlineBlur > 0.3 ? `blur(${headlineBlur}px)` : undefined,
-            marginBottom: isLandscape ? 20 : 28,
+            marginBottom: lyt.elementGap,
           }}
         >
           {copy.headline || ""}
@@ -204,15 +201,15 @@ export const FocusPullMotion: React.FC<MotionTemplateProps> = ({
             style={{
               fontFamily: FONT_BODY,
               fontWeight: 400,
-              fontSize: detailSize,
+              fontSize: lyt.detailFontSize,
               lineHeight: 1.5,
               color: `${palette.text}BB`,
-              maxWidth: isLandscape ? "50%" : "75%",
+              maxWidth: lyt.contentMaxWidth,
               opacity: detailOpacity,
               transform: `scale(${detailScale})`,
               transformOrigin: "left center",
               filter: detailBlur > 0.3 ? `blur(${detailBlur}px)` : undefined,
-              marginBottom: isLandscape ? 12 : 16,
+              marginBottom: lyt.elementGap,
             }}
           >
             {copy.detail}
@@ -225,7 +222,7 @@ export const FocusPullMotion: React.FC<MotionTemplateProps> = ({
             style={{
               fontFamily: FONT_NARRATIVE,
               fontStyle: "italic",
-              fontSize: isLandscape ? 15 : 18,
+              fontSize: lyt.taglineFontSize,
               color: palette.accent,
               opacity: taglineOpacity,
               transform: `translateY(${taglineY}px)`,
@@ -240,13 +237,13 @@ export const FocusPullMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: lyt.paddingY,
           left: 0,
           right: 0,
           textAlign: "center",
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 11,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}30`,

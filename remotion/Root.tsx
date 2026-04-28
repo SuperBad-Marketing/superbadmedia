@@ -20,6 +20,7 @@ import { ALL_MOTION_TEMPLATES } from "../lib/content-studio/motion/registry";
 import { BRAND_PALETTES } from "../lib/content-studio/motion/palettes";
 import { MOTION_DIMENSIONS } from "../lib/content-studio/motion/types";
 import type { MotionAspectRatio } from "../lib/content-studio/motion/types";
+import { DEFAULT_LAYOUT } from "../lib/content-studio/motion/layouts";
 
 const COMPOSITION_MAP: Record<string, React.FC<any>> = {
   "announcement-bold-motion": withSfx(AnnouncementBoldMotion),
@@ -83,6 +84,7 @@ export const RemotionRoot: React.FC = () => {
                 template.animationParams.map((p) => [p.key, p.default]),
               ),
               fontPairingId: "house",
+              layout: DEFAULT_LAYOUT,
             }}
           />
         );

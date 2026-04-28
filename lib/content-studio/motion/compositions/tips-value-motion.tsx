@@ -6,6 +6,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -22,15 +23,11 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
   const frame = useCurrentFrame();
-  const { width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
-
-  const headlineFontSize = isLandscape ? 56 : isSquare ? 80 : 96;
-  const bodyFontSize = isLandscape ? 18 : 22;
-  const pad = isLandscape ? "40px 60px" : "60px 48px";
+  const { width, height } = useVideoConfig();
+  const lyt = computeLayout(layout, width, height);
 
   const brandFade = useFadeIn(0, 12);
   const headline = useSlideUp(8, 35);
@@ -57,8 +54,8 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
         color: palette.text,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: lyt.justifyContent,
+        alignItems: lyt.alignItems,
         overflow: "hidden",
       }}
     >
@@ -74,8 +71,8 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          textAlign: "center",
-          padding: pad,
+          textAlign: lyt.textAlign,
+          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
         }}
       >
@@ -83,11 +80,11 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 16,
+            fontSize: lyt.brandFontSize,
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.primary,
-            marginBottom: isLandscape ? 20 : 32,
+            marginBottom: lyt.elementGap,
             opacity: brandFade,
           }}
         >
@@ -98,10 +95,10 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
-            fontSize: headlineFontSize,
-            lineHeight: 0.95,
-            letterSpacing: -2,
-            marginBottom: isLandscape ? 16 : 24,
+            fontSize: lyt.headlineFontSize,
+            lineHeight: lyt.headlineLineHeight,
+            letterSpacing: lyt.headlineLetterSpacing,
+            marginBottom: lyt.elementGap,
             color: palette.text,
             opacity: headline.opacity,
             transform: `translateY(${headline.translateY}px)`,
@@ -116,13 +113,13 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
           height={3}
           color={`linear-gradient(90deg, ${palette.accent}, ${palette.primary})`}
           direction="center-out"
-          style={{ margin: `0 auto ${isLandscape ? 16 : 24}px` }}
+          style={{ margin: `0 auto ${lyt.elementGap}px` }}
         />
 
         <div
           style={{
             fontFamily: FONT_BODY,
-            fontSize: bodyFontSize,
+            fontSize: lyt.detailFontSize,
             lineHeight: 1.6,
             color: palette.text,
             opacity: detailOpacity,
@@ -148,9 +145,9 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 16 : 20,
+            fontSize: lyt.taglineFontSize,
             color: palette.accent,
-            marginTop: isLandscape ? 12 : 20,
+            marginTop: lyt.elementGap,
             opacity: taglineFade,
           }}
         >
@@ -161,10 +158,10 @@ export const TipsValueMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: lyt.paddingY,
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

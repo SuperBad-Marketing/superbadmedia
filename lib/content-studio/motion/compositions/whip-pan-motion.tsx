@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { getCanvasScale } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -24,10 +25,9 @@ export const WhipPanMotion: React.FC<MotionTemplateProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
+  const s = getCanvasScale(width, height);
 
-  const wordSize = isLandscape ? 80 : isSquare ? 110 : 130;
+  const wordSize = Math.round(110 * s);
 
   const text = copy.headline || "";
   const words = text.split(/\s+/).filter(Boolean);
@@ -61,11 +61,11 @@ export const WhipPanMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          top: isLandscape ? 30 : 50,
-          left: isLandscape ? 60 : 48,
+          top: Math.round(50 * s),
+          left: Math.round(48 * s),
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: isLandscape ? 14 : 16,
+          fontSize: Math.round(16 * s),
           letterSpacing: 4,
           textTransform: "uppercase" as const,
           color: palette.primary,
@@ -153,7 +153,7 @@ export const WhipPanMotion: React.FC<MotionTemplateProps> = ({
 
         const settleOpacity = interpolate(settleSpring, [0, 1], [0, 1]);
         const settleScale = interpolate(settleSpring, [0, 1], [1.2, 1]);
-        const smallSize = isLandscape ? 40 : isSquare ? 52 : 60;
+        const smallSize = Math.round(52 * s);
 
         return (
           <AbsoluteFill
@@ -190,13 +190,13 @@ export const WhipPanMotion: React.FC<MotionTemplateProps> = ({
         <div
           style={{
             position: "absolute",
-            bottom: isLandscape ? 60 : 100,
+            bottom: Math.round(100 * s),
             left: 0,
             right: 0,
             textAlign: "center",
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 16 : 20,
+            fontSize: Math.round(20 * s),
             color: palette.accent,
             opacity: taglineFade,
             zIndex: 20,
@@ -209,13 +209,13 @@ export const WhipPanMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: Math.round(40 * s),
           left: 0,
           right: 0,
           textAlign: "center",
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: Math.round(12 * s),
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

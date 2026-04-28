@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { getCanvasScale } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -121,12 +122,11 @@ export const StatCounterMotion: React.FC<MotionTemplateProps> = ({
   fontPairingId,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
+  const { fps, width, height } = useVideoConfig();
+  const s = getCanvasScale(width, height);
 
-  const statFontSize = isLandscape ? 120 : isSquare ? 160 : 200;
-  const labelFontSize = isLandscape ? 20 : isSquare ? 24 : 28;
+  const statFontSize = Math.round(160 * s);
+  const labelFontSize = Math.round(24 * s);
   const affixSize = statFontSize * 0.55;
 
   const rawStat = copy.stat || "0";
@@ -280,7 +280,7 @@ export const StatCounterMotion: React.FC<MotionTemplateProps> = ({
               startFrame={55}
               radius={ringRadius}
               color={palette.accent}
-              strokeWidth={isLandscape ? 1.5 : 2}
+              strokeWidth={Math.round(2 * s)}
             />
           </div>
         </div>
@@ -293,7 +293,7 @@ export const StatCounterMotion: React.FC<MotionTemplateProps> = ({
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.text,
-            marginTop: isLandscape ? 8 : 16,
+            marginTop: Math.round(16 * s),
             opacity: labelFade,
           }}
         >
@@ -304,9 +304,9 @@ export const StatCounterMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 14 : 18,
+            fontSize: Math.round(18 * s),
             color: palette.accent,
-            marginTop: isLandscape ? 8 : 12,
+            marginTop: Math.round(12 * s),
             opacity: subLabelFade,
           }}
         >
@@ -317,10 +317,10 @@ export const StatCounterMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: Math.round(40 * s),
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: Math.round(12 * s),
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

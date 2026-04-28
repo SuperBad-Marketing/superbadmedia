@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -21,14 +22,11 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
-
-  const quoteFontSize = isLandscape ? 28 : isSquare ? 40 : 48;
-  const pad = isLandscape ? "40px 60px" : "60px 48px";
+  const { fps, width, height } = useVideoConfig();
+  const lyt = computeLayout(layout, width, height);
 
   const quoteMarkScale = spring({
     frame: frame - 5,
@@ -50,8 +48,8 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
         color: palette.text,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: lyt.justifyContent,
+        alignItems: lyt.alignItems,
         overflow: "hidden",
       }}
     >
@@ -67,8 +65,8 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          textAlign: "center",
-          padding: pad,
+          textAlign: lyt.textAlign,
+          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
         }}
       >
@@ -76,11 +74,11 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 16,
+            fontSize: lyt.brandFontSize,
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.primary,
-            marginBottom: isLandscape ? 20 : 32,
+            marginBottom: lyt.elementGap,
             opacity: brandFade,
           }}
         >
@@ -91,10 +89,10 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
-            fontSize: quoteFontSize * 2,
+            fontSize: lyt.headlineFontSize * 2,
             color: palette.primary,
             lineHeight: 0.5,
-            marginBottom: 16,
+            marginBottom: lyt.elementGap,
             opacity: quoteMarkOpacity,
             transform: `scale(${quoteMarkScale})`,
           }}
@@ -107,10 +105,10 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
             fontWeight: 400,
-            fontSize: quoteFontSize,
+            fontSize: lyt.headlineFontSize,
             lineHeight: 1.4,
             color: palette.text,
-            marginBottom: isLandscape ? 16 : 24,
+            marginBottom: lyt.elementGap,
             opacity: quoteFade,
           }}
         >
@@ -122,7 +120,7 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
             width: 48,
             height: 3,
             background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`,
-            margin: `0 auto ${isLandscape ? 12 : 16}px`,
+            margin: `0 auto ${lyt.elementGap}px`,
             borderRadius: 2,
             opacity: quoteFade,
           }}
@@ -132,7 +130,7 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 16,
+            fontSize: lyt.labelFontSize,
             letterSpacing: 2,
             textTransform: "uppercase" as const,
             color: palette.accent,
@@ -147,7 +145,7 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 16,
+            fontSize: lyt.labelFontSize,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
             color: `${palette.text}60`,
@@ -162,10 +160,10 @@ export const TestimonialQuoteMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: lyt.paddingY,
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -17,14 +18,10 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
-  const { width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
-
-  const headlineFontSize = isLandscape ? 60 : isSquare ? 84 : 100;
-  const detailFontSize = isLandscape ? 36 : isSquare ? 48 : 56;
-  const pad = isLandscape ? "40px 60px" : "60px 48px";
+  const { width, height } = useVideoConfig();
+  const lyt = computeLayout(layout, width, height);
 
   const brandFade = useFadeIn(0, 12);
   const headline = useSlamIn(8);
@@ -55,24 +52,24 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          textAlign: "left",
-          padding: pad,
+          textAlign: lyt.textAlign,
+          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: lyt.justifyContent,
         }}
       >
         <div
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 16,
+            fontSize: lyt.brandFontSize,
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.primary,
-            marginBottom: isLandscape ? 20 : 28,
+            marginBottom: lyt.elementGap,
             opacity: brandFade,
           }}
         >
@@ -83,10 +80,10 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
-            fontSize: headlineFontSize,
-            lineHeight: 0.95,
-            letterSpacing: -2,
-            marginBottom: isLandscape ? 16 : 20,
+            fontSize: lyt.headlineFontSize,
+            lineHeight: lyt.headlineLineHeight,
+            letterSpacing: lyt.headlineLetterSpacing,
+            marginBottom: lyt.elementGap,
             color: palette.text,
             opacity: headline.opacity,
             transform: `translateY(${headline.y}px) scale(${headline.scale})`,
@@ -98,20 +95,20 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
 
         <AccentLine
           startFrame={24}
-          width={isLandscape ? 60 : 80}
+          width={Math.round(80 * lyt.scale)}
           height={3}
           color={palette.accent}
           direction="left-to-right"
-          style={{ marginBottom: isLandscape ? 16 : 20 }}
+          style={{ marginBottom: lyt.elementGap }}
         />
 
         <div
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
-            fontSize: detailFontSize,
+            fontSize: lyt.detailFontSize,
             color: palette.primary,
-            marginBottom: isLandscape ? 8 : 12,
+            marginBottom: lyt.elementGap,
             opacity: detailSlide.opacity,
             transform: `translateY(${detailSlide.translateY}px)`,
           }}
@@ -123,11 +120,11 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 16 : 20,
+            fontSize: lyt.labelFontSize,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
             color: `${palette.text}80`,
-            marginBottom: isLandscape ? 8 : 12,
+            marginBottom: lyt.elementGap,
             opacity: subtextFade,
           }}
         >
@@ -138,9 +135,9 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 16 : 20,
+            fontSize: lyt.taglineFontSize,
             color: palette.accent,
-            marginTop: isLandscape ? 12 : 16,
+            marginTop: lyt.elementGap,
             opacity: taglineFade,
           }}
         >
@@ -151,13 +148,13 @@ export const AnnouncementBoldMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: lyt.paddingY,
           left: 0,
           right: 0,
           textAlign: "center",
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

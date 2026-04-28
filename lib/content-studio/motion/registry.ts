@@ -8,6 +8,7 @@ const announcementBoldMotion: MotionTemplateDef = {
   category: "paired",
   staticCounterpart: "announcement-bold",
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "detail", "subtext", "tagline"],
   animationParams: [
     { key: "headlineDelay", label: "Headline delay", type: "timing", default: 10 },
@@ -24,6 +25,7 @@ const announcementMinimalMotion: MotionTemplateDef = {
   category: "paired",
   staticCounterpart: "announcement-minimal",
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "detail", "tagline"],
   animationParams: [
     { key: "charRevealSpeed", label: "Character reveal speed", type: "timing", default: 35 },
@@ -39,6 +41,7 @@ const antiMotivationTypographyMotion: MotionTemplateDef = {
   category: "paired",
   staticCounterpart: "anti-motivation-typography",
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "tagline"],
   animationParams: [
     { key: "breatheSpeed", label: "Letter-spacing breathe", type: "timing", default: 20 },
@@ -54,6 +57,7 @@ const tipsValueMotion: MotionTemplateDef = {
   category: "paired",
   staticCounterpart: "tips-value",
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "detail", "tagline"],
   animationParams: [
     { key: "typewriterSpeed", label: "Typewriter speed", type: "timing", default: 30 },
@@ -69,6 +73,7 @@ const testimonialQuoteMotion: MotionTemplateDef = {
   category: "paired",
   staticCounterpart: "testimonial-quote",
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "detail", "subtext"],
   animationParams: [
     { key: "quoteMarkBounce", label: "Quote mark bounce", type: "toggle", default: true },
@@ -84,6 +89,7 @@ const btsCaptionMotion: MotionTemplateDef = {
   category: "paired",
   staticCounterpart: "bts-caption",
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "tagline"],
   animationParams: [
     { key: "blurDuration", label: "Blur reveal duration", type: "timing", default: 25 },
@@ -99,6 +105,7 @@ const portfolioShowcaseMotion: MotionTemplateDef = {
   category: "paired",
   staticCounterpart: "portfolio-showcase",
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "detail", "tagline"],
   animationParams: [
     { key: "wipeSpeed", label: "Label wipe speed", type: "timing", default: 15 },
@@ -114,6 +121,7 @@ const statCounterMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: true,
+  layoutSupported: false,
   copySlots: ["stat", "label", "sublabel"],
   animationParams: [
     { key: "countDuration", label: "Count-up duration", type: "timing", default: 45 },
@@ -129,6 +137,7 @@ const textRevealMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: true,
+  layoutSupported: true,
   copySlots: ["headline", "emphasis", "tagline"],
   animationParams: [
     { key: "wordDelay", label: "Word stagger delay", type: "timing", default: 6 },
@@ -144,6 +153,7 @@ const logoStingMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: true,
+  layoutSupported: false,
   copySlots: ["logo", "tagline"],
   animationParams: [
     { key: "logoBlur", label: "Logo blur reveal", type: "toggle", default: true },
@@ -159,6 +169,7 @@ const wordSlamMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: true,
+  layoutSupported: false,
   copySlots: ["headline", "tagline"],
   animationParams: [
     { key: "wordStagger", label: "Word stagger", type: "timing", default: 10 },
@@ -174,6 +185,7 @@ const cinematicRevealMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "detail", "tagline"],
   animationParams: [
     { key: "revealPace", label: "Reveal pace", type: "timing", default: 15 },
@@ -189,6 +201,7 @@ const focusPullMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: false,
+  layoutSupported: true,
   copySlots: ["headline", "detail", "tagline"],
   animationParams: [
     { key: "focusSpeed", label: "Focus speed", type: "timing", default: 18 },
@@ -204,6 +217,7 @@ const whipPanMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: true,
+  layoutSupported: false,
   copySlots: ["headline", "tagline"],
   animationParams: [
     { key: "whipSpeed", label: "Whip speed", type: "timing", default: 6 },
@@ -219,6 +233,7 @@ const zoomThroughMotion: MotionTemplateDef = {
   category: "motion-only",
   staticCounterpart: null,
   overlayCapable: true,
+  layoutSupported: false,
   copySlots: ["headline", "tagline"],
   animationParams: [
     { key: "zoomSpeed", label: "Zoom speed", type: "timing", default: 8 },

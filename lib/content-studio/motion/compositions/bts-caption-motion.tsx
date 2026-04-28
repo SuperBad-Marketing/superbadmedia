@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_BODY,
@@ -21,14 +22,11 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
-
-  const headlineFontSize = isLandscape ? 26 : isSquare ? 36 : 44;
-  const pad = isLandscape ? "40px 60px" : "60px 48px";
+  const { fps, width, height } = useVideoConfig();
+  const lyt = computeLayout(layout, width, height);
 
   const brandFade = useFadeIn(0, 12);
   const headlineBlur = useBlurReveal(5, 14, 22);
@@ -50,8 +48,8 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
         color: palette.text,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: lyt.justifyContent,
+        alignItems: lyt.alignItems,
         overflow: "hidden",
       }}
     >
@@ -68,8 +66,8 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          textAlign: "center",
-          padding: pad,
+          textAlign: lyt.textAlign,
+          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
         }}
       >
@@ -77,11 +75,11 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 16,
+            fontSize: lyt.brandFontSize,
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.accent,
-            marginBottom: isLandscape ? 20 : 32,
+            marginBottom: lyt.elementGap,
             opacity: brandFade,
           }}
         >
@@ -92,7 +90,7 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_BODY,
             fontWeight: 400,
-            fontSize: headlineFontSize,
+            fontSize: lyt.headlineFontSize,
             lineHeight: 1.5,
             color: palette.text,
             opacity: headlineBlur.opacity,
@@ -106,9 +104,9 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 16 : 20,
+            fontSize: lyt.taglineFontSize,
             color: palette.accent,
-            marginTop: isLandscape ? 12 : 20,
+            marginTop: lyt.elementGap,
             opacity: taglineOpacity,
             transform: `translateX(${taglineX}px)`,
           }}
@@ -120,10 +118,10 @@ export const BtsCaptionMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: lyt.paddingY,
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

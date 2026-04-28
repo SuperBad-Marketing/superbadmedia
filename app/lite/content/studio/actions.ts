@@ -589,6 +589,9 @@ export async function exportMotionPostAction(
   const sfxCues = typeof animationParams._sfxCues === "string"
     ? JSON.parse(animationParams._sfxCues)
     : [];
+  const layout = typeof animationParams._layout === "string"
+    ? JSON.parse(animationParams._layout)
+    : undefined;
   const durationInFrames = post.motion_duration_frames ?? motionTemplate.defaultDuration;
 
   const { renderAndUploadMotion } = await import(
@@ -621,6 +624,7 @@ export async function exportMotionPostAction(
           durationInFrames,
           format: parsed.data.format,
           sfxCues,
+          layout,
         },
         parsed.data.postId,
         ratio,

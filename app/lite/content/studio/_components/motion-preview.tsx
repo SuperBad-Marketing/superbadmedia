@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import type { PlayerRef } from "@remotion/player";
 import { MotionPlayer } from "./motion-player";
 import { PaletteSwatches } from "./palette-swatches";
 import { MotionTimeline } from "./motion-timeline";
 import { SfxTimeline } from "./sfx-timeline";
 import { FontPairingPicker } from "./font-pairing-picker";
+import { LayoutPicker } from "./layout-picker";
 import { getMotionTemplate } from "@/lib/content-studio/motion/registry";
 import { BRAND_PALETTES, getPalette } from "@/lib/content-studio/motion/palettes";
 import type { ColourPalette, SfxCueData } from "@/lib/content-studio/motion/types";
 import { MOTION_ASPECT_RATIOS, MOTION_RATIO_LABELS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
+import type { MotionLayoutConfig } from "@/lib/content-studio/motion/layouts";
+import { DEFAULT_LAYOUT } from "@/lib/content-studio/motion/layouts";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
 import { toast } from "sonner";
 import { exportMotionPostAction } from "../actions";
@@ -36,7 +39,36 @@ interface MotionPreviewProps {
   onFontPairingChange: (id: string | null) => void;
   onDurationChange: (frames: number) => void;
   onSfxChange: (cues: SfxCueData[]) => void;
+  onLayoutChange: (layout: MotionLayoutConfig) => void;
   onNewPost: () => void;
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontFamily: "var(--font-label)",
+        fontSize: 10,
+        letterSpacing: 2,
+        textTransform: "uppercase",
+        color: "rgba(253,245,230,0.35)",
+        marginBottom: 8,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SectionDivider() {
+  return (
+    <div
+      style={{
+        borderTop: "1px solid rgba(253,245,230,0.06)",
+        margin: "16px 0",
+      }}
+    />
+  );
 }
 
 export function MotionPreview({
@@ -47,9 +79,10 @@ export function MotionPreview({
   onFontPairingChange,
   onDurationChange,
   onSfxChange,
+  onLayoutChange,
   onNewPost,
 }: MotionPreviewProps) {
-  const playerRef = useRef<PlayerRef>(null);
+  const playerRef = React.useRef<PlayerRef>(null);
   const template = getMotionTemplate(post.motionTemplateId);
   const [editingCopy, setEditingCopy] = useState<SlideCopy>(
     post.slides[0] ?? {},
@@ -70,6 +103,17 @@ export function MotionPreview({
   const [exportResults, setExportResults] = useState<
     { ratio: string; format: string; url: string }[]
   >([]);
+  const [activeLayout, setActiveLayout] = useState<MotionLayoutConfig>(() => {
+    const stored = post.animationParams._layout;
+    if (typeof stored === "string") {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return DEFAULT_LAYOUT;
+      }
+    }
+    return DEFAULT_LAYOUT;
+  });
 
   const fps = 30;
   const defaultDuration = template?.defaultDuration ?? 90;
@@ -122,6 +166,14 @@ export function MotionPreview({
     [onSfxChange],
   );
 
+  const handleLayoutChange = useCallback(
+    (layout: MotionLayoutConfig) => {
+      setActiveLayout(layout);
+      onLayoutChange(layout);
+    },
+    [onLayoutChange],
+  );
+
   const handleExport = useCallback(async () => {
     if (exportRatios.size === 0) {
       toast.error("Select at least one aspect ratio.");
@@ -165,68 +217,8 @@ export function MotionPreview({
 
   return (
     <div style={{ display: "flex", gap: 24, width: "100%" }}>
-      {/* Left: Preview viewport + controls */}
+      {/* Left: Viewport + timelines */}
       <div style={{ flex: "1 1 0", minWidth: 0 }}>
-        {/* Font picker */}
-        <div style={{ marginBottom: 12 }}>
-          <FontPairingPicker
-            activePairingId={post.fontPairingId ?? null}
-            onSelect={onFontPairingChange}
-          />
-        </div>
-
-        {/* Palette swatches */}
-        <div style={{ marginBottom: 8 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-label)",
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: "rgba(253,245,230,0.4)",
-              marginBottom: 4,
-            }}
-          >
-            Palette
-          </div>
-          <PaletteSwatches
-            palettes={BRAND_PALETTES}
-            activePaletteId={palette.id}
-            onSelect={handlePaletteSelect}
-          />
-        </div>
-
-        {/* Aspect ratio picker */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-          {MOTION_ASPECT_RATIOS.map((r) => (
-            <button
-              key={r}
-              onClick={() => handleRatioChange(r)}
-              style={{
-                padding: "4px 10px",
-                borderRadius: 6,
-                border:
-                  r === aspectRatio
-                    ? "1px solid var(--color-brand-red)"
-                    : "1px solid rgba(253,245,230,0.1)",
-                background:
-                  r === aspectRatio
-                    ? "rgba(178,40,72,0.15)"
-                    : "rgba(253,245,230,0.03)",
-                color: "var(--color-brand-cream)",
-                fontFamily: "var(--font-label)",
-                fontSize: 11,
-                letterSpacing: 1,
-                cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              {MOTION_RATIO_LABELS[r]}
-            </button>
-          ))}
-        </div>
-
-        {/* Remotion Player */}
         <div
           style={{
             borderRadius: 10,
@@ -248,17 +240,17 @@ export function MotionPreview({
             durationInFrames={durationInFrames}
             fps={fps}
             sfxCues={sfxCues}
+            fontPairingId={post.fontPairingId ?? undefined}
+            layout={template.layoutSupported ? activeLayout : undefined}
           />
         </div>
 
-        {/* Timeline */}
         <MotionTimeline
           playerRef={playerRef}
           durationInFrames={durationInFrames}
           fps={fps}
         />
 
-        {/* SFX Timeline */}
         <SfxTimeline
           cues={sfxCues}
           onChange={handleSfxChange}
@@ -266,16 +258,153 @@ export function MotionPreview({
           fps={fps}
           playerRef={playerRef}
         />
+      </div>
 
-        {/* Duration slider */}
-        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+      {/* Right: Control panel */}
+      <div
+        style={{
+          width: 300,
+          flexShrink: 0,
+          overflowY: "auto",
+          maxHeight: "calc(100vh - 160px)",
+          paddingRight: 4,
+        }}
+      >
+        {/* ── Copy ── */}
+        <SectionLabel>Copy</SectionLabel>
+        {template.copySlots.map((slot) => (
+          <div key={slot} style={{ marginBottom: 10 }}>
+            <label
+              style={{
+                display: "block",
+                fontFamily: "var(--font-label)",
+                fontSize: 10,
+                letterSpacing: 0.5,
+                color: "rgba(253,245,230,0.5)",
+                marginBottom: 3,
+                textTransform: "capitalize",
+              }}
+            >
+              {slot}
+            </label>
+            <textarea
+              value={editingCopy[slot] ?? ""}
+              onChange={(e) => handleSlotChange(slot, e.target.value)}
+              rows={slot === "headline" ? 3 : 2}
+              style={{
+                width: "100%",
+                padding: "6px 8px",
+                borderRadius: 5,
+                border: "1px solid rgba(253,245,230,0.1)",
+                background: "rgba(253,245,230,0.03)",
+                color: "var(--color-brand-cream)",
+                fontFamily: "var(--font-body)",
+                fontSize: 12,
+                lineHeight: 1.5,
+                resize: "vertical",
+                outline: "none",
+              }}
+            />
+          </div>
+        ))}
+
+        <SectionDivider />
+
+        {/* ── Style ── */}
+        <SectionLabel>Style</SectionLabel>
+        <div style={{ marginBottom: 10 }}>
+          <FontPairingPicker
+            activePairingId={post.fontPairingId ?? null}
+            onSelect={onFontPairingChange}
+          />
+        </div>
+        <div>
           <div
             style={{
               fontFamily: "var(--font-label)",
-              fontSize: 11,
-              letterSpacing: 1,
+              fontSize: 10,
+              letterSpacing: 0.5,
               color: "rgba(253,245,230,0.4)",
-              textTransform: "uppercase",
+              marginBottom: 4,
+            }}
+          >
+            Palette
+          </div>
+          <PaletteSwatches
+            palettes={BRAND_PALETTES}
+            activePaletteId={palette.id}
+            onSelect={handlePaletteSelect}
+          />
+        </div>
+
+        {/* ── Layout (only for layout-supported templates) ── */}
+        {template.layoutSupported && (
+          <>
+            <SectionDivider />
+            <LayoutPicker
+              activeLayout={activeLayout}
+              onChange={handleLayoutChange}
+            />
+          </>
+        )}
+
+        <SectionDivider />
+
+        {/* ── Canvas ── */}
+        <SectionLabel>Canvas</SectionLabel>
+
+        {/* Aspect ratio */}
+        <div
+          style={{
+            display: "flex",
+            gap: 4,
+            flexWrap: "wrap",
+            marginBottom: 10,
+          }}
+        >
+          {MOTION_ASPECT_RATIOS.map((r) => (
+            <button
+              key={r}
+              onClick={() => handleRatioChange(r)}
+              style={{
+                padding: "3px 8px",
+                borderRadius: 5,
+                border:
+                  r === aspectRatio
+                    ? "1px solid var(--color-brand-red)"
+                    : "1px solid rgba(253,245,230,0.1)",
+                background:
+                  r === aspectRatio
+                    ? "rgba(178,40,72,0.15)"
+                    : "rgba(253,245,230,0.03)",
+                color: "var(--color-brand-cream)",
+                fontFamily: "var(--font-label)",
+                fontSize: 10,
+                letterSpacing: 0.5,
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              {MOTION_RATIO_LABELS[r]}
+            </button>
+          ))}
+        </div>
+
+        {/* Duration */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 6,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 10,
+              letterSpacing: 0.5,
+              color: "rgba(253,245,230,0.4)",
               flexShrink: 0,
             }}
           >
@@ -292,14 +421,15 @@ export function MotionPreview({
               flex: 1,
               accentColor: "var(--color-brand-red)",
               cursor: "pointer",
+              height: 4,
             }}
           />
           <div
             style={{
               fontFamily: "var(--font-body)",
-              fontSize: 13,
-              color: "var(--color-brand-cream)",
-              minWidth: 40,
+              fontSize: 11,
+              color: "rgba(253,245,230,0.5)",
+              minWidth: 28,
               textAlign: "right",
             }}
           >
@@ -307,19 +437,18 @@ export function MotionPreview({
           </div>
         </div>
 
-        {/* Overlay toggle for overlay-capable templates */}
+        {/* Overlay toggle */}
         {template.overlayCapable && (
           <label
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 6,
               fontFamily: "var(--font-label)",
-              fontSize: 12,
-              letterSpacing: 1,
-              color: "rgba(253,245,230,0.5)",
+              fontSize: 10,
+              letterSpacing: 0.5,
+              color: "rgba(253,245,230,0.4)",
               cursor: "pointer",
-              marginTop: 4,
             }}
           >
             <input
@@ -328,234 +457,170 @@ export function MotionPreview({
               onChange={(e) => setTransparent(e.target.checked)}
               style={{ accentColor: "var(--color-brand-red)" }}
             />
-            Overlay preview (transparent background)
+            Transparent overlay
           </label>
         )}
 
-        {/* Export section */}
+        <SectionDivider />
+
+        {/* ── Export ── */}
+        <SectionLabel>Export</SectionLabel>
+
+        <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+          {(["mp4", "webm"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setExportFormat(f)}
+              style={{
+                padding: "3px 10px",
+                borderRadius: 5,
+                border:
+                  exportFormat === f
+                    ? "1px solid var(--color-brand-red)"
+                    : "1px solid rgba(253,245,230,0.1)",
+                background:
+                  exportFormat === f
+                    ? "rgba(178,40,72,0.15)"
+                    : "rgba(253,245,230,0.03)",
+                color: "var(--color-brand-cream)",
+                fontFamily: "var(--font-label)",
+                fontSize: 10,
+                letterSpacing: 0.5,
+                cursor: "pointer",
+              }}
+            >
+              {f === "mp4" ? "MP4" : "WebM (alpha)"}
+            </button>
+          ))}
+        </div>
+
         <div
           style={{
-            marginTop: 20,
-            padding: "16px 0",
-            borderTop: "1px solid rgba(253,245,230,0.06)",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 4,
+            marginBottom: 10,
           }}
         >
+          {MOTION_ASPECT_RATIOS.map((r) => (
+            <label
+              key={r}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "3px 6px",
+                borderRadius: 5,
+                border: "1px solid rgba(253,245,230,0.08)",
+                background: exportRatios.has(r)
+                  ? "rgba(253,245,230,0.06)"
+                  : "transparent",
+                cursor: "pointer",
+                fontFamily: "var(--font-label)",
+                fontSize: 10,
+                color: "var(--color-brand-cream)",
+                letterSpacing: 0.3,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={exportRatios.has(r)}
+                onChange={() => toggleExportRatio(r)}
+                style={{ accentColor: "var(--color-brand-red)" }}
+              />
+              {MOTION_RATIO_LABELS[r]}
+            </label>
+          ))}
+        </div>
+
+        <button
+          onClick={handleExport}
+          disabled={exporting || exportRatios.size === 0}
+          style={{
+            padding: "6px 16px",
+            borderRadius: 5,
+            border: "none",
+            background: "var(--color-brand-red)",
+            color: "var(--color-brand-cream)",
+            fontFamily: "var(--font-label)",
+            fontSize: 11,
+            letterSpacing: 1,
+            cursor: "pointer",
+            opacity: exporting || exportRatios.size === 0 ? 0.5 : 1,
+          }}
+        >
+          {exporting
+            ? "Rendering…"
+            : `Export ${exportRatios.size} ratio${exportRatios.size === 1 ? "" : "s"}`}
+        </button>
+
+        {exportResults.length > 0 && (
           <div
             style={{
-              fontFamily: "var(--font-label)",
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: "rgba(253,245,230,0.4)",
-              marginBottom: 10,
+              marginTop: 10,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
             }}
           >
-            Export
-          </div>
-
-          {/* Format toggle */}
-          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-            {(["mp4", "webm"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setExportFormat(f)}
+            {exportResults.map((r, i) => (
+              <a
+                key={i}
+                href={r.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  padding: "4px 12px",
-                  borderRadius: 6,
-                  border:
-                    exportFormat === f
-                      ? "1px solid var(--color-brand-red)"
-                      : "1px solid rgba(253,245,230,0.1)",
-                  background:
-                    exportFormat === f
-                      ? "rgba(178,40,72,0.15)"
-                      : "rgba(253,245,230,0.03)",
-                  color: "var(--color-brand-cream)",
+                  display: "block",
+                  padding: "4px 10px",
+                  borderRadius: 5,
+                  background: "rgba(253,245,230,0.04)",
+                  border: "1px solid rgba(253,245,230,0.1)",
                   fontFamily: "var(--font-label)",
-                  fontSize: 11,
-                  letterSpacing: 1,
-                  cursor: "pointer",
+                  fontSize: 10,
+                  color: "var(--color-brand-cream)",
+                  textDecoration: "none",
+                  letterSpacing: 0.3,
                 }}
               >
-                {f === "mp4" ? "Video (MP4)" : "Overlay (WebM alpha)"}
-              </button>
+                {r.ratio} {r.format.toUpperCase()}
+              </a>
             ))}
           </div>
+        )}
 
-          {/* Ratio checkboxes */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-            {MOTION_ASPECT_RATIOS.map((r) => (
-              <label
-                key={r}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "4px 8px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(253,245,230,0.08)",
-                  background: exportRatios.has(r)
-                    ? "rgba(253,245,230,0.06)"
-                    : "transparent",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-label)",
-                  fontSize: 11,
-                  color: "var(--color-brand-cream)",
-                  letterSpacing: 0.5,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={exportRatios.has(r)}
-                  onChange={() => toggleExportRatio(r)}
-                  style={{ accentColor: "var(--color-brand-red)" }}
-                />
-                {MOTION_RATIO_LABELS[r]}
-              </label>
-            ))}
-          </div>
+        <SectionDivider />
 
-          <button
-            onClick={handleExport}
-            disabled={exporting || exportRatios.size === 0}
-            style={{
-              padding: "8px 20px",
-              borderRadius: 6,
-              border: "none",
-              background: "var(--color-brand-red)",
-              color: "var(--color-brand-cream)",
-              fontFamily: "var(--font-label)",
-              fontSize: 12,
-              letterSpacing: 1,
-              cursor: "pointer",
-              opacity: exporting || exportRatios.size === 0 ? 0.5 : 1,
-            }}
-          >
-            {exporting
-              ? "Rendering…"
-              : `Export ${exportRatios.size} ratio${exportRatios.size === 1 ? "" : "s"}`}
-          </button>
-
-          {/* Export results */}
-          {exportResults.length > 0 && (
-            <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {exportResults.map((r, i) => (
-                <a
-                  key={i}
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "block",
-                    padding: "6px 12px",
-                    borderRadius: 6,
-                    background: "rgba(253,245,230,0.04)",
-                    border: "1px solid rgba(253,245,230,0.1)",
-                    fontFamily: "var(--font-label)",
-                    fontSize: 11,
-                    color: "var(--color-brand-cream)",
-                    textDecoration: "none",
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  {r.ratio} · {r.format.toUpperCase()} ↗
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Right: Text editing panel */}
-      <div
-        style={{
-          width: 280,
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-        }}
-      >
+        {/* ── Footer ── */}
         <div
           style={{
             fontFamily: "var(--font-label)",
-            fontSize: 11,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: "rgba(253,245,230,0.4)",
+            fontSize: 10,
+            letterSpacing: 0.5,
+            color: "rgba(253,245,230,0.25)",
+            marginBottom: 8,
           }}
         >
-          Edit copy
+          {template.name}
         </div>
 
-        {template.copySlots.map((slot) => (
-          <div key={slot}>
-            <label
-              style={{
-                display: "block",
-                fontFamily: "var(--font-label)",
-                fontSize: 12,
-                letterSpacing: 1,
-                color: "rgba(253,245,230,0.6)",
-                marginBottom: 4,
-                textTransform: "capitalize",
-              }}
-            >
-              {slot}
-            </label>
-            <textarea
-              value={editingCopy[slot] ?? ""}
-              onChange={(e) => handleSlotChange(slot, e.target.value)}
-              rows={slot === "headline" ? 3 : 2}
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                borderRadius: 6,
-                border: "1px solid rgba(253,245,230,0.1)",
-                background: "rgba(253,245,230,0.03)",
-                color: "var(--color-brand-cream)",
-                fontFamily: "var(--font-body)",
-                fontSize: 13,
-                lineHeight: 1.5,
-                resize: "vertical",
-                outline: "none",
-              }}
-            />
-          </div>
-        ))}
-
-        <div style={{ marginTop: "auto", paddingTop: 16 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-label)",
-              fontSize: 12,
-              letterSpacing: 1,
-              color: "rgba(253,245,230,0.35)",
-              marginBottom: 8,
-            }}
-          >
-            Template: {template.name}
-          </div>
-
-          <button
-            onClick={onNewPost}
-            style={{
-              width: "100%",
-              padding: "8px 16px",
-              borderRadius: 6,
-              border: "1px solid rgba(253,245,230,0.12)",
-              background: "rgba(253,245,230,0.05)",
-              color: "var(--color-brand-cream)",
-              fontFamily: "var(--font-label)",
-              fontSize: 12,
-              letterSpacing: 1,
-              cursor: "pointer",
-              transition: "background 0.15s",
-            }}
-          >
-            New post
-          </button>
-        </div>
+        <button
+          onClick={onNewPost}
+          style={{
+            width: "100%",
+            padding: "6px 12px",
+            borderRadius: 5,
+            border: "1px solid rgba(253,245,230,0.1)",
+            background: "rgba(253,245,230,0.04)",
+            color: "var(--color-brand-cream)",
+            fontFamily: "var(--font-label)",
+            fontSize: 11,
+            letterSpacing: 1,
+            cursor: "pointer",
+            transition: "background 0.15s",
+          }}
+        >
+          New post
+        </button>
       </div>
     </div>
   );

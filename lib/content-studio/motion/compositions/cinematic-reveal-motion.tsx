@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -21,15 +22,13 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
+  const lyt = computeLayout(layout, width, height);
 
-  const headlineSize = isLandscape ? 64 : isSquare ? 80 : 96;
-  const detailSize = isLandscape ? 18 : isSquare ? 22 : 26;
-  const barHeight = isLandscape ? height * 0.1 : height * 0.08;
+  const barHeight = width > 1200 ? height * 0.1 : height * 0.08;
 
   // Cinematic bars animate in first
   const barProgress = spring({
@@ -153,12 +152,12 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          padding: isLandscape ? "0 80px" : "0 48px",
+          padding: `0 ${lyt.paddingX}px`,
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: lyt.justifyContent,
         }}
       >
         {/* Headline */}
@@ -166,14 +165,14 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
-            fontSize: headlineSize,
-            lineHeight: 0.95,
-            letterSpacing: -2,
+            fontSize: lyt.headlineFontSize,
+            lineHeight: lyt.headlineLineHeight,
+            letterSpacing: lyt.headlineLetterSpacing,
             color: palette.text,
             opacity: headlineOpacity,
             transform: `translateY(${headlineY}px) scale(${headlineScale})`,
             transformOrigin: "left center",
-            marginBottom: isLandscape ? 16 : 20,
+            marginBottom: lyt.elementGap,
           }}
         >
           {copy.headline || ""}
@@ -182,7 +181,7 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
         {/* Accent line */}
         <div
           style={{
-            width: isLandscape ? 48 : 56,
+            width: Math.round(56 * lyt.scale),
             height: 1.5,
             background: palette.accent,
             transform: `scaleX(${lineProgress})`,
@@ -190,7 +189,7 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
             opacity: interpolate(lineProgress, [0, 0.1], [0, 0.7], {
               extrapolateRight: "clamp",
             }),
-            marginBottom: isLandscape ? 16 : 20,
+            marginBottom: lyt.elementGap,
           }}
         />
 
@@ -200,13 +199,13 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
             style={{
               fontFamily: FONT_BODY,
               fontWeight: 400,
-              fontSize: detailSize,
+              fontSize: lyt.detailFontSize,
               lineHeight: 1.5,
               color: `${palette.text}BB`,
-              maxWidth: isLandscape ? "50%" : "80%",
+              maxWidth: lyt.contentMaxWidth,
               opacity: detailOpacity,
               transform: `translateY(${detailY}px)`,
-              marginBottom: isLandscape ? 12 : 16,
+              marginBottom: lyt.elementGap,
             }}
           >
             {copy.detail}
@@ -219,7 +218,7 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
             style={{
               fontFamily: FONT_NARRATIVE,
               fontStyle: "italic",
-              fontSize: isLandscape ? 15 : 18,
+              fontSize: lyt.taglineFontSize,
               color: palette.accent,
               opacity: taglineOpacity,
             }}
@@ -256,13 +255,13 @@ export const CinematicRevealMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: barHeight + (isLandscape ? 14 : 20),
+          bottom: barHeight + lyt.paddingY,
           left: 0,
           right: 0,
           textAlign: "center",
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 11,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}30`,

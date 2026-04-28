@@ -39,6 +39,7 @@ export interface MotionTemplateDef {
   category: "paired" | "motion-only";
   staticCounterpart: string | null;
   overlayCapable: boolean;
+  layoutSupported: boolean;
   copySlots: string[];
   animationParams: AnimationParamDef[];
   defaultDuration: number;
@@ -93,4 +94,5 @@ export interface MotionTemplateProps {
   animationParams: Record<string, number | string | boolean>;
   fontPairingId?: string;
   sfxCues?: SfxCueData[];
+  layout?: import("./layouts").MotionLayoutConfig;
 }

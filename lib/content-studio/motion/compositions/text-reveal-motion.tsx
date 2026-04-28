@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -21,13 +22,11 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
-
-  const wordFontSize = isLandscape ? 48 : isSquare ? 64 : 80;
+  const { fps, width, height } = useVideoConfig();
+  const lyt = computeLayout(layout, width, height);
 
   const text = copy.headline || "";
   const words = text.split(/\s+/).filter(Boolean);
@@ -45,8 +44,8 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
         color: palette.text,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: lyt.justifyContent,
+        alignItems: lyt.alignItems,
         overflow: "hidden",
       }}
     >
@@ -62,14 +61,14 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          textAlign: "center",
-          padding: isLandscape ? "40px 80px" : "60px 48px",
+          textAlign: lyt.textAlign,
+          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
           display: "flex",
           flexWrap: "wrap",
-          justifyContent: "center",
+          justifyContent: lyt.justifyContent,
           alignItems: "center",
-          gap: isLandscape ? 12 : 16,
+          gap: lyt.elementGap,
         }}
       >
         {words.map((word, i) => {
@@ -89,7 +88,7 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
               style={{
                 fontFamily: FONT_DISPLAY,
                 fontWeight: isEmphasis ? 900 : 700,
-                fontSize: isEmphasis ? wordFontSize * 1.05 : wordFontSize,
+                fontSize: isEmphasis ? lyt.headlineFontSize * 1.05 : lyt.headlineFontSize,
                 lineHeight: 1.2,
                 color: isEmphasis ? palette.primary : palette.text,
                 opacity,
@@ -107,10 +106,10 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
         <div
           style={{
             position: "absolute",
-            bottom: isLandscape ? 60 : 100,
+            bottom: lyt.paddingY * 2,
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 16 : 20,
+            fontSize: lyt.taglineFontSize,
             color: palette.accent,
             opacity: useFadeIn(words.length * framesPerWord + 5, 12),
           }}
@@ -122,10 +121,10 @@ export const TextRevealMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: lyt.paddingY,
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

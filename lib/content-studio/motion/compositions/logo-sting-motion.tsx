@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { getCanvasScale } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -23,11 +24,10 @@ export const LogoStingMotion: React.FC<MotionTemplateProps> = ({
   fontPairingId,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
+  const { fps, width, height } = useVideoConfig();
+  const s = getCanvasScale(width, height);
 
-  const logoFontSize = isLandscape ? 72 : isSquare ? 96 : 120;
+  const logoFontSize = Math.round(96 * s);
 
   const logoScale = spring({
     frame: frame - 5,
@@ -44,7 +44,7 @@ export const LogoStingMotion: React.FC<MotionTemplateProps> = ({
   const taglineY = interpolate(taglineProgress, [0, 1], [16, 0]);
   const taglineOpacity = interpolate(taglineProgress, [0, 1], [0, 1]);
 
-  const underlineWidth = isLandscape ? 200 : 250;
+  const underlineWidth = Math.round(250 * s);
 
   return (
     <AbsoluteFill
@@ -137,11 +137,11 @@ export const LogoStingMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 18,
+            fontSize: Math.round(18 * s),
             letterSpacing: 6,
             textTransform: "uppercase" as const,
             color: palette.accent,
-            marginTop: isLandscape ? 16 : 24,
+            marginTop: Math.round(24 * s),
             opacity: taglineOpacity,
             transform: `translateY(${taglineY}px)`,
           }}

@@ -20,6 +20,7 @@ import { ZoomThroughMotion } from "@/lib/content-studio/motion/compositions/zoom
 import { withSfx } from "@/lib/content-studio/motion/compositions/motion-sfx";
 import type { ColourPalette, MotionTemplateProps, SfxCueData } from "@/lib/content-studio/motion/types";
 import { MOTION_DIMENSIONS, type MotionAspectRatio } from "@/lib/content-studio/motion/types";
+import type { MotionLayoutConfig } from "@/lib/content-studio/motion/layouts";
 
 const COMPOSITION_MAP: Record<string, React.FC<MotionTemplateProps>> = {
   "announcement-bold-motion": withSfx(AnnouncementBoldMotion),
@@ -51,6 +52,8 @@ interface MotionPlayerProps {
   loop?: boolean;
   style?: React.CSSProperties;
   sfxCues?: SfxCueData[];
+  fontPairingId?: string;
+  layout?: MotionLayoutConfig;
 }
 
 export const MotionPlayer = forwardRef<PlayerRef, MotionPlayerProps>(
@@ -67,6 +70,8 @@ export const MotionPlayer = forwardRef<PlayerRef, MotionPlayerProps>(
       loop = true,
       style,
       sfxCues,
+      fontPairingId,
+      layout,
     },
     ref,
   ) {
@@ -74,8 +79,8 @@ export const MotionPlayer = forwardRef<PlayerRef, MotionPlayerProps>(
     const { width, height } = MOTION_DIMENSIONS[aspectRatio];
 
     const inputProps: MotionTemplateProps = useMemo(
-      () => ({ copy, palette, transparent, animationParams, sfxCues }),
-      [copy, palette, transparent, animationParams, sfxCues],
+      () => ({ copy, palette, transparent, animationParams, sfxCues, fontPairingId, layout }),
+      [copy, palette, transparent, animationParams, sfxCues, fontPairingId, layout],
     );
 
     if (!Component) {

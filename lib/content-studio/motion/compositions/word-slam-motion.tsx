@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { getCanvasScale } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -23,12 +24,12 @@ export const WordSlamMotion: React.FC<MotionTemplateProps> = ({
   fontPairingId,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
+  const { fps, width, height } = useVideoConfig();
+  const s = getCanvasScale(width, height);
 
-  const wordSize = isLandscape ? 72 : isSquare ? 96 : 112;
-  const pad = isLandscape ? "40px 60px" : "60px 48px";
+  const wordSize = Math.round(96 * s);
+  const padX = Math.round(48 * s);
+  const padY = Math.round(60 * s);
 
   const text = copy.headline || "";
   const words = text.split(/\s+/).filter(Boolean);
@@ -59,7 +60,7 @@ export const WordSlamMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          padding: pad,
+          padding: `${padY}px ${padX}px`,
           width: "100%",
           height: "100%",
           display: "flex",
@@ -71,11 +72,11 @@ export const WordSlamMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_LABEL,
             fontWeight: 600,
-            fontSize: isLandscape ? 14 : 16,
+            fontSize: Math.round(16 * s),
             letterSpacing: 4,
             textTransform: "uppercase" as const,
             color: palette.primary,
-            marginBottom: isLandscape ? 20 : 28,
+            marginBottom: Math.round(28 * s),
             opacity: brandFade,
           }}
         >
@@ -134,9 +135,9 @@ export const WordSlamMotion: React.FC<MotionTemplateProps> = ({
             style={{
               fontFamily: FONT_NARRATIVE,
               fontStyle: "italic",
-              fontSize: isLandscape ? 16 : 20,
+              fontSize: Math.round(20 * s),
               color: palette.accent,
-              marginTop: isLandscape ? 16 : 24,
+              marginTop: Math.round(24 * s),
               opacity: taglineFade,
             }}
           >
@@ -148,13 +149,13 @@ export const WordSlamMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: Math.round(40 * s),
           left: 0,
           right: 0,
           textAlign: "center",
           fontFamily: FONT_LABEL,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: Math.round(12 * s),
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,

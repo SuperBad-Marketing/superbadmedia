@@ -7,6 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { MotionTemplateProps } from "../types";
+import { computeLayout } from "../layouts";
 import {
   MotionFonts,
   FONT_DISPLAY,
@@ -21,14 +22,11 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
   palette,
   transparent,
   fontPairingId,
+  layout,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const isLandscape = width > 1200;
-  const isSquare = width === 1080;
-
-  const headlineFontSize = isLandscape ? 60 : isSquare ? 88 : 104;
-  const pad = isLandscape ? "40px 60px" : "60px 48px";
+  const lyt = computeLayout(layout, width, height);
 
   const headlineProgress = spring({
     frame: frame - 5,
@@ -56,8 +54,8 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
         color: palette.text,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: lyt.justifyContent,
+        alignItems: lyt.alignItems,
         overflow: "hidden",
       }}
     >
@@ -100,8 +98,8 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
         style={{
           position: "relative",
           zIndex: 1,
-          textAlign: "center",
-          padding: pad,
+          textAlign: lyt.textAlign,
+          padding: `${lyt.paddingY}px ${lyt.paddingX}px`,
           width: "100%",
         }}
       >
@@ -109,7 +107,7 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 900,
-            fontSize: headlineFontSize,
+            fontSize: lyt.headlineFontSize,
             lineHeight: 0.92,
             letterSpacing,
             color: palette.text,
@@ -125,7 +123,7 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
             width: 48,
             height: 3,
             background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`,
-            margin: `${isLandscape ? 16 : 24}px auto`,
+            margin: `${lyt.elementGap}px auto`,
             borderRadius: 2,
             opacity: dividerFade,
           }}
@@ -135,7 +133,7 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
           style={{
             fontFamily: FONT_NARRATIVE,
             fontStyle: "italic",
-            fontSize: isLandscape ? 18 : 22,
+            fontSize: lyt.taglineFontSize,
             color: palette.accent,
             opacity: taglineFade,
           }}
@@ -147,9 +145,9 @@ export const AntiMotivationTypographyMotion: React.FC<MotionTemplateProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: isLandscape ? 20 : 40,
+          bottom: lyt.paddingY,
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: lyt.footerFontSize,
           letterSpacing: 3,
           textTransform: "uppercase" as const,
           color: `${palette.text}40`,
