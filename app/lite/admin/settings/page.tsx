@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Paintbrush, ShoppingBag, FileText, Plug, Mic, Trash2, Volume2 } from "lucide-react";
+import { Paintbrush, ShoppingBag, FileText, Plug, Mic, Trash2, Volume2, Eye } from "lucide-react";
 
 import { auth } from "@/lib/auth/session";
 
@@ -34,6 +34,12 @@ const SECTIONS = [
     icon: Volume2,
     label: "SFX Library",
     description: "Sound effects for motion posts. Upload your own or use the defaults.",
+  },
+  {
+    href: "/lite/admin/settings/instagram",
+    icon: Eye,
+    label: "Instagram",
+    description: "Watched accounts for competitive intelligence and strategy.",
   },
   {
     href: "/lite/admin/settings/catalogue",

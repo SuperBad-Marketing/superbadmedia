@@ -17,6 +17,7 @@ import { instagram_accounts, instagram_content_plans } from "@/lib/db/schema/ins
 import { tasks } from "@/lib/db/schema/tasks";
 import { scrapeWatchedAccounts } from "@/lib/channels/instagram/competitive-scrape";
 import { generateCompetitiveStrategy } from "@/lib/channels/instagram/generate-strategy";
+import { shouldRegenerateTasteProfile, generateTasteProfile } from "@/lib/channels/instagram/taste-learning";
 import { logActivity } from "@/lib/activity-log";
 
 type ActionResult<T = unknown> =
@@ -132,6 +133,12 @@ export async function reactToInspirationAction(input: {
     body: `Inspiration post ${input.reaction}d.`,
     meta: { competitor_post_id: input.competitorPostId },
   });
+
+  shouldRegenerateTasteProfile()
+    .then((should) => {
+      if (should) return generateTasteProfile();
+    })
+    .catch(() => {});
 
   revalidatePath("/lite/content/instagram");
   return { ok: true, value: undefined };
