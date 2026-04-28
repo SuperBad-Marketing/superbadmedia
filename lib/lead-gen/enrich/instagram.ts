@@ -1,10 +1,12 @@
 /**
- * Instagram Business Discovery enrichment — social maturity signal.
+ * Instagram enrichment — social maturity signal.
  *
- * Queries the Instagram Business Discovery API (Graph API endpoint) for
- * public business profile data: follower count, media count, and recent
- * posting cadence. Requires a Meta Business token with `instagram_basic`
- * scope and an Instagram Business or Creator account connected.
+ * Two-tier strategy:
+ *   1. Meta Graph API (Business Discovery) — free, fast, but requires a
+ *      connected IG Business account + token.
+ *   2. Apify `instagram-profile-scraper` — paid (~$0.03/run), no auth
+ *      needed, works on any public profile. Used as automatic fallback
+ *      when Meta credential is missing or the API call fails.
  *
  * Owner: LG-3. Consumer: enrichment orchestrator.
  */
@@ -12,6 +14,7 @@
 import { getCredential } from "@/lib/integrations/getCredential";
 import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta";
 import { logExternalCall } from "@/lib/observatory";
+import { runApifyActor } from "@/lib/lead-gen/sources/apify-runner";
 import type { ViabilityProfile } from "../types";
 
 export interface InstagramResult {
@@ -34,6 +37,14 @@ interface IgBusinessDiscoveryResponse {
   error?: { message: string; type: string; code: number };
 }
 
+interface ApifyInstagramProfile {
+  username?: string;
+  followersCount?: number;
+  postsCount?: number;
+  latestPosts?: Array<{ timestamp?: string }>;
+  posts?: Array<{ timestamp?: string }>;
+}
+
 /**
  * Derive an Instagram username guess from a domain.
  * Strips TLD suffixes and common prefixes. This is a best-effort heuristic —
@@ -47,29 +58,31 @@ export function guessInstagramHandle(domain: string): string {
 }
 
 /**
- * Fetch Instagram Business Discovery data for a candidate.
- *
- * @param domain Bare domain — used to guess the IG handle.
- * @param instagramHandle Optional known handle (overrides domain guess).
- * @returns Instagram profile signals or null fields on failure.
+ * Fetch Instagram profile data for a candidate.
+ * Tries Meta Graph API first; falls back to Apify scraper.
  */
 export async function fetchInstagram(
   domain: string,
   instagramHandle?: string,
 ): Promise<InstagramResult> {
+  const handle = instagramHandle ?? guessInstagramHandle(domain);
+
+  const metaResult = await fetchViaMetaGraphApi(handle);
+  if (metaResult.follower_count !== null) return metaResult;
+
+  const apifyResult = await fetchViaApify(handle);
+  return apifyResult;
+}
+
+// ── Meta Graph API (tier 1) ──────────────────────────────────────────
+
+async function fetchViaMetaGraphApi(
+  handle: string,
+): Promise<InstagramResult> {
   const accessToken = await getCredential("meta");
   if (!accessToken) {
-    return {
-      follower_count: null,
-      post_count: null,
-      posts_last_30d: null,
-      username: null,
-      error: "Meta Ads credential not found — needed for Instagram Business Discovery.",
-    };
+    return emptyResult(handle, "Meta credential not configured — falling back to Apify.");
   }
-
-  const handle = instagramHandle ?? guessInstagramHandle(domain);
-  const start = Date.now();
 
   const fields = [
     "followers_count",
@@ -78,81 +91,92 @@ export async function fetchInstagram(
     "username",
   ].join(",");
 
-  const params = new URLSearchParams({
-    access_token: accessToken,
-    fields: `business_discovery.fields(${fields})`,
-  });
-
-  // The Business Discovery API requires querying from your own IG business account
-  // against the target username. The "me" endpoint with business_discovery works
-  // when the token belongs to a connected IG Business account.
-  const url = `https://graph.facebook.com/${META_GRAPH_API_VERSION}/me?${params.toString()}&business_discovery.username=${handle}`;
+  const discoveryUrl = `https://graph.facebook.com/${META_GRAPH_API_VERSION}/me?fields=business_discovery.fields(${encodeURIComponent(fields)})%7Busername%3D${encodeURIComponent(handle)}%7D&access_token=${accessToken}`;
 
   try {
-    // Business Discovery uses the ig_user_id endpoint with username lookup
-    const actualUrl = `https://graph.facebook.com/${META_GRAPH_API_VERSION}/ig_username_search?q=${encodeURIComponent(handle)}&access_token=${accessToken}`;
-
-    // Simplified: use the direct business_discovery endpoint
-    const discoveryUrl = `https://graph.facebook.com/${META_GRAPH_API_VERSION}/me?fields=business_discovery.fields(${encodeURIComponent(fields)})%7Busername%3D${encodeURIComponent(handle)}%7D&access_token=${accessToken}`;
-
     const response = await fetch(discoveryUrl, {
       signal: AbortSignal.timeout(10_000),
     });
-    const duration = Date.now() - start;
     logExternalCall({ job: "meta.instagram_business_discovery", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
 
     if (!response.ok) {
-      return {
-        follower_count: null,
-        post_count: null,
-        posts_last_30d: null,
-        username: handle,
-        error: `Instagram API error: ${response.status} ${response.statusText}`,
-      };
+      return emptyResult(handle, `Instagram API error: ${response.status} ${response.statusText}`);
     }
 
     const data = (await response.json()) as IgBusinessDiscoveryResponse;
 
     if (data.error) {
-      return {
-        follower_count: null,
-        post_count: null,
-        posts_last_30d: null,
-        username: handle,
-        error: `Instagram API error: ${data.error.message}`,
-      };
+      return emptyResult(handle, `Instagram API error: ${data.error.message}`);
     }
 
     const biz = data.business_discovery;
     if (!biz) {
-      return {
-        follower_count: null,
-        post_count: null,
-        posts_last_30d: null,
-        username: handle,
-        error: "No business_discovery data returned — account may not be a business account.",
-      };
+      return emptyResult(handle, "No business_discovery data returned — account may not be a business account.");
     }
-
-    const postsLast30d = countRecentPosts(biz.media?.data ?? [], 30);
 
     return {
       follower_count: biz.followers_count ?? null,
       post_count: biz.media_count ?? null,
-      posts_last_30d: postsLast30d,
+      posts_last_30d: countRecentPosts(biz.media?.data ?? [], 30),
       username: biz.username ?? handle,
     };
   } catch (err) {
-    const duration = Date.now() - start;
     logExternalCall({ job: "meta.instagram_business_discovery", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
-    return {
-      follower_count: null,
-      post_count: null,
-      posts_last_30d: null,
-      username: handle,
-      error: `Instagram fetch failed: ${err instanceof Error ? err.message : String(err)}`,
-    };
+    return emptyResult(handle, `Instagram fetch failed: ${err instanceof Error ? err.message : String(err)}`);
   }
+}
+
+// ── Apify instagram-profile-scraper (tier 2) ─────────────────────────
+
+async function fetchViaApify(
+  handle: string,
+): Promise<InstagramResult> {
+  try {
+    const items = await runApifyActor<ApifyInstagramProfile>({
+      actorId: "apify~instagram-profile-scraper",
+      input: {
+        usernames: [handle],
+        resultsLimit: 30,
+      },
+      jobName: "apify.instagram_profile",
+      timeoutMs: 70_000,
+      pollIntervalMs: 5_000,
+      maxPollAttempts: 15,
+      estimatedCostAud: 0.03,
+    });
+
+    const profile = items[0];
+    if (!profile) {
+      return emptyResult(handle, `Apify returned no results for @${handle}.`);
+    }
+
+    const posts = profile.latestPosts ?? profile.posts ?? [];
+    const postsLast30d = countRecentPosts(
+      posts
+        .filter((p): p is { timestamp: string } => !!p.timestamp)
+        .map((p) => ({ timestamp: p.timestamp })),
+      30,
+    );
+
+    return {
+      follower_count: profile.followersCount ?? null,
+      post_count: profile.postsCount ?? null,
+      posts_last_30d: postsLast30d,
+      username: profile.username ?? handle,
+    };
+  } catch (err) {
+    return emptyResult(handle, `Apify Instagram scrape failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+function emptyResult(handle: string | null, error: string): InstagramResult {
+  return {
+    follower_count: null,
+    post_count: null,
+    posts_last_30d: null,
+    username: handle,
+    error,
+  };
 }
 
 /**
