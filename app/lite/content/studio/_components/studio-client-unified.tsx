@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { PlusIcon, HistoryIcon, EyeIcon } from "lucide-react";
+import { PlusIcon, HistoryIcon, EyeIcon, BookmarkIcon, CopyIcon } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
 import { CONTENT_TYPES, type ContentType, type AspectRatio } from "@/lib/db/schema/content-studio";
 import type { SlideCopy } from "@/lib/content-studio/generate-copy";
@@ -35,6 +35,9 @@ import {
   renderOverlayAction,
   compositeVideoAction,
   retryCompositeStageAction,
+  listPromptsAction,
+  savePromptAction,
+  createMultiVariantAction,
 } from "../actions";
 import { suggestProjectName } from "@/lib/content-studio/project-name";
 import { UnifiedBrief, type UnifiedBriefResult } from "./unified-brief";
@@ -44,6 +47,11 @@ import { MotionPreview, type MotionPostData } from "./motion-preview";
 import { WipSection, type WipProject } from "./wip-section";
 import { GenerationProgress } from "./generation-progress";
 import { CompositeEditor, type CompositeJob } from "./composite-editor";
+import {
+  PromptLibraryDrawer,
+  type SavedPrompt,
+} from "./prompt-library-drawer";
+import type { PipelineStage } from "@/lib/db/schema/video-jobs";
 
 const FORMAT_MAP: Record<ContentType, ContentFormat> = {
   anti_motivation: "animated",
@@ -90,6 +98,14 @@ export function StudioClientUnified() {
   // WIP projects from DB
   const [wipProjects, setWipProjects] = useState<WipProject[]>([]);
 
+  // Prompt library
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
+  const [promptsLoading, setPromptsLoading] = useState(false);
+
+  // Multi-variant toggle
+  const [multiVariant, setMultiVariant] = useState(false);
+
   // Load client names + WIP projects on mount
   useEffect(() => {
     getClientNamesAction().then((res) => {
@@ -108,6 +124,15 @@ export function StudioClientUnified() {
     getCompositeJobAction(jobId).then((res) => {
       if (res.ok) setCompositeJob(res.job);
     });
+  }, []);
+
+  const loadPrompts = useCallback(() => {
+    setPromptsLoading(true);
+    listPromptsAction()
+      .then((res) => {
+        if (res.ok) setSavedPrompts(res.prompts);
+      })
+      .finally(() => setPromptsLoading(false));
   }, []);
 
   // Determine the effective format for generation routing
@@ -145,6 +170,24 @@ export function StudioClientUnified() {
 
       try {
         if (format === "cinematic" || format === "composite") {
+          if (multiVariant) {
+            const res = await createMultiVariantAction({
+              brief: result.raw,
+              format,
+              variantCount: 3,
+              brandSource: result.parsed.clientName ? "client" : "superbad",
+            });
+            if (!res.ok) {
+              toast.error(res.error);
+              setGenerationFailed(true);
+              return;
+            }
+            loadWipProjects();
+            toast.success(`${res.variantCount} variants queued.`);
+            setView("create");
+            return;
+          }
+
           const res = await createVideoFromStudioAction({
             brief: result.raw,
             format,
@@ -645,6 +688,70 @@ export function StudioClientUnified() {
               initialValue={searchParams.get("prefill_brief") ?? ""}
             />
 
+            {/* Tools row: prompt library + multi-variant toggle */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setLibraryOpen(true);
+                  loadPrompts();
+                }}
+                className="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-[family-name:var(--font-body)] text-[12px] transition-colors"
+                style={{
+                  backgroundColor: "rgba(253, 245, 230, 0.04)",
+                  color: "var(--color-neutral-400)",
+                  border: "1px solid rgba(253, 245, 230, 0.06)",
+                }}
+              >
+                <BookmarkIcon className="size-3" />
+                Prompt library
+              </button>
+
+              <label
+                className="flex cursor-pointer items-center gap-2"
+              >
+                <div
+                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                  style={{
+                    backgroundColor: multiVariant
+                      ? "var(--color-brand-red)"
+                      : "rgba(253, 245, 230, 0.08)",
+                  }}
+                  onClick={() => setMultiVariant((v) => !v)}
+                  role="switch"
+                  aria-checked={multiVariant}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === " " || e.key === "Enter") {
+                      e.preventDefault();
+                      setMultiVariant((v) => !v);
+                    }
+                  }}
+                >
+                  <div
+                    className="size-3.5 rounded-full transition-transform"
+                    style={{
+                      backgroundColor: "var(--color-brand-cream)",
+                      transform: multiVariant
+                        ? "translateX(18px)"
+                        : "translateX(3px)",
+                    }}
+                  />
+                </div>
+                <span
+                  className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[12px]"
+                  style={{
+                    color: multiVariant
+                      ? "var(--color-brand-cream)"
+                      : "var(--color-neutral-500)",
+                  }}
+                >
+                  <CopyIcon className="size-3" />
+                  Render 3 variants
+                </span>
+              </label>
+            </div>
+
             <GenerationProgress
               active={generating}
               isMotion={
@@ -796,6 +903,23 @@ export function StudioClientUnified() {
 
         {view === "history" && <PostHistory />}
       </div>
+
+      {/* Prompt library drawer */}
+      <PromptLibraryDrawer
+        open={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onSelect={(prompt) => {
+          setBriefResult(null);
+        }}
+        onSave={async (data) => {
+          const res = await savePromptAction(data);
+          if (!res.ok) throw new Error("save failed");
+          loadPrompts();
+        }}
+        currentBrief={briefResult?.raw}
+        prompts={savedPrompts}
+        loading={promptsLoading}
+      />
     </div>
   );
 }

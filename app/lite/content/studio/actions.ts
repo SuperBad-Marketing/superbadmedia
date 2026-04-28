@@ -1089,6 +1089,173 @@ export async function retryCompositeStageAction(
   return result;
 }
 
+/* ------------------------------------------------------------------ */
+/* Prompt library actions                                             */
+/* ------------------------------------------------------------------ */
+
+import { promptLibrary, type PromptCategory, PROMPT_CATEGORIES } from "@/lib/db/schema/prompt-library";
+
+export async function listPromptsAction() {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const rows = await db
+    .select()
+    .from(promptLibrary)
+    .orderBy(desc(promptLibrary.use_count))
+    .limit(100);
+
+  return {
+    ok: true as const,
+    prompts: rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      promptText: r.prompt_text,
+      category: r.category as PromptCategory,
+      tags: Array.isArray(r.tags_json) ? (r.tags_json as string[]) : [],
+      useCount: r.use_count,
+    })),
+  };
+}
+
+const savePromptSchema = z.object({
+  name: z.string().min(1).max(200),
+  promptText: z.string().min(1).max(5000),
+  category: z.enum(PROMPT_CATEGORIES),
+  tags: z.array(z.string()).default([]),
+  sourceJobId: z.string().optional(),
+});
+
+export async function savePromptAction(
+  input: z.infer<typeof savePromptSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const parsed = savePromptSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const id = crypto.randomUUID();
+  await db.insert(promptLibrary).values({
+    id,
+    name: parsed.data.name,
+    prompt_text: parsed.data.promptText,
+    category: parsed.data.category,
+    tags_json: parsed.data.tags as unknown as Record<string, unknown>,
+    source_job_id: parsed.data.sourceJobId ?? null,
+    use_count: 0,
+    created_at_ms: Date.now(),
+  });
+
+  return { ok: true as const, id };
+}
+
+export async function usePromptAction(promptId: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+
+  const row = await db.query.promptLibrary.findFirst({
+    where: eq(promptLibrary.id, promptId),
+  });
+  if (!row) return { ok: false as const, error: "not_found" };
+
+  await db
+    .update(promptLibrary)
+    .set({
+      use_count: row.use_count + 1,
+      last_used_at_ms: Date.now(),
+    })
+    .where(eq(promptLibrary.id, promptId));
+
+  return { ok: true as const, promptText: row.prompt_text };
+}
+
+/* ------------------------------------------------------------------ */
+/* Multi-variant rendering                                            */
+/* ------------------------------------------------------------------ */
+
+const multiVariantSchema = z.object({
+  brief: z.string().min(1),
+  format: z.enum(["cinematic", "composite"]),
+  variantCount: z.number().int().min(2).max(5).default(3),
+  brandSource: z.enum(["superbad", "client", "adhoc"]).default("superbad"),
+});
+
+export async function createMultiVariantAction(
+  input: z.infer<typeof multiVariantSchema>,
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false as const, error: "unauthorized" };
+  }
+  if (!killSwitches.llm_calls_enabled) {
+    return { ok: false as const, error: "LLM calls are paused." };
+  }
+
+  const parsed = multiVariantSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "invalid_input" };
+
+  const videoBrief = await buildBriefFromPrompt(parsed.data.brief);
+  const jobIds: string[] = [];
+
+  for (let i = 0; i < parsed.data.variantCount; i++) {
+    try {
+      const optimised = await optimiseForHiggsfield(
+        parsed.data.brief,
+        videoBrief.resolvedPrompt,
+        videoBrief.mood,
+        videoBrief.aspectRatio,
+      );
+
+      const jobId = crypto.randomUUID();
+      await db.insert(videoJobs).values({
+        id: jobId,
+        video_type: videoBrief.videoType,
+        engine: "higgsfield",
+        status: "queued",
+        initial_prompt: `[variant ${i + 1}/${parsed.data.variantCount}] ${parsed.data.brief}`,
+        resolved_prompt: optimised.prompt,
+        brief_json: {
+          ...videoBrief,
+          optimised,
+          variantIndex: i,
+          variantTotal: parsed.data.variantCount,
+        } as unknown as Record<string, unknown>,
+        brand_source: parsed.data.brandSource,
+        aspect_ratio: videoBrief.aspectRatio,
+        duration_sec: videoBrief.duration,
+        pipeline_stage: parsed.data.format === "composite" ? "footage" : "brief",
+        created_at: new Date(),
+        queued_at: new Date(),
+      });
+
+      const result = await submitVideoJob({
+        prompt: optimised.prompt,
+        aspectRatio: videoBrief.aspectRatio,
+        duration: videoBrief.duration,
+      });
+
+      await db
+        .update(videoJobs)
+        .set({ external_job_id: result.jobId, status: "generating" })
+        .where(eq(videoJobs.id, jobId));
+
+      jobIds.push(jobId);
+    } catch (err) {
+      console.error(`[multi-variant] Variant ${i + 1} failed:`, err);
+    }
+  }
+
+  revalidatePath("/lite/content/studio");
+  return { ok: true as const, jobIds, variantCount: jobIds.length };
+}
+
 export async function getCompositeJobAction(jobId: string) {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
