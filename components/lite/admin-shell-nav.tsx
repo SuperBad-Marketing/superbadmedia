@@ -2,6 +2,7 @@ import {
   Activity,
   Building2,
   CalendarDays,
+  Clapperboard,
   ClipboardList,
   DollarSign,
   FileText,
@@ -150,6 +151,14 @@ export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
         icon: ClipboardList,
         status: "live",
         matchPrefix: "/lite/admin/briefs",
+      },
+      {
+        id: "productions",
+        label: "Productions",
+        href: "/lite/admin/productions",
+        icon: Clapperboard,
+        status: "live",
+        matchPrefix: "/lite/admin/productions",
       },
       {
         id: "content",

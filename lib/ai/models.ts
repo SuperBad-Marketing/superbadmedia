@@ -179,6 +179,9 @@ export const MODELS = {
   // business-profile (2)
   "profile-generate-prose-summary": "haiku",
   "profile-refine-braindump": "sonnet",
+  // productions (2)
+  "productions-angle-gen": "sonnet",
+  "productions-brainstorm": "sonnet",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;
