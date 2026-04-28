@@ -66,6 +66,7 @@ const RULES: readonly RuleMatcher[] = [
   rule("CRON", "finance_narrative_regenerate", ["system"]),
   rule("CRON", "finance_observatory_rollup", ["system"]),
   rule("CRON", "finance_stripe_fee_rollup", ["system"]),
+  rule("CRON", "finance_stripe_payment_sync", ["system"]),
   rule("CRON", "recurring_expense_book", ["system"]),
   rule("CRON", "finance_export_generate", ["system"]),
 ];

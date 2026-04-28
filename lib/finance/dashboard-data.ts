@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { finance_snapshots, type FinanceMetrics, type FinanceProjection } from "@/lib/db/schema/finance-snapshots";
 import { expenses, type ExpenseRow, EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@/lib/db/schema/expenses";
 import { invoices } from "@/lib/db/schema/invoices";
+import { stripe_synced_payments } from "@/lib/db/schema/stripe-synced-payments";
 import { deals } from "@/lib/db/schema/deals";
 import type { NarrativeOutput } from "./narrative-prompt";
 
@@ -43,6 +44,7 @@ export async function getDashboardData(
     prevSnapshotRows,
     recentExpenses,
     recentPaidInvoices,
+    recentSyncedPayments,
     outstandingRows,
     overdueRows,
     topCategories,
@@ -71,6 +73,20 @@ export async function getDashboardData(
         lte(invoices.paid_at_ms, new Date(rangeEnd + "T23:59:59Z").getTime()),
       ))
       .orderBy(desc(invoices.paid_at_ms))
+      .limit(20),
+    db.select({
+      id: stripe_synced_payments.id,
+      description: stripe_synced_payments.description,
+      customer_name: stripe_synced_payments.customer_name,
+      amount_cents: stripe_synced_payments.amount_cents,
+      paid_at_ms: stripe_synced_payments.paid_at_ms,
+      payment_date: stripe_synced_payments.payment_date,
+    }).from(stripe_synced_payments)
+      .where(and(
+        gte(stripe_synced_payments.paid_at_ms, new Date(rangeStart).getTime()),
+        lte(stripe_synced_payments.paid_at_ms, new Date(rangeEnd + "T23:59:59Z").getTime()),
+      ))
+      .orderBy(desc(stripe_synced_payments.paid_at_ms))
       .limit(20),
     db.select({ total: count() }).from(invoices)
       .where(inArray(invoices.status, ["sent", "overdue"])),
@@ -131,6 +147,18 @@ export async function getDashboardData(
       counterparty: inv.company_id,
       amount_cents: inv.total_cents_inc_gst,
       link: `/lite/invoices/${inv.id}`,
+    });
+  }
+
+  for (const sp of recentSyncedPayments) {
+    transactions.push({
+      id: `sp-${sp.id}`,
+      date: sp.payment_date,
+      type: "income",
+      description: sp.description || "Stripe payment",
+      counterparty: sp.customer_name || "Stripe",
+      amount_cents: sp.amount_cents,
+      link: `/lite/finance/recent`,
     });
   }
 

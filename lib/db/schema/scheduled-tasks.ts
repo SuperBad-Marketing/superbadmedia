@@ -97,6 +97,7 @@ export const SCHEDULED_TASK_TYPES = [
   "finance_narrative_regenerate",
   "finance_observatory_rollup",
   "finance_stripe_fee_rollup",
+  "finance_stripe_payment_sync",
   "recurring_expense_book",
   "finance_export_generate",
   "finance_export_retention_purge",

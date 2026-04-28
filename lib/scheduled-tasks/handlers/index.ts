@@ -44,6 +44,7 @@ import { HIRING_BENCH_PAUSE_ENDING_HANDLERS } from "./hiring-bench-pause-ending"
 import { FINANCE_SNAPSHOT_HANDLERS } from "./finance-snapshot";
 import { FINANCE_OBSERVATORY_ROLLUP_HANDLERS } from "./finance-observatory-rollup";
 import { FINANCE_STRIPE_FEE_ROLLUP_HANDLERS } from "./finance-stripe-fee-rollup";
+import { FINANCE_STRIPE_PAYMENT_SYNC_HANDLERS } from "./finance-stripe-payment-sync";
 import { FINANCE_RECURRING_EXPENSE_BOOK_HANDLERS } from "./finance-recurring-expense-book";
 import { FINANCE_NARRATIVE_HANDLERS } from "./finance-narrative";
 import { FINANCE_EXPORT_GENERATE_HANDLERS } from "./finance-export-generate";
@@ -117,6 +118,7 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...FINANCE_SNAPSHOT_HANDLERS,
   ...FINANCE_OBSERVATORY_ROLLUP_HANDLERS,
   ...FINANCE_STRIPE_FEE_ROLLUP_HANDLERS,
+  ...FINANCE_STRIPE_PAYMENT_SYNC_HANDLERS,
   ...FINANCE_RECURRING_EXPENSE_BOOK_HANDLERS,
   ...FINANCE_NARRATIVE_HANDLERS,
   ...FINANCE_EXPORT_GENERATE_HANDLERS,

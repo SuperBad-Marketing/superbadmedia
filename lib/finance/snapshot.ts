@@ -3,6 +3,7 @@ import { and, eq, gte, lte, inArray, sum } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { deals } from "@/lib/db/schema/deals";
 import { invoices } from "@/lib/db/schema/invoices";
+import { stripe_synced_payments } from "@/lib/db/schema/stripe-synced-payments";
 import { expenses } from "@/lib/db/schema/expenses";
 import { integration_connections } from "@/lib/db/schema/integration-connections";
 import settings from "@/lib/settings";
@@ -75,17 +76,32 @@ async function computeRevenueMtd(
   monthStart: string,
   todayStr: string,
 ): Promise<number> {
-  const rows = await db
-    .select({ total: sum(invoices.total_cents_inc_gst) })
-    .from(invoices)
-    .where(
-      and(
-        eq(invoices.status, "paid"),
-        gte(invoices.paid_at_ms, new Date(monthStart).getTime()),
-        lte(invoices.paid_at_ms, new Date(todayStr + "T23:59:59Z").getTime()),
+  const startMs = new Date(monthStart).getTime();
+  const endMs = new Date(todayStr + "T23:59:59Z").getTime();
+
+  const [invoiceRows, syncedRows] = await Promise.all([
+    db
+      .select({ total: sum(invoices.total_cents_inc_gst) })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.status, "paid"),
+          gte(invoices.paid_at_ms, startMs),
+          lte(invoices.paid_at_ms, endMs),
+        ),
       ),
-    );
-  return Number(rows[0]?.total ?? 0);
+    db
+      .select({ total: sum(stripe_synced_payments.amount_cents) })
+      .from(stripe_synced_payments)
+      .where(
+        and(
+          gte(stripe_synced_payments.paid_at_ms, startMs),
+          lte(stripe_synced_payments.paid_at_ms, endMs),
+        ),
+      ),
+  ]);
+
+  return Number(invoiceRows[0]?.total ?? 0) + Number(syncedRows[0]?.total ?? 0);
 }
 
 async function computeExpensesMtd(
@@ -160,17 +176,32 @@ function getBasQuarterRange(nowMs: number): { start: string; end: string } {
 
 async function computeGstCollectedThisQuarter(nowMs: number): Promise<number> {
   const { start, end } = getBasQuarterRange(nowMs);
-  const rows = await db
-    .select({ total: sum(invoices.gst_cents) })
-    .from(invoices)
-    .where(
-      and(
-        eq(invoices.status, "paid"),
-        gte(invoices.paid_at_ms, new Date(start).getTime()),
-        lte(invoices.paid_at_ms, new Date(end + "T23:59:59Z").getTime()),
+  const startMs = new Date(start).getTime();
+  const endMs = new Date(end + "T23:59:59Z").getTime();
+
+  const [invoiceRows, syncedRows] = await Promise.all([
+    db
+      .select({ total: sum(invoices.gst_cents) })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.status, "paid"),
+          gte(invoices.paid_at_ms, startMs),
+          lte(invoices.paid_at_ms, endMs),
+        ),
       ),
-    );
-  return Number(rows[0]?.total ?? 0);
+    db
+      .select({ total: sum(stripe_synced_payments.gst_cents) })
+      .from(stripe_synced_payments)
+      .where(
+        and(
+          gte(stripe_synced_payments.paid_at_ms, startMs),
+          lte(stripe_synced_payments.paid_at_ms, endMs),
+        ),
+      ),
+  ]);
+
+  return Number(invoiceRows[0]?.total ?? 0) + Number(syncedRows[0]?.total ?? 0);
 }
 
 async function computeGstPaidExpensesThisQuarter(
@@ -197,19 +228,27 @@ async function computeNetProfitYtd(nowMs: number): Promise<number> {
       ? `${d.getFullYear()}-07-01`
       : `${d.getFullYear() - 1}-07-01`;
   const todayStr = d.toISOString().slice(0, 10);
+  const startMs = new Date(fyStart).getTime();
+  const endMs = new Date(todayStr + "T23:59:59Z").getTime();
 
-  const [revRows, expRows] = await Promise.all([
+  const [revRows, syncedRevRows, expRows] = await Promise.all([
     db
       .select({ total: sum(invoices.total_cents_inc_gst) })
       .from(invoices)
       .where(
         and(
           eq(invoices.status, "paid"),
-          gte(invoices.paid_at_ms, new Date(fyStart).getTime()),
-          lte(
-            invoices.paid_at_ms,
-            new Date(todayStr + "T23:59:59Z").getTime(),
-          ),
+          gte(invoices.paid_at_ms, startMs),
+          lte(invoices.paid_at_ms, endMs),
+        ),
+      ),
+    db
+      .select({ total: sum(stripe_synced_payments.amount_cents) })
+      .from(stripe_synced_payments)
+      .where(
+        and(
+          gte(stripe_synced_payments.paid_at_ms, startMs),
+          lte(stripe_synced_payments.paid_at_ms, endMs),
         ),
       ),
     db
@@ -223,7 +262,7 @@ async function computeNetProfitYtd(nowMs: number): Promise<number> {
       ),
   ]);
 
-  const revenue = Number(revRows[0]?.total ?? 0);
+  const revenue = Number(revRows[0]?.total ?? 0) + Number(syncedRevRows[0]?.total ?? 0);
   const expensesTotal = Number(expRows[0]?.total ?? 0);
   return revenue - expensesTotal;
 }

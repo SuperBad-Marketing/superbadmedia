@@ -108,3 +108,4 @@ export * from "./search-verticals";
 export * from "./habits";
 export * from "./sfx-library";
 export * from "./instagram-competitive";
+export * from "./stripe-synced-payments";
