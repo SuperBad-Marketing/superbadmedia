@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import {
   ASPECT_RATIOS,
   type AspectRatio,
 } from "@/lib/db/schema/content-studio";
+import { RenderProgress, DownloadProgress, type RenderStage, type DownloadStage } from "./render-progress";
 import {
   getTemplate,
   getTemplatesForType,
@@ -93,6 +94,9 @@ export function PostPreview({
     new Set(["Instagram Feed"]),
   );
   const [rendering, setRendering] = useState(false);
+  const [renderStage, setRenderStage] = useState<RenderStage>("preparing");
+  const [renderError, setRenderError] = useState<string | undefined>();
+  const stageTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [renders, setRenders] = useState<
     { id: string; slideIndex: number; ratio: AspectRatio; url: string }[]
   >([]);
@@ -225,12 +229,41 @@ export function PostPreview({
       return;
     }
     setRendering(true);
-    const result = await onRender(
-      Array.from(selectedRatios),
-      Array.from(selectedPlatforms).join(", "),
-    );
-    setRendering(false);
-    if (result) setRenders(result);
+    setRenderStage("preparing");
+    setRenderError(undefined);
+
+    stageTimer.current = setTimeout(() => setRenderStage("rendering"), 400);
+    const uploadTimer = setTimeout(() => setRenderStage("uploading"), 3000);
+    const finalTimer = setTimeout(() => setRenderStage("finalising"), 6000);
+
+    try {
+      const result = await onRender(
+        Array.from(selectedRatios),
+        Array.from(selectedPlatforms).join(", "),
+      );
+
+      clearTimeout(stageTimer.current);
+      clearTimeout(uploadTimer);
+      clearTimeout(finalTimer);
+
+      if (result && result.length > 0) {
+        setRenderStage("complete");
+        setRenders(result);
+        setTimeout(() => setRendering(false), 1500);
+      } else {
+        setRenderStage("failed");
+        setRenderError("Render returned no results. Check Cloudinary credentials.");
+        setTimeout(() => setRendering(false), 3000);
+      }
+    } catch (err) {
+      clearTimeout(stageTimer.current);
+      clearTimeout(uploadTimer);
+      clearTimeout(finalTimer);
+      const msg = err instanceof Error ? err.message : "Render failed.";
+      setRenderStage("failed");
+      setRenderError(msg);
+      setTimeout(() => setRendering(false), 3000);
+    }
   }
 
   function toggleRatio(ratio: AspectRatio) {
@@ -737,6 +770,21 @@ export function PostPreview({
         </button>
       </div>
 
+      {/* Render progress */}
+      <RenderProgress
+        stage={renderStage}
+        visible={rendering}
+        itemsDone={
+          renderStage === "complete"
+            ? renders.length
+            : renderStage === "uploading" || renderStage === "finalising"
+              ? Math.ceil(totalRenderCount * 0.5)
+              : 0
+        }
+        itemsTotal={totalRenderCount}
+        error={renderError}
+      />
+
       {/* Rendered outputs */}
       {renders.length > 0 && (
         <div>
@@ -795,24 +843,57 @@ export function PostPreview({
 }
 
 function RenderCard({ r }: { r: { id: string; ratio: AspectRatio; url: string } }) {
-  const [downloading, setDownloading] = useState(false);
+  const [dlStage, setDlStage] = useState<DownloadStage>("fetching");
+  const [dlPercent, setDlPercent] = useState(0);
+  const [dlVisible, setDlVisible] = useState(false);
 
   async function handleDownload() {
-    setDownloading(true);
+    setDlStage("fetching");
+    setDlPercent(0);
+    setDlVisible(true);
+
     try {
       const resp = await fetch(r.url);
-      const blob = await resp.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `superbad-${r.ratio}-${r.id.slice(0, 8)}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(a.href);
+      const contentLength = Number(resp.headers.get("content-length") || 0);
+      const reader = resp.body?.getReader();
+
+      if (!reader) {
+        const blob = await resp.blob();
+        setDlPercent(100);
+        setDlStage("saving");
+        triggerSave(blob, `superbad-${r.ratio}-${r.id.slice(0, 8)}.png`);
+        setDlStage("complete");
+        setTimeout(() => setDlVisible(false), 1200);
+        return;
+      }
+
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        if (contentLength > 0) {
+          setDlPercent(Math.round((received / contentLength) * 90));
+        } else {
+          setDlPercent(Math.min(85, Math.round(received / 1024)));
+        }
+      }
+
+      setDlPercent(95);
+      setDlStage("saving");
+      const blob = new Blob(chunks as BlobPart[]);
+      triggerSave(blob, `superbad-${r.ratio}-${r.id.slice(0, 8)}.png`);
+      setDlPercent(100);
+      setDlStage("complete");
+      setTimeout(() => setDlVisible(false), 1200);
     } catch {
+      setDlStage("failed");
       toast.error("Download failed.");
+      setTimeout(() => setDlVisible(false), 2000);
     }
-    setDownloading(false);
   }
 
   return (
@@ -827,37 +908,47 @@ function RenderCard({ r }: { r: { id: string; ratio: AspectRatio; url: string } 
         alt={`${r.ratio} render`}
         className="w-full"
       />
-      <div
-        className="flex items-center justify-between p-2"
-        style={{ backgroundColor: "var(--color-neutral-800)" }}
-      >
-        <span
-          className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-          style={{ letterSpacing: "1px" }}
-        >
-          {RATIO_LABELS[r.ratio]}
-        </span>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={downloading}
-            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-cream)] hover:opacity-70"
-            style={{ letterSpacing: "1px", opacity: downloading ? 0.5 : 1 }}
-          >
-            {downloading ? "…" : "Download"}
-          </button>
-          <a
-            href={r.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)] hover:opacity-70"
+      <div className="space-y-1.5 p-2" style={{ backgroundColor: "var(--color-neutral-800)" }}>
+        <div className="flex items-center justify-between">
+          <span
+            className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
             style={{ letterSpacing: "1px" }}
           >
-            Open
-          </a>
+            {RATIO_LABELS[r.ratio]}
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={dlVisible}
+              className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-cream)] hover:opacity-70"
+              style={{ letterSpacing: "1px", opacity: dlVisible ? 0.5 : 1 }}
+            >
+              {dlVisible ? "…" : "Download"}
+            </button>
+            <a
+              href={r.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-brand-pink)] hover:opacity-70"
+              style={{ letterSpacing: "1px" }}
+            >
+              Open
+            </a>
+          </div>
         </div>
+        <DownloadProgress stage={dlStage} percent={dlPercent} visible={dlVisible} />
       </div>
     </div>
   );
+}
+
+function triggerSave(blob: Blob, filename: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
 }
