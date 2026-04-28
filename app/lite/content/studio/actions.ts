@@ -248,105 +248,111 @@ export async function renderPostAction(input: z.infer<typeof renderSchema>) {
   });
   if (!post) return { ok: false as const, error: "post_not_found" };
 
-  const slides = normaliseSlideCopy(post.generated_copy_json);
-  const isCarousel = slides.length > 1;
-  const renderOptions = resolveRenderOptions(post);
+  try {
+    const slides = normaliseSlideCopy(post.generated_copy_json);
+    const isCarousel = slides.length > 1;
+    const renderOptions = resolveRenderOptions(post);
 
-  const { uploadRenderBuffer } = await import("@/lib/content-studio/upload");
-  const now = Date.now();
-  const insertedRenders: { id: string; slideIndex: number; ratio: AspectRatio; url: string }[] = [];
+    const { uploadRenderBuffer } = await import("@/lib/content-studio/upload");
+    const now = Date.now();
+    const insertedRenders: { id: string; slideIndex: number; ratio: AspectRatio; url: string }[] = [];
 
-  if (isCarousel) {
-    const { renderCarousel } = await import("@/lib/content-studio/render-image");
-    const renders = await renderCarousel(post.template_id, slides, parsed.data.ratios, renderOptions);
+    if (isCarousel) {
+      const { renderCarousel } = await import("@/lib/content-studio/render-image");
+      const renders = await renderCarousel(post.template_id, slides, parsed.data.ratios, renderOptions);
 
-    for (const [, result] of renders) {
-      const renderId = crypto.randomUUID();
-      let cloudinaryPublicId: string | null = null;
-      let cloudinaryUrl: string | null = null;
-      let renderStatus: "rendered" | "failed" = "rendered";
+      for (const [, result] of renders) {
+        const renderId = crypto.randomUUID();
+        let cloudinaryPublicId: string | null = null;
+        let cloudinaryUrl: string | null = null;
+        let renderStatus: "rendered" | "failed" = "rendered";
 
-      try {
-        const upload = await uploadRenderBuffer(
-          result.buffer,
-          parsed.data.postId,
-          `s${result.slideIndex}-${result.ratio}`,
-        );
-        cloudinaryPublicId = upload.publicId;
-        cloudinaryUrl = upload.url;
-      } catch {
-        renderStatus = "failed";
+        try {
+          const upload = await uploadRenderBuffer(
+            result.buffer,
+            parsed.data.postId,
+            `s${result.slideIndex}-${result.ratio}`,
+          );
+          cloudinaryPublicId = upload.publicId;
+          cloudinaryUrl = upload.url;
+        } catch {
+          renderStatus = "failed";
+        }
+
+        await db.insert(contentStudioRenders).values({
+          id: renderId,
+          post_id: parsed.data.postId,
+          slide_index: result.slideIndex,
+          aspect_ratio: result.ratio,
+          platforms: parsed.data.platforms,
+          width: result.width,
+          height: result.height,
+          cloudinary_public_id: cloudinaryPublicId,
+          cloudinary_url: cloudinaryUrl,
+          render_status: renderStatus,
+          created_at_ms: now,
+        });
+
+        insertedRenders.push({
+          id: renderId,
+          slideIndex: result.slideIndex,
+          ratio: result.ratio,
+          url: cloudinaryUrl ?? "",
+        });
       }
+    } else {
+      const { renderAllRatios } = await import("@/lib/content-studio/render-image");
+      const renders = await renderAllRatios(post.template_id, slides[0], parsed.data.ratios, renderOptions);
 
-      await db.insert(contentStudioRenders).values({
-        id: renderId,
-        post_id: parsed.data.postId,
-        slide_index: result.slideIndex,
-        aspect_ratio: result.ratio,
-        platforms: parsed.data.platforms,
-        width: result.width,
-        height: result.height,
-        cloudinary_public_id: cloudinaryPublicId,
-        cloudinary_url: cloudinaryUrl,
-        render_status: renderStatus,
-        created_at_ms: now,
-      });
+      for (const [ratio, result] of renders) {
+        const renderId = crypto.randomUUID();
+        let cloudinaryPublicId: string | null = null;
+        let cloudinaryUrl: string | null = null;
+        let renderStatus: "rendered" | "failed" = "rendered";
 
-      insertedRenders.push({
-        id: renderId,
-        slideIndex: result.slideIndex,
-        ratio: result.ratio,
-        url: cloudinaryUrl ?? "",
-      });
-    }
-  } else {
-    const { renderAllRatios } = await import("@/lib/content-studio/render-image");
-    const renders = await renderAllRatios(post.template_id, slides[0], parsed.data.ratios, renderOptions);
+        try {
+          const upload = await uploadRenderBuffer(result.buffer, parsed.data.postId, ratio);
+          cloudinaryPublicId = upload.publicId;
+          cloudinaryUrl = upload.url;
+        } catch {
+          renderStatus = "failed";
+        }
 
-    for (const [ratio, result] of renders) {
-      const renderId = crypto.randomUUID();
-      let cloudinaryPublicId: string | null = null;
-      let cloudinaryUrl: string | null = null;
-      let renderStatus: "rendered" | "failed" = "rendered";
+        await db.insert(contentStudioRenders).values({
+          id: renderId,
+          post_id: parsed.data.postId,
+          slide_index: 0,
+          aspect_ratio: ratio,
+          platforms: parsed.data.platforms,
+          width: result.width,
+          height: result.height,
+          cloudinary_public_id: cloudinaryPublicId,
+          cloudinary_url: cloudinaryUrl,
+          render_status: renderStatus,
+          created_at_ms: now,
+        });
 
-      try {
-        const upload = await uploadRenderBuffer(result.buffer, parsed.data.postId, ratio);
-        cloudinaryPublicId = upload.publicId;
-        cloudinaryUrl = upload.url;
-      } catch {
-        renderStatus = "failed";
+        insertedRenders.push({
+          id: renderId,
+          slideIndex: 0,
+          ratio,
+          url: cloudinaryUrl ?? "",
+        });
       }
-
-      await db.insert(contentStudioRenders).values({
-        id: renderId,
-        post_id: parsed.data.postId,
-        slide_index: 0,
-        aspect_ratio: ratio,
-        platforms: parsed.data.platforms,
-        width: result.width,
-        height: result.height,
-        cloudinary_public_id: cloudinaryPublicId,
-        cloudinary_url: cloudinaryUrl,
-        render_status: renderStatus,
-        created_at_ms: now,
-      });
-
-      insertedRenders.push({
-        id: renderId,
-        slideIndex: 0,
-        ratio,
-        url: cloudinaryUrl ?? "",
-      });
     }
+
+    await db
+      .update(contentStudioPosts)
+      .set({ status: "rendered", updated_at_ms: Date.now() })
+      .where(eq(contentStudioPosts.id, parsed.data.postId));
+
+    revalidatePath("/lite/content/studio");
+    return { ok: true as const, renders: insertedRenders };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[content-studio] renderPostAction failed:", msg);
+    return { ok: false as const, error: msg };
   }
-
-  await db
-    .update(contentStudioPosts)
-    .set({ status: "rendered", updated_at_ms: Date.now() })
-    .where(eq(contentStudioPosts.id, parsed.data.postId));
-
-  revalidatePath("/lite/content/studio");
-  return { ok: true as const, renders: insertedRenders };
 }
 
 const changeTemplateSchema = z.object({

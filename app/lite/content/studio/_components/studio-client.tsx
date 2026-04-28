@@ -370,8 +370,9 @@ export function StudioClient() {
         }
         toast.success(`${result.renders.length} render${result.renders.length === 1 ? "" : "s"} complete.`);
         return result.renders;
-      } catch {
-        toast.error("Rendering failed. Try again.");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        toast.error(msg || "Rendering failed. Try again.");
       }
     },
     [activePost],
