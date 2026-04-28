@@ -360,6 +360,94 @@ const stripeCutMotion: MotionTemplateDef = {
   maxDuration: 6 * FPS,
 };
 
+const glitchMotion: MotionTemplateDef = {
+  id: "glitch",
+  name: "Glitch",
+  description: "RGB channel displacement and horizontal slice offset. Digital interference.",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: true,
+  layoutSupported: false,
+  copySlots: ["headline", "tagline"],
+  animationParams: [
+    { key: "glitchIntensity", label: "Glitch intensity", type: "timing", default: 12 },
+  ],
+  defaultDuration: 3 * FPS,
+  minDuration: 2 * FPS,
+  maxDuration: 5 * FPS,
+};
+
+const typewriterMotion: MotionTemplateDef = {
+  id: "typewriter",
+  name: "Typewriter",
+  description: "Character-by-character reveal with blinking cursor. Measured and deliberate.",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: true,
+  layoutSupported: true,
+  copySlots: ["headline", "detail", "tagline"],
+  animationParams: [
+    { key: "charSpeed", label: "Character speed", type: "timing", default: 2 },
+    { key: "cursorBlink", label: "Cursor blink", type: "toggle", default: true },
+  ],
+  defaultDuration: 4 * FPS,
+  minDuration: 2.5 * FPS,
+  maxDuration: 8 * FPS,
+};
+
+const parallaxDepthMotion: MotionTemplateDef = {
+  id: "parallax-depth",
+  name: "Parallax Depth",
+  description: "Multi-layer text at different z-depths, drifting at different speeds.",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: false,
+  layoutSupported: false,
+  copySlots: ["headline", "detail", "tagline"],
+  animationParams: [
+    { key: "driftSpeed", label: "Drift speed", type: "timing", default: 10 },
+  ],
+  defaultDuration: 4 * FPS,
+  minDuration: 2.5 * FPS,
+  maxDuration: 6 * FPS,
+};
+
+const shutterMotion: MotionTemplateDef = {
+  id: "shutter",
+  name: "Shutter",
+  description: "Horizontal slats open like a camera shutter to reveal content beneath.",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: false,
+  layoutSupported: true,
+  copySlots: ["headline", "detail", "tagline"],
+  animationParams: [
+    { key: "slatCount", label: "Slat count", type: "timing", default: 8 },
+    { key: "openSpeed", label: "Open speed", type: "timing", default: 12 },
+  ],
+  defaultDuration: 3.5 * FPS,
+  minDuration: 2 * FPS,
+  maxDuration: 6 * FPS,
+};
+
+const chromaticPulseMotion: MotionTemplateDef = {
+  id: "chromatic-pulse",
+  name: "Chromatic Pulse",
+  description: "RGB offset text that contracts to clean alignment. High-energy opener.",
+  category: "motion-only",
+  staticCounterpart: null,
+  overlayCapable: true,
+  layoutSupported: false,
+  copySlots: ["headline", "tagline"],
+  animationParams: [
+    { key: "splitDistance", label: "Channel split distance", type: "timing", default: 15 },
+    { key: "collapseSpeed", label: "Collapse speed", type: "timing", default: 20 },
+  ],
+  defaultDuration: 3 * FPS,
+  minDuration: 2 * FPS,
+  maxDuration: 5 * FPS,
+};
+
 export const ALL_MOTION_TEMPLATES: MotionTemplateDef[] = [
   announcementBoldMotion,
   announcementMinimalMotion,
@@ -382,6 +470,11 @@ export const ALL_MOTION_TEMPLATES: MotionTemplateDef[] = [
   isolationMotion,
   verticalTypeMotion,
   stripeCutMotion,
+  glitchMotion,
+  typewriterMotion,
+  parallaxDepthMotion,
+  shutterMotion,
+  chromaticPulseMotion,
 ];
 
 export function getMotionTemplate(id: string): MotionTemplateDef | undefined {

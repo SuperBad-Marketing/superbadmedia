@@ -1301,6 +1301,338 @@ const portfolioCropBleed: TemplateDef = {
   },
 };
 
+/* ------------------------------------------------------------------ */
+/* Neon Glow — chained text-shadows creating a neon tube effect        */
+/* ------------------------------------------------------------------ */
+
+const announcementNeon: TemplateDef = {
+  id: "announcement-neon",
+  name: "Neon Glow",
+  contentType: "announcement",
+  copySlots: ["headline", "detail", "tagline"],
+  renderHtml(copy, ratio, options) {
+    const { width, height } = ASPECT_DIMENSIONS[ratio];
+    const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const s = scaleForRatio(ratio);
+    const headlineSize = Math.round(96 * s);
+    const detailSize = Math.round(18 * s);
+    const taglineSize = Math.round(16 * s);
+    const footerSize = Math.round(11 * s);
+    const padX = Math.round(56 * s);
+    const padY = Math.round(56 * s);
+    const glowSpread1 = Math.round(10 * s);
+    const glowSpread2 = Math.round(30 * s);
+    const glowSpread3 = Math.round(60 * s);
+
+    return `<!DOCTYPE html><html><head><style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      ${ff}
+      body { width: ${width}px; height: ${height}px; background: #0A0A08; overflow: hidden; position: relative; font-family: 'Body', sans-serif; color: ${p.text}; }
+      .wall-texture {
+        position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(ellipse 90% 70% at 50% 35%, ${p.primary}08, transparent 60%);
+      }
+      .headline {
+        position: absolute; top: 50%; left: ${padX}px; right: ${padX}px;
+        transform: translateY(-55%);
+        font-family: 'Display'; font-weight: 900;
+        font-size: ${headlineSize}px; line-height: 0.95; letter-spacing: -2px;
+        color: ${p.text}F0;
+        text-shadow:
+          0 0 ${glowSpread1}px ${p.primary}CC,
+          0 0 ${glowSpread2}px ${p.primary}66,
+          0 0 ${glowSpread3}px ${p.primary}22,
+          0 0 ${Math.round(4 * s)}px ${p.text}80;
+      }
+      .detail { position: absolute; bottom: ${padY + Math.round(36 * s)}px; left: ${padX}px; font-family: 'Body'; font-size: ${detailSize}px; color: ${p.text}80; max-width: 60%; line-height: 1.5; }
+      .tagline { position: absolute; bottom: ${padY + Math.round(36 * s)}px; right: ${padX}px; font-family: 'Body'; font-style: italic; font-size: ${taglineSize}px; color: ${p.primary}99; text-align: right; }
+      .footer { position: absolute; bottom: ${padY}px; left: 0; right: 0; text-align: center; font-family: 'Label'; font-size: ${footerSize}px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}20; }
+    </style></head><body>
+      <div class="wall-texture"></div>
+      <div class="headline">${escapeHtml(copy.headline || "")}</div>
+      <div class="detail">${escapeHtml(copy.detail || "")}</div>
+      <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
+      <div class="footer">superbadmedia.com.au</div>
+    </body></html>`;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Gradient Text — headline filled with a gradient via background-clip */
+/* ------------------------------------------------------------------ */
+
+const antiMotivationGradient: TemplateDef = {
+  id: "anti-motivation-gradient",
+  name: "Gradient Fill",
+  contentType: "anti_motivation",
+  copySlots: ["headline", "tagline"],
+  renderHtml(copy, ratio, options) {
+    const { width, height } = ASPECT_DIMENSIONS[ratio];
+    const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const s = scaleForRatio(ratio);
+    const headlineSize = Math.round(110 * s);
+    const taglineSize = Math.round(16 * s);
+    const footerSize = Math.round(11 * s);
+    const padX = Math.round(56 * s);
+    const padY = Math.round(56 * s);
+
+    return `<!DOCTYPE html><html><head><style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      ${ff}
+      body { width: ${width}px; height: ${height}px; background: ${p.background}; overflow: hidden; position: relative; font-family: 'Body', sans-serif; color: ${p.text}; display: flex; align-items: center; justify-content: center; }
+      .content { padding: 0 ${padX}px; text-align: center; max-width: 95%; }
+      .headline {
+        font-family: 'Display'; font-weight: 900;
+        font-size: ${headlineSize}px; line-height: 0.95; letter-spacing: -3px;
+        background: linear-gradient(135deg, ${p.primary} 0%, ${p.accent} 50%, ${p.text} 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .rule { width: ${Math.round(60 * s)}px; height: 2px; background: ${p.primary}40; margin: ${Math.round(24 * s)}px auto 0; }
+      .tagline { position: absolute; bottom: ${padY}px; left: 0; right: 0; text-align: center; font-family: 'Body'; font-style: italic; font-size: ${taglineSize}px; color: ${p.accent}80; }
+      .footer { position: absolute; bottom: ${padY - Math.round(20 * s)}px; left: 0; right: 0; text-align: center; font-family: 'Label'; font-size: ${footerSize}px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}30; }
+    </style></head><body>
+      <div class="content">
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
+        <div class="rule"></div>
+      </div>
+      <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
+      <div class="footer">superbadmedia.com.au</div>
+    </body></html>`;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Spotlight — cone gradient focused on the headline                   */
+/* ------------------------------------------------------------------ */
+
+const tipsSpotlight: TemplateDef = {
+  id: "tips-spotlight",
+  name: "Spotlight",
+  contentType: "tips",
+  copySlots: ["headline", "detail", "tagline"],
+  renderHtml(copy, ratio, options) {
+    const { width, height } = ASPECT_DIMENSIONS[ratio];
+    const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const s = scaleForRatio(ratio);
+    const headlineSize = Math.round(72 * s);
+    const detailSize = Math.round(18 * s);
+    const taglineSize = Math.round(16 * s);
+    const footerSize = Math.round(11 * s);
+    const padX = Math.round(56 * s);
+    const padY = Math.round(56 * s);
+
+    return `<!DOCTYPE html><html><head><style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      ${ff}
+      body { width: ${width}px; height: ${height}px; background: #080808; overflow: hidden; position: relative; font-family: 'Body', sans-serif; color: ${p.text}; }
+      .spotlight {
+        position: absolute; inset: 0; pointer-events: none;
+        background:
+          conic-gradient(from 180deg at 50% 0%, transparent 30%, ${p.primary}18 47%, ${p.primary}30 50%, ${p.primary}18 53%, transparent 70%),
+          radial-gradient(ellipse 60% 80% at 50% 10%, ${p.primary}15, transparent 60%);
+      }
+      .content { position: absolute; top: ${Math.round(height * 0.25)}px; left: ${padX}px; right: ${padX}px; text-align: center; z-index: 1; }
+      .label { font-family: 'Label'; font-size: ${Math.round(10 * s)}px; letter-spacing: 5px; text-transform: uppercase; color: ${p.primary}80; margin-bottom: ${Math.round(16 * s)}px; }
+      .headline { font-family: 'Display'; font-weight: 900; font-size: ${headlineSize}px; line-height: 1.05; letter-spacing: -2px; color: ${p.text}; text-shadow: 0 0 ${Math.round(40 * s)}px ${p.primary}20; }
+      .detail { position: absolute; bottom: ${padY + Math.round(36 * s)}px; left: ${padX}px; right: ${padX}px; font-family: 'Body'; font-size: ${detailSize}px; color: ${p.text}80; line-height: 1.6; text-align: center; }
+      .tagline { position: absolute; bottom: ${padY + Math.round(4 * s)}px; left: 0; right: 0; text-align: center; font-family: 'Body'; font-style: italic; font-size: ${taglineSize}px; color: ${p.accent}80; }
+      .footer { position: absolute; bottom: ${padY - Math.round(16 * s)}px; left: 0; right: 0; text-align: center; font-family: 'Label'; font-size: ${footerSize}px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}18; }
+    </style></head><body>
+      <div class="spotlight"></div>
+      <div class="content">
+        <div class="label">SuperBad</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
+      </div>
+      <div class="detail">${escapeHtml(copy.detail || "")}</div>
+      <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
+      <div class="footer">superbadmedia.com.au</div>
+    </body></html>`;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Blueprint — technical drawing aesthetic with dashed grids            */
+/* ------------------------------------------------------------------ */
+
+const btsBlueprint: TemplateDef = {
+  id: "bts-blueprint",
+  name: "Blueprint",
+  contentType: "behind_the_scenes",
+  copySlots: ["headline", "tagline"],
+  renderHtml(copy, ratio, options) {
+    const { width, height } = ASPECT_DIMENSIONS[ratio];
+    const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const s = scaleForRatio(ratio);
+    const headlineSize = Math.round(52 * s);
+    const annotSize = Math.round(10 * s);
+    const taglineSize = Math.round(15 * s);
+    const footerSize = Math.round(11 * s);
+    const padX = Math.round(48 * s);
+    const padY = Math.round(48 * s);
+    const gridSpacing = Math.round(40 * s);
+
+    return `<!DOCTYPE html><html><head><style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      ${ff}
+      @font-face { font-family: 'Mono'; src: local('Courier New'), local('monospace'); font-weight: 400; }
+      body { width: ${width}px; height: ${height}px; background: ${p.background}; overflow: hidden; position: relative; font-family: 'Body', sans-serif; color: ${p.text}; }
+      .grid {
+        position: absolute; inset: 0; pointer-events: none;
+        background-image:
+          repeating-linear-gradient(0deg, transparent, transparent ${gridSpacing - 1}px, ${p.primary}0C ${gridSpacing - 1}px, ${p.primary}0C ${gridSpacing}px),
+          repeating-linear-gradient(90deg, transparent, transparent ${gridSpacing - 1}px, ${p.primary}0C ${gridSpacing - 1}px, ${p.primary}0C ${gridSpacing}px);
+      }
+      .dimension-h {
+        position: absolute; top: ${Math.round(height * 0.28)}px; left: ${padX}px; right: ${padX}px; height: 1px;
+        border-top: 1px dashed ${p.primary}30;
+      }
+      .dimension-h::before, .dimension-h::after {
+        content: ''; position: absolute; top: -${Math.round(4 * s)}px; width: 1px; height: ${Math.round(9 * s)}px; background: ${p.primary}30;
+      }
+      .dimension-h::before { left: 0; }
+      .dimension-h::after { right: 0; }
+      .dimension-label { position: absolute; top: ${Math.round(height * 0.28) - Math.round(16 * s)}px; left: 50%; transform: translateX(-50%); font-family: 'Mono', monospace; font-size: ${annotSize}px; color: ${p.primary}50; letter-spacing: 1px; }
+      .corner-tl { position: absolute; top: ${Math.round(16 * s)}px; left: ${Math.round(16 * s)}px; width: ${Math.round(20 * s)}px; height: ${Math.round(20 * s)}px; border-top: 2px solid ${p.primary}40; border-left: 2px solid ${p.primary}40; }
+      .corner-br { position: absolute; bottom: ${Math.round(16 * s)}px; right: ${Math.round(16 * s)}px; width: ${Math.round(20 * s)}px; height: ${Math.round(20 * s)}px; border-bottom: 2px solid ${p.primary}40; border-right: 2px solid ${p.primary}40; }
+      .headline {
+        position: absolute; top: ${Math.round(height * 0.35)}px; left: ${padX}px; right: ${padX}px;
+        font-family: 'Display'; font-weight: 900; font-size: ${headlineSize}px; line-height: 1.15;
+      }
+      .annotation { position: absolute; bottom: ${padY + Math.round(60 * s)}px; left: ${padX}px; font-family: 'Mono', monospace; font-size: ${annotSize}px; color: ${p.text}35; letter-spacing: 1px; text-transform: uppercase; }
+      .revision { position: absolute; top: ${padY}px; right: ${padX}px; font-family: 'Mono', monospace; font-size: ${annotSize}px; color: ${p.primary}50; }
+      .tagline { position: absolute; bottom: ${padY + Math.round(28 * s)}px; left: ${padX}px; font-family: 'Body'; font-style: italic; font-size: ${taglineSize}px; color: ${p.accent}; }
+      .footer { position: absolute; bottom: ${padY}px; right: ${padX}px; font-family: 'Label'; font-size: ${footerSize}px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}30; }
+    </style></head><body>
+      <div class="grid"></div>
+      <div class="corner-tl"></div>
+      <div class="corner-br"></div>
+      <div class="dimension-h"></div>
+      <div class="dimension-label">${width}px</div>
+      <div class="revision">REV. 01</div>
+      <div class="annotation">scope: brand identity · scale: 1:1 · date: ${new Date().toISOString().slice(0, 10)}</div>
+      <div class="headline">${escapeHtml(copy.headline || "")}</div>
+      <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
+      <div class="footer">superbadmedia.com.au</div>
+    </body></html>`;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Cinematic Bars — letterbox framing with centred title               */
+/* ------------------------------------------------------------------ */
+
+const portfolioCinematic: TemplateDef = {
+  id: "portfolio-cinematic",
+  name: "Cinematic",
+  contentType: "portfolio",
+  copySlots: ["headline", "detail", "tagline"],
+  renderHtml(copy, ratio, options) {
+    const { width, height } = ASPECT_DIMENSIONS[ratio];
+    const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const s = scaleForRatio(ratio);
+    const headlineSize = Math.round(76 * s);
+    const detailSize = Math.round(13 * s);
+    const taglineSize = Math.round(15 * s);
+    const footerSize = Math.round(11 * s);
+    const padX = Math.round(56 * s);
+    const barH = Math.round(height * 0.12);
+
+    return `<!DOCTYPE html><html><head><style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      ${ff}
+      body { width: ${width}px; height: ${height}px; background: ${p.background}; overflow: hidden; position: relative; font-family: 'Body', sans-serif; color: ${p.text}; }
+      .bar-top, .bar-bottom { position: absolute; left: 0; right: 0; height: ${barH}px; background: #000; z-index: 10; }
+      .bar-top { top: 0; }
+      .bar-bottom { bottom: 0; }
+      .anamorphic-flare {
+        position: absolute; top: 42%; left: -20%; right: -20%; height: 2px; z-index: 2; pointer-events: none;
+        background: linear-gradient(90deg, transparent 15%, ${p.accent}18 35%, ${p.accent}30 50%, ${p.accent}18 65%, transparent 85%);
+        box-shadow: 0 0 ${Math.round(60 * s)}px ${Math.round(30 * s)}px ${p.accent}08;
+      }
+      .content { position: absolute; top: ${barH}px; bottom: ${barH}px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 ${padX}px; z-index: 1; }
+      .headline { font-family: 'Display'; font-weight: 900; font-size: ${headlineSize}px; line-height: 0.95; letter-spacing: ${Math.round(6 * s)}px; text-transform: uppercase; text-align: center; }
+      .rule { width: ${Math.round(80 * s)}px; height: 1px; background: ${p.accent}60; margin: ${Math.round(20 * s)}px 0; }
+      .detail { font-family: 'Label'; font-size: ${detailSize}px; letter-spacing: ${Math.round(4 * s)}px; text-transform: uppercase; color: ${p.text}60; text-align: center; }
+      .tagline { position: absolute; bottom: ${barH + Math.round(16 * s)}px; left: 0; right: 0; text-align: center; font-family: 'Body'; font-style: italic; font-size: ${taglineSize}px; color: ${p.accent}80; z-index: 5; }
+      .footer { position: absolute; bottom: ${Math.round(barH * 0.35)}px; left: 0; right: 0; text-align: center; font-family: 'Label'; font-size: ${footerSize}px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}20; z-index: 15; }
+    </style></head><body>
+      <div class="bar-top"></div>
+      <div class="bar-bottom"></div>
+      <div class="anamorphic-flare"></div>
+      <div class="content">
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
+        <div class="rule"></div>
+        <div class="detail">${escapeHtml(copy.detail || "")}</div>
+      </div>
+      <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
+      <div class="footer">superbadmedia.com.au</div>
+    </body></html>`;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Halftone — CSS radial-gradient pattern as texture behind content     */
+/* ------------------------------------------------------------------ */
+
+const tipsHalftone: TemplateDef = {
+  id: "tips-halftone",
+  name: "Halftone",
+  contentType: "tips",
+  copySlots: ["headline", "detail", "tagline"],
+  renderHtml(copy, ratio, options) {
+    const { width, height } = ASPECT_DIMENSIONS[ratio];
+    const ff = options?.fontFaces ?? DEFAULT_FONT_FACES;
+    const p = options?.palette ?? DEFAULT_PALETTE;
+    const s = scaleForRatio(ratio);
+    const headlineSize = Math.round(68 * s);
+    const detailSize = Math.round(18 * s);
+    const taglineSize = Math.round(16 * s);
+    const footerSize = Math.round(11 * s);
+    const padX = Math.round(56 * s);
+    const padY = Math.round(56 * s);
+    const dotSize = Math.round(3 * s);
+    const dotSpacing = Math.round(12 * s);
+
+    return `<!DOCTYPE html><html><head><style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      ${ff}
+      body { width: ${width}px; height: ${height}px; background: ${p.background}; overflow: hidden; position: relative; font-family: 'Body', sans-serif; color: ${p.text}; }
+      .halftone {
+        position: absolute; inset: 0; pointer-events: none; opacity: 0.4;
+        background-image: radial-gradient(circle ${dotSize}px at ${dotSize}px ${dotSize}px, ${p.primary}25 100%, transparent 100%);
+        background-size: ${dotSpacing}px ${dotSpacing}px;
+      }
+      .halftone-fade {
+        position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(180deg, ${p.background}00 0%, ${p.background} 50%, ${p.background} 100%);
+      }
+      .content { position: absolute; bottom: ${padY}px; left: ${padX}px; right: ${padX}px; z-index: 1; }
+      .label { font-family: 'Label'; font-size: ${Math.round(10 * s)}px; letter-spacing: 5px; text-transform: uppercase; color: ${p.primary}; margin-bottom: ${Math.round(16 * s)}px; }
+      .headline { font-family: 'Display'; font-weight: 900; font-size: ${headlineSize}px; line-height: 1.05; letter-spacing: -2px; margin-bottom: ${Math.round(20 * s)}px; }
+      .detail { font-family: 'Body'; font-size: ${detailSize}px; color: ${p.text}99; line-height: 1.6; max-width: 75%; margin-bottom: ${Math.round(16 * s)}px; }
+      .tagline { font-family: 'Body'; font-style: italic; font-size: ${taglineSize}px; color: ${p.accent}; }
+      .footer { position: absolute; top: ${padY}px; right: ${padX}px; font-family: 'Label'; font-size: ${footerSize}px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}30; z-index: 2; }
+    </style></head><body>
+      <div class="halftone"></div>
+      <div class="halftone-fade"></div>
+      <div class="content">
+        <div class="label">SuperBad</div>
+        <div class="headline">${escapeHtml(copy.headline || "")}</div>
+        <div class="detail">${escapeHtml(copy.detail || "")}</div>
+        <div class="tagline">${escapeHtml(copy.tagline || "")}</div>
+      </div>
+      <div class="footer">superbadmedia.com.au</div>
+    </body></html>`;
+  },
+};
+
 export const ALL_TEMPLATES: TemplateDef[] = [
   announcementBold,
   announcementMinimal,
@@ -1328,6 +1660,12 @@ export const ALL_TEMPLATES: TemplateDef[] = [
   portfolioEditorial,
   portfolioDiagonal,
   portfolioCropBleed,
+  announcementNeon,
+  antiMotivationGradient,
+  tipsSpotlight,
+  tipsHalftone,
+  btsBlueprint,
+  portfolioCinematic,
 ];
 
 export function getTemplate(id: string): TemplateDef | undefined {
