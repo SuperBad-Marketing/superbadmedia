@@ -2,7 +2,7 @@
 -- These target niche retainer prospects that broad sweep categories miss.
 -- All Melbourne-centred with 50km radius unless the vertical is national/global.
 
-INSERT INTO search_verticals (id, name, category, location, location_lat, location_lng, radius_km, country_code, standing_brief, weight, is_active, search_count, created_at)
+INSERT OR IGNORE INTO search_verticals (id, name, category, location, location_lat, location_lng, radius_km, country_code, standing_brief, weight, is_active, search_count, created_at)
 VALUES
   -- Retainer-track niches (high-value, established businesses)
   ('sv_caravan_outdoor', 'Caravan & Outdoor', 'caravan accessories and outdoor equipment', 'Melbourne, Australia', -37.8136, 144.9631, 100, 'AU', 'Established businesses in the caravan, camping, and outdoor recreation space. Looking for brands with existing products and customer base that need better content and digital presence.', 7, 1, 0, unixepoch() * 1000),

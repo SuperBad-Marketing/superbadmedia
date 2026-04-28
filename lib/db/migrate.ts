@@ -119,8 +119,8 @@ export function runSeeds(
       ? raw.split("--> statement-breakpoint")
       : raw.split(/;\s*\n/).map((s) => s.split("\n").filter(l => !l.trim().startsWith("--")).join("\n").trim()).filter(Boolean);
     for (const chunk of chunks) {
-      const stmt = chunk.trim();
-      if (!stmt || stmt.startsWith("--")) continue;
+      const stmt = chunk.split("\n").filter(l => !l.trim().startsWith("--")).join("\n").trim();
+      if (!stmt) continue;
       const execStr = stmt.endsWith(";") ? stmt : `${stmt};`;
       try {
         sqlite.exec(execStr);
