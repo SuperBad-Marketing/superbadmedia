@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send, MessageSquare } from "lucide-react";
 import type { ContentPlanSlot } from "@/lib/db/schema/instagram";
 import type { EnhancedContentPlanSlot } from "@/lib/db/schema/instagram-competitive";
@@ -886,17 +887,74 @@ function SlotCard({
   );
 }
 
+const STRATEGY_PHASES = [
+  { key: "gather", label: "Gathering brand voice", durationMs: 2200 },
+  { key: "competitors", label: "Analysing competitors", durationMs: 2800 },
+  { key: "ideas", label: "Mining braindump ideas", durationMs: 1800 },
+  { key: "strategy", label: "Generating strategy", durationMs: 8000 },
+  { key: "plan", label: "Building content plan", durationMs: 2500 },
+  { key: "finalise", label: "Creating tasks", durationMs: 1700 },
+] as const;
+
+const TOTAL_ESTIMATED_MS = STRATEGY_PHASES.reduce((s, p) => s + p.durationMs, 0);
+
 function GenerateStrategySection() {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activePhase, setActivePhase] = useState(0);
+  const [phaseProgress, setPhaseProgress] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [done, setDone] = useState(false);
+  const startRef = useRef(0);
+  const frameRef = useRef<number>(0);
+
+  const tick = useCallback(() => {
+    const now = performance.now();
+    const elapsed = now - startRef.current;
+    setElapsedMs(elapsed);
+
+    let cumulative = 0;
+    let phase = 0;
+    for (let i = 0; i < STRATEGY_PHASES.length; i++) {
+      if (elapsed < cumulative + STRATEGY_PHASES[i].durationMs) {
+        phase = i;
+        const intoPhase = elapsed - cumulative;
+        setPhaseProgress(Math.min(intoPhase / STRATEGY_PHASES[i].durationMs, 0.95));
+        break;
+      }
+      cumulative += STRATEGY_PHASES[i].durationMs;
+      if (i === STRATEGY_PHASES.length - 1) {
+        phase = i;
+        setPhaseProgress(0.95);
+      }
+    }
+    setActivePhase(phase);
+    frameRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  useEffect(() => {
+    if (!generating || done) return;
+    startRef.current = performance.now();
+    frameRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [generating, done, tick]);
 
   async function handleGenerate() {
     setGenerating(true);
     setError(null);
+    setActivePhase(0);
+    setPhaseProgress(0);
+    setElapsedMs(0);
+    setDone(false);
     try {
       const result = await generateStrategyAction();
+      setDone(true);
+      cancelAnimationFrame(frameRef.current);
       if (result.ok) {
+        setActivePhase(STRATEGY_PHASES.length - 1);
+        setPhaseProgress(1);
+        await new Promise((r) => setTimeout(r, 800));
         toast.success("Strategy generated — your next 5 posts are ready.");
         router.refresh();
       } else {
@@ -904,63 +962,251 @@ function GenerateStrategySection() {
         toast.error(result.error);
       }
     } catch {
+      setDone(true);
+      cancelAnimationFrame(frameRef.current);
       setError("Strategy generation failed. Try again.");
     } finally {
       setGenerating(false);
     }
   }
 
+  const globalProgress = Math.min(elapsedMs / TOTAL_ESTIMATED_MS, done ? 1 : 0.97);
+  const remainingSeconds = done
+    ? 0
+    : Math.max(1, Math.ceil((TOTAL_ESTIMATED_MS - elapsedMs) / 1000));
+
   return (
     <div
-      className="rounded-xl border p-8 text-center"
+      className="rounded-xl border p-8"
       style={{
         backgroundColor: "var(--color-neutral-900)",
         borderColor: "rgba(253, 245, 230, 0.06)",
       }}
     >
-      <div
-        className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full"
-        style={{ backgroundColor: "rgba(244, 160, 176, 0.1)" }}
-      >
-        <Sparkles
-          className="size-6 text-[color:var(--color-brand-pink)]"
-          strokeWidth={1.5}
-        />
-      </div>
-      <h3 className="font-[family-name:var(--font-display)] text-[20px] text-[color:var(--color-brand-cream)] text-balance">
-        Generate your first strategy
-      </h3>
-      <p className="mx-auto mt-2 max-w-[480px] font-[family-name:var(--font-body)] text-[14px] leading-[1.55] text-[color:var(--color-neutral-400)] text-pretty">
-        No existing posts needed. The platform uses your Brand DNA, competitive
-        intelligence from watched accounts, and your braindump ideas to create a
-        step-by-step content plan.
-      </p>
-      {error && (
-        <p className="mt-3 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-red)]">
-          {error}
-        </p>
-      )}
-      <button
-        onClick={handleGenerate}
-        disabled={generating}
-        className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition-opacity disabled:opacity-50"
-        style={{
-          letterSpacing: "1.5px",
-          backgroundColor: "var(--color-brand-red)",
-        }}
-      >
-        {generating ? (
-          <>
-            <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
-            Generating…
-          </>
+      <AnimatePresence mode="wait">
+        {!generating && !done ? (
+          <motion.div
+            key="idle"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center"
+          >
+            <div
+              className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full"
+              style={{ backgroundColor: "rgba(244, 160, 176, 0.1)" }}
+            >
+              <Sparkles
+                className="size-6 text-[color:var(--color-brand-pink)]"
+                strokeWidth={1.5}
+              />
+            </div>
+            <h3 className="font-[family-name:var(--font-display)] text-[20px] text-[color:var(--color-brand-cream)] text-balance">
+              Generate your first strategy
+            </h3>
+            <p className="mx-auto mt-2 max-w-[480px] font-[family-name:var(--font-body)] text-[14px] leading-[1.55] text-[color:var(--color-neutral-400)] text-pretty">
+              No existing posts needed. The platform uses your Brand DNA,
+              competitive intelligence from watched accounts, and your braindump
+              ideas to create a step-by-step content plan.
+            </p>
+            {error && (
+              <p className="mt-3 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-red)]">
+                {error}
+              </p>
+            )}
+            <button
+              onClick={handleGenerate}
+              className="mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-3 font-[family-name:var(--font-label)] text-[11px] uppercase text-[color:var(--color-brand-cream)] transition-opacity hover:opacity-90"
+              style={{
+                letterSpacing: "1.5px",
+                backgroundColor: "var(--color-brand-red)",
+              }}
+            >
+              <Sparkles className="size-4" strokeWidth={1.5} />
+              Generate Strategy
+            </button>
+          </motion.div>
         ) : (
-          <>
-            <Sparkles className="size-4" strokeWidth={1.5} />
-            Generate Strategy
-          </>
+          <motion.div
+            key="generating"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Header */}
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex size-9 items-center justify-center rounded-full"
+                  style={{ backgroundColor: "rgba(244, 160, 176, 0.1)" }}
+                >
+                  <Sparkles
+                    className="size-4 text-[color:var(--color-brand-pink)]"
+                    strokeWidth={1.5}
+                  />
+                </div>
+                <div>
+                  <h3 className="font-[family-name:var(--font-display)] text-[16px] leading-none text-[color:var(--color-brand-cream)]">
+                    {done ? "Strategy ready" : "Building strategy"}
+                  </h3>
+                  <p className="mt-1 font-[family-name:var(--font-body)] text-[12px] tabular-nums text-[color:var(--color-neutral-500)]">
+                    {done ? (
+                      "Your content plan is ready to review."
+                    ) : (
+                      <>
+                        <Clock className="mr-1 inline size-3" strokeWidth={1.5} />
+                        ~{remainingSeconds}s remaining
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <span className="font-[family-name:var(--font-label)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]" style={{ letterSpacing: "0.5px" }}>
+                {Math.round(globalProgress * 100)}%
+              </span>
+            </div>
+
+            {/* Global progress bar */}
+            <div
+              className="mb-6 h-[3px] w-full overflow-hidden rounded-full"
+              style={{ backgroundColor: "rgba(253, 245, 230, 0.06)" }}
+            >
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: "var(--color-brand-pink)" }}
+                initial={{ width: "0%" }}
+                animate={{ width: `${globalProgress * 100}%` }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </div>
+
+            {/* Phase list */}
+            <div className="space-y-0">
+              {STRATEGY_PHASES.map((phase, i) => {
+                const isActive = generating && activePhase === i && !done;
+                const isComplete = done || activePhase > i;
+
+                return (
+                  <div
+                    key={phase.key}
+                    className="flex items-center gap-3 py-2"
+                    style={{
+                      borderTop:
+                        i > 0
+                          ? "1px solid rgba(253, 245, 230, 0.04)"
+                          : undefined,
+                    }}
+                  >
+                    {/* Status indicator */}
+                    <div className="flex size-6 shrink-0 items-center justify-center">
+                      <AnimatePresence mode="wait">
+                        {isComplete ? (
+                          <motion.div
+                            key="done"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{
+                              type: "spring",
+                              mass: 1,
+                              stiffness: 220,
+                              damping: 25,
+                            }}
+                            className="flex size-5 items-center justify-center rounded-full"
+                            style={{
+                              backgroundColor: "rgba(123, 174, 126, 0.15)",
+                            }}
+                          >
+                            <Check
+                              className="size-3 text-[#7BAE7E]"
+                              strokeWidth={2}
+                            />
+                          </motion.div>
+                        ) : isActive ? (
+                          <motion.div
+                            key="active"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="relative flex size-5 items-center justify-center"
+                          >
+                            <motion.div
+                              className="absolute inset-0 rounded-full"
+                              style={{
+                                backgroundColor: "var(--color-brand-pink)",
+                              }}
+                              animate={{ opacity: [0.15, 0.3, 0.15] }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
+                            />
+                            <div
+                              className="size-2 rounded-full"
+                              style={{
+                                backgroundColor: "var(--color-brand-pink)",
+                              }}
+                            />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="pending"
+                            className="size-1.5 rounded-full"
+                            style={{
+                              backgroundColor: "var(--color-neutral-700)",
+                            }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Label */}
+                    <span
+                      className="font-[family-name:var(--font-body)] text-[13px] transition-colors duration-300"
+                      style={{
+                        color: isActive
+                          ? "var(--color-brand-cream)"
+                          : isComplete
+                            ? "var(--color-neutral-500)"
+                            : "var(--color-neutral-600)",
+                      }}
+                    >
+                      {phase.label}
+                    </span>
+
+                    {/* Per-phase micro bar (active only) */}
+                    {isActive && (
+                      <div className="ml-auto flex items-center gap-2">
+                        <div
+                          className="h-[2px] w-16 overflow-hidden rounded-full"
+                          style={{
+                            backgroundColor: "rgba(253, 245, 230, 0.06)",
+                          }}
+                        >
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{
+                              backgroundColor: "var(--color-brand-pink)",
+                              opacity: 0.6,
+                            }}
+                            animate={{
+                              width: `${phaseProgress * 100}%`,
+                            }}
+                            transition={{
+                              duration: 0.4,
+                              ease: [0.16, 1, 0.3, 1],
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
         )}
-      </button>
+      </AnimatePresence>
     </div>
   );
 }

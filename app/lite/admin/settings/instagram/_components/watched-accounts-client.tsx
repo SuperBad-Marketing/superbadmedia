@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Trash2, Loader2, Eye, Users } from "lucide-react";
+import { Plus, Trash2, Loader2, Eye, Users, Check } from "lucide-react";
 import {
   addWatchedAccountAction,
   removeWatchedAccountAction,
+  updateWatchedAccountCategoryAction,
 } from "@/app/lite/content/instagram/strategy-actions";
 import { WATCHED_ACCOUNT_CATEGORIES } from "@/lib/db/schema/instagram-competitive";
 
@@ -46,6 +47,21 @@ export function WatchedAccountsClient({ accounts }: Props) {
   const [category, setCategory] = useState<string>("wildcard");
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+
+  async function handleCategoryChange(accountId: string, newCategory: string) {
+    const result = await updateWatchedAccountCategoryAction({
+      accountId,
+      category: newCategory,
+    });
+    if (result.ok) {
+      toast.success("Category updated.");
+      router.refresh();
+    } else {
+      toast.error(result.error);
+    }
+    setEditingCategory(null);
+  }
 
   async function handleAdd() {
     if (!username.trim()) return;
@@ -169,16 +185,65 @@ export function WatchedAccountsClient({ accounts }: Props) {
                     <span className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
                       @{account.username}
                     </span>
-                    <span
-                      className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[8px] uppercase"
-                      style={{
-                        letterSpacing: "0.8px",
-                        backgroundColor: "rgba(253, 245, 230, 0.05)",
-                        color: catInfo.color,
-                      }}
-                    >
-                      {catInfo.label}
-                    </span>
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          setEditingCategory(
+                            editingCategory === account.id ? null : account.id,
+                          )
+                        }
+                        className="rounded-full px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[8px] uppercase transition-opacity hover:opacity-80"
+                        style={{
+                          letterSpacing: "0.8px",
+                          backgroundColor: "rgba(253, 245, 230, 0.05)",
+                          color: catInfo.color,
+                        }}
+                      >
+                        {catInfo.label}
+                      </button>
+                      {editingCategory === account.id && (
+                        <div
+                          className="absolute left-0 top-full z-10 mt-1 rounded-lg border py-1 shadow-lg"
+                          style={{
+                            backgroundColor: "var(--color-neutral-800)",
+                            borderColor: "rgba(253, 245, 230, 0.1)",
+                            minWidth: "120px",
+                          }}
+                        >
+                          {WATCHED_ACCOUNT_CATEGORIES.map((cat) => {
+                            const info =
+                              CATEGORY_LABELS[cat] ?? CATEGORY_LABELS.wildcard;
+                            const isSelected = cat === account.category;
+                            return (
+                              <button
+                                key={cat}
+                                onClick={() =>
+                                  handleCategoryChange(account.id, cat)
+                                }
+                                className="flex w-full items-center gap-2 px-3 py-1.5 text-left font-[family-name:var(--font-body)] text-[12px] transition-colors hover:bg-[color:var(--color-neutral-700)]"
+                                style={{
+                                  color: isSelected
+                                    ? info.color
+                                    : "var(--color-neutral-300)",
+                                }}
+                              >
+                                <span
+                                  className="size-1.5 rounded-full"
+                                  style={{ backgroundColor: info.color }}
+                                />
+                                {info.label}
+                                {isSelected && (
+                                  <Check
+                                    className="ml-auto size-3"
+                                    strokeWidth={2}
+                                  />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="mt-0.5 flex items-center gap-3 font-[family-name:var(--font-body)] text-[11px] tabular-nums text-[color:var(--color-neutral-500)]">
                     {account.followers !== null && (

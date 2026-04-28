@@ -86,6 +86,31 @@ export async function removeWatchedAccountAction(
     .where(eq(instagram_watched_accounts.id, accountId));
 
   revalidatePath("/lite/content/instagram");
+  revalidatePath("/lite/admin/settings/instagram");
+  return { ok: true, value: undefined };
+}
+
+export async function updateWatchedAccountCategoryAction(input: {
+  accountId: string;
+  category: string;
+}): Promise<ActionResult<void>> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin")
+    return { ok: false, error: "Not authorised." };
+
+  const category = WATCHED_ACCOUNT_CATEGORIES.includes(
+    input.category as WatchedAccountCategory,
+  )
+    ? (input.category as WatchedAccountCategory)
+    : "wildcard";
+
+  await db
+    .update(instagram_watched_accounts)
+    .set({ category })
+    .where(eq(instagram_watched_accounts.id, input.accountId));
+
+  revalidatePath("/lite/content/instagram");
+  revalidatePath("/lite/admin/settings/instagram");
   return { ok: true, value: undefined };
 }
 
