@@ -95,6 +95,7 @@ export const MODELS = {
   "lead-gen-reply-classify": "haiku",
   // video-studio (1)
   "video-brief-builder": "haiku",
+  "video-prompt-optimise": "sonnet",
   // client-management (3)
   "client-mgmt-bartender-opening-line": "haiku",
   "client-mgmt-chat-response": "opus",

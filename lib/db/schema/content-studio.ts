@@ -65,6 +65,9 @@ export const contentStudioPosts = sqliteTable(
 
     source_braindump_id: text("source_braindump_id"),
 
+    project_name: text("project_name"),
+    content_format: text("content_format").default("static"),
+
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),
   },

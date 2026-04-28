@@ -68,6 +68,8 @@ const createSchema = z.object({
     accent: z.string(),
     text: z.string(),
   }).optional(),
+  projectName: z.string().optional(),
+  contentFormat: z.enum(["static", "animated", "cinematic", "composite"]).optional(),
 });
 
 export async function createPostAction(input: z.infer<typeof createSchema>) {
@@ -80,13 +82,14 @@ export async function createPostAction(input: z.infer<typeof createSchema>) {
   if (!parsed.success) return { ok: false as const, error: "invalid_input" };
 
   try {
-    const { brief, contentType, slideCount, templateId, fontPairingId, paletteId, customPalette } = parsed.data;
+    const { brief, contentType, slideCount, templateId, fontPairingId, paletteId, customPalette, projectName, contentFormat } = parsed.data;
 
     const result = await generateCopy(brief, contentType, slideCount, templateId);
     if (!result.ok) return { ok: false as const, error: result.error };
 
     const now = Date.now();
     const id = crypto.randomUUID();
+    const resolvedName = projectName ?? suggestProjectName(brief, contentFormat ?? "static", contentType, null);
 
     await db.insert(contentStudioPosts).values({
       id,
@@ -100,6 +103,8 @@ export async function createPostAction(input: z.infer<typeof createSchema>) {
       font_pairing_id: fontPairingId ?? null,
       static_palette_id: paletteId ?? null,
       custom_palette_json: customPalette ? JSON.stringify(customPalette) : null,
+      project_name: resolvedName,
+      content_format: contentFormat ?? "static",
       created_at_ms: now,
       updated_at_ms: now,
     });
@@ -453,6 +458,7 @@ const createMotionSchema = z.object({
   paletteId: z.string().optional(),
   primaryAspectRatio: z.string().optional(),
   fontPairingId: z.string().optional(),
+  projectName: z.string().optional(),
 });
 
 export async function createMotionPostAction(
@@ -467,7 +473,7 @@ export async function createMotionPostAction(
   if (!parsed.success) return { ok: false as const, error: "invalid_input" };
 
   try {
-    const { brief, contentType, motionTemplateId, slideCount: reqSlides, paletteId, primaryAspectRatio, fontPairingId } =
+    const { brief, contentType, motionTemplateId, slideCount: reqSlides, paletteId, primaryAspectRatio, fontPairingId, projectName } =
       parsed.data;
     const slideCount = reqSlides ?? 1;
 
@@ -484,6 +490,7 @@ export async function createMotionPostAction(
     const defaultParams = Object.fromEntries(
       motionTemplate.animationParams.map((p) => [p.key, p.default]),
     );
+    const resolvedName = projectName ?? suggestProjectName(brief, "animated", contentType, null);
 
     await db.insert(contentStudioPosts).values({
       id,
@@ -500,6 +507,8 @@ export async function createMotionPostAction(
       animation_params_json: JSON.stringify(defaultParams),
       primary_aspect_ratio: resolvedRatio,
       font_pairing_id: fontPairingId ?? null,
+      project_name: resolvedName,
+      content_format: "animated",
       created_at_ms: now,
       updated_at_ms: now,
     });
@@ -805,10 +814,107 @@ function normaliseSlideCopy(json: unknown): SlideCopy[] {
 /* Unified brief — client name lookup + video creation from studio    */
 /* ------------------------------------------------------------------ */
 
+import { or, ne } from "drizzle-orm";
 import { companies } from "@/lib/db/schema/companies";
 import { buildBriefFromPrompt } from "@/lib/video/brief-builder";
+import { optimiseForHiggsfield } from "@/lib/video/prompt-optimiser";
 import { submitVideoJob } from "@/lib/video/higgsfield";
 import { killSwitches } from "@/lib/kill-switches";
+import { suggestProjectName } from "@/lib/content-studio/project-name";
+import type { ContentFormat } from "@/lib/content-studio/brief-parser";
+
+/* ------------------------------------------------------------------ */
+/* WIP projects — merged from content_studio_posts + video_jobs       */
+/* ------------------------------------------------------------------ */
+
+export interface WipProjectRow {
+  id: string;
+  name: string;
+  status: "brief" | "generating" | "ready" | "exported" | "failed";
+  format: ContentFormat;
+  thumbnailUrl?: string;
+  updatedAt: number;
+  source: "post" | "video";
+}
+
+export async function getWipProjectsAction(): Promise<
+  { ok: true; projects: WipProjectRow[] } | { ok: false; error: string }
+> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "unauthorized" };
+  }
+
+  const posts = await db
+    .select({
+      id: contentStudioPosts.id,
+      project_name: contentStudioPosts.project_name,
+      brief: contentStudioPosts.brief,
+      status: contentStudioPosts.status,
+      content_format: contentStudioPosts.content_format,
+      updated_at_ms: contentStudioPosts.updated_at_ms,
+    })
+    .from(contentStudioPosts)
+    .where(
+      or(
+        eq(contentStudioPosts.status, "draft"),
+        eq(contentStudioPosts.status, "rendering"),
+      ),
+    )
+    .orderBy(desc(contentStudioPosts.updated_at_ms))
+    .limit(20);
+
+  const videos = await db
+    .select({
+      id: videoJobs.id,
+      initial_prompt: videoJobs.initial_prompt,
+      status: videoJobs.status,
+      thumbnail_url: videoJobs.thumbnail_url,
+      created_at: videoJobs.created_at,
+    })
+    .from(videoJobs)
+    .where(
+      or(
+        eq(videoJobs.status, "draft"),
+        eq(videoJobs.status, "queued"),
+        eq(videoJobs.status, "generating"),
+      ),
+    )
+    .orderBy(desc(videoJobs.created_at))
+    .limit(20);
+
+  const postProjects: WipProjectRow[] = posts.map((p) => ({
+    id: p.id,
+    name: p.project_name ?? p.brief.slice(0, 40),
+    status: p.status === "rendering" ? "generating" : "brief",
+    format: (p.content_format as ContentFormat) ?? "static",
+    updatedAt: p.updated_at_ms,
+    source: "post" as const,
+  }));
+
+  const videoProjects: WipProjectRow[] = videos.map((v) => {
+    const statusMap: Record<string, WipProjectRow["status"]> = {
+      draft: "brief",
+      queued: "generating",
+      generating: "generating",
+    };
+    return {
+      id: v.id,
+      name: v.initial_prompt.slice(0, 40),
+      status: statusMap[v.status] ?? "brief",
+      format: "cinematic" as ContentFormat,
+      thumbnailUrl: v.thumbnail_url ?? undefined,
+      updatedAt: v.created_at.getTime(),
+      source: "video" as const,
+    };
+  });
+
+  const merged = [...postProjects, ...videoProjects].sort(
+    (a, b) => b.updatedAt - a.updatedAt,
+  );
+
+  return { ok: true, projects: merged.slice(0, 20) };
+}
 
 export async function getClientNamesAction(): Promise<
   { ok: true; clients: string[] } | { ok: false; error: string }
@@ -850,6 +956,13 @@ export async function createVideoFromStudioAction(
   try {
     const videoBrief = await buildBriefFromPrompt(parsed.data.brief);
 
+    const optimised = await optimiseForHiggsfield(
+      parsed.data.brief,
+      videoBrief.resolvedPrompt,
+      videoBrief.mood,
+      videoBrief.aspectRatio,
+    );
+
     const jobId = crypto.randomUUID();
     await db.insert(videoJobs).values({
       id: jobId,
@@ -857,8 +970,11 @@ export async function createVideoFromStudioAction(
       engine: "higgsfield",
       status: "queued",
       initial_prompt: parsed.data.brief,
-      resolved_prompt: videoBrief.resolvedPrompt,
-      brief_json: videoBrief as unknown as Record<string, unknown>,
+      resolved_prompt: optimised.prompt,
+      brief_json: {
+        ...videoBrief,
+        optimised,
+      } as unknown as Record<string, unknown>,
       brand_source: parsed.data.brandSource,
       client_id: parsed.data.clientId ?? null,
       aspect_ratio: videoBrief.aspectRatio,
@@ -868,7 +984,7 @@ export async function createVideoFromStudioAction(
     });
 
     const result = await submitVideoJob({
-      prompt: videoBrief.resolvedPrompt,
+      prompt: optimised.prompt,
       aspectRatio: videoBrief.aspectRatio,
       duration: videoBrief.duration,
     });

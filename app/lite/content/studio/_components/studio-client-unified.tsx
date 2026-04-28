@@ -29,7 +29,9 @@ import {
   promoteToMotionAction,
   getClientNamesAction,
   createVideoFromStudioAction,
+  getWipProjectsAction,
 } from "../actions";
+import { suggestProjectName } from "@/lib/content-studio/project-name";
 import { UnifiedBrief, type UnifiedBriefResult } from "./unified-brief";
 import { PostPreview } from "./post-preview";
 import { PostHistory } from "./post-history";
@@ -77,13 +79,20 @@ export function StudioClientUnified() {
   // Video state
   const [activeVideoJobId, setActiveVideoJobId] = useState<string | null>(null);
 
-  // WIP projects (in-memory for now; persisted to DB in Wave 2)
-  const [wipProjects] = useState<WipProject[]>([]);
+  // WIP projects from DB
+  const [wipProjects, setWipProjects] = useState<WipProject[]>([]);
 
-  // Load client names on mount
+  // Load client names + WIP projects on mount
   useEffect(() => {
     getClientNamesAction().then((res) => {
       if (res.ok) setKnownClients(res.clients);
+    });
+    loadWipProjects();
+  }, []);
+
+  const loadWipProjects = useCallback(() => {
+    getWipProjectsAction().then((res) => {
+      if (res.ok) setWipProjects(res.projects);
     });
   }, []);
 
@@ -113,10 +122,15 @@ export function StudioClientUnified() {
       const slideCount = result.parsed.wantsCarousel
         ? result.parsed.suggestedSlideCount
         : 1;
+      const projectName = suggestProjectName(
+        result.raw,
+        format,
+        contentType,
+        result.parsed.clientName,
+      );
 
       try {
         if (format === "cinematic" || format === "composite") {
-          // Route to Higgsfield via video pipeline
           const res = await createVideoFromStudioAction({
             brief: result.raw,
             format,
@@ -130,6 +144,7 @@ export function StudioClientUnified() {
           }
 
           setActiveVideoJobId(res.jobId);
+          loadWipProjects();
           toast.success("Video queued — generating footage.");
           setView("preview");
           return;
@@ -157,6 +172,7 @@ export function StudioClientUnified() {
             motionTemplateId: templateId,
             slideCount,
             fontPairingId: fontPairingId ?? undefined,
+            projectName,
           });
 
           if (!res.ok) {
@@ -178,12 +194,12 @@ export function StudioClientUnified() {
             sfxCues: typeof sfxRaw === "string" ? JSON.parse(sfxRaw) : [],
           });
           setActivePost(null);
+          loadWipProjects();
           setView("preview");
           toast.success("Motion post generated.");
           return;
         }
 
-        // Static path
         const res = await createPostAction({
           brief: result.raw,
           contentType,
@@ -191,6 +207,8 @@ export function StudioClientUnified() {
           fontPairingId: fontPairingId ?? undefined,
           paletteId: staticPaletteId ?? undefined,
           customPalette: customPalette ?? undefined,
+          projectName,
+          contentFormat: format,
         });
 
         if (!res.ok) {
@@ -207,6 +225,7 @@ export function StudioClientUnified() {
           brief: result.raw,
         });
         setMotionPost(null);
+        loadWipProjects();
         setView("preview");
         toast.success(
           res.slideCount > 1
@@ -221,7 +240,7 @@ export function StudioClientUnified() {
         setGenerating(false);
       }
     },
-    [generating, getEffectiveFormat, fontPairingId, staticPaletteId, customPalette],
+    [generating, getEffectiveFormat, fontPairingId, staticPaletteId, customPalette, loadWipProjects],
   );
 
   /* ------------------------------------------------------------------ */
@@ -537,9 +556,63 @@ export function StudioClientUnified() {
             {/* WIP section */}
             <WipSection
               projects={wipProjects}
-              onSelect={(id) => {
-                // Wave 2: load project and switch to preview
-                toast.info("Project loading coming soon.");
+              onSelect={async (id) => {
+                const project = wipProjects.find((p) => p.id === id);
+                if (!project) return;
+
+                if (project.source === "video") {
+                  setActiveVideoJobId(id);
+                  setActivePost(null);
+                  setMotionPost(null);
+                  setView("preview");
+                  return;
+                }
+
+                const res = await import("../actions").then((m) =>
+                  m.getPostAction(id),
+                );
+                if (!res.ok || !res.post) {
+                  toast.error("Couldn't load project.");
+                  return;
+                }
+
+                const slides = Array.isArray(res.post.generated_copy_json)
+                  ? (res.post.generated_copy_json as SlideCopy[])
+                  : res.post.generated_copy_json
+                    ? [res.post.generated_copy_json as SlideCopy]
+                    : [];
+
+                if (res.post.motion_enabled) {
+                  const sfxRaw = res.post.animation_params_json
+                    ? JSON.parse(res.post.animation_params_json)._sfxCues
+                    : undefined;
+                  setMotionPost({
+                    id: res.post.id,
+                    motionTemplateId: res.post.motion_template_id ?? "",
+                    slides,
+                    brief: res.post.brief,
+                    paletteId: res.post.palette_id ?? "",
+                    animationParams: res.post.animation_params_json
+                      ? JSON.parse(res.post.animation_params_json)
+                      : {},
+                    primaryAspectRatio: (res.post.primary_aspect_ratio ?? "square") as MotionAspectRatio,
+                    fontPairingId: res.post.font_pairing_id ?? null,
+                    sfxCues: typeof sfxRaw === "string" ? JSON.parse(sfxRaw) : [],
+                  });
+                  setActivePost(null);
+                } else {
+                  setActivePost({
+                    id: res.post.id,
+                    templateId: res.post.template_id,
+                    slides,
+                    contentType: res.post.content_type,
+                    brief: res.post.brief,
+                  });
+                  setMotionPost(null);
+                }
+                setFontPairingId(res.post.font_pairing_id ?? null);
+                setStaticPaletteId(res.post.static_palette_id ?? null);
+                setView("preview");
               }}
             />
 

@@ -13,6 +13,7 @@ export interface WipProject {
   format: "static" | "animated" | "cinematic" | "composite";
   thumbnailUrl?: string;
   updatedAt: number;
+  source?: "post" | "video";
 }
 
 const STATUS_CONFIG: Record<WipStatus, { label: string; icon: typeof ClockIcon; color: string }> = {
