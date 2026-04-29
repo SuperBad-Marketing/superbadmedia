@@ -25,7 +25,10 @@ import { webhook_events } from "@/lib/db/schema/webhook-events";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
 import { outreachSends } from "@/lib/db/schema/outreach-sends";
+import { outreachSequences } from "@/lib/db/schema/outreach-sequences";
+import { deals } from "@/lib/db/schema/deals";
 import { handleInboundReply } from "@/lib/lead-gen/reply-handler";
+import { transitionDealStage } from "@/lib/crm/transition-deal-stage";
 import { logActivity } from "@/lib/activity-log";
 
 interface ResendInboundPayload {
@@ -246,6 +249,70 @@ export async function POST(req: Request): Promise<NextResponse> {
         webhook_event_id: eventId,
       },
     });
+
+    // Stop active outreach sequence with stopped_reply
+    if (candidate.promoted_to_deal_id) {
+      const activeSeqs = await db
+        .select({ id: outreachSequences.id })
+        .from(outreachSequences)
+        .where(
+          and(
+            eq(outreachSequences.deal_id, candidate.promoted_to_deal_id),
+            eq(outreachSequences.status, "active"),
+          ),
+        );
+
+      for (const seq of activeSeqs) {
+        await db
+          .update(outreachSequences)
+          .set({
+            status: "stopped_reply",
+            stopped_reason: `Inbound reply: ${result.classification}`,
+          })
+          .where(eq(outreachSequences.id, seq.id));
+      }
+
+      // Advance deal contacted → conversation on inbound reply
+      const [deal] = await db
+        .select({ id: deals.id, stage: deals.stage, company_id: deals.company_id })
+        .from(deals)
+        .where(eq(deals.id, candidate.promoted_to_deal_id))
+        .limit(1);
+
+      if (deal) {
+        await logActivity({
+          kind: "email_received",
+          companyId: deal.company_id,
+          dealId: deal.id,
+          body: `Inbound reply from ${senderEmail} (${result.classification})`,
+          createdBy: "system:reply_inbound_webhook",
+          meta: {
+            candidate_id: candidate.id,
+            classification: result.classification,
+            sender: senderEmail,
+          },
+        });
+
+        if (deal.stage === "contacted") {
+          try {
+            transitionDealStage(
+              deal.id,
+              "conversation",
+              {
+                by: "system:reply_inbound_webhook",
+                meta: {
+                  source: "inbound_reply",
+                  classification: result.classification,
+                  candidate_id: candidate.id,
+                },
+              },
+            );
+          } catch {
+            // Non-fatal — deal may have already advanced past contacted
+          }
+        }
+      }
+    }
 
     await updateWebhookResult(eventId, "ok");
     return NextResponse.json({

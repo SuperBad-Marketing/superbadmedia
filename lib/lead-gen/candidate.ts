@@ -22,6 +22,8 @@ export interface CreateCandidateInput {
   contactRole?: string | null;
   contactPhone?: string | null;
   emailConfidence?: "verified" | "inferred" | "unknown";
+  softAdjustment?: number;
+  softAdjustmentRationale?: string | null;
 }
 
 export interface CreateCandidateResult {
@@ -68,9 +70,10 @@ export async function createCandidate(
       saas: trackAssignment.saas.breakdown,
       retainer: trackAssignment.retainer.breakdown,
       winner: trackAssignment.track,
-      soft_adjustment: 0,
+      soft_adjustment: input.softAdjustment ?? 0,
     },
-    soft_adjustment: 0,
+    soft_adjustment: input.softAdjustment ?? 0,
+    soft_adjustment_rationale: input.softAdjustmentRationale ?? null,
     lead_run_id: leadRunId,
     sourced_from: discovered.source,
     created_at: new Date(),

@@ -38,6 +38,7 @@ import { enforceWarmupCap, initWarmupState } from "./warmup";
 import { getNextVertical, recordVerticalSearch } from "./vertical-rotation";
 import { prefilterCandidates } from "./icp-prefilter";
 import { deepEnrichBatch, type DeepEnrichmentInput } from "./enrich/deep-enrichment";
+import { computeSoftAdjustment } from "./soft-adjustment";
 import type { DiscoveredCandidate, DiscoverySearchParams } from "./types";
 import type { LeadRunTrigger } from "@/lib/db/schema/lead-runs";
 
@@ -278,14 +279,41 @@ export async function runDailySearch(
       deepEnrichedCandidates.push(entry);
     }
 
-    // ── Steps 8–11: Contact discovery + draft generation + insert ────
+    // ── Step 7.6: Haiku soft-adjustment scoring (spec Q4/Q5) ─────────
     const standingBrief =
       input.manualBriefText ??
       (await settings.get("lead_generation.standing_brief"));
 
+    const softAdjustments = new Map<
+      (typeof deepEnrichedCandidates)[number],
+      { adjustment: number; rationale: string }
+    >();
+
+    for (const entry of deepEnrichedCandidates) {
+      const sa = await computeSoftAdjustment({
+        profile: entry.enrichedProfile,
+        companyName: entry.discovered.company_name,
+        saasScore: entry.assignment.saas.score,
+        retainerScore: entry.assignment.retainer.score,
+        standingBrief: typeof standingBrief === "string" ? standingBrief : "",
+      });
+
+      softAdjustments.set(entry, sa);
+
+      if (sa.adjustment !== 0) {
+        entry.assignment = assignTrack(entry.enrichedProfile, sa.adjustment);
+      }
+    }
+
+    // Re-filter: soft adjustment may have pushed a candidate below floor
+    const finalCandidates = deepEnrichedCandidates.filter(
+      (entry) => entry.assignment.track !== null,
+    );
+
+    // ── Steps 8–11: Contact discovery + draft generation + insert ────
     let candidatesCreated = 0;
     let draftedCount = 0;
-    for (const entry of deepEnrichedCandidates) {
+    for (const entry of finalCandidates) {
       // Step 8: Discover contact email — Hunter.io primary, website scrape fallback
       const domain = entry.discovered.domain;
       let contactResult = {
@@ -345,6 +373,7 @@ export async function runDailySearch(
 
       // Step 11: Insert candidate with contact info (even without email —
       // candidates without emails are created but won't get drafts)
+      const sa = softAdjustments.get(entry);
       const candidateResult = await createCandidate(
         {
           discovered: entry.discovered,
@@ -356,6 +385,8 @@ export async function runDailySearch(
           contactRole: contactResult.role ?? undefined,
           contactPhone: contactResult.phone,
           emailConfidence: contactResult.confidence,
+          softAdjustment: sa?.adjustment ?? 0,
+          softAdjustmentRationale: sa?.rationale ?? null,
         },
         dbInstance,
       );

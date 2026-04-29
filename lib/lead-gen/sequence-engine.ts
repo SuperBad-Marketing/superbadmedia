@@ -33,6 +33,7 @@ import { generateDraft, type GenerateDraftInput } from "./draft-generator";
 import { getAutonomyRow, transitionAutonomyState, getAutoSendDelayMs } from "./autonomy";
 import { SUPERBAD_SENDER, SUPERBAD_FROM_STRING } from "./sender";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
+import { transitionDealStage } from "@/lib/crm/transition-deal-stage";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
 import settingsRegistry from "@/lib/settings";
 import { createUnsubscribeUrl } from "./unsubscribe-token";
@@ -441,6 +442,26 @@ export async function executeSend(
           .update(outreachDrafts)
           .set({ deal_id: dealResult.deal.id })
           .where(eq(outreachDrafts.id, draftId));
+
+        await dbInstance
+          .update(outreachSends)
+          .set({ deal_id: dealResult.deal.id })
+          .where(eq(outreachSends.id, sendId));
+
+        // Auto-advance lead → contacted: first outreach already sent
+        try {
+          transitionDealStage(
+            dealResult.deal.id,
+            "contacted",
+            {
+              by: "system:sequence_engine",
+              meta: { source: "first_outreach_send", send_id: sendId },
+            },
+            dbInstance,
+          );
+        } catch {
+          // Non-fatal — deal may already be past 'lead' stage
+        }
       }
     } catch {
       // Deal creation failure is non-fatal — the send already went out

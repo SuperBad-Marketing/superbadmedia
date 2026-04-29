@@ -93,6 +93,7 @@ export const MODELS = {
   "lead-gen-reply-nudge": "opus",
   "lead-gen-reply-long-tail": "opus",
   "lead-gen-reply-classify": "haiku",
+  "lead-gen-soft-adjustment": "haiku",
   // video-studio (1)
   "video-brief-builder": "haiku",
   "video-prompt-optimise": "sonnet",
@@ -213,6 +214,7 @@ const PROFILE_INJECTION_EXCLUDED: ReadonlySet<ModelJobSlug> = new Set([
   "intro-funnel-signal-tag-extraction",
   "lead-gen-icp-prefilter",
   "lead-gen-reply-classify",
+  "lead-gen-soft-adjustment",
   "inbox-classify-inbound-route",
   "inbox-classify-notification-priority",
   "inbox-classify-signal-noise",
