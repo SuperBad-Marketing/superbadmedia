@@ -298,12 +298,17 @@ export async function markRundownProfileComplete(
     .set({ status: "complete", completed_at_ms: now, updated_at_ms: now })
     .where(eq(brand_dna_profiles.id, profileId));
 
+  const revealAccessToken = randomUUID().replace(/-/g, "").slice(0, 24);
+  const revealExpiresAt = now + 30 * 24 * 60 * 60 * 1000; // 30 days
+
   await db
     .update(rundownSessions)
     .set({
       status: "complete",
       reveal_reached_at_ms: now,
       completed_at_ms: now,
+      reveal_access_token: revealAccessToken,
+      reveal_access_expires_at_ms: revealExpiresAt,
       updated_at_ms: now,
     })
     .where(eq(rundownSessions.session_token, sessionToken));
@@ -313,6 +318,68 @@ export async function markRundownProfileComplete(
     body: "Rundown Brand DNA assessment completed",
     meta: { candidateId: existing.candidate_id ?? null },
   });
+
+  // Fire-and-forget follow-up email
+  const session = await db.query.rundownSessions.findFirst({
+    where: eq(rundownSessions.session_token, sessionToken),
+  });
+  if (session?.email) {
+    sendFollowupEmail(
+      session.email,
+      session.name,
+      session.business_name,
+      revealAccessToken,
+      sessionToken,
+    ).catch(() => {});
+  }
+}
+
+async function sendFollowupEmail(
+  email: string,
+  name: string,
+  businessName: string,
+  revealAccessToken: string,
+  sessionToken: string,
+): Promise<void> {
+  try {
+    const { sendEmail } = await import("@/lib/channels/email/send");
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://superbadmedia.com.au";
+    const revealUrl = `${baseUrl}/rundown/reveal/${revealAccessToken}`;
+    const packUrl = `${baseUrl}/api/rundown/${sessionToken}/brand-pack`;
+    const firstName = name.split(" ")[0];
+
+    await sendEmail({
+      to: email,
+      subject: `your brand pack is ready, ${firstName}`,
+      body: `
+        <p>Hey ${firstName},</p>
+        <p>Your Brand DNA for ${businessName} is complete. Here's what you've got:</p>
+        <p><strong><a href="${revealUrl}" style="color: #B22848;">See your brand identity</a></strong><br>
+        <span style="font-size: 14px; color: #807F73;">The full reveal — your signal tags, section insights, and prose portrait. Link expires in 30 days.</span></p>
+        <p><strong><a href="${packUrl}" style="color: #B22848;">Download your Brand Pack</a></strong><br>
+        <span style="font-size: 14px; color: #807F73;">Typography, colours, content pillars, and voice guide — all based on what you told us.</span></p>
+        <p style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #252320; font-size: 14px; color: #807F73;">
+          If any of what you saw in there made you want to do something about it — we do trial shoots. Real work, not a pitch meeting.
+          <a href="${baseUrl}/trial-shoot" style="color: #B22848;">Have a look</a> if you're curious.
+        </p>
+        <p>Andy</p>
+      `,
+      classification: "rundown_followup",
+      purpose: "rundown_completion_followup",
+    });
+
+    await db
+      .update(rundownSessions)
+      .set({ followup_email_sent_at_ms: Date.now(), updated_at_ms: Date.now() })
+      .where(eq(rundownSessions.session_token, sessionToken));
+
+    await logActivity({
+      kind: "rundown_followup_sent",
+      body: `Rundown follow-up email sent to ${email}`,
+    });
+  } catch {
+    // Follow-up failure is non-blocking
+  }
 }
 
 export async function rundownGoBack(

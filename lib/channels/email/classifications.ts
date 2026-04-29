@@ -84,6 +84,10 @@ export const EMAIL_CLASSIFICATIONS = [
   // Rundown — resume link email sent after entry. Transactional: the prospect
   // just submitted their details and needs the link to continue.
   "rundown_resume",
+  // Rundown — follow-up email after assessment completion with reveal re-access
+  // link + Brand Pack download. Transactional: prospect just completed, these
+  // are their deliverables.
+  "rundown_followup",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -124,6 +128,8 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "task_morning_digest",
   // Rundown — resume link is transactional (prospect just submitted, needs link)
   "rundown_resume",
+  // Rundown — follow-up is transactional (delivering the prospect's own artefacts)
+  "rundown_followup",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {
