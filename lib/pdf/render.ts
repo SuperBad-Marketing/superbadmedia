@@ -18,26 +18,31 @@ export interface RenderToPdfOptions {
   filename?: string;
 }
 
-const SYSTEM_PATHS: Record<string, string> = {
-  darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  linux: "/usr/bin/google-chrome-stable",
+const SYSTEM_PATHS: Record<string, string[]> = {
+  darwin: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"],
+  linux: ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome-stable"],
 };
+
+function findSystemChrome(): string | undefined {
+  const candidates = SYSTEM_PATHS[process.platform] ?? SYSTEM_PATHS.linux;
+  return candidates.find((p) => existsSync(p));
+}
 
 export async function resolveExecutablePath(): Promise<string> {
   const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH;
   if (fromEnv && fromEnv.length > 0) return fromEnv;
 
-  const systemPath = SYSTEM_PATHS[process.platform] ?? SYSTEM_PATHS.linux;
-  if (existsSync(systemPath)) return systemPath;
+  const systemChrome = findSystemChrome();
+  if (systemChrome) return systemChrome;
 
-  // Bundled Chromium — works on any platform without system Chrome
+  // Bundled Chromium fallback (for environments without system Chrome)
   try {
     const chromium = await import("@sparticuz/chromium");
     const p = await chromium.default.executablePath();
     if (p) return p;
   } catch { /* not available */ }
 
-  return systemPath;
+  return (SYSTEM_PATHS[process.platform] ?? SYSTEM_PATHS.linux)[0];
 }
 
 function withMm(value: number | undefined, fallback: number): string {
@@ -55,10 +60,21 @@ export async function renderToPdf(
 ): Promise<Buffer> {
   let browser: Browser | null = null;
   try {
+    let chromiumArgs: string[] = [];
+    try {
+      const chromium = await import("@sparticuz/chromium");
+      chromiumArgs = chromium.default.args;
+    } catch { /* not available */ }
+
     browser = await puppeteer.launch({
       executablePath: await resolveExecutablePath(),
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],
+      args: [
+        ...chromiumArgs,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--font-render-hinting=none",
+      ],
     });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });

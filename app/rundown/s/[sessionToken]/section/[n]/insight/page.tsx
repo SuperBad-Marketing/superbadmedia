@@ -1,13 +1,11 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { rundownSessions } from "@/lib/db/schema/rundown-sessions";
 import { generateSectionInsight } from "@/lib/brand-dna/generate-insight";
-import { SECTION_TITLES, SECTION_SUBTITLES } from "@/lib/brand-dna/question-bank";
 import { InsightRevealClient } from "@/app/lite/brand-dna/section/[n]/insight/insight-reveal-client";
 
 export const metadata: Metadata = { title: "Brand DNA — SuperBad" };
@@ -60,44 +58,51 @@ export default async function RundownInsightPage({ params }: Props) {
         <InsightContent
           profileId={profileId}
           section={section}
-          attribution={
+          attribution={insightAttribution(section, hasNextSection)}
+          nextHref={
             hasNextSection
-              ? `halfway-ish. ${5 - section} ${5 - section === 1 ? "section" : "sections"} to go.`
-              : "that's the last one."
+              ? `${base}/section/${nextSection}`
+              : `${base}/reveal`
           }
+          nextLabel={hasNextSection ? "Keep going →" : "See your brand DNA →"}
         />
       </Suspense>
-
-      {hasNextSection && (
-        <Link
-          href={`${base}/section/${nextSection}`}
-          style={pillStyle}
-          aria-label={`Continue to section ${nextSection}: ${SECTION_TITLES[nextSection as 1 | 2 | 3 | 4 | 5]} — ${SECTION_SUBTITLES[nextSection as 1 | 2 | 3 | 4 | 5]}`}
-        >
-          Keep going →
-        </Link>
-      )}
-
-      {!hasNextSection && (
-        <Link href={`${base}/reveal`} style={pillStyle}>
-          See your brand DNA →
-        </Link>
-      )}
     </main>
   );
+}
+
+function insightAttribution(section: number, hasNext: boolean): string {
+  if (!hasNext) return "that's the last one.";
+  const remaining = 5 - section;
+  const count = `${remaining} ${remaining === 1 ? "section" : "sections"} to go.`;
+  if (section === 1) return `just getting started. ${count}`;
+  if (section === 2) return `getting there. ${count}`;
+  if (section === 3) return `past the halfway mark. ${count}`;
+  return `almost there. ${count}`;
 }
 
 async function InsightContent({
   profileId,
   section,
   attribution,
+  nextHref,
+  nextLabel,
 }: {
   profileId: string;
   section: number;
   attribution: string;
+  nextHref: string;
+  nextLabel: string;
 }) {
   const insight = await generateSectionInsight(profileId, section);
-  return <InsightRevealClient insight={insight} attribution={attribution} />;
+  return (
+    <InsightRevealClient
+      insight={insight}
+      attribution={attribution}
+      nextHref={nextHref}
+      nextLabel={nextLabel}
+    />
+  );
 }
 
 function InsightShimmer() {
@@ -134,18 +139,3 @@ function InsightShimmer() {
   );
 }
 
-const pillStyle: React.CSSProperties = {
-  fontFamily: "var(--font-label)",
-  fontSize: 11,
-  letterSpacing: "2px",
-  textTransform: "uppercase",
-  color: "var(--brand-cream)",
-  padding: "16px 36px",
-  background: "rgba(253, 245, 230, 0.04)",
-  border: "1px solid rgba(253, 245, 230, 0.15)",
-  borderRadius: 999,
-  textDecoration: "none",
-  display: "inline-block",
-  backdropFilter: "blur(8px)",
-  transition: "background 300ms, border-color 300ms",
-};

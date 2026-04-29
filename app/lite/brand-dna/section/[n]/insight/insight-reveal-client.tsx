@@ -1,16 +1,19 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { houseSpring } from "@/lib/design-tokens";
 
 interface InsightRevealClientProps {
   insight: string;
   attribution?: string;
+  nextHref?: string;
+  nextLabel?: string;
 }
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function InsightRevealClient({ insight, attribution }: InsightRevealClientProps) {
+export function InsightRevealClient({ insight, attribution, nextHref, nextLabel }: InsightRevealClientProps) {
   const sentences = insight.split(/(?<=[.!?])\s+/).filter(Boolean);
   const opener = sentences[0] ?? "";
   const rest = sentences.slice(1).join(" ");
@@ -105,6 +108,37 @@ export function InsightRevealClient({ insight, attribution }: InsightRevealClien
           {attribution}
         </motion.p>
       )}
+
+      {nextHref && nextLabel && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.5, ease: EASE }}
+          style={{ marginTop: 40 }}
+        >
+          <Link href={nextHref} style={continuePillStyle}>
+            {nextLabel}
+          </Link>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
+
+const continuePillStyle: React.CSSProperties = {
+  fontFamily: "var(--font-label)",
+  fontSize: 11,
+  letterSpacing: "2px",
+  textTransform: "uppercase",
+  color: "var(--brand-cream)",
+  padding: "16px 36px",
+  background: "rgba(253, 245, 230, 0.04)",
+  border: "1px solid rgba(253, 245, 230, 0.15)",
+  borderRadius: 999,
+  textDecoration: "none",
+  display: "inline-block",
+  backdropFilter: "blur(8px)",
+  boxShadow: "inset 0 1px 0 rgba(253, 245, 230, 0.06)",
+  transition:
+    "background 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+};
