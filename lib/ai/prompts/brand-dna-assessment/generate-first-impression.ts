@@ -100,7 +100,13 @@ ${insightsBlock}
 
 ${reflectionBlock}
 
-Write the first impression. Two or three sentences. Not a summary — the irreducible insight. The one thing that's true about this ${track === "business" ? "brand" : "person"} that everything else orbits.
+Write the first impression in two parts:
+
+HEADLINE — a single punchy sentence, maximum 8 words. This renders at 80px display type, so brevity is everything. It must hit like a caption, not a paragraph. Think album title energy: "Quiet stubbornness, dressed in work boots." or "All taste, no time for small talk." The comma or full stop is your only punctuation. No colons, no semicolons.
+
+SUBLINE — one sentence, 15–25 words. This renders at 20px below the headline. It expands on the headline with a specific, grounded observation. Not a restatement — a deepening.
+
+Together they are the irreducible insight. The one thing that's true about this ${track === "business" ? "brand" : "person"} that everything else orbits.
 
 Look for:
 - The through-line that connects seemingly unrelated signals across domains
@@ -117,7 +123,12 @@ Voice — non-negotiable:
 - Short sentences. Let the observation land. Don't over-explain.
 - Name things precisely — not "you value quality" but the specific quality of their quality.
 
-Return only the 2–3 sentences. No preamble, no header, no quotes.`;
+Format your response exactly as:
+
+HEADLINE: (your 3–8 word headline)
+SUBLINE: (your 15–25 word sentence)
+
+Nothing else. No preamble, no quotes.`;
 }
 
 /** Known tension pairs — tags that signal contradictory pulls. */

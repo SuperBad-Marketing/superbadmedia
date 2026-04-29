@@ -77,34 +77,43 @@ Aggregate signal pattern: ${topTags || "no tags yet"}.
 
 ${priorBlock}
 
-Write 3–4 sentences. This appears as a transition card between sections — a moment that makes the person feel genuinely understood. Not summarised. Understood.
+Write the insight in a structured format. This appears as a transition card between sections — a moment that makes the person feel genuinely understood.
 
-Structure — two moves, in this order:
+Structure — three parts:
 
-MOVE 1 (1–2 sentences): Name something specific they did — a choice, a pattern across choices, a telling rejection. Ground it in their actual decisions. "Every room you picked had warm light in it" hits harder than "you gravitate toward warmth."
+HEADLINE: A single bold sentence (max 10 words) that names the core observation from this section. This renders large and bold. Think: "You'd rather be honest than impressive." or "Texture matters more than symmetry." It should land on its own without explanation.
 
-MOVE 2 (1–2 sentences): Make a leap. Infer something they didn't tell you — something that follows from the pattern but goes beyond what they answered. This is where the platform proves it's thinking, not just tallying.
+BODY: 2–3 sentences that ground and expand the headline. Two moves:
+- MOVE 1: Name something specific they did — a choice, a pattern, a telling rejection. "Every room you picked had warm light in it" hits harder than "you gravitate toward warmth."
+- MOVE 2: Make a leap. Infer something they didn't tell you — something that follows from the pattern but goes beyond what they answered.
 
-The leap can take many forms. Some examples — but don't limit yourself to these:
-- Predict an everyday preference ("your home office probably has one good lamp and nothing on the walls — or everything on the walls. No in-between.")
+The leap can take many forms:
+- Predict an everyday preference ("your home office probably has one good lamp and nothing on the walls, or everything on the walls, no in-between.")
 - Name a real-world behaviour ("the kind of person who rearranges the café table before sitting down")
-- Surface what their workspace or home probably looks like ("there's a shelf somewhere with things arranged just so — not for anyone else, just because it bothers you if they're not")
-- Identify a frustration they live with ("most websites probably feel like they were designed by someone who's never been inside the business")
-- Predict what they'd notice or reject in everyday life ("you probably clock bad signage on every shopfront you pass — not because you're looking, because you can't not")
-- Name what kind of first impression they want their business to make ("the front door, the first email, the business card — you want someone to feel something before they know what you sell")
+- Surface what their workspace or home probably looks like
+- Identify a frustration they live with
+- Predict what they'd notice or reject in everyday life
+- Name what kind of first impression they want their business to make
 
-CRITICAL — audience context: these are business owners, tradies, café owners, professionals — not designers or creatives. The inferences must land in their everyday world. Reference their shopfront, their home, their office, their morning routine, what their desk looks like, what bugs them about other businesses, how they'd want a customer to feel walking in. Never reference galleries, art movements, or design culture unless the person's answers explicitly signal that world.
+TAGS: The 3 most relevant signal tags from this section, as plain English (spaces not underscores, lowercase). These display as small pills beneath the insight.
 
-The leap must feel earned by the choices they made — not generic fortune-cookie wisdom. It should make them think "how did it know that?" not "that could be anyone." If the inference is wrong, it should at least be wrong in an interesting direction.
+CRITICAL — audience context: these are business owners, tradies, café owners, professionals — not designers or creatives. The inferences must land in their everyday world. Reference their shopfront, their home, their office, their morning routine. Never reference galleries, art movements, or design culture unless the person's answers explicitly signal that world.
+
+The leap must feel earned by the choices they made — not generic fortune-cookie wisdom. It should make them think "how did it know that?" not "that could be anyone."
 
 Voice — non-negotiable:
 - Flat delivery. Perceptive, slightly warm. Like a sharp friend who just watched you make fourteen decisions in a row and has something to say about it.
 - Never "I notice", "it seems like", "what stands out", "it's interesting that", "your answers suggest", "there's a clear pattern".
-- Never start with "You". Vary sentence structure.
+- Never start with "You" in the HEADLINE. Vary sentence structure throughout.
 - No hedging. No qualifiers. No marketing speak. No praise.
 - Short sentences. One observation per sentence.
 - Name the tension if there is one. Name what's absent if the absence is revealing.
-- You can reference specific choices directly — "the concrete floors but the warm music" — when the juxtaposition reveals something.
 
-Return only the 3–4 sentences. No preamble, no quotes, no header.`;
+Format your response exactly as:
+
+HEADLINE: (your bold lead sentence)
+BODY: (your 2–3 supporting sentences)
+TAGS: (tag one, tag two, tag three)
+
+Nothing else. No preamble, no quotes.`;
 }

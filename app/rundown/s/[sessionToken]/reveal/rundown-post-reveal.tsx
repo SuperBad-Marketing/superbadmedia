@@ -11,6 +11,8 @@ interface RundownPostRevealProps {
   profileId: string;
   businessName: string;
   enrichmentData: ViabilityProfile | null;
+  signalTags?: string[];
+  firstImpression?: string;
 }
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -38,54 +40,60 @@ function Reveal({
   );
 }
 
-interface MirrorFact {
+// ── Enrichment cards with brand-referenced notes ──────────────────────
+
+interface EnrichmentCard {
   label: string;
+  stat: string;
   observation: string;
-  tone: "neutral" | "gentle";
+  brandNote: string | null;
 }
 
-function buildMirrorFacts(
+function buildEnrichmentCards(
   data: ViabilityProfile | null,
   businessName: string,
-): MirrorFact[] {
+  topTags: string[],
+): EnrichmentCard[] {
   if (!data) return [];
-  const facts: MirrorFact[] = [];
+  const cards: EnrichmentCard[] = [];
+
+  const hasCraftSignals = topTags.some((t) =>
+    ["admires craft", "admires_craft", "maker ethos", "maker_ethos", "tactile craft", "tactile_craft"].includes(t.toLowerCase()),
+  );
+  const hasProcessSignals = topTags.some((t) =>
+    ["process driven", "process_driven", "perfectionism", "conscientiousness", "precision"].includes(t.toLowerCase()),
+  );
+  const hasCommunitySignals = topTags.some((t) =>
+    ["local roots", "local_roots", "community building", "community_building", "word of mouth", "word_of_mouth", "affiliation"].includes(t.toLowerCase()),
+  );
+  const hasVisualSignals = topTags.some((t) =>
+    ["visual storytelling", "visual_storytelling", "cinematic eye", "cinematic_eye", "aesthetic", "curation instinct", "curation_instinct"].includes(t.toLowerCase()),
+  );
 
   if (data.instagram) {
     const { follower_count, posts_last_30d } = data.instagram;
-    if (posts_last_30d !== null && posts_last_30d !== undefined && posts_last_30d === 0) {
-      facts.push({
+    if (posts_last_30d !== null && posts_last_30d !== undefined && posts_last_30d <= 2) {
+      const stat = posts_last_30d === 0 ? "No posts" : `${posts_last_30d} ${posts_last_30d === 1 ? "post" : "posts"}`;
+      let brandNote: string | null = null;
+      if (hasCraftSignals || hasProcessSignals) {
+        brandNote = `Your DNA says craft and process matter to you, but your feed isn't showing any of it. The sourcing, the making, the details people don't see. That's your content.`;
+      } else if (hasVisualSignals) {
+        brandNote = `Strong visual instincts in your DNA, but your Instagram isn't reflecting them. Your feed should feel like an extension of the brand, not an afterthought.`;
+      }
+      cards.push({
         label: "Instagram",
-        observation: `${businessName} hasn't posted on Instagram in the last 30 days.`,
-        tone: "gentle",
+        stat: stat + " this month",
+        observation: `${follower_count !== undefined ? follower_count.toLocaleString() + " followers. " : ""}Last 30 days ${posts_last_30d === 0 ? "have been silent" : `had ${posts_last_30d} ${posts_last_30d === 1 ? "post" : "posts"}`}.`,
+        brandNote,
       });
-    } else if (posts_last_30d !== null && posts_last_30d !== undefined && posts_last_30d <= 2) {
-      facts.push({
+    } else if (follower_count !== undefined && follower_count < 500) {
+      cards.push({
         label: "Instagram",
-        observation: `${posts_last_30d} Instagram ${posts_last_30d === 1 ? "post" : "posts"} in the last month.`,
-        tone: "gentle",
-      });
-    } else if (follower_count < 500) {
-      facts.push({
-        label: "Instagram",
-        observation: `${follower_count.toLocaleString()} followers. Still early days.`,
-        tone: "neutral",
-      });
-    }
-  }
-
-  if (data.facebook) {
-    if (data.facebook.has_active_page === false) {
-      facts.push({
-        label: "Facebook",
-        observation: "No active Facebook page found.",
-        tone: "gentle",
-      });
-    } else if (data.facebook.posts_last_30d !== null && data.facebook.posts_last_30d === 0) {
-      facts.push({
-        label: "Facebook",
-        observation: "Facebook page exists but hasn't posted recently.",
-        tone: "gentle",
+        stat: `${follower_count.toLocaleString()} followers`,
+        observation: "Still early days. Room to grow.",
+        brandNote: hasVisualSignals
+          ? "Your visual instincts are strong. The audience will come once the feed reflects what you actually care about."
+          : null,
       });
     }
   }
@@ -93,76 +101,97 @@ function buildMirrorFacts(
   if (data.maps) {
     const { review_count, rating } = data.maps;
     if (review_count < 10) {
-      facts.push({
-        label: "Google",
-        observation: `${review_count} Google ${review_count === 1 ? "review" : "reviews"}. Most people check before they visit.`,
-        tone: "gentle",
-      });
-    } else if (rating !== null && rating < 4.0) {
-      facts.push({
-        label: "Google",
-        observation: `${rating} star average across ${review_count} reviews.`,
-        tone: "neutral",
+      cards.push({
+        label: "Google Reviews",
+        stat: `${review_count} ${review_count === 1 ? "review" : "reviews"}`,
+        observation: "Most people check reviews before they visit.",
+        brandNote: hasCommunitySignals
+          ? "Your DNA is built on community and word of mouth. Those conversations are happening, they're just not landing on Google yet."
+          : null,
       });
     } else if (rating !== null) {
-      facts.push({
-        label: "Google",
-        observation: `${rating} stars across ${review_count} reviews. That's solid.`,
-        tone: "neutral",
+      const ratingStr = `${rating} stars`;
+      cards.push({
+        label: "Google Reviews",
+        stat: ratingStr,
+        observation: `${review_count} reviews. ${rating >= 4.5 ? "Solid foundation." : "Room to improve."}`,
+        brandNote: hasCommunitySignals && rating >= 4.0
+          ? "Your regulars are already saying the things your brand should be saying. Those reviews are more authentic than any copy you could write."
+          : null,
+      });
+    }
+  }
+
+  if (data.facebook) {
+    if (data.facebook.has_active_page === false) {
+      cards.push({
+        label: "Facebook",
+        stat: "No page",
+        observation: "No active Facebook page found.",
+        brandNote: null,
+      });
+    } else if (data.facebook.posts_last_30d !== null && data.facebook.posts_last_30d === 0) {
+      cards.push({
+        label: "Facebook",
+        stat: "Dormant",
+        observation: "Page exists but hasn't posted recently.",
+        brandNote: "A dormant page that's up-to-date is better than posting content that doesn't feel like you. Focus where your audience actually is.",
       });
     }
   }
 
   if (data.website) {
     const { pagespeed_performance_score, has_about_page } = data.website;
+    const parts: string[] = [];
     if (pagespeed_performance_score !== null && pagespeed_performance_score < 50) {
-      facts.push({
-        label: "Website",
-        observation: `Performance score of ${pagespeed_performance_score}/100. That's costing you visitors.`,
-        tone: "gentle",
-      });
+      parts.push(`Performance score of ${pagespeed_performance_score}/100.`);
     }
     if (!has_about_page) {
-      facts.push({
+      parts.push("No about page found.");
+    }
+    if (parts.length > 0) {
+      const stat = pagespeed_performance_score !== null && pagespeed_performance_score < 50
+        ? `${pagespeed_performance_score}/100`
+        : "Missing pages";
+      cards.push({
         label: "Website",
-        observation: "No about page found. People want to know who they're buying from.",
-        tone: "gentle",
+        stat,
+        observation: parts.join(" ") + (pagespeed_performance_score !== null && pagespeed_performance_score < 50 ? " Mobile visitors feel it." : ""),
+        brandNote: hasCraftSignals
+          ? "Your brand is built on the in-person experience, but most people check your site before they visit. Right now it doesn't reflect the care you put into everything else."
+          : !has_about_page
+            ? "People want to know who they're buying from. An about page is where your brand voice gets to do what it does best."
+            : null,
       });
     }
   }
 
   if (data.youtube) {
     if (data.youtube.video_count === 0) {
-      facts.push({
+      cards.push({
         label: "YouTube",
-        observation: "No YouTube presence yet.",
-        tone: "neutral",
-      });
-    }
-  }
-
-  if (data.tiktok) {
-    if (data.tiktok.has_active_profile === false) {
-      facts.push({
-        label: "TikTok",
-        observation: "No TikTok presence found.",
-        tone: "neutral",
+        stat: "No presence",
+        observation: "No YouTube content found.",
+        brandNote: null,
       });
     }
   }
 
   if (data.linkedin) {
     if (data.linkedin.has_active_page === false) {
-      facts.push({
+      cards.push({
         label: "LinkedIn",
+        stat: "No page",
         observation: "No active LinkedIn company page.",
-        tone: "neutral",
+        brandNote: null,
       });
     }
   }
 
-  return facts.slice(0, 6);
+  return cards.slice(0, 6);
 }
+
+// ── Tier data ─────────────────────────────────────────────────────────
 
 const TIERS = [
   {
@@ -170,10 +199,10 @@ const TIERS = [
     name: "Session",
     price: 397,
     recommended: false,
-    duration: "60–90 min on-site",
+    duration: "60 min on-site",
     deliverables: [
       "1 short-form video",
-      "10–15 edited photographs",
+      "10-15 edited photographs",
       "A six-week marketing plan, written for you",
       "Everything delivered inside your own private portal",
       "Reschedule any time up to 48 hours before",
@@ -184,10 +213,10 @@ const TIERS = [
     name: "Production",
     price: 597,
     recommended: true,
-    duration: "Up to 2 hours on-site",
+    duration: "60-90 min on-site",
     deliverables: [
-      "2 short-form videos (1 × under 60s, 1 × under 30s)",
-      "20–25 edited photographs",
+      "2 short-form videos (1 under 60s, 1 under 30s)",
+      "20-25 edited photographs",
       "A six-week marketing plan, written for you",
       "Everything delivered inside your own private portal",
       "Reschedule any time up to 48 hours before",
@@ -208,17 +237,17 @@ function TierCard({
       transition={houseSpring}
       style={{
         flex: 1,
-        minWidth: 280,
+        minWidth: 260,
         background: "rgba(34,34,31,0.6)",
         backdropFilter: "blur(10px)",
         border: tier.recommended
           ? "1px solid rgba(178,40,72,0.5)"
           : "1px solid rgba(253,245,230,0.08)",
         borderRadius: 20,
-        padding: "40px 32px",
+        padding: "32px 28px",
         display: "flex",
         flexDirection: "column",
-        gap: 20,
+        gap: 16,
         position: "relative",
         overflow: "hidden",
       }}
@@ -234,13 +263,12 @@ function TierCard({
           pointerEvents: "none",
         }}
       />
-
       <div style={{ position: "relative" }}>
         {tier.recommended && (
           <div
             style={{
               fontFamily: "var(--font-label)",
-              fontSize: 9,
+              fontSize: 8,
               letterSpacing: "2px",
               textTransform: "uppercase",
               color: "var(--brand-red)",
@@ -249,7 +277,7 @@ function TierCard({
               borderRadius: 6,
               padding: "4px 10px",
               display: "inline-block",
-              marginBottom: 16,
+              marginBottom: 12,
             }}
           >
             Recommended
@@ -269,7 +297,7 @@ function TierCard({
         <div
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(3rem, 5vw, 4rem)",
+            fontSize: "clamp(2.5rem, 4vw, 3.5rem)",
             lineHeight: 1,
             letterSpacing: "-1px",
             color: "var(--brand-cream)",
@@ -280,38 +308,37 @@ function TierCard({
           <sup
             style={{
               fontFamily: "var(--font-body)",
-              fontSize: 14,
+              fontSize: 13,
               color: "var(--brand-pink)",
               fontWeight: 400,
               verticalAlign: "super",
               marginLeft: 8,
             }}
           >
-            once. nothing recurring.
+            once
           </sup>
         </div>
         <p
           style={{
-            marginTop: 12,
+            marginTop: 10,
             fontFamily: "var(--font-narrative)",
             fontStyle: "italic",
-            fontSize: 15,
+            fontSize: 14,
             color: "var(--neutral-300)",
           }}
         >
           {tier.duration}
         </p>
       </div>
-
       <ul
         style={{
           listStyle: "none",
           display: "flex",
           flexDirection: "column",
-          gap: 12,
+          gap: 10,
           borderTop: "1px solid rgba(253,245,230,0.08)",
           margin: 0,
-          padding: "16px 0 0",
+          padding: "14px 0 0",
           position: "relative",
           flex: 1,
         }}
@@ -321,9 +348,9 @@ function TierCard({
             key={item}
             style={{
               display: "flex",
-              gap: 12,
+              gap: 10,
               alignItems: "flex-start",
-              fontSize: 15,
+              fontSize: 14,
               lineHeight: 1.5,
               fontFamily: "var(--font-body)",
               color: "var(--neutral-300)",
@@ -331,11 +358,11 @@ function TierCard({
           >
             <span
               style={{
-                width: 6,
-                height: 6,
+                width: 5,
+                height: 5,
                 borderRadius: "50%",
                 background: "var(--brand-red)",
-                marginTop: 10,
+                marginTop: 8,
                 flexShrink: 0,
               }}
             />
@@ -343,34 +370,39 @@ function TierCard({
           </li>
         ))}
       </ul>
-
-      <div style={{ position: "relative", paddingTop: 8 }}>
+      <div style={{ position: "relative", paddingTop: 4 }}>
         <button
           type="button"
           onClick={onSelect}
           style={{
             width: "100%",
-            padding: 18,
+            padding: 16,
             fontFamily: "var(--font-label)",
-            fontSize: 12,
+            fontSize: 11,
             letterSpacing: "2px",
             textTransform: "uppercase",
-            background: "var(--brand-red)",
+            background: tier.recommended ? "var(--brand-red)" : "transparent",
             color: "var(--brand-cream)",
-            border: "none",
+            border: tier.recommended
+              ? "none"
+              : "1px solid rgba(253,245,230,0.15)",
             borderRadius: 10,
             cursor: "pointer",
             transition: "all 200ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#8F1D3A";
+            if (tier.recommended) {
+              e.currentTarget.style.background = "#8F1D3A";
+            } else {
+              e.currentTarget.style.background = "rgba(253,245,230,0.06)";
+            }
             e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 10px 30px rgba(178, 40, 72, 0.3)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "var(--brand-red)";
+            e.currentTarget.style.background = tier.recommended
+              ? "var(--brand-red)"
+              : "transparent";
             e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "none";
           }}
         >
           Choose {tier.name}
@@ -380,18 +412,24 @@ function TierCard({
   );
 }
 
+// ── Main component ────────────────────────────────────────────────────
+
 export function RundownPostReveal({
   sessionToken,
   profileId,
   businessName,
   enrichmentData,
+  signalTags = [],
+  firstImpression = "",
 }: RundownPostRevealProps) {
-  const mirrorFacts = React.useMemo(
-    () => buildMirrorFacts(enrichmentData, businessName),
-    [enrichmentData, businessName],
+  const [tiersExpanded, setTiersExpanded] = React.useState(false);
+
+  const enrichmentCards = React.useMemo(
+    () => buildEnrichmentCards(enrichmentData, businessName, signalTags),
+    [enrichmentData, businessName, signalTags],
   );
 
-  const hasMirror = mirrorFacts.length > 0;
+  const hasEnrichment = enrichmentCards.length > 0;
 
   function handleTierSelect(tier: "session" | "production") {
     trackRundownCtaClick(sessionToken, tier).catch(() => {});
@@ -399,39 +437,33 @@ export function RundownPostReveal({
   }
 
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 900,
-        margin: "0 auto",
-        padding: "0 24px 120px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 80,
-      }}
-    >
-      {/* Divider from reveal */}
-      <Reveal>
+    <div className="rundown-post-reveal-root">
+      {/* ═══ ENRICHMENT SECTION ═══ */}
+      {hasEnrichment && (
         <div
           style={{
-            height: 1,
-            background:
-              "linear-gradient(to right, transparent, rgba(253, 245, 230, 0.12), transparent)",
-          }}
-        />
-      </Reveal>
-
-      {/* Mirror section, quiet enrichment facts */}
-      {hasMirror && (
-        <section
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 32,
+            background: "var(--color-neutral-900, #1A1A18)",
+            padding: "80px 24px",
           }}
         >
-          <Reveal>
-            <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              maxWidth: 900,
+              margin: "0 auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 32,
+            }}
+          >
+            <Reveal>
+              <div
+                style={{
+                  height: 1,
+                  background:
+                    "linear-gradient(to right, transparent, rgba(253,245,230,0.1), transparent)",
+                  marginBottom: 16,
+                }}
+              />
               <span
                 style={{
                   fontFamily: "var(--font-label)",
@@ -443,208 +475,117 @@ export function RundownPostReveal({
               >
                 While you were here, we had a look around
               </span>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <p
-              style={{
-                fontFamily: "var(--font-narrative)",
-                fontStyle: "italic",
-                fontSize: "clamp(17px, 2vw, 20px)",
-                lineHeight: 1.7,
-                color: "var(--brand-cream)",
-                opacity: 0.7,
-                textAlign: "center",
-                maxWidth: 560,
-                margin: "0 auto",
-              }}
-            >
-              Not a judgement. Just what we found.
-            </p>
-          </Reveal>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 16,
-              maxWidth: 640,
-              margin: "0 auto",
-              width: "100%",
-            }}
-          >
-            {mirrorFacts.map((fact, i) => (
-              <Reveal key={`${fact.label}-${i}`} delay={0.15 + i * 0.08}>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 20,
-                    alignItems: "flex-start",
-                    padding: "20px 24px",
-                    borderLeft:
-                      fact.tone === "gentle"
-                        ? "2px solid rgba(178, 40, 72, 0.35)"
-                        : "2px solid rgba(253, 245, 230, 0.12)",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: 9,
-                      letterSpacing: "2px",
-                      textTransform: "uppercase",
-                      color:
-                        fact.tone === "gentle"
-                          ? "var(--brand-pink)"
-                          : "var(--neutral-500)",
-                      whiteSpace: "nowrap",
-                      minWidth: 72,
-                      paddingTop: 3,
-                    }}
-                  >
-                    {fact.label}
-                  </span>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: 15,
-                      lineHeight: 1.6,
-                      color: "var(--neutral-300)",
-                      margin: 0,
-                    }}
-                  >
-                    {fact.observation}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Trial shoot CTA */}
-      <section
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 32,
-          alignItems: "center",
-        }}
-      >
-        <Reveal>
-          <div style={{ textAlign: "center", maxWidth: 600 }}>
-            <span
-              style={{
-                fontFamily: "var(--font-label)",
-                fontSize: 10,
-                letterSpacing: "3px",
-                textTransform: "uppercase",
-                color: "var(--brand-orange)",
-                display: "block",
-                marginBottom: 20,
-              }}
-            >
-              {hasMirror
-                ? "If any of that landed"
-                : "One more thing before you go"}
-            </span>
-            <h2
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(2rem, 5vw, 3rem)",
-                lineHeight: 1,
-                letterSpacing: "-1px",
-                color: "var(--brand-cream)",
-                margin: 0,
-              }}
-            >
-              A trial shoot
-              <span style={{ color: "var(--brand-red)" }}>.</span>
-              <br />
-              <span
+              <p
                 style={{
                   fontFamily: "var(--font-narrative)",
                   fontStyle: "italic",
-                  color: "var(--brand-pink)",
-                  fontWeight: 500,
-                  fontSize: "clamp(1.25rem, 3vw, 1.75rem)",
+                  fontSize: "clamp(17px, 2vw, 20px)",
+                  color: "var(--brand-cream)",
+                  opacity: 0.6,
+                  marginTop: 12,
+                  maxWidth: 460,
+                  lineHeight: 1.7,
                 }}
               >
-                real work, not a sales call.
-              </span>
-            </h2>
+                Not a judgement. Just how things look from the outside, compared
+                to what we learned about you from the inside.
+              </p>
+            </Reveal>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 20,
+              }}
+              className="enrichment-grid"
+            >
+              {enrichmentCards.map((card, i) => (
+                <Reveal key={`${card.label}-${i}`} delay={0.1 + i * 0.08}>
+                  <div
+                    style={{
+                      padding: "24px 28px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(253,245,230,0.06)",
+                      background: "var(--color-neutral-800, #252320)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "var(--font-label)",
+                        fontSize: 9,
+                        letterSpacing: "2px",
+                        textTransform: "uppercase",
+                        color: "var(--brand-pink)",
+                      }}
+                    >
+                      {card.label}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: 28,
+                        color: "var(--brand-cream)",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {card.stat}
+                    </span>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 14,
+                        lineHeight: 1.6,
+                        color: "var(--brand-cream)",
+                        opacity: 0.75,
+                        margin: 0,
+                      }}
+                    >
+                      {card.observation}
+                    </p>
+                    {card.brandNote && (
+                      <p
+                        style={{
+                          fontFamily: "var(--font-narrative)",
+                          fontStyle: "italic",
+                          fontSize: 13,
+                          lineHeight: 1.6,
+                          color: "var(--brand-pink)",
+                          opacity: 0.8,
+                          paddingLeft: 16,
+                          borderLeft: "2px solid rgba(178, 40, 72, 0.3)",
+                          marginTop: 4,
+                        }}
+                      >
+                        {card.brandNote}
+                      </p>
+                    )}
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
-        </Reveal>
+        </div>
+      )}
 
-        <Reveal delay={0.1}>
-          <p
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: 17,
-              lineHeight: 1.65,
-              color: "var(--neutral-400)",
-              maxWidth: 540,
-              textAlign: "center",
-              margin: 0,
-            }}
-          >
-            We come to you, shoot, edit, and deliver, inside a portal
-            that&rsquo;s yours to keep whether you come back or not. Plus a
-            six-week marketing plan written for your business, not a template.
-          </p>
-        </Reveal>
-
-        <Reveal delay={0.18}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 24,
-              width: "100%",
-              maxWidth: 700,
-            }}
-            className="rundown-tier-grid"
-          >
-            {TIERS.map((tier) => (
-              <TierCard
-                key={tier.id}
-                tier={tier}
-                onSelect={() => handleTierSelect(tier.id)}
-              />
-            ))}
-          </div>
-        </Reveal>
-
-        <Reveal delay={0.25}>
-          <p
-            style={{
-              fontSize: 13,
-              color: "var(--neutral-500)",
-              fontStyle: "italic",
-              textAlign: "center",
-              margin: 0,
-            }}
-          >
-            Both include the same six-week plan. The difference is what you walk
-            away with from the shoot itself.
-          </p>
-        </Reveal>
-      </section>
-
-      {/* Brand Pack download, placeholder until PDF generation is built */}
-      <section
+      {/* ═══ BRAND PACK DOWNLOAD ═══ */}
+      <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 20,
-          paddingTop: 40,
-          borderTop: "1px solid rgba(253, 245, 230, 0.06)",
+          background: "var(--color-neutral-800, #252320)",
+          padding: "64px 24px",
         }}
       >
-        <Reveal>
-          <div style={{ textAlign: "center" }}>
+        <div
+          style={{
+            maxWidth: 900,
+            margin: "0 auto",
+            textAlign: "center",
+          }}
+        >
+          <Reveal>
             <span
               style={{
                 fontFamily: "var(--font-label)",
@@ -663,61 +604,197 @@ export function RundownPostReveal({
                 fontFamily: "var(--font-narrative)",
                 fontStyle: "italic",
                 fontSize: "clamp(15px, 2vw, 18px)",
-                lineHeight: 1.6,
+                lineHeight: 1.7,
                 color: "var(--brand-cream)",
                 opacity: 0.7,
-                maxWidth: 440,
-                margin: "0 auto",
+                maxWidth: 420,
+                margin: "0 auto 28px",
               }}
             >
-              A downloadable summary of your brand identity, colours,
-              typography, content pillars, voice guide. Yours to keep.
+              Colours, typography, content pillars, voice guide, photography
+              direction. Yours to keep.
             </p>
-          </div>
-        </Reveal>
-        <Reveal delay={0.1}>
-          <button
-            type="button"
-            onClick={() => {
-              window.open(
-                `/api/rundown/${sessionToken}/brand-pack`,
-                "_blank",
-              );
-            }}
-            style={{
-              fontFamily: "var(--font-label)",
-              fontSize: 11,
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-              color: "var(--brand-cream)",
-              padding: "16px 36px",
-              background: "rgba(253, 245, 230, 0.04)",
-              border: "1px solid rgba(253, 245, 230, 0.15)",
-              borderRadius: 999,
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              transition: "background 300ms, border-color 300ms",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(253, 245, 230, 0.08)";
-              e.currentTarget.style.borderColor = "rgba(253, 245, 230, 0.25)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(253, 245, 230, 0.04)";
-              e.currentTarget.style.borderColor = "rgba(253, 245, 230, 0.15)";
-            }}
-          >
-            Download Brand Pack →
-          </button>
-        </Reveal>
-      </section>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <button
+              type="button"
+              onClick={() => {
+                window.open(
+                  `/api/rundown/${sessionToken}/brand-pack`,
+                  "_blank",
+                );
+              }}
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: 11,
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+                color: "var(--brand-cream)",
+                padding: "16px 36px",
+                background: "rgba(253, 245, 230, 0.04)",
+                border: "1px solid rgba(253, 245, 230, 0.15)",
+                borderRadius: 999,
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+                transition: "background 300ms, border-color 300ms",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  "rgba(253, 245, 230, 0.08)";
+                e.currentTarget.style.borderColor =
+                  "rgba(253, 245, 230, 0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  "rgba(253, 245, 230, 0.04)";
+                e.currentTarget.style.borderColor =
+                  "rgba(253, 245, 230, 0.15)";
+              }}
+            >
+              Download Brand Pack &rarr;
+            </button>
+          </Reveal>
+        </div>
+      </div>
 
-      {/* Footer */}
+      {/* ═══ SOFT CTA (expands to tiers) ═══ */}
+      <div
+        style={{
+          background: "var(--color-neutral-900, #1A1A18)",
+          padding: "56px 24px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 900,
+            margin: "0 auto",
+            textAlign: "center",
+          }}
+        >
+          <Reveal>
+            <span
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: 10,
+                letterSpacing: "3px",
+                textTransform: "uppercase",
+                color: "var(--brand-orange)",
+                display: "block",
+                marginBottom: 16,
+              }}
+            >
+              {hasEnrichment
+                ? "If any of that landed"
+                : "One more thing before you go"}
+            </span>
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 16,
+                lineHeight: 1.7,
+                color: "var(--neutral-300)",
+                maxWidth: 520,
+                margin: "0 auto 28px",
+              }}
+            >
+              We come to you, shoot, edit, and deliver. You keep everything
+              whether you come back or not. Plus a six-week marketing plan
+              written for your business, not a template.
+            </p>
+          </Reveal>
+
+          {!tiersExpanded && (
+            <Reveal delay={0.1}>
+              <button
+                type="button"
+                onClick={() => setTiersExpanded(true)}
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 14,
+                  color: "var(--brand-cream)",
+                  padding: "14px 32px",
+                  border: "1px solid rgba(253, 245, 230, 0.15)",
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  background: "rgba(253, 245, 230, 0.03)",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background =
+                    "rgba(253, 245, 230, 0.08)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(253, 245, 230, 0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background =
+                    "rgba(253, 245, 230, 0.03)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(253, 245, 230, 0.15)";
+                }}
+              >
+                Book a trial shoot &rarr;
+              </button>
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontStyle: "italic",
+                  fontSize: 13,
+                  color: "var(--neutral-500)",
+                  marginTop: 20,
+                }}
+              >
+                From $397. 60 minutes on-site.
+              </p>
+            </Reveal>
+          )}
+
+          {tiersExpanded && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              style={{ maxWidth: 640, margin: "0 auto" }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 20,
+                  marginTop: 8,
+                }}
+                className="rundown-tier-grid"
+              >
+                {TIERS.map((tier) => (
+                  <TierCard
+                    key={tier.id}
+                    tier={tier}
+                    onSelect={() => handleTierSelect(tier.id)}
+                  />
+                ))}
+              </div>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "var(--neutral-500)",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                  marginTop: 20,
+                }}
+              >
+                Both include the same six-week plan. The difference is what you
+                walk away with from the shoot itself.
+              </p>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══ FOOTER ═══ */}
       <footer
         style={{
           textAlign: "center",
-          paddingTop: 60,
-          borderTop: "1px solid rgba(253, 245, 230, 0.06)",
+          padding: "60px 24px 64px",
+          borderTop: "1px solid rgba(253, 245, 230, 0.04)",
         }}
       >
         <div
@@ -745,9 +822,12 @@ export function RundownPostReveal({
 
       <style>{`
         @media (max-width: 640px) {
+          .enrichment-grid {
+            grid-template-columns: 1fr !important;
+          }
           .rundown-tier-grid {
             grid-template-columns: 1fr !important;
-            gap: 20px !important;
+            gap: 16px !important;
           }
         }
       `}</style>

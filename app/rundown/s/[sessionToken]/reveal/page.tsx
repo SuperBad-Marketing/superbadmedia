@@ -105,6 +105,8 @@ async function RevealContent({
         profileId={profileId}
         businessName={businessName}
         enrichmentData={enrichmentData}
+        signalTags={signalTags}
+        firstImpression={firstImpression}
       />
     </>
   );

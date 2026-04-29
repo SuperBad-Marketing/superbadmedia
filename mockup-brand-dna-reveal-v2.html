@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand DNA Reveal v2 Mockup</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Righteous&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+  :root {
+    --brand-cream: #FDF5E6;
+    --brand-red: #B22848;
+    --brand-pink: #F4A0B0;
+    --brand-orange: #F28C52;
+    --brand-charcoal: #1A1A18;
+    --surface: #252320;
+    --surface-mid: #332F2A;
+    --surface-light: #2A2723;
+    --neutral-300: #B0AFA3;
+    --neutral-400: #949389;
+    --neutral-500: #807F73;
+    --subtle: #5A584F;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--brand-cream);
+    background: var(--brand-charcoal);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .mockup-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(26, 26, 24, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mockup-nav span {
+    font-family: 'Righteous', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .mockup-note {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--neutral-500);
+    background: var(--surface);
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+
+  .reveal-main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 80px 24px 120px;
+  }
+
+  /* ─── Section alternating backgrounds ─── */
+  .section-band {
+    margin: 0 -24px;
+    padding: 64px 24px;
+  }
+  .section-band.dark { background: var(--brand-charcoal); }
+  .section-band.mid { background: var(--surface-light); }
+
+  .section-band-inner {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  /* ─── Tags ─── */
+  .tag-pill {
+    display: inline-block;
+    font-family: 'Righteous', sans-serif;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .tag-pill.pink {
+    color: var(--brand-pink);
+    border: 1px solid rgba(244, 160, 176, 0.2);
+  }
+  .tag-pill.red {
+    color: var(--brand-red);
+    border: 1px solid rgba(178, 40, 72, 0.25);
+  }
+  .tag-pill.orange {
+    color: var(--brand-orange);
+    border: 1px solid rgba(242, 140, 82, 0.2);
+  }
+
+  /* ─── Insight blocks ─── */
+  .insight-block {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+  }
+  .insight-number {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(48px, 6vw, 64px);
+    line-height: 0.85;
+    color: rgba(178, 40, 72, 0.12);
+    flex-shrink: 0;
+    user-select: none;
+    min-width: 1.4ch;
+    text-align: right;
+  }
+  .insight-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 20px;
+    border-left: 2px solid rgba(244, 160, 176, 0.15);
+  }
+  .insight-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--brand-pink);
+  }
+  .insight-headline {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    font-size: clamp(20px, 3vw, 26px);
+    line-height: 1.3;
+    color: var(--brand-cream);
+  }
+  .insight-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--brand-cream);
+    opacity: 0.7;
+  }
+  .insight-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  /* ─── Key insight cards ─── */
+  .key-insight-card {
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  .key-insight-card.dark-card { background: var(--surface); }
+  .key-insight-card.mid-card { background: var(--surface-mid); }
+
+  .key-insight-headline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.3;
+    color: var(--brand-pink);
+    margin-bottom: 16px;
+  }
+  .key-insight-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--brand-cream);
+    opacity: 0.8;
+    margin-bottom: 12px;
+  }
+  .key-insight-evidence {
+    font-family: 'DM Sans', sans-serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--brand-cream);
+    opacity: 0.4;
+  }
+
+  /* ─── Enrichment section ─── */
+  .enrichment-card {
+    padding: 24px 28px;
+    border-radius: 14px;
+    border: 1px solid rgba(253, 245, 230, 0.06);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .enrichment-label {
+    font-family: 'Righteous', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--brand-pink);
+  }
+  .enrichment-stat {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 28px;
+    color: var(--brand-cream);
+    line-height: 1;
+  }
+  .enrichment-observation {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--brand-cream);
+    opacity: 0.75;
+  }
+  .enrichment-brand-note {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--brand-pink);
+    opacity: 0.8;
+    padding-left: 16px;
+    border-left: 2px solid rgba(178, 40, 72, 0.3);
+    margin-top: 4px;
+  }
+
+  /* ─── Soft CTA ─── */
+  .soft-cta {
+    text-align: center;
+    padding: 48px 24px;
+    border-top: 1px solid rgba(253, 245, 230, 0.06);
+  }
+  .soft-cta-link {
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--brand-cream);
+    padding: 14px 32px;
+    border: 1px solid rgba(253, 245, 230, 0.15);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: all 0.2s;
+    background: rgba(253, 245, 230, 0.03);
+  }
+  .soft-cta-link:hover {
+    background: rgba(253, 245, 230, 0.08);
+    border-color: rgba(253, 245, 230, 0.25);
+  }
+
+  @media (max-width: 640px) {
+    .reveal-main { padding: 60px 20px 80px; }
+    .section-band { margin: 0 -20px; padding: 48px 20px; }
+    .insight-block { flex-direction: column; gap: 12px; }
+    .insight-number { text-align: left; }
+    .enrichment-grid { grid-template-columns: 1fr !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Mockup header ──────────────────────────────────────────── -->
+<div class="mockup-nav">
+  <span>Mockup</span>
+  <span class="mockup-note">Brand DNA Reveal v2</span>
+  <span>SuperBad</span>
+</div>
+
+<div class="reveal-main">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SECTION 1: FIRST IMPRESSION (hero)
+       ═══════════════════════════════════════════════════════════════ -->
+  <section style="padding: 40px 0 64px;">
+    <span style="
+      font-family: 'Righteous', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--brand-orange);
+      text-transform: uppercase;
+    ">Your brand DNA</span>
+
+    <!-- SHORT headline. Max ~10 words at this size. -->
+    <h1 style="
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(48px, 8vw, 80px);
+      line-height: 0.95;
+      color: var(--brand-cream);
+      letter-spacing: -1.5px;
+      margin: 20px 0 0;
+    ">
+      Quiet stubbornness,
+      <em style="
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        color: var(--brand-pink);
+        font-weight: 500;
+      ">dressed in work boots.</em>
+    </h1>
+
+    <!-- Opener line at readable size -->
+    <p style="
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(17px, 2.2vw, 22px);
+      line-height: 1.6;
+      color: var(--brand-cream);
+      opacity: 0.7;
+      margin-top: 28px;
+      max-width: 560px;
+    ">
+      You don't explain why the coffee's good. You just make it good and let people figure it out.
+    </p>
+  </section>
+
+  <!-- Signal tags -->
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 56px;">
+    <span class="tag-pill pink">admires craft</span>
+    <span class="tag-pill pink">texture over polish</span>
+    <span class="tag-pill pink">understatement</span>
+    <span class="tag-pill pink">taste as identity</span>
+    <span class="tag-pill pink">local roots</span>
+    <span class="tag-pill pink">maker ethos</span>
+    <span class="tag-pill pink">honest imperfection</span>
+    <span class="tag-pill pink">slow confidence</span>
+  </div>
+
+</div><!-- end .reveal-main for open section -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2: SECTION INSIGHTS (alternating bands)
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Insight 1 — dark band -->
+<div class="section-band dark">
+  <div class="section-band-inner">
+    <div class="insight-block">
+      <span class="insight-number">1</span>
+      <div class="insight-content">
+        <span class="insight-label">Brand Voice</span>
+        <h3 class="insight-headline">You'd rather be honest than impressive.</h3>
+        <p class="insight-body">
+          Every answer in this section pointed the same direction: you believe your work should speak before your words do. There's a deep discomfort with self-promotion, but it's not shyness. It's a standard. You think the work is the marketing, and talking about the work is a concession.
+        </p>
+        <div class="insight-tags">
+          <span class="tag-pill red">understatement</span>
+          <span class="tag-pill red">anti-performance</span>
+          <span class="tag-pill red">earned trust</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Insight 2 — mid band -->
+<div class="section-band mid">
+  <div class="section-band-inner">
+    <div class="insight-block">
+      <span class="insight-number">2</span>
+      <div class="insight-content">
+        <span class="insight-label">Visual Identity</span>
+        <h3 class="insight-headline">Texture matters more than symmetry.</h3>
+        <p class="insight-body">
+          You're drawn to warmth, grain, and materials that have history in them. Concrete, timber, raw linen. The kind of surfaces that get better with use instead of worse. Your brand doesn't want to look designed. It wants to look built.
+        </p>
+        <div class="insight-tags">
+          <span class="tag-pill red">tactile warmth</span>
+          <span class="tag-pill red">patina over polish</span>
+          <span class="tag-pill red">maker ethos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Insight 3 — dark band -->
+<div class="section-band dark">
+  <div class="section-band-inner">
+    <div class="insight-block">
+      <span class="insight-number">3</span>
+      <div class="insight-content">
+        <span class="insight-label">Values &amp; Principles</span>
+        <h3 class="insight-headline">Quality is the non-negotiable. Everything else bends.</h3>
+        <p class="insight-body">
+          There's a stubbornness in your values section that reads like a line in the sand. You'll adapt on everything, pricing, format, location, hours, but not on the product itself. This is the thing people feel when they walk in. They can't name it, but they trust it.
+        </p>
+        <div class="insight-tags">
+          <span class="tag-pill red">quiet stubbornness</span>
+          <span class="tag-pill red">craft integrity</span>
+          <span class="tag-pill red">non-negotiable standards</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Insight 4 — mid band -->
+<div class="section-band mid">
+  <div class="section-band-inner">
+    <div class="insight-block">
+      <span class="insight-number">4</span>
+      <div class="insight-content">
+        <span class="insight-label">Audience &amp; Community</span>
+        <h3 class="insight-headline">Your regulars are your marketing team. They just don't know it.</h3>
+        <p class="insight-body">
+          Every signal here points to organic word-of-mouth as the engine you trust most. You don't want followers. You want regulars. The kind of people who tell one friend, not a hundred strangers. Your ideal audience finds you, not the other way around.
+        </p>
+        <div class="insight-tags">
+          <span class="tag-pill red">word of mouth</span>
+          <span class="tag-pill red">local roots</span>
+          <span class="tag-pill red">tribe over reach</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Insight 5 — dark band -->
+<div class="section-band dark">
+  <div class="section-band-inner">
+    <div class="insight-block">
+      <span class="insight-number">5</span>
+      <div class="insight-content">
+        <span class="insight-label">Growth &amp; Aspiration</span>
+        <h3 class="insight-headline">You want to grow, but not at the cost of the thing that makes it worth doing.</h3>
+        <p class="insight-body">
+          This section was the most conflicted. There's ambition here, but it's not the scale-at-all-costs kind. It's closer to: "I want more people to experience this, without turning it into something I wouldn't recognise." That tension is real and it's worth honouring in the brand.
+        </p>
+        <div class="insight-tags">
+          <span class="tag-pill red">controlled growth</span>
+          <span class="tag-pill red">integrity over scale</span>
+          <span class="tag-pill red">founder tension</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3: KEY INSIGHTS (the gold, pulled out and highlighted)
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="section-band" style="background: var(--brand-charcoal); padding-top: 80px; padding-bottom: 80px;">
+  <div class="section-band-inner">
+
+    <!-- Divider -->
+    <div style="height: 1px; background: linear-gradient(to right, transparent, rgba(253,245,230,0.12), transparent); margin-bottom: 48px;"></div>
+
+    <span style="
+      font-family: 'Righteous', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--brand-orange);
+      text-transform: uppercase;
+    ">The takeaways</span>
+
+    <h2 style="
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(24px, 3.5vw, 36px);
+      font-weight: 500;
+      color: var(--brand-cream);
+      margin: 16px 0 48px;
+      line-height: 1.3;
+    ">What your answers actually said.</h2>
+
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+
+      <!-- Key insight 1 -->
+      <div class="key-insight-card dark-card">
+        <p class="key-insight-headline">The work is the marketing. Everything else is noise you tolerate.</p>
+        <p class="key-insight-body">
+          Across all five sections, the strongest signal was a deep belief that quality sells itself. Your brand doesn't need a louder megaphone. It needs a clearer window. Let people see the process, the care, the decisions, and get out of the way.
+        </p>
+        <p class="key-insight-evidence">
+          Strongest signals: admires craft, understatement, anti-performance, earned trust
+        </p>
+      </div>
+
+      <!-- Key insight 2 -->
+      <div class="key-insight-card mid-card">
+        <p class="key-insight-headline">Your brand tension isn't a problem. It's the personality.</p>
+        <p class="key-insight-body">
+          The push-pull between ambition and restraint showed up everywhere. You want more people through the door but you won't compromise to get them there. That's not indecision. Brands that know what they won't do are more interesting than brands that try to do everything.
+        </p>
+        <p class="key-insight-evidence">
+          Strongest signals: controlled growth, integrity over scale, founder tension, quiet stubbornness
+        </p>
+      </div>
+
+      <!-- Key insight 3 -->
+      <div class="key-insight-card dark-card">
+        <p class="key-insight-headline">Your customers aren't buying coffee. They're buying the feeling of being a regular somewhere good.</p>
+        <p class="key-insight-body">
+          The community signals are strong, but they're not about "building a community" in the marketing sense. They're about a place that knows your name and your order. That's a fundamentally different brand proposition than "great coffee." It's belonging without asking for it.
+        </p>
+        <p class="key-insight-evidence">
+          Strongest signals: local roots, word of mouth, tribe over reach, taste as identity
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 4: THE PORTRAIT (collapsed by default, expandable)
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="section-band mid" style="padding-top: 72px; padding-bottom: 72px;">
+  <div class="section-band-inner">
+
+    <span style="
+      font-family: 'Righteous', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--brand-pink);
+      text-transform: uppercase;
+    ">The portrait</span>
+
+    <h2 style="
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 500;
+      color: var(--brand-cream);
+      margin: 14px 0 36px;
+      line-height: 1.35;
+    ">The full picture, in narrative form.</h2>
+
+    <!-- Visible preview: 2 paragraphs only -->
+    <div style="max-width: 640px;">
+      <p style="
+        font-family: 'DM Sans', sans-serif;
+        font-size: 17px;
+        line-height: 1.8;
+        color: var(--brand-cream);
+        opacity: 0.8;
+        margin-bottom: 20px;
+      ">
+        <span style="
+          font-family: 'Black Han Sans', sans-serif;
+          font-size: 48px;
+          line-height: 0.85;
+          float: left;
+          color: var(--brand-pink);
+          margin-right: 10px;
+          margin-top: 4px;
+        ">G</span>roundwork Coffee is built on the idea that doing things properly isn't a marketing angle. It's just how you work. The founders came from hospitality backgrounds where the product spoke first and the branding caught up later, and that instinct runs through everything they do.
+      </p>
+
+      <p style="
+        font-family: 'DM Sans', sans-serif;
+        font-size: 17px;
+        line-height: 1.8;
+        color: var(--brand-cream);
+        opacity: 0.8;
+        margin-bottom: 0;
+      ">
+        Their DNA reads like someone who'd rather show you the roasting process than write a tagline about it. There's a warmth here, but it's the warmth of the kitchen, not the sales floor. Texture matters. Imperfection is tolerated, maybe even preferred, when it comes with honesty attached.
+      </p>
+
+      <!-- Gradient fade-out over last lines -->
+      <div id="portrait-fade" style="
+        height: 48px;
+        margin-top: -48px;
+        position: relative;
+        background: linear-gradient(to bottom, transparent, var(--surface-light));
+        pointer-events: none;
+      "></div>
+
+      <!-- Expand button -->
+      <button id="portrait-toggle" onclick="
+        var expanded = document.getElementById('portrait-expanded');
+        var fade = document.getElementById('portrait-fade');
+        var btn = document.getElementById('portrait-toggle');
+        if (expanded.style.display === 'none') {
+          expanded.style.display = 'block';
+          fade.style.display = 'none';
+          btn.textContent = 'Collapse portrait';
+        } else {
+          expanded.style.display = 'none';
+          fade.style.display = 'block';
+          btn.textContent = 'Read the full portrait';
+        }
+      " style="
+        display: inline-block;
+        margin-top: 20px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        color: var(--brand-pink);
+        background: none;
+        border: 1px solid rgba(244, 160, 176, 0.2);
+        padding: 10px 24px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.2s;
+        letter-spacing: 0.5px;
+      ">Read the full portrait</button>
+
+      <!-- Hidden expanded content -->
+      <div id="portrait-expanded" style="display: none; margin-top: 28px;">
+
+        <blockquote style="
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+          font-size: clamp(20px, 3vw, 28px);
+          line-height: 1.3;
+          color: var(--brand-pink);
+          margin: 0 0 32px 0;
+          padding: 0 0 0 24px;
+          border-left: 3px solid rgba(178, 40, 72, 0.35);
+        ">
+          They don't explain why the coffee's good. They just make it good and let people figure it out.
+        </blockquote>
+
+        <p style="
+          font-family: 'DM Sans', sans-serif;
+          font-size: 17px;
+          line-height: 1.8;
+          color: var(--brand-cream);
+          opacity: 0.8;
+          margin-bottom: 20px;
+        ">
+          The strongest signal across all five sections was a pull toward craft without preciousness. They want to be taken seriously without taking themselves too seriously. That tension is the brand. It's what makes regulars come back and strangers stop at the door.
+        </p>
+
+        <p style="
+          font-family: 'DM Sans', sans-serif;
+          font-size: 17px;
+          line-height: 1.8;
+          color: var(--brand-cream);
+          opacity: 0.8;
+          margin-bottom: 20px;
+        ">
+          The community signals are strong but they're personal, not performative. This isn't a brand that wants to "build a community." It's a place that wants regulars. People who know the order, know the name, and don't need to be sold to because they already chose. Word-of-mouth isn't a strategy here. It's a byproduct of caring enough.
+        </p>
+
+        <blockquote style="
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+          font-size: clamp(20px, 3vw, 28px);
+          line-height: 1.3;
+          color: var(--brand-pink);
+          margin: 32px 0 36px 0;
+          padding: 0 0 0 24px;
+          border-left: 3px solid rgba(178, 40, 72, 0.35);
+        ">
+          You lead with gut and feel.
+        </blockquote>
+
+        <p style="
+          font-family: 'DM Sans', sans-serif;
+          font-size: 17px;
+          line-height: 1.8;
+          color: var(--brand-cream);
+          opacity: 0.8;
+          margin-bottom: 20px;
+        ">
+          Visually, the brand leans warm, textured, and honest. Not polished, not minimalist in the sterile sense, but minimal in the "we only put things here that belong" sense. There's an instinct for materials over effects, surfaces over filters, things you can touch over things that perform.
+        </p>
+
+        <p style="
+          font-family: 'DM Sans', sans-serif;
+          font-size: 17px;
+          line-height: 1.8;
+          color: var(--brand-cream);
+          opacity: 0.8;
+          margin-bottom: 20px;
+        ">
+          Growth, when it comes, should feel like more of the same. Not a pivot. Not a rebrand. Not a franchise. Just more people discovering a place that already knows what it is, and isn't in a rush to explain it.
+        </p>
+
+        <p style="
+          font-family: 'DM Sans', sans-serif;
+          font-size: 17px;
+          line-height: 1.8;
+          color: var(--brand-cream);
+          opacity: 0.8;
+          margin-bottom: 0;
+        ">
+          That's the core, and you already know it. The brand pack that follows will give you the visual and verbal toolkit to make it consistent. But the identity itself was already there before you sat down to answer these questions. We just wrote it down.
+        </p>
+
+      </div>
+    </div>
+
+    <p style="
+      margin-top: 40px;
+      text-align: center;
+      font-family: 'DM Sans', sans-serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--brand-pink);
+      opacity: 0.6;
+      line-height: 1.7;
+    ">
+      written for you, by SuperBad, on Tuesday, April 29.
+    </p>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 5: DIGITAL PRESENCE (deep, brand-referenced)
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="section-band dark" style="padding-top: 80px; padding-bottom: 80px;">
+  <div class="section-band-inner">
+
+    <!-- Divider -->
+    <div style="height: 1px; background: linear-gradient(to right, transparent, rgba(253,245,230,0.1), transparent); margin-bottom: 48px;"></div>
+
+    <span style="
+      font-family: 'Righteous', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--brand-orange);
+      text-transform: uppercase;
+    ">While you were here, we had a look around</span>
+
+    <p style="
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(17px, 2vw, 20px);
+      color: var(--brand-cream);
+      opacity: 0.6;
+      margin: 12px 0 48px;
+      max-width: 460px;
+    ">
+      Not a judgement. Just how things look from the outside, compared to what we learned about you from the inside.
+    </p>
+
+    <div class="enrichment-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+      <!-- Instagram card -->
+      <div class="enrichment-card">
+        <span class="enrichment-label">Instagram</span>
+        <span class="enrichment-stat">2 posts</span>
+        <p class="enrichment-observation">
+          Two posts in the last 30 days. 847 followers. Last post was a product shot with a one-line caption.
+        </p>
+        <p class="enrichment-brand-note">
+          Your DNA says "the process is the marketing" but your feed isn't showing any of it. The roasting, the sourcing, the 6am opens. That's your content.
+        </p>
+      </div>
+
+      <!-- Google card -->
+      <div class="enrichment-card">
+        <span class="enrichment-label">Google Reviews</span>
+        <span class="enrichment-stat">4.7 stars</span>
+        <p class="enrichment-observation">
+          63 reviews. Consistent praise for coffee quality and atmosphere. Three recent reviews mention staff by name.
+        </p>
+        <p class="enrichment-brand-note">
+          The regulars are already saying the things your brand should be saying. "Sarah remembers my order" is a better tagline than anything a copywriter would write.
+        </p>
+      </div>
+
+      <!-- Facebook card -->
+      <div class="enrichment-card">
+        <span class="enrichment-label">Facebook</span>
+        <span class="enrichment-stat">Dormant</span>
+        <p class="enrichment-observation">
+          Page exists. 312 followers. No posts in 60+ days. Hours and contact info are current.
+        </p>
+        <p class="enrichment-brand-note">
+          A dormant page that's up-to-date is actually fine for your brand. Better than posting content that doesn't feel like you. Instagram is where your audience lives.
+        </p>
+      </div>
+
+      <!-- Website card -->
+      <div class="enrichment-card">
+        <span class="enrichment-label">Website</span>
+        <span class="enrichment-stat">38/100</span>
+        <p class="enrichment-observation">
+          PageSpeed performance score of 38. No about page found. Menu is a PDF link. Mobile experience is slow.
+        </p>
+        <p class="enrichment-brand-note">
+          Your brand is built on the in-person experience, but 70% of people will check your site before they visit. Right now it doesn't reflect the care you put into everything else.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 6: BRAND PACK DOWNLOAD (the natural ending)
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="section-band mid" style="padding-top: 64px; padding-bottom: 64px;">
+  <div class="section-band-inner" style="text-align: center;">
+
+    <span style="
+      font-family: 'Righteous', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--brand-pink);
+      text-transform: uppercase;
+    ">Your brand pack</span>
+
+    <p style="
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--brand-cream);
+      opacity: 0.7;
+      margin: 12px auto 28px;
+      max-width: 420px;
+      line-height: 1.7;
+    ">
+      Colours, typography, content pillars, voice guide, photography direction. Yours to keep.
+    </p>
+
+    <a href="#" class="soft-cta-link" style="margin-bottom: 8px;">
+      Download Brand Pack &rarr;
+    </a>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 7: SOFT CTA (quiet, then expands to tier selection)
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="section-band dark" style="padding-top: 56px; padding-bottom: 56px;">
+  <div class="section-band-inner">
+    <div class="soft-cta" style="border-top: none; padding: 0;">
+
+      <span style="
+        font-family: 'Righteous', sans-serif;
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: var(--brand-orange);
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 16px;
+      ">If any of that landed</span>
+
+      <p style="
+        font-family: 'DM Sans', sans-serif;
+        font-size: 16px;
+        line-height: 1.7;
+        color: var(--neutral-300);
+        max-width: 520px;
+        margin: 0 auto 28px;
+      ">
+        We come to you, shoot, edit, and deliver. You keep everything whether you come back or not. Plus a six-week marketing plan written for your business, not a template.
+      </p>
+
+      <!-- Initial soft button -->
+      <button id="cta-trigger" onclick="
+        document.getElementById('cta-trigger').style.display = 'none';
+        document.getElementById('cta-price-hint').style.display = 'none';
+        document.getElementById('tier-selection').style.display = 'block';
+      " style="
+        display: inline-block;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: var(--brand-cream);
+        padding: 14px 32px;
+        border: 1px solid rgba(253, 245, 230, 0.15);
+        border-radius: 999px;
+        cursor: pointer;
+        background: rgba(253, 245, 230, 0.03);
+        transition: all 0.2s;
+      ">
+        Book a trial shoot &rarr;
+      </button>
+
+      <p id="cta-price-hint" style="
+        font-family: 'DM Sans', sans-serif;
+        font-style: italic;
+        font-size: 13px;
+        color: var(--neutral-500);
+        margin-top: 20px;
+      ">
+        From $397. 60 minutes on-site.
+      </p>
+
+      <!-- ─── Expanded tier selection (hidden by default) ─── -->
+      <div id="tier-selection" style="display: none; margin-top: 8px; max-width: 640px; margin-left: auto; margin-right: auto;">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px;">
+
+          <!-- Session tier -->
+          <div style="
+            padding: 28px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(253, 245, 230, 0.08);
+            background: var(--surface);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          ">
+            <span style="
+              font-family: 'Righteous', sans-serif;
+              font-size: 9px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: var(--brand-orange);
+            ">Session</span>
+
+            <div>
+              <span style="
+                font-family: 'Black Han Sans', sans-serif;
+                font-size: clamp(32px, 4vw, 40px);
+                color: var(--brand-cream);
+                line-height: 1;
+              ">$397</span>
+              <span style="
+                font-family: 'Playfair Display', serif;
+                font-style: italic;
+                font-size: 13px;
+                color: var(--brand-pink);
+                margin-left: 8px;
+                vertical-align: super;
+              ">once</span>
+            </div>
+
+            <p style="
+              font-family: 'Playfair Display', serif;
+              font-style: italic;
+              font-size: 14px;
+              color: var(--neutral-300);
+              line-height: 1.5;
+            ">60 min on-site</p>
+
+            <ul style="
+              list-style: none;
+              padding: 0;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              font-family: 'DM Sans', sans-serif;
+              font-size: 14px;
+              color: var(--brand-cream);
+              opacity: 0.8;
+              line-height: 1.5;
+            ">
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                1 edited video
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                10-15 edited photos
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                6-week marketing plan
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                Your own portal
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                Free reschedule (48h+)
+              </li>
+            </ul>
+
+            <button style="
+              margin-top: auto;
+              width: 100%;
+              padding: 14px;
+              font-family: 'Righteous', sans-serif;
+              font-size: 11px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: var(--brand-cream);
+              background: transparent;
+              border: 1px solid rgba(253, 245, 230, 0.15);
+              border-radius: 12px;
+              cursor: pointer;
+              transition: all 0.2s;
+            ">Choose Session</button>
+          </div>
+
+          <!-- Production tier (recommended) -->
+          <div style="
+            padding: 28px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(178, 40, 72, 0.3);
+            background: linear-gradient(180deg, rgba(178, 40, 72, 0.08) 0%, var(--surface) 100%);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+          ">
+            <!-- Recommended badge -->
+            <span style="
+              position: absolute;
+              top: -10px;
+              right: 20px;
+              font-family: 'Righteous', sans-serif;
+              font-size: 8px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: var(--brand-cream);
+              background: var(--brand-red);
+              padding: 4px 12px;
+              border-radius: 999px;
+            ">Recommended</span>
+
+            <span style="
+              font-family: 'Righteous', sans-serif;
+              font-size: 9px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: var(--brand-orange);
+            ">Production</span>
+
+            <div>
+              <span style="
+                font-family: 'Black Han Sans', sans-serif;
+                font-size: clamp(32px, 4vw, 40px);
+                color: var(--brand-cream);
+                line-height: 1;
+              ">$597</span>
+              <span style="
+                font-family: 'Playfair Display', serif;
+                font-style: italic;
+                font-size: 13px;
+                color: var(--brand-pink);
+                margin-left: 8px;
+                vertical-align: super;
+              ">once</span>
+            </div>
+
+            <p style="
+              font-family: 'Playfair Display', serif;
+              font-style: italic;
+              font-size: 14px;
+              color: var(--neutral-300);
+              line-height: 1.5;
+            ">60-90 min on-site</p>
+
+            <ul style="
+              list-style: none;
+              padding: 0;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              font-family: 'DM Sans', sans-serif;
+              font-size: 14px;
+              color: var(--brand-cream);
+              opacity: 0.8;
+              line-height: 1.5;
+            ">
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                2 edited videos
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                20-25 edited photos
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                6-week marketing plan
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                Your own portal
+              </li>
+              <li style="display: flex; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--brand-red); flex-shrink: 0;">&#x2022;</span>
+                Free reschedule (48h+)
+              </li>
+            </ul>
+
+            <button style="
+              margin-top: auto;
+              width: 100%;
+              padding: 14px;
+              font-family: 'Righteous', sans-serif;
+              font-size: 11px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: var(--brand-cream);
+              background: var(--brand-red);
+              border: none;
+              border-radius: 12px;
+              cursor: pointer;
+              transition: all 0.2s;
+            ">Choose Production</button>
+          </div>
+
+        </div>
+
+        <p style="
+          text-align: center;
+          font-family: 'DM Sans', sans-serif;
+          font-style: italic;
+          font-size: 13px;
+          color: var(--neutral-500);
+          margin-top: 20px;
+          line-height: 1.6;
+        ">
+          Both include the same six-week plan. The difference is what you walk away with from the shoot itself.
+        </p>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<footer style="text-align: center; padding: 48px 24px 64px; border-top: 1px solid rgba(253,245,230,0.04);">
+  <div style="
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 24px;
+    color: var(--brand-cream);
+    margin-bottom: 8px;
+  ">SuperBad</div>
+  <p style="
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--brand-pink);
+    opacity: 0.6;
+  ">Marketing for people who'd rather be doing something else.</p>
+</footer>
+
+</body>
+</html>
