@@ -30,7 +30,7 @@ export async function renderSocialImage(
   let browser: Browser | null = null;
   try {
     browser = await puppeteer.launch({
-      executablePath: resolveExecutablePath(),
+      executablePath: await resolveExecutablePath(),
       headless: true,
       args: [
         "--no-sandbox",
@@ -79,7 +79,7 @@ export async function renderSocialImageBatch(
   let browser: Browser | null = null;
   try {
     browser = await puppeteer.launch({
-      executablePath: resolveExecutablePath(),
+      executablePath: await resolveExecutablePath(),
       headless: true,
       args: [
         "--no-sandbox",

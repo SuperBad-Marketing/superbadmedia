@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: [
     "better-sqlite3",
+    "@sparticuz/chromium",
     "@remotion/renderer",
     "@remotion/bundler",
     "@remotion/compositor-darwin-arm64",

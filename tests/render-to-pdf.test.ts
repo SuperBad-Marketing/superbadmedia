@@ -11,24 +11,24 @@ import { describe, it, expect } from "vitest";
 import { resolveExecutablePath, renderToPdf } from "@/lib/pdf/render";
 
 describe("resolveExecutablePath", () => {
-  it("prefers PUPPETEER_EXECUTABLE_PATH when set", () => {
+  it("prefers PUPPETEER_EXECUTABLE_PATH when set", async () => {
     const original = process.env.PUPPETEER_EXECUTABLE_PATH;
     process.env.PUPPETEER_EXECUTABLE_PATH = "/tmp/custom-chrome";
     try {
-      expect(resolveExecutablePath()).toBe("/tmp/custom-chrome");
+      expect(await resolveExecutablePath()).toBe("/tmp/custom-chrome");
     } finally {
       if (original === undefined) delete process.env.PUPPETEER_EXECUTABLE_PATH;
       else process.env.PUPPETEER_EXECUTABLE_PATH = original;
     }
   });
 
-  it("falls back to a per-platform default when env unset", () => {
+  it("falls back to a per-platform default when env unset", async () => {
     const original = process.env.PUPPETEER_EXECUTABLE_PATH;
     delete process.env.PUPPETEER_EXECUTABLE_PATH;
     try {
-      const path = resolveExecutablePath();
-      // macOS dev path or linux prod path — both contain "google-chrome" or "Google Chrome"
-      expect(path).toMatch(/[Gg]oogle [Cc]hrome|google-chrome/);
+      const path = await resolveExecutablePath();
+      // macOS dev path, linux prod path, or bundled @sparticuz/chromium
+      expect(path).toMatch(/[Gg]oogle [Cc]hrome|google-chrome|chromium/);
     } finally {
       if (original !== undefined) process.env.PUPPETEER_EXECUTABLE_PATH = original;
     }

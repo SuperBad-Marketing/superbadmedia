@@ -30,6 +30,7 @@
     "@remotion/shapes": "^4.0.451",
     "@remotion/transitions": "^4.0.451",
     "@sentry/nextjs": "^10.48.0",
+    "@sparticuz/chromium": "^148.0.0",
     "@stripe/react-stripe-js": "^6.1.0",
     "@stripe/stripe-js": "^9.2.0",
     "better-sqlite3": "^12.9.0",

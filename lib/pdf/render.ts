@@ -1,18 +1,11 @@
 /**
  * PDF renderer — Puppeteer-backed implementation (QB-3).
  *
- * Uses `puppeteer-core`, which does NOT bundle Chromium. The path to an
- * existing Chrome/Chromium binary is read from `PUPPETEER_EXECUTABLE_PATH`,
- * with sensible per-platform defaults so local dev "just works" if Chrome
- * is in the standard location.
- *
- * @internal Only call from feature code via a scheduled task handler or
- * Server Action — never directly from a React component. Browser launch
- * is a heavyweight system call; consumers that render multiple PDFs in
- * a single tick should batch through `renderManyToPdf()` (added when a
- * second consumer lands — KISS for now).
+ * Uses `puppeteer-core` + `@sparticuz/chromium` as bundled fallback.
+ * Resolution order: PUPPETEER_EXECUTABLE_PATH env → system Chrome → bundled.
  */
 import puppeteer, { type Browser } from "puppeteer-core";
+import { existsSync } from "fs";
 
 export interface RenderToPdfOptions {
   /** Page format — default A4 */
@@ -25,14 +18,26 @@ export interface RenderToPdfOptions {
   filename?: string;
 }
 
-export function resolveExecutablePath(): string {
+const SYSTEM_PATHS: Record<string, string> = {
+  darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  linux: "/usr/bin/google-chrome-stable",
+};
+
+export async function resolveExecutablePath(): Promise<string> {
   const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH;
   if (fromEnv && fromEnv.length > 0) return fromEnv;
-  // Per-platform fallback. macOS is Andy's daily driver; Linux is prod.
-  if (process.platform === "darwin") {
-    return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-  }
-  return "/usr/bin/google-chrome-stable";
+
+  const systemPath = SYSTEM_PATHS[process.platform] ?? SYSTEM_PATHS.linux;
+  if (existsSync(systemPath)) return systemPath;
+
+  // Bundled Chromium — works on any platform without system Chrome
+  try {
+    const chromium = await import("@sparticuz/chromium");
+    const p = await chromium.default.executablePath();
+    if (p) return p;
+  } catch { /* not available */ }
+
+  return systemPath;
 }
 
 function withMm(value: number | undefined, fallback: number): string {
@@ -51,7 +56,7 @@ export async function renderToPdf(
   let browser: Browser | null = null;
   try {
     browser = await puppeteer.launch({
-      executablePath: resolveExecutablePath(),
+      executablePath: await resolveExecutablePath(),
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],
     });

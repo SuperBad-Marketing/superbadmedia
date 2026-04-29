@@ -30,7 +30,7 @@ export async function renderPostImage(
   let browser: Browser | null = null;
   try {
     browser = await puppeteer.launch({
-      executablePath: resolveExecutablePath(),
+      executablePath: await resolveExecutablePath(),
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],
     });
@@ -62,7 +62,7 @@ export async function renderAllRatios(
   let browser: Browser | null = null;
   try {
     browser = await puppeteer.launch({
-      executablePath: resolveExecutablePath(),
+      executablePath: await resolveExecutablePath(),
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],
     });
@@ -102,7 +102,7 @@ export async function renderCarousel(
   let browser: Browser | null = null;
   try {
     browser = await puppeteer.launch({
-      executablePath: resolveExecutablePath(),
+      executablePath: await resolveExecutablePath(),
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],
     });
