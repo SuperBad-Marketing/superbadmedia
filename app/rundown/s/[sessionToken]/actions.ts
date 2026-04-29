@@ -382,6 +382,21 @@ async function sendFollowupEmail(
   }
 }
 
+export async function trackRundownCtaClick(
+  sessionToken: string,
+  tier: string,
+): Promise<void> {
+  const now = Date.now();
+  await db
+    .update(rundownSessions)
+    .set({
+      tier_preference: tier,
+      cta_clicked_at_ms: now,
+      updated_at_ms: now,
+    })
+    .where(eq(rundownSessions.session_token, sessionToken));
+}
+
 export async function rundownGoBack(
   sessionToken: string,
   formData: FormData,

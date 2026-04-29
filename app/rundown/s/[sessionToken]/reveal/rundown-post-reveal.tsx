@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { houseSpring } from "@/lib/design-tokens";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
+import { trackRundownCtaClick } from "../actions";
 
 interface RundownPostRevealProps {
   sessionToken: string;
@@ -393,6 +394,7 @@ export function RundownPostReveal({
   const hasMirror = mirrorFacts.length > 0;
 
   function handleTierSelect(tier: "session" | "production") {
+    trackRundownCtaClick(sessionToken, tier).catch(() => {});
     window.location.href = `/trial-shoot?tier=${tier}&ref=rundown&sid=${sessionToken}`;
   }
 
