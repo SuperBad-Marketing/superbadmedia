@@ -93,7 +93,7 @@ function SignalGroup({
             type="button"
             onClick={onRemove}
             disabled={removing}
-            className="font-[family-name:var(--font-label)] text-[8px] uppercase text-[color:var(--color-neutral-600)] hover:text-[color:var(--color-brand-red)] transition-colors cursor-pointer disabled:opacity-50"
+            className="rounded px-1.5 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-400)] hover:text-[color:var(--color-brand-red)] hover:bg-[rgba(239,68,68,0.08)] transition-colors cursor-pointer disabled:opacity-50"
             style={{ letterSpacing: "1px" }}
             title={`Remove ${title} data`}
           >
