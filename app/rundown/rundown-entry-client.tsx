@@ -20,11 +20,25 @@ interface TurnstileApi {
   render: (el: string | HTMLElement, opts: Record<string, unknown>) => string;
   getResponse: (widgetId: string) => string | undefined;
   reset: (widgetId: string) => void;
+  execute: (container: string | HTMLElement, opts?: Record<string, unknown>) => void;
 }
 
 function getTurnstile(): TurnstileApi | null {
   if (typeof window === "undefined" || !("turnstile" in window)) return null;
   return (window as unknown as { turnstile: TurnstileApi }).turnstile;
+}
+
+function requestTurnstileToken(api: TurnstileApi, widgetId: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const existing = api.getResponse(widgetId);
+    if (existing) { resolve(existing); return; }
+    api.reset(widgetId);
+    const timeout = setTimeout(() => reject(new Error("timeout")), 15000);
+    const poll = setInterval(() => {
+      const token = api.getResponse(widgetId);
+      if (token) { clearTimeout(timeout); clearInterval(poll); resolve(token); }
+    }, 200);
+  });
 }
 
 interface PrefilledData {
@@ -87,14 +101,21 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
 
       try {
         const api = getTurnstile();
-        let token = turnstileToken.current;
-        if (!token && api && turnstileWidgetId.current) {
-          token = api.getResponse(turnstileWidgetId.current) ?? null;
-        }
-        if (!token) {
-          setError("Verification still loading. Please try again in a moment.");
+        if (!api || !turnstileWidgetId.current) {
+          setError("Verification not ready. Please refresh and try again.");
           setSubmitting(false);
           return;
+        }
+
+        let token = turnstileToken.current ?? api.getResponse(turnstileWidgetId.current);
+        if (!token) {
+          try {
+            token = await requestTurnstileToken(api, turnstileWidgetId.current);
+          } catch {
+            setError("Verification timed out. Please try again.");
+            setSubmitting(false);
+            return;
+          }
         }
 
         const input: RundownEntryInput = {
