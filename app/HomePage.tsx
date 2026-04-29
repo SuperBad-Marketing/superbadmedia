@@ -319,7 +319,7 @@ function ServicesMarquee({ reduced }: { reduced: boolean }) {
             display: "flex",
             whiteSpace: "nowrap",
             animation: !reduced
-              ? "marquee-left 35s linear infinite"
+              ? "marquee-left 18s linear infinite"
               : "none",
             animationPlayState: scrollInView ? "running" : "paused",
           }}
@@ -360,7 +360,7 @@ function ServicesMarquee({ reduced }: { reduced: boolean }) {
             display: "flex",
             whiteSpace: "nowrap",
             animation: !reduced
-              ? "marquee-right 30s linear infinite"
+              ? "marquee-right 15s linear infinite"
               : "none",
             animationPlayState: scrollInView ? "running" : "paused",
           }}
