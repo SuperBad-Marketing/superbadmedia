@@ -68,6 +68,8 @@ async function RevealContent({ profileId }: { profileId: string }) {
     (n) => SECTION_TITLES[n],
   );
 
+  const signalTags = parseSignalTags(profile.signal_tags);
+
   let comparisonNarrative: string | null = null;
   if (profile.version > 1) {
     const comparison = await generateRetakeComparison(profileId);
@@ -81,10 +83,31 @@ async function RevealContent({ profileId }: { profileId: string }) {
       prosePortrait={prosePortrait}
       sectionInsights={sectionInsights}
       sectionTitles={sectionTitles}
+      signalTags={signalTags}
       alreadyComplete={profile.status === "complete"}
       comparisonNarrative={comparisonNarrative}
     />
   );
+}
+
+function parseSignalTags(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .filter((s): s is string => typeof s === "string")
+        .slice(0, 8)
+        .map((t) => t.replace(/_/g, " "));
+    }
+    if (typeof parsed === "object" && parsed !== null) {
+      return Object.entries(parsed as Record<string, number>)
+        .sort((a, b) => (b[1] as number) - (a[1] as number))
+        .slice(0, 8)
+        .map(([tag]) => tag.replace(/_/g, " "));
+    }
+  } catch {}
+  return [];
 }
 
 function RevealShimmer() {
