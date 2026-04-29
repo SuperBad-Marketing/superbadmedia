@@ -3,12 +3,14 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { houseSpring } from "@/lib/design-tokens";
+import { OverallProgressBarStatic } from "@/components/lite/brand-dna/overall-progress-bar";
 
 interface InsightRevealClientProps {
   insight: string;
   attribution?: string;
   nextHref?: string;
   nextLabel?: string;
+  section?: 1 | 2 | 3 | 4 | 5;
 }
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -43,10 +45,12 @@ function parseInsight(raw: string): {
   };
 }
 
-export function InsightRevealClient({ insight, attribution, nextHref, nextLabel }: InsightRevealClientProps) {
+export function InsightRevealClient({ insight, attribution, nextHref, nextLabel, section }: InsightRevealClientProps) {
   const { headline, body, tags } = parseInsight(insight);
 
   return (
+    <>
+    {section && <OverallProgressBarStatic section={section} />}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -180,6 +184,7 @@ export function InsightRevealClient({ insight, attribution, nextHref, nextLabel 
         </motion.div>
       )}
     </motion.div>
+    </>
   );
 }
 

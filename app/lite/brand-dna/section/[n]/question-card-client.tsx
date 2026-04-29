@@ -31,6 +31,7 @@ import { resolveQuestionText } from "@/lib/brand-dna/question-bank";
 
 import { OptionCard } from "@/components/lite/brand-dna/option-card";
 import { getVisualPreview } from "@/components/lite/brand-dna/question-visuals";
+import { OverallProgressBar } from "@/components/lite/brand-dna/overall-progress-bar";
 
 interface QuestionCardClientProps {
   question: Question;
@@ -117,6 +118,12 @@ export function QuestionCardClient({
   }
 
   return (
+    <>
+    <OverallProgressBar
+      section={section}
+      questionIndex={questionIndex}
+      totalInSection={totalInSection}
+    />
     <main
       className="bda-question-main"
       style={{
@@ -363,5 +370,6 @@ export function QuestionCardClient({
         }
       `}</style>
     </main>
+    </>
   );
 }

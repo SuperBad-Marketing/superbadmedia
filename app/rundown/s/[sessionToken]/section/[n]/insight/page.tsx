@@ -101,6 +101,7 @@ async function InsightContent({
       attribution={attribution}
       nextHref={nextHref}
       nextLabel={nextLabel}
+      section={section as 1 | 2 | 3 | 4 | 5}
     />
   );
 }
