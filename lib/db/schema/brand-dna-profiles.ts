@@ -124,6 +124,8 @@ export const brand_dna_profiles = sqliteTable(
     current_section: integer("current_section").notNull().default(1),
     /** UTC epoch ms when assessment reached status = 'complete'. */
     completed_at_ms: integer("completed_at_ms"),
+    /** Cached Brand Pack LLM output. JSON: BrandPackData. */
+    brand_pack_json: text("brand_pack_json"),
   },
   (t) => ({
     by_subject: index("brand_dna_profiles_subject_idx").on(

@@ -61,3 +61,5 @@ ALTER TABLE companies ADD COLUMN viability_profile_json TEXT;
 ALTER TABLE companies ADD COLUMN enrichment_summary TEXT;
 --> statement-breakpoint
 ALTER TABLE companies ADD COLUMN enriched_at_ms INTEGER;
+--> statement-breakpoint
+ALTER TABLE brand_dna_profiles ADD COLUMN brand_pack_json TEXT;
