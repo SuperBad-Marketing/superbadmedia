@@ -7,6 +7,7 @@ import {
   unskipCandidateAction,
   updateCandidateTrackAction,
   deleteCandidateAction,
+  rerunEnrichmentAction,
 } from "../../actions";
 
 interface CandidateActionsProps {
@@ -30,6 +31,7 @@ export function CandidateActions({
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [enrichResult, setEnrichResult] = useState<string | null>(null);
 
   function handleSkip() {
     if (!showSkipInput) {
@@ -59,6 +61,19 @@ export function CandidateActions({
       const res = await updateCandidateTrackAction(candidateId, track);
       if (!res.ok) setError(res.error);
       else router.refresh();
+    });
+  }
+
+  function handleRerunEnrichment() {
+    startTransition(async () => {
+      setError(null);
+      setEnrichResult(null);
+      const res = await rerunEnrichmentAction(candidateId);
+      if (!res.ok) setError(res.error);
+      else {
+        setEnrichResult(`${res.signalsSucceeded}/${res.signalsAttempted} signals`);
+        router.refresh();
+      }
     });
   }
 
@@ -208,6 +223,29 @@ export function CandidateActions({
             )}
           </div>
         )}
+
+        <div className="h-5 w-px" style={{ backgroundColor: "rgba(253, 245, 230, 0.06)" }} />
+
+        {/* Re-run enrichment */}
+        <div className="flex items-center gap-2">
+          <button
+            disabled={pending}
+            onClick={handleRerunEnrichment}
+            className="rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors hover:brightness-110"
+            style={{
+              letterSpacing: "1.2px",
+              backgroundColor: "rgba(59, 130, 246, 0.12)",
+              color: "#93c5fd",
+            }}
+          >
+            {pending ? "Enriching..." : "Re-run Enrichment"}
+          </button>
+          {enrichResult && (
+            <span className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-400)]">
+              {enrichResult}
+            </span>
+          )}
+        </div>
 
         <div className="h-5 w-px" style={{ backgroundColor: "rgba(253, 245, 230, 0.06)" }} />
 

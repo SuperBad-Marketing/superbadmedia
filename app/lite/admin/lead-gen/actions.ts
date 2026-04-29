@@ -517,22 +517,40 @@ export async function generateDraftEmailAction(
       .orderBy(asc(brand_voice_examples.sort_order)),
   ]);
 
-  const voiceExamplesBlock =
-    voiceExamples.length > 0
-      ? `\nVOICE EXAMPLES — THE GOLD STANDARD.
-These are real emails Andy has written or approved. They define what SuperBad outreach sounds like. Your draft must match their tone, sentence rhythm, paragraph length, and energy. Study the subject lines, the openings, the sign-offs.
+  const hasExamples = voiceExamples.length > 0;
+  const exampleBlocks = voiceExamples
+    .map((ex) => `### ${ex.title}\n${ex.body_markdown}`)
+    .join("\n\n");
 
-${voiceExamples.map((ex) => `### ${ex.title}\n${ex.body_markdown}`).join("\n\n")}
-`
-      : "";
+  const systemPrompt = `You are writing a cold outreach email as Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia).
+${hasExamples ? `
+═══════════════════════════════════════════════════════════════════════
+VOICE — THIS IS THE MOST IMPORTANT SECTION. READ THESE FIRST.
+═══════════════════════════════════════════════════════════════════════
 
-  const systemPrompt = `You are drafting a cold outreach email on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia).
+These are real emails Andy has written or approved. Your draft must be indistinguishable from these. Match the sentence rhythm, the dryness, the throwaway asides, the lack of polish. They don't sound like marketing — they sound like a guy who noticed something and decided to mention it.
 
+${exampleBlocks}
+
+Key patterns: always acknowledge the unsolicited nature early ("I hope you don't mind me offering an opinion you never asked for", "I know you didn't ask for my opinion — occupational hazard") — this is non-negotiable. Self-intro is casual but not self-deprecating — SuperBad is a Melbourne-based performance marketing & media agency, use "we work with" not "I help" (e.g. "we're a performance marketing & media agency in Melbourne — we mostly work with businesses that are better in person than they are online"), never downplay with "small" or "little". Observations as curiosity not analysis, free advice tossed off not presented, trial shoot in one sentence not a pitch paragraph, sign-off is just "Andy".
+
+HARD BANS — violating any = rewrite:
+- NEVER cite exact numbers. Not "73 reviews at 4.4" — say "a bunch of solid reviews." You're a guy who looked, not an analyst reading a spreadsheet.
+- NEVER lead with a data point. Lead with what you'd NOTICE browsing their online presence.
+- NEVER compliment ("genuinely impressive", "that says a lot"). Observe, don't flatter.
+- NEVER use marketing jargon ("move the needle", "drives walk-ins", "deserves better").
+- NEVER structure as compliment → but → advice → pitch. Meander. Think out loud.
+- NEVER make up charitable explanations for gaps ("probably too busy", "I don't know if that's a glitch"). Just observe and move on.
+- NEVER end a paragraph pitching SuperBad. Bury it almost apologetically.
+
+If your draft sounds more polished or structured than these examples, rewrite it.
+═══════════════════════════════════════════════════════════════════════
+` : ''}
 BRAND VOICE:
 ${brandProfile.voiceDescription}
 Tone markers: ${brandProfile.toneMarkers.join(", ")}
 ${brandProfile.avoidWords?.length ? `Words to avoid: ${brandProfile.avoidWords.join(", ")}` : ""}
-${voiceExamplesBlock}
+
 OUTPUT FORMAT (follow exactly — no deviations, no preamble):
 SUBJECT: <subject line>
 BODY:
@@ -551,6 +569,8 @@ ENRICHMENT:
 ${JSON.stringify(profile, null, 2)}
 
 ${candidate.notes ? `NOTES:\n${candidate.notes}` : ""}
+
+LEAD WITH SOCIAL MEDIA. The gap observation MUST be about their Instagram or Facebook — inactive, low engagement, posting into the void, or missing entirely. Social is the big selling point: it's where businesses like theirs should be winning and aren't. Do NOT lead with Google listing issues. Google is a fallback ONLY if their social is genuinely active and healthy.
 
 The email should feel personal, reference something specific about their business, and be genuinely useful. No hard sell. Keep it under 150 words.
 
@@ -773,7 +793,59 @@ export async function approveAndSendManualDraftAction(
   return { ok: true };
 }
 
-// ── Manual run ──────────────────────────────────────────────────────
+// ── Re-run enrichment ─────��────────────────────────────────────────
+
+export async function rerunEnrichmentAction(
+  candidateId: string,
+): Promise<{ ok: true; signalsSucceeded: number; signalsAttempted: number } | { ok: false; error: string }> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [candidate] = await db
+    .select()
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+
+  const { enrichCandidate } = await import("@/lib/lead-gen/enrich");
+  const existingProfile = candidate.viability_profile_json as Record<string, unknown>;
+
+  const result = await enrichCandidate({
+    company_name: candidate.company_name,
+    domain: candidate.domain,
+    source: candidate.sourced_from as "google_maps" | "meta_ad_library" | "google_ads_transparency" | "instagram_location",
+    partial_profile: {
+      maps: existingProfile.maps as never,
+      meta_ads: existingProfile.meta_ads as never,
+      google_ads: existingProfile.google_ads as never,
+    },
+  });
+
+  await db
+    .update(leadCandidates)
+    .set({ viability_profile_json: result.profile })
+    .where(eq(leadCandidates.id, candidateId));
+
+  await logActivity({
+    kind: "lead_candidate_updated",
+    body: `Re-ran enrichment for ${candidate.company_name} (${result.signals_succeeded}/${result.signals_attempted} signals)`,
+    createdBy: by,
+    meta: {
+      candidate_id: candidateId,
+      signals_attempted: result.signals_attempted,
+      signals_succeeded: result.signals_succeeded,
+      duration_ms: result.enrichment_duration_ms,
+    },
+  });
+
+  revalidatePath(`${LEAD_GEN_PATH}/candidates/${candidateId}`);
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true, signalsSucceeded: result.signals_succeeded, signalsAttempted: result.signals_attempted };
+}
+
+// ── Manual run ──────���───────────────────────────────────────────────
 
 export async function triggerManualRunAction(): Promise<
   | {

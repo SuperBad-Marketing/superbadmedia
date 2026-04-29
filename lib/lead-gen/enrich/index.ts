@@ -77,7 +77,28 @@ export async function enrichCandidate(
   const placeId = (candidate.raw_source_data as Record<string, unknown>)
     ?.place_id as string | undefined;
 
-  // Build the set of enrichment tasks based on what data we have
+  // Phase 1: Website scrape runs first so we can extract real social handles
+  // for downstream enrichment (Instagram handle from footer links, etc.)
+  if (hasDomain) {
+    signalsAttempted++;
+    try {
+      const scrapeResult = await scrapeWebsite(candidate.domain!);
+      profile = applyWebsiteScrapeToProfile(profile, scrapeResult);
+      scrapedContacts = scrapeResult.scraped_contacts;
+      scrapedPhones = scrapeResult.scraped_phones;
+      scrapedSocialLinks = scrapeResult.scraped_social_links;
+      if (scrapeResult.has_about_page || scrapeResult.has_pricing_page) signalsSucceeded++;
+    } catch {
+      // Website scrape failed — continue with remaining signals
+    }
+  }
+
+  // Extract real Instagram handle from scraped footer link if available
+  const scrapedIgHandle = scrapedSocialLinks.instagram_url
+    ? extractHandleFromUrl(scrapedSocialLinks.instagram_url)
+    : undefined;
+
+  // Phase 2: Remaining signals in parallel (Instagram now uses real handle)
   const tasks: Array<{
     name: string;
     run: () => Promise<void>;
@@ -105,7 +126,7 @@ export async function enrichCandidate(
       name: "instagram",
       requires_domain: true,
       run: async () => {
-        const result = await fetchInstagram(candidate.domain!);
+        const result = await fetchInstagram(candidate.domain!, scrapedIgHandle);
         profile = applyInstagramToProfile(profile, result);
         if (result.follower_count !== null) signalsSucceeded++;
         if (result.username) igUsername = result.username;
@@ -124,18 +145,6 @@ export async function enrichCandidate(
       },
     },
     {
-      name: "website_scrape",
-      requires_domain: true,
-      run: async () => {
-        const result = await scrapeWebsite(candidate.domain!);
-        profile = applyWebsiteScrapeToProfile(profile, result);
-        scrapedContacts = result.scraped_contacts;
-        scrapedPhones = result.scraped_phones;
-        scrapedSocialLinks = result.scraped_social_links;
-        if (result.has_about_page || result.has_pricing_page) signalsSucceeded++;
-      },
-    },
-    {
       name: "maps_extras",
       requires_domain: false,
       run: async () => {
@@ -151,9 +160,9 @@ export async function enrichCandidate(
   const eligibleTasks = tasks.filter(
     (t) => !t.requires_domain || hasDomain,
   );
-  signalsAttempted = eligibleTasks.length;
+  signalsAttempted += eligibleTasks.length;
 
-  // Run all eligible signals in parallel
+  // Run remaining signals in parallel
   await Promise.allSettled(eligibleTasks.map((t) => t.run()));
 
   const finalProfile = profile as ViabilityProfile;
@@ -176,6 +185,16 @@ export async function enrichCandidate(
     scraped_phones: scrapedPhones,
     scraped_social_links: scrapedSocialLinks,
   };
+}
+
+function extractHandleFromUrl(url: string): string | undefined {
+  try {
+    const path = new URL(url).pathname.replace(/^\/+|\/+$/g, "");
+    const handle = path.split("/")[0];
+    return handle && handle.length > 0 ? handle : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 // Re-export individual modules for direct access
