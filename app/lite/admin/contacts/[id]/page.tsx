@@ -29,6 +29,8 @@ import { ActivityTab } from "@/components/lite/admin/companies/activity-tab";
 import { PrivateNotesFeed } from "@/components/lite/admin/contacts/private-notes-feed";
 import { ContextEngineOverview } from "@/components/lite/admin/contacts/context-engine-overview";
 import { addNote, toggleVisibility } from "./actions";
+import { EnrichmentCard } from "@/components/lite/enrichment-card";
+import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { ResendPortalLinkButton } from "@/components/lite/admin/contacts/resend-portal-link-button";
 import {
   getContextSummary,
@@ -518,6 +520,14 @@ function OverviewTab({
             mutter="just a name so far."
           />
         </section>
+      )}
+
+      {/* Enrichment — data comes from the linked company */}
+      {company && (
+        <EnrichmentCard
+          profile={company.viability_profile_json as ViabilityProfile | null}
+          companyId={company.id}
+        />
       )}
 
       {/* Private notes feed */}

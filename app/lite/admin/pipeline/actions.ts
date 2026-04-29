@@ -9,6 +9,7 @@ import {
   finaliseDealAsLost,
 } from "@/lib/crm";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
+import { autoEnrichCompanyIfNeeded } from "@/lib/crm/auto-enrich";
 import { maybeFireThreeWonsEgg } from "@/lib/eggs/admin-triggers/three-wons";
 import {
   DEAL_STAGES,
@@ -161,6 +162,11 @@ export async function addLeadAction(input: AddLeadInput): Promise<AddLeadResult>
       source: "manual_admin",
       stage,
     });
+    // Fire-and-forget enrichment for the company (non-blocking)
+    void autoEnrichCompanyIfNeeded(result.company.id, {
+      by: `user:${session.user.id ?? "admin"}`,
+    });
+
     revalidatePath("/lite/admin/pipeline");
     return {
       ok: true,

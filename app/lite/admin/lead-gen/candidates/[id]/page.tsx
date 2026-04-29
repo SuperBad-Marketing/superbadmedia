@@ -6,6 +6,7 @@ import { getCandidateById } from "@/lib/lead-gen/queries";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { CandidateActions } from "./candidate-actions";
 import { CandidateContactEdit } from "./candidate-contact-edit";
+import { EnrichmentCard } from "@/components/lite/enrichment-card";
 
 export const metadata: Metadata = {
   title: "Candidate Detail — Lead Gen — SuperBad",
@@ -29,40 +30,6 @@ function ScoreBar({ label, score, floor }: { label: string; score: number; floor
       </div>
       <span className="w-[40px] shrink-0 text-right font-mono text-[14px]" style={{ color: qualifies ? "var(--color-brand-cream)" : "var(--color-neutral-500)" }}>
         {score}
-      </span>
-    </div>
-  );
-}
-
-function SignalCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-xl p-4"
-      style={{
-        backgroundColor: "var(--color-surface-2)",
-        boxShadow: "var(--surface-highlight)",
-        border: "1px solid rgba(253, 245, 230, 0.03)",
-      }}
-    >
-      <div
-        className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-        style={{ letterSpacing: "1.5px" }}
-      >
-        {title}
-      </div>
-      <div className="flex flex-col gap-1.5">{children}</div>
-    </div>
-  );
-}
-
-function SignalRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]">
-        {label}
-      </span>
-      <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-cream)] text-right">
-        {value ?? <span className="text-[color:var(--color-neutral-600)]">—</span>}
       </span>
     </div>
   );
@@ -99,7 +66,6 @@ export default async function CandidateDetailPage({
   if (!candidate) notFound();
 
   const profile = candidate.viability_profile_json as ViabilityProfile;
-  const fetchErrors = profile.fetch_errors ?? {};
 
   const createdDate = candidate.created_at
     ? new Intl.DateTimeFormat("en-AU", {
@@ -205,77 +171,13 @@ export default async function CandidateDetailPage({
         />
       </div>
 
-      {/* Enrichment signals */}
+      {/* Enrichment — collapsible card with re-enrich */}
       <div className="mt-8 px-4">
-        <div
-          className="mb-4 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
-          style={{ letterSpacing: "2px" }}
-        >
-          Enrichment
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {profile.maps && (
-            <SignalCard title="Google Maps">
-              <SignalRow label="Category" value={profile.maps.category} />
-              <SignalRow label="Rating" value={profile.maps.rating !== null ? `${profile.maps.rating} ★` : null} />
-              <SignalRow label="Reviews" value={profile.maps.review_count} />
-              <SignalRow label="Photos" value={profile.maps.photo_count} />
-              <SignalRow label="Last photo" value={profile.maps.last_photo_date} />
-            </SignalCard>
-          )}
-
-          {profile.website && (
-            <SignalCard title="Website">
-              <SignalRow label="PageSpeed" value={profile.website.pagespeed_performance_score !== null ? `${profile.website.pagespeed_performance_score}/100` : null} />
-              <SignalRow label="Domain age" value={profile.website.domain_age_years !== null ? `${profile.website.domain_age_years.toFixed(1)} yrs` : null} />
-              <SignalRow label="Team size" value={profile.website.team_size_signal !== "unknown" ? profile.website.team_size_signal : null} />
-              <SignalRow label="Pricing tier" value={profile.website.stated_pricing_tier !== "unknown" ? profile.website.stated_pricing_tier : null} />
-              <SignalRow label="About page" value={profile.website.has_about_page ? "Yes" : "No"} />
-              <SignalRow label="Pricing page" value={profile.website.has_pricing_page ? "Yes" : "No"} />
-            </SignalCard>
-          )}
-
-          {profile.instagram && (
-            <SignalCard title="Instagram">
-              <SignalRow label="Followers" value={profile.instagram.follower_count.toLocaleString()} />
-              <SignalRow label="Total posts" value={profile.instagram.post_count.toLocaleString()} />
-              <SignalRow label="Posts (30d)" value={profile.instagram.posts_last_30d} />
-            </SignalCard>
-          )}
-
-          {profile.youtube && (
-            <SignalCard title="YouTube">
-              <SignalRow label="Subscribers" value={profile.youtube.subscriber_count.toLocaleString()} />
-              <SignalRow label="Videos" value={profile.youtube.video_count} />
-              <SignalRow label="Uploads (90d)" value={profile.youtube.uploads_last_90d} />
-            </SignalCard>
-          )}
-
-          {profile.meta_ads && (
-            <SignalCard title="Meta Ads">
-              <SignalRow label="Active ads" value={profile.meta_ads.active_ad_count} />
-              <SignalRow label="Spend bracket" value={profile.meta_ads.estimated_spend_bracket} />
-              <SignalRow label="Active creatives" value={profile.meta_ads.has_active_creatives ? "Yes" : "No"} />
-            </SignalCard>
-          )}
-
-          {profile.google_ads && (
-            <SignalCard title="Google Ads">
-              <SignalRow label="Active creatives" value={profile.google_ads.active_creative_count} />
-              <SignalRow label="Active campaigns" value={profile.google_ads.has_active_campaigns ? "Yes" : "No"} />
-            </SignalCard>
-          )}
-        </div>
-
-        {Object.keys(fetchErrors).length > 0 && (
-          <div className="mt-3">
-            <SignalCard title="Enrichment errors">
-              {Object.entries(fetchErrors).map(([key, msg]) => (
-                <SignalRow key={key} label={key} value={<span className="text-[color:var(--color-neutral-500)]">{msg as string}</span>} />
-              ))}
-            </SignalCard>
-          </div>
-        )}
+        <EnrichmentCard
+          profile={profile}
+          candidateId={candidate.id}
+          defaultOpen
+        />
       </div>
     </div>
   );

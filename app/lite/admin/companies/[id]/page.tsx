@@ -50,6 +50,8 @@ import {
 } from "@/components/lite/company/shoot-day-notes-panel";
 import { LinkedContactsPanel } from "@/components/lite/admin/companies/linked-contacts-panel";
 import { CompanyBriefsTab } from "@/components/lite/admin/companies/company-briefs-tab";
+import { EnrichmentCard } from "@/components/lite/enrichment-card";
+import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
 export const metadata: Metadata = {
   title: "SuperBad — Company",
@@ -715,6 +717,11 @@ function OverviewTab({
       />
 
       <LinkedContactsPanel companyId={company.id} initialContacts={contactRows} nowMs={nowMs} />
+
+      <EnrichmentCard
+        profile={company.viability_profile_json as ViabilityProfile | null}
+        companyId={company.id}
+      />
     </div>
   );
 }

@@ -17,6 +17,8 @@ import {
 import { DealQuotesSection } from "@/components/lite/sales-pipeline/deal-quotes-section";
 import { DealCallHistory } from "@/components/lite/sales-pipeline/deal-call-history";
 import { AdHocNoteButton } from "@/components/lite/sales-pipeline/adhoc-note-button";
+import { EnrichmentCard } from "@/components/lite/enrichment-card";
+import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
 export const metadata: Metadata = {
   title: "SuperBad — Deal Detail",
@@ -50,6 +52,7 @@ export default async function DealDetailPage({
       created_at_ms: deals.created_at_ms,
       company_id: deals.company_id,
       company_name: companies.name,
+      company_viability_profile: companies.viability_profile_json,
       contact_id: deals.primary_contact_id,
       contact_name: contacts.name,
       contact_email: contacts.email,
@@ -170,6 +173,13 @@ export default async function DealDetailPage({
           dealId={deal.id}
           companyId={deal.company_id}
           quotes={dealQuotes}
+        />
+      </div>
+
+      <div className="mt-6 px-4">
+        <EnrichmentCard
+          profile={row.company_viability_profile as ViabilityProfile | null}
+          companyId={deal.company_id}
         />
       </div>
     </div>

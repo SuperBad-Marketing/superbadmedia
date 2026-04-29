@@ -25,6 +25,7 @@ import { isBlockedFromOutreach } from "@/lib/lead-gen/dnc";
 import { enforceWarmupCap, recordWarmupSend } from "@/lib/lead-gen/warmup";
 import { isWithinQuietWindow } from "@/lib/channels/email/quiet-window";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
+import { autoEnrichCompanyIfNeeded } from "@/lib/crm/auto-enrich";
 import { createUnsubscribeUrl } from "@/lib/lead-gen/unsubscribe-token";
 import { SUPERBAD_SENDER } from "@/lib/lead-gen/sender";
 
@@ -670,6 +671,9 @@ export async function approveAndSendManualDraftAction(
         .update(leadCandidates)
         .set({ promoted_to_deal_id: dealId, promoted_at: new Date() })
         .where(eq(leadCandidates.id, candidateId));
+
+      // Fire-and-forget enrichment for the new company
+      void autoEnrichCompanyIfNeeded(dealResult.company.id, { by });
     } catch {
       return { ok: false, error: "Failed to create deal — check candidate data." };
     }

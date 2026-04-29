@@ -432,6 +432,8 @@ export const ACTIVITY_LOG_KINDS = [
   "call_started",
   "call_completed",
   "adhoc_note_added",
+  // --- Enrichment (1) ---
+  "company_enriched",
   // --- Brand DNA Rundown (4) ---
   "rundown_entry_submitted",
   "rundown_resume",
