@@ -136,7 +136,7 @@ export async function submitRundownBusinessContext(
     })
     .where(eq(brand_dna_profiles.id, resolved.profileId));
 
-  redirect(`${basePath(sessionToken)}/section/1`);
+  redirect(`${basePath(sessionToken)}/intro`);
 }
 
 export async function submitRundownAnswer(

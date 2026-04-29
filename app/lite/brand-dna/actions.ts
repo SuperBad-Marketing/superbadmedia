@@ -642,5 +642,5 @@ export async function submitBusinessContext(formData: FormData): Promise<void> {
     })
     .where(eq(brand_dna_profiles.id, profileId));
 
-  redirect(`/lite/brand-dna/section/1`);
+  redirect(`/lite/brand-dna/intro`);
 }
