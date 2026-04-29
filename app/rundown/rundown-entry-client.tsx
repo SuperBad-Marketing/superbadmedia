@@ -33,23 +33,27 @@ interface PrefilledData {
   instagramHandle?: string;
 }
 
-// ── Shared sub-components ─────────────────────────────────────────────
+/* ── Screen — full-viewport snap section ── */
 
 function Screen({
   children,
   surface = 0,
   align = "center",
+  dense = false,
 }: {
   children: React.ReactNode;
-  surface?: 0 | 1 | "brand";
+  surface?: 0 | 1 | "brand" | "cream";
   align?: "left" | "center";
+  dense?: boolean;
 }) {
   const bg =
     surface === "brand"
       ? "var(--brand-red)"
-      : surface === 1
-        ? "var(--color-neutral-800, #252320)"
-        : "var(--brand-charcoal, #1A1A18)";
+      : surface === "cream"
+        ? "var(--brand-cream)"
+        : surface === 1
+          ? "var(--surface-1, #252320)"
+          : "var(--brand-charcoal, #1A1A18)";
 
   return (
     <section
@@ -57,10 +61,13 @@ function Screen({
         height: "100dvh",
         scrollSnapAlign: "start",
         display: "flex",
-        alignItems: "center",
-        justifyContent: align === "center" ? "center" : "flex-start",
+        flexDirection: "column",
+        alignItems: align === "center" ? "center" : "flex-start",
+        justifyContent: dense ? "flex-start" : "center",
         textAlign: align,
-        padding: "clamp(32px, 6vw, 80px)",
+        padding: dense
+          ? "clamp(48px, 7vh, 88px) clamp(32px, 5vw, 96px) clamp(32px, 4vw, 60px)"
+          : "clamp(32px, 6vw, 80px) clamp(32px, 5vw, 96px)",
         background: bg,
         position: "relative",
         overflow: "hidden",
@@ -71,31 +78,39 @@ function Screen({
   );
 }
 
+/* ── Statement — spring entrance ── */
+
 function Statement({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.4 });
-  const reduced = useReducedMotion();
 
   return (
     <motion.div
       ref={ref}
-      initial={reduced ? false : { opacity: 0, y: 32 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ type: "spring", damping: 18, stiffness: 70, delay }}
+      initial={{ opacity: 0, y: 40 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+      transition={{ type: "spring", damping: 18, stiffness: 80, delay }}
     >
       {children}
     </motion.div>
   );
 }
 
-function revealWords(text: string, inView: boolean, reduced: boolean | null) {
-  const words = text.split(" ");
-  return words.map((word, i) => (
+/* ── Word reveal — premium blur entrance ── */
+
+function revealWords(
+  text: string,
+  inView: boolean,
+  reduced: boolean | null,
+  delayOffset = 0,
+  stagger = 0.07,
+) {
+  return text.split(" ").map((word, i) => (
     <motion.span
-      key={i}
-      initial={reduced ? false : { opacity: 0, y: 16, filter: "blur(4px)" }}
+      key={`${delayOffset}-${i}`}
+      initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
       animate={inView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
-      transition={{ duration: 0.5, delay: 0.08 * i, ease: EASE }}
+      transition={{ duration: 0.5, delay: delayOffset + i * stagger, ease: EASE }}
       style={{ display: "inline-block", marginRight: "0.3em" }}
     >
       {word}
@@ -103,63 +118,94 @@ function revealWords(text: string, inView: boolean, reduced: boolean | null) {
   ));
 }
 
+/* ── Redaction — generic → strikethrough → honest ── */
+
 function Redaction({
   generic,
   honest,
+  honestSub,
 }: {
   generic: string;
-  honest: string;
+  honest: React.ReactNode;
+  honestSub?: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
-  const reduced = useReducedMotion();
+  const [struck, setStruck] = useState(false);
+
+  useEffect(() => {
+    if (inView) {
+      const timer = setTimeout(() => setStruck(true), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [inView]);
 
   return (
-    <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 620 }}>
+    <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <p
         style={{
           fontFamily: "var(--font-body)",
-          fontSize: "clamp(18px, 2.5vw, 22px)",
-          lineHeight: 1.6,
-          color: "var(--brand-cream)",
-          opacity: 0.35,
+          fontSize: "clamp(18px, 2.2vw, 26px)",
+          lineHeight: 1.5,
           margin: 0,
-          position: "relative",
+          textWrap: "pretty",
         }}
       >
         <motion.span
-          initial={{ backgroundSize: "0% 2px" }}
-          animate={inView ? { backgroundSize: "100% 2px" } : {}}
-          transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
           style={{
-            backgroundImage: "linear-gradient(var(--brand-cream), var(--brand-cream))",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "0 55%",
+            color: inView ? "rgba(253, 245, 230, 0.35)" : "transparent",
+            transition:
+              "color 0.4s, background-size 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+            backgroundImage:
+              "linear-gradient(transparent 46%, var(--brand-red) 46%, var(--brand-red) 54%, transparent 54%)",
+            backgroundSize: struck ? "100% 1.5em" : "0% 1.5em",
+            backgroundRepeat: "repeat-y",
+            backgroundPosition: "left center",
+            WebkitBoxDecorationBreak: "clone",
+            boxDecorationBreak: "clone" as never,
           }}
         >
           {generic}
         </motion.span>
       </p>
-      <motion.p
-        initial={reduced ? false : { opacity: 0, y: 12 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.6, delay: 1.0, ease: EASE }}
-        style={{
-          fontFamily: "var(--font-body)",
-          fontSize: "clamp(16px, 2vw, 19px)",
-          lineHeight: 1.7,
-          color: "var(--brand-cream)",
-          opacity: 0.8,
-          margin: 0,
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{
+          delay: 1.0,
+          type: "spring",
+          damping: 20,
+          stiffness: 100,
         }}
       >
-        {honest}
-      </motion.p>
+        <div
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(28px, 4.5vw, 56px)",
+            lineHeight: 1.05,
+            color: "var(--neutral-100, #FDF5E6)",
+            textWrap: "balance",
+          }}
+        >
+          {honest}
+        </div>
+        {honestSub && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ delay: 1.6, duration: 0.5 }}
+            style={{ marginTop: 24 }}
+          >
+            {honestSub}
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }
 
-// ── Deliverable items ─────────────────────────────────────────────────
+/* ── Deliverable items ── */
 
 const DELIVERABLES = [
   {
@@ -179,7 +225,9 @@ const DELIVERABLES = [
   },
 ];
 
-// ── Main component ────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════════════ */
+/* MAIN COMPONENT                                                     */
+/* ════════════════════════════════════════════════════════════════════ */
 
 export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData }) {
   const router = useRouter();
@@ -195,8 +243,8 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
   const [clientName, setClientName] = useState("");
 
   const formRef = useRef<HTMLElement>(null);
-  const heroWordRef = useRef<HTMLDivElement>(null);
-  const heroInView = useInView(heroWordRef, { once: true, amount: 0.4 });
+  const heroRef = useRef<HTMLDivElement>(null);
+  const heroInView = useInView(heroRef, { once: true, amount: 0.4 });
   const reduced = useReducedMotion();
 
   useEffect(() => {
@@ -260,6 +308,9 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
     [name, email, businessName, website, instagramHandle, submitting, searchParams, router],
   );
 
+  const delRef = useRef<HTMLDivElement>(null);
+  const delInView = useInView(delRef, { once: true, amount: 0.15 });
+
   return (
     <main
       className="rundown-scroll-root"
@@ -270,10 +321,9 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
         background: "var(--brand-charcoal, #1A1A18)",
       }}
     >
-      {/* Ambient background */}
+      {/* ── Ambient background ── */}
       <div
         aria-hidden
-        className="rundown-ambient"
         style={{
           position: "fixed",
           inset: 0,
@@ -281,241 +331,311 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
           zIndex: 0,
         }}
       >
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse at 20% 30%, rgba(242,140,82,0.06), transparent 60%)",
-        }} />
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse at 80% 70%, rgba(178,40,72,0.07), transparent 55%)",
-        }} />
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse at 50% 50%, rgba(244,160,176,0.04), transparent 70%)",
-        }} />
+        <motion.div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: [
+              "radial-gradient(ellipse 70% 50% at 15% 20%, rgba(242,140,82,0.10), transparent 70%)",
+              "radial-gradient(ellipse 60% 55% at 85% 80%, rgba(178,40,72,0.14), transparent 65%)",
+              "radial-gradient(ellipse 40% 30% at 50% 50%, rgba(244,160,176,0.03), transparent 60%)",
+            ].join(", "),
+          }}
+          animate={{ opacity: [0.85, 1, 0.85] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            opacity: 0.035,
+            mixBlendMode: "overlay",
+            backgroundImage:
+              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+          }}
+        />
       </div>
 
       {/* ═══ SCREEN 1: Hero ═══ */}
-      <Screen>
-        <div
+      <section
+        style={{
+          height: "100dvh",
+          scrollSnapAlign: "start",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        <motion.nav
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
           style={{
-            maxWidth: 780,
-            margin: "0 auto",
-            position: "relative",
-            zIndex: 1,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            textAlign: "center",
-            gap: 0,
+            justifyContent: "space-between",
+            padding: "clamp(24px, 3.5vh, 40px) clamp(32px, 5vw, 96px) clamp(8px, 1vh, 12px)",
           }}
         >
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
+          <a
+            href="/"
             style={{
-              fontFamily: "var(--font-label)",
-              fontSize: 10,
-              letterSpacing: "4px",
-              textTransform: "uppercase",
-              color: "var(--brand-pink)",
-              margin: "0 0 28px 0",
+              fontFamily: "var(--font-logo)",
+              fontSize: "clamp(22px, 2.8vw, 32px)",
+              color: "var(--brand-cream)",
+              textDecoration: "none",
+              position: "relative",
+              zIndex: 1,
             }}
           >
-            Brand DNA
-          </motion.p>
+            SuperBad
+          </a>
+        </motion.nav>
 
-          <div ref={heroWordRef}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            paddingBottom: "8vh",
+            paddingLeft: "clamp(32px, 5vw, 96px)",
+            paddingRight: "clamp(32px, 5vw, 96px)",
+          }}
+        >
+          <div ref={heroRef} style={{ maxWidth: "14ch", position: "relative", zIndex: 1 }}>
+            <motion.p
+              initial={reduced ? false : { opacity: 0, y: 8 }}
+              animate={heroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, ease: EASE }}
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: "var(--text-micro, 10px)",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase",
+                color: "var(--brand-pink)",
+                margin: 0,
+                marginBottom: "clamp(16px, 2vw, 28px)",
+              }}
+            >
+              Brand DNA
+            </motion.p>
+
             <h1
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-                lineHeight: 1.05,
-                color: "var(--brand-cream)",
-                margin: "0 0 28px 0",
-                letterSpacing: "-1px",
+                fontSize: "clamp(48px, 9vw, 112px)",
+                lineHeight: 0.95,
+                color: "var(--neutral-100, #FDF5E6)",
+                margin: 0,
               }}
             >
-              {revealWords("Every brand has a DNA.", heroInView, reduced)}
-              <br />
-              {revealWords("Most have never seen theirs.", heroInView, reduced)}
+              {revealWords("Every brand has a DNA", heroInView, reduced)}
+              <motion.span
+                style={{ display: "inline-block", color: "var(--brand-red)" }}
+                initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={heroInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+                transition={{ duration: 0.5, delay: 5 * 0.07, ease: EASE }}
+              >
+                .
+              </motion.span>
             </h1>
+            <h1
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(48px, 9vw, 112px)",
+                lineHeight: 0.95,
+                color: "var(--brand-red)",
+                margin: 0,
+              }}
+            >
+              {revealWords("Most have never seen theirs", heroInView, reduced, 0.5)}
+              <motion.span
+                style={{ display: "inline-block", color: "var(--neutral-100, #FDF5E6)" }}
+                initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={heroInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+                transition={{ duration: 0.5, delay: 0.5 + 5 * 0.07, ease: EASE }}
+              >
+                .
+              </motion.span>
+            </h1>
+
+            <motion.p
+              initial={reduced ? false : { opacity: 0 }}
+              animate={heroInView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.6, delay: 1.2 }}
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "var(--text-small, 15px)",
+                color: "var(--neutral-400, rgba(253,245,230,0.5))",
+                marginTop: "clamp(24px, 3vw, 40px)",
+                maxWidth: "48ch",
+                textWrap: "pretty",
+              }}
+            >
+              102 questions. No right answers. A portrait of who you already are.
+            </motion.p>
           </div>
-
-          <motion.p
-            initial={reduced ? false : { opacity: 0, y: 12 }}
-            animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 1.6, ease: EASE }}
-            style={{
-              fontFamily: "var(--font-narrative)",
-              fontStyle: "italic",
-              fontSize: "clamp(16px, 2vw, 19px)",
-              lineHeight: 1.6,
-              color: "var(--brand-cream)",
-              opacity: 0.5,
-              margin: "0 0 40px 0",
-              maxWidth: 460,
-            }}
-          >
-            102 questions. No right answers. A portrait of who you already are.
-          </motion.p>
-
-          <motion.button
-            initial={reduced ? false : { opacity: 0 }}
-            animate={heroInView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.5, delay: 2.0, ease: EASE }}
-            onClick={scrollToForm}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            style={{
-              fontFamily: "var(--font-label)",
-              fontSize: 11,
-              letterSpacing: "2.5px",
-              textTransform: "uppercase",
-              color: "var(--brand-cream)",
-              background: "var(--brand-red)",
-              border: "none",
-              borderRadius: 999,
-              padding: "16px 40px",
-              cursor: "pointer",
-            }}
-          >
-            Take the assessment
-          </motion.button>
-
-          <motion.div
-            initial={reduced ? false : { opacity: 0 }}
-            animate={heroInView ? { opacity: 0.3 } : {}}
-            transition={{ duration: 0.5, delay: 2.4, ease: EASE }}
-            aria-hidden
-            style={{
-              position: "absolute",
-              bottom: -60,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--brand-cream)" }}>scroll</span>
-            <motion.div
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              style={{ width: 1, height: 20, background: "var(--brand-cream)", opacity: 0.4 }}
-            />
-          </motion.div>
         </div>
-      </Screen>
+      </section>
 
       {/* ═══ SCREEN 2: Redaction ═══ */}
-      <Screen surface="brand">
-        <div style={{ maxWidth: 680, margin: "0 auto", position: "relative", zIndex: 1 }}>
+      <Screen>
+        <div style={{ maxWidth: 720, position: "relative", zIndex: 1 }}>
           <Redaction
-            generic={`"Comprehensive brand audit with actionable insights and strategic recommendations."`}
-            honest="Most businesses look like everyone else in their industry. Same stock photos. Same blue. Same nothing. Brand DNA doesn't audit what you have. It uncovers what you are."
+            generic="Comprehensive brand audit with actionable insights and strategic recommendations for multi-channel growth."
+            honest={
+              <>
+                Most businesses look like everyone else in their industry
+                <span style={{ color: "var(--brand-red)" }}>.</span>
+              </>
+            }
+            honestSub={
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "clamp(16px, 1.8vw, 22px)",
+                  lineHeight: 1.6,
+                  color: "var(--neutral-400, rgba(253,245,230,0.5))",
+                  margin: 0,
+                  textWrap: "pretty",
+                }}
+              >
+                Same stock photos. Same blue. Same nothing. Brand DNA doesn&rsquo;t audit
+                what you have. It uncovers what you are.
+              </p>
+            }
           />
         </div>
       </Screen>
 
-      {/* ═══ SCREEN 3: What you get ═══ */}
-      <Screen surface={1}>
+      {/* ═══ SCREEN 3: What you walk away with ═══ */}
+      <Screen surface={1} dense>
         <div
           style={{
-            maxWidth: 720,
-            margin: "0 auto",
+            maxWidth: 680,
+            width: "100%",
             position: "relative",
             zIndex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 0,
           }}
         >
           <Statement>
-            <p
+            <span
               style={{
                 fontFamily: "var(--font-label)",
-                fontSize: 10,
-                letterSpacing: "3px",
+                fontSize: "var(--text-micro, 10px)",
+                letterSpacing: "0.28em",
                 textTransform: "uppercase",
-                color: "var(--brand-pink)",
-                margin: "0 0 16px 0",
+                color: "var(--brand-red)",
               }}
             >
               What you walk away with
-            </p>
+            </span>
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(24px, 4vw, 36px)",
+                lineHeight: 1.05,
+                color: "var(--brand-cream, #FDF5E6)",
+                textTransform: "uppercase",
+                margin: "12px 0 0",
+                textWrap: "balance",
+              }}
+            >
+              A complete portrait of your brand.
+            </h2>
           </Statement>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div
+            ref={delRef}
+            style={{ marginTop: "clamp(24px, 3vw, 40px)" }}
+          >
             {DELIVERABLES.map((d, i) => (
-              <Statement key={d.number} delay={0.15 * (i + 1)}>
-                <div
+              <motion.div
+                key={d.number}
+                initial={reduced ? false : { opacity: 0, x: -16 }}
+                animate={delInView ? { opacity: 1, x: 0 } : {}}
+                transition={
+                  reduced
+                    ? { duration: 0 }
+                    : {
+                        type: "spring",
+                        damping: 20,
+                        stiffness: 90,
+                        delay: 0.15 + i * 0.12,
+                      }
+                }
+                style={{
+                  display: "flex",
+                  gap: "clamp(16px, 3vw, 32px)",
+                  alignItems: "baseline",
+                  padding: "clamp(16px, 2vw, 24px) 0",
+                  borderBottom:
+                    i < DELIVERABLES.length - 1
+                      ? "1px solid rgba(253,245,230,0.06)"
+                      : "none",
+                }}
+              >
+                <span
                   style={{
-                    display: "flex",
-                    gap: "clamp(16px, 3vw, 28px)",
-                    alignItems: "flex-start",
-                    padding: "28px 0",
-                    borderTop: i > 0 ? "1px solid rgba(253,245,230,0.06)" : "none",
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(24px, 3.5vw, 36px)",
+                    lineHeight: 1,
+                    color: i === DELIVERABLES.length - 1 ? "var(--brand-red)" : "var(--brand-cream, #FDF5E6)",
+                    minWidth: "clamp(40px, 6vw, 56px)",
+                    textAlign: "right",
+                    flexShrink: 0,
                   }}
                 >
-                  <span
+                  {d.number}
+                </span>
+                <div>
+                  <p
                     style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: 10,
-                      letterSpacing: "2px",
-                      color: "var(--brand-red)",
-                      flexShrink: 0,
-                      paddingTop: 4,
+                      fontFamily: "var(--font-body)",
+                      fontSize: "clamp(15px, 1.8vw, 18px)",
+                      color: "var(--brand-cream, #FDF5E6)",
+                      margin: 0,
+                      fontWeight: 500,
                     }}
                   >
-                    {d.number}
-                  </span>
-                  <div>
-                    <p
-                      style={{
-                        fontFamily: "var(--font-narrative)",
-                        fontSize: "clamp(20px, 2.5vw, 24px)",
-                        fontWeight: 500,
-                        color: "var(--brand-cream)",
-                        margin: "0 0 8px 0",
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {d.title}
-                    </p>
-                    <p
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: 15,
-                        lineHeight: 1.65,
-                        color: "var(--brand-cream)",
-                        opacity: 0.55,
-                        margin: 0,
-                        maxWidth: 440,
-                      }}
-                    >
-                      {d.desc}
-                    </p>
-                  </div>
+                    {d.title}
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: "clamp(13px, 1.4vw, 15px)",
+                      color: "var(--neutral-500, rgba(253,245,230,0.4))",
+                      margin: "2px 0 0",
+                    }}
+                  >
+                    {d.desc}
+                  </p>
                 </div>
-              </Statement>
+              </motion.div>
             ))}
           </div>
 
-          <Statement delay={0.65}>
-            <p
-              style={{
-                fontFamily: "var(--font-body)",
-                fontStyle: "italic",
-                fontSize: 14,
-                color: "var(--brand-cream)",
-                opacity: 0.35,
-                margin: "12px 0 0 0",
-              }}
-            >
-              Takes about 10 minutes. Worth it.
-            </p>
-          </Statement>
+          <motion.p
+            initial={reduced ? false : { opacity: 0 }}
+            animate={delInView ? { opacity: 1 } : {}}
+            transition={
+              reduced ? { duration: 0 } : { duration: 0.6, delay: 0.8 }
+            }
+            style={{
+              fontFamily: "var(--font-narrative)",
+              fontStyle: "italic",
+              fontSize: "clamp(15px, 1.8vw, 20px)",
+              lineHeight: 1.5,
+              color: "var(--brand-pink, #F4A0B0)",
+              margin: 0,
+              marginTop: "clamp(12px, 1.5vw, 20px)",
+              maxWidth: "48ch",
+            }}
+          >
+            Takes about 10 minutes. Worth it.
+          </motion.p>
         </div>
       </Screen>
 
@@ -547,11 +667,11 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
               <p
                 style={{
                   fontFamily: "var(--font-label)",
-                  fontSize: 10,
-                  letterSpacing: "3px",
+                  fontSize: "var(--text-micro, 10px)",
+                  letterSpacing: "0.28em",
                   textTransform: "uppercase",
-                  color: "var(--brand-pink)",
-                  margin: "0 0 14px 0",
+                  color: "var(--brand-red)",
+                  margin: "0 0 16px 0",
                 }}
               >
                 Start here
@@ -559,10 +679,11 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
               <h2
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)",
-                  lineHeight: 1.1,
-                  color: "var(--brand-cream)",
-                  margin: "0 0 12px 0",
+                  fontSize: "clamp(28px, 5vw, 48px)",
+                  lineHeight: 1.05,
+                  color: "var(--brand-cream, #FDF5E6)",
+                  textTransform: "uppercase",
+                  margin: "0 0 16px 0",
                 }}
               >
                 Ready when you are.
@@ -570,10 +691,9 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
               <p
                 style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: 15,
+                  fontSize: "clamp(14px, 1.6vw, 16px)",
                   lineHeight: 1.6,
-                  color: "var(--brand-cream)",
-                  opacity: 0.5,
+                  color: "var(--neutral-500, rgba(253,245,230,0.4))",
                   margin: 0,
                 }}
               >
@@ -658,13 +778,13 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                   style={{
                     fontFamily: "var(--font-label)",
                     fontSize: 11,
-                    letterSpacing: "2.5px",
+                    letterSpacing: "0.15em",
                     textTransform: "uppercase",
-                    color: "var(--brand-cream)",
+                    color: "var(--brand-cream, #FDF5E6)",
                     background: "var(--brand-red)",
                     border: "none",
-                    borderRadius: 999,
-                    padding: "16px 32px",
+                    borderRadius: 4,
+                    padding: "14px 28px",
                     cursor: submitting ? "wait" : "pointer",
                     opacity: submitting ? 0.6 : 1,
                     marginTop: 4,
@@ -683,8 +803,8 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
             style={{
               fontFamily: "var(--font-body)",
               fontSize: 12,
-              color: "var(--brand-cream)",
-              opacity: 0.25,
+              color: "var(--brand-cream, #FDF5E6)",
+              opacity: 0.2,
               textAlign: "center",
               margin: 0,
               lineHeight: 1.6,
@@ -713,7 +833,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
   );
 }
 
-// ── Sub-components ────────────────────────────────────────────────────
+/* ── Sub-components ── */
 
 function InputField({
   label,
@@ -742,7 +862,7 @@ function InputField({
           fontSize: 10,
           letterSpacing: "1.5px",
           textTransform: "uppercase",
-          color: "var(--brand-cream)",
+          color: "var(--brand-cream, #FDF5E6)",
           opacity: 0.45,
         }}
       >
@@ -759,10 +879,10 @@ function InputField({
         style={{
           fontFamily: "var(--font-body)",
           fontSize: 16,
-          color: "var(--brand-cream)",
+          color: "var(--brand-cream, #FDF5E6)",
           background: "rgba(253, 245, 230, 0.04)",
           border: "1px solid rgba(253, 245, 230, 0.08)",
-          borderRadius: 10,
+          borderRadius: 4,
           padding: "14px 16px",
           outline: "none",
           transition: "border-color 0.3s, background 0.3s",
@@ -798,7 +918,7 @@ function ClientOverridePrompt({
       style={{
         background: "rgba(178, 40, 72, 0.1)",
         border: "1px solid rgba(178, 40, 72, 0.25)",
-        borderRadius: 16,
+        borderRadius: 8,
         padding: 28,
         display: "flex",
         flexDirection: "column",
@@ -810,7 +930,7 @@ function ClientOverridePrompt({
           fontFamily: "var(--font-body)",
           fontSize: 16,
           lineHeight: 1.6,
-          color: "var(--brand-cream)",
+          color: "var(--brand-cream, #FDF5E6)",
           margin: 0,
         }}
       >
@@ -820,7 +940,7 @@ function ClientOverridePrompt({
         style={{
           fontFamily: "var(--font-body)",
           fontSize: 14,
-          color: "var(--brand-cream)",
+          color: "var(--brand-cream, #FDF5E6)",
           opacity: 0.6,
           margin: 0,
         }}
@@ -833,12 +953,12 @@ function ClientOverridePrompt({
           style={{
             fontFamily: "var(--font-label)",
             fontSize: 11,
-            letterSpacing: "1.5px",
+            letterSpacing: "0.15em",
             textTransform: "uppercase",
-            color: "var(--brand-cream)",
+            color: "var(--brand-cream, #FDF5E6)",
             background: "var(--brand-red)",
             border: "none",
-            borderRadius: 999,
+            borderRadius: 4,
             padding: "12px 24px",
             cursor: "pointer",
           }}
@@ -850,12 +970,12 @@ function ClientOverridePrompt({
           style={{
             fontFamily: "var(--font-label)",
             fontSize: 11,
-            letterSpacing: "1.5px",
+            letterSpacing: "0.15em",
             textTransform: "uppercase",
-            color: "var(--brand-cream)",
+            color: "var(--brand-cream, #FDF5E6)",
             background: "transparent",
             border: "1px solid rgba(253, 245, 230, 0.15)",
-            borderRadius: 999,
+            borderRadius: 4,
             padding: "12px 24px",
             cursor: "pointer",
           }}
