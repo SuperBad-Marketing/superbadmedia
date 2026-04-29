@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Concept A — The Personality Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Righteous&family=Playfair+Display:ital@1&family=DM+Sans:ital,wght@0,400;0,500;1,400&family=Pacifico&display=swap" rel="stylesheet">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --charcoal: #1A1A18;
+      --red: #B22848;
+      --cream: #FDF5E6;
+      --pink: #F4A0B0;
+      --orange: #F28C52;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'DM Sans', sans-serif;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    /* ── Toolbar ── */
+    #toolbar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    #toolbar button {
+      background: #2a2a2a;
+      color: #aaa;
+      border: 1px solid #444;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    #toolbar button:hover { background: #3a3a3a; color: #ddd; }
+    #toolbar button.active { background: var(--red); color: var(--cream); border-color: var(--red); }
+    #toolbar .sep { width: 1px; height: 24px; background: #444; margin: 0 6px; }
+    #toolbar .dl { background: var(--red); color: var(--cream); border-color: var(--red); }
+    #toolbar .dl:hover { background: #d13460; }
+    #toolbar .label { color: #666; font-size: 11px; font-family: 'Righteous', cursive; text-transform: uppercase; letter-spacing: 2px; }
+
+    /* ── Format sizes ── */
+    .design {
+      position: relative;
+      overflow: hidden;
+      background: var(--charcoal);
+      background-image: radial-gradient(ellipse at 35% 45%, rgba(178,40,72,0.04) 0%, transparent 55%);
+      transition: width 0.3s, height 0.3s;
+    }
+    .format-square   { width: 1080px; height: 1080px; }
+    .format-portrait  { width: 1080px; height: 1350px; }
+    .format-story     { width: 1080px; height: 1920px; }
+    .format-linkedin  { width: 1200px; height: 628px;  }
+
+    /* ── Radar background ── */
+    .radar {
+      position: absolute;
+      pointer-events: none;
+    }
+    .format-square .radar   { width: 520px; height: 520px; right: -40px; top: 50%; transform: translateY(-50%); }
+    .format-portrait .radar { width: 560px; height: 560px; right: -40px; top: 45%; transform: translateY(-50%); }
+    .format-story .radar    { width: 600px; height: 600px; right: -30px; top: 50%; transform: translateY(-50%); }
+    .format-linkedin .radar { width: 380px; height: 380px; right: -20px; top: 50%; transform: translateY(-50%); }
+
+    /* ── Content ── */
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+    }
+    .format-square .content   { padding: 90px 100px; }
+    .format-portrait .content { padding: 140px 100px; }
+    .format-story .content    { padding: 340px 100px; }
+    .format-linkedin .content { padding: 55px 80px;   }
+
+    /* ── Typography ── */
+    .line-brand {
+      font-family: 'Righteous', cursive;
+      text-transform: uppercase;
+      color: var(--cream);
+    }
+    .format-square .line-brand,
+    .format-portrait .line-brand,
+    .format-story .line-brand    { font-size: 58px; letter-spacing: 12px; }
+    .format-linkedin .line-brand { font-size: 40px; letter-spacing: 8px;  }
+
+    .line-has {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--pink);
+    }
+    .format-square .line-has,
+    .format-portrait .line-has,
+    .format-story .line-has    { font-size: 30px; margin-top: 2px; }
+    .format-linkedin .line-has { font-size: 22px; margin-top: 0;   }
+
+    .line-personality {
+      font-family: 'Black Han Sans', sans-serif;
+      color: var(--red);
+      line-height: 1.05;
+    }
+    .format-square .line-personality,
+    .format-portrait .line-personality,
+    .format-story .line-personality    { font-size: 104px; margin-top: 0; }
+    .format-linkedin .line-personality { font-size: 72px;  margin-top: 0; }
+
+    .line-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--pink);
+    }
+    .format-square .line-subtitle   { font-size: 25px; margin-top: 28px; }
+    .format-portrait .line-subtitle { font-size: 26px; margin-top: 36px; }
+    .format-story .line-subtitle    { font-size: 28px; margin-top: 48px; }
+    .format-linkedin .line-subtitle { font-size: 20px; margin-top: 18px; }
+
+    .divider-line {
+      background: rgba(253,245,230,0.12);
+      height: 1px;
+    }
+    .format-square .divider-line   { width: 60px; margin-top: 48px; }
+    .format-portrait .divider-line { width: 60px; margin-top: 60px; }
+    .format-story .divider-line    { width: 60px; margin-top: 80px; }
+    .format-linkedin .divider-line { width: 50px; margin-top: 28px; }
+
+    .cta {
+      font-family: 'Righteous', cursive;
+      text-transform: uppercase;
+      color: rgba(253,245,230,0.6);
+    }
+    .format-square .cta,
+    .format-portrait .cta,
+    .format-story .cta    { font-size: 12px; letter-spacing: 3px; margin-top: 22px; }
+    .format-linkedin .cta { font-size: 10px; letter-spacing: 2.5px; margin-top: 16px; }
+
+    .url {
+      font-family: 'DM Sans', sans-serif;
+      color: rgba(253,245,230,0.3);
+    }
+    .format-square .url,
+    .format-portrait .url,
+    .format-story .url    { font-size: 13px; margin-top: 8px; }
+    .format-linkedin .url { font-size: 11px; margin-top: 6px; }
+
+    /* ── Brand mark ── */
+    .mark {
+      position: absolute;
+      font-family: 'Pacifico', cursive;
+      color: rgba(253,245,230,0.10);
+    }
+    .format-square .mark   { font-size: 16px; bottom: 44px; right: 52px; }
+    .format-portrait .mark { font-size: 16px; bottom: 52px; right: 52px; }
+    .format-story .mark    { font-size: 18px; bottom: 60px; right: 56px; }
+    .format-linkedin .mark { font-size: 14px; bottom: 28px; right: 40px; }
+
+    /* ── Accent bar ── */
+    .accent-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--red), var(--orange));
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toolbar">
+    <span class="label">Format</span>
+    <button class="active" id="btn-square" onclick="setFormat('square')">Square 1080×1080</button>
+    <button id="btn-portrait" onclick="setFormat('portrait')">Portrait 1080×1350</button>
+    <button id="btn-story" onclick="setFormat('story')">Story 1080×1920</button>
+    <button id="btn-linkedin" onclick="setFormat('linkedin')">LinkedIn 1200×628</button>
+    <span class="sep"></span>
+    <button class="dl" id="btn-download" onclick="downloadPNG()">↓ Download PNG</button>
+  </div>
+
+  <div id="design" class="design format-square">
+
+    <div class="accent-bar"></div>
+
+    <!-- Radar chart background -->
+    <svg class="radar" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="200" y1="200" x2="200" y2="24" stroke="rgba(178,40,72,0.06)" stroke-width="0.5"/>
+      <line x1="200" y1="200" x2="367" y2="122" stroke="rgba(178,40,72,0.06)" stroke-width="0.5"/>
+      <line x1="200" y1="200" x2="303" y2="342" stroke="rgba(178,40,72,0.06)" stroke-width="0.5"/>
+      <line x1="200" y1="200" x2="97" y2="342" stroke="rgba(178,40,72,0.06)" stroke-width="0.5"/>
+      <line x1="200" y1="200" x2="33" y2="122" stroke="rgba(178,40,72,0.06)" stroke-width="0.5"/>
+      <polygon points="200,24 367,122 303,342 97,342 33,122" stroke="rgba(178,40,72,0.05)" stroke-width="0.5"/>
+      <polygon points="200,80 315,148 275,298 125,298 85,148" stroke="rgba(178,40,72,0.04)" stroke-width="0.5"/>
+      <polygon points="200,136 263,174 247,254 153,254 137,174" stroke="rgba(178,40,72,0.03)" stroke-width="0.5"/>
+      <polygon points="200,48 350,135 285,325 108,290 58,128" fill="rgba(178,40,72,0.035)" stroke="rgba(178,40,72,0.10)" stroke-width="1"/>
+      <circle cx="200" cy="48" r="3.5" fill="rgba(178,40,72,0.18)"/>
+      <circle cx="350" cy="135" r="3.5" fill="rgba(178,40,72,0.18)"/>
+      <circle cx="285" cy="325" r="3.5" fill="rgba(178,40,72,0.18)"/>
+      <circle cx="108" cy="290" r="3.5" fill="rgba(178,40,72,0.18)"/>
+      <circle cx="58" cy="128" r="3.5" fill="rgba(178,40,72,0.18)"/>
+    </svg>
+
+    <div class="content">
+      <div class="line-brand">Your brand</div>
+      <div class="line-has">has a</div>
+      <div class="line-personality">Personality.</div>
+      <div class="line-subtitle">You just haven't met it yet.</div>
+      <div class="divider-line"></div>
+      <div class="cta">Brand personality assessment · in beta</div>
+      <div class="url">superbadmedia.com.au/rundown</div>
+    </div>
+
+    <div class="mark">SuperBad</div>
+  </div>
+
+  <script>
+    let currentFormat = 'square';
+    function setFormat(format) {
+      currentFormat = format;
+      const design = document.getElementById('design');
+      design.className = 'design format-' + format;
+      document.querySelectorAll('#toolbar button').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('btn-' + format);
+      if (btn) btn.classList.add('active');
+    }
+    async function downloadPNG() {
+      const btn = document.getElementById('btn-download');
+      btn.textContent = 'Rendering…';
+      await document.fonts.ready;
+      try {
+        const design = document.getElementById('design');
+        const canvas = await html2canvas(design, {
+          scale: 1,
+          useCORS: true,
+          backgroundColor: null,
+          width: design.offsetWidth,
+          height: design.offsetHeight,
+        });
+        const link = document.createElement('a');
+        link.download = 'superbad-brand-dna-concept-a-' + currentFormat + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (e) {
+        alert('Download failed — try screenshotting the design instead.');
+      }
+      btn.textContent = '↓ Download PNG';
+    }
+  </script>
+</body>
+</html>

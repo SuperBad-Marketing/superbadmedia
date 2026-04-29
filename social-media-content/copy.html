@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brand DNA Assessment — Social Media Copy</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;1,400&family=Righteous&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1A1A18;
+      color: #FDF5E6;
+      font-family: 'DM Sans', sans-serif;
+      padding: 48px 40px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-family: 'Righteous', cursive;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      font-size: 12px;
+      color: #B22848;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: #F4A0B0;
+      font-size: 22px;
+      margin-bottom: 56px;
+    }
+    .platform {
+      margin-bottom: 56px;
+    }
+    .platform-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .platform-name {
+      font-family: 'Righteous', cursive;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 11px;
+      color: #F4A0B0;
+    }
+    .platform-note {
+      font-size: 13px;
+      color: rgba(253,245,230,0.35);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .copy-block {
+      background: rgba(253,245,230,0.03);
+      border: 1px solid rgba(253,245,230,0.07);
+      border-radius: 10px;
+      padding: 28px 28px 28px 28px;
+      position: relative;
+      white-space: pre-wrap;
+      font-size: 15px;
+      line-height: 1.75;
+      color: rgba(253,245,230,0.85);
+    }
+    .copy-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: #B22848;
+      color: #FDF5E6;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-family: 'Righteous', cursive;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 9px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: #d13460; }
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: rgba(253,245,230,0.08);
+      margin: 56px 0;
+    }
+    a { color: #F4A0B0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <h1>Brand DNA Assessment</h1>
+  <p class="subtitle">Social media copy — beta launch</p>
+
+  <!-- FACEBOOK -->
+  <div class="platform">
+    <div class="platform-header">
+      <span class="platform-name">Facebook</span>
+    </div>
+    <p class="platform-note">Feed post. Pair with Concept A or B graphic (square or portrait).</p>
+    <div class="copy-block" id="copy-fb"><button class="copy-btn" onclick="copyText('copy-fb')">Copy</button>I built a personality test. But for brands.
+
+Asks you questions about aesthetics, communication, instincts — the stuff most marketers never think to ask. Then it writes a portrait of who your brand actually is.
+
+Not a quiz with four possible outcomes. A proper assessment that goes deep enough to tell you things you probably already know but haven't articulated.
+
+It's in beta. I need people to try it and tell me if it's uncomfortably accurate or just uncomfortable.
+
+superbadmedia.com.au/rundown
+
+If you do it, tell me what you think — especially if it gets something wrong. That's the most useful feedback right now.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- INSTAGRAM FEED -->
+  <div class="platform">
+    <div class="platform-header">
+      <span class="platform-name">Instagram Feed</span>
+    </div>
+    <p class="platform-note">Caption for feed post. Pair with any graphic concept (square or portrait). Link in bio.</p>
+    <div class="copy-block" id="copy-ig"><button class="copy-btn" onclick="copyText('copy-ig')">Copy</button>I built something.
+
+A brand personality assessment. Asks questions most marketers don't think to ask — about your aesthetics, your instincts, what you're drawn to. Then it assembles a portrait of who your brand actually is.
+
+Not a quiz. Not a colour wheel. A proper assessment that knows a weird amount about you.
+
+It's in beta. I need people to test it and tell me if it's accurate.
+
+Link in bio.
+
+If it gets you right, tell me. If it gets you wrong, tell me louder.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- INSTAGRAM STORY -->
+  <div class="platform">
+    <div class="platform-header">
+      <span class="platform-name">Instagram Story</span>
+    </div>
+    <p class="platform-note">Shorter text to overlay on story graphic. Add link sticker to superbadmedia.com.au/rundown</p>
+    <div class="copy-block" id="copy-story"><button class="copy-btn" onclick="copyText('copy-story')">Copy</button>Built a personality test for brands.
+
+Goes deeper than you'd expect.
+
+It's in beta — need people to tell me if it's accurate or if I need to go back to the drawing board.
+
+superbadmedia.com.au/rundown</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- LINKEDIN -->
+  <div class="platform">
+    <div class="platform-header">
+      <span class="platform-name">LinkedIn</span>
+    </div>
+    <p class="platform-note">Feed post. Pair with Concept A or C graphic (square or landscape). More professional but still on-voice.</p>
+    <div class="copy-block" id="copy-li"><button class="copy-btn" onclick="copyText('copy-li')">Copy</button>I've been building something for the last few months — a brand personality assessment.
+
+Not a buzzword generator. Not a "you're a visionary leader" quiz with four possible outcomes. An actual assessment that asks about your aesthetic instincts, your communication style, what you reach for and what you avoid — then writes a portrait of who your brand is.
+
+It's in beta, and I need real people to try it. Specifically:
+→ Did it get you right?
+→ What felt off?
+→ Would you share the results with someone?
+
+superbadmedia.com.au/rundown
+
+If you work with brands, run one, or just enjoy personality tests that know a weird amount about you — I'd genuinely appreciate it.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- NETWORKING APP -->
+  <div class="platform">
+    <div class="platform-header">
+      <span class="platform-name">Networking App</span>
+    </div>
+    <p class="platform-note">Personal ask. Lean into "I need your help." More direct, more humble.</p>
+    <div class="copy-block" id="copy-net"><button class="copy-btn" onclick="copyText('copy-net')">Copy</button>Hey — bit of an ask.
+
+I've been building a brand personality assessment and I'm at the point where I need real people to try it and tell me if it's any good.
+
+It asks questions about your instincts — what you're drawn to visually, how you communicate, what you value. Then it puts together a portrait of your brand.
+
+Think personality test, but for your business. And hopefully more accurate than "you're a winter."
+
+Would genuinely appreciate it if you could give it a go and let me know what you think. Most useful feedback is whether it got you right or completely missed the mark.
+
+superbadmedia.com.au/rundown
+
+Happy to return the favour if you've got something you need eyes on.</div>
+  </div>
+
+  <script>
+    function copyText(id) {
+      const el = document.getElementById(id);
+      const btn = el.querySelector('.copy-btn');
+      const clone = el.cloneNode(true);
+      const btnClone = clone.querySelector('.copy-btn');
+      if (btnClone) btnClone.remove();
+      const text = clone.textContent.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied';
+        btn.style.background = 'rgba(34,197,94,0.5)';
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.style.background = '#B22848';
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>

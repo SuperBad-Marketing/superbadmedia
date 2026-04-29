@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Concept C — The Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Righteous&family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:ital,wght@0,400;0,500;1,400&family=Pacifico&display=swap" rel="stylesheet">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --charcoal: #1A1A18;
+      --red: #B22848;
+      --cream: #FDF5E6;
+      --pink: #F4A0B0;
+      --orange: #F28C52;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'DM Sans', sans-serif;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    /* ── Toolbar ── */
+    #toolbar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    #toolbar button {
+      background: #2a2a2a;
+      color: #aaa;
+      border: 1px solid #444;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    #toolbar button:hover { background: #3a3a3a; color: #ddd; }
+    #toolbar button.active { background: var(--red); color: var(--cream); border-color: var(--red); }
+    #toolbar .sep { width: 1px; height: 24px; background: #444; margin: 0 6px; }
+    #toolbar .dl { background: var(--red); color: var(--cream); border-color: var(--red); }
+    #toolbar .dl:hover { background: #d13460; }
+    #toolbar .label { color: #666; font-size: 11px; font-family: 'Righteous', cursive; text-transform: uppercase; letter-spacing: 2px; }
+
+    /* ── Format sizes ── */
+    .design {
+      position: relative;
+      overflow: hidden;
+      background: var(--charcoal);
+    }
+    .format-square   { width: 1080px; height: 1080px; }
+    .format-portrait  { width: 1080px; height: 1350px; }
+    .format-story     { width: 1080px; height: 1920px; }
+    .format-linkedin  { width: 1200px; height: 628px;  }
+
+    /* ── Content ── */
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+    .format-square .content   { padding: 80px 90px; }
+    .format-portrait .content { padding: 120px 90px; }
+    .format-story .content    { padding: 300px 90px; }
+    .format-linkedin .content { padding: 40px 70px;  }
+
+    /* ── Insight card ── */
+    .insight-card {
+      background: rgba(253,245,230,0.025);
+      border: 1px solid rgba(253,245,230,0.06);
+      border-left: 3px solid var(--red);
+      border-radius: 2px 12px 12px 2px;
+      width: 100%;
+      max-width: 780px;
+      position: relative;
+    }
+    .format-square .insight-card   { padding: 52px 56px; }
+    .format-portrait .insight-card { padding: 60px 56px; }
+    .format-story .insight-card    { padding: 68px 60px; }
+    .format-linkedin .insight-card { padding: 32px 40px; }
+
+    .card-label {
+      font-family: 'Righteous', cursive;
+      text-transform: uppercase;
+      color: var(--red);
+    }
+    .format-square .card-label,
+    .format-portrait .card-label,
+    .format-story .card-label    { font-size: 11px; letter-spacing: 3px; margin-bottom: 20px; }
+    .format-linkedin .card-label { font-size: 9px;  letter-spacing: 2.5px; margin-bottom: 12px; }
+
+    .card-headline {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--cream);
+      line-height: 1.2;
+    }
+    .format-square .card-headline,
+    .format-portrait .card-headline { font-size: 40px; }
+    .format-story .card-headline    { font-size: 44px; }
+    .format-linkedin .card-headline { font-size: 28px; }
+
+    .card-body {
+      font-family: 'DM Sans', sans-serif;
+      color: rgba(253,245,230,0.55);
+      line-height: 1.65;
+    }
+    .format-square .card-body,
+    .format-portrait .card-body { font-size: 18px; margin-top: 22px; }
+    .format-story .card-body    { font-size: 19px; margin-top: 26px; }
+    .format-linkedin .card-body { font-size: 14px; margin-top: 14px; }
+
+    .card-evidence {
+      font-family: 'DM Sans', sans-serif;
+      font-style: italic;
+      color: rgba(253,245,230,0.3);
+    }
+    .format-square .card-evidence,
+    .format-portrait .card-evidence { font-size: 13px; margin-top: 20px; }
+    .format-story .card-evidence    { font-size: 14px; margin-top: 24px; }
+    .format-linkedin .card-evidence { font-size: 11px; margin-top: 12px; }
+
+    /* ── "What would yours say?" ── */
+    .prompt-line {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--pink);
+      text-align: center;
+    }
+    .format-square .prompt-line   { font-size: 28px; margin-top: 52px; }
+    .format-portrait .prompt-line { font-size: 30px; margin-top: 64px; }
+    .format-story .prompt-line    { font-size: 32px; margin-top: 80px; }
+    .format-linkedin .prompt-line { font-size: 21px; margin-top: 28px; }
+
+    /* ── Bottom ── */
+    .divider-line {
+      background: rgba(253,245,230,0.10);
+      height: 1px;
+    }
+    .format-square .divider-line   { width: 60px; margin-top: 48px; }
+    .format-portrait .divider-line { width: 60px; margin-top: 56px; }
+    .format-story .divider-line    { width: 60px; margin-top: 80px; }
+    .format-linkedin .divider-line { width: 50px; margin-top: 20px; }
+
+    .cta {
+      font-family: 'Righteous', cursive;
+      text-transform: uppercase;
+      color: rgba(253,245,230,0.55);
+      text-align: center;
+    }
+    .format-square .cta,
+    .format-portrait .cta,
+    .format-story .cta    { font-size: 11px; letter-spacing: 3px; margin-top: 20px; }
+    .format-linkedin .cta { font-size: 10px; letter-spacing: 2.5px; margin-top: 14px; }
+
+    .url {
+      font-family: 'DM Sans', sans-serif;
+      color: rgba(253,245,230,0.28);
+      text-align: center;
+    }
+    .format-square .url,
+    .format-portrait .url,
+    .format-story .url    { font-size: 13px; margin-top: 8px; }
+    .format-linkedin .url { font-size: 11px; margin-top: 5px; }
+
+    /* ── Brand mark ── */
+    .mark {
+      position: absolute;
+      font-family: 'Pacifico', cursive;
+      color: rgba(253,245,230,0.10);
+    }
+    .format-square .mark   { font-size: 16px; bottom: 44px; right: 52px; }
+    .format-portrait .mark { font-size: 16px; bottom: 52px; right: 52px; }
+    .format-story .mark    { font-size: 18px; bottom: 60px; right: 56px; }
+    .format-linkedin .mark { font-size: 14px; bottom: 24px; right: 40px; }
+
+    /* ── Accent bar ── */
+    .accent-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--red), var(--orange));
+      opacity: 0.5;
+    }
+
+    /* ── Background glow behind card ── */
+    .glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(178,40,72,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .format-square .glow   { top: 25%; left: 30%; }
+    .format-portrait .glow { top: 28%; left: 28%; }
+    .format-story .glow    { top: 30%; left: 25%; width: 600px; height: 600px; }
+    .format-linkedin .glow { top: 5%;  left: 35%; width: 350px; height: 350px; }
+  </style>
+</head>
+<body>
+
+  <div id="toolbar">
+    <span class="label">Format</span>
+    <button class="active" id="btn-square" onclick="setFormat('square')">Square 1080×1080</button>
+    <button id="btn-portrait" onclick="setFormat('portrait')">Portrait 1080×1350</button>
+    <button id="btn-story" onclick="setFormat('story')">Story 1080×1920</button>
+    <button id="btn-linkedin" onclick="setFormat('linkedin')">LinkedIn 1200×628</button>
+    <span class="sep"></span>
+    <button class="dl" id="btn-download" onclick="downloadPNG()">↓ Download PNG</button>
+  </div>
+
+  <div id="design" class="design format-square">
+
+    <div class="accent-bar"></div>
+    <div class="glow"></div>
+
+    <div class="content">
+
+      <div class="insight-card">
+        <div class="card-label">Key Insight</div>
+        <div class="card-headline">"You lead with gut and feel."</div>
+        <div class="card-body">Your instincts pick up signals your spreadsheets miss. That's a strength — until it makes you skip the step that would've caught the thing your gut didn't.</div>
+        <div class="card-evidence">Pattern: chose intuition-first options across 4 of 5 sections. No analytical anchors selected in communication or strategy.</div>
+      </div>
+
+      <div class="prompt-line">What would yours say?</div>
+
+      <div class="divider-line"></div>
+      <div class="cta">Brand dna assessment · in beta</div>
+      <div class="url">superbadmedia.com.au/rundown</div>
+    </div>
+
+    <div class="mark">SuperBad</div>
+  </div>
+
+  <script>
+    let currentFormat = 'square';
+    function setFormat(format) {
+      currentFormat = format;
+      const design = document.getElementById('design');
+      design.className = 'design format-' + format;
+      document.querySelectorAll('#toolbar button').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('btn-' + format);
+      if (btn) btn.classList.add('active');
+    }
+    async function downloadPNG() {
+      const btn = document.getElementById('btn-download');
+      btn.textContent = 'Rendering…';
+      await document.fonts.ready;
+      try {
+        const design = document.getElementById('design');
+        const canvas = await html2canvas(design, {
+          scale: 1,
+          useCORS: true,
+          backgroundColor: null,
+          width: design.offsetWidth,
+          height: design.offsetHeight,
+        });
+        const link = document.createElement('a');
+        link.download = 'superbad-brand-dna-concept-c-' + currentFormat + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (e) {
+        alert('Download failed — try screenshotting the design instead.');
+      }
+      btn.textContent = '↓ Download PNG';
+    }
+  </script>
+</body>
+</html>
