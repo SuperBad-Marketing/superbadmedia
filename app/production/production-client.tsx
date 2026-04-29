@@ -220,7 +220,7 @@ const FLYWHEEL_STAGES = [
   },
 ];
 
-const STAGE_DURATION = 4200;
+const STAGE_DURATION = 3400;
 
 const EXIT_EASE = [0.4, 0, 1, 1] as const;
 
@@ -260,37 +260,60 @@ const subEntrance = {
 function FlywheelLoop({ inView }: { inView: boolean }) {
   const reduced = useReducedMotion();
   const [stage, setStage] = useState(0);
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    if (!inView || reduced) return;
+    if (!inView || started) return;
+    setStarted(true);
+  }, [inView, started]);
+
+  useEffect(() => {
+    if (!started || reduced) return;
     const id = setInterval(() => {
       setStage((s) => (s + 1) % FLYWHEEL_STAGES.length);
     }, STAGE_DURATION);
     return () => clearInterval(id);
-  }, [inView, reduced]);
+  }, [started, reduced]);
 
   const current = FLYWHEEL_STAGES[stage];
 
   return (
-    <div
+    <motion.div
       style={{
         width: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
       }}
+      initial={reduced ? false : { opacity: 0, scale: 0.92 }}
+      animate={started ? { opacity: 1, scale: 1 } : {}}
+      transition={{ duration: 0.7, ease: EASE }}
     >
-      {/* Stage counter */}
+      {/* Stage counter with pip indicators */}
       <div
         style={{
-          fontFamily: "var(--font-label)",
-          fontSize: 10,
-          letterSpacing: "0.2em",
-          color: "rgba(253, 245, 230, 0.15)",
-          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          marginBottom: 20,
         }}
       >
-        {String(stage + 1).padStart(2, "0")} / {String(FLYWHEEL_STAGES.length).padStart(2, "0")}
+        {FLYWHEEL_STAGES.map((_, i) => (
+          <motion.div
+            key={i}
+            style={{
+              width: i === stage ? 16 : 4,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: i === stage ? "var(--brand-red)" : "rgba(253, 245, 230, 0.12)",
+            }}
+            animate={{
+              width: i === stage ? 16 : 4,
+              backgroundColor: i === stage ? "var(--brand-red)" : "rgba(253, 245, 230, 0.12)",
+            }}
+            transition={{ duration: 0.3, ease: EASE }}
+          />
+        ))}
       </div>
 
       {/* Content area — fixed height so position doesn't jump */}
@@ -303,7 +326,7 @@ function FlywheelLoop({ inView }: { inView: boolean }) {
               width: "100%",
             }}
             initial="hidden"
-            animate="visible"
+            animate={started ? "visible" : "hidden"}
             exit="exit"
           >
             {/* Headline — word-by-word stagger */}
@@ -357,35 +380,35 @@ function FlywheelLoop({ inView }: { inView: boolean }) {
         </AnimatePresence>
       </div>
 
-      {/* Progress bar — fixed position below content */}
+      {/* Progress bar */}
       <div
         style={{
           width: "60%",
           maxWidth: 400,
-          height: 1,
+          height: 2,
           background: "rgba(253, 245, 230, 0.06)",
-          borderRadius: 1,
+          borderRadius: 2,
           overflow: "hidden",
           marginTop: 32,
         }}
       >
         <motion.div
-          key={stage}
+          key={`${stage}-${started}`}
           style={{
             height: "100%",
             background: "var(--brand-red)",
-            borderRadius: 1,
+            borderRadius: 2,
             transformOrigin: "left",
           }}
           initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
+          animate={started ? { scaleX: 1 } : { scaleX: 0 }}
           transition={{
-            duration: STAGE_DURATION / 1000,
+            duration: started ? STAGE_DURATION / 1000 : 0,
             ease: "linear",
           }}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -984,36 +1007,7 @@ export function ProductionClient() {
           />
         </Screen>
 
-        {/* ── Screen 3 — The flywheel (kinetic typography) ── */}
-        <Screen align="center" id="flywheel">
-          <div
-            ref={flywheelRef}
-            style={{
-              width: "100%",
-              maxWidth: 900,
-              margin: "0 auto",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "clamp(20px, 3vw, 32px)",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "var(--font-label)",
-                fontSize: "var(--text-micro)",
-                letterSpacing: "0.28em",
-                textTransform: "uppercase",
-                color: "var(--brand-red)",
-              }}
-            >
-              The flywheel
-            </span>
-            <FlywheelLoop inView={flywheelInView} />
-          </div>
-        </Screen>
-
-        {/* ── Screen 4 — Quality thesis (red surface) ── */}
+        {/* ── Screen 3 — Quality thesis (red surface) ── */}
         <Screen surface="brand" align="center">
           <div ref={qualityRef}>
             <p
@@ -1056,7 +1050,7 @@ export function ProductionClient() {
           </div>
         </Screen>
 
-        {/* ── Screen 5 — Audience (cream surface) ── */}
+        {/* ── Screen 4 — Audience (cream surface) ── */}
         <Screen surface="cream" align="center">
           <div ref={audienceRef}>
             <p
@@ -1110,7 +1104,85 @@ export function ProductionClient() {
           </div>
         </Screen>
 
-        {/* ── Screen 6 — The system ── */}
+        {/* ── Screen 5 — Bridge: "How" ── */}
+        <Screen align="center">
+          <Statement>
+            <p
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: "var(--text-micro)",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase",
+                color: "var(--brand-red)",
+                margin: 0,
+                marginBottom: "clamp(16px, 2vw, 28px)",
+              }}
+            >
+              The model
+            </p>
+            <p
+              className="text-balance"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(28px, 4.5vw, 52px)",
+                lineHeight: 1.05,
+                color: "var(--neutral-100)",
+                textTransform: "uppercase",
+                margin: 0,
+              }}
+            >
+              One shoot day becomes a compounding audience machine.
+            </p>
+          </Statement>
+          <Statement delay={0.15}>
+            <p
+              className="text-pretty"
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(15px, 1.8vw, 20px)",
+                lineHeight: 1.6,
+                color: "var(--neutral-500)",
+                margin: "0 auto",
+                marginTop: "clamp(16px, 2vw, 28px)",
+                maxWidth: "40ch",
+              }}
+            >
+              We stopped throwing budget at impressions and built a system
+              where every piece of content feeds the next.
+            </p>
+          </Statement>
+        </Screen>
+
+        {/* ── Screen 6 — The flywheel (kinetic typography) ── */}
+        <Screen align="center" id="flywheel">
+          <div
+            ref={flywheelRef}
+            style={{
+              width: "100%",
+              maxWidth: 900,
+              margin: "0 auto",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "clamp(20px, 3vw, 32px)",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: "var(--text-micro)",
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "var(--brand-red)",
+              }}
+            >
+              The flywheel
+            </span>
+            <FlywheelLoop inView={flywheelInView} />
+          </div>
+        </Screen>
+
+        {/* ── Screen 7 — The system ── */}
         <Screen surface={1} dense>
           <Statement>
             <span
@@ -1236,7 +1308,7 @@ export function ProductionClient() {
           </motion.p>
         </Screen>
 
-        {/* ── Screen 7 — The numbers ── */}
+        {/* ── Screen 8 — The numbers ── */}
         <Screen align="center">
           <div ref={numberRef}>
             <motion.p
@@ -1362,7 +1434,7 @@ export function ProductionClient() {
           </Statement>
         </Screen>
 
-        {/* ── Screen 8 — The real sell (Redaction) ── */}
+        {/* ── Screen 9 — The real sell (Redaction) ── */}
         <Screen>
           <Redaction
             generic="We're a full-service creative agency passionate about telling your brand's story through innovative, best-in-class content solutions."
@@ -1391,7 +1463,7 @@ export function ProductionClient() {
           />
         </Screen>
 
-        {/* ── Screen 9 — Deliverables ── */}
+        {/* ── Screen 10 — Deliverables ── */}
         <Screen surface={1} id="deliverables" dense>
           <Statement>
             <span
@@ -1467,7 +1539,7 @@ export function ProductionClient() {
           </div>
         </Screen>
 
-        {/* ── Screen 10 — CTA ── */}
+        {/* ── Screen 11 — CTA ── */}
         <Screen align="center" id="pricing">
           <Statement>
             <div
