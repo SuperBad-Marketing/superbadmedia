@@ -1,20 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { houseSpring } from "@/lib/design-tokens";
 import { submitRundownEntry, type RundownEntryInput } from "./actions";
 
-const BRAND_OBSERVATIONS = [
-  "Most businesses know what they do. Almost none know how they sound.",
-  "Your brand isn't your logo. It's the thing people say about you when you leave the room.",
-  "Good marketing starts with knowing who you are. Everything else is just volume.",
-  "The difference between a brand and a business is that one of them people remember.",
-  "You don't need more content. You need content that sounds like you.",
-  "Every brand has a voice. Most just haven't stopped to listen to it.",
-  "The best brands don't try to appeal to everyone. They appeal to the right people, deeply.",
-];
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 let _turnstileToken = "";
 let _turnstileRendered = false;
@@ -41,6 +33,154 @@ interface PrefilledData {
   instagramHandle?: string;
 }
 
+// ── Shared sub-components ─────────────────────────────────────────────
+
+function Screen({
+  children,
+  surface = 0,
+  align = "center",
+}: {
+  children: React.ReactNode;
+  surface?: 0 | 1 | "brand";
+  align?: "left" | "center";
+}) {
+  const bg =
+    surface === "brand"
+      ? "var(--brand-red)"
+      : surface === 1
+        ? "var(--color-neutral-800, #252320)"
+        : "var(--brand-charcoal, #1A1A18)";
+
+  return (
+    <section
+      style={{
+        height: "100dvh",
+        scrollSnapAlign: "start",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: align === "center" ? "center" : "flex-start",
+        textAlign: align,
+        padding: "clamp(32px, 6vw, 80px)",
+        background: bg,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {children}
+    </section>
+  );
+}
+
+function Statement({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.4 });
+  const reduced = useReducedMotion();
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={reduced ? false : { opacity: 0, y: 32 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ type: "spring", damping: 18, stiffness: 70, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function revealWords(text: string, inView: boolean, reduced: boolean | null) {
+  const words = text.split(" ");
+  return words.map((word, i) => (
+    <motion.span
+      key={i}
+      initial={reduced ? false : { opacity: 0, y: 16, filter: "blur(4px)" }}
+      animate={inView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+      transition={{ duration: 0.5, delay: 0.08 * i, ease: EASE }}
+      style={{ display: "inline-block", marginRight: "0.3em" }}
+    >
+      {word}
+    </motion.span>
+  ));
+}
+
+function Redaction({
+  generic,
+  honest,
+}: {
+  generic: string;
+  honest: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.5 });
+  const reduced = useReducedMotion();
+
+  return (
+    <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 620 }}>
+      <p
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "clamp(18px, 2.5vw, 22px)",
+          lineHeight: 1.6,
+          color: "var(--brand-cream)",
+          opacity: 0.35,
+          margin: 0,
+          position: "relative",
+        }}
+      >
+        <motion.span
+          initial={{ backgroundSize: "0% 2px" }}
+          animate={inView ? { backgroundSize: "100% 2px" } : {}}
+          transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
+          style={{
+            backgroundImage: "linear-gradient(var(--brand-cream), var(--brand-cream))",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "0 55%",
+          }}
+        >
+          {generic}
+        </motion.span>
+      </p>
+      <motion.p
+        initial={reduced ? false : { opacity: 0, y: 12 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6, delay: 1.0, ease: EASE }}
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "clamp(16px, 2vw, 19px)",
+          lineHeight: 1.7,
+          color: "var(--brand-cream)",
+          opacity: 0.8,
+          margin: 0,
+        }}
+      >
+        {honest}
+      </motion.p>
+    </div>
+  );
+}
+
+// ── Deliverable items ─────────────────────────────────────────────────
+
+const DELIVERABLES = [
+  {
+    number: "01",
+    title: "Brand identity reveal",
+    desc: "Signal tags, section insights, and a first impression written by someone who's never met you.",
+  },
+  {
+    number: "02",
+    title: "Prose portrait",
+    desc: "A narrative profile of who you are, how you operate, and what people feel when they encounter your brand.",
+  },
+  {
+    number: "03",
+    title: "Brand Pack",
+    desc: "Typography, colour palette, content pillars, voice guide, photography direction. Yours to keep.",
+  },
+];
+
+// ── Main component ────────────────────────────────────────────────────
+
 export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,18 +193,19 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
   const [error, setError] = useState<string | null>(null);
   const [showClientOverride, setShowClientOverride] = useState(false);
   const [clientName, setClientName] = useState("");
-  const [observationIndex, setObservationIndex] = useState(0);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setObservationIndex((prev) => (prev + 1) % BRAND_OBSERVATIONS.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const formRef = useRef<HTMLElement>(null);
+  const heroWordRef = useRef<HTMLDivElement>(null);
+  const heroInView = useInView(heroWordRef, { once: true, amount: 0.4 });
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const t = setInterval(() => { ensureTurnstile(); if (_turnstileRendered) clearInterval(t); }, 1000);
     return () => clearInterval(t);
+  }, []);
+
+  const scrollToForm = useCallback(() => {
+    formRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   const handleSubmit = useCallback(
@@ -121,66 +262,325 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
 
   return (
     <main
+      className="rundown-scroll-root"
       style={{
-        minHeight: "100dvh",
-        display: "flex",
-        background: "var(--brand-charcoal)",
+        height: "100dvh",
+        overflowY: "scroll",
+        scrollSnapType: "y mandatory",
+        background: "var(--brand-charcoal, #1A1A18)",
       }}
     >
-      {/* Left: form */}
+      {/* Ambient background */}
       <div
+        aria-hidden
+        className="rundown-ambient"
         style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "clamp(32px, 6vw, 80px)",
-          maxWidth: 600,
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 0,
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...houseSpring, duration: 0.8 }}
-          style={{ display: "flex", flexDirection: "column", gap: 32 }}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse at 20% 30%, rgba(242,140,82,0.06), transparent 60%)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse at 80% 70%, rgba(178,40,72,0.07), transparent 55%)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse at 50% 50%, rgba(244,160,176,0.04), transparent 70%)",
+        }} />
+      </div>
+
+      {/* ═══ SCREEN 1: Hero ═══ */}
+      <Screen>
+        <div
+          style={{
+            maxWidth: 780,
+            margin: "0 auto",
+            position: "relative",
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 0,
+          }}
         >
-          <div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 10,
+              letterSpacing: "4px",
+              textTransform: "uppercase",
+              color: "var(--brand-pink)",
+              margin: "0 0 28px 0",
+            }}
+          >
+            Brand DNA
+          </motion.p>
+
+          <div ref={heroWordRef}>
+            <h1
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+                lineHeight: 1.05,
+                color: "var(--brand-cream)",
+                margin: "0 0 28px 0",
+                letterSpacing: "-1px",
+              }}
+            >
+              {revealWords("Every brand has a DNA.", heroInView, reduced)}
+              <br />
+              {revealWords("Most have never seen theirs.", heroInView, reduced)}
+            </h1>
+          </div>
+
+          <motion.p
+            initial={reduced ? false : { opacity: 0, y: 12 }}
+            animate={heroInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 1.6, ease: EASE }}
+            style={{
+              fontFamily: "var(--font-narrative)",
+              fontStyle: "italic",
+              fontSize: "clamp(16px, 2vw, 19px)",
+              lineHeight: 1.6,
+              color: "var(--brand-cream)",
+              opacity: 0.5,
+              margin: "0 0 40px 0",
+              maxWidth: 460,
+            }}
+          >
+            102 questions. No right answers. A portrait of who you already are.
+          </motion.p>
+
+          <motion.button
+            initial={reduced ? false : { opacity: 0 }}
+            animate={heroInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 2.0, ease: EASE }}
+            onClick={scrollToForm}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 11,
+              letterSpacing: "2.5px",
+              textTransform: "uppercase",
+              color: "var(--brand-cream)",
+              background: "var(--brand-red)",
+              border: "none",
+              borderRadius: 999,
+              padding: "16px 40px",
+              cursor: "pointer",
+            }}
+          >
+            Take the assessment
+          </motion.button>
+
+          <motion.div
+            initial={reduced ? false : { opacity: 0 }}
+            animate={heroInView ? { opacity: 0.3 } : {}}
+            transition={{ duration: 0.5, delay: 2.4, ease: EASE }}
+            aria-hidden
+            style={{
+              position: "absolute",
+              bottom: -60,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--brand-cream)" }}>scroll</span>
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              style={{ width: 1, height: 20, background: "var(--brand-cream)", opacity: 0.4 }}
+            />
+          </motion.div>
+        </div>
+      </Screen>
+
+      {/* ═══ SCREEN 2: Redaction ═══ */}
+      <Screen surface="brand">
+        <div style={{ maxWidth: 680, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <Redaction
+            generic={`"Comprehensive brand audit with actionable insights and strategic recommendations."`}
+            honest="Most businesses look like everyone else in their industry. Same stock photos. Same blue. Same nothing. Brand DNA doesn't audit what you have. It uncovers what you are."
+          />
+        </div>
+      </Screen>
+
+      {/* ═══ SCREEN 3: What you get ═══ */}
+      <Screen surface={1}>
+        <div
+          style={{
+            maxWidth: 720,
+            margin: "0 auto",
+            position: "relative",
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+          }}
+        >
+          <Statement>
             <p
               style={{
                 fontFamily: "var(--font-label)",
                 fontSize: 10,
-                letterSpacing: "2px",
+                letterSpacing: "3px",
                 textTransform: "uppercase",
                 color: "var(--brand-pink)",
-                margin: "0 0 12px 0",
+                margin: "0 0 16px 0",
               }}
             >
-              Brand DNA
+              What you walk away with
             </p>
-            <h1
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(2rem, 4vw, 3rem)",
-                lineHeight: 1.05,
-                color: "var(--brand-cream)",
-                margin: 0,
-              }}
-            >
-              Let&rsquo;s find out who you are.
-            </h1>
+          </Statement>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {DELIVERABLES.map((d, i) => (
+              <Statement key={d.number} delay={0.15 * (i + 1)}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "clamp(16px, 3vw, 28px)",
+                    alignItems: "flex-start",
+                    padding: "28px 0",
+                    borderTop: i > 0 ? "1px solid rgba(253,245,230,0.06)" : "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-label)",
+                      fontSize: 10,
+                      letterSpacing: "2px",
+                      color: "var(--brand-red)",
+                      flexShrink: 0,
+                      paddingTop: 4,
+                    }}
+                  >
+                    {d.number}
+                  </span>
+                  <div>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        fontSize: "clamp(20px, 2.5vw, 24px)",
+                        fontWeight: 500,
+                        color: "var(--brand-cream)",
+                        margin: "0 0 8px 0",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {d.title}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 15,
+                        lineHeight: 1.65,
+                        color: "var(--brand-cream)",
+                        opacity: 0.55,
+                        margin: 0,
+                        maxWidth: 440,
+                      }}
+                    >
+                      {d.desc}
+                    </p>
+                  </div>
+                </div>
+              </Statement>
+            ))}
+          </div>
+
+          <Statement delay={0.65}>
             <p
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
-                lineHeight: 1.6,
+                fontStyle: "italic",
+                fontSize: 14,
                 color: "var(--brand-cream)",
-                opacity: 0.6,
-                margin: "16px 0 0 0",
+                opacity: 0.35,
+                margin: "12px 0 0 0",
               }}
             >
-              An intensive deep dive into your brand, your business, and your strategy. You&rsquo;ll walk away with a complete brand identity profile and a Brand Pack you can actually use.
+              Takes about 10 minutes. Worth it.
             </p>
-          </div>
+          </Statement>
+        </div>
+      </Screen>
+
+      {/* ═══ SCREEN 4: The form ═══ */}
+      <section
+        ref={formRef}
+        style={{
+          minHeight: "100dvh",
+          scrollSnapAlign: "start",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "clamp(40px, 6vw, 80px) clamp(20px, 4vw, 40px)",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 440,
+            display: "flex",
+            flexDirection: "column",
+            gap: 36,
+          }}
+        >
+          <Statement>
+            <div style={{ textAlign: "center" }}>
+              <p
+                style={{
+                  fontFamily: "var(--font-label)",
+                  fontSize: 10,
+                  letterSpacing: "3px",
+                  textTransform: "uppercase",
+                  color: "var(--brand-pink)",
+                  margin: "0 0 14px 0",
+                }}
+              >
+                Start here
+              </p>
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)",
+                  lineHeight: 1.1,
+                  color: "var(--brand-cream)",
+                  margin: "0 0 12px 0",
+                }}
+              >
+                Ready when you are.
+              </h2>
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: "var(--brand-cream)",
+                  opacity: 0.5,
+                  margin: 0,
+                }}
+              >
+                We just need the basics. Everything else comes from your answers.
+              </p>
+            </div>
+          </Statement>
 
           <AnimatePresence mode="wait">
             {showClientOverride ? (
@@ -200,7 +600,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                style={{ display: "flex", flexDirection: "column", gap: 20 }}
+                style={{ display: "flex", flexDirection: "column", gap: 18 }}
               >
                 <InputField
                   label="Your name"
@@ -258,92 +658,62 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                   style={{
                     fontFamily: "var(--font-label)",
                     fontSize: 11,
-                    letterSpacing: "2px",
+                    letterSpacing: "2.5px",
                     textTransform: "uppercase",
                     color: "var(--brand-cream)",
                     background: "var(--brand-red)",
                     border: "none",
-                    borderRadius: 12,
+                    borderRadius: 999,
                     padding: "16px 32px",
                     cursor: submitting ? "wait" : "pointer",
                     opacity: submitting ? 0.6 : 1,
-                    marginTop: 8,
+                    marginTop: 4,
                     transition: "opacity 0.2s",
                   }}
                 >
-                  {submitting ? "Setting up..." : "Start"}
+                  {submitting ? "Setting up..." : "Start the assessment"}
                 </motion.button>
 
                 <div id="turnstile-container" />
               </motion.form>
             )}
           </AnimatePresence>
-        </motion.div>
-      </div>
 
-      {/* Right: ambient brand observations (hidden on mobile, takes full width below) */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "clamp(32px, 6vw, 80px)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-        className="rundown-ambient-panel"
-      >
-        {/* Subtle gradient overlay */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(ellipse at 60% 50%, rgba(178, 40, 72, 0.08), transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
-
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={observationIndex}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          <p
             style={{
-              fontFamily: "var(--font-narrative)",
-              fontStyle: "italic",
-              fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-              lineHeight: 1.5,
+              fontFamily: "var(--font-body)",
+              fontSize: 12,
               color: "var(--brand-cream)",
-              opacity: 0.5,
+              opacity: 0.25,
               textAlign: "center",
-              maxWidth: 460,
-              position: "relative",
+              margin: 0,
+              lineHeight: 1.6,
             }}
           >
-            {BRAND_OBSERVATIONS[observationIndex]}
-          </motion.p>
-        </AnimatePresence>
-      </div>
+            Free. No account required. Results delivered by email.
+          </p>
+        </div>
+      </section>
 
-      <style jsx global>{`
-        @media (max-width: 768px) {
-          main {
-            flex-direction: column !important;
-          }
-          .rundown-ambient-panel {
-            min-height: 200px !important;
-            order: -1 !important;
-            padding: 40px 24px !important;
+      <style>{`
+        .rundown-scroll-root {
+          scroll-behavior: smooth;
+        }
+        .rundown-scroll-root::-webkit-scrollbar {
+          display: none;
+        }
+        @media (max-width: 640px) {
+          .rundown-scroll-root section {
+            padding-left: 24px !important;
+            padding-right: 24px !important;
           }
         }
       `}</style>
     </main>
   );
 }
+
+// ── Sub-components ────────────────────────────────────────────────────
 
 function InputField({
   label,
@@ -362,7 +732,7 @@ function InputField({
   autoFocus?: boolean;
   placeholder?: string;
 }) {
-  const id = label.toLowerCase().replace(/\s+/g, "-");
+  const id = `rundown-${label.toLowerCase().replace(/\s+/g, "-")}`;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <label
@@ -373,7 +743,7 @@ function InputField({
           letterSpacing: "1.5px",
           textTransform: "uppercase",
           color: "var(--brand-cream)",
-          opacity: 0.5,
+          opacity: 0.45,
         }}
       >
         {label}
@@ -390,18 +760,20 @@ function InputField({
           fontFamily: "var(--font-body)",
           fontSize: 16,
           color: "var(--brand-cream)",
-          background: "rgba(253, 245, 230, 0.05)",
-          border: "1px solid rgba(253, 245, 230, 0.1)",
+          background: "rgba(253, 245, 230, 0.04)",
+          border: "1px solid rgba(253, 245, 230, 0.08)",
           borderRadius: 10,
           padding: "14px 16px",
           outline: "none",
-          transition: "border-color 0.2s",
+          transition: "border-color 0.3s, background 0.3s",
         }}
         onFocus={(e) => {
           e.currentTarget.style.borderColor = "rgba(178, 40, 72, 0.4)";
+          e.currentTarget.style.background = "rgba(253, 245, 230, 0.06)";
         }}
         onBlur={(e) => {
-          e.currentTarget.style.borderColor = "rgba(253, 245, 230, 0.1)";
+          e.currentTarget.style.borderColor = "rgba(253, 245, 230, 0.08)";
+          e.currentTarget.style.background = "rgba(253, 245, 230, 0.04)";
         }}
       />
     </div>
@@ -442,7 +814,7 @@ function ClientOverridePrompt({
           margin: 0,
         }}
       >
-        Hey {clientName.split(" ")[0]} , looks like you already have a Brand DNA profile with us. Taking this again will replace your current one.
+        Hey {clientName.split(" ")[0]}, looks like you already have a Brand DNA profile with us. Taking this again will replace your current one.
       </p>
       <p
         style={{
@@ -455,7 +827,7 @@ function ClientOverridePrompt({
       >
         Your previous results will be archived, not deleted.
       </p>
-      <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <button
           onClick={onProceed}
           style={{
@@ -466,7 +838,7 @@ function ClientOverridePrompt({
             color: "var(--brand-cream)",
             background: "var(--brand-red)",
             border: "none",
-            borderRadius: 10,
+            borderRadius: 999,
             padding: "12px 24px",
             cursor: "pointer",
           }}
@@ -483,7 +855,7 @@ function ClientOverridePrompt({
             color: "var(--brand-cream)",
             background: "transparent",
             border: "1px solid rgba(253, 245, 230, 0.15)",
-            borderRadius: 10,
+            borderRadius: 999,
             padding: "12px 24px",
             cursor: "pointer",
           }}
