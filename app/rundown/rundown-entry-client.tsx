@@ -224,10 +224,10 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                 />
                 <InputField
                   label="Website"
-                  type="url"
+                  type="text"
                   value={website}
                   onChange={setWebsite}
-                  placeholder="if you don't have a website, leave this blank"
+                  placeholder="superbadmedia.com.au"
                 />
                 <InputField
                   label="Instagram"
