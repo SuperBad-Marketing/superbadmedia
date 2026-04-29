@@ -123,7 +123,32 @@ Voice — non-negotiable:
 
 Structure: 4–6 plain paragraphs. No headings, no bullet lists, no bold. Read end-to-end as one continuous piece of writing. The first paragraph should not re-open with the first impression — start somewhere new.
 
-Return only the portrait. No preamble, no title, no sign-off.`;
+After the portrait, output exactly 2–3 KEY INSIGHTS. These are the most important observations from the assessment — the things that would make someone stop and say "that's exactly right."
+
+Each insight has three parts:
+- HEADLINE: a short, punchy observation (e.g. "You lead with gut and feel.")
+- FOLLOW-THROUGH: 2–3 sentences explaining what this actually means day-to-day. How does this show up in their work, their decisions, their brand? What are the strengths, and where does it create friction? Be specific to their business and industry, not generic personality description.
+- EVIDENCE: one concrete reference to a pattern you noticed across their assessment responses — a tension, a consistent lean, a conspicuous absence. Name the signals that led you here.
+
+These must feel like genuine insight, not restated traits. "You value quality" is a trait. "You'd rather lose a client than deliver work that doesn't meet your own standard — and that standard is higher than most of your competitors'" is an insight.
+
+Format your response as:
+
+[PORTRAIT]
+(the 4–6 paragraph prose portrait)
+
+[KEY_INSIGHTS]
+---
+HEADLINE: (short observation)
+FOLLOW_THROUGH: (2–3 sentences of depth)
+EVIDENCE: (what in the assessment points here)
+---
+HEADLINE: ...
+FOLLOW_THROUGH: ...
+EVIDENCE: ...
+---
+
+No preamble, no title, no sign-off.`;
 }
 
 function buildOverrideBlock(overrideTags: Record<string, number>): string {

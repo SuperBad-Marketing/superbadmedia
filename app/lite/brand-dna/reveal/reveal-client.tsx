@@ -97,8 +97,9 @@ function RevealInner({
   }, [phase, alreadyComplete, profileId, externalMarkComplete, update]);
 
   const { headline, headlineAccent } = splitImpressionHeadline(firstImpression);
-  const paragraphs = splitPortraitParagraphs(prosePortrait);
-  const pullQuotes = extractPullQuotes(prosePortrait);
+  const { portrait: cleanPortrait, keyInsights } = parsePortraitAndInsights(prosePortrait);
+  const paragraphs = splitPortraitParagraphs(cleanPortrait);
+  const pullQuotes = keyInsights.length > 0 ? [] : extractPullQuotes(cleanPortrait);
 
   return (
     <main
@@ -394,6 +395,70 @@ function RevealInner({
               );
             })}
 
+            {keyInsights.length > 0 && (
+              <div
+                style={{
+                  marginTop: 56,
+                  paddingTop: 40,
+                  borderTop: "1px solid rgba(253, 245, 230, 0.08)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 40,
+                }}
+              >
+                {keyInsights.map((insight, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...houseSpring, delay: 0.2 + idx * 0.15 }}
+                    style={{
+                      padding: "0 0 0 20px",
+                      borderLeft: "3px solid rgba(178, 40, 72, 0.4)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        fontStyle: "italic",
+                        fontSize: "clamp(20px, 3vw, 28px)",
+                        lineHeight: 1.3,
+                        color: "var(--brand-pink)",
+                        margin: "0 0 12px 0",
+                      }}
+                    >
+                      {insight.headline}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 16,
+                        lineHeight: 1.7,
+                        color: "var(--brand-cream)",
+                        opacity: 0.8,
+                        margin: "0 0 10px 0",
+                      }}
+                    >
+                      {insight.followThrough}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontStyle: "italic",
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        color: "var(--brand-cream)",
+                        opacity: 0.4,
+                        margin: 0,
+                      }}
+                    >
+                      {insight.evidence}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
             <p
               style={{
                 marginTop: 48,
@@ -460,6 +525,52 @@ function splitPortraitParagraphs(portrait: string): string[] {
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
+}
+
+interface KeyInsight {
+  headline: string;
+  followThrough: string;
+  evidence: string;
+}
+
+function parsePortraitAndInsights(raw: string): {
+  portrait: string;
+  keyInsights: KeyInsight[];
+} {
+  const insightsMarker = "[KEY_INSIGHTS]";
+  const portraitMarker = "[PORTRAIT]";
+
+  let portraitText = raw;
+  let insightsBlock = "";
+
+  if (raw.includes(insightsMarker)) {
+    const parts = raw.split(insightsMarker);
+    portraitText = parts[0];
+    insightsBlock = parts[1] ?? "";
+  }
+
+  portraitText = portraitText
+    .replace(portraitMarker, "")
+    .trim();
+
+  const keyInsights: KeyInsight[] = [];
+  const insightBlocks = insightsBlock.split("---").filter((b) => b.trim().length > 0);
+
+  for (const block of insightBlocks) {
+    const headlineMatch = block.match(/HEADLINE:\s*(.+?)(?:\n|$)/);
+    const followMatch = block.match(/FOLLOW_THROUGH:\s*([\s\S]+?)(?=EVIDENCE:|$)/);
+    const evidenceMatch = block.match(/EVIDENCE:\s*([\s\S]+?)$/);
+
+    if (headlineMatch?.[1]) {
+      keyInsights.push({
+        headline: headlineMatch[1].trim(),
+        followThrough: followMatch?.[1]?.trim() ?? "",
+        evidence: evidenceMatch?.[1]?.trim() ?? "",
+      });
+    }
+  }
+
+  return { portrait: portraitText, keyInsights: keyInsights.slice(0, 3) };
 }
 
 function extractPullQuotes(

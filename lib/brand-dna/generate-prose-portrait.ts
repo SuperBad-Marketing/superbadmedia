@@ -127,7 +127,7 @@ export async function generateProsePortrait(
   const modelId = modelFor("brand-dna-generate-prose-portrait");
   const response = await CLIENT_SINGLETON.messages.create({
     model: modelId,
-    max_tokens: 2000,
+    max_tokens: 3000,
     messages: [{ role: "user", content: prompt }],
   });
 
