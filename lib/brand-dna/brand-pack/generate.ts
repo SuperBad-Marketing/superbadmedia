@@ -187,6 +187,22 @@ function buildEnrichmentSnapshot(
   return trimmed.length > 0 ? { facts: trimmed } : null;
 }
 
+// ── Field cleaners ────────────────────────────────────────────────────
+
+function cleanFirstImpression(raw: string): string {
+  const headlineMatch = raw.match(/^HEADLINE:\s*([\s\S]+?)(?:\s*SUBLINE:|$)/);
+  if (headlineMatch?.[1]) return headlineMatch[1].trim();
+  return raw.trim();
+}
+
+function cleanPortraitExcerpt(raw: string): string {
+  let text = raw.replace(/^\[PORTRAIT\]\s*/i, "").trim();
+  if (text.length <= 800) return text;
+  const truncated = text.slice(0, 800);
+  const lastSentence = truncated.match(/^([\s\S]*[.!?])\s/);
+  return lastSentence ? lastSentence[1].trim() : truncated.trim();
+}
+
 // ── Main generator ─────────────────────────────────────────────────────
 
 /**
@@ -218,8 +234,9 @@ export async function generateBrandPackContent(
   if (profile.brand_pack_json) {
     try {
       const cached = JSON.parse(profile.brand_pack_json) as BrandPackData;
-      // Re-derive enrichment snapshot in case enrichment ran after first gen
       cached.enrichmentSnapshot = buildEnrichmentSnapshot(enrichmentData, subjectName);
+      cached.firstImpression = cleanFirstImpression(cached.firstImpression);
+      cached.prosePortraitExcerpt = cleanPortraitExcerpt(cached.prosePortraitExcerpt);
       return cached;
     } catch {
       // Corrupted cache — regenerate
@@ -315,8 +332,8 @@ export async function generateBrandPackContent(
   const data: BrandPackData = {
     subjectName,
     businessContext,
-    firstImpression: profile.first_impression ?? "",
-    prosePortraitExcerpt: (profile.prose_portrait ?? "").slice(0, 600),
+    firstImpression: cleanFirstImpression(profile.first_impression ?? ""),
+    prosePortraitExcerpt: cleanPortraitExcerpt(profile.prose_portrait ?? ""),
     primaryFont: llmResult.primaryFont as BrandPackFontEntry,
     secondaryFont: llmResult.secondaryFont as BrandPackFontEntry,
     accentFont: (llmResult.accentFont as BrandPackFontEntry) ?? null,

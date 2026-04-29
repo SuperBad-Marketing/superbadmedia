@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView, useReducedMotion, AnimatePresence } from "framer-motion";
 import { houseSpring } from "@/lib/design-tokens";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { trackRundownCtaClick } from "../actions";
@@ -423,6 +423,53 @@ export function RundownPostReveal({
   firstImpression = "",
 }: RundownPostRevealProps) {
   const [tiersExpanded, setTiersExpanded] = React.useState(false);
+  const [packBlobUrl, setPackBlobUrl] = React.useState<string | null>(null);
+  const [packLoading, setPackLoading] = React.useState(false);
+  const [packError, setPackError] = React.useState(false);
+  const packFetchRef = React.useRef<Promise<string | null> | null>(null);
+
+  React.useEffect(() => {
+    const url = `/api/rundown/${sessionToken}/brand-pack`;
+    const promise = fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error("fetch failed");
+        return res.blob();
+      })
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        setPackBlobUrl(blobUrl);
+        return blobUrl;
+      })
+      .catch(() => {
+        setPackError(true);
+        return null;
+      });
+    packFetchRef.current = promise;
+    return () => {
+      promise.then((blobUrl) => {
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+      });
+    };
+  }, [sessionToken]);
+
+  async function handleViewBrandPack() {
+    if (packBlobUrl) {
+      window.open(packBlobUrl, "_blank");
+      return;
+    }
+    if (packError) {
+      window.open(`/api/rundown/${sessionToken}/brand-pack`, "_blank");
+      return;
+    }
+    setPackLoading(true);
+    const blobUrl = await packFetchRef.current;
+    setPackLoading(false);
+    if (blobUrl) {
+      window.open(blobUrl, "_blank");
+    } else {
+      window.open(`/api/rundown/${sessionToken}/brand-pack`, "_blank");
+    }
+  }
 
   const enrichmentCards = React.useMemo(
     () => buildEnrichmentCards(enrichmentData, businessName, signalTags),
@@ -618,12 +665,7 @@ export function RundownPostReveal({
           <Reveal delay={0.1}>
             <button
               type="button"
-              onClick={() => {
-                window.open(
-                  `/api/rundown/${sessionToken}/brand-pack`,
-                  "_blank",
-                );
-              }}
+              onClick={() => void handleViewBrandPack()}
               style={{
                 fontFamily: "var(--font-label)",
                 fontSize: 11,
@@ -831,6 +873,127 @@ export function RundownPostReveal({
           }
         }
       `}</style>
+
+      <AnimatePresence>
+        {packLoading && <BrandPackLoadingOverlay />}
+      </AnimatePresence>
     </div>
+  );
+}
+
+// ── Brand pack loading overlay ────────────────────────────────────────
+
+const PACK_PHRASES = [
+  "Assembling your brand pack.",
+  "Pulling colours, type, and voice together.",
+  "Good things take a minute.",
+  "Almost there.",
+];
+
+function BrandPackLoadingOverlay() {
+  const [phraseIndex, setPhraseIndex] = React.useState(0);
+  const [progress, setProgress] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setPhraseIndex((p) => (p + 1) % PACK_PHRASES.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  React.useEffect(() => {
+    const start = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = (Date.now() - start) / 1000;
+      setProgress(Math.min(elapsed / 20, 0.92));
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        background: "rgba(26, 26, 24, 0.92)",
+        backdropFilter: "blur(12px)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 0,
+        textAlign: "center",
+        padding: "40px 24px",
+      }}
+    >
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: EASE }}
+        style={{
+          fontFamily: "var(--font-label)",
+          fontSize: 9,
+          letterSpacing: "3px",
+          textTransform: "uppercase",
+          color: "var(--brand-pink)",
+          margin: "0 0 32px 0",
+        }}
+      >
+        Preparing your brand pack
+      </motion.p>
+
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 320,
+          height: 3,
+          borderRadius: 999,
+          background: "rgba(253, 245, 230, 0.06)",
+          overflow: "hidden",
+          margin: "0 0 24px 0",
+        }}
+      >
+        <motion.div
+          animate={{ width: `${Math.round(progress * 100)}%` }}
+          transition={{ duration: 0.6, ease: "linear" }}
+          style={{
+            height: "100%",
+            borderRadius: 999,
+            background:
+              "linear-gradient(90deg, var(--brand-red), var(--brand-pink))",
+          }}
+        />
+      </div>
+
+      <div style={{ height: 40, position: "relative", width: "100%", maxWidth: 400 }}>
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={phraseIndex}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            style={{
+              fontFamily: "var(--font-narrative)",
+              fontStyle: "italic",
+              fontSize: "clamp(14px, 2vw, 16px)",
+              lineHeight: 1.5,
+              color: "var(--brand-cream)",
+              opacity: 0.45,
+              margin: 0,
+              position: "absolute",
+              width: "100%",
+            }}
+          >
+            {PACK_PHRASES[phraseIndex]}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 }
