@@ -41,11 +41,7 @@ export default async function PortalBrandDnaProfilePage() {
     redirect("/lite/portal/brand-dna");
   }
 
-  const sectionInsights: string[] = profile.section_insights
-    ? (JSON.parse(profile.section_insights) as string[]).filter(
-        (s) => typeof s === "string" && s.length > 0,
-      )
-    : [];
+  const sectionInsights: string[] = parseSectionInsights(profile.section_insights);
 
   let blendPortrait: string | null = null;
   let blendDivergences: Array<{
@@ -73,13 +69,7 @@ export default async function PortalBrandDnaProfilePage() {
     }
   }
 
-  const tagMap: Record<string, number> = profile.signal_tags
-    ? (JSON.parse(profile.signal_tags) as Record<string, number>)
-    : {};
-  const signalTags = Object.entries(tagMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([tag]) => tag.replace(/_/g, " "));
+  const signalTags = parseSignalTags(profile.signal_tags);
 
   return (
     <ProfileViewClient
@@ -95,4 +85,40 @@ export default async function PortalBrandDnaProfilePage() {
       blendDivergences={blendDivergences}
     />
   );
+}
+
+function parseSectionInsights(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((s) => typeof s === "string" && s.length > 0);
+    }
+    if (typeof parsed === "object" && parsed !== null) {
+      return Object.values(parsed).filter(
+        (v): v is string => typeof v === "string" && v.length > 0,
+      );
+    }
+  } catch { /* malformed JSON */ }
+  return [];
+}
+
+function parseSignalTags(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .filter((s): s is string => typeof s === "string")
+        .slice(0, 8)
+        .map((t) => t.replace(/_/g, " "));
+    }
+    if (typeof parsed === "object" && parsed !== null) {
+      return Object.entries(parsed as Record<string, number>)
+        .sort((a, b) => (b[1] as number) - (a[1] as number))
+        .slice(0, 8)
+        .map(([tag]) => tag.replace(/_/g, " "));
+    }
+  } catch { /* malformed JSON */ }
+  return [];
 }
