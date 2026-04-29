@@ -734,109 +734,7 @@ export default function HomePage() {
           />
         </Screen>
 
-        {/* ── Screen 4 — What we actually do ── */}
-        <Screen>
-          <Redaction
-            generic="We're a full-service creative agency passionate about telling your brand's story through innovative, best-in-class content solutions."
-            honest={
-              <span>
-                We make short-form and long-form content. Take photographs.
-                Write strategies. Build campaigns. Run your ads
-                <span style={{ color: "var(--brand-red)" }}>.</span>
-              </span>
-            }
-            honestSub={
-              <p
-                className="text-pretty"
-                style={{
-                  fontFamily: "var(--font-narrative)",
-                  fontSize: "clamp(18px, 2vw, 26px)",
-                  lineHeight: 1.5,
-                  fontStyle: "italic",
-                  color: "var(--brand-pink)",
-                  margin: 0,
-                }}
-              >
-                But mostly — we figure out what makes your audience care, and
-                then we make that.
-              </p>
-            }
-          />
-        </Screen>
-
-        {/* ── Services Marquee — what we do ── */}
-        <ServicesMarquee reduced={!!reduced} />
-
-        {/* ── Screen — Four agencies ── */}
-        <Screen surface={1}>
-          <div ref={alignRef}>
-            <p
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(32px, 5.5vw, 72px)",
-                lineHeight: 1,
-                color: "var(--neutral-100)",
-                margin: 0,
-                maxWidth: "20ch",
-              }}
-              className="text-balance"
-            >
-              {revealWords("Four agencies. None of them have met", alignInView)}
-              <motion.span
-                style={{ display: "inline-block", color: "var(--brand-red)" }}
-                initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
-                animate={alignInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
-                transition={{ duration: 0.5, delay: 7 * 0.07, ease: EASE }}
-              >
-                .
-              </motion.span>
-            </p>
-            <motion.p
-              className="text-pretty"
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: "clamp(16px, 1.8vw, 22px)",
-                lineHeight: 1.6,
-                color: "var(--neutral-500)",
-                margin: 0,
-                marginTop: "clamp(20px, 3vw, 40px)",
-                maxWidth: "44ch",
-              }}
-              initial={reduced ? false : { opacity: 0, y: 16 }}
-              animate={alignInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.8, ease: EASE }}
-            >
-              Your ad strategist works at one agency. Your creative director
-              at another. Your content creator at a third. Your brand
-              strategist at a fourth. Four different businesses, none of
-              which have met — all producing work that pulls in different
-              directions. The messaging doesn&rsquo;t align. The trust
-              doesn&rsquo;t build. And the results don&rsquo;t compound.
-            </motion.p>
-            <motion.p
-              className="text-pretty"
-              style={{
-                fontFamily: "var(--font-narrative)",
-                fontSize: "clamp(18px, 2.2vw, 26px)",
-                lineHeight: 1.5,
-                fontStyle: "italic",
-                color: "var(--brand-pink)",
-                margin: 0,
-                marginTop: "clamp(16px, 2vw, 28px)",
-                maxWidth: "36ch",
-              }}
-              initial={reduced ? false : { opacity: 0, y: 16 }}
-              animate={alignInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 1.1, ease: EASE }}
-            >
-              Everything your audience sees, hears, and feels is your brand.
-              When all of it comes from the same place, it starts to align.
-              Trust builds. And people only buy from people they trust.
-            </motion.p>
-          </div>
-        </Screen>
-
-        {/* ── Screen 5 — Statement: emotion over features (brand red) ── */}
+        {/* ── Screen 4 — Emotion over features (brand red) ── */}
         <Screen surface="brand">
           <div ref={emotionRef}>
             <p
@@ -899,43 +797,7 @@ export default function HomePage() {
           </div>
         </Screen>
 
-        {/* ── Screen 6 — Social proof ── */}
-        <Screen align="center">
-          <Statement>
-            <p
-              className="text-balance"
-              style={{
-                fontFamily: "var(--font-narrative)",
-                fontSize: "clamp(22px, 3vw, 36px)",
-                lineHeight: 1.4,
-                fontStyle: "italic",
-                color: "var(--neutral-100)",
-                margin: 0,
-                maxWidth: "24ch",
-              }}
-            >
-              &ldquo;It showed what we are authentically. Our personalities were
-              embedded.&rdquo;
-            </p>
-          </Statement>
-          <Statement delay={0.15}>
-            <p
-              style={{
-                fontFamily: "var(--font-label)",
-                fontSize: "var(--text-micro)",
-                letterSpacing: "0.35em",
-                textTransform: "uppercase",
-                color: "var(--brand-pink)",
-                margin: 0,
-                marginTop: "clamp(16px, 2vw, 24px)",
-              }}
-            >
-              &mdash; Marco, Melbourne
-            </p>
-          </Statement>
-        </Screen>
-
-        {/* ── Screen 7 — Redaction #2 ── */}
+        {/* ── Screen 5 — The anti-sell ── */}
         <Screen>
           <Redaction
             generic="Our proven methodology delivers measurable ROI through strategic multi-channel campaigns and performance-driven creative."
@@ -978,7 +840,7 @@ export default function HomePage() {
           />
         </Screen>
 
-        {/* ── Screen 6 — Quiet screen (small text, huge space) ── */}
+        {/* ── Screen 6 — Patience (eight touchpoints) ── */}
         <Screen align="center" surface={1}>
           <div
             ref={patienceRef}
@@ -1047,6 +909,144 @@ export default function HomePage() {
               className="text-balance"
             >
               That&rsquo;s not a stat. That&rsquo;s patience.
+            </p>
+          </Statement>
+        </Screen>
+
+        {/* ── Screen 7 — Four agencies ── */}
+        <Screen surface={1}>
+          <div ref={alignRef}>
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(32px, 5.5vw, 72px)",
+                lineHeight: 1,
+                color: "var(--neutral-100)",
+                margin: 0,
+                maxWidth: "20ch",
+              }}
+              className="text-balance"
+            >
+              {revealWords("Four agencies. None of them have met", alignInView)}
+              <motion.span
+                style={{ display: "inline-block", color: "var(--brand-red)" }}
+                initial={reduced ? false : { opacity: 0, y: 30, filter: "blur(6px)" }}
+                animate={alignInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+                transition={{ duration: 0.5, delay: 7 * 0.07, ease: EASE }}
+              >
+                .
+              </motion.span>
+            </p>
+            <motion.p
+              className="text-pretty"
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(16px, 1.8vw, 22px)",
+                lineHeight: 1.6,
+                color: "var(--neutral-500)",
+                margin: 0,
+                marginTop: "clamp(20px, 3vw, 40px)",
+                maxWidth: "44ch",
+              }}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              animate={alignInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.8, ease: EASE }}
+            >
+              Your ad strategist works at one agency. Your creative director
+              at another. Your content creator at a third. Your brand
+              strategist at a fourth. Four different businesses, none of
+              which have met — all producing work that pulls in different
+              directions. The messaging doesn&rsquo;t align. The trust
+              doesn&rsquo;t build. And the results don&rsquo;t compound.
+            </motion.p>
+            <motion.p
+              className="text-pretty"
+              style={{
+                fontFamily: "var(--font-narrative)",
+                fontSize: "clamp(18px, 2.2vw, 26px)",
+                lineHeight: 1.5,
+                fontStyle: "italic",
+                color: "var(--brand-pink)",
+                margin: 0,
+                marginTop: "clamp(16px, 2vw, 28px)",
+                maxWidth: "36ch",
+              }}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              animate={alignInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 1.1, ease: EASE }}
+            >
+              Everything your audience sees, hears, and feels is your brand.
+              When all of it comes from the same place, it starts to align.
+              Trust builds. And people only buy from people they trust.
+            </motion.p>
+          </div>
+        </Screen>
+
+        {/* ── Screen 8 — What we actually do ── */}
+        <Screen>
+          <Redaction
+            generic="We’re a full-service creative agency passionate about telling your brand’s story through innovative, best-in-class content solutions."
+            honest={
+              <span>
+                We make short-form and long-form content. Take photographs.
+                Write strategies. Build campaigns. Run your ads
+                <span style={{ color: "var(--brand-red)" }}>.</span>
+              </span>
+            }
+            honestSub={
+              <p
+                className="text-pretty"
+                style={{
+                  fontFamily: "var(--font-narrative)",
+                  fontSize: "clamp(18px, 2vw, 26px)",
+                  lineHeight: 1.5,
+                  fontStyle: "italic",
+                  color: "var(--brand-pink)",
+                  margin: 0,
+                }}
+              >
+                But mostly — we figure out what makes your audience care, and
+                then we make that.
+              </p>
+            }
+          />
+        </Screen>
+
+        {/* ── Services Marquee ── */}
+        <ServicesMarquee reduced={!!reduced} />
+
+        {/* ── Screen 9 — Social proof ── */}
+        <Screen align="center">
+          <Statement>
+            <p
+              className="text-balance"
+              style={{
+                fontFamily: "var(--font-narrative)",
+                fontSize: "clamp(22px, 3vw, 36px)",
+                lineHeight: 1.4,
+                fontStyle: "italic",
+                color: "var(--neutral-100)",
+                margin: 0,
+                maxWidth: "24ch",
+              }}
+            >
+              &ldquo;It showed what we are authentically. Our personalities were
+              embedded.&rdquo;
+            </p>
+          </Statement>
+          <Statement delay={0.15}>
+            <p
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: "var(--text-micro)",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase",
+                color: "var(--brand-pink)",
+                margin: 0,
+                marginTop: "clamp(16px, 2vw, 24px)",
+              }}
+            >
+              &mdash; Marco, Melbourne
             </p>
           </Statement>
         </Screen>
