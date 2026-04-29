@@ -10,7 +10,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { answer } = await params;
   return {
-    title: `${decodeURIComponent(answer)} — SuperBad`,
+    title: `${decodeURIComponent(answer)} | SuperBad`,
     robots: { index: false, follow: false },
   };
 }

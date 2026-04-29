@@ -8,7 +8,7 @@ import { respondToCalendarInviteAction } from "../ticket/actions";
 
 /**
  * Accept / Tentative / Decline buttons for an inbound calendar invite
- * message (spec §4.3 — replaces UI-8's toast stub). Fires the Graph RSVP
+ * message (spec §4.3, replaces UI-8's toast stub). Fires the Graph RSVP
  * via `respondToCalendarInviteAction` and logs `inbox_calendar_rsvp_sent`
  * with the choice.
  *
@@ -100,7 +100,7 @@ export function CalendarRsvpButtons({
             disabled={disabled}
             title={
               !sendEnabled
-                ? "RSVPs are paused — try again in a minute."
+                ? "RSVPs are paused, try again in a minute."
                 : done
                   ? "Already responded."
                   : `RSVP ${LABEL[kind].toLowerCase()}`

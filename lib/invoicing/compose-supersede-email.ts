@@ -54,7 +54,7 @@ function deterministicFallback(
     company,
   });
   const paragraphs = [
-    `Hi ${company.name}, updated invoice — ${previousInvoiceNumber} has been replaced by ${newInvoice.invoice_number} (${formatCents(newInvoice.total_cents_inc_gst)}).`,
+    `Hi ${company.name}, updated invoice, ${previousInvoiceNumber} has been replaced by ${newInvoice.invoice_number} (${formatCents(newInvoice.total_cents_inc_gst)}).`,
   ];
   return {
     subject: parts.subject,
@@ -73,7 +73,7 @@ export interface ComposeSupersedeEmailInput {
 }
 
 /**
- * Supersede notification — Haiku-tier, no drift-check per spec §6.3. Short,
+ * Supersede notification, Haiku-tier, no drift-check per spec §6.3. Short,
  * functional. Deterministic fallback on kill-switch or parse failure.
  */
 export async function composeInvoiceSupersedeEmailAI(

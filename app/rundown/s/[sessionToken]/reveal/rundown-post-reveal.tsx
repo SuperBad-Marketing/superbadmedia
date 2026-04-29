@@ -421,7 +421,7 @@ export function RundownPostReveal({
         />
       </Reveal>
 
-      {/* Mirror section — quiet enrichment facts */}
+      {/* Mirror section, quiet enrichment facts */}
       {hasMirror && (
         <section
           style={{
@@ -589,7 +589,7 @@ export function RundownPostReveal({
               margin: 0,
             }}
           >
-            We come to you, shoot, edit, and deliver — inside a portal
+            We come to you, shoot, edit, and deliver, inside a portal
             that&rsquo;s yours to keep whether you come back or not. Plus a
             six-week marketing plan written for your business, not a template.
           </p>
@@ -632,7 +632,7 @@ export function RundownPostReveal({
         </Reveal>
       </section>
 
-      {/* Brand Pack download — placeholder until PDF generation is built */}
+      {/* Brand Pack download, placeholder until PDF generation is built */}
       <section
         style={{
           display: "flex",
@@ -670,7 +670,7 @@ export function RundownPostReveal({
                 margin: "0 auto",
               }}
             >
-              A downloadable summary of your brand identity — colours,
+              A downloadable summary of your brand identity, colours,
               typography, content pillars, voice guide. Yours to keep.
             </p>
           </div>

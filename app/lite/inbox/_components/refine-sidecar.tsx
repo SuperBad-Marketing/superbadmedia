@@ -70,7 +70,7 @@ export function RefineSidecar({
         // fallback → preserve prior
         setError(
           result.draft.outcome === "skipped_kill_switch"
-            ? "Refine's paused — LLM calls off."
+            ? "Refine's paused, LLM calls off."
             : "Couldn't refine this time. Prior draft preserved.",
         );
       }
@@ -202,7 +202,7 @@ export function RefineSidecar({
               type="button"
               onClick={handleRedraft}
               disabled={!llmEnabled || busy || !instruction.trim() || turnLimitHit}
-              title={!llmEnabled ? "Refine's paused — LLM calls off." : undefined}
+              title={!llmEnabled ? "Refine's paused, LLM calls off." : undefined}
               className={cn(
                 "flex items-center gap-1.5 rounded-sm px-3 py-1.5",
                 "bg-[color:var(--color-accent-cta)] text-[color:var(--color-neutral-100)]",

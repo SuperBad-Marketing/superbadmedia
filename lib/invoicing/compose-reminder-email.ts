@@ -59,8 +59,8 @@ function deterministicFallback(
   const paragraphs = [
     `Hi ${company.name},`,
     firstReminder
-      ? `Quick nudge — invoice ${invoice.invoice_number} (${formatCents(invoice.total_cents_inc_gst)}) is a few days past its due date.`
-      : `Still chasing invoice ${invoice.invoice_number} — ${daysOverdue} days past due.`,
+      ? `Quick nudge, invoice ${invoice.invoice_number} (${formatCents(invoice.total_cents_inc_gst)}) is a few days past its due date.`
+      : `Still chasing invoice ${invoice.invoice_number}, ${daysOverdue} days past due.`,
   ];
   return {
     subject: parts.subject,
@@ -127,7 +127,7 @@ export async function composeInvoiceReminderEmailAI(
   const daysOverdue = Math.max(0, Math.floor((now - invoice.due_at_ms) / DAY_MS));
   const reminderCount = invoice.reminder_count;
 
-  // Payer history — paid/on-time vs never paid vs overdue ever.
+  // Payer history, paid/on-time vs never paid vs overdue ever.
   const paidRows = await database
     .select({ id: invoices.id })
     .from(invoices)

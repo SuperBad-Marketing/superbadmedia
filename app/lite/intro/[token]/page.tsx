@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await loadSubmissionByToken(token);
   if (!data) return { title: "Not found" };
   return {
-    title: `${data.submission.submitted_name} — SuperBad`,
+    title: `${data.submission.submitted_name} | SuperBad`,
     robots: { index: false, follow: false },
   };
 }

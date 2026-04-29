@@ -3,7 +3,7 @@
 /**
  * Server Actions for the `google-ads` wizard.
  *
- * Mirrors `actions-meta-ads.ts` — runs registerIntegration → verifyCompletion
+ * Mirrors `actions-meta-ads.ts`, runs registerIntegration → verifyCompletion
  * → wizard_completions insert. No `unstable_update()` call (non-critical
  * wizards don't gate the JWT's `critical_flight_complete` claim).
  *
@@ -36,7 +36,7 @@ export async function completeGoogleAdsAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
   const ctx = { ownerType: "admin" as const, ownerId };

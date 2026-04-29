@@ -3,13 +3,13 @@
 /**
  * Server Actions for the `resend` critical-flight wizard.
  *
- * Two actions (no webhook-probe counterpart — Resend has no provisioning-
+ * Two actions (no webhook-probe counterpart, Resend has no provisioning-
  * time handshake):
- *   - `testResendKeyAction(key)` — invoked from the api-key-paste step.
+ *   - `testResendKeyAction(key)`, invoked from the api-key-paste step.
  *     Live `apiKeys.list()` ping. Returns the same result shape as
  *     the stripe-admin equivalent so the step-type registry stays
  *     uniform.
- *   - `completeResendAction(payload)` — celebration onComplete
+ *   - `completeResendAction(payload)`, celebration onComplete
  *     orchestrator. Runs registerIntegration → verifyCompletion →
  *     wizard_completions insert → `unstable_update()` to refresh the
  *     JWT's `critical_flight_complete` claim. Rolls back (no partial
@@ -55,7 +55,7 @@ export async function completeResendAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
   const ctx = { ownerType: "admin" as const, ownerId };

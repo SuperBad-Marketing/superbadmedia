@@ -90,9 +90,9 @@ async function loadServicesFromDb(): Promise<SectionData[]> {
 
   const services: SectionData[] = [];
 
-  // Trial shoot tiers (hardcoded — not in the products table)
+  // Trial shoot tiers (hardcoded, not in the products table)
   services.push({
-    name: "Trial Shoot — Session",
+    name: "Trial Shoot, Session",
     price_display: "$397 inc GST",
     price_cents: 39700,
     description: "60–90 min on-site. 1 short-form video, 10–15 edited photographs, a six-week marketing plan, private portal access.",
@@ -101,7 +101,7 @@ async function loadServicesFromDb(): Promise<SectionData[]> {
     active: true,
   });
   services.push({
-    name: "Trial Shoot — Production",
+    name: "Trial Shoot, Production",
     price_display: "$597 inc GST",
     price_cents: 59700,
     description: "Up to 2 hours on-site. 2 short-form videos, 20–25 edited photographs, a six-week marketing plan, private portal access.",
@@ -110,7 +110,7 @@ async function loadServicesFromDb(): Promise<SectionData[]> {
     active: true,
   });
 
-  // SaaS products from database — join on actual product ID
+  // SaaS products from database, join on actual product ID
   for (const product of products) {
     const tiers = await db
       .select({
@@ -146,7 +146,7 @@ async function loadServicesFromDb(): Promise<SectionData[]> {
       name: `${product.name} (SaaS)`,
       price_display: priceRange,
       price_cents: lowest.monthly_price_cents_inc_gst,
-      description: product.description ?? `${product.name} — ${sorted.map(t => t.name).join(", ")} tiers.`,
+      description: product.description ?? `${product.name}, ${sorted.map(t => t.name).join(", ")} tiers.`,
       is_recurring: true,
       billing_cadence: "monthly",
       active: true,
@@ -177,7 +177,7 @@ function buildAudience(brandDna: Awaited<ReturnType<typeof loadBrandDnaContext>>
     vertical_philosophy: "If it's a real business, we'll find the story.",
     ideal_client_traits: [
       "Cares about how their brand looks and feels",
-      "Has something real to say — not just chasing trends",
+      "Has something real to say, not just chasing trends",
       "Ready to invest in content that lasts",
     ],
     anti_patterns: [
@@ -192,20 +192,20 @@ function buildPositioning(brandDna: Awaited<ReturnType<typeof loadBrandDnaContex
   return {
     one_liner: brandDna?.businessContext?.differentiator ?? "Entertainment-first marketing for businesses that actually have something to say.",
     differentiators: [
-      "Entertainment anchor — content people want to watch, not skip",
-      "Solo founder, no layers — Andy shoots, edits, and strategises",
+      "Entertainment anchor, content people want to watch, not skip",
+      "Solo founder, no layers, Andy shoots, edits, and strategises",
       "AI-powered operations that look handmade",
-      "No templated content — every piece is bespoke",
+      "No templated content, every piece is bespoke",
     ],
-    philosophy: "Entertainment-first marketing. Content should feel like it was found, not targeted. High production, low ego — polished visuals with human, self-deprecating content inside them.",
+    philosophy: "Entertainment-first marketing. Content should feel like it was found, not targeted. High production, low ego, polished visuals with human, self-deprecating content inside them.",
     pricing_philosophy: "Value-first, no discounts. Trial shoot proves the work. Retainers and SaaS are priced for the outcome, not the hours.",
-    competitors_context: "Most agencies sell hours or packages. SuperBad sells a feeling — the content is the proof, the strategy is the bonus.",
+    competitors_context: "Most agencies sell hours or packages. SuperBad sells a feeling, the content is the proof, the strategy is the bonus.",
   };
 }
 
 function buildCurrentFocus(): SectionData {
   return {
-    current_quarter_focus: "Launching SuperBad Lite platform — CRM, client portal, SaaS products, outreach automation",
+    current_quarter_focus: "Launching SuperBad Lite platform, CRM, client portal, SaaS products, outreach automation",
     seasonal_emphasis: null,
     growth_priorities: [
       "Ship Lite v1.0 and migrate off GHL",
@@ -213,7 +213,7 @@ function buildCurrentFocus(): SectionData {
       "Launch outreach automation for trial shoot bookings",
     ],
     active_campaigns: [],
-    recent_shifts: "Building a SaaS arm alongside the services business — platform becomes a product.",
+    recent_shifts: "Building a SaaS arm alongside the services business, platform becomes a product.",
   };
 }
 
@@ -227,23 +227,23 @@ function buildExternalDesignRules(): SectionData {
       accent_orange: "#F28C52",
     },
     colour_ratio: "60% Dark Charcoal, 20% SuperBad Red, 10% Warm Cream, 6% Retro Pink, 4% Retro Orange",
-    typography_display: "Black Han Sans — headlines and hero text only, never body",
-    typography_labels: "Righteous — subheadings and labels, always uppercase, generous letter-spacing",
-    typography_editorial: "Playfair Display — pull quotes and manifesto, italic preferred",
-    typography_body: "DM Sans — body font, italic in Retro Pink for mutters and asides",
-    typography_logo: "Pacifico — logo wordmark only, no other use",
+    typography_display: "Black Han Sans, headlines and hero text only, never body",
+    typography_labels: "Righteous, subheadings and labels, always uppercase, generous letter-spacing",
+    typography_editorial: "Playfair Display, pull quotes and manifesto, italic preferred",
+    typography_body: "DM Sans, body font, italic in Retro Pink for mutters and asides",
+    typography_logo: "Pacifico, logo wordmark only, no other use",
     dark_over_light: true,
-    visual_era: "1970s warmth — retro geometry, tactile imperfection, warm palettes. Brenton Wood album covers, vintage Penguin paperbacks",
-    composition_style: "Wes Anderson — intentional framing, generous negative space, controlled density",
+    visual_era: "1970s warmth, retro geometry, tactile imperfection, warm palettes. Brenton Wood album covers, vintage Penguin paperbacks",
+    composition_style: "Wes Anderson, intentional framing, generous negative space, controlled density",
     photography_style: "Cinematic, candid over posed, real emotion over manufactured expression",
     typography_as_graphic: true,
-    production_philosophy: "High production, low ego — polished and cinematic visuals with self-deprecating, human content inside them",
+    production_philosophy: "High production, low ego, polished and cinematic visuals with self-deprecating, human content inside them",
     overall_feeling: "Found, not targeted. Quietly confident. Warm not cold. Premium not corporate. Against the grain.",
     cultural_references: [
-      "Wes Anderson — intentional framing, absurd premise with complete sincerity",
-      "The Office + Fawlty Towers — characters who know exactly what's happening and say nothing",
-      "Jimmy Carr — setup, punchline, nothing wasted",
-      "Brenton Wood — unexpected, warm, slightly left of field",
+      "Wes Anderson, intentional framing, absurd premise with complete sincerity",
+      "The Office + Fawlty Towers, characters who know exactly what's happening and say nothing",
+      "Jimmy Carr, setup, punchline, nothing wasted",
+      "Brenton Wood, unexpected, warm, slightly left of field",
     ],
     social_post_rules: "Typography-forward. Headlines as visual elements. No stock photography. No generic marketing layouts. Every post should feel like it belongs on a gallery wall, not a feed.",
     pdf_rules: "Branded cover page, company-name-derived filenames, visible SuperBad mark. Dark background default.",
@@ -253,15 +253,15 @@ function buildExternalDesignRules(): SectionData {
 
 function buildInternalDesignRules(): SectionData {
   return {
-    admin_shell: "Every admin page wraps in AdminShellWithNav — sidebar, animated nav, bottom nav for mobile, braindump FAB",
+    admin_shell: "Every admin page wraps in AdminShellWithNav, sidebar, animated nav, bottom nav for mobile, braindump FAB",
     page_chrome: "Every page gets: brand font/colour tokens, display heading (Black Han Sans), breadcrumb/eyebrow (Righteous, uppercase), narrative tagline (Playfair Display italic)",
-    surface_strategy: "Warm stacked tints — dark charcoal base, surface cards at #222220, borders at #3A3A38",
+    surface_strategy: "Warm stacked tints, dark charcoal base, surface cards at #222220, borders at #3A3A38",
     motion_house_spring: '{ type: "spring", stiffness: 300, damping: 30, mass: 1 }',
-    motion_reduced: "Respect prefers-reduced-motion — instant reposition (duration: 0), never disable",
-    radius_style: "Graduated soft radius — 6px for small elements, 8px for cards, never fully rounded",
-    density_default: "Comfortable density — generous padding, readable spacing. Compact mode available via settings",
+    motion_reduced: "Respect prefers-reduced-motion, instant reposition (duration: 0), never disable",
+    radius_style: "Graduated soft radius, 6px for small elements, 8px for cards, never fully rounded",
+    density_default: "Comfortable density, generous padding, readable spacing. Compact mode available via settings",
     empty_states: 'Never a blank screen. Three-state rule: loading → error → empty → success. Empty states get a dry one-liner',
-    icon_library: "Lucide React — consistent across all surfaces",
+    icon_library: "Lucide React, consistent across all surfaces",
     form_style: "No raw forms. All input flows wrapped in step-by-step wizards or inline editors. Never a wall of fields",
     table_style: "Clean tables with hover highlight, sticky headers, muted column labels in Righteous uppercase",
     sound_approach: "Subtle, Apple-satisfying. Visibility-gated (only fire if the triggering element is in viewport). Use-sound library",
@@ -287,7 +287,7 @@ function buildVoiceRules(brandDna: Awaited<ReturnType<typeof loadBrandDnaContext
     humour_rules: "Never explain the joke. Real first.",
     register_admin: "Dry roommate who notices your habits",
     register_client: "Observant bartender who reads the room",
-    register_public: "Observant bartender — warm, never pitchy",
+    register_public: "Observant bartender, warm, never pitchy",
     exclamation_marks: false,
     emoji_policy: "Only if the client uses them first",
   };
@@ -416,7 +416,7 @@ export async function populateAllSections(userId: string): Promise<PopulateResul
         })
         .where(eq(business_profile_sections.id, section.id));
     } catch {
-      // prose generation is best-effort — section data is still saved
+      // prose generation is best-effort, section data is still saved
     }
   }
 
@@ -428,7 +428,7 @@ export async function populateAllSections(userId: string): Promise<PopulateResul
 
   await logActivity({
     kind: "profile_auto_populated",
-    body: `Auto-populated ${populated} profile sections (${skipped.length} skipped — already had data)`,
+    body: `Auto-populated ${populated} profile sections (${skipped.length} skipped, already had data)`,
     createdBy: `user:${userId}`,
   });
 

@@ -7,7 +7,7 @@ import { getBenchSession } from "@/lib/bench/guard";
 import { BenchDashboard } from "@/components/lite/bench/bench-dashboard";
 
 export const metadata = {
-  title: "SuperBad — Your assignments",
+  title: "SuperBad | Your assignments",
 };
 
 export default async function BenchHomePage() {

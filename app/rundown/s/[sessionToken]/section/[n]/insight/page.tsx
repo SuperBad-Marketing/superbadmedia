@@ -8,7 +8,7 @@ import { rundownSessions } from "@/lib/db/schema/rundown-sessions";
 import { generateSectionInsight } from "@/lib/brand-dna/generate-insight";
 import { InsightRevealClient } from "@/app/lite/brand-dna/section/[n]/insight/insight-reveal-client";
 
-export const metadata: Metadata = { title: "Brand DNA — SuperBad" };
+export const metadata: Metadata = { title: "Brand DNA | SuperBad" };
 
 interface Props {
   params: Promise<{ sessionToken: string; n: string }>;

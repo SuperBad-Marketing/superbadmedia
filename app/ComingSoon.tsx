@@ -133,7 +133,7 @@ export default function ComingSoon() {
               transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               style={{ display: "inline-block", marginRight: "0.5em" }}
             >
-              —
+              -
             </motion.span>
             Coming, eventually
           </motion.p>

@@ -1,7 +1,7 @@
 import { brand, neutral } from "@/lib/design-tokens";
 
 export const metadata = {
-  title: "SuperBad — Link expired",
+  title: "SuperBad | Link expired",
 };
 
 export default function BenchExpiredPage() {

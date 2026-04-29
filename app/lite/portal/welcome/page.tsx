@@ -1,5 +1,5 @@
 /**
- * `/lite/portal/welcome` — branded welcome screen.
+ * `/lite/portal/welcome` | branded welcome screen.
  *
  * First surface a new client/subscriber sees after clicking the
  * welcome email's portal link. Shows once (one-shot via
@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const firstName = contact?.name?.split(" ")[0] ?? "there";
   return {
-    title: `SuperBad — welcome, ${firstName}`,
+    title: `SuperBad | welcome, ${firstName}`,
     robots: { index: false, follow: false },
   };
 }
@@ -103,10 +103,10 @@ export default async function WelcomePage() {
     company.billing_mode !== "manual" &&
     trialShootDeal != null;
   // A more precise check would use intro_funnel_submissions table, but the
-  // simple heuristic works for now — trial shoot graduates bypass.
+  // simple heuristic works for now | trial shoot graduates bypass.
 
   if (isTrialShootGraduate) {
-    // Trial-shoot graduates bypass welcome — their portal experience is
+    // Trial-shoot graduates bypass welcome | their portal experience is
     // continuous per feedback_felt_experience_wins.
     redirect("/lite/portal/home");
   }

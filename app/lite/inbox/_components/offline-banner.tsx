@@ -12,7 +12,7 @@ import { houseSpring } from "@/lib/design-tokens";
  * sprinkle). Watches `online`/`offline` window events and slides a band
  * in with the house spring. Reduced-motion downgrades to a fade.
  *
- * Copy is short and reassuring — §11 voice: "Offline — changes will
+ * Copy is short and reassuring, §11 voice: "Offline, changes will
  * sync when you're back." Matches the outbound queue architecture in
  * `lib/offline/inbox-cache.ts`.
  */
@@ -54,7 +54,7 @@ export function OfflineBanner() {
           )}
         >
           <WifiOff size={12} strokeWidth={1.75} aria-hidden />
-          <span>Offline — changes will sync when you&rsquo;re back.</span>
+          <span>Offline, changes will sync when you&rsquo;re back.</span>
         </motion.div>
       )}
     </AnimatePresence>

@@ -165,7 +165,7 @@ export async function confirmPaymentAction(
       dealId: payment.deal_id,
       contactId: submissionRows[0].contact_id,
       kind: "intro_funnel_paid",
-      body: `Trial shoot payment received — $${(payment.amount_cents / 100).toFixed(2)}`,
+      body: `Trial shoot payment received, $${(payment.amount_cents / 100).toFixed(2)}`,
       meta: {
         amount_cents: payment.amount_cents,
         stripe_payment_intent_id: parsed.data.paymentIntentId,

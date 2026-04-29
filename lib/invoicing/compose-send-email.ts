@@ -65,7 +65,7 @@ function deterministicFallback(
   // + re-wrap via `paragraphsToInvoiceHtml` so the button label matches.
   const paragraphs = [
     `Hi ${company.name},`,
-    `Invoice ${invoice.invoice_number} — ${formatCents(invoice.total_cents_inc_gst)} inc. GST, due ${formatDueDate(invoice.due_at_ms)}.`,
+    `Invoice ${invoice.invoice_number}, ${formatCents(invoice.total_cents_inc_gst)} inc. GST, due ${formatDueDate(invoice.due_at_ms)}.`,
   ];
   return {
     subject: parts.subject,
@@ -131,7 +131,7 @@ export async function composeInvoiceSendEmailAI(
   const recipientName = contact?.name?.split(/\s+/)[0] ?? company.name;
   const invoiceUrl = invoiceUrlFor(invoice.token);
 
-  // Prior payment history — count of paid invoices for this company.
+  // Prior payment history, count of paid invoices for this company.
   const paidRows = await database
     .select({ id: invoices.id })
     .from(invoices)

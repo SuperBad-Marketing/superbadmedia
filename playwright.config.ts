@@ -89,7 +89,7 @@ export default defineConfig({
       // email gate isn't opened.
       RESEND_API_KEY: "re_test_placeholder",
       EMAIL_FROM: "andy@superbadmedia.com.au",
-      EMAIL_FROM_NAME: "Andy Robinson — SuperBad",
+      EMAIL_FROM_NAME: "Andy Robinson, SuperBad",
       ANTHROPIC_API_KEY: "",
       BRAND_DNA_GATE_BYPASS: "true",
       CREDENTIAL_VAULT_KEY,

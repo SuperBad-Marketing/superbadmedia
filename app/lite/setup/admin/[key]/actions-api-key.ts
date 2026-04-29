@@ -4,16 +4,16 @@
  * Server Actions for the generic `api-key` wizard (SW-13).
  *
  * Two actions:
- *   - `testApiKeyAction(vendor, key)` — invoked from the api-key-paste
+ *   - `testApiKeyAction(vendor, key)`, invoked from the api-key-paste
  *     step. Dispatches to the selected vendor profile's live verify-ping.
- *   - `completeApiKeyAction(payload)` — celebration onComplete
+ *   - `completeApiKeyAction(payload)`, celebration onComplete
  *     orchestrator. Runs registerIntegration (using the per-vendor
  *     manifest selected from payload.vendor) → verifyCompletion →
  *     wizard_completions insert. Rolls back (no partial rows) on any
  *     failure.
  *
  * Each vendor writes its own `integration_connections` row with its own
- * `vendor_key` — not a shared "api-key" key. Feature sessions look up
+ * `vendor_key`, not a shared "api-key" key. Feature sessions look up
  * credentials by vendor_key via `integration_connections`.
  *
  * Owner: SW-13. Mirrors `actions-resend.ts` + vendor dispatch.
@@ -63,7 +63,7 @@ export async function completeApiKeyAction(
 
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
   const ctx = { ownerType: "admin" as const, ownerId };

@@ -167,11 +167,11 @@ function buildContextBlock(ctx: ChatContext): string {
   return lines.join("\n");
 }
 
-const BARTENDER_SYSTEM = `You are the SuperBad portal bartender — the AI concierge for a creative marketing agency run by Andy Robinson in Melbourne. Your register is warm, observational, dry-humoured, never pitchy. You know the client's name and use it naturally. Short responses preferred — bartender efficiency, not chatbot verbosity.
+const BARTENDER_SYSTEM = `You are the SuperBad portal bartender, the AI concierge for a creative marketing agency run by Andy Robinson in Melbourne. Your register is warm, observational, dry-humoured, never pitchy. You know the client's name and use it naturally. Short responses preferred, bartender efficiency, not chatbot verbosity.
 
 Rules:
 - Never pitch services. Never use "synergy", "leverage", or "solutions".
-- If asked whether you're human: "No — but Andy is. Want me to get him?"
+- If asked whether you're human: "No, but Andy is. Want me to get him?"
 - Never reveal other clients' data or internal pipeline state.
 - Never hallucinate data you weren't given in context.
 - If the client asks something you can't answer or requests an action outside your scope, say you'll flag it for Andy (escalation).
@@ -195,7 +195,7 @@ export async function generateOpeningLine(
   const contextBlock = buildContextBlock(ctx);
 
   const prompt = isKickoff
-    ? `Generate a single warm opening line for ${ctx.contactName} who just became a retainer client. This is their first login after Brand DNA completion and deal close. Acknowledge the new chapter in one breath. Surface first-shoot scheduling as the single primary next action${ctx.pendingInvoiceCount > 0 ? ' — add "once your first invoice clears" since they have a pending invoice' : ""}. Never pitch services already paid for. Never re-walk Brand DNA. Bartender register, no slogan, no exclamation marks. One to two sentences max.
+    ? `Generate a single warm opening line for ${ctx.contactName} who just became a retainer client. This is their first login after Brand DNA completion and deal close. Acknowledge the new chapter in one breath. Surface first-shoot scheduling as the single primary next action${ctx.pendingInvoiceCount > 0 ? ', add "once your first invoice clears" since they have a pending invoice' : ""}. Never pitch services already paid for. Never re-walk Brand DNA. Bartender register, no slogan, no exclamation marks. One to two sentences max.
 
 Current state:
 ${contextBlock}`
@@ -341,7 +341,7 @@ async function escalateToInbox(
     contact_id: contactId,
     company_id: contact.company_id,
     channel_of_origin: "portal_chat",
-    subject: `Portal chat escalation — ${ctx.contactName}`,
+    subject: `Portal chat escalation, ${ctx.contactName}`,
     priority_class: "signal",
     last_message_at_ms: now,
     last_inbound_at_ms: now,

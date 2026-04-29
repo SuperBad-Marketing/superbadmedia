@@ -272,7 +272,7 @@ export function PortalGallery({ items, archives, hasMore }: Props) {
       {hasMore && (
         <div className="flex justify-center pb-10 pt-6">
           <p className="font-[family-name:var(--font-playfair-display)] text-[13px] italic text-[var(--color-neutral-500)]">
-            showing first {items.length} files &mdash; more available on request.
+            showing first {items.length} files , more available on request.
           </p>
         </div>
       )}

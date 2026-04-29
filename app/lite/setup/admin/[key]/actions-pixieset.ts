@@ -3,7 +3,7 @@
 /**
  * Server Actions for the `pixieset-admin` wizard.
  *
- * One action — the celebration orchestrator. Pixieset has no provisioning-
+ * One action, the celebration orchestrator. Pixieset has no provisioning-
  * time handshake and no live API to test, so there's no `testPixiesetAction`
  * counterpart; validation happens at the Zod layer in the form step.
  *
@@ -39,7 +39,7 @@ export async function completePixiesetAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
   const ctx = { ownerType: "admin" as const, ownerId };

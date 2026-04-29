@@ -6,7 +6,7 @@ import { getBenchSession } from "@/lib/bench/guard";
 import { ContractorOnboardingFlow } from "@/components/lite/bench/contractor-onboarding-flow";
 
 export const metadata = {
-  title: "SuperBad — Onboarding",
+  title: "SuperBad | Onboarding",
 };
 
 export default async function BenchOnboardPage() {

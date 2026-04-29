@@ -1,10 +1,10 @@
 /**
- * /lite/quotes/[token] — client-facing quote page per spec §4.3.
+ * /lite/quotes/[token] | client-facing quote page per spec §4.3.
  *
  * QB-4a slice: full scroll-snap experience for `sent` / `viewed`,
  * status-card variants for `expired` / `withdrawn` / `superseded` /
  * `accepted`. View tracking runs on first fetch from `sent`. Accept
- * action is stubbed — Payment Element + Stripe wiring is QB-4c.
+ * action is stubbed | Payment Element + Stripe wiring is QB-4c.
  */
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -30,7 +30,7 @@ export async function generateMetadata({
     return { title: "SuperBad", robots: { index: false, follow: false } };
   }
   return {
-    title: `Quote ${bundle.quote.quote_number} — SuperBad`,
+    title: `Quote ${bundle.quote.quote_number} | SuperBad`,
     description: `Quote for ${bundle.company.name}`,
     robots: { index: false, follow: false },
   };

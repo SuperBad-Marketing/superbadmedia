@@ -6,7 +6,7 @@ import { getBenchSession } from "@/lib/bench/guard";
 import { AvailabilitySurface } from "@/components/lite/bench/availability-surface";
 
 export const metadata = {
-  title: "SuperBad — Availability",
+  title: "SuperBad | Availability",
 };
 
 export default async function BenchAvailabilityPage() {

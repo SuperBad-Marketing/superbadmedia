@@ -90,20 +90,20 @@ function fallbackDraft(input: QuoteSendEmailInput): {
   bodyParagraphs: string[];
 } {
   if (input.supersedesQuoteNumber) {
-    const subject = `${input.companyName} — updated quote`;
+    const subject = `${input.companyName}, updated quote`;
     const lines = [
-      `${input.recipientName}, the updated version — this replaces ${input.supersedesQuoteNumber}.`,
+      `${input.recipientName}, the updated version, this replaces ${input.supersedesQuoteNumber}.`,
       `Headline: ${input.totalDisplay}${input.termLine ? `, ${input.termLine}` : ""}.`,
       `Read it, sit with it, accept it or come back with questions.`,
     ];
     return { subject, bodyParagraphs: lines };
   }
-  const subject = `${input.companyName} — quote ready`;
+  const subject = `${input.companyName}, quote ready`;
   const lines = [
     `${input.recipientName}, the quote's ready when you are.`,
     `Headline: ${input.totalDisplay}${input.termLine ? `, ${input.termLine}` : ""}.`,
     input.contextSnippet
-      ? `It picks up where we left off — ${input.contextSnippet.slice(0, 140)}.`
+      ? `It picks up where we left off, ${input.contextSnippet.slice(0, 140)}.`
       : `It maps to what we talked about.`,
     `Read it, sit with it, accept it or come back with questions.`,
   ];
@@ -123,7 +123,7 @@ export interface ComposeQuoteSendEmailInput {
  * Opus prompt, calls the LLM via the model registry, runs a drift check
  * against SuperBad's brand DNA profile, and returns the structured
  * draft. Caller (Send modal) presents this for review + edit before
- * dispatch — drift score informs the modal indicator (green/amber).
+ * dispatch, drift score informs the modal indicator (green/amber).
  *
  * Kill-switch fallback: when `llm_calls_enabled` is false, returns a
  * deterministic plain-language draft so the modal is never empty.
@@ -199,7 +199,7 @@ export async function composeQuoteSendEmail(
       subject: fb.subject,
       bodyParagraphs: fb.bodyParagraphs,
       bodyHtml: paragraphsToHtml(fb.bodyParagraphs, quoteUrl),
-      drift: { pass: true, score: 1.0, notes: "skipped (kill switch — llm_calls_enabled=false)" },
+      drift: { pass: true, score: 1.0, notes: "skipped (kill switch, llm_calls_enabled=false)" },
       recipientEmail,
       recipientName,
       fallbackUsed: true,

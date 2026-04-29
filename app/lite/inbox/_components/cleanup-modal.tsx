@@ -700,7 +700,7 @@ export function CleanupModal({
                   Inbox cleanup
                 </h2>
                 <p className="mt-0.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-400)]">
-                  Bulk cleanup tools — review before trashing.
+                  Bulk cleanup tools, review before trashing.
                 </p>
               </div>
               <button

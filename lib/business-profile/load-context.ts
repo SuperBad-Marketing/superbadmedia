@@ -174,7 +174,7 @@ function buildHaikuContext(
   if (identity) {
     const data = identity.structured as Record<string, unknown>;
     if (data.business_name) {
-      parts.push(`Business: ${data.business_name}${data.tagline ? ` — ${data.tagline}` : ""}`);
+      parts.push(`Business: ${data.business_name}${data.tagline ? `, ${data.tagline}` : ""}`);
     }
   }
 

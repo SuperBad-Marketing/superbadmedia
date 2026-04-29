@@ -8,7 +8,7 @@ import { TasksPageClient } from "@/components/lite/admin/tasks/tasks-page-client
 export async function generateMetadata(): Promise<Metadata> {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return { title: "SuperBad — Tasks", robots: { index: false, follow: false } };
+    return { title: "SuperBad | Tasks", robots: { index: false, follow: false } };
   }
   const allTasks = await listTasks();
   const overdue = allTasks.filter(
@@ -22,11 +22,11 @@ export async function generateMetadata(): Promise<Metadata> {
     (t) => t.status !== "done" && t.status !== "cancelled",
   ).length;
 
-  let title = "SuperBad — Tasks";
+  let title = "SuperBad | Tasks";
   if (overdue > 0) {
-    title = `SuperBad — ${overdue} overdue`;
+    title = `SuperBad | ${overdue} overdue`;
   } else if (open === 0) {
-    title = "SuperBad — nothing's on fire";
+    title = "SuperBad | nothing's on fire";
   }
 
   return { title, robots: { index: false, follow: false } };

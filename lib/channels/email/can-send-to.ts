@@ -4,9 +4,9 @@
  * `canSendTo()` must be called before every `sendEmail()`. It returns
  * `{ allowed: false, reason }` if:
  *   1. The recipient is in `email_suppressions` (bounce, complaint,
- *      unsubscribe, or manual suppression) — globally or for this
+ *      unsubscribe, or manual suppression), globally or for this
  *      classification specifically.
- *   2. (Future) Frequency caps exceeded — placeholder for Wave 3+ wire-up.
+ *   2. (Future) Frequency caps exceeded, placeholder for Wave 3+ wire-up.
  *
  * Transactional emails (classification = "transactional" or
  * "portal_magic_link_recovery") bypass frequency caps but still honour
@@ -69,7 +69,7 @@ export async function canSendTo(
   if (hardBlocks.length > 0) {
     return {
       allowed: false,
-      reason: `email_suppression:${hardBlocks[0].kind} — ${normalised}`,
+      reason: `email_suppression:${hardBlocks[0].kind}, ${normalised}`,
     };
   }
 
@@ -97,7 +97,7 @@ export async function canSendTo(
     if (softBlocks.length > 0) {
       return {
         allowed: false,
-        reason: `email_suppression:${softBlocks[0].kind} — ${normalised} (classification=${classification})`,
+        reason: `email_suppression:${softBlocks[0].kind}, ${normalised} (classification=${classification})`,
       };
     }
   }

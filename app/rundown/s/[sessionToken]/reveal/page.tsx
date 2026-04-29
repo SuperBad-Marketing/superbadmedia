@@ -18,7 +18,7 @@ import { markRundownProfileComplete } from "../actions";
 import { AssemblingShimmer } from "@/components/lite/brand-dna/assembling-shimmer";
 
 export const metadata: Metadata = {
-  title: "Brand DNA — SuperBad",
+  title: "Brand DNA | SuperBad",
   robots: { index: false, follow: false },
 };
 

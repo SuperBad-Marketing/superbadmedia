@@ -15,7 +15,7 @@ import { removeEnrichmentSignal } from "@/app/lite/admin/actions/social-profiles
 interface EnrichmentCardProps {
   /** Raw viability_profile_json from the DB (may be null/empty). */
   profile: ViabilityProfile | null;
-  /** Provide candidateId OR companyId — determines which re-enrich fires. */
+  /** Provide candidateId OR companyId, determines which re-enrich fires. */
   candidateId?: string;
   companyId?: string;
   /** Default collapsed state. */
@@ -55,7 +55,7 @@ function SignalRow({
       </span>
       <span className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-brand-cream)] text-right">
         {value ?? (
-          <span className="text-[color:var(--color-neutral-600)]">&mdash;</span>
+          <span className="text-[color:var(--color-neutral-600)]">,</span>
         )}
       </span>
     </div>
@@ -180,7 +180,7 @@ export function EnrichmentCard({
         boxShadow: "var(--surface-highlight)",
       }}
     >
-      {/* Header — always visible */}
+      {/* Header, always visible */}
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}

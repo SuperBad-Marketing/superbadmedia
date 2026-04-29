@@ -12,7 +12,7 @@ import type { SupportCustomerContext } from "../_queries/load-support-customer-c
  * Collapsible right-side panel for the support@ ticket overlay
  * (spec §4.3). Intro line sets the "who they are, where they are" frame
  * per `project_two_perpetual_contexts`. Panel stays mounted when
- * collapsed — §16 #60 forbids unmounting the composer, and the overlay
+ * collapsed, §16 #60 forbids unmounting the composer, and the overlay
  * sits above it.
  */
 export function CustomerContextPanel({
@@ -242,9 +242,9 @@ function formatSubscriptionState(state: string): string {
     case "cancel_scheduled_preterm":
       return "Cancelling at term end";
     case "cancelled_paid_remainder":
-      return "Cancelled — paid remainder";
+      return "Cancelled, paid remainder";
     case "cancelled_buyout":
-      return "Cancelled — buyout";
+      return "Cancelled, buyout";
     case "cancelled_post_term":
       return "Cancelled";
     case "ended_gracefully":
@@ -259,9 +259,9 @@ function formatCadence(cadence: string): string {
     case "monthly":
       return "Monthly";
     case "annual_monthly":
-      return "Annual — billed monthly";
+      return "Annual, billed monthly";
     case "annual_upfront":
-      return "Annual — upfront";
+      return "Annual, upfront";
     default:
       return cadence;
   }

@@ -221,7 +221,7 @@ export async function rerouteContact(
 }
 
 // ---------------------------------------------------------------------------
-// 5. Noise cleanup — soft-delete noise older than 30d
+// 5. Noise cleanup, soft-delete noise older than 30d
 // ---------------------------------------------------------------------------
 export async function cleanupOldNoise(): Promise<
   { ok: true; purged: number } | { ok: false; error: string }

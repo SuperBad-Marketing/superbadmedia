@@ -7,7 +7,7 @@ import { isJobRegistered } from "@/lib/observatory/job-registry";
 import { JobDetailView } from "@/components/lite/observatory/job-detail-view";
 
 export const metadata: Metadata = {
-  title: "SuperBad — Job Detail",
+  title: "SuperBad | Job Detail",
   robots: { index: false, follow: false },
 };
 

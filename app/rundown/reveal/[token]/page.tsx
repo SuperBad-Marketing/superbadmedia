@@ -13,7 +13,7 @@ import { generateProsePortrait } from "@/lib/brand-dna/generate-prose-portrait";
 import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
 
 export const metadata: Metadata = {
-  title: "Your Brand DNA — SuperBad",
+  title: "Your Brand DNA | SuperBad",
   robots: { index: false, follow: false },
 };
 

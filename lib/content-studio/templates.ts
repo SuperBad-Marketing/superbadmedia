@@ -286,7 +286,7 @@ const testimonialQuote: TemplateDef = {
         <div class="brand-label">SuperBad</div>
         <div class="headline">&ldquo;${escapeHtml(copy.headline || "")}&rdquo;</div>
         <div class="divider"></div>
-        <div class="detail">&mdash; ${escapeHtml(copy.detail || "")}</div>
+        <div class="detail">${escapeHtml(copy.detail || "")}</div>
         <div class="subtext">${escapeHtml(copy.subtext || "")}</div>
       </div>
       <div class="footer">superbadmedia.com.au</div>
@@ -348,7 +348,7 @@ function mixAccent(palette: ColourPalette): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Announcement — Statement Stripe                                     */
+/* Announcement, Statement Stripe                                     */
 /* ------------------------------------------------------------------ */
 
 const announcementStripe: TemplateDef = {
@@ -390,7 +390,7 @@ const announcementStripe: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Anti-Motivation — Void                                              */
+/* Anti-Motivation, Void                                              */
 /* ------------------------------------------------------------------ */
 
 const antiMotivationVoid: TemplateDef = {
@@ -430,7 +430,7 @@ const antiMotivationVoid: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Tips — Numbered List                                                */
+/* Tips, Numbered List                                                */
 /* ------------------------------------------------------------------ */
 
 const tipsNumbered: TemplateDef = {
@@ -481,7 +481,7 @@ const tipsNumbered: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Tips — Headline Only                                                */
+/* Tips, Headline Only                                                */
 /* ------------------------------------------------------------------ */
 
 const tipsHeadlineOnly: TemplateDef = {
@@ -521,7 +521,7 @@ const tipsHeadlineOnly: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Testimonial — Card                                                  */
+/* Testimonial, Card                                                  */
 /* ------------------------------------------------------------------ */
 
 const testimonialCard: TemplateDef = {
@@ -570,7 +570,7 @@ const testimonialCard: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Testimonial — Oversized Quote                                       */
+/* Testimonial, Oversized Quote                                       */
 /* ------------------------------------------------------------------ */
 
 const testimonialOversized: TemplateDef = {
@@ -616,7 +616,7 @@ const testimonialOversized: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Behind the Scenes — Timestamp                                       */
+/* Behind the Scenes, Timestamp                                       */
 /* ------------------------------------------------------------------ */
 
 const btsTimestamp: TemplateDef = {
@@ -667,7 +667,7 @@ const btsTimestamp: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Behind the Scenes — Raw Log                                         */
+/* Behind the Scenes, Raw Log                                         */
 /* ------------------------------------------------------------------ */
 
 const btsRaw: TemplateDef = {
@@ -702,11 +702,11 @@ const btsRaw: TemplateDef = {
       .footer { position: absolute; bottom: ${padY}px; right: ${padX}px; font-family: 'Label'; font-size: ${footerSize}px; letter-spacing: 3px; text-transform: uppercase; color: ${p.text}40; }
     </style></head><body>
       <div class="log-lines">
-        <div class="log-line">[06:12:04] client.brief.received — waiting for review</div>
-        <div class="log-line">[06:12:18] assets.uploaded — 47 files, 2.3GB</div>
-        <div class="log-line">[06:15:33] shoot.schedule.confirmed — tomorrow 07:00</div>
+        <div class="log-line">[06:12:04] client.brief.received, waiting for review</div>
+        <div class="log-line">[06:12:18] assets.uploaded, 47 files, 2.3GB</div>
+        <div class="log-line">[06:15:33] shoot.schedule.confirmed, tomorrow 07:00</div>
         <div class="log-line active">[06:15:34] status.changed → in_production</div>
-        <div class="log-line">[06:22:01] team.notified — 3 members</div>
+        <div class="log-line">[06:22:01] team.notified, 3 members</div>
         <div class="log-line">[06:30:00] gear.checklist.complete</div>
       </div>
       <div class="content">
@@ -719,7 +719,7 @@ const btsRaw: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Portfolio — Split                                                    */
+/* Portfolio, Split                                                    */
 /* ------------------------------------------------------------------ */
 
 const portfolioSplit: TemplateDef = {
@@ -766,7 +766,7 @@ const portfolioSplit: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Portfolio — Editorial                                               */
+/* Portfolio, Editorial                                               */
 /* ------------------------------------------------------------------ */
 
 const portfolioEditorial: TemplateDef = {
@@ -812,11 +812,11 @@ const portfolioEditorial: TemplateDef = {
 };
 
 /* ================================================================== */
-/* SCROLL-STOPPERS — graphic-designer compositions                     */
+/* SCROLL-STOPPERS, graphic-designer compositions                     */
 /* ================================================================== */
 
 /* ------------------------------------------------------------------ */
-/* Knockout — full-bleed primary, headline punched out in background   */
+/* Knockout, full-bleed primary, headline punched out in background   */
 /* ------------------------------------------------------------------ */
 
 const announcementKnockout: TemplateDef = {
@@ -872,7 +872,7 @@ const announcementKnockout: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Stacked Type — each word is a full-width block, alternating colour  */
+/* Stacked Type, each word is a full-width block, alternating colour  */
 /* ------------------------------------------------------------------ */
 
 const antiMotivationStacked: TemplateDef = {
@@ -917,7 +917,7 @@ const antiMotivationStacked: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Redacted — text with blacked-out words, one word revealed in red    */
+/* Redacted, text with blacked-out words, one word revealed in red    */
 /* ------------------------------------------------------------------ */
 
 const antiMotivationRedacted: TemplateDef = {
@@ -964,7 +964,7 @@ const antiMotivationRedacted: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Full-Bleed Stat — giant number fills 90% of frame, detail at foot   */
+/* Full-Bleed Stat, giant number fills 90% of frame, detail at foot   */
 /* ------------------------------------------------------------------ */
 
 const tipsFullBleedStat: TemplateDef = {
@@ -1023,7 +1023,7 @@ const tipsFullBleedStat: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Diagonal Cut — headline rotated across the diagonal of the frame    */
+/* Diagonal Cut, headline rotated across the diagonal of the frame    */
 /* ------------------------------------------------------------------ */
 
 const portfolioDiagonal: TemplateDef = {
@@ -1082,7 +1082,7 @@ const portfolioDiagonal: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Crosshair — grid overlay with text at intersection points           */
+/* Crosshair, grid overlay with text at intersection points           */
 /* ------------------------------------------------------------------ */
 
 const btsCrosshair: TemplateDef = {
@@ -1140,7 +1140,7 @@ const btsCrosshair: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Inversion — cream background, dark text. Breaks the dark-mode rule. */
+/* Inversion, cream background, dark text. Breaks the dark-mode rule. */
 /* ------------------------------------------------------------------ */
 
 const testimonialInversion: TemplateDef = {
@@ -1193,7 +1193,7 @@ const testimonialInversion: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Marquee — repeated headline as a rotated texture band               */
+/* Marquee, repeated headline as a rotated texture band               */
 /* ------------------------------------------------------------------ */
 
 const tipsMarquee: TemplateDef = {
@@ -1247,7 +1247,7 @@ const tipsMarquee: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Crop Bleed — text intentionally cropped by frame edges              */
+/* Crop Bleed, text intentionally cropped by frame edges              */
 /* ------------------------------------------------------------------ */
 
 const portfolioCropBleed: TemplateDef = {
@@ -1302,7 +1302,7 @@ const portfolioCropBleed: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Neon Glow — chained text-shadows creating a neon tube effect        */
+/* Neon Glow, chained text-shadows creating a neon tube effect        */
 /* ------------------------------------------------------------------ */
 
 const announcementNeon: TemplateDef = {
@@ -1359,7 +1359,7 @@ const announcementNeon: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Gradient Text — headline filled with a gradient via background-clip */
+/* Gradient Text, headline filled with a gradient via background-clip */
 /* ------------------------------------------------------------------ */
 
 const antiMotivationGradient: TemplateDef = {
@@ -1406,7 +1406,7 @@ const antiMotivationGradient: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Spotlight — cone gradient focused on the headline                   */
+/* Spotlight, cone gradient focused on the headline                   */
 /* ------------------------------------------------------------------ */
 
 const tipsSpotlight: TemplateDef = {
@@ -1456,7 +1456,7 @@ const tipsSpotlight: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Blueprint — technical drawing aesthetic with dashed grids            */
+/* Blueprint, technical drawing aesthetic with dashed grids            */
 /* ------------------------------------------------------------------ */
 
 const btsBlueprint: TemplateDef = {
@@ -1524,7 +1524,7 @@ const btsBlueprint: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Cinematic Bars — letterbox framing with centred title               */
+/* Cinematic Bars, letterbox framing with centred title               */
 /* ------------------------------------------------------------------ */
 
 const portfolioCinematic: TemplateDef = {
@@ -1578,7 +1578,7 @@ const portfolioCinematic: TemplateDef = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Halftone — CSS radial-gradient pattern as texture behind content     */
+/* Halftone, CSS radial-gradient pattern as texture behind content     */
 /* ------------------------------------------------------------------ */
 
 const tipsHalftone: TemplateDef = {

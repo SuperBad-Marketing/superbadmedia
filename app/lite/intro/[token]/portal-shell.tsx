@@ -134,7 +134,7 @@ export function PortalShell({
             {isBookedPhase
               ? "Your shoot is coming up."
               : state === "shoot_completed_awaiting_deliverables"
-                ? "Your shoot's done — photos coming soon."
+                ? "Your shoot's done, photos coming soon."
                 : state === "deliverables_ready"
                   ? "Everything from your shoot is ready."
                   : state === "reflection_complete"
@@ -226,7 +226,7 @@ export function PortalShell({
                       color: "var(--semantic-success)",
                     }}
                   >
-                    Payment received — $
+                    Payment received, $
                     {((payment.amount_cents ?? 0) / 100).toFixed(2)}
                   </p>
                 )}
@@ -293,7 +293,7 @@ export function PortalShell({
                 }}
               >
                 We&rsquo;re editing your photos and putting together your plan.
-                Everything will land here together — usually about a week after the shoot.
+                Everything will land here together, usually about a week after the shoot.
               </p>
             </PortalCard>
           )}
@@ -358,7 +358,7 @@ export function PortalShell({
                       marginBottom: 16,
                     }}
                   >
-                    A short reflection — there&rsquo;s something at the end worth seeing.
+                    A short reflection, there&rsquo;s something at the end worth seeing.
                   </p>
                   <a
                     href={`/lite/intro/${token}/reflect`}
@@ -450,7 +450,7 @@ export function PortalShell({
             </PortalCard>
           )}
 
-          {/* What to expect — show for pre-payment and paid states */}
+          {/* What to expect, show for pre-payment and paid states */}
           {(isPrePayment || state === "paid") && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -576,7 +576,7 @@ function BookingCard({
               marginTop: 4,
             }}
           >
-            {timeLabel} — about an hour, at your place.
+            {timeLabel}, about an hour, at your place.
           </p>
         </div>
 

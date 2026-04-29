@@ -2,7 +2,7 @@
  * Builds the Opus prompt for the `inbox-draft-reply` generator
  * (spec §7.4, Q14/Q15). Composes the two perpetual contexts —
  * Brand DNA (who Andy is) + Client Context Engine (where this client
- * is at) — around a trimmed thread history and a short set of
+ * is at), around a trimmed thread history and a short set of
  * Andy-edit few-shot examples.
  *
  * Two-perpetual-contexts discipline (memory
@@ -19,7 +19,7 @@
  *
  * Few-shot stub: `lib/ai/few-shot.ts` isn't populated until Wave 11.
  * Until then this loader returns `[]` so the prompt degrades
- * gracefully (discipline #63 — missing context is better than fake
+ * gracefully (discipline #63, missing context is better than fake
  * context).
  */
 import { asc, desc, eq, and } from "drizzle-orm";
@@ -195,7 +195,7 @@ export async function loadClientContextOrStub(
       return await mod.loadClientContextForDrafter(contactId);
     }
   } catch {
-    // Module not yet built (Wave 16) — fall through to stub.
+    // Module not yet built (Wave 16), fall through to stub.
   }
 
   return buildClientContextStub(contactId);
@@ -240,7 +240,7 @@ async function buildClientContextStub(
 
 /**
  * Wave 11 populates the few-shot store from Andy's edits. Until then
- * this returns empty so the prompt keeps working — fewer but still
+ * this returns empty so the prompt keeps working, fewer but still
  * correct examples beats fabricated ones (discipline #63).
  */
 async function loadFewShots(): Promise<FewShotExample[]> {
@@ -253,7 +253,7 @@ async function loadFewShots(): Promise<FewShotExample[]> {
       return await mod.loadDraftReplyFewShots(MAX_FEW_SHOTS);
     }
   } catch {
-    // Module not yet built (Wave 11) — no examples.
+    // Module not yet built (Wave 11), no examples.
   }
   return [];
 }
@@ -263,11 +263,11 @@ async function loadFewShots(): Promise<FewShotExample[]> {
 /**
  * Brand DNA lives in the system prompt so it frames Andy's voice
  * globally and never gets mis-read as the user's intent. Empty string
- * if no completed SuperBad-self profile exists yet — the generator
+ * if no completed SuperBad-self profile exists yet, the generator
  * will still function, just with weaker voice grounding.
  */
 export function buildDraftReplySystemPrompt(brand: BrandDnaContext): string {
-  const intro = `You are drafting a reply that will appear — unsent, for Andy Robinson to review and edit — as the pre-composed draft in his unified inbox. Andy runs SuperBad Marketing solo out of Melbourne. The draft must feel like Andy wrote it, not like a polite AI assistant wrote it.`;
+  const intro = `You are drafting a reply that will appear, unsent, for Andy Robinson to review and edit, as the pre-composed draft in his unified inbox. Andy runs SuperBad Marketing solo out of Melbourne. The draft must feel like Andy wrote it, not like a polite AI assistant wrote it.`;
 
   const voice = `VOICE (non-negotiable, from Andy's Brand DNA):
 - Dry, observational, self-deprecating, slow burn.
@@ -278,18 +278,18 @@ export function buildDraftReplySystemPrompt(brand: BrandDnaContext): string {
 - Write how a dry, tired, competent founder writes. Not how a brand writes.`;
 
   const portrait = brand.prose_portrait
-    ? `\nBRAND DNA — prose portrait (voice reference, not content to quote):\n${brand.prose_portrait.slice(0, 2000)}`
+    ? `\nBRAND DNA, prose portrait (voice reference, not content to quote):\n${brand.prose_portrait.slice(0, 2000)}`
     : "";
   const impression = brand.first_impression
-    ? `\nBRAND DNA — first impression:\n${brand.first_impression.slice(0, 500)}`
+    ? `\nBRAND DNA, first impression:\n${brand.first_impression.slice(0, 500)}`
     : "";
 
   const output = `OUTPUT CONTRACT:
-- Respond with a single JSON object ONLY — no prose, no markdown fences.
+- Respond with a single JSON object ONLY, no prose, no markdown fences.
 - Shape: { "draft_body": string, "low_confidence_flags": Array<{ "span": string, "reason": string }> }
 - "draft_body" is the ready-to-send email body, plain text, no greetings beyond what Andy would actually write, no sign-off like "Best regards, Andy" (Andy's client handles sign-off).
 - "low_confidence_flags" flags short verbatim spans from draft_body that you weren't sure about (e.g. a guessed price, an assumed meeting time, a made-up project name). Each "span" must be a substring that actually appears in draft_body. Leave the array empty when every claim in the draft is grounded in the supplied context.
-- If the inbound truly doesn't warrant a reply (auto-reply, bounce, etc.), return { "draft_body": "", "low_confidence_flags": [] } — never fabricate.`;
+- If the inbound truly doesn't warrant a reply (auto-reply, bounce, etc.), return { "draft_body": "", "low_confidence_flags": [] }, never fabricate.`;
 
   return [intro, voice, portrait, impression, output].filter(Boolean).join("\n\n");
 }
@@ -305,13 +305,13 @@ export function buildDraftReplyUserPrompt(
   return `WHO THEY ARE / WHERE YOU ARE WITH THEM:
 ${clientBlock}
 
-THREAD HISTORY (oldest → newest, for context — do not repeat what's already been said):
+THREAD HISTORY (oldest → newest, for context, do not repeat what's already been said):
 ${historyBlock}
 ${fewShotBlock}
 INCOMING MESSAGE TO REPLY TO:
 ${inboundBlock}
 
-TASK: Draft Andy's reply to the incoming message. Use the thread history as context but don't rehash it. If information is missing, either ask one plain question in Andy's voice or leave the uncertain claim out entirely — never invent a fact. Flag any span of draft_body you weren't sure about in "low_confidence_flags".
+TASK: Draft Andy's reply to the incoming message. Use the thread history as context but don't rehash it. If information is missing, either ask one plain question in Andy's voice or leave the uncertain claim out entirely, never invent a fact. Flag any span of draft_body you weren't sure about in "low_confidence_flags".
 
 Respond with the JSON object described in the system prompt. JSON only.`;
 }
@@ -342,7 +342,7 @@ function formatClientContext(cc: ClientContextSnapshot): string {
   }
   if (cc.source === "stub") {
     lines.push(
-      `- Note: Client Context Engine is not yet live — this block is a minimal fallback assembled from activity log only. Avoid claims that would require full context.`,
+      `- Note: Client Context Engine is not yet live, this block is a minimal fallback assembled from activity log only. Avoid claims that would require full context.`,
     );
   }
   return lines.join("\n");
@@ -350,7 +350,7 @@ function formatClientContext(cc: ClientContextSnapshot): string {
 
 function formatThreadHistory(history: ThreadMessageSnapshot[]): string {
   if (history.length <= 1) {
-    return "(no prior messages on this thread — this is the first inbound)";
+    return "(no prior messages on this thread, this is the first inbound)";
   }
   // Drop the latest inbound itself from history; it's rendered below.
   const older = history.slice(0, -1);
@@ -373,7 +373,7 @@ function formatFewShots(shots: FewShotExample[]): string {
         `Example ${i + 1}:\nInbound:\n${s.inbound_body.slice(0, MAX_BODY_CHARS)}\n\nAndy's reply:\n${s.andy_reply_body.slice(0, MAX_BODY_CHARS)}`,
     )
     .join("\n\n---\n\n");
-  return `\nFEW-SHOT EXAMPLES (Andy's own prior replies — match this voice, not the wording):\n${rendered}\n`;
+  return `\nFEW-SHOT EXAMPLES (Andy's own prior replies, match this voice, not the wording):\n${rendered}\n`;
 }
 
 function formatLatestInbound(msg: ThreadMessageSnapshot): string {

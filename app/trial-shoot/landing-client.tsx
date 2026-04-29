@@ -21,7 +21,7 @@ const QUOTES = {
     attr: "Josh, franchise operator",
   },
   strategy: {
-    text: "As a small business owner, I find these strategies often too much to even start — so I appreciated that this was step-by-step.",
+    text: "As a small business owner, I find these strategies often too much to even start, so I appreciated that this was step-by-step.",
     attr: "Hayley, studio owner",
   },
   vibe: {
@@ -103,7 +103,7 @@ function PullQuote({
           color: "var(--brand-pink)",
         }}
       >
-        &mdash; {attr}
+        {attr}
       </footer>
     </blockquote>
   );
@@ -548,7 +548,7 @@ export function LandingClient() {
                       Real deliverables, a six-week marketing plan,
                       and 60 days of portal access
                     </span>{" "}
-                    &mdash; yours to keep whether you come back or not.
+                    , yours to keep whether you come back or not.
                   </p>
                 </Reveal>
               </section>
@@ -620,7 +620,7 @@ export function LandingClient() {
                         color: "var(--brand-pink)",
                       }}
                     >
-                      &mdash; {QUOTES.pullquote.attr}
+                      {QUOTES.pullquote.attr}
                     </footer>
                   </blockquote>
                 </Reveal>
@@ -785,7 +785,7 @@ export function LandingClient() {
                         margin: 0,
                       }}
                     >
-                      We come to you, we shoot, we edit, we deliver &mdash;
+                      We come to you, we shoot, we edit, we deliver ,
                       inside a portal that&rsquo;s yours to keep whether you
                       come back or not.{" "}
                       <em
@@ -808,7 +808,7 @@ export function LandingClient() {
                       }}
                     >
                       A few days later, you&rsquo;ll get a six-week marketing
-                      plan &mdash; written for your business, not a template.{" "}
+                      plan , written for your business, not a template.{" "}
                       <em
                         style={{
                           fontFamily: "var(--font-narrative)",
@@ -902,11 +902,11 @@ export function LandingClient() {
                     },
                     {
                       q: "What if I’m awkward on camera?",
-                      a: "Most people are. We don’t pose you or hand you a script. We shoot you working, talking, existing — and edit it so it looks like you knew what you were doing the whole time.",
+                      a: "Most people are. We don’t pose you or hand you a script. We shoot you working, talking, existing, and edit it so it looks like you knew what you were doing the whole time.",
                     },
                     {
                       q: "What if I don’t know what I need?",
-                      a: "That’s the point of the six-week plan. We figure that out for you — based on your business, your audience, and what’s actually going to move the needle.",
+                      a: "That’s the point of the six-week plan. We figure that out for you, based on your business, your audience, and what’s actually going to move the needle.",
                     },
                     {
                       q: "Is there a sales pitch at the end?",
@@ -1033,7 +1033,7 @@ export function LandingClient() {
                         e.currentTarget.style.opacity = "1";
                       }}
                     >
-                      Session &mdash; $397
+                      Session · $397
                     </button>
                     <button
                       type="button"
@@ -1057,7 +1057,7 @@ export function LandingClient() {
                         e.currentTarget.style.opacity = "1";
                       }}
                     >
-                      Production &mdash; $597
+                      Production · $597
                     </button>
                   </div>
                 </Reveal>
@@ -1130,7 +1130,7 @@ export function LandingClient() {
           )}
         </AnimatePresence>
 
-        {/* Section 1 Form — slides in when tier CTA clicked */}
+        {/* Section 1 Form, slides in when tier CTA clicked */}
         <AnimatePresence>
           {showForm && selectedTier && (
             <motion.div

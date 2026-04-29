@@ -4,9 +4,9 @@
  * Server Actions for the `saas-product-setup` wizard (SB-2a slice).
  *
  * Two actions for SB-2a:
- *  - `checkSaasProductSlugAction(slug)` — live uniqueness feedback for the
+ *  - `checkSaasProductSlugAction(slug)`, live uniqueness feedback for the
  *    name-and-slug form step. Runs Zod shape-check + DB lookup.
- *  - `persistSaasProductDraftAction(payload)` — inside one transaction:
+ *  - `persistSaasProductDraftAction(payload)`, inside one transaction:
  *    re-check slug uniqueness, insert `saas_products` (status=draft),
  *    insert each `saas_usage_dimensions` row, and write an
  *    `activity_log` kind=`saas_product_created`. Returns `{productId}` so
@@ -207,7 +207,7 @@ export async function persistSaasProductDraftAction(
 }
 
 // --------------------------------------------------------------------------
-// publishSaasProductAction — SB-2b
+// publishSaasProductAction, SB-2b
 // --------------------------------------------------------------------------
 
 export type PublishTierInput = {
@@ -437,7 +437,7 @@ export async function publishSaasProductAction(
     return { ok: false, reason: `Couldn't publish: ${message}` };
   }
 
-  // Stripe sync — outside the transaction. Failure reverts.
+  // Stripe sync, outside the transaction. Failure reverts.
   try {
     await syncProductToStripe(input.productId);
     for (const t of input.tiers) {
@@ -450,11 +450,11 @@ export async function publishSaasProductAction(
     await revertProductToDraft(input.productId, message, actorId);
     return {
       ok: false,
-      reason: `Stripe sync failed — product reverted to draft. ${message}`,
+      reason: `Stripe sync failed, product reverted to draft. ${message}`,
     };
   }
 
-  // wizard_completions — mirrors actions-cloudinary pattern. Use the first
+  // wizard_completions, mirrors actions-cloudinary pattern. Use the first
   // dimension row for the dimensions completion-payload mirror.
   const dimensionsPayload = dimensionRows
     .sort((a, b) => a.display_order - b.display_order)

@@ -338,7 +338,7 @@ function PaymentForm({
         }}
       >
         Your shoot is locked in. After the day, we&rsquo;ll put your photos,
-        video, and six-week plan together — you&rsquo;ll get everything at once,
+        video, and six-week plan together, you&rsquo;ll get everything at once,
         usually within a week.
       </p>
     </form>

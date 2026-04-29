@@ -71,7 +71,7 @@ export function MobileRefineInline({
       } else {
         setError(
           result.draft.outcome === "skipped_kill_switch"
-            ? "Refine's paused — LLM calls off."
+            ? "Refine's paused, LLM calls off."
             : "Couldn't refine this time. Prior draft preserved.",
         );
       }

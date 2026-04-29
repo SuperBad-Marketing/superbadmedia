@@ -39,7 +39,7 @@ export async function synthesizeRoleBriefAction(
 ): Promise<SynthesisResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
 
   const signalsSummary = input.referenceSignals
@@ -56,7 +56,7 @@ export async function synthesizeRoleBriefAction(
         ? `from $${input.rateMinAud}/hr`
         : "not specified";
 
-  const prompt = `You are building a Role Brief for a creative contractor hiring pipeline. The brief becomes perpetual LLM context — every future hiring action reads it.
+  const prompt = `You are building a Role Brief for a creative contractor hiring pipeline. The brief becomes perpetual LLM context, every future hiring action reads it.
 
 Role: ${input.roleName}
 Type: ${input.engagementType}
@@ -65,7 +65,7 @@ Hours/week: ${input.targetHoursPerWeek ?? "flexible"}
 Location: ${input.locationPrefCity ?? "any"}${input.remoteOk ? " (remote OK)" : " (on-site only)"}
 Slots to fill: ${input.openCount}
 
-Reference portfolios Andy admires (these are the taste signal — what he'd hire tomorrow):
+Reference portfolios Andy admires (these are the taste signal, what he'd hire tomorrow):
 ${signalsSummary || "No portfolio signals available yet."}
 
 Analyse the reference portfolios and produce a structured brief. Return ONLY valid JSON with these fields:
@@ -77,7 +77,7 @@ Analyse the reference portfolios and produce a structured brief. Return ONLY val
   "discovery_search_hints": ["search queries that would find similar portfolios on the open web"]
 }
 
-style_avoid_list starts empty — it grows from archive reflections over time.
+style_avoid_list starts empty, it grows from archive reflections over time.
 discovery_search_hints should be 3-5 search queries suitable for Vimeo/Behance/Google that would surface similar work.
 Be specific to the references, not generic.`;
 
@@ -124,7 +124,7 @@ export async function ingestPortfolioUrlAction(
 ): Promise<{ ok: true; signal: PortfolioSignal } | { ok: false; reason: string }> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
 
   try {
@@ -162,7 +162,7 @@ export async function completeRoleBriefAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
 
   try {

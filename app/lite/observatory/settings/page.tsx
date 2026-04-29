@@ -9,7 +9,7 @@ import {
 import { ObservatorySettingsForm } from "@/components/lite/observatory/observatory-settings-form";
 
 export const metadata: Metadata = {
-  title: "SuperBad — Observatory Settings",
+  title: "SuperBad | Observatory Settings",
   robots: { index: false, follow: false },
 };
 

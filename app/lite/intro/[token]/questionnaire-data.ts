@@ -20,16 +20,16 @@ const section2: Record<Shape, SectionDef> = {
   solo_founder: {
     heading: "A bit about your business",
     subline:
-      "Five quick questions. No wrong answers — we're just getting a picture of where you're at.",
+      "Five quick questions. No wrong answers, we're just getting a picture of where you're at.",
     questions: [
       {
         id: "s2q1",
         question: "How long have you been running this?",
         options: [
-          "Less than a year — still figuring it out",
-          "1–3 years — finding my groove",
-          "3–5 years — I know what works, mostly",
-          "5+ years — I've been at this a while",
+          "Less than a year, still figuring it out",
+          "1–3 years, finding my groove",
+          "3–5 years, I know what works, mostly",
+          "5+ years, I've been at this a while",
         ],
       },
       {
@@ -46,10 +46,10 @@ const section2: Record<Shape, SectionDef> = {
       {
         id: "s2q3",
         question:
-          "What's your main thing right now — growing, or keeping up with what you've got?",
+          "What's your main thing right now, growing, or keeping up with what you've got?",
         options: [
           "I need more customers",
-          "I've got the customers — I need to keep them coming back",
+          "I've got the customers, I need to keep them coming back",
           "Bit of both",
           "I'm at capacity and need to be more selective",
         ],
@@ -59,10 +59,10 @@ const section2: Record<Shape, SectionDef> = {
         question:
           "How much time do you spend on marketing in an average week?",
         options: [
-          "Almost none — I don't have time",
+          "Almost none, I don't have time",
           "A few hours here and there",
-          "A decent chunk — it's a real part of my week",
-          "Too much — it's eating into everything else",
+          "A decent chunk, it's a real part of my week",
+          "Too much, it's eating into everything else",
         ],
       },
       {
@@ -70,8 +70,8 @@ const section2: Record<Shape, SectionDef> = {
         question:
           "If someone looked at your business online right now, what would they see?",
         options: [
-          "Not much — I've been meaning to sort it out",
-          "The basics — a website, maybe some socials",
+          "Not much, I've been meaning to sort it out",
+          "The basics, a website, maybe some socials",
           "It's decent, but it doesn't really feel like me",
           "It's pretty solid, I just want it to be better",
         ],
@@ -90,16 +90,16 @@ const section2: Record<Shape, SectionDef> = {
   founder_led_team: {
     heading: "A bit about your business",
     subline:
-      "Five quick questions. No wrong answers — we're just getting a picture of where you're at.",
+      "Five quick questions. No wrong answers, we're just getting a picture of where you're at.",
     questions: [
       {
         id: "s2q1",
         question: "How long has the business been going?",
         options: [
-          "Less than 2 years — still early",
-          "2–5 years — established but growing",
-          "5–10 years — we've been around",
-          "10+ years — well established",
+          "Less than 2 years, still early",
+          "2–5 years, established but growing",
+          "5–10 years, we've been around",
+          "10+ years, well established",
         ],
       },
       {
@@ -107,8 +107,8 @@ const section2: Record<Shape, SectionDef> = {
         question: "How do most of your customers find you?",
         options: [
           "Referrals and word of mouth",
-          "Online — search, social, ads",
-          "Outbound — we go find them",
+          "Online, search, social, ads",
+          "Outbound, we go find them",
           "A mix of everything",
           "We're not totally sure",
         ],
@@ -139,7 +139,7 @@ const section2: Record<Shape, SectionDef> = {
         options: [
           "We're behind where we should be",
           "It's okay, but it doesn't match the quality of what we actually do",
-          "It's solid — we just want to go further",
+          "It's solid, we just want to go further",
           "We've invested, but it hasn't moved the needle",
         ],
       },
@@ -149,7 +149,7 @@ const section2: Record<Shape, SectionDef> = {
           "Anything we should know about your team or how you work before the shoot?",
         freeText: true,
         placeholder:
-          "Who's involved, how decisions get made — anything useful.",
+          "Who's involved, how decisions get made, anything useful.",
         charLimit: 500,
       },
     ],
@@ -157,15 +157,15 @@ const section2: Record<Shape, SectionDef> = {
   multi_stakeholder_company: {
     heading: "A bit about your business",
     subline:
-      "Five quick questions. No wrong answers — we're just getting a picture of where you're at.",
+      "Five quick questions. No wrong answers, we're just getting a picture of where you're at.",
     questions: [
       {
         id: "s2q1",
         question: "How established is the business?",
         options: [
-          "Under 3 years — still building",
-          "3–10 years — growing steadily",
-          "10+ years — well established",
+          "Under 3 years, still building",
+          "3–10 years, growing steadily",
+          "10+ years, well established",
           "We're in a reinvention phase",
         ],
       },
@@ -175,7 +175,7 @@ const section2: Record<Shape, SectionDef> = {
         options: [
           "Referrals and existing relationships",
           "Our sales team goes and finds them",
-          "Inbound — they come to us via search, content, ads",
+          "Inbound, they come to us via search, content, ads",
           "Channel partners or third parties",
           "A mix, but we're not sure what's working best",
         ],
@@ -197,8 +197,8 @@ const section2: Record<Shape, SectionDef> = {
         question:
           "How many people are involved in deciding on something like this?",
         options: [
-          "Two of us — we'll sort it out between ourselves",
-          "A small group — three or four people",
+          "Two of us, we'll sort it out between ourselves",
+          "A small group, three or four people",
           "It goes through a formal approval process",
           "I'm scoping it out first, then I'll bring it to the team",
         ],
@@ -207,7 +207,7 @@ const section2: Record<Shape, SectionDef> = {
         id: "s2q5",
         question: "How does your business come across online right now?",
         options: [
-          "It's dated — we know it needs work",
+          "It's dated, we know it needs work",
           "It's professional, but it's not distinctive",
           "It's decent, but it doesn't feel like us",
           "We've invested heavily, we just need the right creative partner",
@@ -236,7 +236,7 @@ const section3: Record<Shape, SectionDef> = {
         id: "s3q1",
         question: "What do you currently use for photos of your business?",
         options: [
-          "Phone photos — whatever I can grab",
+          "Phone photos, whatever I can grab",
           "I've had a photographer in once or twice",
           "I use stock photos mostly",
           "I don't really have any",
@@ -249,8 +249,8 @@ const section3: Record<Shape, SectionDef> = {
         options: [
           "Never",
           "I've shot a few things on my phone",
-          "I hired someone once — it was fine",
-          "I hired someone once — it wasn't great",
+          "I hired someone once, it was fine",
+          "I hired someone once, it wasn't great",
           "I do it myself and it's actually pretty good",
         ],
       },
@@ -262,7 +262,7 @@ const section3: Record<Shape, SectionDef> = {
           "I'd rather not, but I get it",
           "I'm okay with it",
           "I'm pretty comfortable",
-          "I'm good — I just need someone to point the camera",
+          "I'm good, I just need someone to point the camera",
         ],
       },
       {
@@ -280,9 +280,9 @@ const section3: Record<Shape, SectionDef> = {
       {
         id: "s3q5",
         question:
-          'Is there a business you look at and think — "I wish my stuff looked like that"?',
+          'Is there a business you look at and think, "I wish my stuff looked like that"?',
         freeText: true,
-        placeholder: "A name, a handle, a vague memory — anything helps.",
+        placeholder: "A name, a handle, a vague memory, anything helps.",
         charLimit: 300,
       },
     ],
@@ -297,7 +297,7 @@ const section3: Record<Shape, SectionDef> = {
         question:
           "What does your business currently use for photos and video?",
         options: [
-          "Phone photos — whoever's around grabs them",
+          "Phone photos, whoever's around grabs them",
           "We've hired a photographer a few times",
           "We've got a bank of professional content, but it's getting stale",
           "We've tried video but it never felt right",
@@ -335,7 +335,7 @@ const section3: Record<Shape, SectionDef> = {
           "It doesn't match the quality of what we deliver",
           "We post but nobody engages",
           "We don't know what to post",
-          "It's scattered — no consistent look or voice",
+          "It's scattered, no consistent look or voice",
         ],
       },
       {
@@ -361,7 +361,7 @@ const section3: Record<Shape, SectionDef> = {
           "We use agencies or freelancers on and off",
           "We've got a library of assets but it's dated",
           "We've tried a few things but nothing's stuck",
-          "Very little — it's been deprioritised",
+          "Very little, it's been deprioritised",
         ],
       },
       {
@@ -370,7 +370,7 @@ const section3: Record<Shape, SectionDef> = {
         options: [
           "The founder or CEO",
           "A few key people from leadership",
-          "Frontline team — the people doing the work",
+          "Frontline team, the people doing the work",
           "Clients or customers (with permission)",
           "We'd want to discuss this",
         ],
@@ -392,8 +392,8 @@ const section3: Record<Shape, SectionDef> = {
         question:
           'What does "good marketing content" look like to the decision-makers?',
         options: [
-          "Professional and polished — nothing rough",
-          "Authentic and real — not too corporate",
+          "Professional and polished, nothing rough",
+          "Authentic and real, not too corporate",
           "Whatever drives measurable results",
           "Something that sets us apart from competitors",
           "We've never really aligned on it",
@@ -404,7 +404,7 @@ const section3: Record<Shape, SectionDef> = {
         question:
           "Any companies in your space (or outside it) whose brand presence you respect?",
         freeText: true,
-        placeholder: "The ones where you think — they've figured it out.",
+        placeholder: "The ones where you think, they've figured it out.",
         charLimit: 300,
       },
     ],
@@ -419,13 +419,13 @@ const section4: Record<Shape, SectionDef> = {
       {
         id: "s4q1",
         question:
-          "If your marketing was sorted — really sorted — what would change first?",
+          "If your marketing was sorted, really sorted, what would change first?",
         options: [
           "I'd have a steady flow of the right customers",
           "People would finally get what I actually do",
           "I'd stop worrying about where the next job comes from",
           "I could charge what I'm worth",
-          "I'd have time back — marketing wouldn't be on my plate anymore",
+          "I'd have time back, marketing wouldn't be on my plate anymore",
         ],
       },
       {
@@ -433,9 +433,9 @@ const section4: Record<Shape, SectionDef> = {
         question:
           'What would "getting help with marketing" actually look like for you?',
         options: [
-          "Someone who just does it — I don't want to think about it",
+          "Someone who just does it, I don't want to think about it",
           "Someone who shows me what to do, and I'll run it",
-          "A mix — guidance plus execution",
+          "A mix, guidance plus execution",
           "I'm not sure yet, that's partly why I'm here",
         ],
       },
@@ -444,20 +444,20 @@ const section4: Record<Shape, SectionDef> = {
         question:
           "What's held you back from investing in this before?",
         options: [
-          "Cost — I wasn't sure it was worth it",
-          "Trust — I've been burned by agencies before",
-          "Time — I couldn't deal with the back-and-forth",
+          "Cost, I wasn't sure it was worth it",
+          "Trust, I've been burned by agencies before",
+          "Time, I couldn't deal with the back-and-forth",
           "I didn't know where to start",
-          "Nothing specific — I just hadn't found the right fit",
+          "Nothing specific, I just hadn't found the right fit",
         ],
       },
       {
         id: "s4q4",
         question: "How quickly are you hoping to see a difference?",
         options: [
-          "Within a few weeks — I need momentum now",
-          "A couple of months — I'm playing the slightly longer game",
-          "Six months — I want to build something that lasts",
+          "Within a few weeks, I need momentum now",
+          "A couple of months, I'm playing the slightly longer game",
+          "Six months, I want to build something that lasts",
           "I don't have a timeline, I just want to start",
         ],
       },
@@ -474,7 +474,7 @@ const section4: Record<Shape, SectionDef> = {
         tag: "practical_signal",
         question: "Do you currently have an email list or newsletter?",
         options: [
-          "No — never set one up",
+          "No, never set one up",
           "I've got one but I don't use it",
           "Yes, and I send to it occasionally",
           "Yes, and it's a regular thing",
@@ -484,13 +484,13 @@ const section4: Record<Shape, SectionDef> = {
         id: "s4q7",
         tag: "practical_signal",
         question:
-          "Have you run paid ads before — Google, Meta, anything like that?",
+          "Have you run paid ads before, Google, Meta, anything like that?",
         options: [
           "Never",
           "Tried it once, didn't stick",
           "Running some now, but I'm not confident they're working",
           "Running them and they're doing okay",
-          "I've spent real money on ads — I know the basics",
+          "I've spent real money on ads, I know the basics",
         ],
       },
     ],
@@ -505,10 +505,10 @@ const section4: Record<Shape, SectionDef> = {
           "If your marketing was really dialled in, what would it unlock for the business?",
         options: [
           "More of the right clients, fewer of the wrong ones",
-          "We'd be known in our space — not just another option",
+          "We'd be known in our space, not just another option",
           "The team could focus on delivery instead of chasing work",
           "We could grow without it feeling like chaos",
-          "We'd attract better talent — people would want to work here",
+          "We'd attract better talent, people would want to work here",
         ],
       },
       {
@@ -516,7 +516,7 @@ const section4: Record<Shape, SectionDef> = {
         question: "What would the ideal marketing partner do for you?",
         options: [
           "Take the whole thing off our plate",
-          "Work alongside our team — fill the gaps we can't",
+          "Work alongside our team, fill the gaps we can't",
           "Give us a strategy and let us execute",
           "Help us figure out what we should even be doing",
           "All of the above, honestly",
@@ -528,7 +528,7 @@ const section4: Record<Shape, SectionDef> = {
         options: [
           "We've tried agencies before and it didn't work out",
           "We kept thinking we'd get to it internally",
-          "Budget — we weren't sure about the ROI",
+          "Budget, we weren't sure about the ROI",
           "We didn't know who to trust",
           "It's been on the list, we just needed the right push",
         ],
@@ -538,10 +538,10 @@ const section4: Record<Shape, SectionDef> = {
         question:
           "What does success look like for the business in the next 6–12 months?",
         options: [
-          "Revenue growth — more sales, more clients",
-          "Brand recognition — being known for what we do",
-          "Operational clarity — less firefighting, more focus",
-          "Market position — becoming the obvious choice in our space",
+          "Revenue growth, more sales, more clients",
+          "Brand recognition, being known for what we do",
+          "Operational clarity, less firefighting, more focus",
+          "Market position, becoming the obvious choice in our space",
           "A bit of everything",
         ],
       },
@@ -559,7 +559,7 @@ const section4: Record<Shape, SectionDef> = {
         tag: "practical_signal",
         question: "Do you currently have an email list or newsletter?",
         options: [
-          "No — never set one up",
+          "No, never set one up",
           "I've got one but I don't use it",
           "Yes, and I send to it occasionally",
           "Yes, and it's a regular thing",
@@ -569,13 +569,13 @@ const section4: Record<Shape, SectionDef> = {
         id: "s4q7",
         tag: "practical_signal",
         question:
-          "Have you run paid ads before — Google, Meta, anything like that?",
+          "Have you run paid ads before, Google, Meta, anything like that?",
         options: [
           "Never",
           "Tried it once, didn't stick",
           "Running some now, but I'm not confident they're working",
           "Running them and they're doing okay",
-          "I've spent real money on ads — I know the basics",
+          "I've spent real money on ads, I know the basics",
         ],
       },
     ],
@@ -589,11 +589,11 @@ const section4: Record<Shape, SectionDef> = {
         question:
           "What would better marketing actually move for the business?",
         options: [
-          "Pipeline — we need more qualified leads",
-          "Brand — we need to be recognised, not just known",
-          "Recruitment — we want the best people to want to work here",
-          "Differentiation — we need to stand out from competitors",
-          "Internal alignment — leadership wants a clearer story",
+          "Pipeline, we need more qualified leads",
+          "Brand, we need to be recognised, not just known",
+          "Recruitment, we want the best people to want to work here",
+          "Differentiation, we need to stand out from competitors",
+          "Internal alignment, leadership wants a clearer story",
         ],
       },
       {
@@ -603,7 +603,7 @@ const section4: Record<Shape, SectionDef> = {
         options: [
           "A partner who owns the strategy and execution",
           "A creative team that works with our internal people",
-          "A project — deliver something specific and we'll take it from there",
+          "A project, deliver something specific and we'll take it from there",
           "We're still figuring out what we need",
           "It depends on what you show us first",
         ],
@@ -615,7 +615,7 @@ const section4: Record<Shape, SectionDef> = {
           "Too many stakeholders, too many opinions",
           "Agencies that didn't understand our business",
           "Internal teams that couldn't keep up",
-          "Budget approved then pulled — stop-start cycle",
+          "Budget approved then pulled, stop-start cycle",
           "We've never really committed to it properly",
         ],
       },
@@ -624,17 +624,17 @@ const section4: Record<Shape, SectionDef> = {
         question:
           "What does the leadership team care about most right now?",
         options: [
-          "Growth — hitting revenue targets",
-          "Efficiency — doing more with less",
-          "Brand — being the name people think of first",
-          "Innovation — launching something new",
-          "People — attracting and keeping the right team",
+          "Growth, hitting revenue targets",
+          "Efficiency, doing more with less",
+          "Brand, being the name people think of first",
+          "Innovation, launching something new",
+          "People, attracting and keeping the right team",
         ],
       },
       {
         id: "s4q5",
         question:
-          "What would make this investment feel like it was worth it — in the eyes of the people who approved it?",
+          "What would make this investment feel like it was worth it, in the eyes of the people who approved it?",
         freeText: true,
         placeholder:
           'The thing that would make them say "that was a good call."',
@@ -645,7 +645,7 @@ const section4: Record<Shape, SectionDef> = {
         tag: "practical_signal",
         question: "Do you currently have an email list or newsletter?",
         options: [
-          "No — never set one up",
+          "No, never set one up",
           "I've got one but I don't use it",
           "Yes, and I send to it occasionally",
           "Yes, and it's a regular thing",
@@ -655,13 +655,13 @@ const section4: Record<Shape, SectionDef> = {
         id: "s4q7",
         tag: "practical_signal",
         question:
-          "Have you run paid ads before — Google, Meta, anything like that?",
+          "Have you run paid ads before, Google, Meta, anything like that?",
         options: [
           "Never",
           "Tried it once, didn't stick",
           "Running some now, but I'm not confident they're working",
           "Running them and they're doing okay",
-          "I've spent real money on ads — I know the basics",
+          "I've spent real money on ads, I know the basics",
         ],
       },
     ],

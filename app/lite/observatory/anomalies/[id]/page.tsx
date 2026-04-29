@@ -10,7 +10,7 @@ import { RawDataTable } from "@/components/lite/observatory/raw-data-table";
 import { AnomalyActions } from "@/components/lite/observatory/anomaly-actions";
 
 export const metadata: Metadata = {
-  title: "SuperBad — Anomaly Detail",
+  title: "SuperBad | Anomaly Detail",
   robots: { index: false, follow: false },
 };
 

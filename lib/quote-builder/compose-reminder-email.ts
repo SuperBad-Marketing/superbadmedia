@@ -35,9 +35,9 @@ function fallbackDraft(input: QuoteReminder3dInput): {
   subject: string;
   bodyParagraphs: string[];
 } {
-  const subject = `${input.companyName} — the quote's still there`;
+  const subject = `${input.companyName}, the quote's still there`;
   const lines = [
-    `${input.recipientName}, quick one — your quote's been sitting there for ${input.daysSinceSent} days.`,
+    `${input.recipientName}, quick one, your quote's been sitting there for ${input.daysSinceSent} days.`,
     `No pressure. If you want to read it, it's the same link.`,
   ];
   return { subject, bodyParagraphs: lines };
@@ -55,7 +55,7 @@ export interface ComposeQuoteReminder3dInput {
  * Mirrors `composeQuoteSendEmail`: reads quote + company + primary contact,
  * builds the Opus prompt, calls the LLM via the model registry, runs the
  * drift check, returns the structured draft. Caller is the scheduled-task
- * handler — no modal, no pre-send review, so the draft goes straight to
+ * handler, no modal, no pre-send review, so the draft goes straight to
  * `sendEmail()`.
  *
  * Kill-switch fallback: when `llm_calls_enabled` is false, returns a
@@ -127,7 +127,7 @@ export async function composeQuoteReminder3d(
       drift: {
         pass: true,
         score: 1.0,
-        notes: "skipped (kill switch — llm_calls_enabled=false)",
+        notes: "skipped (kill switch, llm_calls_enabled=false)",
       },
       recipientEmail,
       recipientName,

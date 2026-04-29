@@ -1,15 +1,15 @@
 /**
- * Brand Pack PDF template — self-contained HTML for Puppeteer rendering.
+ * Brand Pack PDF template, self-contained HTML for Puppeteer rendering.
  *
  * Pages:
- *   1. Cover — brand name, "Brand Pack", SuperBad mark, date
- *   2. Identity Summary — first impression + prose portrait excerpt
- *   3. Colour Palette — 5 role-colours with hex + usage
- *   4. Typography — primary / secondary / accent fonts with specimens
- *   5. Content Pillars — 4-5 pillars with descriptions
- *   6. Brand Voice Guide — tone, do's/don'ts, example phrases
- *   7. Digital Presence Audit — enrichment snapshot (conditional)
- *   8. Back Cover — SuperBad branding + tagline
+ *   1. Cover, brand name, "Brand Pack", SuperBad mark, date
+ *   2. Identity Summary, first impression + prose portrait excerpt
+ *   3. Colour Palette, 5 role-colours with hex + usage
+ *   4. Typography, primary / secondary / accent fonts with specimens
+ *   5. Content Pillars, 4-5 pillars with descriptions
+ *   6. Brand Voice Guide, tone, do's/don'ts, example phrases
+ *   7. Digital Presence Audit, enrichment snapshot (conditional)
+ *   8. Back Cover, SuperBad branding + tagline
  *
  * Dark charcoal (#1A1A18) background, cream text, editorial feel.
  * Google Fonts loaded via @import. Each page uses page-break-after.
@@ -113,7 +113,7 @@ function renderIdentitySummary(data: BrandPackData): string {
 
   return `
   <div class="page">
-    <div class="section-label">01 &mdash; Identity</div>
+    <div class="section-label">01 ·Identity</div>
     ${
       data.firstImpression
         ? `<div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:500;line-height:1.35;color:${B.cream};margin-bottom:48px;max-width:480px;">&ldquo;${esc(data.firstImpression)}&rdquo;</div>`
@@ -170,7 +170,7 @@ function renderColourPalette(data: BrandPackData): string {
 
   return `
   <div class="page">
-    <div class="section-label">02 &mdash; Colour</div>
+    <div class="section-label">02 ·Colour</div>
     <div class="section-title">Brand Palette</div>
     <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:48px;">
       ${swatches}
@@ -211,7 +211,7 @@ function renderTypography(data: BrandPackData): string {
           0123456789 &amp; @ # $ % ! ?
         </div>
         <div style="font-family:'DM Sans',sans-serif;font-size:12px;color:${B.muted};line-height:1.5;max-width:460px;">
-          <span style="font-weight:600;color:${B.pink};">${esc(font.category)}</span> &mdash; ${esc(font.reason)}
+          <span style="font-weight:600;color:${B.pink};">${esc(font.category)}</span> , ${esc(font.reason)}
         </div>
       </div>`,
     )
@@ -219,7 +219,7 @@ function renderTypography(data: BrandPackData): string {
 
   return `
   <div class="page">
-    <div class="section-label">03 &mdash; Typography</div>
+    <div class="section-label">03 ·Typography</div>
     <div class="section-title">Typefaces</div>
     ${cards}
     ${pageFooter(4)}
@@ -246,7 +246,7 @@ function renderContentPillars(data: BrandPackData): string {
 
   return `
   <div class="page">
-    <div class="section-label">04 &mdash; Content</div>
+    <div class="section-label">04 ·Content</div>
     <div class="section-title">Content Pillars</div>
     <p style="font-family:'DM Sans',sans-serif;font-size:13px;color:${B.muted};margin-bottom:32px;max-width:480px;line-height:1.6;">
       The recurring themes that anchor your content strategy. Every post, article, or campaign should trace back to one of these.
@@ -292,7 +292,7 @@ function renderBrandVoice(data: BrandPackData): string {
 
   return `
   <div class="page">
-    <div class="section-label">05 &mdash; Voice</div>
+    <div class="section-label">05 ·Voice</div>
     <div class="section-title">Brand Voice Guide</div>
     <p style="font-family:'Playfair Display',serif;font-size:15px;color:${B.cream};line-height:1.8;margin-bottom:36px;max-width:500px;opacity:0.85;">
       ${esc(data.brandVoice.tone)}
@@ -338,7 +338,7 @@ function renderDigitalPresence(data: BrandPackData, pageNum: number): string {
 
   return `
   <div class="page">
-    <div class="section-label">06 &mdash; Digital Presence</div>
+    <div class="section-label">06 ·Digital Presence</div>
     <div class="section-title">What We Found</div>
     <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:15px;color:${B.cream};opacity:0.6;margin-bottom:40px;max-width:440px;line-height:1.7;">
       Not a judgement. Just what&rsquo;s out there right now.

@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { rundownSessions } from "@/lib/db/schema/rundown-sessions";
 import { AssessmentIntroClient } from "@/components/lite/brand-dna/assessment-intro-client";
 
-export const metadata: Metadata = { title: "Brand DNA — SuperBad" };
+export const metadata: Metadata = { title: "Brand DNA | SuperBad" };
 
 interface Props {
   params: Promise<{ sessionToken: string }>;

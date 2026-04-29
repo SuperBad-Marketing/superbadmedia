@@ -7,7 +7,7 @@ import { rundownSessions } from "@/lib/db/schema/rundown-sessions";
 import { ReflectionClient } from "@/app/lite/brand-dna/section/[n]/reflection/reflection-client";
 import { submitRundownReflection } from "../../../actions";
 
-export const metadata: Metadata = { title: "Reflection — Brand DNA — SuperBad" };
+export const metadata: Metadata = { title: "Reflection | Brand DNA | SuperBad" };
 
 interface Props {
   params: Promise<{ sessionToken: string; n: string }>;

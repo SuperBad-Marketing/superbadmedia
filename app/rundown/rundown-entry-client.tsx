@@ -442,7 +442,7 @@ function ClientOverridePrompt({
           margin: 0,
         }}
       >
-        Hey {clientName.split(" ")[0]} &mdash; looks like you already have a Brand DNA profile with us. Taking this again will replace your current one.
+        Hey {clientName.split(" ")[0]} , looks like you already have a Brand DNA profile with us. Taking this again will replace your current one.
       </p>
       <p
         style={{

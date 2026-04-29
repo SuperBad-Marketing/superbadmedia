@@ -7,7 +7,7 @@ import { and, gte, lte } from "drizzle-orm";
 import { CalendarView } from "./_components/calendar-view";
 
 export const metadata: Metadata = {
-  title: "Calendar — SuperBad",
+  title: "Calendar | SuperBad",
   robots: { index: false, follow: false },
 };
 

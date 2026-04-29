@@ -48,7 +48,7 @@ export async function sendCredentialEmail(
 
   if (!result.ok) {
     if (result.reason === "already_verified") {
-      return { ok: false, error: "Email already verified — try logging in at /lite/portal" };
+      return { ok: false, error: "Email already verified, try logging in at /lite/portal" };
     }
     return { ok: false, error: "Could not send credential email" };
   }

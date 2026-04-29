@@ -1,7 +1,7 @@
 import * as React from "react";
 
 /* ------------------------------------------------------------------ */
-/* Fetch Recruitment — bespoke one-off quote page.                    */
+/* Fetch Recruitment, bespoke one-off quote page.                    */
 /*                                                                    */
 /* PDF-export version. This page is rendered once via Playwright      */
 /* `page.pdf()` (screen-media emulation preserved) to produce         */
@@ -82,7 +82,7 @@ function formatUnit(unit: AddOn["unit"]): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Font variable references — pinned to specific faces so the page    */
+/* Font variable references, pinned to specific faces so the page    */
 /* ignores whatever typeface preset the viewer's session happens to   */
 /* be on. Fetch sees the house stack regardless.                      */
 /* ------------------------------------------------------------------ */
@@ -104,7 +104,7 @@ export default function FetchRecruitmentQuotePage() {
         position: "relative",
       }}
     >
-      {/* Ambient warm wash — same treatment as the admin quote mockup, subdued. */}
+      {/* Ambient warm wash, same treatment as the admin quote mockup, subdued. */}
       <div
         aria-hidden
         style={{
@@ -161,7 +161,7 @@ export default function FetchRecruitmentQuotePage() {
               maxWidth: "60ch",
             }}
           >
-            A focused production block — built around what you brief, shot in
+            A focused production block, built around what you brief, shot in
             two half-days, edited in-house.
           </p>
 
@@ -194,7 +194,7 @@ export default function FetchRecruitmentQuotePage() {
               color: "var(--neutral-100)",
             }}
           >
-            This is the next block of work — built around what we&rsquo;ve
+            This is the next block of work, built around what we&rsquo;ve
             learned from running content together so far. The structure below
             covers what&rsquo;s included, what&rsquo;s optional, and where your
             existing credit lands.
@@ -240,7 +240,7 @@ export default function FetchRecruitmentQuotePage() {
               }}
             >
               Reference rates for anything beyond the base block. Nothing here
-              is added on — listed so you know the cost before asking.
+              is added on, listed so you know the cost before asking.
             </p>
           </header>
 
@@ -276,7 +276,7 @@ export default function FetchRecruitmentQuotePage() {
             <HowStep
               n="01"
               title="You brief."
-              body="Each video is produced against a completed Fetch brief — what we shoot is what's briefed. Templates go out the week before each shoot."
+              body="Each video is produced against a completed Fetch brief, what we shoot is what's briefed. Templates go out the week before each shoot."
             />
             <HowStep
               n="02"
@@ -324,12 +324,12 @@ export default function FetchRecruitmentQuotePage() {
               color: "var(--brand-charcoal)",
             }}
           >
-            The Base Block covers exactly what&rsquo;s listed above — eight
+            The Base Block covers exactly what&rsquo;s listed above, eight
             hero videos, captured across two half-day shoots, briefed in
             advance via the Fetch brief template. Anything outside that
             (additional shoots, additional concepts, re-shoots driven by brief
             changes) sits in the add-ons or gets scoped separately. This
-            isn&rsquo;t bureaucracy — it&rsquo;s how we keep the work tight
+            isn&rsquo;t bureaucracy, it&rsquo;s how we keep the work tight
             and the timeline honest.
           </p>
         </aside>
@@ -372,7 +372,7 @@ export default function FetchRecruitmentQuotePage() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Base package — visually the anchor of the page. Pink/orange border */
+/* Base package, visually the anchor of the page. Pink/orange border */
 /* on charcoal. Pricing stacks below inclusions on mobile.            */
 /* ------------------------------------------------------------------ */
 
@@ -437,7 +437,7 @@ function BasePackageCard() {
         {[
           "2 × half-day shoots in Melbourne (1 construction site, 1 office)",
           "Pre-production planning from your completed brief templates",
-          "Direction, camera, sound — handled in-house by Andy",
+          "Direction, camera, sound, handled in-house by Andy",
           "8 hero videos, fully edited (30–60s each, depending on the brief)",
           "2–4 short-form cutdowns from existing footage (15–20s, vertical)",
           "Colour grade, sound mix, captions, multi-aspect delivery (16:9, 9:16, 1:1 where appropriate)",
@@ -472,7 +472,7 @@ function BasePackageCard() {
         ))}
       </ul>
 
-      {/* Pricing block — kept together across page breaks so the
+      {/* Pricing block, kept together across page breaks so the
           Total-owing row never orphans. */}
       <div
         style={{
@@ -592,7 +592,7 @@ function Row({
 }
 
 /* ------------------------------------------------------------------ */
-/* Add-on reference row — static; no toggle, no quantity.              */
+/* Add-on reference row, static; no toggle, no quantity.              */
 /* ------------------------------------------------------------------ */
 
 function AddOnReference({ addOn }: { addOn: AddOn }) {

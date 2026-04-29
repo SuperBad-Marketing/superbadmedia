@@ -339,7 +339,7 @@ export async function markRundownProfileComplete(
           email: session.email,
         },
         source: "brand_dna_rundown",
-        title: `Rundown — ${session.business_name}`,
+        title: `Rundown, ${session.business_name}`,
         stage: "lead",
       });
 
@@ -368,7 +368,7 @@ export async function markRundownProfileComplete(
         },
       });
     } catch {
-      // Deal creation failure is non-blocking — candidate stays in lead_candidates
+      // Deal creation failure is non-blocking, candidate stays in lead_candidates
     }
   }
   if (session?.email) {
@@ -403,11 +403,11 @@ async function sendFollowupEmail(
         <p>Hey ${firstName},</p>
         <p>Your Brand DNA for ${businessName} is complete. Here's what you've got:</p>
         <p><strong><a href="${revealUrl}" style="color: #B22848;">See your brand identity</a></strong><br>
-        <span style="font-size: 14px; color: #807F73;">The full reveal — your signal tags, section insights, and prose portrait. Link expires in 30 days.</span></p>
+        <span style="font-size: 14px; color: #807F73;">The full reveal, your signal tags, section insights, and prose portrait. Link expires in 30 days.</span></p>
         <p><strong><a href="${packUrl}" style="color: #B22848;">Download your Brand Pack</a></strong><br>
-        <span style="font-size: 14px; color: #807F73;">Typography, colours, content pillars, and voice guide — all based on what you told us.</span></p>
+        <span style="font-size: 14px; color: #807F73;">Typography, colours, content pillars, and voice guide, all based on what you told us.</span></p>
         <p style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #252320; font-size: 14px; color: #807F73;">
-          If any of what you saw in there made you want to do something about it — we do trial shoots. Real work, not a pitch meeting.
+          If any of what you saw in there made you want to do something about it, we do trial shoots. Real work, not a pitch meeting.
           <a href="${baseUrl}/trial-shoot" style="color: #B22848;">Have a look</a> if you're curious.
         </p>
         <p>Andy</p>

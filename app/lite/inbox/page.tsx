@@ -1,12 +1,12 @@
 /**
- * /lite/inbox — three-column desktop inbox (UI-8).
+ * /lite/inbox | three-column desktop inbox (UI-8).
  *
  * Spec: docs/specs/unified-inbox.md §§4.1 + 4.4 + 4.6 + 7.4. Brief:
  * sessions/ui-8-brief.md. Admin-only; non-admins redirect to sign-in.
  *
  * URL shape: `/lite/inbox?view=focus&address=all&thread=<id>&sort=recent`.
  * View / address / sort drive the middle list; `thread` selects the
- * right-column detail. Navigation is server-driven — each click is a
+ * right-column detail. Navigation is server-driven | each click is a
  * new request that renders the new detail panel.
  */
 import { redirect } from "next/navigation";
@@ -38,7 +38,7 @@ import {
 import { MobileThreadDetail } from "./_components/mobile-thread-detail";
 
 export const metadata: Metadata = {
-  title: "SuperBad — Inbox",
+  title: "SuperBad | Inbox",
   robots: { index: false, follow: false },
 };
 

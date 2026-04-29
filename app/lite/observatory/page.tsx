@@ -17,7 +17,7 @@ import { KillSwitchBar } from "@/components/lite/observatory/kill-switch-bar";
 import { TierHealthPanel } from "@/components/lite/observatory/tier-health-panel";
 
 export const metadata: Metadata = {
-  title: "SuperBad — Observatory",
+  title: "SuperBad | Observatory",
   robots: { index: false, follow: false },
 };
 

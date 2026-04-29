@@ -21,7 +21,7 @@ import { SegmentationClient } from "./segmentation-client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "SuperBad \u2014 almost there",
+  title: "SuperBad | almost there",
   robots: { index: false, follow: false },
 };
 

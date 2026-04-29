@@ -39,7 +39,7 @@ export interface DropOffRunResult {
  * Scan candidates with sent reply drafts that haven't received a follow-up
  * response. Generate the next drop-off touch based on elapsed time.
  *
- * Called by the daily orchestrator — not a webhook handler.
+ * Called by the daily orchestrator, not a webhook handler.
  */
 export async function processDropOffSequence(
   dbInstance = defaultDb,
@@ -419,7 +419,7 @@ async function generateLongTailDraft(input: LongTailInput): Promise<boolean> {
 
   await logActivity({
     kind: "draft_generated",
-    body: `Long-tail (day 60) draft for ${candidate.company_name}${priceIncreased ? ` — price hold code ${discountCode}` : ""}`,
+    body: `Long-tail (day 60) draft for ${candidate.company_name}${priceIncreased ? `, price hold code ${discountCode}` : ""}`,
     meta: {
       candidate_id: candidate.id,
       reply_draft_id: draftId,
@@ -448,7 +448,7 @@ function buildNudgeSystemPrompt(
 ): string {
   let stepGuidance = "";
   if (nudgeStep === 1) {
-    stepGuidance = `NUDGE 1 (day 3): They went quiet after your reply. Don't "check in." Add something new — a different angle on what they originally replied about. Short. One new thought, one soft CTA if natural.`;
+    stepGuidance = `NUDGE 1 (day 3): They went quiet after your reply. Don't "check in." Add something new, a different angle on what they originally replied about. Short. One new thought, one soft CTA if natural.`;
   } else if (nudgeStep === 2) {
     stepGuidance = `NUDGE 2 (day 7): Second silence. Different approach entirely. If they asked about the shoot → share proof from a similar business. If they were curious about pricing → reframe value. Don't reference the silence.`;
   } else {
@@ -470,21 +470,21 @@ PROSPECT TRACK: ${track === "saas" ? "SaaS subscription products" : "Creative + 
 ORIGINAL REPLY CLASSIFICATION: ${classification}
 
 TRIAL SHOOT (retainer track primary CTA):
-Two tiers — Session ($397, 60-90 min on-site, 1 video, 10-15 photos) and Production ($597, up to 2 hours, 2 videos, 20-25 photos). Both include a custom six-week marketing plan and private portal access.
+Two tiers, Session ($397, 60-90 min on-site, 1 video, 10-15 photos) and Production ($597, up to 2 hours, 2 videos, 20-25 photos). Both include a custom six-week marketing plan and private portal access.
 Booking page: https://superbadmedia.com.au/trial-shoot
 
 ${stepGuidance}
 
 RULES:
-- Write as Andy. Same voice as the outreach and reply — dry, observational, real.
+- Write as Andy. Same voice as the outreach and reply, dry, observational, real.
 - NEVER say "following up", "checking in", "bumping this", "as I mentioned", "just wanted to."
 - Don't reference the silence or how long it's been. Just add value.
 - Match the length of the original conversation. If they wrote short, you write short.
 - No fake urgency. No false scarcity.
-- The booking link is https://superbadmedia.com.au/trial-shoot — include only when contextually natural.
+- The booking link is https://superbadmedia.com.au/trial-shoot, include only when contextually natural.
 
 OUTPUT FORMAT:
-Respond with a JSON object only — no prose, no markdown fences:
+Respond with a JSON object only, no prose, no markdown fences:
 {"subject": "...", "body_markdown": "..."}`;
 }
 
@@ -541,11 +541,11 @@ Session tier has gone from $${quotedDollars} to $${currentDollars} since we last
 Discount code: ${pricing.discountCode}
 Booking link with code: https://superbadmedia.com.au/trial-shoot?code=${pricing.discountCode}
 
-Frame it as: "We've put our prices up since we last spoke — Session is $${currentDollars} now. Happy to honour the $${quotedDollars} if you book in the next week. After that it's the new price."
-This is a courtesy with a real boundary — not fake urgency. The hold has a real deadline.`;
+Frame it as: "We've put our prices up since we last spoke, Session is $${currentDollars} now. Happy to honour the $${quotedDollars} if you book in the next week. After that it's the new price."
+This is a courtesy with a real boundary, not fake urgency. The hold has a real deadline.`;
   }
 
-  return `You are writing a long-tail re-engagement email on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia). This prospect showed interest ~60 days ago but went quiet. This is the last touch — it must bring genuinely new information, not "remember me."
+  return `You are writing a long-tail re-engagement email on behalf of Andy Robinson, founder of SuperBad Marketing (Melbourne, Australia). This prospect showed interest ~60 days ago but went quiet. This is the last touch, it must bring genuinely new information, not "remember me."
 
 BRAND VOICE:
 ${brandProfile.voiceDescription}
@@ -559,20 +559,20 @@ Email: ${SUPERBAD_SENDER.local_part}@${SUPERBAD_SENDER.domain}
 PROSPECT TRACK: ${track === "saas" ? "SaaS subscription products" : "Creative + performance retainer"}
 
 TRIAL SHOOT:
-Two tiers — Session ($397, 60-90 min) and Production ($597, up to 2 hours). Both include a 6-week marketing plan and private portal.
+Two tiers, Session ($397, 60-90 min) and Production ($597, up to 2 hours). Both include a 6-week marketing plan and private portal.
 Booking page: https://superbadmedia.com.au/trial-shoot
 ${pricingGuidance}
 
 RULES:
-- This must open with something genuinely new — a new observation about their business, new work you've done, a real update. Not "it's been a while."
+- This must open with something genuinely new, a new observation about their business, new work you've done, a real update. Not "it's been a while."
 - NEVER say "following up", "checking in", "bumping this", "it's been a while", "I know it's been some time."
 - Write as Andy. Dry, real, brief. Two-three sentences max for the new observation.
-- If a price hold applies, mention it naturally — it's a favour with a deadline, not pressure.
+- If a price hold applies, mention it naturally, it's a favour with a deadline, not pressure.
 - Include the booking link (with discount code if applicable).
 - No fake urgency. The only urgency is the 7-day code expiry, which is real.
 
 OUTPUT FORMAT:
-Respond with a JSON object only — no prose, no markdown fences:
+Respond with a JSON object only, no prose, no markdown fences:
 {"subject": "...", "body_markdown": "..."}`;
 }
 

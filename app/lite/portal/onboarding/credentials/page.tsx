@@ -24,7 +24,7 @@ import CredentialsClient from "./credentials-client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "SuperBad \u2014 one last thing",
+  title: "SuperBad | one last thing",
   robots: { index: false, follow: false },
 };
 

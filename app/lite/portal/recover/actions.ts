@@ -1,7 +1,7 @@
 /**
  * Server Action: request a fresh portal magic-link.
  *
- * Called from the recovery form. Always returns void — success and
+ * Called from the recovery form. Always returns void, success and
  * "no account found" both resolve silently to prevent email enumeration.
  *
  * Owner: IF-4.
@@ -45,9 +45,9 @@ export async function requestPortalLink(email: string): Promise<void> {
         to: normalised,
         subject: "Your SuperBad portal link",
         body: `<p>Hey,</p>
-<p>Here's your fresh portal link — valid for 7 days.</p>
+<p>Here's your fresh portal link, valid for 7 days.</p>
 <p><a href="${url}">Open your portal →</a></p>
-<p>— Andy</p>`,
+<p>Andy</p>`,
         classification: "portal_magic_link_recovery",
         purpose: "portal_recovery_form",
       });
@@ -74,9 +74,9 @@ export async function requestPortalLink(email: string): Promise<void> {
     to: normalised,
     subject: "Your SuperBad portal link",
     body: `<p>Hey ${firstName},</p>
-<p>Here's your fresh portal link — valid for 7 days.</p>
+<p>Here's your fresh portal link, valid for 7 days.</p>
 <p><a href="${url}">Open your portal →</a></p>
-<p>— Andy</p>`,
+<p>Andy</p>`,
     classification: "portal_magic_link_recovery",
     purpose: "portal_recovery_form",
   });

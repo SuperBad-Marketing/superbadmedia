@@ -99,7 +99,7 @@ function MenuToggle({
   );
 }
 
-/* ── Redaction — the "generic → honest" reveal ── */
+/* ── Redaction, the "generic → honest" reveal ── */
 function Redaction({
   generic,
   honest,
@@ -184,7 +184,7 @@ function Redaction({
   );
 }
 
-/* ── Screen — a single snap section ── */
+/* ── Screen, a single snap section ── */
 function Screen({
   children,
   align = "left",
@@ -222,7 +222,7 @@ function Screen({
   );
 }
 
-/* ── Statement — a plain confident statement with spring entrance ── */
+/* ── Statement, a plain confident statement with spring entrance ── */
 function Statement({
   children,
   delay = 0,
@@ -253,7 +253,7 @@ function Statement({
   );
 }
 
-/* ── Services Marquee — kinetic "what we do" ── */
+/* ── Services Marquee, kinetic "what we do" ── */
 function ServicesMarquee({ reduced }: { reduced: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const entranceInView = useInView(ref, { once: true, amount: 0.3 });
@@ -556,7 +556,7 @@ export default function HomePage() {
 
       {/* ── Scroll-snap container ── */}
       <div className="relative z-10 h-dvh snap-y snap-mandatory overflow-y-scroll">
-        {/* ── Screen 1 — Hero ── */}
+        {/* ── Screen 1, Hero ── */}
         <Screen>
           <motion.div
             initial="hidden"
@@ -677,7 +677,7 @@ export default function HomePage() {
             </div>
         </Screen>
 
-        {/* ── Screen 2 — Statement: entertainment platform ── */}
+        {/* ── Screen 2, Statement: entertainment platform ── */}
         <Screen surface={1}>
           <div ref={entertainRef}>
             <p
@@ -718,13 +718,13 @@ export default function HomePage() {
             >
               Not a sales platform. Not a brochure with a comments section.
               People open Instagram for the same reason they turn on Netflix
-              — to relate to something, or to be entertained. Not to be sold
+             , to relate to something, or to be entertained. Not to be sold
               something.
             </motion.p>
           </div>
         </Screen>
 
-        {/* ── Screen 3 — Redaction #1 ── */}
+        {/* ── Screen 3, Redaction #1 ── */}
         <Screen>
           <Redaction
             generic="We create data-driven content strategies that drive engagement and build brand awareness across all digital channels."
@@ -752,7 +752,7 @@ export default function HomePage() {
           />
         </Screen>
 
-        {/* ── Screen 4 — Emotion over features (brand red) ── */}
+        {/* ── Screen 4, Emotion over features (brand red) ── */}
         <Screen surface="brand">
           <div ref={emotionRef}>
             <p
@@ -810,12 +810,12 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 1.0, ease: EASE }}
             >
               Every purchase decision is emotional first. The logic comes after
-              — to justify what they already wanted.
+             , to justify what they already wanted.
             </motion.p>
           </div>
         </Screen>
 
-        {/* ── Screen 5 — The anti-sell ── */}
+        {/* ── Screen 5, The anti-sell ── */}
         <Screen>
           <Redaction
             generic="Our proven methodology delivers measurable ROI through strategic multi-channel campaigns and performance-driven creative."
@@ -858,7 +858,7 @@ export default function HomePage() {
           />
         </Screen>
 
-        {/* ── Screen 6 — Patience (eight touchpoints) ── */}
+        {/* ── Screen 6, Patience (eight touchpoints) ── */}
         <Screen align="center" surface={1}>
           <div
             ref={patienceRef}
@@ -931,7 +931,7 @@ export default function HomePage() {
           </Statement>
         </Screen>
 
-        {/* ── Bridge — consistency requires alignment ── */}
+        {/* ── Bridge, consistency requires alignment ── */}
         <Screen align="center">
           <Statement>
             <p
@@ -967,7 +967,7 @@ export default function HomePage() {
           </Statement>
         </Screen>
 
-        {/* ── Screen 7 — Four agencies ── */}
+        {/* ── Screen 7, Four agencies ── */}
         <Screen surface={1}>
           <div ref={alignRef}>
             <p
@@ -1009,7 +1009,7 @@ export default function HomePage() {
               Your ad strategist works at one agency. Your creative director
               at another. Your content creator at a third. Your brand
               strategist at a fourth. Four different businesses, none of
-              which have met — all producing work that pulls in different
+              which have met, all producing work that pulls in different
               directions. The messaging doesn&rsquo;t align. The trust
               doesn&rsquo;t build. And the results don&rsquo;t compound.
             </motion.p>
@@ -1036,7 +1036,7 @@ export default function HomePage() {
           </div>
         </Screen>
 
-        {/* ── Bridge — the answer ── */}
+        {/* ── Bridge, the answer ── */}
         <Screen align="center">
           <Statement>
             <p
@@ -1054,7 +1054,7 @@ export default function HomePage() {
           </Statement>
         </Screen>
 
-        {/* ── Screen 8 — What we actually do ── */}
+        {/* ── Screen 8, What we actually do ── */}
         <Screen>
           <Redaction
             generic="We’re a full-service creative agency passionate about telling your brand’s story through innovative, best-in-class content solutions."
@@ -1077,7 +1077,7 @@ export default function HomePage() {
                   margin: 0,
                 }}
               >
-                But mostly — we figure out what makes your audience care, and
+                But mostly, we figure out what makes your audience care, and
                 then we make that.
               </p>
             }
@@ -1087,7 +1087,7 @@ export default function HomePage() {
         {/* ── Services Marquee ── */}
         <ServicesMarquee reduced={!!reduced} />
 
-        {/* ── Screen 9 — Social proof ── */}
+        {/* ── Screen 9, Social proof ── */}
         <Screen align="center">
           <Statement>
             <p
@@ -1118,12 +1118,12 @@ export default function HomePage() {
                 marginTop: "clamp(16px, 2vw, 24px)",
               }}
             >
-              &mdash; Marco, Melbourne
+              Marco, Melbourne
             </p>
           </Statement>
         </Screen>
 
-        {/* ── Screen 7 — Warm close ── */}
+        {/* ── Screen 7, Warm close ── */}
         <Screen align="center" surface={1}>
           <Statement>
             <p
@@ -1189,7 +1189,7 @@ export default function HomePage() {
           </Statement>
         </Screen>
 
-        {/* ── Screen 9 — CTA ── */}
+        {/* ── Screen 9, CTA ── */}
         <Screen>
           <Statement>
             <p
@@ -1249,7 +1249,7 @@ export default function HomePage() {
                   (e.currentTarget as HTMLElement).style.opacity = "1";
                 }}
               >
-                Trial shoot &mdash; from $397
+                Trial shoot · from $397
               </Link>
               <a
                 href="mailto:andy@superbadmedia.com.au"

@@ -27,7 +27,7 @@ export async function completeCloudinaryAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
 

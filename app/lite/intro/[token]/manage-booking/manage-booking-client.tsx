@@ -74,7 +74,7 @@ export function ManageBookingClient({
         selectedSlot.endMs,
       );
       if (result.ok) {
-        setDone("Rescheduled — new confirmation on the way.");
+        setDone("Rescheduled, new confirmation on the way.");
         setTimeout(() => router.push(`/lite/intro/${token}`), 2000);
       } else {
         setError(result.error ?? "Something went wrong");
@@ -172,7 +172,7 @@ export function ManageBookingClient({
               color: "var(--neutral-300)",
             }}
           >
-            {timeLabel} — about an hour, at your place.
+            {timeLabel}, about an hour, at your place.
           </p>
         </motion.div>
 
@@ -316,7 +316,7 @@ export function ManageBookingClient({
                 }}
               >
                 {booking.slotStartMs - Date.now() < 48 * 60 * 60 * 1000
-                  ? "This is inside 48 hours — your booking fee won't be refundable."
+                  ? "This is inside 48 hours, your booking fee won't be refundable."
                   : "Your booking fee will be fully refunded."}
               </p>
 

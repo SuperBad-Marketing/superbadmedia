@@ -45,11 +45,11 @@ const baseStyles = `
 export function buildBasPdfHtml(summary: BasSummary): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<title>BAS Summary — ${escapeHtml(summary.period.label)}</title>
+<title>BAS Summary, ${escapeHtml(summary.period.label)}</title>
 <style>${baseStyles}</style>
 </head><body>
 <h1>BAS Summary</h1>
-<p class="subtitle">${escapeHtml(summary.period.label)} &mdash; ${escapeHtml(summary.period.start)} to ${escapeHtml(summary.period.end)}<br>
+<p class="subtitle">${escapeHtml(summary.period.label)} , ${escapeHtml(summary.period.start)} to ${escapeHtml(summary.period.end)}<br>
 <span class="brand">SuperBad Media</span> &middot; Generated ${new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</p>
 
 <h2>GST Summary</h2>
@@ -85,11 +85,11 @@ export function buildPandLPdfHtml(summary: PandLSummary): string {
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<title>Profit &amp; Loss — ${escapeHtml(summary.period.label)}</title>
+<title>Profit &amp; Loss, ${escapeHtml(summary.period.label)}</title>
 <style>${baseStyles}</style>
 </head><body>
 <h1>Profit &amp; Loss</h1>
-<p class="subtitle">${escapeHtml(summary.period.label)} &mdash; ${escapeHtml(summary.period.start)} to ${escapeHtml(summary.period.end)}<br>
+<p class="subtitle">${escapeHtml(summary.period.label)} , ${escapeHtml(summary.period.start)} to ${escapeHtml(summary.period.end)}<br>
 <span class="brand">SuperBad Media</span> &middot; Generated ${new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</p>
 
 <table>

@@ -5,8 +5,8 @@ import { companySlug } from "@/lib/quote-builder/pdf-template";
 
 /**
  * ATO-compliant tax invoice PDF template (BI-1b). Mirrors the Quote
- * Builder template's visual language — cream background, charcoal text,
- * brand red accent — and adds the ATO-required "Tax Invoice" title,
+ * Builder template's visual language, cream background, charcoal text,
+ * brand red accent, and adds the ATO-required "Tax Invoice" title,
  * supplier block, itemised GST totals, and payment instructions.
  *
  * Admin compose/edit surfaces, Stripe payment element, and the scroll-
@@ -43,7 +43,7 @@ function moneyAud(cents: number): string {
 }
 
 function formatDate(ms: number | null | undefined): string {
-  if (!ms) return "—";
+  if (!ms) return "-";
   const d = new Date(ms);
   return d.toLocaleDateString("en-AU", {
     day: "numeric",
@@ -59,7 +59,7 @@ export function invoicePdfFilename(
   return `SuperBad-Invoice-${companySlug(company.name)}-${invoice.invoice_number}.pdf`;
 }
 
-/** Supplier block — SuperBad Media Pty Ltd. ABN read from env with fallback. */
+/** Supplier block, SuperBad Media Pty Ltd. ABN read from env with fallback. */
 export interface SupplierProfile {
   name: string;
   abn: string;
@@ -82,7 +82,7 @@ export function buildInvoicePdfHtml(input: InvoicePdfTemplateInput): string {
   const lineRows = lineItems
     .map(
       (l) => `<tr>
-  <td class="li-name">${escapeHtml(l.description || "—")}</td>
+  <td class="li-name">${escapeHtml(l.description || "-")}</td>
   <td class="li-qty">${l.quantity}</td>
   <td class="li-price">${moneyAud(l.unit_price_cents_inc_gst)}</td>
   <td class="li-total">${moneyAud(l.line_total_cents_inc_gst)}</td>
@@ -107,7 +107,7 @@ export function buildInvoicePdfHtml(input: InvoicePdfTemplateInput): string {
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>${escapeHtml(invoice.invoice_number)} — Tax Invoice — SuperBad</title>
+<title>${escapeHtml(invoice.invoice_number)}, Tax Invoice, SuperBad</title>
 <style>
   @page { size: A4 portrait; margin: 0; }
   html, body { margin: 0; padding: 0; background: #faf6ef; color: #1a1a1a; font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -237,7 +237,7 @@ export function buildInvoicePdfHtml(input: InvoicePdfTemplateInput): string {
   }
 
   <div class="footer">
-    Tax invoice issued by ${escapeHtml(supplier.name)}. Standard terms apply — read them at <a href="${escapeHtml(termsUrl)}">${escapeHtml(termsUrl)}</a>.
+    Tax invoice issued by ${escapeHtml(supplier.name)}. Standard terms apply, read them at <a href="${escapeHtml(termsUrl)}">${escapeHtml(termsUrl)}</a>.
   </div>
 </div>
 </body>

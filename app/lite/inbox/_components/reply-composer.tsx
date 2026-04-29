@@ -79,7 +79,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
     bodyRef.current = body;
   }, [body]);
 
-  // Rehydrate **only when the thread swaps** — never on cachedDraft* prop
+  // Rehydrate **only when the thread swaps**, never on cachedDraft* prop
   // flips. Spec §16 #60 + brief §12.8: Andy's in-progress edits must not
   // be clobbered by a server-driven re-render. Polling below handles
   // post-dirty → post-clean re-hydration explicitly.
@@ -264,7 +264,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
         setStale(false);
         setToast({
           kind: "ok",
-          text: "Fresh draft on the way — it'll land shortly.",
+          text: "Fresh draft on the way, it'll land shortly.",
         });
       } else {
         setToast({ kind: "error", text: result.error });
@@ -307,7 +307,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
               className="text-[color:var(--color-brand-pink)]"
             />
             <span className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)]">
-              New message arrived — regenerate draft?
+              New message arrived, regenerate draft?
             </span>
             <button
               type="button"
@@ -315,7 +315,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
               disabled={regenBusy || !props.llmEnabled}
               title={
                 !props.llmEnabled
-                  ? "Regenerate's paused — LLM calls off."
+                  ? "Regenerate's paused, LLM calls off."
                   : undefined
               }
               className={cn(
@@ -390,7 +390,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
           disabled={llmDisabled || body.trim().length === 0}
           title={
             llmDisabled
-              ? "Refine's paused — LLM calls off."
+              ? "Refine's paused, LLM calls off."
               : body.trim().length === 0
                 ? "Write something first."
                 : "Refine this draft"
@@ -444,7 +444,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
                 disabled={sendDisabled}
                 title={
                   !props.sendEnabled
-                    ? "Sending's paused — try again in a minute."
+                    ? "Sending's paused, try again in a minute."
                     : body.trim().length === 0
                       ? "Write a reply first."
                       : "Send reply + mark ticket resolved"
@@ -466,7 +466,7 @@ export function ReplyComposer(props: ReplyComposerProps) {
             disabled={sendDisabled}
             title={
               !props.sendEnabled
-                ? "Sending's paused — try again in a minute."
+                ? "Sending's paused, try again in a minute."
                 : body.trim().length === 0
                   ? "Write something first."
                   : "Send reply"

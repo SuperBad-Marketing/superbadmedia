@@ -83,7 +83,7 @@ export function ReflectionClient({
       // Q1 safety valve branch
       if (
         currentQ.index === 1 &&
-        answer === "There was something off — I'd like to share"
+        answer === "There was something off, I'd like to share"
       ) {
         setPhase("safety_valve_text");
         return;
@@ -150,7 +150,7 @@ export function ReflectionClient({
   const synthesisText =
     synthesisResult ??
     existingReflection?.synthesis_text ??
-    "You showed up. That's the part most people talk about but don't do.\n\nEverything from the shoot — the photos, the video, the plan — it's in your portal whenever you're ready to look at it properly. Take your time with it.\n\nIf something clicks, you know where to find us.";
+    "You showed up. That's the part most people talk about but don't do.\n\nEverything from the shoot, the photos, the video, the plan, it's in your portal whenever you're ready to look at it properly. Take your time with it.\n\nIf something clicks, you know where to find us.";
 
   return (
     <main
@@ -353,7 +353,7 @@ export function ReflectionClient({
                   marginTop: 12,
                 }}
               >
-                Your photos, video, and plan are still in your portal — nothing
+                Your photos, video, and plan are still in your portal, nothing
                 changes there.
               </p>
               <a
@@ -458,7 +458,7 @@ export function ReflectionClient({
                     opacity: pending ? 0.6 : 1,
                   }}
                 >
-                  Yes — let&rsquo;s talk about what&rsquo;s next
+                  Yes, let&rsquo;s talk about what&rsquo;s next
                 </motion.button>
                 <motion.button
                   onClick={() => handleDecision("think_about_it")}

@@ -119,7 +119,7 @@ export function ThreadDetail({
             ) : (
               <span
                 aria-disabled="true"
-                title="Walk-in thread — no linked contact yet."
+                title="Walk-in thread, no linked contact yet."
                 className={cn(
                   "inline-flex items-center gap-1 rounded-sm px-2 py-0.5",
                   "bg-[color:var(--color-surface-2)] text-[color:var(--color-neutral-500)]",
@@ -195,7 +195,7 @@ function KeepToggle({ keepPinned }: { keepPinned: boolean }) {
     <button
       type="button"
       onClick={() => setPinned((v) => !v)}
-      title={pinned ? "Pinned — click to unpin" : "Pin this thread"}
+      title={pinned ? "Pinned, click to unpin" : "Pin this thread"}
       className={cn(
         "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-2 py-1",
         "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
@@ -294,7 +294,7 @@ export function ThreadDetailEmpty() {
         Pick a thread.
       </h2>
       <em className="font-[family-name:var(--font-narrative)] text-[length:var(--text-body)] text-[color:var(--color-brand-pink)]">
-        or write a new one — the Compose button&rsquo;s up there.
+        or write a new one, the Compose button&rsquo;s up there.
       </em>
     </div>
   );

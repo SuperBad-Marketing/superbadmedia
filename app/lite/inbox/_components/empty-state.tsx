@@ -3,7 +3,7 @@
 import type { InboxView } from "../_queries/list-threads";
 
 /**
- * Spec §4.6 — voice-treated empty surfaces. Copy per UI-8 brief §2:
+ * Spec §4.6, voice-treated empty surfaces. Copy per UI-8 brief §2:
  * focus is spec-verbatim; rest are authored for UI-8 and swappable.
  */
 const COPY: Record<

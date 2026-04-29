@@ -3,12 +3,12 @@
 /**
  * Server Actions for the `twilio` wizard.
  *
- * Celebration orchestrator only. No `testTwilioAction` counterpart — the
+ * Celebration orchestrator only. No `testTwilioAction` counterpart, the
  * live `GET /Accounts/<SID>.json` Basic-auth ping runs inside the wizard's
  * `completionContract.verify`, called from `verifyCompletion` after
  * `registerIntegration` has written the row.
  *
- * Credential blob shape: `{ accountSid, authToken }` — JSON.stringified
+ * Credential blob shape: `{ accountSid, authToken }`, JSON.stringified
  * before handing off because `registerIntegration` credentials.plaintext
  * is typed `string`. Consumer feature sessions parse it back out.
  *
@@ -43,7 +43,7 @@ export async function completeTwilioAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
   const ctx = { ownerType: "admin" as const, ownerId };

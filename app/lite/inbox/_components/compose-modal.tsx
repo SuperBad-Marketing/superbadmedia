@@ -116,7 +116,7 @@ export function ComposeModal({
         setBody(result.draft.draft_body);
         setIntentVisible(false);
       } else if (result.draft.outcome === "skipped_kill_switch") {
-        setError("Draft-for-me paused — LLM calls off.");
+        setError("Draft-for-me paused, LLM calls off.");
       } else {
         setError("Couldn't draft this time. Write it yourself and I'll refine.");
       }
@@ -372,7 +372,7 @@ export function ComposeModal({
                 <input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Subject (optional — I'll pick one at send time)"
+                  placeholder="Subject (optional, I'll pick one at send time)"
                   className="rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
                 />
 
@@ -381,7 +381,7 @@ export function ComposeModal({
                     <input
                       value={intent}
                       onChange={(e) => setIntent(e.target.value)}
-                      placeholder="One-line intent — what are you trying to say?"
+                      placeholder="One-line intent, what are you trying to say?"
                       className="flex-1 rounded-sm border border-[color:var(--color-accent-cta)]/40 bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
                     />
                     <button
@@ -429,7 +429,7 @@ export function ComposeModal({
                 type="button"
                 onClick={() => setIntentVisible((v) => !v)}
                 disabled={!llmEnabled}
-                title={!llmEnabled ? "Draft-for-me paused — LLM calls off." : undefined}
+                title={!llmEnabled ? "Draft-for-me paused, LLM calls off." : undefined}
                 className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Sparkles size={12} strokeWidth={1.75} aria-hidden />
@@ -443,7 +443,7 @@ export function ComposeModal({
                 }}
                 title={
                   attachments.length > 0
-                    ? `${attachments.length} attached — click to add more`
+                    ? `${attachments.length} attached, click to add more`
                     : "Attach files"
                 }
                 className={cn(
@@ -469,7 +469,7 @@ export function ComposeModal({
               <button
                 type="button"
                 disabled
-                title="Sending new invites from Lite — coming later."
+                title="Sending new invites from Lite, coming later."
                 className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)] opacity-50"
               >
                 <CalendarDays size={12} strokeWidth={1.75} aria-hidden />
@@ -508,7 +508,7 @@ export function ComposeModal({
                   disabled={!sendEnabled || busy !== "idle" || body.trim().length === 0 || !recipient}
                   title={
                     !sendEnabled
-                      ? "Sending's paused — try again in a minute."
+                      ? "Sending's paused, try again in a minute."
                       : undefined
                   }
                   className="flex items-center gap-1.5 rounded-sm bg-[color:var(--color-accent-cta)] px-4 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-100)] outline-none transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"

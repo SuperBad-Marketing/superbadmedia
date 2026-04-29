@@ -99,7 +99,7 @@ export async function triggerSafetyValve(
   await logActivity({
     dealId,
     kind: "post_trial_negative_feedback",
-    body: "Safety valve triggered during reflection — urgent follow-up needed",
+    body: "Safety valve triggered during reflection, urgent follow-up needed",
     meta: { reflection_id: reflectionId, feedback_length: feedback.length },
   });
 }
@@ -129,7 +129,7 @@ export async function completeReflection(
     ? synthesisResult.text
     : synthesisResult.fallbackText;
 
-  // Retainer-fit fires in background — including on safety-valve path (per §13.4)
+  // Retainer-fit fires in background, including on safety-valve path (per §13.4)
   generateRetainerFitRecommendation(reflectionId).catch(() => {});
 
   await logActivity({
@@ -162,7 +162,7 @@ export async function recordDecision(
     await logActivity({
       dealId,
       kind: "intro_funnel_state_transition",
-      body: "Prospect chose 'let's talk about what's next' — urgent follow-up",
+      body: "Prospect chose 'let's talk about what's next', urgent follow-up",
       meta: { reflection_id: reflectionId, decision: "yes_talk" },
     });
   } else {
@@ -177,7 +177,7 @@ export async function recordDecision(
     await logActivity({
       dealId,
       kind: "intro_funnel_state_transition",
-      body: "Prospect chose 'let me think about it' — portal transitions to dormant",
+      body: "Prospect chose 'let me think about it', portal transitions to dormant",
       meta: { reflection_id: reflectionId, decision: "think_about_it" },
     });
   }

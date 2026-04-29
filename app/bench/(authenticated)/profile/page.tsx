@@ -7,7 +7,7 @@ import { getBenchSession } from "@/lib/bench/guard";
 import { ProfileSurface } from "@/components/lite/bench/profile-surface";
 
 export const metadata = {
-  title: "SuperBad — Profile",
+  title: "SuperBad | Profile",
 };
 
 export default async function BenchProfilePage() {

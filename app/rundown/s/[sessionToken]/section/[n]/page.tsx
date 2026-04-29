@@ -11,7 +11,7 @@ import { getQuestionsForSection, SECTION_TITLES } from "@/lib/brand-dna/question
 import { QuestionCardClient } from "@/app/lite/brand-dna/section/[n]/question-card-client";
 import { submitRundownAnswer, rundownGoBack } from "../../actions";
 
-export const metadata: Metadata = { title: "Brand DNA — SuperBad" };
+export const metadata: Metadata = { title: "Brand DNA | SuperBad" };
 
 interface Props {
   params: Promise<{ sessionToken: string; n: string }>;

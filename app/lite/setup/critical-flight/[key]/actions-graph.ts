@@ -4,7 +4,7 @@
  * Server Actions for the `graph-api-admin` critical-flight wizard.
  *
  * One action:
- *   - `completeGraphAdminAction(payload)` — celebration onComplete
+ *   - `completeGraphAdminAction(payload)`, celebration onComplete
  *     orchestrator. Runs registerIntegration → verifyCompletion →
  *     wizard_completions insert → `unstable_update()` to refresh the JWT's
  *     `critical_flight_complete` claim. Mirrors stripe-admin / resend
@@ -92,7 +92,7 @@ export async function completeGraphAdminAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
   const ctx = { ownerType: "admin" as const, ownerId };

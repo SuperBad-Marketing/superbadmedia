@@ -6,7 +6,7 @@ import { getBenchSession } from "@/lib/bench/guard";
 import { AssignmentsList } from "@/components/lite/bench/assignments-list";
 
 export const metadata = {
-  title: "SuperBad — Assignments",
+  title: "SuperBad | Assignments",
 };
 
 export default async function BenchAssignmentsPage() {

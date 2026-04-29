@@ -9,7 +9,7 @@ import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { AlignmentGateClient } from "@/app/lite/brand-dna/alignment-gate-client";
 import { submitRundownAlignmentGate } from "./actions";
 
-export const metadata: Metadata = { title: "Brand DNA — SuperBad" };
+export const metadata: Metadata = { title: "Brand DNA | SuperBad" };
 
 interface Props {
   params: Promise<{ sessionToken: string }>;

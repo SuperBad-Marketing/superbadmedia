@@ -14,7 +14,7 @@ export type ContactSuggestion = {
 /**
  * Contact picker for the compose modal. SQLite LIKE search on
  * `contacts.name` + `contacts.email` (first 20 results, good-enough
- * for v1 — brief §12.11). Arrow keys + Enter; typing a string not in
+ * for v1, brief §12.11). Arrow keys + Enter; typing a string not in
  * the list surfaces a "Use [typed]" fallback.
  *
  * The search function is injected so tests can stub it and the
@@ -56,7 +56,7 @@ export function ContactPicker({
       if (hit.email) {
         onPick({ contactId: hit.id, email: hit.email, name: hit.name });
       } else {
-        // no email on record — caller will prompt
+        // no email on record, caller will prompt
         onPick({ contactId: hit.id, email: "", name: hit.name });
       }
     } else if (fallbackEmail) {
@@ -129,7 +129,7 @@ export function ContactPicker({
               >
                 <span className="block">{r.name}</span>
                 <span className="block text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]">
-                  {r.email ?? "no email on record"} · {r.companyName ?? "—"}
+                  {r.email ?? "no email on record"} · {r.companyName ?? "-"}
                 </span>
               </li>
             ))}

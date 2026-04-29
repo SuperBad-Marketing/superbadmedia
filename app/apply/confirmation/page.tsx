@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Application Received — SuperBad",
+  title: "Application Received, SuperBad",
   robots: { index: false },
 };
 
@@ -88,7 +88,7 @@ export default function ApplyConfirmationPage() {
           }}
         >
           We&apos;ll have a look through your work and follow up shortly.
-          Check your inbox — there might be a question waiting.
+          Check your inbox, there might be a question waiting.
         </p>
       </div>
     </main>

@@ -6,7 +6,7 @@ import { getBenchSession } from "@/lib/bench/guard";
 import { InvoicesSurface } from "@/components/lite/bench/invoices-surface";
 
 export const metadata = {
-  title: "SuperBad — Invoices",
+  title: "SuperBad | Invoices",
 };
 
 export default async function BenchInvoicesPage() {

@@ -4,13 +4,13 @@
  * Server Actions for the stripe-admin critical-flight wizard.
  *
  * Three actions:
- *   - `testStripeKeyAction(key)` — client invokes from api-key-paste step.
+ *   - `testStripeKeyAction(key)`, client invokes from api-key-paste step.
  *     Live `balance.retrieve` ping. Returns StepValidationResult shape.
- *   - `checkStripeWebhookReceivedAction(sinceMs)` — client polls from
+ *   - `checkStripeWebhookReceivedAction(sinceMs)`, client polls from
  *     webhook-probe step. Looks for a row in `external_call_log` with
  *     job=`stripe.webhook.receive` since the step started. Real webhook
- *     receiver endpoint + emitter land in SW-5b (PATCHES_OWED — see handoff).
- *   - `completeStripeAdminAction(payload)` — celebration onComplete
+ *     receiver endpoint + emitter land in SW-5b (PATCHES_OWED, see handoff).
+ *   - `completeStripeAdminAction(payload)`, celebration onComplete
  *     orchestrator. Runs verifyCompletion → registerIntegration →
  *     wizard_completions insert → `unstable_update()` to refresh the JWT's
  *     critical_flight_complete claim. Rolls back (no partial rows) on any
@@ -82,7 +82,7 @@ export async function completeStripeAdminAction(
 ): Promise<CelebrationCompleteResult> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { ok: false, reason: "Session expired — sign in again." };
+    return { ok: false, reason: "Session expired, sign in again." };
   }
   const ownerId = session.user.id;
   const ctx = { ownerType: "admin" as const, ownerId };

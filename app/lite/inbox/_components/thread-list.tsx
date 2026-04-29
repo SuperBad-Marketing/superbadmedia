@@ -212,7 +212,7 @@ export function ThreadList({
           {hasMore && (
             <li className="px-5 py-3 text-center">
               <span className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)]">
-                More threads off-screen — pagination lands post-UI-8.
+                More threads off-screen, pagination lands post-UI-8.
               </span>
             </li>
           )}

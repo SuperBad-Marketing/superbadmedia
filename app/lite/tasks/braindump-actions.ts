@@ -143,7 +143,7 @@ export async function commitBraindumpAction(
 
     await logActivity({
       kind: "braindump_committed",
-      body: `Braindump committed — ${taskIds.length} task${taskIds.length === 1 ? "" : "s"}, ${contentPostIds.length} post${contentPostIds.length === 1 ? "" : "s"}, ${scriptIds.length} script${scriptIds.length === 1 ? "" : "s"}`,
+      body: `Braindump committed, ${taskIds.length} task${taskIds.length === 1 ? "" : "s"}, ${contentPostIds.length} post${contentPostIds.length === 1 ? "" : "s"}, ${scriptIds.length} script${scriptIds.length === 1 ? "" : "s"}`,
       meta: {
         braindump_id: braindump.id,
         task_ids: taskIds,

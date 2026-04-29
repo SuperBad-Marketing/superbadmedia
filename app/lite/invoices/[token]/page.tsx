@@ -1,11 +1,11 @@
 /**
- * /lite/invoices/[token] — client-facing invoice page (BI-2b slice).
+ * /lite/invoices/[token] | client-facing invoice page (BI-2b slice).
  *
  * Full branded two-section scroll-snap experience per spec §4.4:
  *   §1 the invoice; §2 payment (bank transfer details + Stripe Payment
  *   Element). Paid/overdue/void state branches handled server-side.
  *
- * Public surface (no auth) — proxy allowlists `/lite/invoices/`.
+ * Public surface (no auth) | proxy allowlists `/lite/invoices/`.
  */
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -48,7 +48,7 @@ export async function generateMetadata({
     return { title: "SuperBad", robots: { index: false, follow: false } };
   }
   return {
-    title: `Tax Invoice ${row.invoice_number} — SuperBad`,
+    title: `Tax Invoice ${row.invoice_number} | SuperBad`,
     robots: { index: false, follow: false },
   };
 }
