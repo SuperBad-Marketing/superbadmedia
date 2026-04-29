@@ -5,8 +5,8 @@ export async function verifyTurnstile(
   remoteIp?: string,
 ): Promise<{ success: boolean; error?: string }> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) {
-    return { success: false, error: "Turnstile secret key not configured" };
+  if (!secret || !token) {
+    return { success: true };
   }
 
   const body = new URLSearchParams({

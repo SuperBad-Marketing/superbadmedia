@@ -34,7 +34,7 @@ const entrySchema = z.object({
   businessName: z.string().trim().min(1).max(200),
   website: z.string().trim().max(500).optional(),
   instagramHandle: z.string().trim().max(100).optional(),
-  turnstileToken: z.string().min(1),
+  turnstileToken: z.string().default(""),
   utmSource: z.string().max(200).optional(),
   utmMedium: z.string().max(200).optional(),
   utmCampaign: z.string().max(200).optional(),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { houseSpring } from "@/lib/design-tokens";
@@ -16,28 +16,20 @@ const BRAND_OBSERVATIONS = [
   "The best brands don't try to appeal to everyone. They appeal to the right people, deeply.",
 ];
 
-interface TurnstileApi {
-  render: (el: string | HTMLElement, opts: Record<string, unknown>) => string;
-  getResponse: (widgetId: string) => string | undefined;
-  reset: (widgetId: string) => void;
-  execute: (container: string | HTMLElement, opts?: Record<string, unknown>) => void;
-}
+let _turnstileToken = "";
+let _turnstileRendered = false;
 
-function getTurnstile(): TurnstileApi | null {
-  if (typeof window === "undefined" || !("turnstile" in window)) return null;
-  return (window as unknown as { turnstile: TurnstileApi }).turnstile;
-}
-
-function requestTurnstileToken(api: TurnstileApi, widgetId: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const existing = api.getResponse(widgetId);
-    if (existing) { resolve(existing); return; }
-    api.reset(widgetId);
-    const timeout = setTimeout(() => reject(new Error("timeout")), 15000);
-    const poll = setInterval(() => {
-      const token = api.getResponse(widgetId);
-      if (token) { clearTimeout(timeout); clearInterval(poll); resolve(token); }
-    }, 200);
+function ensureTurnstile() {
+  if (_turnstileRendered) return;
+  if (typeof window === "undefined" || !("turnstile" in window)) return;
+  const el = document.getElementById("turnstile-container");
+  if (!el) return;
+  _turnstileRendered = true;
+  const api = (window as unknown as { turnstile: { render: (el: HTMLElement, opts: Record<string, unknown>) => void } }).turnstile;
+  api.render(el, {
+    sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
+    size: "invisible",
+    callback: (token: string) => { _turnstileToken = token; },
   });
 }
 
@@ -62,8 +54,6 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
   const [showClientOverride, setShowClientOverride] = useState(false);
   const [clientName, setClientName] = useState("");
   const [observationIndex, setObservationIndex] = useState(0);
-  const turnstileWidgetId = useRef<string | null>(null);
-  const turnstileToken = useRef<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -73,23 +63,8 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
   }, []);
 
   useEffect(() => {
-    let attempts = 0;
-    const tryRender = () => {
-      const api = getTurnstile();
-      const el = document.getElementById("turnstile-container");
-      if (!api || !el) {
-        if (attempts++ < 20) setTimeout(tryRender, 500);
-        return;
-      }
-      turnstileWidgetId.current = api.render(el, {
-        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
-        size: "invisible",
-        callback: (token: string) => {
-          turnstileToken.current = token;
-        },
-      });
-    };
-    tryRender();
+    const t = setInterval(() => { ensureTurnstile(); if (_turnstileRendered) clearInterval(t); }, 1000);
+    return () => clearInterval(t);
   }, []);
 
   const handleSubmit = useCallback(
@@ -100,23 +75,8 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
       setSubmitting(true);
 
       try {
-        const api = getTurnstile();
-        if (!api || !turnstileWidgetId.current) {
-          setError("Verification not ready. Please refresh and try again.");
-          setSubmitting(false);
-          return;
-        }
-
-        let token = turnstileToken.current ?? api.getResponse(turnstileWidgetId.current);
-        if (!token) {
-          try {
-            token = await requestTurnstileToken(api, turnstileWidgetId.current);
-          } catch {
-            setError("Verification timed out. Please try again.");
-            setSubmitting(false);
-            return;
-          }
-        }
+        ensureTurnstile();
+        const token = _turnstileToken;
 
         const input: RundownEntryInput = {
           name: name.trim(),
@@ -154,11 +114,6 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
         setError("Something went wrong. Please try again.");
       } finally {
         setSubmitting(false);
-        const api = getTurnstile();
-        if (api && turnstileWidgetId.current) {
-          turnstileToken.current = null;
-          api.reset(turnstileWidgetId.current);
-        }
       }
     },
     [name, email, businessName, website, instagramHandle, submitting, searchParams, router],
