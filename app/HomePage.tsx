@@ -319,7 +319,7 @@ function ServicesMarquee({ reduced }: { reduced: boolean }) {
             display: "flex",
             whiteSpace: "nowrap",
             animation: !reduced
-              ? "marquee-left 50s linear infinite"
+              ? "marquee-left 35s linear infinite"
               : "none",
             animationPlayState: scrollInView ? "running" : "paused",
           }}
@@ -360,7 +360,7 @@ function ServicesMarquee({ reduced }: { reduced: boolean }) {
             display: "flex",
             whiteSpace: "nowrap",
             animation: !reduced
-              ? "marquee-right 45s linear infinite"
+              ? "marquee-right 30s linear infinite"
               : "none",
             animationPlayState: scrollInView ? "running" : "paused",
           }}
@@ -913,6 +913,42 @@ export default function HomePage() {
           </Statement>
         </Screen>
 
+        {/* ── Bridge — consistency requires alignment ── */}
+        <Screen align="center">
+          <Statement>
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(28px, 4.5vw, 56px)",
+                lineHeight: 1.1,
+                color: "var(--neutral-100)",
+                margin: "0 auto",
+                maxWidth: "18ch",
+              }}
+              className="text-balance"
+            >
+              Eight touchpoints. Same voice, same feeling, same story. Every time
+              <span style={{ color: "var(--brand-red)" }}>.</span>
+            </p>
+          </Statement>
+          <Statement delay={0.15}>
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(16px, 1.8vw, 22px)",
+                lineHeight: 1.6,
+                color: "var(--neutral-500)",
+                margin: "0 auto",
+                marginTop: "clamp(20px, 3vw, 36px)",
+                maxWidth: "36ch",
+              }}
+              className="text-pretty"
+            >
+              That only works when everything comes from the same place.
+            </p>
+          </Statement>
+        </Screen>
+
         {/* ── Screen 7 — Four agencies ── */}
         <Screen surface={1}>
           <div ref={alignRef}>
@@ -980,6 +1016,24 @@ export default function HomePage() {
               Trust builds. And people only buy from people they trust.
             </motion.p>
           </div>
+        </Screen>
+
+        {/* ── Bridge — the answer ── */}
+        <Screen align="center">
+          <Statement>
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(36px, 6vw, 80px)",
+                lineHeight: 1,
+                color: "var(--neutral-100)",
+                margin: "0 auto",
+              }}
+            >
+              So we do all of it
+              <span style={{ color: "var(--brand-red)" }}>.</span>
+            </p>
+          </Statement>
         </Screen>
 
         {/* ── Screen 8 — What we actually do ── */}
