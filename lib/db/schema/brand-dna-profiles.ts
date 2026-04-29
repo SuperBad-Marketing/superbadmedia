@@ -62,6 +62,8 @@ export const brand_dna_profiles = sqliteTable(
     contact_id: text("contact_id"),
     /** FK to companies. */
     company_id: text("company_id"),
+    /** FK to lead_candidates. Set for Rundown-originated profiles. */
+    candidate_id: text("candidate_id"),
     /**
      * Auto-incremented per contact. Starts at 1. Enables retake versioning:
      * previous versions have is_current = 0.

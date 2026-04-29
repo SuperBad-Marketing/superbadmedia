@@ -32,6 +32,7 @@ interface RevealClientProps {
   sectionTitles: string[];
   signalTags: string[];
   alreadyComplete: boolean;
+  markComplete?: (profileId: string) => Promise<void>;
 }
 
 export function RevealClient(props: RevealClientProps) {
@@ -50,6 +51,7 @@ function RevealInner({
   sectionTitles,
   signalTags,
   alreadyComplete,
+  markComplete: externalMarkComplete,
 }: RevealClientProps) {
   const { play } = useSound();
   const { update } = useSession();
@@ -80,16 +82,19 @@ function RevealInner({
     let cancelled = false;
     const fire = window.setTimeout(() => {
       void (async () => {
-        await markProfileComplete(profileId);
-        if (cancelled) return;
-        await update();
+        if (externalMarkComplete) {
+          await externalMarkComplete(profileId);
+        } else {
+          await markProfileComplete(profileId);
+          if (!cancelled) await update();
+        }
       })();
     }, 800);
     return () => {
       cancelled = true;
       window.clearTimeout(fire);
     };
-  }, [phase, alreadyComplete, profileId, update]);
+  }, [phase, alreadyComplete, profileId, externalMarkComplete, update]);
 
   const { headline, headlineAccent } = splitImpressionHeadline(firstImpression);
   const paragraphs = splitPortraitParagraphs(prosePortrait);

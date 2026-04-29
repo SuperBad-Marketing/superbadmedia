@@ -131,6 +131,11 @@ export const companies = sqliteTable(
     revenue_segmentation_completed_at_ms: integer(
       "revenue_segmentation_completed_at_ms",
     ),
+    // ── Enrichment data (company-level, single source of truth) ──
+    viability_profile_json: text("viability_profile_json", { mode: "json" }),
+    enrichment_summary: text("enrichment_summary"),
+    enriched_at_ms: integer("enriched_at_ms"),
+
     first_seen_at_ms: integer("first_seen_at_ms").notNull(),
     created_at_ms: integer("created_at_ms").notNull(),
     updated_at_ms: integer("updated_at_ms").notNull(),

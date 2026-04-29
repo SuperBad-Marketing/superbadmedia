@@ -81,6 +81,9 @@ export const EMAIL_CLASSIFICATIONS = [
   // Andy has a relationship with. Not transactional; respects outreach kill
   // switch + quiet window.
   "milestone_outreach",
+  // Rundown — resume link email sent after entry. Transactional: the prospect
+  // just submitted their details and needs the link to continue.
+  "rundown_resume",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -119,6 +122,8 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "deliverable_approval_outcome",
   // TM-7 — task digest is operational admin email
   "task_morning_digest",
+  // Rundown — resume link is transactional (prospect just submitted, needs link)
+  "rundown_resume",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

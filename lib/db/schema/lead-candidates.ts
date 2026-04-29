@@ -26,6 +26,7 @@ export const CANDIDATE_SOURCES = [
   "instagram_location",
   "manual_brief",
   "manual_entry",
+  "brand_dna_rundown",
 ] as const;
 export type CandidateSource = (typeof CANDIDATE_SOURCES)[number];
 

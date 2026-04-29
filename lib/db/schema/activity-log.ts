@@ -432,6 +432,11 @@ export const ACTIVITY_LOG_KINDS = [
   "call_started",
   "call_completed",
   "adhoc_note_added",
+  // --- Brand DNA Rundown (4) ---
+  "rundown_entry_submitted",
+  "rundown_resume",
+  "rundown_assessment_started",
+  "rundown_completed",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];
