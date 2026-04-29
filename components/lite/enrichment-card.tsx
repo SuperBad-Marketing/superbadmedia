@@ -8,6 +8,7 @@ import {
   reEnrichCandidate,
   reEnrichCompany,
 } from "@/app/lite/admin/actions/re-enrich";
+import { removeEnrichmentSignal } from "@/app/lite/admin/actions/social-profiles";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -64,9 +65,13 @@ function SignalRow({
 function SignalGroup({
   title,
   children,
+  onRemove,
+  removing,
 }: {
   title: string;
   children: React.ReactNode;
+  onRemove?: () => void;
+  removing?: boolean;
 }) {
   return (
     <div
@@ -76,11 +81,25 @@ function SignalGroup({
         border: "1px solid rgba(253, 245, 230, 0.03)",
       }}
     >
-      <div
-        className="mb-2 font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)]"
-        style={{ letterSpacing: "1.5px" }}
-      >
-        {title}
+      <div className="mb-2 flex items-center justify-between">
+        <div
+          className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)]"
+          style={{ letterSpacing: "1.5px" }}
+        >
+          {title}
+        </div>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={removing}
+            className="font-[family-name:var(--font-label)] text-[8px] uppercase text-[color:var(--color-neutral-600)] hover:text-[color:var(--color-brand-red)] transition-colors cursor-pointer disabled:opacity-50"
+            style={{ letterSpacing: "1px" }}
+            title={`Remove ${title} data`}
+          >
+            {removing ? "..." : "remove"}
+          </button>
+        )}
       </div>
       <div className="flex flex-col">{children}</div>
     </div>
@@ -112,8 +131,22 @@ export function EnrichmentCard({
   const [open, setOpen] = React.useState(defaultOpen);
   const [enriching, setEnriching] = React.useState(false);
   const [enrichResult, setEnrichResult] = React.useState<string | null>(null);
+  const [removingSignal, setRemovingSignal] = React.useState<string | null>(null);
   const enrichable = !!(candidateId || companyId);
   const data = hasData(profile);
+
+  const target = candidateId
+    ? { candidateId }
+    : companyId
+      ? { companyId }
+      : null;
+
+  const handleRemoveSignal = async (signal: string) => {
+    if (!target) return;
+    setRemovingSignal(signal);
+    await removeEnrichmentSignal(target, signal);
+    setRemovingSignal(null);
+  };
 
   const handleReEnrich = async () => {
     setEnriching(true);
@@ -262,7 +295,7 @@ export function EnrichmentCard({
                   {/* Signal cards grid */}
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {profile?.instagram && (
-                      <SignalGroup title="Instagram">
+                      <SignalGroup title="Instagram" onRemove={() => handleRemoveSignal("instagram")} removing={removingSignal === "instagram"}>
                         <SignalRow
                           label="Followers"
                           value={profile.instagram.follower_count.toLocaleString()}
@@ -279,7 +312,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.facebook && (
-                      <SignalGroup title="Facebook">
+                      <SignalGroup title="Facebook" onRemove={() => handleRemoveSignal("facebook")} removing={removingSignal === "facebook"}>
                         <SignalRow
                           label="Page"
                           value={profile.facebook.page_name}
@@ -305,7 +338,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.tiktok && (
-                      <SignalGroup title="TikTok">
+                      <SignalGroup title="TikTok" onRemove={() => handleRemoveSignal("tiktok")} removing={removingSignal === "tiktok"}>
                         <SignalRow
                           label="Followers"
                           value={
@@ -325,7 +358,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.linkedin && (
-                      <SignalGroup title="LinkedIn">
+                      <SignalGroup title="LinkedIn" onRemove={() => handleRemoveSignal("linkedin")} removing={removingSignal === "linkedin"}>
                         <SignalRow
                           label="Company"
                           value={profile.linkedin.company_name}
@@ -345,7 +378,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.youtube && (
-                      <SignalGroup title="YouTube">
+                      <SignalGroup title="YouTube" onRemove={() => handleRemoveSignal("youtube")} removing={removingSignal === "youtube"}>
                         <SignalRow
                           label="Subscribers"
                           value={profile.youtube.subscriber_count.toLocaleString()}
@@ -362,7 +395,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.website && (
-                      <SignalGroup title="Website">
+                      <SignalGroup title="Website" onRemove={() => handleRemoveSignal("website")} removing={removingSignal === "website"}>
                         <SignalRow
                           label="PageSpeed"
                           value={
@@ -409,7 +442,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.maps && (
-                      <SignalGroup title="Google Maps">
+                      <SignalGroup title="Google Maps" onRemove={() => handleRemoveSignal("maps")} removing={removingSignal === "maps"}>
                         <SignalRow
                           label="Category"
                           value={profile.maps.category}
@@ -438,7 +471,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.meta_ads && (
-                      <SignalGroup title="Meta Ads">
+                      <SignalGroup title="Meta Ads" onRemove={() => handleRemoveSignal("meta_ads")} removing={removingSignal === "meta_ads"}>
                         <SignalRow
                           label="Active ads"
                           value={profile.meta_ads.active_ad_count}
@@ -457,7 +490,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.google_ads && (
-                      <SignalGroup title="Google Ads">
+                      <SignalGroup title="Google Ads" onRemove={() => handleRemoveSignal("google_ads")} removing={removingSignal === "google_ads"}>
                         <SignalRow
                           label="Active creatives"
                           value={profile.google_ads.active_creative_count}
@@ -474,7 +507,7 @@ export function EnrichmentCard({
                     )}
 
                     {profile?.website_content && (
-                      <SignalGroup title="Website Content">
+                      <SignalGroup title="Website Content" onRemove={() => handleRemoveSignal("website_content")} removing={removingSignal === "website_content"}>
                         <SignalRow
                           label="Content quality"
                           value={profile.website_content.content_quality}

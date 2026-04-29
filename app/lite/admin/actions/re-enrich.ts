@@ -52,6 +52,13 @@ export async function reEnrichCandidate(
         meta_ads: existingProfile.meta_ads as never,
         google_ads: existingProfile.google_ads as never,
       },
+      manual_social: {
+        instagram_handle: candidate.instagram_handle,
+        youtube_url: candidate.youtube_url,
+        facebook_url: candidate.facebook_url,
+        linkedin_url: candidate.linkedin_url,
+        tiktok_url: candidate.tiktok_url,
+      },
     });
 
     await db
@@ -109,10 +116,14 @@ export async function reEnrichCompany(
 
   if (!company) return { ok: false, error: "Company not found." };
 
-  if (!company.domain) {
+  const hasSocialOverride = !!(
+    company.instagram_handle || company.youtube_url ||
+    company.facebook_url || company.linkedin_url || company.tiktok_url
+  );
+  if (!company.domain && !hasSocialOverride) {
     return {
       ok: false,
-      error: "No domain on file — enrichment needs a domain or social profile.",
+      error: "No domain or social profiles on file — enrichment needs at least one.",
     };
   }
 
@@ -131,6 +142,13 @@ export async function reEnrichCompany(
         maps: existingProfile.maps as never,
         meta_ads: existingProfile.meta_ads as never,
         google_ads: existingProfile.google_ads as never,
+      },
+      manual_social: {
+        instagram_handle: company.instagram_handle,
+        youtube_url: company.youtube_url,
+        facebook_url: company.facebook_url,
+        linkedin_url: company.linkedin_url,
+        tiktok_url: company.tiktok_url,
       },
     });
 

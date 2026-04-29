@@ -131,6 +131,15 @@ export interface DiscoveredCandidate {
 
   /** Source-specific raw data for debugging / audit. */
   raw_source_data?: Record<string, unknown>;
+
+  /** Manually-entered social handles — always win over guessed values. */
+  manual_social?: {
+    instagram_handle?: string | null;
+    youtube_url?: string | null;
+    facebook_url?: string | null;
+    linkedin_url?: string | null;
+    tiktok_url?: string | null;
+  };
 }
 
 /**

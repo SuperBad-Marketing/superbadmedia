@@ -64,11 +64,13 @@ export interface YouTubeResult {
  *
  * @param companyName Business name for the YouTube search.
  * @param domain Optional domain for a more targeted search.
+ * @param manualUrl Optional manually-entered YouTube channel URL — skips search.
  * @returns YouTube channel signals or null fields on failure.
  */
 export async function fetchYouTube(
   companyName: string,
   domain?: string | null,
+  manualUrl?: string,
 ): Promise<YouTubeResult> {
   const apiKey = await getCredential("google-youtube");
   if (!apiKey) {
@@ -84,53 +86,59 @@ export async function fetchYouTube(
   const start = Date.now();
 
   try {
-    // Step 1: Search for a channel matching the company
-    const query = domain
-      ? `${companyName} ${domain}`
-      : companyName;
+    // Step 1: Resolve channel ID — manual URL wins over search
+    let channelId: string | undefined;
 
-    const searchParams = new URLSearchParams({
-      part: "snippet",
-      q: query,
-      type: "channel",
-      maxResults: "1",
-      key: apiKey,
-    });
-
-    const searchResponse = await fetch(
-      `${YOUTUBE_API_BASE}/search?${searchParams.toString()}`,
-      { signal: AbortSignal.timeout(10_000) },
-    );
-
-    if (!searchResponse.ok) {
-      const duration = Date.now() - start;
-      logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
-      return {
-        subscriber_count: null,
-        video_count: null,
-        uploads_last_90d: null,
-        channel_id: null,
-        error: `YouTube search error: ${searchResponse.status} ${searchResponse.statusText}`,
-      };
+    if (manualUrl) {
+      channelId = await resolveChannelIdFromUrl(manualUrl, apiKey);
     }
 
-    const searchData = (await searchResponse.json()) as YouTubeSearchResponse;
-
-    if (searchData.error) {
-      const duration = Date.now() - start;
-      logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
-      return {
-        subscriber_count: null,
-        video_count: null,
-        uploads_last_90d: null,
-        channel_id: null,
-        error: `YouTube search error: ${searchData.error.message}`,
-      };
-    }
-
-    const channelId = searchData.items?.[0]?.snippet?.channelId;
     if (!channelId) {
-      const duration = Date.now() - start;
+      const query = domain
+        ? `${companyName} ${domain}`
+        : companyName;
+
+      const searchParams = new URLSearchParams({
+        part: "snippet",
+        q: query,
+        type: "channel",
+        maxResults: "1",
+        key: apiKey,
+      });
+
+      const searchResponse = await fetch(
+        `${YOUTUBE_API_BASE}/search?${searchParams.toString()}`,
+        { signal: AbortSignal.timeout(10_000) },
+      );
+
+      if (!searchResponse.ok) {
+        logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
+        return {
+          subscriber_count: null,
+          video_count: null,
+          uploads_last_90d: null,
+          channel_id: null,
+          error: `YouTube search error: ${searchResponse.status} ${searchResponse.statusText}`,
+        };
+      }
+
+      const searchData = (await searchResponse.json()) as YouTubeSearchResponse;
+
+      if (searchData.error) {
+        logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
+        return {
+          subscriber_count: null,
+          video_count: null,
+          uploads_last_90d: null,
+          channel_id: null,
+          error: `YouTube search error: ${searchData.error.message}`,
+        };
+      }
+
+      channelId = searchData.items?.[0]?.snippet?.channelId;
+    }
+
+    if (!channelId) {
       logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
       return {
         subscriber_count: null,
@@ -247,5 +255,65 @@ export function applyYouTubeToProfile(
       ? { ...profile.fetch_errors, youtube: result.error }
       : profile.fetch_errors,
   };
+}
+
+async function resolveChannelIdFromUrl(
+  url: string,
+  apiKey: string,
+): Promise<string | undefined> {
+  try {
+    const parsed = new URL(url);
+    const segments = parsed.pathname.replace(/^\/+|\/+$/g, "").split("/");
+
+    // youtube.com/channel/UCxxx
+    if (segments[0] === "channel" && segments[1]?.startsWith("UC")) {
+      return segments[1];
+    }
+
+    // youtube.com/@handle — resolve via search
+    if (segments[0]?.startsWith("@")) {
+      const handle = segments[0];
+      const params = new URLSearchParams({
+        part: "snippet",
+        q: handle,
+        type: "channel",
+        maxResults: "1",
+        key: apiKey,
+      });
+      const resp = await fetch(
+        `${YOUTUBE_API_BASE}/search?${params.toString()}`,
+        { signal: AbortSignal.timeout(10_000) },
+      );
+      if (resp.ok) {
+        const data = (await resp.json()) as YouTubeSearchResponse;
+        return data.items?.[0]?.snippet?.channelId ?? undefined;
+      }
+    }
+
+    // youtube.com/c/name or youtube.com/user/name — resolve via search
+    if (segments[0] === "c" || segments[0] === "user") {
+      const name = segments[1];
+      if (name) {
+        const params = new URLSearchParams({
+          part: "snippet",
+          q: name,
+          type: "channel",
+          maxResults: "1",
+          key: apiKey,
+        });
+        const resp = await fetch(
+          `${YOUTUBE_API_BASE}/search?${params.toString()}`,
+          { signal: AbortSignal.timeout(10_000) },
+        );
+        if (resp.ok) {
+          const data = (await resp.json()) as YouTubeSearchResponse;
+          return data.items?.[0]?.snippet?.channelId ?? undefined;
+        }
+      }
+    }
+  } catch {
+    // URL parsing or fetch failed — fall through to normal search
+  }
+  return undefined;
 }
 

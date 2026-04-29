@@ -71,6 +71,13 @@ export const leadCandidates = sqliteTable(
       enum: CANDIDATE_SOURCES,
     }).notNull(),
 
+    // ── Social profiles (manual overrides — source of truth for enrichment) ──
+    instagram_handle: text("instagram_handle"),
+    youtube_url: text("youtube_url"),
+    facebook_url: text("facebook_url"),
+    linkedin_url: text("linkedin_url"),
+    tiktok_url: text("tiktok_url"),
+
     // Admin notes + AI summary
     notes: text("notes"),
     ai_summary: text("ai_summary"),

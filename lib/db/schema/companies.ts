@@ -131,6 +131,13 @@ export const companies = sqliteTable(
     revenue_segmentation_completed_at_ms: integer(
       "revenue_segmentation_completed_at_ms",
     ),
+    // ── Social profiles (manual overrides — source of truth for enrichment) ──
+    instagram_handle: text("instagram_handle"),
+    youtube_url: text("youtube_url"),
+    facebook_url: text("facebook_url"),
+    linkedin_url: text("linkedin_url"),
+    tiktok_url: text("tiktok_url"),
+
     // ── Enrichment data (company-level, single source of truth) ──
     viability_profile_json: text("viability_profile_json", { mode: "json" }),
     enrichment_summary: text("enrichment_summary"),

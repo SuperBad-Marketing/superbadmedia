@@ -8,8 +8,11 @@ import { db } from "@/lib/db";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { brand_dna_answers } from "@/lib/db/schema/brand-dna-answers";
 import { rundownSessions } from "@/lib/db/schema/rundown-sessions";
+import { leadCandidates } from "@/lib/db/schema/lead-candidates";
+import { companies } from "@/lib/db/schema/companies";
 import { BRAND_DNA_TRACKS } from "@/lib/db/schema/brand-dna-profiles";
 import { logActivity } from "@/lib/activity-log";
+import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import {
   getQuestionsForSection,
   getQuestionById,
@@ -319,10 +322,55 @@ export async function markRundownProfileComplete(
     meta: { candidateId: existing.candidate_id ?? null },
   });
 
-  // Fire-and-forget follow-up email
+  // ── Auto-promote to pipeline deal ──
   const session = await db.query.rundownSessions.findFirst({
     where: eq(rundownSessions.session_token, sessionToken),
   });
+
+  if (existing.candidate_id && session) {
+    try {
+      const result = createDealFromLead({
+        company: {
+          name: session.business_name,
+          domain: session.website ?? undefined,
+        },
+        contact: {
+          name: session.name,
+          email: session.email,
+        },
+        source: "brand_dna_rundown",
+        title: `Rundown — ${session.business_name}`,
+        stage: "lead",
+      });
+
+      await db
+        .update(leadCandidates)
+        .set({
+          promoted_to_deal_id: result.deal.id,
+          promoted_at: new Date(now),
+        })
+        .where(eq(leadCandidates.id, existing.candidate_id));
+
+      if (session.instagram_handle) {
+        await db
+          .update(companies)
+          .set({ instagram_handle: session.instagram_handle })
+          .where(eq(companies.id, result.company.id));
+      }
+
+      await logActivity({
+        kind: "stage_change",
+        body: `Auto-promoted Rundown candidate to pipeline: ${session.business_name}`,
+        meta: {
+          dealId: result.deal.id,
+          candidateId: existing.candidate_id,
+          trigger: "rundown_completion",
+        },
+      });
+    } catch {
+      // Deal creation failure is non-blocking — candidate stays in lead_candidates
+    }
+  }
   if (session?.email) {
     sendFollowupEmail(
       session.email,

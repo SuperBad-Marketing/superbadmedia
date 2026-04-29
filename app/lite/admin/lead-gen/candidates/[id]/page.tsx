@@ -7,6 +7,7 @@ import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { CandidateActions } from "./candidate-actions";
 import { CandidateContactEdit } from "./candidate-contact-edit";
 import { EnrichmentCard } from "@/components/lite/enrichment-card";
+import { SocialProfilesCard } from "@/components/lite/social-profiles-card";
 
 export const metadata: Metadata = {
   title: "Candidate Detail — Lead Gen — SuperBad",
@@ -168,6 +169,20 @@ export default async function CandidateDetailPage({
           emailConfidence={candidate.email_confidence}
           notes={candidate.notes}
           aiSummary={candidate.ai_summary}
+        />
+      </div>
+
+      {/* Social profiles — editable */}
+      <div className="mt-8 px-4">
+        <SocialProfilesCard
+          candidateId={candidate.id}
+          initialValues={{
+            instagram_handle: candidate.instagram_handle ?? null,
+            youtube_url: candidate.youtube_url ?? null,
+            facebook_url: candidate.facebook_url ?? null,
+            linkedin_url: candidate.linkedin_url ?? null,
+            tiktok_url: candidate.tiktok_url ?? null,
+          }}
         />
       </div>
 

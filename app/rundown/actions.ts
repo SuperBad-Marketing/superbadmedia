@@ -139,6 +139,7 @@ export async function submitRundownEntry(
     contact_email: input.email,
     contact_name: input.name,
     email_confidence: "verified",
+    instagram_handle: igHandle,
     viability_profile_json: {},
     saas_score: 0,
     retainer_score: 0,

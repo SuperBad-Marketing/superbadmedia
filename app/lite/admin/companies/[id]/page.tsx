@@ -51,6 +51,7 @@ import {
 import { LinkedContactsPanel } from "@/components/lite/admin/companies/linked-contacts-panel";
 import { CompanyBriefsTab } from "@/components/lite/admin/companies/company-briefs-tab";
 import { EnrichmentCard } from "@/components/lite/enrichment-card";
+import { SocialProfilesCard } from "@/components/lite/social-profiles-card";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
 export const metadata: Metadata = {
@@ -717,6 +718,17 @@ function OverviewTab({
       />
 
       <LinkedContactsPanel companyId={company.id} initialContacts={contactRows} nowMs={nowMs} />
+
+      <SocialProfilesCard
+        companyId={company.id}
+        initialValues={{
+          instagram_handle: company.instagram_handle ?? null,
+          youtube_url: company.youtube_url ?? null,
+          facebook_url: company.facebook_url ?? null,
+          linkedin_url: company.linkedin_url ?? null,
+          tiktok_url: company.tiktok_url ?? null,
+        }}
+      />
 
       <EnrichmentCard
         profile={company.viability_profile_json as ViabilityProfile | null}

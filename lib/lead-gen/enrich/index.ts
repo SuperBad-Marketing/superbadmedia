@@ -93,10 +93,14 @@ export async function enrichCandidate(
     }
   }
 
-  // Extract real Instagram handle from scraped footer link if available
-  const scrapedIgHandle = scrapedSocialLinks.instagram_url
-    ? extractHandleFromUrl(scrapedSocialLinks.instagram_url)
-    : undefined;
+  // Manual social handles from admin UI always win over scraped/guessed values
+  const manual = candidate.manual_social;
+
+  // Instagram handle priority: manual > scraped footer link > domain guess
+  const scrapedIgHandle = manual?.instagram_handle
+    ?? (scrapedSocialLinks.instagram_url
+      ? extractHandleFromUrl(scrapedSocialLinks.instagram_url)
+      : undefined);
 
   // Phase 2: Remaining signals in parallel (Instagram now uses real handle)
   const tasks: Array<{
@@ -139,6 +143,7 @@ export async function enrichCandidate(
         const result = await fetchYouTube(
           candidate.company_name,
           candidate.domain,
+          manual?.youtube_url ?? undefined,
         );
         profile = applyYouTubeToProfile(profile, result);
         if (result.subscriber_count !== null) signalsSucceeded++;
@@ -167,13 +172,15 @@ export async function enrichCandidate(
 
   const finalProfile = profile as ViabilityProfile;
   finalProfile.social_profiles = {
-    instagram_url: scrapedSocialLinks.instagram_url
+    instagram_url:
+      (manual?.instagram_handle ? `https://www.instagram.com/${manual.instagram_handle}/` : null)
+      ?? scrapedSocialLinks.instagram_url
       ?? (igUsername ? `https://www.instagram.com/${igUsername}/` : null),
-    facebook_url: scrapedSocialLinks.facebook_url,
-    linkedin_url: scrapedSocialLinks.linkedin_url,
-    tiktok_url: scrapedSocialLinks.tiktok_url,
+    facebook_url: manual?.facebook_url ?? scrapedSocialLinks.facebook_url,
+    linkedin_url: manual?.linkedin_url ?? scrapedSocialLinks.linkedin_url,
+    tiktok_url: manual?.tiktok_url ?? scrapedSocialLinks.tiktok_url,
     twitter_url: scrapedSocialLinks.twitter_url,
-    youtube_url: scrapedSocialLinks.youtube_url,
+    youtube_url: manual?.youtube_url ?? scrapedSocialLinks.youtube_url,
   };
 
   return {

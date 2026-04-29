@@ -22,9 +22,9 @@ import { outreachSequences } from "@/lib/db/schema/outreach-sequences";
 import { outreachSends } from "@/lib/db/schema/outreach-sends";
 import { sendEmail } from "@/lib/channels/email/send";
 import { isBlockedFromOutreach } from "@/lib/lead-gen/dnc";
+import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import { enforceWarmupCap, recordWarmupSend } from "@/lib/lead-gen/warmup";
 import { isWithinQuietWindow } from "@/lib/channels/email/quiet-window";
-import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import { autoEnrichCompanyIfNeeded } from "@/lib/crm/auto-enrich";
 import { createUnsubscribeUrl } from "@/lib/lead-gen/unsubscribe-token";
 import { SUPERBAD_SENDER } from "@/lib/lead-gen/sender";
@@ -380,6 +380,69 @@ export async function deleteCandidateAction(
 
   revalidatePath(LEAD_GEN_PATH);
   return { ok: true };
+}
+
+export async function promoteCandidateToDealAction(
+  candidateId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [candidate] = await db
+    .select()
+    .from(leadCandidates)
+    .where(eq(leadCandidates.id, candidateId))
+    .limit(1);
+
+  if (!candidate) return { ok: false, error: "Candidate not found." };
+  if (candidate.promoted_to_deal_id) return { ok: false, error: "Already promoted." };
+
+  try {
+    const result = createDealFromLead({
+      company: {
+        name: candidate.company_name,
+        domain: candidate.domain ?? undefined,
+      },
+      contact: {
+        name: candidate.contact_name ?? candidate.company_name,
+        email: candidate.contact_email ?? undefined,
+        role: candidate.contact_role ?? undefined,
+        phone: candidate.contact_phone ?? undefined,
+      },
+      source: `manual_promote_${candidate.sourced_from}`,
+      title: `${candidate.company_name}`,
+      stage: "lead",
+    });
+
+    const now = Date.now();
+    await db
+      .update(leadCandidates)
+      .set({
+        promoted_to_deal_id: result.deal.id,
+        promoted_at: new Date(now),
+      })
+      .where(eq(leadCandidates.id, candidateId));
+
+    await logActivity({
+      kind: "stage_change",
+      body: `Manually promoted ${candidate.company_name} to pipeline`,
+      createdBy: by,
+      meta: {
+        candidate_id: candidateId,
+        deal_id: result.deal.id,
+        company_id: result.company.id,
+      },
+    });
+
+    revalidatePath(LEAD_GEN_PATH);
+    revalidatePath("/lite/admin/pipeline");
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to create deal.",
+    };
+  }
 }
 
 export async function updateCandidateDetailsAction(

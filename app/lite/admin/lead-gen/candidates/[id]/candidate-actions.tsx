@@ -8,6 +8,7 @@ import {
   updateCandidateTrackAction,
   deleteCandidateAction,
   rerunEnrichmentAction,
+  promoteCandidateToDealAction,
 } from "../../actions";
 
 interface CandidateActionsProps {
@@ -59,6 +60,15 @@ export function CandidateActions({
     startTransition(async () => {
       setError(null);
       const res = await updateCandidateTrackAction(candidateId, track);
+      if (!res.ok) setError(res.error);
+      else router.refresh();
+    });
+  }
+
+  function handlePromote() {
+    startTransition(async () => {
+      setError(null);
+      const res = await promoteCandidateToDealAction(candidateId);
       if (!res.ok) setError(res.error);
       else router.refresh();
     });
@@ -119,6 +129,22 @@ export function CandidateActions({
       }}
     >
       <div className="flex flex-wrap items-center gap-3">
+        {/* Promote to deal */}
+        <button
+          disabled={pending}
+          onClick={handlePromote}
+          className="rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors hover:brightness-110 cursor-pointer"
+          style={{
+            letterSpacing: "1.2px",
+            backgroundColor: "rgba(34, 197, 94, 0.12)",
+            color: "#86efac",
+          }}
+        >
+          {pending ? "..." : "Promote to Deal"}
+        </button>
+
+        <div className="h-5 w-px" style={{ backgroundColor: "rgba(253, 245, 230, 0.06)" }} />
+
         {/* Track switcher */}
         <div className="flex items-center gap-2">
           <span
