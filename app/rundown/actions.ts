@@ -256,7 +256,7 @@ async function sendResumeEmail(
         <p>Hey ${name.split(" ")[0]},</p>
         <p>Your Brand DNA assessment is ready. Pick up where you left off any time:</p>
         <p><a href="${resumeUrl}" style="color: #B22848;">${resumeUrl}</a></p>
-        <p>Takes about 35 minutes. Worth it.</p>
+        <p>It's an intensive one. Worth it.</p>
         <p>Andy</p>
       `,
       classification: "rundown_resume",

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Brand DNA — SuperBad",
     description:
-      "35 minutes. Five sections. Walk away with a brand identity profile and a Brand Pack you can actually use.",
+      "An intensive deep dive into your brand, business, and strategy. Walk away with a complete identity profile and a Brand Pack you can actually use.",
     type: "website",
   },
 };

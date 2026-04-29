@@ -16,29 +16,15 @@ const BRAND_OBSERVATIONS = [
   "The best brands don't try to appeal to everyone. They appeal to the right people, deeply.",
 ];
 
-function getTurnstileToken(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("Turnstile timeout")), 10000);
-    if (typeof window !== "undefined" && "turnstile" in window) {
-      const turnstile = (window as unknown as Record<string, unknown>).turnstile as {
-        render: (el: string, opts: Record<string, unknown>) => void;
-      };
-      turnstile.render("#turnstile-container", {
-        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
-        callback: (token: string) => {
-          clearTimeout(timeout);
-          resolve(token);
-        },
-        "error-callback": () => {
-          clearTimeout(timeout);
-          reject(new Error("Turnstile error"));
-        },
-      });
-    } else {
-      clearTimeout(timeout);
-      reject(new Error("Turnstile not loaded"));
-    }
-  });
+interface TurnstileApi {
+  render: (el: string | HTMLElement, opts: Record<string, unknown>) => string;
+  getResponse: (widgetId: string) => string | undefined;
+  reset: (widgetId: string) => void;
+}
+
+function getTurnstile(): TurnstileApi | null {
+  if (typeof window === "undefined" || !("turnstile" in window)) return null;
+  return (window as unknown as { turnstile: TurnstileApi }).turnstile;
 }
 
 interface PrefilledData {
@@ -62,12 +48,34 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
   const [showClientOverride, setShowClientOverride] = useState(false);
   const [clientName, setClientName] = useState("");
   const [observationIndex, setObservationIndex] = useState(0);
+  const turnstileWidgetId = useRef<string | null>(null);
+  const turnstileToken = useRef<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setObservationIndex((prev) => (prev + 1) % BRAND_OBSERVATIONS.length);
     }, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    let attempts = 0;
+    const tryRender = () => {
+      const api = getTurnstile();
+      const el = document.getElementById("turnstile-container");
+      if (!api || !el) {
+        if (attempts++ < 20) setTimeout(tryRender, 500);
+        return;
+      }
+      turnstileWidgetId.current = api.render(el, {
+        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
+        size: "invisible",
+        callback: (token: string) => {
+          turnstileToken.current = token;
+        },
+      });
+    };
+    tryRender();
   }, []);
 
   const handleSubmit = useCallback(
@@ -78,7 +86,16 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
       setSubmitting(true);
 
       try {
-        const turnstileToken = await getTurnstileToken();
+        const api = getTurnstile();
+        let token = turnstileToken.current;
+        if (!token && api && turnstileWidgetId.current) {
+          token = api.getResponse(turnstileWidgetId.current) ?? null;
+        }
+        if (!token) {
+          setError("Verification still loading. Please try again in a moment.");
+          setSubmitting(false);
+          return;
+        }
 
         const input: RundownEntryInput = {
           name: name.trim(),
@@ -86,7 +103,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
           businessName: businessName.trim(),
           website: website.trim() || undefined,
           instagramHandle: instagramHandle.trim() || undefined,
-          turnstileToken,
+          turnstileToken: token,
           utmSource: searchParams.get("utm_source") ?? undefined,
           utmMedium: searchParams.get("utm_medium") ?? undefined,
           utmCampaign: searchParams.get("utm_campaign") ?? undefined,
@@ -116,6 +133,11 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
         setError("Something went wrong. Please try again.");
       } finally {
         setSubmitting(false);
+        const api = getTurnstile();
+        if (api && turnstileWidgetId.current) {
+          turnstileToken.current = null;
+          api.reset(turnstileWidgetId.current);
+        }
       }
     },
     [name, email, businessName, website, instagramHandle, submitting, searchParams, router],
@@ -180,7 +202,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                 margin: "16px 0 0 0",
               }}
             >
-              Five sections. About 35 minutes. You&rsquo;ll walk away with a complete brand identity profile and a Brand Pack you can actually use.
+              An intensive deep dive into your brand, your business, and your strategy. You&rsquo;ll walk away with a complete brand identity profile and a Brand Pack you can actually use.
             </p>
           </div>
 
@@ -229,7 +251,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                   type="url"
                   value={website}
                   onChange={setWebsite}
-                  placeholder="superbadmedia.com.au"
+                  placeholder="if you don't have a website, leave this blank"
                 />
                 <InputField
                   label="Instagram"
@@ -276,7 +298,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                   {submitting ? "Setting up..." : "Start"}
                 </motion.button>
 
-                <div id="turnstile-container" className="hidden" />
+                <div id="turnstile-container" />
               </motion.form>
             )}
           </AnimatePresence>

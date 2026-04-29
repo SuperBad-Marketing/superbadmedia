@@ -150,7 +150,7 @@ export async function triggerRundownRetake(
         <p>Hey ${firstName},</p>
         <p>You've been invited to take the Brand DNA assessment again. Fresh start, fresh signals.</p>
         <p><a href="${retakeUrl}" style="color: #B22848;">Start your Brand DNA →</a></p>
-        <p>Takes about 35 minutes. Worth it.</p>
+        <p>It's an intensive one. Worth it.</p>
         <p>Andy</p>
       `,
       classification: "rundown_resume",
