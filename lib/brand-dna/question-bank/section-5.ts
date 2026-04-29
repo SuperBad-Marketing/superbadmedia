@@ -118,7 +118,7 @@ export const SECTION_5: Question[] = [
     ["The power to not need anyone else's permission.", ["independence", "power_drive", "proving_ground"]]),
 
   q("s5_q18", 5, "shared",
-    { founder: "Last one. The version of your business that lives in your head \u2014 the one you haven't built yet \u2014 what's it like?", business: "Last one. The version of this brand that lives in leadership's head \u2014 the one not built yet \u2014 what's it like?" },
+    { founder: "The version of your business that lives in your head \u2014 the one you haven't built yet \u2014 what's it like?", business: "The version of this brand that lives in leadership's head \u2014 the one not built yet \u2014 what's it like?" },
     ["Effortless. The quality is so consistent that it doesn't need to be explained.", ["premium_positioning", "admires_craft", "quiet_confidence"]],
     ["Magnetic. People come to it because they want to be part of something real.", ["community_building", "personality_forward", "warmth"]],
     ["Undeniable. Nobody questions whether it belongs. It defined the category.", ["category_creation", "proving_ground", "legacy_drive"]],
