@@ -498,6 +498,7 @@ export default function HomePage() {
         <div className="hidden items-center gap-6 sm:flex">
           <NavLink href="/production">Production</NavLink>
           <NavLink href="/trial-shoot">Trial Shoot</NavLink>
+          <NavLink href="/rundown">Brand DNA</NavLink>
           <NavLink href="mailto:andy@superbadmedia.com.au" external>
             Get in Touch
           </NavLink>
@@ -534,6 +535,14 @@ export default function HomePage() {
         <motion.div
           animate={menuOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: menuOpen ? 0.26 : 0, duration: 0.3 }}
+        >
+          <NavLink href="/rundown" onClick={() => setMenuOpen(false)}>
+            Brand DNA
+          </NavLink>
+        </motion.div>
+        <motion.div
+          animate={menuOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ delay: menuOpen ? 0.34 : 0, duration: 0.3 }}
         >
           <NavLink
             href="mailto:andy@superbadmedia.com.au"
