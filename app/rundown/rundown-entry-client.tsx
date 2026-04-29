@@ -404,7 +404,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
             paddingRight: "clamp(32px, 5vw, 96px)",
           }}
         >
-          <div ref={heroRef} style={{ maxWidth: "14ch", position: "relative", zIndex: 1 }}>
+          <div ref={heroRef} style={{ position: "relative", zIndex: 1 }}>
             <motion.p
               initial={reduced ? false : { opacity: 0, y: 8 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
@@ -511,11 +511,11 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
       </Screen>
 
       {/* ═══ SCREEN 3: What you walk away with ═══ */}
-      <Screen surface={1} dense>
+      <Screen surface={1} align="left" dense>
         <div
           style={{
-            maxWidth: 680,
             width: "100%",
+            maxWidth: 640,
             position: "relative",
             zIndex: 1,
           }}
@@ -535,7 +535,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
             <h2
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(24px, 4vw, 36px)",
+                fontSize: "clamp(28px, 5vw, 48px)",
                 lineHeight: 1.05,
                 color: "var(--brand-cream, #FDF5E6)",
                 textTransform: "uppercase",
@@ -549,13 +549,18 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
 
           <div
             ref={delRef}
-            style={{ marginTop: "clamp(24px, 3vw, 40px)" }}
+            style={{
+              marginTop: "clamp(32px, 4vw, 56px)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 0,
+            }}
           >
             {DELIVERABLES.map((d, i) => (
               <motion.div
                 key={d.number}
-                initial={reduced ? false : { opacity: 0, x: -16 }}
-                animate={delInView ? { opacity: 1, x: 0 } : {}}
+                initial={reduced ? false : { opacity: 0, y: 20 }}
+                animate={delInView ? { opacity: 1, y: 0 } : {}}
                 transition={
                   reduced
                     ? { duration: 0 }
@@ -563,56 +568,59 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                         type: "spring",
                         damping: 20,
                         stiffness: 90,
-                        delay: 0.15 + i * 0.12,
+                        delay: 0.2 + i * 0.15,
                       }
                 }
                 style={{
-                  display: "flex",
-                  gap: "clamp(16px, 3vw, 32px)",
-                  alignItems: "baseline",
-                  padding: "clamp(16px, 2vw, 24px) 0",
-                  borderBottom:
-                    i < DELIVERABLES.length - 1
-                      ? "1px solid rgba(253,245,230,0.06)"
-                      : "none",
+                  padding: "clamp(20px, 2.5vw, 32px) 0",
+                  borderTop: "1px solid rgba(253,245,230,0.06)",
                 }}
               >
-                <span
+                <div
                   style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "clamp(24px, 3.5vw, 36px)",
-                    lineHeight: 1,
-                    color: i === DELIVERABLES.length - 1 ? "var(--brand-red)" : "var(--brand-cream, #FDF5E6)",
-                    minWidth: "clamp(40px, 6vw, 56px)",
-                    textAlign: "right",
-                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: "clamp(12px, 2vw, 20px)",
+                    marginBottom: 8,
                   }}
                 >
-                  {d.number}
-                </span>
-                <div>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-label)",
+                      fontSize: 10,
+                      letterSpacing: "0.15em",
+                      color: i === DELIVERABLES.length - 1 ? "var(--brand-red)" : "rgba(253,245,230,0.2)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {d.number}
+                  </span>
                   <p
                     style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "clamp(15px, 1.8vw, 18px)",
+                      fontFamily: "var(--font-display)",
+                      fontSize: "clamp(20px, 3vw, 28px)",
+                      lineHeight: 1.1,
                       color: "var(--brand-cream, #FDF5E6)",
+                      textTransform: "uppercase",
                       margin: 0,
-                      fontWeight: 500,
                     }}
                   >
                     {d.title}
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "clamp(13px, 1.4vw, 15px)",
-                      color: "var(--neutral-500, rgba(253,245,230,0.4))",
-                      margin: "2px 0 0",
-                    }}
-                  >
-                    {d.desc}
-                  </p>
                 </div>
+                <p
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "clamp(14px, 1.6vw, 16px)",
+                    lineHeight: 1.6,
+                    color: "rgba(253,245,230,0.45)",
+                    margin: 0,
+                    paddingLeft: "clamp(28px, 3.5vw, 40px)",
+                    maxWidth: "48ch",
+                  }}
+                >
+                  {d.desc}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -621,7 +629,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
             initial={reduced ? false : { opacity: 0 }}
             animate={delInView ? { opacity: 1 } : {}}
             transition={
-              reduced ? { duration: 0 } : { duration: 0.6, delay: 0.8 }
+              reduced ? { duration: 0 } : { duration: 0.6, delay: 0.9 }
             }
             style={{
               fontFamily: "var(--font-narrative)",
@@ -630,8 +638,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
               lineHeight: 1.5,
               color: "var(--brand-pink, #F4A0B0)",
               margin: 0,
-              marginTop: "clamp(12px, 1.5vw, 20px)",
-              maxWidth: "48ch",
+              marginTop: "clamp(16px, 2vw, 24px)",
             }}
           >
             Takes about 10 minutes. Worth it.
