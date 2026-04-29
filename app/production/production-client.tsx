@@ -295,7 +295,7 @@ function FlywheelLoop({ inView }: { inView: boolean }) {
           display: "flex",
           alignItems: "center",
           gap: 6,
-          marginBottom: 20,
+          marginBottom: 40,
         }}
       >
         {FLYWHEEL_STAGES.map((_, i) => (
