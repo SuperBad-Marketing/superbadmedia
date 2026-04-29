@@ -82,7 +82,6 @@ function RevealInner({
 }: RevealClientProps) {
   const { play } = useSound();
   const { update } = useSession();
-  const [portraitExpanded, setPortraitExpanded] = React.useState(false);
 
   React.useEffect(() => {
     play("brand_dna_reveal");
@@ -112,8 +111,6 @@ function RevealInner({
   const { portrait: cleanPortrait, keyInsights } = parsePortraitAndInsights(prosePortrait);
   const paragraphs = splitPortraitParagraphs(cleanPortrait);
   const pullQuotes = keyInsights.length > 0 ? [] : extractPullQuotes(cleanPortrait);
-  const previewParagraphs = paragraphs.slice(0, 2);
-  const remainingParagraphs = paragraphs.slice(2);
 
   return (
     <div className="bda-reveal-root">
@@ -448,12 +445,12 @@ function RevealInner({
         </div>
       )}
 
-      {/* ═══ PROSE PORTRAIT (collapsed by default) ═══ */}
+      {/* ═══ PROSE PORTRAIT — editorial layout ═══ */}
       {paragraphs.length > 0 && (
         <div
           style={{
             background: "var(--color-neutral-800, #252320)",
-            padding: "72px 24px",
+            padding: "80px 24px",
           }}
         >
           <div style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -475,7 +472,7 @@ function RevealInner({
                   fontSize: "clamp(22px, 3vw, 30px)",
                   fontWeight: 500,
                   color: "var(--brand-cream)",
-                  margin: "14px 0 36px",
+                  margin: "14px 0 48px",
                   lineHeight: 1.35,
                 }}
               >
@@ -484,156 +481,99 @@ function RevealInner({
             </Reveal>
 
             <div style={{ maxWidth: 640 }}>
-              {/* Preview: first 2 paragraphs */}
-              {previewParagraphs.map((para, i) => (
-                <Reveal key={i} delay={0.05 + i * 0.05}>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: 17,
-                      lineHeight: 1.8,
-                      color: "var(--brand-cream)",
-                      opacity: 0.8,
-                      marginBottom: i < previewParagraphs.length - 1 ? 20 : 0,
-                    }}
-                  >
-                    {i === 0 ? (
-                      <>
-                        <span
-                          style={{
-                            fontFamily: "var(--font-display)",
-                            fontSize: 48,
-                            lineHeight: 0.85,
-                            float: "left",
-                            color: "var(--brand-pink)",
-                            marginRight: 10,
-                            marginTop: 4,
-                          }}
-                        >
-                          {para.charAt(0)}
-                        </span>
-                        {para.slice(1)}
-                      </>
-                    ) : (
-                      para
-                    )}
-                  </p>
-                </Reveal>
-              ))}
+              {paragraphs.map((para, i) => {
+                const pullQuote = pullQuotes.find((pq) => pq.afterParagraph === i);
+                const isFirst = i === 0;
+                const isLast = i === paragraphs.length - 1;
+                const showDivider = !isFirst && i % 3 === 0 && !pullQuote;
 
-              {/* Fade + expand button if there's more */}
-              {remainingParagraphs.length > 0 && !portraitExpanded && (
-                <div style={{ position: "relative" }}>
-                  <div
-                    style={{
-                      height: 48,
-                      marginTop: -48,
-                      background:
-                        "linear-gradient(to bottom, transparent, var(--color-neutral-800, #252320))",
-                      pointerEvents: "none",
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setPortraitExpanded(true)}
-                    style={{
-                      display: "inline-block",
-                      marginTop: 20,
-                      fontFamily: "var(--font-body)",
-                      fontSize: 13,
-                      color: "var(--brand-pink)",
-                      background: "none",
-                      border: "1px solid rgba(244, 160, 176, 0.2)",
-                      padding: "10px 24px",
-                      borderRadius: 999,
-                      cursor: "pointer",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Read the full portrait
-                  </button>
-                </div>
-              )}
-
-              {/* Expanded content */}
-              {portraitExpanded && remainingParagraphs.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ marginTop: 20 }}
-                >
-                  {remainingParagraphs.map((para, i) => {
-                    const pullQuote = pullQuotes.find(
-                      (pq) => pq.afterParagraph === i + 2,
-                    );
-                    return (
-                      <React.Fragment key={i + 2}>
-                        <p
+                return (
+                  <React.Fragment key={i}>
+                    {pullQuote && (
+                      <Reveal delay={0.05}>
+                        <blockquote
                           style={{
-                            fontFamily: "var(--font-body)",
-                            fontSize: 17,
-                            lineHeight: 1.8,
+                            fontFamily: "var(--font-narrative)",
+                            fontStyle: "italic",
+                            fontSize: "clamp(20px, 3vw, 26px)",
+                            lineHeight: 1.45,
                             color: "var(--brand-cream)",
-                            opacity: 0.8,
-                            marginBottom: 20,
+                            margin: "44px 0",
+                            padding: "0 0 0 24px",
+                            borderLeft: "2px solid var(--brand-red)",
+                            maxWidth: 520,
                           }}
                         >
-                          {para}
-                        </p>
-                        {pullQuote && (
-                          <blockquote
-                            style={{
-                              fontFamily: "var(--font-narrative)",
-                              fontStyle: "italic",
-                              fontSize: "clamp(20px, 3vw, 28px)",
-                              lineHeight: 1.3,
-                              color: "var(--brand-pink)",
-                              margin: "32px 0 36px 0",
-                              padding: "0 0 0 24px",
-                              borderLeft:
-                                "3px solid rgba(178, 40, 72, 0.35)",
-                            }}
-                          >
-                            {pullQuote.text}
-                          </blockquote>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
+                          {pullQuote.text}
+                        </blockquote>
+                      </Reveal>
+                    )}
 
-                  <button
-                    type="button"
-                    onClick={() => setPortraitExpanded(false)}
-                    style={{
-                      display: "inline-block",
-                      marginTop: 12,
-                      fontFamily: "var(--font-body)",
-                      fontSize: 13,
-                      color: "var(--brand-pink)",
-                      background: "none",
-                      border: "1px solid rgba(244, 160, 176, 0.2)",
-                      padding: "10px 24px",
-                      borderRadius: 999,
-                      cursor: "pointer",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Collapse portrait
-                  </button>
-                </motion.div>
-              )}
+                    {showDivider && (
+                      <div
+                        aria-hidden="true"
+                        style={{
+                          width: 40,
+                          height: 1,
+                          background: "linear-gradient(90deg, var(--brand-red), transparent)",
+                          margin: "40px 0",
+                          opacity: 0.4,
+                        }}
+                      />
+                    )}
+
+                    <Reveal delay={0.05 + (i < 3 ? i * 0.05 : 0)}>
+                      <p
+                        style={{
+                          fontFamily: isLast ? "var(--font-narrative)" : "var(--font-body)",
+                          fontStyle: isLast ? "italic" : "normal",
+                          fontSize: isFirst
+                            ? "clamp(18px, 2.2vw, 20px)"
+                            : isLast
+                              ? "clamp(16px, 2vw, 18px)"
+                              : 17,
+                          lineHeight: isFirst ? 1.75 : isLast ? 1.7 : 1.85,
+                          color: "var(--brand-cream)",
+                          opacity: isLast ? 0.6 : 0.8,
+                          marginBottom: 24,
+                        }}
+                      >
+                        {isFirst ? (
+                          <>
+                            <span
+                              style={{
+                                fontFamily: "var(--font-display)",
+                                fontSize: 52,
+                                lineHeight: 0.85,
+                                float: "left",
+                                color: "var(--brand-pink)",
+                                marginRight: 12,
+                                marginTop: 6,
+                              }}
+                            >
+                              {para.charAt(0)}
+                            </span>
+                            {para.slice(1)}
+                          </>
+                        ) : (
+                          para
+                        )}
+                      </p>
+                    </Reveal>
+                  </React.Fragment>
+                );
+              })}
             </div>
 
             <p
               style={{
-                marginTop: 40,
+                marginTop: 48,
                 textAlign: "center",
                 fontFamily: "var(--font-body)",
                 fontStyle: "italic",
                 fontSize: 14,
                 color: "var(--brand-pink)",
-                opacity: 0.6,
+                opacity: 0.5,
                 lineHeight: 1.7,
               }}
             >
@@ -802,6 +742,8 @@ function extractPullQuotes(
   const paragraphs = splitPortraitParagraphs(portrait);
   if (paragraphs.length < 3) return [];
 
+  const maxQuotes = Math.min(4, Math.floor(paragraphs.length / 2));
+
   const candidates: Array<{
     text: string;
     paraIndex: number;
@@ -809,14 +751,18 @@ function extractPullQuotes(
   }> = [];
 
   paragraphs.forEach((para, paraIndex) => {
-    if (paraIndex === 0) return;
+    if (paraIndex === 0 || paraIndex === paragraphs.length - 1) return;
     const sentences = para.match(/[^.!?]+[.!?]+/g) ?? [];
     for (const raw of sentences) {
       const s = raw.trim();
-      if (s.length >= 25 && s.length <= 90) {
-        const score = 100 - s.length;
-        candidates.push({ text: s, paraIndex, score });
-      }
+      if (s.length < 20 || s.length > 120) continue;
+      let score = 0;
+      if (s.length >= 30 && s.length <= 80) score += 40;
+      else if (s.length >= 25 && s.length <= 100) score += 20;
+      if (/not |isn't|aren't|doesn't|don't|never |without /i.test(s)) score += 15;
+      if (/but |yet |still |despite |instead /i.test(s)) score += 12;
+      if (/\.$/.test(s)) score += 5;
+      candidates.push({ text: s, paraIndex, score });
     }
   });
 
@@ -826,8 +772,12 @@ function extractPullQuotes(
   const usedParas = new Set<number>();
 
   for (const c of candidates) {
-    if (picked.length >= 2) break;
-    if (usedParas.has(c.paraIndex) || usedParas.has(c.paraIndex - 1)) continue;
+    if (picked.length >= maxQuotes) break;
+    if (usedParas.has(c.paraIndex)) continue;
+    const tooClose = picked.some(
+      (p) => Math.abs(p.afterParagraph - c.paraIndex) < 2,
+    );
+    if (tooClose) continue;
     picked.push({ text: c.text, afterParagraph: c.paraIndex });
     usedParas.add(c.paraIndex);
   }
