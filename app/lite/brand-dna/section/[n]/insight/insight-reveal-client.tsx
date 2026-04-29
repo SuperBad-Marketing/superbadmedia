@@ -13,10 +13,38 @@ interface InsightRevealClientProps {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+function parseInsight(raw: string): {
+  headline: string;
+  body: string;
+  tags: string[];
+} {
+  const headlineMatch = raw.match(/^HEADLINE:\s*(.+?)(?:\n|$)/m);
+  const bodyMatch = raw.match(/^BODY:\s*([\s\S]+?)(?=\nTAGS:|$)/m);
+  const tagsMatch = raw.match(/^TAGS:\s*(.+?)$/m);
+
+  if (headlineMatch?.[1]) {
+    return {
+      headline: headlineMatch[1].trim(),
+      body: bodyMatch?.[1]?.trim() ?? "",
+      tags: tagsMatch?.[1]
+        ? tagsMatch[1]
+            .split(",")
+            .map((t) => t.trim())
+            .filter((t) => t.length > 0)
+        : [],
+    };
+  }
+
+  const sentences = raw.match(/[^.!?]+[.!?]+/g) ?? [raw];
+  return {
+    headline: (sentences[0] ?? raw).trim(),
+    body: sentences.slice(1).join(" ").trim(),
+    tags: [],
+  };
+}
+
 export function InsightRevealClient({ insight, attribution, nextHref, nextLabel }: InsightRevealClientProps) {
-  const sentences = insight.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const opener = sentences[0] ?? "";
-  const rest = sentences.slice(1).join(" ");
+  const { headline, body, tags } = parseInsight(insight);
 
   return (
     <motion.div
@@ -33,7 +61,6 @@ export function InsightRevealClient({ insight, attribution, nextHref, nextLabel 
         gap: 0,
       }}
     >
-      {/* Decorative rule */}
       <motion.div
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
@@ -47,7 +74,6 @@ export function InsightRevealClient({ insight, attribution, nextHref, nextLabel 
         }}
       />
 
-      {/* Opener — Playfair pull-quote register */}
       <motion.p
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -64,11 +90,10 @@ export function InsightRevealClient({ insight, attribution, nextHref, nextLabel 
           maxWidth: 540,
         }}
       >
-        {opener}
+        {headline}
       </motion.p>
 
-      {/* Body — DM Sans, readable, lighter weight */}
-      {rest && (
+      {body && (
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -84,11 +109,44 @@ export function InsightRevealClient({ insight, attribution, nextHref, nextLabel 
             maxWidth: 500,
           }}
         >
-          {rest}
+          {body}
         </motion.p>
       )}
 
-      {/* Attribution — quiet, low-ego */}
+      {tags.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.7, ease: EASE }}
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            justifyContent: "center",
+            marginBottom: body ? 0 : 32,
+          }}
+        >
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              style={{
+                fontFamily: "var(--font-label)",
+                fontSize: 9,
+                letterSpacing: "1.5px",
+                textTransform: "uppercase",
+                color: "var(--brand-red)",
+                padding: "5px 12px",
+                border: "1px solid rgba(178, 40, 72, 0.25)",
+                borderRadius: 999,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </motion.div>
+      )}
+
       {attribution && (
         <motion.p
           initial={{ opacity: 0 }}
@@ -102,7 +160,7 @@ export function InsightRevealClient({ insight, attribution, nextHref, nextLabel 
             color: "var(--brand-pink)",
             opacity: 0.6,
             margin: 0,
-            marginTop: rest ? 0 : 32,
+            marginTop: 32,
           }}
         >
           {attribution}
