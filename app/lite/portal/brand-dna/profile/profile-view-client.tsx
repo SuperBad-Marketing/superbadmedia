@@ -3,8 +3,9 @@
 /**
  * ProfileViewClient — permanent revisitable Brand DNA profile page.
  *
- * Shows the full profile (first impression, section insights, prose portrait),
- * the company blend (if multi-stakeholder), and a retake trigger.
+ * Shows the full profile (first impression, signal tags, section insights,
+ * prose portrait with pull quotes + drop cap), the company blend (if
+ * multi-stakeholder), and a retake trigger.
  *
  * Owner: BDA-5.
  */
@@ -21,6 +22,7 @@ interface ProfileViewClientProps {
   prosePortrait: string;
   sectionInsights: string[];
   sectionTitles: string[];
+  signalTags: string[];
   version: number;
   needsRegeneration: boolean;
   blendPortrait: string | null;
@@ -37,6 +39,7 @@ export function ProfileViewClient({
   prosePortrait,
   sectionInsights,
   sectionTitles,
+  signalTags,
   version,
   needsRegeneration,
   blendPortrait,
@@ -47,6 +50,8 @@ export function ProfileViewClient({
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
+
+  const pullQuotes = extractPullQuotes(prosePortrait);
 
   return (
     <main
@@ -121,6 +126,46 @@ export function ProfileViewClient({
           </h1>
         </motion.section>
 
+        {/* Signal tag pills */}
+        {signalTags.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+            }}
+            aria-label="Signal tags"
+          >
+            {signalTags.map((tag, i) => (
+              <motion.span
+                key={tag}
+                initial={{ opacity: 0, scale: 0.8, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  ...houseSpring,
+                  delay: 0.2 + i * 0.06,
+                }}
+                style={{
+                  fontFamily: "var(--font-label)",
+                  fontSize: 10,
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  color: "var(--brand-pink)",
+                  padding: "7px 14px",
+                  border: "1px solid rgba(244, 160, 176, 0.2)",
+                  borderRadius: 999,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {tag}
+              </motion.span>
+            ))}
+          </motion.div>
+        )}
+
         {/* Section insights */}
         {sectionInsights.length > 0 && (
           <div
@@ -137,36 +182,60 @@ export function ProfileViewClient({
                   delay: 0.1 + index * 0.1,
                 }}
                 style={{
-                  paddingTop: 24,
-                  borderTop: "1px solid rgba(253, 245, 230, 0.08)",
                   display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
+                  gap: 20,
+                  alignItems: "flex-start",
                 }}
               >
-                <h2
+                <span
                   style={{
-                    fontFamily: "var(--font-label)",
-                    fontSize: 10,
-                    letterSpacing: "2px",
-                    color: "var(--brand-pink)",
-                    textTransform: "uppercase",
-                    margin: 0,
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(40px, 5vw, 56px)",
+                    lineHeight: 0.85,
+                    color: "rgba(178, 40, 72, 0.12)",
+                    flexShrink: 0,
+                    userSelect: "none",
+                    minWidth: "1.2ch",
+                    textAlign: "right",
+                  }}
+                  aria-hidden
+                >
+                  {index + 1}
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 6,
+                    paddingLeft: 16,
+                    borderLeft: "2px solid rgba(244, 160, 176, 0.15)",
                   }}
                 >
-                  {sectionTitles[index] ?? `Section ${index + 1}`}
-                </h2>
-                <p
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "var(--neutral-400)",
-                    margin: 0,
-                  }}
-                >
-                  {insight}
-                </p>
+                  <h2
+                    style={{
+                      fontFamily: "var(--font-label)",
+                      fontSize: 10,
+                      letterSpacing: "2px",
+                      color: "var(--brand-pink)",
+                      textTransform: "uppercase",
+                      margin: 0,
+                    }}
+                  >
+                    {sectionTitles[index] ?? `Section ${index + 1}`}
+                  </h2>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-narrative)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(15px, 1.8vw, 18px)",
+                      lineHeight: 1.7,
+                      color: "var(--neutral-300)",
+                      margin: 0,
+                    }}
+                  >
+                    {insight}
+                  </p>
+                </div>
               </motion.section>
             ))}
           </div>
@@ -178,13 +247,24 @@ export function ProfileViewClient({
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...houseSpring, duration: 1.0, delay: 0.3 }}
           style={{
-            paddingTop: 32,
-            borderTop: "1px solid rgba(253, 245, 230, 0.1)",
             display: "flex",
             flexDirection: "column",
-            gap: 16,
+            gap: 0,
           }}
         >
+          {/* Animated divider */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+            style={{
+              height: 1,
+              background: "linear-gradient(to right, transparent, rgba(253, 245, 230, 0.12), transparent)",
+              marginBottom: 28,
+              transformOrigin: "center",
+            }}
+          />
+
           <h2
             style={{
               fontFamily: "var(--font-label)",
@@ -192,25 +272,74 @@ export function ProfileViewClient({
               letterSpacing: "2px",
               color: "var(--brand-pink)",
               textTransform: "uppercase",
-              margin: 0,
+              margin: "0 0 20px 0",
             }}
           >
             The portrait
           </h2>
-          {paragraphs.map((para, i) => (
-            <p
-              key={i}
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: 17,
-                lineHeight: 1.7,
-                color: "var(--neutral-300)",
-                margin: 0,
-              }}
-            >
-              {para}
-            </p>
-          ))}
+
+          {paragraphs.map((para, i) => {
+            const pullQuote = pullQuotes.find((pq) => pq.afterParagraph === i);
+            const isFirst = i === 0;
+            return (
+              <React.Fragment key={i}>
+                {isFirst ? (
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: 17,
+                      lineHeight: 1.7,
+                      color: "var(--neutral-300)",
+                      margin: "0 0 18px 0",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: 48,
+                        lineHeight: 0.85,
+                        float: "left",
+                        color: "var(--brand-pink)",
+                        marginRight: 8,
+                        marginTop: 4,
+                      }}
+                    >
+                      {para.charAt(0)}
+                    </span>
+                    {para.slice(1)}
+                  </p>
+                ) : (
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: 17,
+                      lineHeight: 1.7,
+                      color: "var(--neutral-300)",
+                      margin: "0 0 18px 0",
+                    }}
+                  >
+                    {para}
+                  </p>
+                )}
+                {pullQuote && (
+                  <blockquote
+                    style={{
+                      fontFamily: "var(--font-narrative)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(20px, 3vw, 28px)",
+                      lineHeight: 1.35,
+                      color: "var(--brand-pink)",
+                      margin: "28px 0 32px 0",
+                      padding: "0 0 0 20px",
+                      borderLeft: "3px solid rgba(178, 40, 72, 0.3)",
+                    }}
+                  >
+                    {pullQuote.text}
+                  </blockquote>
+                )}
+              </React.Fragment>
+            );
+          })}
         </motion.article>
 
         {/* Company blend */}
@@ -352,4 +481,44 @@ export function ProfileViewClient({
       `}</style>
     </main>
   );
+}
+
+function extractPullQuotes(
+  portrait: string,
+): Array<{ text: string; afterParagraph: number }> {
+  const paragraphs = portrait
+    .trim()
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+  if (paragraphs.length < 3) return [];
+
+  const candidates: Array<{ text: string; paraIndex: number; score: number }> = [];
+
+  paragraphs.forEach((para, paraIndex) => {
+    if (paraIndex === 0) return;
+    const sentences = para.match(/[^.!?]+[.!?]+/g) ?? [];
+    for (const raw of sentences) {
+      const s = raw.trim();
+      if (s.length >= 25 && s.length <= 90) {
+        const score = 100 - s.length + (s.includes("—") ? 10 : 0);
+        candidates.push({ text: s, paraIndex, score });
+      }
+    }
+  });
+
+  candidates.sort((a, b) => b.score - a.score);
+
+  const picked: Array<{ text: string; afterParagraph: number }> = [];
+  const usedParas = new Set<number>();
+
+  for (const c of candidates) {
+    if (picked.length >= 2) break;
+    if (usedParas.has(c.paraIndex) || usedParas.has(c.paraIndex - 1)) continue;
+    picked.push({ text: c.text, afterParagraph: c.paraIndex });
+    usedParas.add(c.paraIndex);
+  }
+
+  picked.sort((a, b) => a.afterParagraph - b.afterParagraph);
+  return picked;
 }

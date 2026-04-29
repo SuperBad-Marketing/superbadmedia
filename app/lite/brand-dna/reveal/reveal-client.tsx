@@ -7,14 +7,10 @@
  *   1. `sound:brand_dna_reveal` fires on mount
  *   2. First impression headline + opener fade in (Black Han Sans + Playfair italic accent)
  *   3. Beat — held stillness (~3s)
- *   4. Section-by-section build — Righteous label + brand-pink heading + DM Sans body
- *   5. Full prose portrait lands as the finale
- *   6. `markProfileComplete(profileId)` fires at the end
- *
- * Visual register matches `mockup-brand-dna.html` `.reveal-scene` — Black Han
- * Sans display headline with Playfair italic accent fragment, brand-cream
- * body, Righteous section labels, brand-pink rule between sections, italic
- * brand-pink signature footer.
+ *   4. Signal tag pills animate in
+ *   5. Section-by-section build — accent-bordered cards
+ *   6. Full prose portrait with pull quotes + drop cap
+ *   7. `markProfileComplete(profileId)` fires at the end
  *
  * Owners: BDA-3 (logic), BDA-POLISH-1 (visual port).
  */
@@ -34,6 +30,7 @@ interface RevealClientProps {
   prosePortrait: string;
   sectionInsights: string[];
   sectionTitles: string[];
+  signalTags: string[];
   alreadyComplete: boolean;
 }
 
@@ -51,6 +48,7 @@ function RevealInner({
   prosePortrait,
   sectionInsights,
   sectionTitles,
+  signalTags,
   alreadyComplete,
 }: RevealClientProps) {
   const { play } = useSound();
@@ -95,6 +93,7 @@ function RevealInner({
 
   const { headline, headlineAccent } = splitImpressionHeadline(firstImpression);
   const paragraphs = splitPortraitParagraphs(prosePortrait);
+  const pullQuotes = extractPullQuotes(prosePortrait);
 
   return (
     <main
@@ -118,7 +117,7 @@ function RevealInner({
           gap: 56,
         }}
       >
-        {/* Open: label + Black Han Sans headline + opening paragraph */}
+        {/* Open: label + Black Han Sans headline */}
         <motion.section
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -165,11 +164,51 @@ function RevealInner({
           </h1>
         </motion.section>
 
+        {/* Signal tag pills */}
+        {phase !== "impression" && signalTags.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+            }}
+            aria-label="Your signal tags"
+          >
+            {signalTags.map((tag, i) => (
+              <motion.span
+                key={tag}
+                initial={{ opacity: 0, scale: 0.8, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  ...houseSpring,
+                  delay: i * 0.08,
+                }}
+                style={{
+                  fontFamily: "var(--font-label)",
+                  fontSize: 11,
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  color: "var(--brand-pink)",
+                  padding: "8px 16px",
+                  border: "1px solid rgba(244, 160, 176, 0.25)",
+                  borderRadius: 999,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {tag}
+              </motion.span>
+            ))}
+          </motion.div>
+        )}
+
         {/* Section-by-section build */}
         {phase !== "impression" && sectionInsights.length > 0 && (
           <div
             className="bda-reveal-sections"
-            style={{ display: "flex", flexDirection: "column", gap: 56 }}
+            style={{ display: "flex", flexDirection: "column", gap: 48 }}
             aria-label="Signal summary by section"
           >
             {sectionInsights.map((insightText, index) => {
@@ -182,37 +221,61 @@ function RevealInner({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ ...houseSpring, duration: 1.2, delay: index * 0.2 }}
                   style={{
-                    paddingTop: 32,
-                    borderTop: "1px solid rgba(253, 245, 230, 0.1)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 16,
+                    gap: 24,
+                    alignItems: "flex-start",
                   }}
                 >
-                  <h2
+                  <span
                     style={{
-                      fontFamily: "var(--font-label)",
-                      fontSize: 11,
-                      letterSpacing: "2px",
-                      color: "var(--brand-pink)",
-                      textTransform: "uppercase",
-                      margin: 0,
+                      fontFamily: "var(--font-display)",
+                      fontSize: "clamp(48px, 6vw, 72px)",
+                      lineHeight: 0.85,
+                      color: "rgba(178, 40, 72, 0.15)",
+                      flexShrink: 0,
+                      userSelect: "none",
+                      minWidth: "1.2ch",
+                      textAlign: "right",
+                    }}
+                    aria-hidden
+                  >
+                    {sectionNumber}
+                  </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                      paddingLeft: 20,
+                      borderLeft: "2px solid rgba(244, 160, 176, 0.2)",
                     }}
                   >
-                    Section {sectionNumber} · {title}
-                  </h2>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: 19,
-                      lineHeight: 1.75,
-                      color: "var(--brand-cream)",
-                      opacity: 0.85,
-                      margin: 0,
-                    }}
-                  >
-                    {insightText}
-                  </p>
+                    <h2
+                      style={{
+                        fontFamily: "var(--font-label)",
+                        fontSize: 11,
+                        letterSpacing: "2px",
+                        color: "var(--brand-pink)",
+                        textTransform: "uppercase",
+                        margin: 0,
+                      }}
+                    >
+                      {title}
+                    </h2>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        fontStyle: "italic",
+                        fontSize: "clamp(17px, 2vw, 20px)",
+                        lineHeight: 1.7,
+                        color: "var(--brand-cream)",
+                        opacity: 0.85,
+                        margin: 0,
+                      }}
+                    >
+                      {insightText}
+                    </p>
+                  </div>
                 </motion.section>
               );
             })}
@@ -226,14 +289,25 @@ function RevealInner({
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...houseSpring, duration: 1.4, delay: 0.1 }}
             style={{
-              paddingTop: 32,
-              borderTop: "1px solid rgba(253, 245, 230, 0.1)",
               display: "flex",
               flexDirection: "column",
-              gap: 16,
+              gap: 0,
             }}
             aria-label="Prose portrait"
           >
+            {/* Animated divider */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                height: 1,
+                background: "linear-gradient(to right, transparent, rgba(253, 245, 230, 0.15), transparent)",
+                marginBottom: 32,
+                transformOrigin: "center",
+              }}
+            />
+
             <h2
               style={{
                 fontFamily: "var(--font-label)",
@@ -241,26 +315,79 @@ function RevealInner({
                 letterSpacing: "2px",
                 color: "var(--brand-pink)",
                 textTransform: "uppercase",
-                margin: 0,
+                margin: "0 0 24px 0",
               }}
             >
               The portrait
             </h2>
-            {paragraphs.map((para, i) => (
-              <p
-                key={i}
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: 19,
-                  lineHeight: 1.75,
-                  color: "var(--brand-cream)",
-                    opacity: 0.85,
-                  margin: 0,
-                }}
-              >
-                {para}
-              </p>
-            ))}
+
+            {paragraphs.map((para, i) => {
+              const pullQuote = pullQuotes.find((pq) => pq.afterParagraph === i);
+              const isFirst = i === 0;
+              return (
+                <React.Fragment key={i}>
+                  {isFirst ? (
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 19,
+                        lineHeight: 1.75,
+                        color: "var(--brand-cream)",
+                        opacity: 0.85,
+                        margin: "0 0 20px 0",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "var(--font-display)",
+                          fontSize: 56,
+                          lineHeight: 0.85,
+                          float: "left",
+                          color: "var(--brand-pink)",
+                          marginRight: 10,
+                          marginTop: 4,
+                        }}
+                      >
+                        {para.charAt(0)}
+                      </span>
+                      {para.slice(1)}
+                    </p>
+                  ) : (
+                    <p
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 19,
+                        lineHeight: 1.75,
+                        color: "var(--brand-cream)",
+                        opacity: 0.85,
+                        margin: "0 0 20px 0",
+                      }}
+                    >
+                      {para}
+                    </p>
+                  )}
+                  {pullQuote && (
+                    <motion.blockquote
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ ...houseSpring, duration: 1.0, delay: 0.3 }}
+                      style={{
+                        fontFamily: "var(--font-narrative)",
+                        fontStyle: "italic",
+                        fontSize: "clamp(24px, 3.5vw, 36px)",
+                        lineHeight: 1.3,
+                        color: "var(--brand-pink)",
+                        margin: "36px 0 40px 0",
+                        padding: "0 0 0 24px",
+                        borderLeft: "3px solid rgba(178, 40, 72, 0.35)",
+                      }}
+                    >
+                      {pullQuote.text}
+                    </motion.blockquote>
+                  )}
+                </React.Fragment>
+              );
+            })}
 
             <p
               style={{
@@ -293,7 +420,7 @@ function RevealInner({
             gap: 36px !important;
           }
           :global(.bda-reveal-sections) {
-            gap: 36px !important;
+            gap: 28px !important;
           }
           :global(.bda-reveal-inner p) {
             font-size: 16px !important;
@@ -311,8 +438,6 @@ function splitImpressionHeadline(text: string): {
   const trimmed = (text ?? "").trim();
   if (!trimmed) return { headline: "", headlineAccent: null };
 
-  // Take the first sentence as the headline. If it splits cleanly on a comma
-  // or em-dash, the remainder becomes the italic Playfair accent (per mockup).
   const sentenceMatch = trimmed.match(/^([\s\S]+?[.?!])(\s+([\s\S]+))?$/);
   const head = sentenceMatch ? sentenceMatch[1].trim() : trimmed;
 
@@ -330,6 +455,42 @@ function splitPortraitParagraphs(portrait: string): string[] {
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
+}
+
+function extractPullQuotes(
+  portrait: string,
+): Array<{ text: string; afterParagraph: number }> {
+  const paragraphs = splitPortraitParagraphs(portrait);
+  if (paragraphs.length < 3) return [];
+
+  const candidates: Array<{ text: string; paraIndex: number; score: number }> = [];
+
+  paragraphs.forEach((para, paraIndex) => {
+    if (paraIndex === 0) return;
+    const sentences = para.match(/[^.!?]+[.!?]+/g) ?? [];
+    for (const raw of sentences) {
+      const s = raw.trim();
+      if (s.length >= 25 && s.length <= 90) {
+        const score = 100 - s.length + (s.includes("—") ? 10 : 0);
+        candidates.push({ text: s, paraIndex, score });
+      }
+    }
+  });
+
+  candidates.sort((a, b) => b.score - a.score);
+
+  const picked: Array<{ text: string; afterParagraph: number }> = [];
+  const usedParas = new Set<number>();
+
+  for (const c of candidates) {
+    if (picked.length >= 2) break;
+    if (usedParas.has(c.paraIndex) || usedParas.has(c.paraIndex - 1)) continue;
+    picked.push({ text: c.text, afterParagraph: c.paraIndex });
+    usedParas.add(c.paraIndex);
+  }
+
+  picked.sort((a, b) => a.afterParagraph - b.afterParagraph);
+  return picked;
 }
 
 function formatToday(): string {

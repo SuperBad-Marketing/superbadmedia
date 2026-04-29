@@ -123,4 +123,29 @@ export const SECTION_2: Question[] = [
     ["You adjust. If it didn't land, figure out why.", ["pragmatism", "curiosity", "head_first"]],
     ["You feel it. Even if you know it shouldn't matter, the silence stings.", ["neuroticism", "high_sensitivity", "reputation_weight"]],
     ["You move on. The next thing is already in progress.", ["thick_skin", "ambition", "pragmatism"]]),
+
+  q("s2_q21", 2, "shared", "What actually makes you laugh — not smile, laugh — in someone else's content?",
+    ["The deadpan. Something ridiculous delivered with a completely straight face.", ["dry_humour", "admires_restraint", "brevity"]],
+    ["When someone makes fun of themselves and it's genuinely funny, not performative.", ["self_deprecating_humour", "authenticity", "warmth_in_voice"]],
+    ["The unexpected left turn. You thought it was going one way and it went somewhere else entirely.", ["absurdist_humour", "openness", "curiosity"]],
+    ["Sharp observation. Naming the thing everyone was thinking but nobody said.", ["observational_humour", "directness", "tonal_awareness"]]),
+
+  q("s2_q22", 2, "shared",
+    { founder: "Does your sense of humor show up in how you run your business?", business: "Does humor have a place in the brand's communication?" },
+    ["It's always there. Take it out and you take out half the personality.", ["dry_humour", "personality_forward", "authenticity"]],
+    ["In the right moments. It's not a default — it's a choice.", ["tonal_awareness", "admires_restraint", "curation_instinct"]],
+    ["Not really. The work is serious and the communication should be too.", ["formality", "prudence", "conscientiousness"]],
+    ["Underneath, always. On the surface, only when it's earned.", ["dry_humour", "tonal_awareness", "quiet_confidence"]]),
+
+  q("s2_q23", 2, "shared", "Where does humor stop being funny?",
+    ["When it's punching down. Good humor doesn't need a target.", ["warmth_in_voice", "conscientiousness", "agreeableness"]],
+    ["When it's trying too hard. If you can see the effort, the joke is dead.", ["admires_restraint", "brevity", "anti_polish"]],
+    ["When it replaces honesty. Some people hide behind humor to avoid saying anything real.", ["selective_vulnerability", "authenticity", "confrontation_comfort"]],
+    ["The line is further out than most people think. Context decides what's funny.", ["risk_appetite", "provocation", "openness"]]),
+
+  q("s2_q24", 2, "shared", "How do you feel about making fun of yourself — publicly?",
+    ["Easy. If you can't laugh at yourself, you're taking yourself too seriously.", ["self_deprecating_humour", "anti_polish", "resilience"]],
+    ["Strategically. Self-deprecation is disarming — you use it on purpose.", ["tonal_awareness", "dry_humour", "extraversion"]],
+    ["Rarely. There's a line between relatable and undermining yourself.", ["quiet_confidence", "formality", "reputation_weight"]],
+    ["Only with people who already know you. Self-deprecation with strangers just sounds like insecurity.", ["selective_vulnerability", "tonal_awareness", "prudence"]]),
 ];

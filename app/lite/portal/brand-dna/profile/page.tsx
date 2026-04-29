@@ -73,6 +73,14 @@ export default async function PortalBrandDnaProfilePage() {
     }
   }
 
+  const tagMap: Record<string, number> = profile.signal_tags
+    ? (JSON.parse(profile.signal_tags) as Record<string, number>)
+    : {};
+  const signalTags = Object.entries(tagMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([tag]) => tag.replace(/_/g, " "));
+
   return (
     <ProfileViewClient
       displayName={profile.subject_display_name ?? "Your"}
@@ -80,6 +88,7 @@ export default async function PortalBrandDnaProfilePage() {
       prosePortrait={profile.prose_portrait ?? ""}
       sectionInsights={sectionInsights}
       sectionTitles={([1, 2, 3, 4, 5] as const).map((n) => SECTION_TITLES[n])}
+      signalTags={signalTags}
       version={profile.version}
       needsRegeneration={profile.needs_regeneration}
       blendPortrait={blendPortrait}

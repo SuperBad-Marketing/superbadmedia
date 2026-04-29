@@ -1,7 +1,7 @@
 /**
  * Brand DNA Assessment — full question bank.
  *
- * 98 core questions across 5 sections + 15 supplement questions = 113 total.
+ * 102 core questions across 5 sections + 15 supplement questions = 117 total.
  * Content authored in CMS-1 (2026-04-17). Authoritative source: docs/content/brand-dna/.
  *
  * Owner: CMS-1. Consumer: BDA-3 (tag aggregation for profile generation).
@@ -49,7 +49,7 @@ export const SUPPLEMENT_SUBTITLE = "The version of this that isn\u2019t you.";
 
 // ── Aggregated bank ───────────────────────────────────────────────────────────
 
-/** All 98 core questions across sections 1–5. */
+/** All 102 core questions across sections 1–5. */
 export const QUESTION_BANK: Question[] = [
   ...SECTION_1,
   ...SECTION_2,

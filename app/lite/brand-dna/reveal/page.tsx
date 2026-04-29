@@ -81,6 +81,14 @@ async function RevealContent({ profileId }: { profileId: string }) {
     (n) => SECTION_TITLES[n],
   );
 
+  const tagMap: Record<string, number> = profile.signal_tags
+    ? (JSON.parse(profile.signal_tags) as Record<string, number>)
+    : {};
+  const signalTags = Object.entries(tagMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([tag]) => tag.replace(/_/g, " "));
+
   return (
     <RevealClient
       profileId={profileId}
@@ -88,6 +96,7 @@ async function RevealContent({ profileId }: { profileId: string }) {
       prosePortrait={prosePortrait}
       sectionInsights={sectionInsights}
       sectionTitles={sectionTitles}
+      signalTags={signalTags}
       alreadyComplete={profile.status === "complete" || profile.status === "awaiting_approval"}
     />
   );
