@@ -277,15 +277,32 @@ export async function generateBrandPackContent(
     messages: [{ role: "user", content: prompt }],
   });
 
-  const text =
+  let text =
     response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
+
+  // Strip markdown fences if the model wrapped the JSON
+  text = text
+    .replace(/^```(?:json)?\s*\n?/i, "")
+    .replace(/\n?```\s*$/i, "")
+    .trim();
 
   // ── Parse LLM response ──
   let llmResult: Record<string, unknown>;
   try {
     llmResult = JSON.parse(text);
   } catch {
-    throw new Error("LLM returned invalid JSON for brand pack");
+    // Try extracting JSON from between first { and last }
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start !== -1 && end > start) {
+      try {
+        llmResult = JSON.parse(text.slice(start, end + 1));
+      } catch {
+        throw new Error("LLM returned invalid JSON for brand pack");
+      }
+    } else {
+      throw new Error("LLM returned invalid JSON for brand pack");
+    }
   }
 
   const today = new Date();
