@@ -15,6 +15,7 @@ import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
 import { RundownPostReveal } from "./rundown-post-reveal";
 import { markRundownProfileComplete } from "../actions";
+import { AssemblingShimmer } from "@/components/lite/brand-dna/assembling-shimmer";
 
 export const metadata: Metadata = {
   title: "Brand DNA — SuperBad",
@@ -35,7 +36,7 @@ export default async function RundownRevealPage({ params }: Props) {
 
   return (
     <>
-      <Suspense fallback={<RevealShimmer />}>
+      <Suspense fallback={<AssemblingShimmer />}>
         <RevealContent
           sessionToken={sessionToken}
           profileId={session.profile_id}
@@ -109,45 +110,6 @@ async function RevealContent({
   );
 }
 
-function RevealShimmer() {
-  return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 16,
-        padding: 48,
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "var(--font-narrative)",
-          fontStyle: "italic",
-          fontSize: "clamp(1.125rem, 2.5vw, 1.375rem)",
-          color: "var(--brand-cream)",
-          opacity: 0.5,
-          textAlign: "center",
-        }}
-      >
-        Assembling your brand identity...
-      </p>
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          border: "2px solid rgba(244, 160, 176, 0.2)",
-          borderTopColor: "var(--brand-pink)",
-          borderRadius: "50%",
-          animation: "spin 1s linear infinite",
-        }}
-      />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
-}
 
 function parseSectionInsights(raw: string | null): string[] {
   if (!raw) return [];

@@ -31,6 +31,7 @@ import { generateFirstImpression } from "@/lib/brand-dna/generate-first-impressi
 import { generateProsePortrait } from "@/lib/brand-dna/generate-prose-portrait";
 
 import { RevealClient } from "./reveal-client";
+import { AssemblingShimmer } from "@/components/lite/brand-dna/assembling-shimmer";
 
 export const metadata: Metadata = {
   title: "Brand DNA — SuperBad",
@@ -48,7 +49,7 @@ export default async function RevealPage({ searchParams }: RevealPageProps) {
   }
 
   return (
-    <Suspense fallback={<RevealShimmer />}>
+    <Suspense fallback={<AssemblingShimmer />}>
       <RevealContent profileId={profileId} />
     </Suspense>
   );
@@ -92,76 +93,6 @@ async function RevealContent({ profileId }: { profileId: string }) {
   );
 }
 
-// ── RevealShimmer — ambient loading state while Opus is working ───────────────
-
-function RevealShimmer() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="Assembling your Brand DNA"
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 24,
-        textAlign: "center",
-        padding: 40,
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "var(--font-label)",
-          fontSize: 11,
-          letterSpacing: "3px",
-          textTransform: "uppercase",
-          color: "var(--brand-pink)",
-          margin: 0,
-        }}
-      >
-        Assembling your Brand DNA
-      </p>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          width: "100%",
-          maxWidth: 320,
-        }}
-      >
-        <div
-          style={{
-            height: 12,
-            borderRadius: 999,
-            background: "rgba(244, 160, 176, 0.18)",
-            width: "80%",
-            margin: "0 auto",
-            animation: "bdaPulse 1800ms ease-in-out infinite",
-          }}
-        />
-        <div
-          style={{
-            height: 12,
-            borderRadius: 999,
-            background: "rgba(244, 160, 176, 0.12)",
-            width: "55%",
-            margin: "0 auto",
-            animation: "bdaPulse 1800ms ease-in-out infinite 200ms",
-          }}
-        />
-      </div>
-      <style>{`
-        @keyframes bdaPulse { 0%,100% { opacity: 0.55 } 50% { opacity: 1 } }
-        @media (prefers-reduced-motion: reduce) {
-          [role="status"] > div > div { animation: none !important; opacity: 0.7 !important; }
-        }
-      `}</style>
-    </div>
-  );
-}
 
 function parseSectionInsights(raw: string | null): string[] {
   if (!raw) return [];
