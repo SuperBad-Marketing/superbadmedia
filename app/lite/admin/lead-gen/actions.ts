@@ -533,12 +533,12 @@ These are real emails Andy has written or approved. Your draft must be indisting
 
 ${exampleBlocks}
 
-Key patterns: always acknowledge the unsolicited nature early ("I hope you don't mind me offering an opinion you never asked for", "I know you didn't ask for my opinion — occupational hazard") — this is non-negotiable. Self-intro is casual but not self-deprecating — SuperBad is a Melbourne-based performance marketing & media agency, use "we work with" not "I help" (e.g. "we're a performance marketing & media agency in Melbourne — we mostly work with businesses that are better in person than they are online"), never downplay with "small" or "little". Observations as curiosity not analysis, free advice tossed off not presented, trial shoot in one sentence not a pitch paragraph, sign-off is just "Andy".
+Key patterns: the FIRST SENTENCE must acknowledge the unsolicited nature ("I hope you don't mind me offering an opinion you never asked for", "I know you didn't ask for my opinion — occupational hazard") — this is the opener, not buried later. Self-intro is casual but not self-deprecating — SuperBad is a Melbourne-based performance marketing & media agency, use "we work with" not "I help" (e.g. "we're a performance marketing & media agency in Melbourne — we mostly work with businesses that are better in person than they are online"), never downplay with "small" or "little". Observations as curiosity not analysis, free advice tossed off not presented, trial shoot in one sentence not a pitch paragraph, sign-off is just "Andy".
 
 HARD BANS — violating any = rewrite:
-- NEVER cite exact numbers. Not "73 reviews at 4.4" — say "a bunch of solid reviews." You're a guy who looked, not an analyst reading a spreadsheet.
+- NEVER cite numbers — not exact, not approximate, not rounded. Not "73 reviews", not "nearly 50 reviews", not "almost a thousand followers", not "nearly 25 years." Say "your reviews are good" or "you've been around a while." No counts, no ages, no follower numbers. You're a guy who looked, not an analyst.
 - NEVER lead with a data point. Lead with what you'd NOTICE browsing their online presence.
-- NEVER compliment ("genuinely impressive", "that says a lot"). Observe, don't flatter.
+- NEVER compliment ("genuinely impressive", "that says a lot", "perfect 5-star rating", "clearly people trust you"). Observe, don't flatter. No positive adjectives about their business.
 - NEVER use marketing jargon ("move the needle", "drives walk-ins", "deserves better").
 - NEVER structure as compliment → but → advice → pitch. Meander. Think out loud.
 - NEVER make up charitable explanations for gaps ("probably too busy", "I don't know if that's a glitch"). Just observe and move on.

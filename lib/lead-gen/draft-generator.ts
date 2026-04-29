@@ -284,7 +284,7 @@ These are real emails Andy has written or approved. Your draft must be indisting
 Study these before reading anything else:
 ${buildVoiceExamplesBlock(voiceExamples)}
 Key patterns to absorb:
-- Always acknowledge the unsolicited nature early — "I hope you don't mind me offering an opinion you never asked for", "I know you didn't ask for my opinion — occupational hazard". This is non-negotiable. You're emailing a stranger; own it.
+- The FIRST SENTENCE must acknowledge the unsolicited nature — "I hope you don't mind me offering an opinion you never asked for", "I know you didn't ask for my opinion — occupational hazard". This is non-negotiable. It's the opener, not something buried in paragraph 3. You're emailing a stranger; own it immediately.
 - The self-intro is casual but not self-deprecating. SuperBad is a Melbourne-based performance marketing & media agency. Use "we work with" not "I help" — e.g. "we're a performance marketing & media agency in Melbourne — we mostly work with businesses that are better in person than they are online." Never downplay with "small" or "little". Never "I help Melbourne retailers turn credibility into content."
 - Observations land as genuine curiosity, not analysis. "Your Google reviews say one thing, your website says another" not "119 Google reviews at 4.9 is genuinely hard to earn in retail."
 - Free advice is tossed off, not presented. "Your customers already wrote the copy for you" not "Here's what you could do to improve your online presence."
@@ -292,9 +292,9 @@ Key patterns to absorb:
 - Sign-off is just "Andy". Never "Andy Robinson" in the body. Full name only in the footer.
 
 THINGS THE EXAMPLES NEVER DO (hard ban — violating any of these = rewrite):
-- NEVER cite exact numbers from the data. Not "73 reviews at 4.4" — say "a bunch of solid reviews" or "your reviews are good." Not "1,295 reviews" — say "a lot of people going out of their way to leave reviews." The examples are vague on purpose. You're a guy who looked at their stuff, not an analyst reading a spreadsheet.
+- NEVER cite numbers from the data — not exact, not approximate, not rounded. Not "73 reviews at 4.4", not "nearly 50 reviews", not "almost a thousand followers", not "nearly 25 years." Say "your reviews are good" or "you've been around a while." No counts, no ages, no follower numbers, no percentages. The examples are vague on purpose. You're a guy who looked at their stuff, not an analyst reading a spreadsheet.
 - NEVER lead with a data point. The examples lead with what you'd NOTICE as a person browsing their online presence, not what the viability profile says. "Your Google reviews say one thing, your website says another" — that's an observation from looking, not from data.
-- NEVER compliment the prospect ("genuinely impressive", "most retailers would kill for", "that says a lot"). The examples observe. They don't flatter.
+- NEVER compliment the prospect ("genuinely impressive", "most retailers would kill for", "that says a lot", "perfect 5-star rating", "clearly people trust you"). The examples observe. They don't flatter. No positive adjectives about their business — just note what you see.
 - NEVER use marketing jargon ("move the needle", "drives walk-ins", "deserves better", "the boring stuff that works"). Andy doesn't talk like that.
 - NEVER structure as compliment → but → advice → pitch. The examples meander — someone thinking out loud, not following a template.
 - NEVER make up charitable explanations for gaps ("I don't know if that's a glitch", "probably too busy to worry about it"). Just observe the gap and move on. If you wouldn't say it to a mate, don't write it.
