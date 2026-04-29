@@ -399,18 +399,31 @@ async function sendFollowupEmail(
     await sendEmail({
       to: email,
       subject: `your brand pack is ready, ${firstName}`,
+      preheader: `Your Brand DNA for ${businessName} is complete. Brand identity, typography, colours, voice guide.`,
       body: `
-        <p>Hey ${firstName},</p>
-        <p>Your Brand DNA for ${businessName} is complete. Here's what you've got:</p>
-        <p><strong><a href="${revealUrl}" style="color: #B22848;">See your brand identity</a></strong><br>
-        <span style="font-size: 14px; color: #807F73;">The full reveal, your signal tags, section insights, and prose portrait. Link expires in 30 days.</span></p>
-        <p><strong><a href="${packUrl}" style="color: #B22848;">Download your Brand Pack</a></strong><br>
-        <span style="font-size: 14px; color: #807F73;">Typography, colours, content pillars, and voice guide, all based on what you told us.</span></p>
-        <p style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #252320; font-size: 14px; color: #807F73;">
+        <p style="margin:0 0 16px;">Hey ${firstName},</p>
+        <p style="margin:0 0 28px;">Your Brand DNA for ${businessName} is complete.</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px;">
+          <tr>
+            <td style="background-color:rgba(253,245,230,0.04);border:1px solid rgba(253,245,230,0.08);border-radius:10px;padding:20px 24px;">
+              <p style="margin:0 0 6px;font-size:14px;font-weight:700;"><a href="${revealUrl}" style="color:#FDF5E6;text-decoration:none;">See your brand identity &rarr;</a></p>
+              <p style="margin:0;font-size:13px;color:#807F73;line-height:1.5;">Signal tags, section insights, and your full prose portrait. Link expires in 30 days.</p>
+            </td>
+          </tr>
+        </table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px;">
+          <tr>
+            <td style="background-color:rgba(253,245,230,0.04);border:1px solid rgba(253,245,230,0.08);border-radius:10px;padding:20px 24px;">
+              <p style="margin:0 0 6px;font-size:14px;font-weight:700;"><a href="${packUrl}" style="color:#FDF5E6;text-decoration:none;">View your brand pack &rarr;</a></p>
+              <p style="margin:0;font-size:13px;color:#807F73;line-height:1.5;">Typography, colours, content pillars, and voice guide. Yours to keep.</p>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:0 0 20px;font-size:14px;color:#807F73;line-height:1.6;">
           If any of what you saw in there made you want to do something about it, we do trial shoots. Real work, not a pitch meeting.
-          <a href="${baseUrl}/trial-shoot" style="color: #B22848;">Have a look</a> if you're curious.
+          <a href="${baseUrl}/trial-shoot" style="color:#B22848;">Have a look</a> if you're curious.
         </p>
-        <p>Andy</p>
+        <p style="margin:0;">Andy</p>
       `,
       classification: "rundown_followup",
       purpose: "rundown_completion_followup",

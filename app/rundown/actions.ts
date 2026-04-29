@@ -250,15 +250,23 @@ async function sendResumeEmail(
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://superbadmedia.com.au";
     const resumeUrl = `${baseUrl}/rundown/s/${sessionToken}`;
 
+    const firstName = name.split(" ")[0];
     await sendEmail({
       to: email,
-      subject: "your brand dna is ready to start",
+      subject: `your brand dna is ready to start, ${firstName}`,
+      preheader: "Your Brand DNA assessment is ready. Pick up where you left off any time.",
       body: `
-        <p>Hey ${name.split(" ")[0]},</p>
-        <p>Your Brand DNA assessment is ready. Pick up where you left off any time:</p>
-        <p><a href="${resumeUrl}" style="color: #B22848;">${resumeUrl}</a></p>
-        <p>It's an intensive one. Worth it.</p>
-        <p>Andy</p>
+        <p style="margin:0 0 16px;">Hey ${firstName},</p>
+        <p style="margin:0 0 20px;">Your Brand DNA assessment is ready. Pick up where you left off any time.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
+          <tr>
+            <td style="background-color:#B22848;border-radius:6px;">
+              <a href="${resumeUrl}" style="display:inline-block;padding:12px 24px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;color:#FDF5E6;text-decoration:none;">Start your assessment &rarr;</a>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:0 0 20px;font-size:14px;color:#807F73;">It takes about 10 minutes. Worth it.</p>
+        <p style="margin:0;">Andy</p>
       `,
       classification: "rundown_resume",
       purpose: "rundown_resume_link",

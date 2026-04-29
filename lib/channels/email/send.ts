@@ -46,6 +46,8 @@ export interface SendEmailParams {
   classification: EmailClassification;
   /** Human-readable purpose for logging + future frequency cap */
   purpose: string;
+  /** Hidden preview text shown in inbox list (replaces header text in preview) */
+  preheader?: string;
   /** Optional reply-to address (defaults to EMAIL_FROM env var) */
   replyTo?: string;
   /** Optional Resend tags for analytics */
@@ -71,7 +73,7 @@ export interface SendEmailResult {
  * when gated — callers handle the skipped case explicitly.
  */
 export async function sendEmail(params: SendEmailParams): Promise<SendEmailResult> {
-  const { to, subject, body, classification, purpose, replyTo, tags, headers, attachments } = params;
+  const { to, subject, body, classification, purpose, preheader, replyTo, tags, headers, attachments } = params;
   const recipients = Array.isArray(to) ? to : [to];
   const transactional = isTransactional(classification);
 
@@ -109,7 +111,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     ? `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM ?? "support@superbadmedia.com.au"}>`
     : (process.env.EMAIL_FROM ?? "support@superbadmedia.com.au");
 
-  const html = wrapEmailHtml(body);
+  const html = wrapEmailHtml(body, preheader);
 
   const { data, error } = await resend.emails.send({
     from,
