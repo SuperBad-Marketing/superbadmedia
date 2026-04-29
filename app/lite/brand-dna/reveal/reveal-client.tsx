@@ -716,14 +716,26 @@ function parseFirstImpression(raw: string): {
     if (first.length <= 60) {
       return { headline: first, subline: rest };
     }
-    const splitMatch = first.match(/^(.+?)[,](\s+)(.+[.?!])$/);
-    if (splitMatch) {
+    const commaMatch = first.match(/^(.+?),(\s+)(.+[.?!])$/);
+    if (commaMatch && commaMatch[1].trim().length <= 50) {
       return {
-        headline: splitMatch[1].trim() + ",",
-        subline: splitMatch[3].trim() + (rest ? " " + rest : ""),
+        headline: commaMatch[1].trim() + ",",
+        subline: commaMatch[3].trim() + (rest ? " " + rest : ""),
       };
     }
   }
+
+  const words = trimmed.split(/\s+/);
+  if (words.length > 8) {
+    const headWords = words.slice(0, 8).join(" ");
+    const tailWords = words.slice(8).join(" ");
+    const lastPunct = headWords.match(/[.?!,]$/) ? "" : ".";
+    return {
+      headline: headWords + lastPunct,
+      subline: tailWords,
+    };
+  }
+
   return { headline: trimmed, subline: null };
 }
 

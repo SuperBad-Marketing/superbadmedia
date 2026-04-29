@@ -1,9 +1,11 @@
 /**
  * GET /api/rundown/[sessionToken]/brand-pack
  *
- * Generates and returns the Brand Pack PDF for a completed Rundown session.
+ * Generates and returns the Brand Pack as a viewable HTML page.
+ * The page includes a "Download as PDF" button that triggers window.print().
+ *
  * Validates the session token, loads profile + enrichment data, calls the
- * LLM generator (with caching), renders to PDF, and streams the result.
+ * LLM generator (with caching), and returns the styled HTML.
  *
  * Updates `rundown_sessions.pack_downloaded_at_ms` on success.
  *
@@ -19,8 +21,7 @@ import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { generateBrandPackContent } from "@/lib/brand-dna/brand-pack/generate";
-import { buildBrandPackHtml, brandPackFilename } from "@/lib/brand-dna/brand-pack/template";
-import { renderToPdf } from "@/lib/pdf/render";
+import { buildBrandPackHtml } from "@/lib/brand-dna/brand-pack/template";
 
 export async function GET(
   _req: Request,
@@ -29,7 +30,6 @@ export async function GET(
   try {
     const { sessionToken } = await params;
 
-    // ── Validate session ──
     const sessions = await db
       .select()
       .from(rundownSessions)
@@ -48,7 +48,6 @@ export async function GET(
       );
     }
 
-    // ── Load profile ──
     const profiles = await db
       .select()
       .from(brand_dna_profiles)
@@ -63,7 +62,6 @@ export async function GET(
       );
     }
 
-    // ── Load enrichment data from candidate ──
     let enrichmentData: ViabilityProfile | null = null;
 
     if (session.candidate_id) {
@@ -78,16 +76,9 @@ export async function GET(
       }
     }
 
-    // ── Generate content (cached via brand_pack_json column) ──
     const data = await generateBrandPackContent(profile.id, enrichmentData);
-
-    // ── Render PDF ──
     const html = buildBrandPackHtml(data);
-    const pdfBuffer = await renderToPdf(html, {
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-    });
 
-    // ── Record download timestamp ──
     await db
       .update(rundownSessions)
       .set({
@@ -96,20 +87,16 @@ export async function GET(
       })
       .where(eq(rundownSessions.id, session.id));
 
-    // ── Return PDF ──
-    const filename = brandPackFilename(session.business_name);
-
-    return new Response(new Uint8Array(pdfBuffer), {
+    return new Response(html, {
       status: 200,
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-        "Cache-Control": "no-store",
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "private, max-age=0, must-revalidate",
       },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("[brand-pack] PDF generation failed:", message);
+    console.error("[brand-pack] Generation failed:", message);
     return NextResponse.json(
       { error: "Failed to generate brand pack", detail: message },
       { status: 500 },

@@ -651,7 +651,7 @@ export function RundownPostReveal({
                   "rgba(253, 245, 230, 0.15)";
               }}
             >
-              Download Brand Pack &rarr;
+              View your brand pack &rarr;
             </button>
           </Reveal>
         </div>

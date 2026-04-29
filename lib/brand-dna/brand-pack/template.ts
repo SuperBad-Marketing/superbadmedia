@@ -394,6 +394,8 @@ export function buildBrandPackHtml(data: BrandPackData): string {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(data.subjectName)} — Brand Pack</title>
 <style>
   @import url('${fontUrl}');
 
@@ -414,8 +416,10 @@ export function buildBrandPackHtml(data: BrandPackData): string {
     min-height: 297mm;
     padding: 56px;
     page-break-after: always;
+    page-break-inside: avoid;
     position: relative;
     background: ${B.charcoal};
+    margin: 0 auto;
   }
 
   .last-page {
@@ -439,9 +443,64 @@ export function buildBrandPackHtml(data: BrandPackData): string {
     margin-bottom: 36px;
     line-height: 1.3;
   }
+
+  .bp-toolbar {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 100;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .bp-toolbar button {
+    font-family: 'Righteous', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: ${B.cream};
+    background: ${B.red};
+    border: none;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    transition: background 200ms, transform 200ms;
+  }
+
+  .bp-toolbar button:hover {
+    background: #8F1D3A;
+    transform: translateY(-1px);
+  }
+
+  @media screen and (max-width: 800px) {
+    .page {
+      width: 100%;
+      min-height: auto;
+      padding: 32px 20px;
+    }
+    .bp-toolbar {
+      bottom: 20px;
+      right: 20px;
+    }
+  }
+
+  @media print {
+    .bp-toolbar { display: none !important; }
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 56px;
+      margin: 0;
+    }
+  }
 </style>
 </head>
 <body>
+<div class="bp-toolbar">
+  <button onclick="window.print()">Download as PDF &darr;</button>
+</div>
 ${pages}
 </body>
 </html>`;

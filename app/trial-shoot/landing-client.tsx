@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { houseSpring } from "@/lib/design-tokens";
 import type { TrialShootTier } from "@/lib/db/schema/intro-funnel-submissions";
 import { Section1Form } from "./section-1-form";
@@ -297,11 +297,23 @@ function Reveal({
 }
 
 export function LandingClient() {
+  const searchParams = useSearchParams();
   const [selectedTier, setSelectedTier] = useState<TrialShootTier | null>(null);
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const tierParam = searchParams.get("tier");
+    if (tierParam === "session" || tierParam === "production") {
+      setSelectedTier(tierParam);
+      setShowForm(true);
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, [searchParams]);
 
   function handleTierSelect(tier: TrialShootTier) {
     setSelectedTier(tier);

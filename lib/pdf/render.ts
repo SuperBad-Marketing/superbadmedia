@@ -20,7 +20,7 @@ export interface RenderToPdfOptions {
 
 const SYSTEM_PATHS: Record<string, string[]> = {
   darwin: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"],
-  linux: ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome-stable"],
+  linux: ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome-stable", "/usr/bin/google-chrome"],
 };
 
 function findSystemChrome(): string | undefined {
@@ -30,19 +30,29 @@ function findSystemChrome(): string | undefined {
 
 export async function resolveExecutablePath(): Promise<string> {
   const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH;
-  if (fromEnv && fromEnv.length > 0) return fromEnv;
+  if (fromEnv && fromEnv.length > 0) {
+    if (existsSync(fromEnv)) return fromEnv;
+    console.warn(`PUPPETEER_EXECUTABLE_PATH set to ${fromEnv} but file does not exist, falling back`);
+  }
 
   const systemChrome = findSystemChrome();
   if (systemChrome) return systemChrome;
 
-  // Bundled Chromium fallback (for environments without system Chrome)
   try {
     const chromium = await import("@sparticuz/chromium");
     const p = await chromium.default.executablePath();
-    if (p) return p;
+    if (p && existsSync(p)) return p;
   } catch { /* not available */ }
 
-  return (SYSTEM_PATHS[process.platform] ?? SYSTEM_PATHS.linux)[0];
+  const tried = [
+    fromEnv,
+    ...(SYSTEM_PATHS[process.platform] ?? SYSTEM_PATHS.linux),
+    "@sparticuz/chromium",
+  ].filter(Boolean);
+  throw new Error(
+    `No Chrome/Chromium binary found. Tried: ${tried.join(", ")}. ` +
+    `Set PUPPETEER_EXECUTABLE_PATH or install chromium in the container.`,
+  );
 }
 
 function withMm(value: number | undefined, fallback: number): string {
