@@ -193,6 +193,22 @@ export async function bookSlotAction(
     });
   }
 
+  // Notify Andy
+  const melbTz = "Australia/Melbourne";
+  const adminDateStr = new Intl.DateTimeFormat("en-AU", { timeZone: melbTz, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(slotStartMs));
+  const adminTimeStr = new Intl.DateTimeFormat("en-AU", { timeZone: melbTz, hour: "numeric", minute: "2-digit", hour12: true }).format(new Date(slotStartMs));
+  await sendEmail({
+    to: "andy@superbadmedia.com.au",
+    subject: `New booking — ${submission.submitted_name} — ${adminDateStr}`,
+    body: `<p><strong>${submission.submitted_name}</strong> just booked a trial shoot.</p>
+<p><strong>When:</strong> ${adminDateStr} at ${adminTimeStr} (AEST)</p>
+<p><strong>Business:</strong> ${submission.submitted_business_name}</p>
+<p><strong>Email:</strong> ${submission.submitted_email}</p>
+<p><strong>Phone:</strong> ${submission.submitted_phone}</p>`,
+    classification: "transactional",
+    purpose: "Admin notification — trial shoot booked",
+  }).catch(() => {});
+
   // Schedule booking reminders (24h and 2h before shoot)
   const HOURS_24 = 24 * 60 * 60 * 1000;
   const HOURS_2 = 2 * 60 * 60 * 1000;
@@ -377,6 +393,18 @@ export async function rescheduleAction(
     ],
   });
 
+  const oldDateStr = dateFmt.format(new Date(booking.slot_start_at_ms));
+  await sendEmail({
+    to: "andy@superbadmedia.com.au",
+    subject: `Shoot rescheduled — ${submission.submitted_name} → ${dateStr}`,
+    body: `<p><strong>${submission.submitted_name}</strong> (${submission.submitted_business_name}) rescheduled their shoot.</p>
+<p><strong>Was:</strong> ${oldDateStr}</p>
+<p><strong>Now:</strong> ${dateStr} at ${timeStr} (AEST)</p>
+<p><strong>Reschedule:</strong> ${booking.reschedule_count + 1} of ${MAX_RESCHEDULES}</p>`,
+    classification: "transactional",
+    purpose: "Admin notification — trial shoot rescheduled",
+  }).catch(() => {});
+
   return { ok: true, bookingId: booking.id };
 }
 
@@ -456,6 +484,20 @@ export async function cancelBookingAction(
       refund_eligible: hoursUntilShoot >= 48,
     },
   });
+
+  const tz = "Australia/Melbourne";
+  const cancelDateStr = new Intl.DateTimeFormat("en-AU", {
+    timeZone: tz, weekday: "long", day: "numeric", month: "long",
+  }).format(new Date(booking.slot_start_at_ms));
+  await sendEmail({
+    to: "andy@superbadmedia.com.au",
+    subject: `Shoot cancelled — ${submission.submitted_name}`,
+    body: `<p><strong>${submission.submitted_name}</strong> (${submission.submitted_business_name}) cancelled their shoot.</p>
+<p><strong>Was:</strong> ${cancelDateStr}</p>
+<p><strong>Notice:</strong> ${hoursUntilShoot < 48 ? "Late cancel — inside 48h window" : "Within refund window"}</p>`,
+    classification: "transactional",
+    purpose: "Admin notification — trial shoot cancelled",
+  }).catch(() => {});
 
   return { ok: true };
 }
