@@ -1,10 +1,5 @@
-DRY-INT blocked — live credentials required. Two additional blockers found by 2026-04-25 re-trigger:
-1. Lint debt: 208 ESLint errors across ~30 files from waves 14–23 commits (npm run build is clean; npm run lint is not). Needs a dedicated lint-fix session.
-2. DRY-INT still requires STRIPE_SECRET_KEY + RESEND_API_KEY + ANTHROPIC_API_KEY + Andy present.
+Dev environment automation paused — Andy does not want autonomous builds running in dev.
+Live environment automations (Content Engine, blog generation, etc.) run independently.
+Only unpause for explicit testing sessions.
 
-To resume:
-  a) Run lint-fix session to clear 208 errors across app/ components/ lib/ files.
-  b) Ensure live credentials are in env.
-  c) Delete this file + push to continue.
-
-Created: 2026-04-25T01:36:59Z
+Created: 2026-05-01
