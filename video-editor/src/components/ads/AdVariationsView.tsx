@@ -298,10 +298,10 @@ export default function AdVariationsView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-none">
-        <div className="space-y-1">
-          <h2 className="font-display text-xl font-bold text-text">Ad Variations</h2>
-          <p className="text-text-muted text-sm">Generate video and static ad variations from your edit</p>
+      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none">
+        <div className="space-y-1.5">
+          <h2 className="font-display text-2xl font-bold text-text">Ad Variations</h2>
+          <p className="text-text-muted text-base">Generate video and static ad variations from your edit</p>
         </div>
 
         <div className="space-y-4">
@@ -339,7 +339,7 @@ export default function AdVariationsView() {
           </div>
         </div>
 
-        <div className="space-y-5 border-t border-border pt-6">
+        <div className="space-y-5 border-t border-border pt-8">
           <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Video Cuts</h3>
 
           <div className="space-y-2">
@@ -444,7 +444,7 @@ export default function AdVariationsView() {
           </div>
         </div>
 
-        <div className="space-y-5 border-t border-border pt-6">
+        <div className="space-y-5 border-t border-border pt-8">
           <div className="flex items-center justify-between">
             <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Static Ads</h3>
             <Toggle enabled={includeStatics} onChange={setIncludeStatics} />
@@ -493,7 +493,7 @@ export default function AdVariationsView() {
         </div>
 
         {variations.length > 0 && (
-          <div className="space-y-4 border-t border-border pt-6">
+          <div className="space-y-4 border-t border-border pt-8">
             <div className="flex items-center justify-between">
               <p className="text-sm text-text-muted">
                 {videoCount} video variation{videoCount !== 1 ? 's' : ''}, {staticCount} static variation{staticCount !== 1 ? 's' : ''}
@@ -641,7 +641,7 @@ export default function AdVariationsView() {
           </div>
         </div>
       ) : (
-        <div className="shrink-0 p-4 border-t border-border">
+        <div className="shrink-0 p-5 border-t border-border">
           <button
             type="button"
             onClick={handleGenerate}

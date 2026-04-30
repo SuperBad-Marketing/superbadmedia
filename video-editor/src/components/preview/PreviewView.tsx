@@ -87,12 +87,12 @@ export default function PreviewView() {
 
   if (previewClips.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-text-dim">
-        <div className="size-16 rounded-2xl bg-surface-active flex items-center justify-center">
-          <Play size={24} className="opacity-40 ml-1" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8">
+        <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
+          <Play size={32} className="text-text-dim ml-1" />
         </div>
-        <h2 className="font-display text-lg font-bold text-text">Preview</h2>
-        <p className="text-sm text-pretty text-center max-w-xs">Import footage or build a storyboard to preview clips here</p>
+        <h2 className="font-display text-3xl font-bold text-text">Preview</h2>
+        <p className="text-text-muted text-base text-pretty text-center max-w-sm">Import footage or build a storyboard to preview clips here</p>
       </div>
     )
   }

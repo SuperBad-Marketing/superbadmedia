@@ -75,22 +75,22 @@ export default function MediaBrowser() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-3 py-2 space-y-2 border-b border-border">
+      <div className="px-4 py-3 space-y-2.5 border-b border-border">
         <div className="relative">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-dim" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clips..."
-            className="w-full bg-bg border border-border rounded-lg text-[13px] text-text placeholder:text-text-dim pl-8 pr-3 py-1.5 focus:outline-none focus:border-border-active transition-colors duration-150"
+            className="w-full bg-bg border border-border rounded-lg text-sm text-text placeholder:text-text-dim pl-9 pr-3 py-2 focus:outline-none focus:border-border-active transition-colors duration-150"
           />
         </div>
 
         <div className="relative">
           <button
             onClick={() => setFilterOpen(!filterOpen)}
-            className={`flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-lg transition-colors duration-150 ${
+            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors duration-150 ${
               filter !== 'all'
                 ? 'bg-accent-dim text-accent font-medium'
                 : 'text-text-dim hover:text-text-muted hover:bg-surface-hover'
@@ -109,7 +109,7 @@ export default function MediaBrowser() {
                     setFilter(mode)
                     setFilterOpen(false)
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-[11px] transition-colors duration-150 ${
+                  className={`w-full text-left px-3 py-1.5 text-xs transition-colors duration-150 ${
                     filter === mode
                       ? 'text-accent bg-accent-dim font-medium'
                       : 'text-text-muted hover:text-text hover:bg-surface-hover'
@@ -123,8 +123,8 @@ export default function MediaBrowser() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2">
-        <div className="grid grid-cols-2 gap-2">
+      <div className="flex-1 overflow-y-auto p-3">
+        <div className="grid grid-cols-2 gap-3">
           {filteredClips.map((clip) => (
             <ClipCard
               key={clip.id}
@@ -136,14 +136,14 @@ export default function MediaBrowser() {
         </div>
       </div>
 
-      <div className="px-3 py-2 border-t border-border flex items-center justify-between">
-        <span className="text-text-dim text-[11px] font-mono tabular-nums">
+      <div className="px-4 py-3 border-t border-border flex items-center justify-between">
+        <span className="text-text-dim text-xs font-mono tabular-nums">
           {filteredClips.length} clip{filteredClips.length !== 1 ? 's' : ''}
           {filter !== 'all' && ` / ${clips.length}`}
         </span>
         <button
           onClick={handleAddAll}
-          className="flex items-center gap-1 text-[11px] text-text-dim hover:text-accent transition-colors duration-150 font-medium"
+          className="flex items-center gap-1.5 text-xs text-text-dim hover:text-accent transition-colors duration-150 font-medium"
         >
           <ListPlus size={12} />
           Add all

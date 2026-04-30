@@ -32,11 +32,11 @@ export default function LeftPanel() {
 
   return (
     <div className="w-[280px] bg-surface border-r border-border shrink-0 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         {currentProject ? (
-          <div className="flex flex-col gap-1.5 min-w-0">
-            <span className="font-display text-sm font-semibold text-text truncate">{currentProject.clientName}</span>
-            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full w-fit uppercase tracking-wider ${statusColors[currentProject.status] || 'bg-surface-hover text-text-dim'}`}>
+          <div className="flex flex-col gap-2 min-w-0">
+            <span className="font-display text-base font-semibold text-text truncate">{currentProject.clientName}</span>
+            <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full w-fit uppercase tracking-wider ${statusColors[currentProject.status] || 'bg-surface-hover text-text-dim'}`}>
               {currentProject.status}
             </span>
           </div>

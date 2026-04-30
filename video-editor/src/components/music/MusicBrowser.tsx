@@ -123,24 +123,24 @@ export default function MusicBrowser() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-3 py-2 space-y-2 border-b border-border">
+      <div className="px-4 py-3 space-y-2.5 border-b border-border">
         <div className="relative">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-dim" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search music..."
-            className="w-full bg-bg border border-border rounded-lg text-[13px] text-text placeholder:text-text-dim pl-8 pr-3 py-2 focus:outline-none focus:border-border-active transition-colors duration-150"
+            className="w-full bg-bg border border-border rounded-lg text-sm text-text placeholder:text-text-dim pl-9 pr-3 py-2.5 focus:outline-none focus:border-border-active transition-colors duration-150"
           />
         </div>
 
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
           {MOOD_FILTERS.map((mood) => (
             <button
               key={mood}
               onClick={() => toggleFilter(mood)}
-              className={`rounded-lg px-2.5 py-1 text-[11px] whitespace-nowrap transition-colors duration-150 ${
+              className={`rounded-lg px-3 py-1.5 text-xs whitespace-nowrap transition-colors duration-150 ${
                 activeFilters.has(mood)
                   ? 'bg-pink-dim border border-pink/30 text-pink font-medium'
                   : 'bg-surface border border-border text-text-dim hover:text-text-muted hover:border-border-active'
@@ -152,13 +152,13 @@ export default function MusicBrowser() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-1">
+      <div className="flex-1 overflow-y-auto py-2">
         {filteredTracks.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <span className="text-sm text-text-dim">No tracks found</span>
           </div>
         ) : (
-          <div className="flex flex-col gap-0.5 px-1">
+          <div className="flex flex-col gap-1 px-2">
             {filteredTracks.map((track) => (
               <TrackCard
                 key={track.id}

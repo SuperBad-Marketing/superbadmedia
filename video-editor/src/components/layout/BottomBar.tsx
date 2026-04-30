@@ -29,28 +29,28 @@ export default function BottomBar() {
   }
 
   return (
-    <div className="flex items-center justify-between h-7 px-4 bg-bg border-t border-border shrink-0 font-mono text-[11px] select-none">
+    <div className="flex items-center justify-between h-9 px-5 bg-bg border-t border-border shrink-0 font-mono text-xs select-none">
       <div className="flex items-center gap-2">
         {connecting ? (
           <>
-            <Loader2 size={11} className="text-text-dim animate-spin" />
+            <Loader2 size={13} className="text-text-dim animate-spin" />
             <span className="text-text-dim">Connecting...</span>
           </>
         ) : resolveConnected ? (
           <>
-            <Wifi size={11} className="text-green" />
+            <Wifi size={13} className="text-green" />
             <span className="text-green">Resolve{resolveProject ? ` — ${resolveProject}` : ''}</span>
           </>
         ) : (
           <button onClick={handleConnect} className="flex items-center gap-1.5 text-text-dim hover:text-accent transition-colors duration-150">
-            <WifiOff size={11} />
+            <WifiOff size={13} />
             <span>Connect Resolve</span>
           </button>
         )}
       </div>
 
       <div className="flex items-center gap-1.5 text-text-dim">
-        <HardDrive size={11} />
+        <HardDrive size={13} />
         <span>SSD: --</span>
       </div>
 

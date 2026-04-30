@@ -237,12 +237,12 @@ export default function ExportView() {
 
   if (!hasTimeline) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <div className="size-16 rounded-2xl bg-surface-active flex items-center justify-center">
-          <Monitor size={24} className="text-text-dim" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8">
+        <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
+          <Monitor size={32} className="text-text-dim" />
         </div>
-        <h2 className="font-display text-2xl font-bold text-text">Export</h2>
-        <p className="text-text-dim text-sm text-center text-pretty max-w-sm">
+        <h2 className="font-display text-3xl font-bold text-text">Export</h2>
+        <p className="text-text-muted text-base text-center text-pretty max-w-sm">
           Build your timeline first, then come back here to export
         </p>
       </div>
@@ -251,10 +251,10 @@ export default function ExportView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-none">
+      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none">
         {/* Format selection */}
         <div className="space-y-4">
-          <h2 className="font-display text-xl font-bold text-text">Export</h2>
+          <h2 className="font-display text-2xl font-bold text-text">Export</h2>
 
           <div className="grid grid-cols-2 gap-3">
             {FORMATS.map((format) => {
@@ -265,7 +265,7 @@ export default function ExportView() {
                   key={format.id}
                   type="button"
                   onClick={() => toggleFormat(format.id)}
-                  className={`relative bg-surface border rounded-xl p-4 text-left transition-all duration-150 ${
+                  className={`relative bg-surface border rounded-xl p-5 text-left transition-all duration-150 ${
                     selected
                       ? 'border-accent bg-accent-dim'
                       : 'border-border hover:border-border-active'
@@ -295,7 +295,7 @@ export default function ExportView() {
         </div>
 
         {/* Settings */}
-        <div className="space-y-4 border-t border-border pt-6">
+        <div className="space-y-5 border-t border-border pt-8">
           <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Settings</h3>
 
           {/* Quality */}
@@ -457,7 +457,7 @@ export default function ExportView() {
       </div>
 
       {/* Sticky export button */}
-      <div className="shrink-0 p-4 border-t border-border">
+      <div className="shrink-0 p-5 border-t border-border">
         <button
           type="button"
           onClick={handleExport}

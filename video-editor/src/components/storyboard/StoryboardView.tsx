@@ -192,15 +192,15 @@ export default function StoryboardView() {
 
   if (storyboardClips.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <h2 className="font-display text-2xl font-bold text-text">Build your story</h2>
-        <p className="text-text-dim text-sm text-center text-pretty max-w-sm">
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8">
+        <h2 className="font-display text-3xl font-bold text-text">Build your story</h2>
+        <p className="text-text-muted text-base text-center text-pretty max-w-sm">
           Add clips from the media browser or ask Claude to build a rough cut
         </p>
         {!selectedTrack && (
           <button
             onClick={() => setRightPanelTab('music')}
-            className="flex items-center gap-1.5 text-pink text-sm font-medium mt-2 hover:opacity-80 transition-opacity duration-150"
+            className="flex items-center gap-1.5 text-pink text-base font-medium mt-2 hover:opacity-80 transition-opacity duration-150"
           >
             Choose your music first
             <ArrowRight size={14} />

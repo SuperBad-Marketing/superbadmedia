@@ -74,14 +74,14 @@ export default function ChatInput() {
   }
 
   return (
-    <div className="px-3 pb-3 pt-1">
+    <div className="px-4 pb-4 pt-2">
       <div className="relative flex items-end gap-2 bg-bg border border-border rounded-xl focus-within:border-border-active transition-colors duration-150">
         <button
           type="button"
-          className="p-2.5 text-text-dim hover:text-text-muted transition-colors duration-150 shrink-0 self-end"
+          className="p-3 text-text-dim hover:text-text-muted transition-colors duration-150 shrink-0 self-end"
           aria-label="Attach file"
         >
-          <Paperclip size={15} />
+          <Paperclip size={16} />
         </button>
         <textarea
           ref={textareaRef}
@@ -90,7 +90,7 @@ export default function ChatInput() {
           onKeyDown={handleKeyDown}
           placeholder="Type a command, drop a link, or ask anything..."
           rows={1}
-          className="flex-1 bg-transparent text-text text-[13px] py-2.5 resize-none outline-none placeholder:text-text-dim leading-6"
+          className="flex-1 bg-transparent text-text text-sm py-3 resize-none outline-none placeholder:text-text-dim leading-6"
         />
         {trimmed && (
           <button

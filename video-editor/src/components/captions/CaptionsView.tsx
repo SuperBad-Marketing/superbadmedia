@@ -98,12 +98,12 @@ export default function CaptionsView() {
 
   if (!hasTimeline) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <div className="size-16 rounded-2xl bg-surface-active flex items-center justify-center">
-          <Type size={24} className="text-text-dim" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8">
+        <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
+          <Type size={32} className="text-text-dim" />
         </div>
-        <h2 className="font-display text-2xl font-bold text-text">Captions</h2>
-        <p className="text-text-dim text-sm text-center text-pretty max-w-sm">
+        <h2 className="font-display text-3xl font-bold text-text">Captions</h2>
+        <p className="text-text-muted text-base text-center text-pretty max-w-sm">
           Build your timeline first, then generate captions from the audio
         </p>
       </div>
@@ -115,7 +115,7 @@ export default function CaptionsView() {
       <div className="flex-1 flex min-h-0">
         {/* Caption list */}
         <div className="flex-1 flex flex-col min-h-0 border-r border-border">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <h2 className="text-sm font-display font-semibold text-text">
               Captions {captions.length > 0 && <span className="font-mono text-text-dim">({captions.length})</span>}
             </h2>
@@ -138,7 +138,7 @@ export default function CaptionsView() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {captions.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2 text-text-dim text-sm">
                 <Type size={24} />
@@ -204,7 +204,7 @@ export default function CaptionsView() {
         </div>
 
         {/* Style panel */}
-        <div className="w-64 shrink-0 p-4 space-y-5 overflow-y-auto">
+        <div className="w-72 shrink-0 p-5 space-y-5 overflow-y-auto">
           <h3 className="text-sm font-display font-semibold text-text">Style</h3>
 
           {/* Font */}

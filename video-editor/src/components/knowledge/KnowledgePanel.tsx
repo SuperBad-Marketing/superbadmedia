@@ -493,7 +493,7 @@ export default function KnowledgePanel() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-3 py-3 space-y-3 border-b border-border shrink-0">
+      <div className="px-4 py-4 space-y-3 border-b border-border shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-lg font-bold text-text">Knowledge Base</h2>
@@ -514,7 +514,7 @@ export default function KnowledgePanel() {
         <QuickAdd />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3">
+      <div className="flex-1 overflow-y-auto px-4 py-4">
         {CATEGORY_ORDER.map((cat) => {
           const catSkills = grouped[cat]
           const isExpanded = expandedCategories.has(cat)

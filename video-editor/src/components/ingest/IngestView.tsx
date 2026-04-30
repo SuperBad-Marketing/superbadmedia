@@ -106,19 +106,19 @@ export default function IngestView() {
   if (viewState === 'form') {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-w-md space-y-8">
           <div>
-            <h2 className="font-display text-xl font-bold text-text">Set up import</h2>
-            <p className="font-mono text-[11px] text-text-dim mt-2 truncate">{selectedPath}</p>
+            <h2 className="font-display text-2xl font-bold text-text">Set up import</h2>
+            <p className="font-mono text-xs text-text-dim mt-2.5 truncate">{selectedPath}</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <input
               type="text"
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Client name"
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150"
+              className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-base text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150"
               autoFocus
             />
 
@@ -127,15 +127,15 @@ export default function IngestView() {
               onChange={(e) => setShootNotes(e.target.value)}
               placeholder="Any notes from the shoot? (optional)"
               rows={3}
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150 resize-none"
+              className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-base text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150 resize-none"
             />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <button
               onClick={handleStart}
               disabled={!clientName.trim() || isStarting}
-              className="bg-accent rounded-lg py-2.5 px-6 font-display font-semibold text-sm text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-accent rounded-xl py-3 px-8 font-display font-semibold text-base text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isStarting ? 'Starting...' : 'Start Import'}
             </button>
@@ -153,31 +153,31 @@ export default function IngestView() {
 
   return (
     <div className="flex-1 flex items-center justify-center p-8">
-      <div className="flex flex-col items-center gap-8 max-w-lg">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-surface-active flex items-center justify-center">
-            <HardDrive size={28} className="text-text-dim" />
+      <div className="flex flex-col items-center gap-10 max-w-lg">
+        <div className="flex flex-col items-center gap-4">
+          <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
+            <HardDrive size={32} className="text-text-dim" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-text">Import Footage</h1>
-          <p className="text-text-dim text-sm text-center text-pretty">
+          <h1 className="font-display text-3xl font-bold text-text">Import Footage</h1>
+          <p className="text-text-muted text-base text-center text-pretty">
             Plug in a card or choose a folder to get started
           </p>
         </div>
 
-        <div className="flex items-stretch gap-4">
-          <button className="group w-[200px] bg-surface border border-border rounded-xl p-6 text-left hover:border-border-active transition-colors duration-150">
-            <CreditCard size={24} className="text-text-dim group-hover:text-pink transition-colors duration-150 mb-3" />
-            <p className="text-sm font-display font-semibold text-text">From Card</p>
-            <p className="text-xs text-text-dim mt-1">Auto-detect SD / CF Express</p>
+        <div className="flex items-stretch gap-5">
+          <button className="group w-[220px] bg-surface border border-border rounded-xl p-7 text-left hover:border-border-active transition-colors duration-150">
+            <CreditCard size={28} className="text-text-dim group-hover:text-pink transition-colors duration-150 mb-4" />
+            <p className="text-base font-display font-semibold text-text">From Card</p>
+            <p className="text-sm text-text-dim mt-1.5">Auto-detect SD / CF Express</p>
           </button>
 
           <button
             onClick={handleSelectFolder}
-            className="group w-[200px] bg-surface border border-border rounded-xl p-6 text-left hover:border-border-active transition-colors duration-150"
+            className="group w-[220px] bg-surface border border-border rounded-xl p-7 text-left hover:border-border-active transition-colors duration-150"
           >
-            <FolderOpen size={24} className="text-text-dim group-hover:text-orange transition-colors duration-150 mb-3" />
-            <p className="text-sm font-display font-semibold text-text">From Folder</p>
-            <p className="text-xs text-text-dim mt-1">Select footage on your SSD</p>
+            <FolderOpen size={28} className="text-text-dim group-hover:text-orange transition-colors duration-150 mb-4" />
+            <p className="text-base font-display font-semibold text-text">From Folder</p>
+            <p className="text-sm text-text-dim mt-1.5">Select footage on your SSD</p>
           </button>
         </div>
       </div>
