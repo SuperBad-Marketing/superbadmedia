@@ -6,6 +6,7 @@ import { Paperclip } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { MessageRow } from "@/lib/db/schema/messages";
+import { EmailBody } from "@/components/lite/email-body";
 import { CalendarRsvpButtons } from "./calendar-rsvp-buttons";
 import { ChannelIconOnly } from "./thread-list-row";
 
@@ -64,9 +65,11 @@ export function ConversationStream({
               </span>
             </header>
 
-            <div className="whitespace-pre-wrap break-words font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)]">
-              {m.body_text}
-            </div>
+            <EmailBody
+              html={m.body_html}
+              text={m.body_text}
+              className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)]"
+            />
 
             {(m.has_attachments || m.has_calendar_invite) && (
               <footer className="flex flex-wrap items-center gap-2 border-t border-[color:var(--color-neutral-700)] pt-2">

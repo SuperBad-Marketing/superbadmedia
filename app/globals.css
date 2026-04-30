@@ -545,3 +545,89 @@
   padding: 0;
   border-radius: 0;
 }
+
+/* ---------- Email body HTML rendering ---------- */
+.email-body-rendered {
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: var(--text-body);
+  line-height: 1.6;
+  color: var(--color-neutral-100);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.email-body-rendered p,
+.email-body-rendered div {
+  margin-bottom: 0.6em;
+}
+.email-body-rendered p:last-child,
+.email-body-rendered div:last-child {
+  margin-bottom: 0;
+}
+.email-body-rendered a {
+  color: var(--color-accent-cta);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.email-body-rendered a:hover {
+  opacity: 0.8;
+}
+.email-body-rendered strong,
+.email-body-rendered b {
+  font-weight: 600;
+  color: var(--color-brand-cream);
+}
+.email-body-rendered em,
+.email-body-rendered i {
+  font-style: italic;
+}
+.email-body-rendered h1,
+.email-body-rendered h2,
+.email-body-rendered h3,
+.email-body-rendered h4 {
+  font-weight: 600;
+  color: var(--color-brand-cream);
+  margin-top: 1em;
+  margin-bottom: 0.4em;
+}
+.email-body-rendered h1 { font-size: 1.3em; }
+.email-body-rendered h2 { font-size: 1.15em; }
+.email-body-rendered h3 { font-size: 1.05em; }
+.email-body-rendered ul,
+.email-body-rendered ol {
+  padding-left: 1.4em;
+  margin-bottom: 0.6em;
+}
+.email-body-rendered li {
+  margin-bottom: 0.25em;
+}
+.email-body-rendered blockquote {
+  border-left: 2px solid var(--color-neutral-600);
+  padding-left: 0.8em;
+  margin: 0.6em 0;
+  color: var(--color-neutral-400);
+}
+.email-body-rendered hr {
+  border: none;
+  border-top: 1px solid var(--color-neutral-700);
+  margin: 1em 0;
+}
+.email-body-rendered img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+.email-body-rendered table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 0.6em;
+}
+.email-body-rendered th,
+.email-body-rendered td {
+  border: 1px solid var(--color-neutral-700);
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+.email-body-rendered th {
+  background: rgba(253, 245, 230, 0.04);
+  font-weight: 600;
+}
