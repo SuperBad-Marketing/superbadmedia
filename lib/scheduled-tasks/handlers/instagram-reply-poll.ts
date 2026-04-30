@@ -1,14 +1,19 @@
-import { eq, and, inArray, desc } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { eq, and, inArray, desc, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   instagram_accounts,
   instagram_media,
   instagram_replies,
+  instagram_comment_triggers,
+  instagram_trigger_fires,
 } from "@/lib/db/schema/instagram";
 import {
   getMediaComments,
   getConversations,
   getConversationMessages,
+  getCommentAuthorId,
+  sendDirectMessage,
   type IGComment,
   type IGMessage,
 } from "@/lib/channels/instagram/client";
@@ -54,9 +59,28 @@ async function pollComments(
     );
     if (!res.ok) continue;
 
+    const activeTriggers = await db
+      .select()
+      .from(instagram_comment_triggers)
+      .where(
+        and(
+          eq(instagram_comment_triggers.media_id, media.id),
+          eq(instagram_comment_triggers.is_active, true),
+        ),
+      );
+
     for (const comment of res.data.data) {
-      if (await isAlreadyProcessed(account.id, comment.id, null)) continue;
       if (isOwnComment(comment, account.username)) continue;
+
+      if (activeTriggers.length > 0) {
+        await checkAndFireTriggers(
+          activeTriggers,
+          comment,
+          account,
+        );
+      }
+
+      if (await isAlreadyProcessed(account.id, comment.id, null)) continue;
 
       const msg: InboundMessage = {
         replyType: "comment",
@@ -179,6 +203,99 @@ function isOwnComment(
   ownUsername: string,
 ): boolean {
   return comment.username.toLowerCase() === ownUsername.toLowerCase();
+}
+
+// ── Trigger automation ──────────────────────────────────────────────────
+
+async function checkAndFireTriggers(
+  triggers: (typeof instagram_comment_triggers.$inferSelect)[],
+  comment: IGComment,
+  account: typeof instagram_accounts.$inferSelect,
+): Promise<void> {
+  for (const trigger of triggers) {
+    const alreadyFired = await db
+      .select({ id: instagram_trigger_fires.id })
+      .from(instagram_trigger_fires)
+      .where(
+        and(
+          eq(instagram_trigger_fires.trigger_id, trigger.id),
+          eq(instagram_trigger_fires.ig_comment_id, comment.id),
+        ),
+      )
+      .limit(1);
+
+    if (alreadyFired.length > 0) continue;
+
+    if (
+      trigger.trigger_type === "keyword_match" &&
+      trigger.keyword &&
+      !comment.text.toLowerCase().includes(trigger.keyword.toLowerCase())
+    ) {
+      continue;
+    }
+
+    const fireId = randomUUID();
+    let dmSent = false;
+    let error: string | null = null;
+
+    try {
+      const authorRes = await getCommentAuthorId(
+        comment.id,
+        account.access_token,
+      );
+
+      if (!authorRes.ok) {
+        error = `Could not resolve commenter ID: ${authorRes.error}`;
+      } else {
+        const recipientId = authorRes.data.from.id;
+        const dmRes = await sendDirectMessage(
+          account.instagram_user_id,
+          account.access_token,
+          recipientId,
+          trigger.dm_message_text,
+        );
+
+        if (dmRes.ok) {
+          dmSent = true;
+        } else {
+          error = dmRes.error;
+        }
+      }
+    } catch (err) {
+      error =
+        err instanceof Error ? err.message : "Unknown error sending trigger DM";
+    }
+
+    await db.insert(instagram_trigger_fires).values({
+      id: fireId,
+      trigger_id: trigger.id,
+      ig_comment_id: comment.id,
+      commenter_username: comment.username,
+      dm_sent: dmSent,
+      error,
+      fired_at_ms: Date.now(),
+    });
+
+    await db
+      .update(instagram_comment_triggers)
+      .set({
+        fires_count: sql`${instagram_comment_triggers.fires_count} + 1`,
+      })
+      .where(eq(instagram_comment_triggers.id, trigger.id));
+
+    if (dmSent) {
+      await logActivity({
+        kind: "instagram_trigger_fired",
+        body: `Automation DM sent to @${comment.username} (trigger on comment)`,
+        meta: { trigger_id: trigger.id, comment_id: comment.id },
+      });
+    } else {
+      console.error(
+        `[instagram-reply-poll] Trigger fire failed for comment ${comment.id}:`,
+        error,
+      );
+    }
+  }
 }
 
 // ── Self-scheduling ──────────────────────────────────────────────────────

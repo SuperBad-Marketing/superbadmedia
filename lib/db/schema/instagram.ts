@@ -232,6 +232,61 @@ export const instagram_voice_corrections = sqliteTable(
 export type InstagramVoiceCorrectionRow =
   typeof instagram_voice_corrections.$inferSelect;
 
+export const instagram_comment_triggers = sqliteTable(
+  "instagram_comment_triggers",
+  {
+    id: text("id").primaryKey(),
+    account_id: text("account_id").notNull(),
+    media_id: text("media_id").notNull(),
+    trigger_type: text("trigger_type", {
+      enum: ["any_comment", "keyword_match"] as const,
+    }).notNull(),
+    keyword: text("keyword"),
+    action_type: text("action_type", {
+      enum: ["send_dm"] as const,
+    })
+      .notNull()
+      .default("send_dm"),
+    dm_message_text: text("dm_message_text").notNull(),
+    is_active: integer("is_active", { mode: "boolean" }).notNull().default(true),
+    fires_count: integer("fires_count").notNull().default(0),
+    created_at_ms: integer("created_at_ms").notNull(),
+  },
+  (t) => ({
+    by_media: index("ig_triggers_media_idx").on(t.media_id),
+    by_account: index("ig_triggers_account_idx").on(t.account_id),
+    by_active: index("ig_triggers_active_idx").on(t.is_active),
+  }),
+);
+
+export type InstagramCommentTriggerRow =
+  typeof instagram_comment_triggers.$inferSelect;
+export type InstagramCommentTriggerInsert =
+  typeof instagram_comment_triggers.$inferInsert;
+
+export const instagram_trigger_fires = sqliteTable(
+  "instagram_trigger_fires",
+  {
+    id: text("id").primaryKey(),
+    trigger_id: text("trigger_id").notNull(),
+    ig_comment_id: text("ig_comment_id").notNull(),
+    commenter_username: text("commenter_username").notNull(),
+    dm_sent: integer("dm_sent", { mode: "boolean" }).notNull().default(false),
+    error: text("error"),
+    fired_at_ms: integer("fired_at_ms").notNull(),
+  },
+  (t) => ({
+    by_trigger: index("ig_trigger_fires_trigger_idx").on(t.trigger_id),
+    by_comment: uniqueIndex("ig_trigger_fires_comment_idx").on(
+      t.trigger_id,
+      t.ig_comment_id,
+    ),
+  }),
+);
+
+export type InstagramTriggerFireRow =
+  typeof instagram_trigger_fires.$inferSelect;
+
 export const CONTENT_PLAN_STATUSES = [
   "awaiting_review",
   "partially_approved",

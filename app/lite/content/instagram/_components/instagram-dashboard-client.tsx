@@ -16,6 +16,7 @@ import {
 import { SyncProgressOverlay } from "./sync-progress-overlay";
 import { CommentsPanel } from "./comments-panel";
 import { InboxPanel } from "./inbox-panel";
+import { AutomationPanel } from "./automation-panel";
 import {
   generateStrategyAction,
   reactToInspirationAction,
@@ -53,7 +54,7 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
   const [syncOverlayOpen, setSyncOverlayOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"overview" | "comments" | "inbox">("overview");
+  const [activeView, setActiveView] = useState<"overview" | "comments" | "inbox" | "automation">("overview");
 
   const handleSyncComplete = useCallback(
     (result: { followers: number; postsSynced: number } | null) => {
@@ -231,6 +232,7 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
             { key: "overview", label: "Overview" },
             { key: "comments", label: "Comments" },
             { key: "inbox", label: "Inbox" },
+            { key: "automation", label: "Automation" },
           ] as const
         ).map((tab) => (
           <button
@@ -315,6 +317,8 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
       {activeView === "comments" && <CommentsPanel />}
 
       {activeView === "inbox" && <InboxPanel />}
+
+      {activeView === "automation" && <AutomationPanel />}
     </div>
   );
 }

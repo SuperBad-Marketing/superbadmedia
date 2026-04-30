@@ -419,6 +419,10 @@ export const ACTIVITY_LOG_KINDS = [
   "instagram_reply_escalated",
   "instagram_reply_approved",
   "instagram_reply_skipped",
+  // --- Instagram Triggers (3) ---
+  "instagram_trigger_created",
+  "instagram_trigger_fired",
+  "instagram_trigger_deleted",
   // --- Business Profile (8) ---
   "profile_section_created",
   "profile_section_updated",

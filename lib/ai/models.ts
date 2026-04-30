@@ -163,6 +163,7 @@ export const MODELS = {
   "instagram-strategy-digest": "sonnet",
   "instagram-realtime-alert": "haiku",
   "instagram-boost-rationale": "haiku",
+  "instagram-trigger-dm-draft": "sonnet",
   // talking-head-scripts (3)
   "talking-head-generate-script": "opus",
   "talking-head-generate-edit-brief": "haiku",

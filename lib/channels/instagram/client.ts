@@ -274,6 +274,19 @@ export async function getMediaComments(
   );
 }
 
+export async function getCommentAuthorId(
+  commentId: string,
+  accessToken: string,
+): Promise<IGApiResult<{ from: { id: string; username: string } }>> {
+  return callApi(
+    "GET",
+    `${GRAPH_FB_BASE}/${commentId}?fields=from`,
+    accessToken,
+    undefined,
+    "get_comment_author",
+  );
+}
+
 export async function replyToComment(
   commentId: string,
   accessToken: string,
