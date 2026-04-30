@@ -91,6 +91,9 @@ export const EMAIL_CLASSIFICATIONS = [
   // Rundown — post-completion nurture sequence (3 emails over 10 days).
   // Non-transactional: marketing follow-up referencing Brand DNA findings.
   "rundown_sequence",
+  // Admin — manual reply from admin comms tab to an existing conversation.
+  // Transactional: recipient initiated the thread.
+  "admin_reply",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];
@@ -133,6 +136,8 @@ export const TRANSACTIONAL_CLASSIFICATIONS: readonly EmailClassification[] = [
   "rundown_resume",
   // Rundown — follow-up is transactional (delivering the prospect's own artefacts)
   "rundown_followup",
+  // Admin — manual reply to an existing conversation
+  "admin_reply",
 ] as const;
 
 export function isTransactional(c: EmailClassification): boolean {

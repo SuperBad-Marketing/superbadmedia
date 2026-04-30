@@ -65,6 +65,7 @@ export function ContactCommsTab({
   if (focusedThreadId && focusedThread && focusedMessages) {
     return (
       <ThreadDetail
+        threadId={focusedThread.id}
         threadSubject={focusedThread.subject ?? "Untitled thread"}
         messages={focusedMessages}
         backHref={`/lite/admin/contacts/${contactId}?tab=comms`}

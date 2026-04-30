@@ -68,6 +68,7 @@ export function CommsTab({
   if (focusedThreadId && focusedThread && focusedMessages) {
     return (
       <ThreadDetail
+        threadId={focusedThread.id}
         threadSubject={focusedThread.subject ?? "Untitled thread"}
         messages={focusedMessages}
         backHref={`/lite/admin/companies/${companyId}?tab=comms`}
