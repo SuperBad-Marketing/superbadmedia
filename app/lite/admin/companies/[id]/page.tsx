@@ -4,7 +4,7 @@
  * Visual rebuild: sessions/admin-polish-4-brief.md against mockup-admin-interior.html.
  */
 import { notFound, redirect } from "next/navigation";
-import { desc, eq, inArray, max } from "drizzle-orm";
+import { desc, eq, inArray, max, or, sql } from "drizzle-orm";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -18,6 +18,7 @@ import { activity_log } from "@/lib/db/schema/activity-log";
 import { private_notes } from "@/lib/db/schema/private-notes";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { brand_dna_blends } from "@/lib/db/schema/brand-dna-blends";
+import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { threads, messages } from "@/lib/db/schema/messages";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 import { trial_shoot_notes } from "@/lib/db/schema/trial-shoot-notes";
@@ -418,10 +419,35 @@ export default async function CompanyAdminPage({
   const contactIds = contactRows.map((c) => c.id);
 
   const brandDnaData = activeTab === "brand-dna"
-    ? await Promise.all([
-        db.select().from(brand_dna_profiles).where(eq(brand_dna_profiles.company_id, id)).orderBy(desc(brand_dna_profiles.created_at_ms)),
-        db.select().from(brand_dna_blends).where(eq(brand_dna_blends.company_id, id)).orderBy(desc(brand_dna_blends.created_at_ms)).get(),
-      ])
+    ? await (async () => {
+        const contactEmails = contactRows
+          .map((c) => c.email_normalised)
+          .filter((e): e is string => !!e);
+
+        const candidateIds = contactEmails.length > 0
+          ? (await db.select({ id: leadCandidates.id }).from(leadCandidates)
+              .where(sql`lower(${leadCandidates.contact_email}) IN (${sql.join(contactEmails.map(e => sql`${e}`), sql`, `)})`)
+            ).map((r) => r.id)
+          : [];
+
+        const conditions = [eq(brand_dna_profiles.company_id, id)];
+        if (contactIds.length > 0) {
+          conditions.push(inArray(brand_dna_profiles.contact_id, contactIds));
+        }
+        if (candidateIds.length > 0) {
+          conditions.push(inArray(brand_dna_profiles.candidate_id, candidateIds));
+        }
+
+        const [profiles, blend] = await Promise.all([
+          db.select().from(brand_dna_profiles)
+            .where(or(...conditions))
+            .orderBy(desc(brand_dna_profiles.created_at_ms)),
+          db.select().from(brand_dna_blends)
+            .where(eq(brand_dna_blends.company_id, id))
+            .orderBy(desc(brand_dna_blends.created_at_ms)).get(),
+        ]);
+        return [profiles, blend] as const;
+      })()
     : null;
 
   const commsData = activeTab === "comms"
