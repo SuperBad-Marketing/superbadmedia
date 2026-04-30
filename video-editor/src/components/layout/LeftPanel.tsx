@@ -21,9 +21,10 @@ export default function LeftPanel() {
       <div className="w-10 bg-surface border-r border-border shrink-0 flex flex-col items-center pt-3">
         <button
           onClick={toggleLeftPanel}
-          className="p-1.5 rounded text-text-muted hover:text-text hover:bg-surface-hover transition-all duration-200"
+          className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150"
+          aria-label="Expand panel"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={15} />
         </button>
       </div>
     )
@@ -33,9 +34,9 @@ export default function LeftPanel() {
     <div className="w-[280px] bg-surface border-r border-border shrink-0 flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         {currentProject ? (
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-sm font-medium text-text truncate">{currentProject.clientName}</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${statusColors[currentProject.status] || 'bg-surface-hover text-text-dim'}`}>
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <span className="font-display text-sm font-semibold text-text truncate">{currentProject.clientName}</span>
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full w-fit uppercase tracking-wider ${statusColors[currentProject.status] || 'bg-surface-hover text-text-dim'}`}>
               {currentProject.status}
             </span>
           </div>
@@ -44,9 +45,10 @@ export default function LeftPanel() {
         )}
         <button
           onClick={toggleLeftPanel}
-          className="p-1.5 rounded text-text-muted hover:text-text hover:bg-surface-hover transition-all duration-200 shrink-0"
+          className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150 shrink-0"
+          aria-label="Collapse panel"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={15} />
         </button>
       </div>
 

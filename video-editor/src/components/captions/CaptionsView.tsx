@@ -99,9 +99,11 @@ export default function CaptionsView() {
   if (!hasTimeline) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <Type size={48} className="text-text-dim" />
-        <h2 className="text-2xl font-semibold text-text">Captions</h2>
-        <p className="text-text-muted text-sm text-center max-w-sm">
+        <div className="size-16 rounded-2xl bg-surface-active flex items-center justify-center">
+          <Type size={24} className="text-text-dim" />
+        </div>
+        <h2 className="font-display text-2xl font-bold text-text">Captions</h2>
+        <p className="text-text-dim text-sm text-center text-pretty max-w-sm">
           Build your timeline first, then generate captions from the audio
         </p>
       </div>
@@ -114,13 +116,13 @@ export default function CaptionsView() {
         {/* Caption list */}
         <div className="flex-1 flex flex-col min-h-0 border-r border-border">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <h2 className="text-sm font-semibold text-text">
-              Captions {captions.length > 0 && `(${captions.length})`}
+            <h2 className="text-sm font-display font-semibold text-text">
+              Captions {captions.length > 0 && <span className="font-mono text-text-dim">({captions.length})</span>}
             </h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={addCaption}
-                className="flex items-center gap-1 text-xs text-text-muted hover:text-text transition-colors"
+                className="flex items-center gap-1 text-xs text-text-muted hover:text-text transition-colors duration-150"
               >
                 <Plus size={12} />
                 Add
@@ -128,7 +130,7 @@ export default function CaptionsView() {
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="flex items-center gap-1.5 bg-accent rounded-lg px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-hover transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 bg-accent rounded-lg px-3 py-1.5 text-xs font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50"
               >
                 {generating && <Loader2 size={12} className="animate-spin" />}
                 {generating ? 'Generating...' : captions.length > 0 ? 'Regenerate' : 'Generate'}
@@ -151,12 +153,13 @@ export default function CaptionsView() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-text-dim font-mono">
+                    <span className="text-[10px] text-text-dim font-mono tabular-nums">
                       #{i + 1} &middot; {formatTime(caption.startTime)} → {formatTime(caption.endTime)}
                     </span>
                     <button
                       onClick={() => removeCaption(caption.id)}
-                      className="text-text-dim hover:text-accent transition-colors"
+                      aria-label="Remove caption"
+                      className="text-text-dim hover:text-accent transition-colors duration-150"
                     >
                       <Trash2 size={12} />
                     </button>
@@ -180,7 +183,7 @@ export default function CaptionsView() {
                         value={caption.startTime}
                         onChange={(e) => updateCaption(caption.id, { startTime: Number(e.target.value) })}
                         step={0.1}
-                        className="w-16 bg-bg border border-border rounded px-1.5 py-0.5 text-xs text-text font-mono focus:outline-none focus:border-accent"
+                        className="w-16 bg-bg border border-border rounded px-1.5 py-0.5 text-xs text-text font-mono tabular-nums focus:outline-none focus:border-accent"
                       />
                     </div>
                     <div className="flex items-center gap-1">
@@ -190,7 +193,7 @@ export default function CaptionsView() {
                         value={caption.endTime}
                         onChange={(e) => updateCaption(caption.id, { endTime: Number(e.target.value) })}
                         step={0.1}
-                        className="w-16 bg-bg border border-border rounded px-1.5 py-0.5 text-xs text-text font-mono focus:outline-none focus:border-accent"
+                        className="w-16 bg-bg border border-border rounded px-1.5 py-0.5 text-xs text-text font-mono tabular-nums focus:outline-none focus:border-accent"
                       />
                     </div>
                   </div>
@@ -202,7 +205,7 @@ export default function CaptionsView() {
 
         {/* Style panel */}
         <div className="w-64 shrink-0 p-4 space-y-5 overflow-y-auto">
-          <h3 className="text-sm font-semibold text-text">Style</h3>
+          <h3 className="text-sm font-display font-semibold text-text">Style</h3>
 
           {/* Font */}
           <div className="space-y-1.5">

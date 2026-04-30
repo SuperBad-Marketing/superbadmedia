@@ -300,12 +300,12 @@ export default function AdVariationsView() {
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-none">
         <div className="space-y-1">
-          <h2 className="text-xl font-semibold text-text">Ad Variations</h2>
+          <h2 className="font-display text-xl font-bold text-text">Ad Variations</h2>
           <p className="text-text-muted text-sm">Generate video and static ad variations from your edit</p>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-text uppercase tracking-wide">Formats</h3>
+          <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Formats</h3>
           <div className="grid grid-cols-4 gap-3">
             {FORMAT_OPTIONS.map((format) => {
               const selected = selectedFormats.has(format.id)
@@ -340,7 +340,7 @@ export default function AdVariationsView() {
         </div>
 
         <div className="space-y-5 border-t border-border pt-6">
-          <h3 className="text-sm font-semibold text-text uppercase tracking-wide">Video Cuts</h3>
+          <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Video Cuts</h3>
 
           <div className="space-y-2">
             <span className="text-sm text-text-muted">Lengths</span>
@@ -446,7 +446,7 @@ export default function AdVariationsView() {
 
         <div className="space-y-5 border-t border-border pt-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text uppercase tracking-wide">Static Ads</h3>
+            <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Static Ads</h3>
             <Toggle enabled={includeStatics} onChange={setIncludeStatics} />
           </div>
 
@@ -634,7 +634,7 @@ export default function AdVariationsView() {
             <button
               type="button"
               disabled={approvedCount === 0}
-              className="bg-accent rounded-lg px-6 py-2 font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-accent rounded-lg px-6 py-2 font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Export Approved
             </button>
@@ -646,7 +646,7 @@ export default function AdVariationsView() {
             type="button"
             onClick={handleGenerate}
             disabled={selectedFormats.size === 0}
-            className="w-full bg-accent rounded-xl py-3 px-8 text-lg font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-accent rounded-xl py-3 px-8 text-lg font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Sparkles size={18} />
             Generate {totalVariationCount} variation{totalVariationCount !== 1 ? 's' : ''}

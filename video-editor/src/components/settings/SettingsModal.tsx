@@ -55,16 +55,16 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div className="relative w-full max-w-md bg-surface border border-border rounded-xl shadow-2xl p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-text">Settings</h2>
-          <button onClick={onClose} className="text-text-dim hover:text-text transition-colors">
-            <X size={18} />
+          <h2 className="font-display text-lg font-bold text-text">Settings</h2>
+          <button onClick={onClose} className="text-text-dim hover:text-text transition-colors duration-150">
+            <X size={16} />
           </button>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-text">
-              <Key size={14} />
+              <Key size={13} />
               Anthropic API Key
             </label>
             <input
@@ -72,16 +72,16 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
               value={apiKey}
               onChange={(e) => { setApiKey(e.target.value); setSaved(false) }}
               placeholder="sk-ant-..."
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-text font-mono placeholder:text-text-dim focus:outline-none focus:border-accent transition-colors"
+              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-[13px] text-text font-mono placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150"
             />
-            <p className="text-xs text-text-dim">
+            <p className="text-[11px] text-text-dim">
               Required for chat, grading commands, and clip analysis descriptions.
               Your key stays on your machine.
             </p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-xs text-accent">
+            <div className="flex items-center gap-2 text-[11px] text-accent">
               <AlertCircle size={12} />
               {error}
             </div>
@@ -90,7 +90,7 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
           <button
             onClick={handleSave}
             disabled={saving || !apiKey.trim() || apiKey.includes('•')}
-            className="w-full flex items-center justify-center gap-2 bg-accent rounded-lg py-2.5 px-4 text-sm font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-40"
+            className="w-full flex items-center justify-center gap-2 bg-accent rounded-lg py-2.5 px-4 text-[13px] font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40"
           >
             {saved ? (
               <>

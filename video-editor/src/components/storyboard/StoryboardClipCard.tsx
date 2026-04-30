@@ -32,13 +32,13 @@ export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCar
     <div
       ref={setNodeRef}
       style={style}
-      className={`w-40 min-w-40 bg-surface border rounded-lg overflow-hidden transition-colors ${
+      className={`w-40 min-w-40 bg-surface border rounded-lg overflow-hidden transition-colors duration-150 ${
         isDragging
           ? 'opacity-50 ring-2 ring-accent border-accent'
           : 'border-border hover:border-border-active'
       }`}
     >
-      <div className="aspect-video bg-surface-active flex items-center justify-center relative group/thumb">
+      <div className="aspect-video bg-bg flex items-center justify-center relative group/thumb">
         {storyboardClip.clip.thumbnailPath ? (
           <img
             src={storyboardClip.clip.thumbnailPath}
@@ -46,11 +46,11 @@ export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCar
             className="w-full h-full object-cover"
           />
         ) : (
-          <Film size={20} className="text-text-dim" />
+          <Film size={18} className="text-text-dim" />
         )}
         <button
           onClick={() => removeFromStoryboard(storyboardClip.id)}
-          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-bg/70 text-text-muted opacity-0 group-hover/thumb:opacity-100 hover:bg-accent hover:text-white flex items-center justify-center transition-all"
+          className="absolute top-1 right-1 size-5 rounded-full bg-bg/70 text-text-muted opacity-0 group-hover/thumb:opacity-100 hover:bg-accent hover:text-white flex items-center justify-center transition-all duration-150"
           title="Remove from storyboard"
         >
           <X size={10} />
@@ -59,7 +59,7 @@ export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCar
 
       <div className="p-2 flex flex-col gap-1">
         <div className="flex items-center justify-between gap-1">
-          <span className="text-xs text-text truncate">
+          <span className="text-[11px] text-text truncate">
             {storyboardClip.clip.fileName}
           </span>
           <button
@@ -68,10 +68,10 @@ export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCar
             {...listeners}
             className="shrink-0 text-text-dim hover:text-text cursor-grab active:cursor-grabbing"
           >
-            <GripVertical size={12} />
+            <GripVertical size={11} />
           </button>
         </div>
-        <span className="font-mono text-text-dim text-xs">
+        <span className="font-mono text-text-dim text-[10px] tabular-nums">
           {duration.toFixed(1)}s
         </span>
       </div>

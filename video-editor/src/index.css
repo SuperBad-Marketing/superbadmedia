@@ -1,45 +1,72 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0a0a0a;
-  --color-surface: #141414;
-  --color-surface-hover: #1a1a1a;
-  --color-surface-active: #1f1f1f;
-  --color-border: #222222;
-  --color-border-active: #333333;
-  --color-text: #e5e5e5;
-  --color-text-muted: #777777;
-  --color-text-dim: #555555;
-  --color-accent: #e53935;
-  --color-accent-hover: #c62828;
-  --color-accent-dim: rgba(229, 57, 53, 0.15);
-  --color-green: #4caf50;
-  --color-green-dim: rgba(76, 175, 80, 0.15);
-  --color-amber: #ff9800;
-  --color-amber-dim: rgba(255, 152, 0, 0.15);
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Surfaces — warm charcoal, not cool black */
+  --color-bg: #1A1A18;
+  --color-surface: #232321;
+  --color-surface-hover: #2C2C29;
+  --color-surface-active: #353532;
+
+  /* Borders — warm */
+  --color-border: #3A3A36;
+  --color-border-active: #4E4E48;
+
+  /* Text — warm cream spectrum */
+  --color-text: #FDF5E6;
+  --color-text-muted: #A8A298;
+  --color-text-dim: #706B60;
+
+  /* Brand — SuperBad palette */
+  --color-accent: #B22848;
+  --color-accent-hover: #9A2240;
+  --color-accent-dim: rgba(178, 40, 72, 0.12);
+  --color-pink: #F4A0B0;
+  --color-pink-dim: rgba(244, 160, 176, 0.12);
+  --color-orange: #F28C52;
+  --color-orange-dim: rgba(242, 140, 82, 0.12);
+
+  /* Status */
+  --color-green: #6BBF6E;
+  --color-green-dim: rgba(107, 191, 110, 0.12);
+  --color-amber: #E8A840;
+  --color-amber-dim: rgba(232, 168, 64, 0.12);
+
+  /* Typography */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body, #root {
-  height: 100%;
+  height: 100dvh;
   overflow: hidden;
 }
 
 body {
   font-family: var(--font-sans);
+  font-weight: 400;
   background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar { width: 6px; }
+/* Scrollbar — warm, subtle */
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border-active); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-text-dim); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-active); }
 
-/* Transitions */
-.transition-default { transition: all 0.2s ease; }
+/* Selection */
+::selection {
+  background: rgba(178, 40, 72, 0.3);
+  color: var(--color-text);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 1.5px solid var(--color-accent);
+  outline-offset: 2px;
+}

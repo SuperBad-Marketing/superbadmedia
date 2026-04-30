@@ -29,32 +29,32 @@ export default function BottomBar() {
   }
 
   return (
-    <div className="flex items-center justify-between h-8 px-4 bg-surface border-t border-border shrink-0 font-mono text-xs select-none">
+    <div className="flex items-center justify-between h-7 px-4 bg-bg border-t border-border shrink-0 font-mono text-[11px] select-none">
       <div className="flex items-center gap-2">
         {connecting ? (
           <>
-            <Loader2 size={12} className="text-text-muted animate-spin" />
-            <span className="text-text-muted">Connecting...</span>
+            <Loader2 size={11} className="text-text-dim animate-spin" />
+            <span className="text-text-dim">Connecting...</span>
           </>
         ) : resolveConnected ? (
           <>
-            <Wifi size={12} className="text-green" />
+            <Wifi size={11} className="text-green" />
             <span className="text-green">Resolve{resolveProject ? ` — ${resolveProject}` : ''}</span>
           </>
         ) : (
-          <button onClick={handleConnect} className="flex items-center gap-2 hover:text-text transition-colors">
-            <WifiOff size={12} className="text-accent" />
-            <span className="text-accent">Connect Resolve</span>
+          <button onClick={handleConnect} className="flex items-center gap-1.5 text-text-dim hover:text-accent transition-colors duration-150">
+            <WifiOff size={11} />
+            <span>Connect Resolve</span>
           </button>
         )}
       </div>
 
       <div className="flex items-center gap-1.5 text-text-dim">
-        <HardDrive size={12} />
+        <HardDrive size={11} />
         <span>SSD: --</span>
       </div>
 
-      <span className="text-text-dim">SuperEdits v0.1.0</span>
+      <span className="text-text-dim">v0.1</span>
     </div>
   )
 }

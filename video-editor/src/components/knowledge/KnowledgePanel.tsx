@@ -157,7 +157,7 @@ function SkillCard({ skill, onDelete }: { skill: SkillFile; onDelete: (id: strin
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-sm font-medium text-text truncate">{skill.name}</span>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium shrink-0 ${sourceConfig.colorClass}`}>
+            <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-medium shrink-0 ${sourceConfig.colorClass}`}>
               <SourceIcon size={10} />
               {skill.source}
             </span>
@@ -183,7 +183,8 @@ function SkillCard({ skill, onDelete }: { skill: SkillFile; onDelete: (id: strin
           type="button"
           onClick={handleDelete}
           disabled={deleting}
-          className="text-text-dim hover:text-accent transition-colors p-1 shrink-0 disabled:opacity-50"
+          aria-label="Delete skill"
+          className="text-text-dim hover:text-accent transition-colors duration-150 p-1 shrink-0 disabled:opacity-50"
         >
           {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
         </button>
@@ -223,7 +224,7 @@ function ResourceCard({
             >
               {suggestion.title}
             </a>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium shrink-0 ${badge.colorClass}`}>
+            <span className={`rounded-lg px-2 py-0.5 text-[10px] font-medium shrink-0 ${badge.colorClass}`}>
               {badge.label}
             </span>
           </div>
@@ -417,7 +418,7 @@ function QuickAdd() {
               key={opt.id}
               type="button"
               onClick={() => setSource(opt.id)}
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors ${
+              className={`rounded-lg px-2.5 py-0.5 text-[10px] font-medium transition-colors duration-150 ${
                 source === opt.id
                   ? 'bg-accent-dim text-accent border border-accent'
                   : 'bg-surface border border-border text-text-dim hover:text-text-muted'
@@ -431,7 +432,7 @@ function QuickAdd() {
           type="button"
           onClick={handleSubmit}
           disabled={!input.trim() || loading}
-          className="bg-accent rounded-lg px-3 py-1.5 text-sm font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-50"
+          className="bg-accent rounded-lg px-3 py-1.5 text-sm font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : 'Learn'}
         </button>
@@ -495,7 +496,7 @@ export default function KnowledgePanel() {
       <div className="px-3 py-3 space-y-3 border-b border-border shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-text">Knowledge Base</h2>
+            <h2 className="font-display text-lg font-bold text-text">Knowledge Base</h2>
             <p className="text-sm text-text-muted">{skills.length} skills learned</p>
           </div>
           <button
@@ -530,7 +531,7 @@ export default function KnowledgePanel() {
                 ) : (
                   <ChevronRight size={12} className="text-text-dim" />
                 )}
-                <span className="text-xs font-semibold text-text-dim uppercase tracking-widest">
+                <span className="text-[10px] font-mono text-text-dim uppercase tracking-widest">
                   {CATEGORY_MAP[cat]}
                 </span>
                 <span className="text-xs text-text-dim font-mono ml-auto">{catSkills.length}</span>

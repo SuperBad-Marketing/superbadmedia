@@ -125,13 +125,13 @@ export default function MusicBrowser() {
     <div className="flex-1 flex flex-col min-h-0">
       <div className="px-3 py-2 space-y-2 border-b border-border">
         <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-dim" />
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-dim" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search music..."
-            className="w-full bg-bg border border-border rounded-lg text-sm text-text placeholder:text-text-dim pl-8 pr-3 py-2 focus:outline-none focus:border-border-active transition-colors"
+            className="w-full bg-bg border border-border rounded-lg text-[13px] text-text placeholder:text-text-dim pl-8 pr-3 py-2 focus:outline-none focus:border-border-active transition-colors duration-150"
           />
         </div>
 
@@ -140,10 +140,10 @@ export default function MusicBrowser() {
             <button
               key={mood}
               onClick={() => toggleFilter(mood)}
-              className={`rounded-full px-3 py-1 text-xs whitespace-nowrap transition-colors ${
+              className={`rounded-lg px-2.5 py-1 text-[11px] whitespace-nowrap transition-colors duration-150 ${
                 activeFilters.has(mood)
-                  ? 'bg-accent-dim border border-accent text-accent'
-                  : 'bg-surface border border-border text-text-muted hover:text-text hover:border-border-active'
+                  ? 'bg-pink-dim border border-pink/30 text-pink font-medium'
+                  : 'bg-surface border border-border text-text-dim hover:text-text-muted hover:border-border-active'
               }`}
             >
               {mood}

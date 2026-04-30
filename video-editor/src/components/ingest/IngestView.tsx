@@ -93,8 +93,8 @@ export default function IngestView() {
 
   if (currentProject && !currentIngest) {
     return (
-      <div className="flex-1 flex items-center justify-center text-text-dim text-sm">
-        Project loaded. Switch to Storyboard to begin editing.
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-text-dim text-sm">Project loaded. Switch to <span className="text-text-muted font-medium">Storyboard</span> to begin editing.</p>
       </div>
     )
   }
@@ -108,8 +108,8 @@ export default function IngestView() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-text">Set up import</h2>
-            <p className="font-mono text-sm text-text-muted mt-2 truncate">{selectedPath}</p>
+            <h2 className="font-display text-xl font-bold text-text">Set up import</h2>
+            <p className="font-mono text-[11px] text-text-dim mt-2 truncate">{selectedPath}</p>
           </div>
 
           <div className="space-y-4">
@@ -118,7 +118,7 @@ export default function IngestView() {
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Client name"
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors"
+              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150"
               autoFocus
             />
 
@@ -127,7 +127,7 @@ export default function IngestView() {
               onChange={(e) => setShootNotes(e.target.value)}
               placeholder="Any notes from the shoot? (optional)"
               rows={3}
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors resize-none"
+              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150 resize-none"
             />
           </div>
 
@@ -135,13 +135,13 @@ export default function IngestView() {
             <button
               onClick={handleStart}
               disabled={!clientName.trim() || isStarting}
-              className="bg-accent rounded-lg py-2 px-6 font-semibold text-sm text-white hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-accent rounded-lg py-2.5 px-6 font-display font-semibold text-sm text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isStarting ? 'Starting...' : 'Start Import'}
             </button>
             <button
               onClick={handleCancel}
-              className="text-sm text-text-muted hover:text-text transition-colors"
+              className="text-sm text-text-dim hover:text-text-muted transition-colors duration-150"
             >
               Cancel
             </button>
@@ -155,27 +155,29 @@ export default function IngestView() {
     <div className="flex-1 flex items-center justify-center p-8">
       <div className="flex flex-col items-center gap-8 max-w-lg">
         <div className="flex flex-col items-center gap-3">
-          <HardDrive size={48} className="text-text-dim" />
-          <h1 className="text-2xl font-semibold text-text">Import Footage</h1>
-          <p className="text-text-muted text-sm text-center">
+          <div className="w-16 h-16 rounded-2xl bg-surface-active flex items-center justify-center">
+            <HardDrive size={28} className="text-text-dim" />
+          </div>
+          <h1 className="font-display text-2xl font-bold text-text">Import Footage</h1>
+          <p className="text-text-dim text-sm text-center text-pretty">
             Plug in a card or choose a folder to get started
           </p>
         </div>
 
         <div className="flex items-stretch gap-4">
-          <button className="group w-[200px] bg-surface border border-border rounded-xl p-6 text-left hover:border-accent cursor-pointer transition-all duration-200">
-            <CreditCard size={28} className="text-text-dim group-hover:text-accent transition-colors mb-3" />
-            <p className="text-sm font-medium text-text">From Card</p>
-            <p className="text-xs text-text-muted mt-1">Auto-detect SD / CF Express</p>
+          <button className="group w-[200px] bg-surface border border-border rounded-xl p-6 text-left hover:border-border-active transition-colors duration-150">
+            <CreditCard size={24} className="text-text-dim group-hover:text-pink transition-colors duration-150 mb-3" />
+            <p className="text-sm font-display font-semibold text-text">From Card</p>
+            <p className="text-xs text-text-dim mt-1">Auto-detect SD / CF Express</p>
           </button>
 
           <button
             onClick={handleSelectFolder}
-            className="group w-[200px] bg-surface border border-border rounded-xl p-6 text-left hover:border-accent cursor-pointer transition-all duration-200"
+            className="group w-[200px] bg-surface border border-border rounded-xl p-6 text-left hover:border-border-active transition-colors duration-150"
           >
-            <FolderOpen size={28} className="text-text-dim group-hover:text-accent transition-colors mb-3" />
-            <p className="text-sm font-medium text-text">From Folder</p>
-            <p className="text-xs text-text-muted mt-1">Select footage on your SSD</p>
+            <FolderOpen size={24} className="text-text-dim group-hover:text-orange transition-colors duration-150 mb-3" />
+            <p className="text-sm font-display font-semibold text-text">From Folder</p>
+            <p className="text-xs text-text-dim mt-1">Select footage on your SSD</p>
           </button>
         </div>
       </div>
@@ -207,24 +209,24 @@ function IngestProgress({
     <div className="flex-1 flex items-center justify-center p-8">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-3">
-          {isComplete && <CheckCircle2 size={40} className="text-green" />}
-          {isError && <AlertCircle size={40} className="text-accent" />}
+          {isComplete && <CheckCircle2 size={36} className="text-green" />}
+          {isError && <AlertCircle size={36} className="text-accent" />}
 
-          <h2 className="text-xl font-semibold text-text">
+          <h2 className="font-display text-xl font-bold text-text">
             {statusText[ingest.status] || 'Processing...'}
           </h2>
         </div>
 
         {!isComplete && !isError && (
           <div className="space-y-3">
-            <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-surface-active rounded-full overflow-hidden">
               <div
-                className="h-full bg-accent rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-orange rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
 
-            <p className="font-mono text-sm text-text-muted text-center">
+            <p className="font-mono text-[11px] text-text-dim text-center tabular-nums">
               {ingest.processedFiles} / {ingest.totalFiles} files processed
             </p>
           </div>
@@ -232,15 +234,15 @@ function IngestProgress({
 
         {isComplete && (
           <div className="flex flex-col items-center gap-4">
-            <p className="font-mono text-sm text-text-muted">
+            <p className="font-mono text-[11px] text-text-dim tabular-nums">
               {ingest.totalFiles} files imported
             </p>
             <button
               onClick={onOpenStoryboard}
-              className="flex items-center gap-2 bg-accent rounded-lg py-2 px-6 font-semibold text-sm text-white hover:bg-accent-hover transition-colors"
+              className="flex items-center gap-2 bg-accent rounded-lg py-2.5 px-6 font-display font-semibold text-sm text-white hover:bg-accent-hover transition-colors duration-150"
             >
               Open in Storyboard
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </button>
           </div>
         )}

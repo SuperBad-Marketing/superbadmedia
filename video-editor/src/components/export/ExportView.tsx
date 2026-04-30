@@ -238,9 +238,11 @@ export default function ExportView() {
   if (!hasTimeline) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <Monitor size={48} className="text-text-dim" />
-        <h2 className="text-2xl font-semibold text-text">Export</h2>
-        <p className="text-text-muted text-sm text-center max-w-sm">
+        <div className="size-16 rounded-2xl bg-surface-active flex items-center justify-center">
+          <Monitor size={24} className="text-text-dim" />
+        </div>
+        <h2 className="font-display text-2xl font-bold text-text">Export</h2>
+        <p className="text-text-dim text-sm text-center text-pretty max-w-sm">
           Build your timeline first, then come back here to export
         </p>
       </div>
@@ -252,7 +254,7 @@ export default function ExportView() {
       <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-none">
         {/* Format selection */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-text">Export</h2>
+          <h2 className="font-display text-xl font-bold text-text">Export</h2>
 
           <div className="grid grid-cols-2 gap-3">
             {FORMATS.map((format) => {
@@ -294,7 +296,7 @@ export default function ExportView() {
 
         {/* Settings */}
         <div className="space-y-4 border-t border-border pt-6">
-          <h3 className="text-sm font-semibold text-text uppercase tracking-wide">Settings</h3>
+          <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Settings</h3>
 
           {/* Quality */}
           <div className="flex items-center justify-between">
@@ -398,7 +400,7 @@ export default function ExportView() {
         {/* Export queue (visible when exporting) */}
         {exportJobs.length > 0 && (
           <div className="space-y-3 border-t border-border pt-6">
-            <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
+            <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">
               Export Queue
             </h3>
 
@@ -460,7 +462,7 @@ export default function ExportView() {
           type="button"
           onClick={handleExport}
           disabled={selectedCount === 0 || isExporting}
-          className="w-full bg-accent rounded-xl py-3 px-8 font-semibold text-white hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full bg-accent rounded-xl py-3 px-8 font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isExporting
             ? 'Exporting...'

@@ -12,7 +12,7 @@ const energyColors: Record<string, string> = {
   static: 'bg-text-dim',
   low: 'bg-green',
   medium: 'bg-amber',
-  high: 'bg-accent',
+  high: 'bg-orange',
 }
 
 interface ClipCardProps {
@@ -29,13 +29,13 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
   return (
     <div
       onClick={onClick}
-      className={`group w-full text-left rounded-lg border transition-all duration-200 overflow-hidden cursor-pointer ${
+      className={`group w-full text-left rounded-lg border transition-colors duration-150 overflow-hidden cursor-pointer ${
         isSelected
-          ? 'border-accent ring-1 ring-accent'
+          ? 'border-accent ring-1 ring-accent/30'
           : 'border-border hover:border-border-active'
-      } hover:brightness-110`}
+      }`}
     >
-      <div className="aspect-video bg-surface-active rounded-t-lg flex items-center justify-center overflow-hidden relative">
+      <div className="aspect-video bg-bg flex items-center justify-center overflow-hidden relative">
         {clip.thumbnailPath ? (
           <img
             src={clip.thumbnailPath}
@@ -43,7 +43,7 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <Film size={24} className="text-text-dim" />
+          <Film size={20} className="text-text-dim" />
         )}
 
         <button
@@ -51,24 +51,23 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
             e.stopPropagation()
             if (!isInStoryboard) addToStoryboard(clip)
           }}
-          className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+          className={`absolute top-1 right-1 size-6 rounded-full flex items-center justify-center transition-all duration-150 ${
             isInStoryboard
               ? 'bg-green text-white'
               : 'bg-bg/70 text-text-muted opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-white'
           }`}
           title={isInStoryboard ? 'In storyboard' : 'Add to storyboard'}
         >
-          {isInStoryboard ? <Check size={12} /> : <Plus size={12} />}
+          {isInStoryboard ? <Check size={11} /> : <Plus size={11} />}
         </button>
+
+        <span className="absolute bottom-1 right-1 font-mono text-[10px] text-white/80 bg-black/50 rounded px-1 py-0.5 tabular-nums">
+          {formatDuration(clip.duration)}
+        </span>
       </div>
 
       <div className="p-2 space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-text truncate">{clip.fileName}</span>
-          <span className="font-mono text-text-dim text-xs shrink-0">
-            {formatDuration(clip.duration)}
-          </span>
-        </div>
+        <span className="text-xs text-text truncate block">{clip.fileName}</span>
 
         {clip.analysis && (
           <>
@@ -77,11 +76,11 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    size={10}
+                    size={9}
                     className={
                       i < clip.analysis!.qualityRating
                         ? 'text-amber fill-amber'
-                        : 'text-text-dim'
+                        : 'text-border'
                     }
                   />
                 ))}
@@ -89,11 +88,11 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
 
               <div className="flex items-center gap-1.5">
                 <div
-                  className={`h-1.5 w-6 rounded-full ${
+                  className={`h-1 w-5 rounded-full ${
                     energyColors[clip.analysis.movementLevel] || 'bg-text-dim'
                   }`}
                 />
-                <span className="text-[10px] text-text-dim capitalize">
+                <span className="text-[9px] text-text-dim capitalize font-mono">
                   {clip.analysis.movementLevel}
                 </span>
               </div>
@@ -104,7 +103,7 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
                 {clip.analysis.contentTags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
-                    className="bg-surface text-text-dim text-[10px] rounded-full px-2 py-0.5"
+                    className="bg-surface-active text-text-dim text-[9px] rounded px-1.5 py-0.5 font-mono"
                   >
                     {tag}
                   </span>

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Maximize2, Camera, Image } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Camera, Image } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 
 function formatTime(seconds: number): string {
@@ -88,9 +88,11 @@ export default function PreviewView() {
   if (previewClips.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-text-dim">
-        <Play size={48} className="opacity-30" />
-        <h2 className="text-lg font-semibold text-text">Preview</h2>
-        <p className="text-sm">Import footage or build a storyboard to preview clips here</p>
+        <div className="size-16 rounded-2xl bg-surface-active flex items-center justify-center">
+          <Play size={24} className="opacity-40 ml-1" />
+        </div>
+        <h2 className="font-display text-lg font-bold text-text">Preview</h2>
+        <p className="text-sm text-pretty text-center max-w-xs">Import footage or build a storyboard to preview clips here</p>
       </div>
     )
   }
@@ -114,7 +116,7 @@ export default function PreviewView() {
         <div className="absolute top-3 right-3 flex items-center gap-2">
           <button
             onClick={() => setShowGrade(!showGrade)}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+            className={`px-2 py-1 rounded text-[11px] font-medium transition-colors duration-150 ${
               showGrade ? 'bg-accent text-white' : 'bg-surface/80 text-text-muted hover:text-text'
             }`}
           >
@@ -122,16 +124,17 @@ export default function PreviewView() {
           </button>
           <button
             onClick={handleGrabFrame}
-            className="p-1.5 bg-surface/80 rounded hover:bg-surface transition-colors"
+            className="p-1.5 bg-surface/80 rounded hover:bg-surface transition-colors duration-150"
             title="Grab frame"
+            aria-label="Grab frame"
           >
-            <Camera size={14} className="text-text-muted" />
+            <Camera size={13} className="text-text-muted" />
           </button>
         </div>
 
         {currentClip && (
           <div className="absolute bottom-3 left-3 bg-surface/80 rounded px-2 py-1">
-            <span className="text-xs text-text font-mono">
+            <span className="text-[11px] text-text font-mono">
               {currentClip.fileName}
             </span>
           </div>
@@ -152,27 +155,27 @@ export default function PreviewView() {
 
       <div className="h-12 shrink-0 px-4 flex items-center justify-between border-t border-border">
         <div className="flex items-center gap-3">
-          <button onClick={handlePrev} className="p-1.5 text-text-muted hover:text-text transition-colors">
-            <SkipBack size={16} />
+          <button onClick={handlePrev} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150">
+            <SkipBack size={15} />
           </button>
           <button
             onClick={togglePlay}
-            className="w-8 h-8 rounded-full bg-surface-active flex items-center justify-center hover:bg-surface-hover transition-colors"
+            className="size-8 rounded-full bg-surface-active flex items-center justify-center hover:bg-surface-hover transition-colors duration-150"
           >
-            {isPlaying ? <Pause size={14} className="text-text" /> : <Play size={14} className="text-text ml-0.5" />}
+            {isPlaying ? <Pause size={13} className="text-text" /> : <Play size={13} className="text-text ml-0.5" />}
           </button>
-          <button onClick={handleNext} className="p-1.5 text-text-muted hover:text-text transition-colors">
-            <SkipForward size={16} />
+          <button onClick={handleNext} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150">
+            <SkipForward size={15} />
           </button>
 
-          <span className="font-mono text-xs text-text-dim">
+          <span className="font-mono text-[11px] text-text-dim tabular-nums">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-text-muted">
-            Clip {currentClipIndex + 1} of {previewClips.length}
+          <span className="text-[11px] text-text-muted font-mono tabular-nums">
+            {currentClipIndex + 1}/{previewClips.length}
           </span>
 
           <div className="flex gap-1 overflow-x-auto max-w-[300px]">
@@ -180,17 +183,17 @@ export default function PreviewView() {
               <button
                 key={clip.id}
                 onClick={() => setCurrentClipIndex(i)}
-                className={`w-12 h-8 rounded border shrink-0 overflow-hidden transition-colors ${
+                className={`w-12 h-8 rounded border shrink-0 overflow-hidden transition-colors duration-150 ${
                   i === currentClipIndex
-                    ? 'border-accent ring-1 ring-accent'
+                    ? 'border-accent ring-1 ring-accent/30'
                     : 'border-border hover:border-border-active'
                 }`}
               >
                 {clip.thumbnailPath ? (
                   <img src={clip.thumbnailPath} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-surface-active flex items-center justify-center">
-                    <Image size={10} className="text-text-dim" />
+                  <div className="w-full h-full bg-bg flex items-center justify-center">
+                    <Image size={9} className="text-text-dim" />
                   </div>
                 )}
               </button>

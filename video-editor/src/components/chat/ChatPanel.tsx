@@ -14,20 +14,20 @@ const quickActions = [
 
 function WelcomeScreen({ onQuickAction }: { onQuickAction: (action: typeof quickActions[number]) => void }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-text tracking-tight">SuperEdits</h1>
-        <p className="text-text-muted text-sm mt-1">What are you working on?</p>
+    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
+      <div className="text-center space-y-2">
+        <h1 className="font-display text-2xl font-bold text-text tracking-tight">SuperEdits</h1>
+        <p className="text-text-dim text-sm">What are you working on?</p>
       </div>
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap justify-center gap-2 max-w-[280px]">
         {quickActions.map((action) => (
           <button
             key={action.label}
             type="button"
             onClick={() => onQuickAction(action)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-border text-text-muted text-sm hover:border-accent hover:text-accent transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-text-dim text-[13px] hover:border-border-active hover:text-text-muted transition-colors duration-150"
           >
-            <action.icon className="w-3.5 h-3.5" />
+            <action.icon size={14} />
             {action.label}
           </button>
         ))}

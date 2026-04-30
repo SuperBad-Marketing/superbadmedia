@@ -49,7 +49,7 @@ function parseInlineFormatting(text: string): React.ReactNode[] {
     }
     if (match[2]) {
       parts.push(
-        <strong key={match.index} className="font-semibold">
+        <strong key={match.index} className="font-semibold text-text">
           {match[2]}
         </strong>
       )
@@ -57,7 +57,7 @@ function parseInlineFormatting(text: string): React.ReactNode[] {
       parts.push(
         <code
           key={match.index}
-          className="bg-bg px-1.5 py-0.5 rounded text-accent font-mono text-[0.85em]"
+          className="bg-surface-active px-1.5 py-0.5 rounded text-pink font-mono text-[0.85em]"
         >
           {match[3]}
         </code>
@@ -77,27 +77,27 @@ function ActionCard({ action }: { action: ChatAction }) {
   const Icon = actionIcons[action.type]
 
   return (
-    <div className="mt-2 bg-surface border border-border rounded-lg p-3 flex flex-col gap-2">
+    <div className="mt-2 bg-bg border border-border rounded-lg p-3 flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-text-muted shrink-0" />
-        <span className="text-sm text-text flex-1">{action.description}</span>
+        <Icon className="w-3.5 h-3.5 text-text-dim shrink-0" />
+        <span className="text-[13px] text-text-muted flex-1">{action.description}</span>
         {action.status === 'running' && (
-          <Loader2 className="w-4 h-4 text-accent animate-spin shrink-0" />
+          <Loader2 className="w-3.5 h-3.5 text-orange animate-spin shrink-0" />
         )}
         {action.status === 'complete' && (
-          <Check className="w-4 h-4 text-green shrink-0" />
+          <Check className="w-3.5 h-3.5 text-green shrink-0" />
         )}
         {action.status === 'error' && (
-          <X className="w-4 h-4 text-accent shrink-0" />
+          <X className="w-3.5 h-3.5 text-accent shrink-0" />
         )}
         {action.status === 'pending' && (
-          <span className="w-2 h-2 rounded-full bg-text-dim shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-text-dim shrink-0" />
         )}
       </div>
       {action.status === 'running' && action.progress != null && (
-        <div className="w-full h-1 bg-bg rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-surface-active rounded-full overflow-hidden">
           <div
-            className="h-full bg-accent rounded-full transition-all duration-300"
+            className="h-full bg-orange rounded-full transition-all duration-300"
             style={{ width: `${action.progress}%` }}
           />
         </div>
@@ -109,9 +109,9 @@ function ActionCard({ action }: { action: ChatAction }) {
 function LoadingDots() {
   return (
     <span className="inline-flex gap-1 items-center h-5">
-      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-[pulse_1.4s_ease-in-out_infinite]" />
-      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />
-      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-[pulse_1.4s_ease-in-out_0.4s_infinite]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-dim animate-[pulse_1.4s_ease-in-out_infinite]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-dim animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-dim animate-[pulse_1.4s_ease-in-out_0.4s_infinite]" />
     </span>
   )
 }
@@ -133,16 +133,16 @@ export default function ChatMessage({ message }: { message: ChatMessageType }) {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} px-4 py-1`}>
       <div className={`max-w-[85%] flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
         <div
-          className={`px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+          className={`px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
             isUser
               ? 'bg-accent text-white rounded-2xl rounded-br-sm'
-              : 'bg-surface-active text-text rounded-2xl rounded-bl-sm'
+              : 'bg-surface-active text-text-muted rounded-2xl rounded-bl-sm'
           }`}
         >
           {message.isLoading ? <LoadingDots /> : parseInlineFormatting(message.content)}
         </div>
         {message.action && <ActionCard action={message.action} />}
-        <span className="text-text-dim text-xs mt-1 px-1">
+        <span className="text-text-dim text-[10px] mt-1 px-1 font-mono">
           {formatTime(message.timestamp)}
         </span>
       </div>

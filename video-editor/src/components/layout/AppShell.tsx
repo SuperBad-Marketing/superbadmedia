@@ -6,7 +6,7 @@ import BottomBar from './BottomBar'
 
 export default function AppShell() {
   return (
-    <div className="flex flex-col h-screen bg-bg text-text overflow-hidden">
+    <div className="flex flex-col h-dvh bg-bg text-text overflow-hidden">
       <HeaderBar />
 
       <div className="flex flex-1 min-h-0">

@@ -12,7 +12,6 @@ export default function ChatInput() {
   const { addChatMessage, updateChatMessage, currentProject } = useAppStore()
 
   const hasYouTubeLink = YOUTUBE_REGEX.test(text)
-  const isCommand = text.startsWith('/')
   const trimmed = text.trim()
 
   const resizeTextarea = useCallback(() => {
@@ -76,46 +75,39 @@ export default function ChatInput() {
 
   return (
     <div className="px-3 pb-3 pt-1">
-      <div className="relative flex items-end gap-2 bg-bg border border-border rounded-xl focus-within:border-accent transition-colors">
+      <div className="relative flex items-end gap-2 bg-bg border border-border rounded-xl focus-within:border-border-active transition-colors duration-150">
         <button
           type="button"
-          className="p-2.5 text-text-dim hover:text-text-muted transition-colors shrink-0 self-end"
+          className="p-2.5 text-text-dim hover:text-text-muted transition-colors duration-150 shrink-0 self-end"
           aria-label="Attach file"
         >
-          <Paperclip className="w-4 h-4" />
+          <Paperclip size={15} />
         </button>
         <textarea
           ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a command, drop a YouTube link, or ask anything..."
+          placeholder="Type a command, drop a link, or ask anything..."
           rows={1}
-          className="flex-1 bg-transparent text-text text-sm py-2.5 resize-none outline-none placeholder:text-text-dim leading-6"
+          className="flex-1 bg-transparent text-text text-[13px] py-2.5 resize-none outline-none placeholder:text-text-dim leading-6"
         />
         {trimmed && (
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isSending}
-            className="p-1.5 m-1.5 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors disabled:opacity-50 shrink-0 self-end"
+            className="p-1.5 m-1.5 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors duration-150 disabled:opacity-50 shrink-0 self-end"
             aria-label="Send message"
           >
-            <ArrowUp className="w-4 h-4" />
+            <ArrowUp size={15} />
           </button>
         )}
       </div>
       {hasYouTubeLink && (
         <div className="mt-1.5 px-1">
-          <span className="inline-flex items-center gap-1.5 text-xs text-accent bg-accent-dim px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-pink bg-pink-dim px-2.5 py-0.5 rounded-full font-medium">
             YouTube link detected — will create a skill file
-          </span>
-        </div>
-      )}
-      {isCommand && (
-        <div className="mt-1.5 px-1">
-          <span className="text-xs text-text-dim">
-            Running as command
           </span>
         </div>
       )}
