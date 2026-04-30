@@ -32,6 +32,24 @@ import { resolveQuestionText } from "@/lib/brand-dna/question-bank";
 import { OptionCard } from "@/components/lite/brand-dna/option-card";
 import { getVisualPreview } from "@/components/lite/brand-dna/question-visuals";
 import { OverallProgressBar } from "@/components/lite/brand-dna/overall-progress-bar";
+import { getNudge } from "@/lib/brand-dna/encouragement-nudges";
+
+const SECTION_OFFSETS = [0, 19, 43, 63, 82, 102];
+
+const SECTION_START_HUE: Record<number, string> = {
+  1: "178, 40, 72",
+  2: "192, 50, 72",
+  3: "210, 70, 68",
+  4: "230, 90, 76",
+  5: "244, 160, 176",
+};
+const SECTION_END_HUE: Record<number, string> = {
+  1: "192, 50, 72",
+  2: "210, 70, 68",
+  3: "230, 90, 76",
+  4: "244, 160, 176",
+  5: "253, 245, 230",
+};
 
 interface QuestionCardClientProps {
   question: Question;
@@ -64,6 +82,7 @@ export function QuestionCardClient({
   const [pending, setPending] = React.useState(false);
   const [confirmRestart, setConfirmRestart] = React.useState(false);
   const canGoBack = goBackAction && (questionIndex > 0 || section > 1);
+  const nudge = getNudge(section, questionIndex);
 
   // Defect-fix: when the page redirects to the next question, the layout is
   // preserved and this client component is reconciled with a new `question`
@@ -131,7 +150,7 @@ export function QuestionCardClient({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 40,
+        padding: "clamp(16px, 4vw, 40px)",
       }}
     >
       <motion.div
@@ -148,25 +167,70 @@ export function QuestionCardClient({
           gap: 40,
         }}
       >
-        <div
-          style={{
-            fontFamily: "var(--font-label)",
-            fontSize: 10,
-            letterSpacing: "2.5px",
-            textTransform: "uppercase",
-            color: "var(--brand-pink)",
-            display: "flex",
-            gap: 16,
-            alignItems: "center",
-          }}
-        >
-          <span>
-            {sectionTitle} · Q{questionIndex + 1} of {totalInSection}
-          </span>
-          <span
-            aria-hidden="true"
-            style={{ flex: 1, height: 1, background: "rgba(244, 160, 176, 0.2)" }}
-          />
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-label)",
+              fontSize: 10,
+              letterSpacing: "2.5px",
+              textTransform: "uppercase",
+              color: "var(--brand-pink)",
+              display: "flex",
+              gap: 16,
+              alignItems: "center",
+            }}
+          >
+            <span>
+              {sectionTitle} · Q{SECTION_OFFSETS[section - 1] + questionIndex + 1} of {SECTION_OFFSETS[5]}
+            </span>
+            <span
+              aria-hidden="true"
+              style={{ flex: 1, height: 1, background: "rgba(244, 160, 176, 0.2)" }}
+            />
+          </div>
+
+          {/* Section progress bar */}
+          <div
+            aria-hidden
+            style={{
+              width: "min(120px, 30vw)",
+              height: 3,
+              borderRadius: 3,
+              background: "rgba(253, 245, 230, 0.06)",
+              overflow: "hidden",
+            }}
+          >
+            <motion.div
+              initial={false}
+              animate={{ scaleX: totalInSection > 0 ? questionIndex / totalInSection : 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                height: "100%",
+                borderRadius: 3,
+                transformOrigin: "left",
+                background: `linear-gradient(90deg, rgb(${SECTION_START_HUE[section] ?? "178, 40, 72"}), rgb(${SECTION_END_HUE[section] ?? "244, 160, 176"}))`,
+              }}
+            />
+          </div>
+
+          {nudge && (
+            <motion.p
+              key={`nudge-${question.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                fontFamily: "var(--font-body)",
+                fontStyle: "italic",
+                fontSize: "clamp(12px, 2vw, 13px)",
+                lineHeight: 1.5,
+                color: "var(--brand-pink)",
+                margin: 0,
+              }}
+            >
+              {nudge}
+            </motion.p>
+          )}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -174,7 +238,7 @@ export function QuestionCardClient({
             style={{
               fontFamily: "var(--font-body)",
               fontWeight: 500,
-              fontSize: 38,
+              fontSize: "clamp(24px, 5vw, 38px)",
               lineHeight: 1.25,
               color: "var(--brand-cream)",
               letterSpacing: "-0.8px",

@@ -113,13 +113,19 @@ ${businessContextBlock ? `6. THE MARKETING DIRECTION — given who they are AND 
 ${brandOverrideTags && Object.keys(brandOverrideTags).length ? `${businessContextBlock ? "7" : "6"}. THE BRAND SPLIT — where the brand diverges from the founder. Name the gaps. Interpret them. This is the most valuable section of the portrait for founder_supplement profiles.` : ""}
 
 Voice — non-negotiable:
-- Write as if you watched them for a week and now you're telling a close friend who they are. Flat delivery. Perceptive. Warm underneath, never on top.
-- Never "I notice", "what stands out", "it's interesting", "it's worth noting".
+- Write like someone who's known them for a year, not someone who just read their results. The difference is specificity.
+- Flat delivery. Perceptive. Warm underneath, never on top.
+- Never "I notice", "what stands out", "it's worth noting".
+- Never "There's a tension worth naming", "What emerges is", "This suggests", "There's a consistency here".
+- Never open with "The kind of person who" — you can use it mid-sentence, but never as a sentence starter.
+- Never use the word "interesting" — if something is interesting, describe why without the word.
 - No hedging. No qualifiers. No "seems", "might", "arguably", "perhaps".
 - No marketing speak. No "synergy", "leverage", "solutions", "journey", "unlock".
-- Short sentences welcome. Leave room for the mutter. Not every sentence needs to be a revelation.
+- Short sentences welcome. Fragments too. Leave room for the mutter. Not every sentence needs to be a revelation.
 - Specificity over abstraction — "they'd rewrite a three-word email" beats "they value precision."
 - Name what you're seeing, not what it means in general. This is about THEM, not about personality types.
+- Occasionally end a paragraph with a question. Not rhetorical. Something they'll genuinely want to answer. "What does your waiting room say about you when you're not in it?" hits differently than "consider how your space reflects your values." Use this sparingly — once or twice in the whole portrait, not every paragraph.
+- Avoid the "here's a tension" → "here's the resolution" formula. State the contradiction and let it sit. People recognise their own tensions without being told what to do about them.
 
 Structure: 4–6 plain paragraphs. No headings, no bullet lists, no bold. Read end-to-end as one continuous piece of writing. The first paragraph should not re-open with the first impression — start somewhere new.
 

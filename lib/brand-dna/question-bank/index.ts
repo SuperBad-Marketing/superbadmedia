@@ -36,11 +36,11 @@ export const SECTION_TITLES: Record<SectionNumber, string> = {
 
 /** Short descriptors shown as subheadings in the section title card. */
 export const SECTION_SUBTITLES: Record<SectionNumber, string> = {
-  1: "How you see the world.",
-  2: "How you land in a room.",
-  3: "What moves under the surface.",
-  4: "What you can\u2019t stop looking at \u2014 and what you\u2019d never make.",
-  5: "The gap between where you are and where you\u2019re going.",
+  1: "How you see the world. What the world sees back.",
+  2: "The version of you that walks into a room before you do.",
+  3: "The stuff you don\u2019t put on the website.",
+  4: "What you can\u2019t stop looking at, and what you\u2019d never make.",
+  5: "Where you are. Where you think you should be. The gap between the two.",
 };
 
 /** Title and subtitle for the supplement section (founder_supplement track only). */
