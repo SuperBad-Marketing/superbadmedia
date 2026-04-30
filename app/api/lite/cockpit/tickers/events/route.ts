@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/session";
+import { getCredential } from "@/lib/integrations/getCredential";
 
 const CACHE_TTL_MS = 1800000;
 const FOOTBALL_DATA_BASE = "https://api.football-data.org/v4";
@@ -24,7 +25,7 @@ export async function GET() {
     timestamp?: string;
   }> = [];
 
-  const footballApiKey = process.env.FOOTBALL_DATA_API_KEY;
+  const footballApiKey = await getCredential("football-data");
   if (footballApiKey) {
     try {
       const eplEvents = await fetchNottmForest(footballApiKey);

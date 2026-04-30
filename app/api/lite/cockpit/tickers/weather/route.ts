@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/session";
+import { getCredential } from "@/lib/integrations/getCredential";
 
 const MELBOURNE_LAT = -37.8136;
 const MELBOURNE_LON = 144.9631;
@@ -17,7 +18,7 @@ export async function GET() {
     return NextResponse.json(cache.data);
   }
 
-  const apiKey = process.env.OPENWEATHER_API_KEY;
+  const apiKey = await getCredential("openweather");
   if (!apiKey) {
     return NextResponse.json(
       { temp: 18, feelsLike: 16, condition: "Partly cloudy", uv: 4, rainChance: 30 },
