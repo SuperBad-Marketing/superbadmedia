@@ -1,4 +1,4 @@
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, gte, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   instagram_accounts,
@@ -20,7 +20,7 @@ import { logActivity } from "@/lib/activity-log";
 import settings from "@/lib/settings";
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
 
-const FORTY_EIGHT_HOURS = 48 * 60 * 60 * 1000;
+const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
 async function handleInstagramReplyPoll(): Promise<void> {
   const accounts = await db
@@ -42,21 +42,20 @@ async function handleInstagramReplyPoll(): Promise<void> {
 async function pollComments(
   account: typeof instagram_accounts.$inferSelect,
 ): Promise<void> {
+  const cutoff = Date.now() - FOURTEEN_DAYS;
   const recentMedia = await db
     .select()
     .from(instagram_media)
     .where(
       and(
         eq(instagram_media.account_id, account.id),
-        // only poll comments on posts less than 48 hours old
+        gte(instagram_media.published_at_ms, cutoff),
       ),
     )
-    .limit(20);
+    .orderBy(desc(instagram_media.published_at_ms))
+    .limit(30);
 
-  const cutoff = Date.now() - FORTY_EIGHT_HOURS;
-  const freshMedia = recentMedia.filter((m) => m.published_at_ms > cutoff);
-
-  for (const media of freshMedia) {
+  for (const media of recentMedia) {
     const res = await getMediaComments(
       media.ig_media_id,
       account.access_token,
