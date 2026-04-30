@@ -57,8 +57,10 @@ function AspectPreview({ formatId, selected }: { formatId: string; selected: boo
   return (
     <div className="flex items-center justify-center" style={{ width: maxSize, height: maxSize }}>
       <div
-        className={`rounded-sm transition-colors duration-150 ${
-          selected ? 'bg-accent/20' : 'bg-surface-active'
+        className={`rounded-[3px] transition-colors duration-150 ${
+          selected
+            ? 'bg-accent/30 ring-1 ring-accent/40'
+            : 'bg-white/[0.06]'
         }`}
         style={{ width: w, height: h }}
       />
@@ -71,14 +73,15 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean
     <button
       type="button"
       onClick={() => onChange(!enabled)}
-      className={`relative w-10 h-5 rounded-full transition-colors duration-150 ${
-        enabled ? 'bg-accent' : 'bg-surface-active'
+      className={`relative w-9 h-[18px] rounded-full transition-colors duration-200 ${
+        enabled ? 'bg-accent' : 'bg-white/[0.08]'
       }`}
     >
       <div
-        className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150 ${
-          enabled ? 'translate-x-5' : 'translate-x-0.5'
+        className={`absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-transform duration-200 ${
+          enabled ? 'translate-x-[19px]' : 'translate-x-[2px]'
         }`}
+        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.3), 0 0 1px rgba(0,0,0,0.15)' }}
       />
     </button>
   )
@@ -142,6 +145,11 @@ const FORMAT_RESOLUTIONS: Record<AspectFormat, string> = {
   '9:16': '1080x1920',
   '1:1': '1080x1080',
   '4:5': '1080x1350',
+}
+
+/* ── Section divider ─────────────────────────────────── */
+function Divider() {
+  return <div className="h-px bg-border" />
 }
 
 export default function AdVariationsView() {
@@ -350,17 +358,24 @@ export default function AdVariationsView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-none">
-        {/* Header */}
-        <div className="space-y-1.5">
-          <h2 className="font-display font-semibold text-sm text-text">Ad Variations</h2>
-          <p className="text-[11px] text-text-dim">Generate video and static ad variations from your edit</p>
+      <div className="flex-1 overflow-y-auto px-6 py-5 scrollbar-none">
+
+        {/* ── Header ─────────────────────────────────── */}
+        <div className="mb-6">
+          <h2 className="font-display font-semibold text-sm text-text tracking-[-0.01em]">
+            Ad Variations
+          </h2>
+          <p className="text-[10px] text-text-dim mt-1 leading-relaxed">
+            Generate video and static ad variations from your edit
+          </p>
         </div>
 
-        {/* Formats */}
-        <div className="space-y-3">
-          <h3 className="text-[11px] text-text-dim">Formats</h3>
-          <div className="grid grid-cols-4 gap-2">
+        {/* ── Formats ────────────────────────────────── */}
+        <section className="mb-6">
+          <h3 className="text-[11px] font-medium text-text-muted uppercase tracking-wide mb-3">
+            Formats
+          </h3>
+          <div className="grid grid-cols-4 gap-1.5">
             {FORMAT_OPTIONS.map((format) => {
               const selected = selectedFormats.has(format.id)
               const Icon = format.icon
@@ -369,36 +384,45 @@ export default function AdVariationsView() {
                   key={format.id}
                   type="button"
                   onClick={() => toggleFormat(format.id)}
-                  className={`relative rounded-xl p-3.5 text-center transition-all duration-150 ${
+                  className={`relative rounded-lg p-2.5 text-center transition-all duration-150 ${
                     selected
-                      ? 'bg-accent-dim'
-                      : 'bg-surface hover:bg-surface-hover'
+                      ? 'bg-white/[0.08] ring-1 ring-white/[0.12]'
+                      : 'bg-white/[0.03] hover:bg-white/[0.05]'
                   }`}
                 >
                   {selected && (
-                    <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-accent flex items-center justify-center">
-                      <Check size={9} className="text-white" />
+                    <div className="absolute top-1.5 right-1.5">
+                      <Check size={10} strokeWidth={3} className="text-accent" />
                     </div>
                   )}
-                  <div className="flex flex-col items-center gap-2">
-                    <AspectPreview formatId={format.id} selected={selected} />
-                    <div className="flex items-center gap-1.5">
-                      <Icon size={11} className={selected ? 'text-accent' : 'text-text-dim'} />
-                      <span className="text-xs font-medium text-text">{format.label}</span>
-                    </div>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Icon
+                      size={14}
+                      strokeWidth={1.5}
+                      className={selected ? 'text-text' : 'text-text-dim'}
+                    />
+                    <span className={`text-[11px] font-mono tabular-nums ${
+                      selected ? 'text-text font-medium' : 'text-text-muted'
+                    }`}>
+                      {format.label}
+                    </span>
                   </div>
                 </button>
               )
             })}
           </div>
-        </div>
+        </section>
 
-        {/* Video Cuts */}
-        <div className="space-y-5 pt-2">
-          <h3 className="text-[11px] text-text-dim">Video Cuts</h3>
+        <Divider />
+
+        {/* ── Video Cuts ─────────────────────────────── */}
+        <section className="py-6 space-y-5">
+          <h3 className="text-[11px] font-medium text-text-muted uppercase tracking-wide">
+            Video Cuts
+          </h3>
 
           {/* Lengths */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <span className="text-[11px] text-text-dim">Lengths</span>
             <div className="segmented-control">
               {LENGTH_OPTIONS.map((len) => (
@@ -415,57 +439,59 @@ export default function AdVariationsView() {
           </div>
 
           {/* Hook variants */}
-          <div className="flex items-center justify-between py-1">
+          <div className="flex items-center justify-between">
             <div>
               <span className="text-[11px] text-text-dim">Hook variants</span>
-              <p className="text-[10px] text-text-dim mt-0.5">Different opening 3 seconds</p>
+              <p className="text-[10px] text-text-dim/60 mt-0.5">Different opening 3 seconds</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => setHookCount(Math.max(1, hookCount - 1))}
-                className="w-7 h-7 rounded-lg bg-surface-active/50 flex items-center justify-center text-text-dim hover:bg-surface-hover hover:text-text-muted transition-colors duration-150"
+                className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-text-dim hover:bg-white/[0.08] hover:text-text-muted transition-colors duration-150"
               >
-                <Minus size={13} />
+                <Minus size={14} strokeWidth={1.5} />
               </button>
-              <span className="text-sm font-mono font-medium text-text w-4 text-center tabular-nums">{hookCount}</span>
+              <span className="text-sm font-mono font-semibold text-text w-5 text-center tabular-nums">
+                {hookCount}
+              </span>
               <button
                 type="button"
                 onClick={() => setHookCount(Math.min(5, hookCount + 1))}
-                className="w-7 h-7 rounded-lg bg-surface-active/50 flex items-center justify-center text-text-dim hover:bg-surface-hover hover:text-text-muted transition-colors duration-150"
+                className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-text-dim hover:bg-white/[0.08] hover:text-text-muted transition-colors duration-150"
               >
-                <Plus size={13} />
+                <Plus size={14} strokeWidth={1.5} />
               </button>
             </div>
           </div>
 
           {/* CTAs */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <span className="text-[11px] text-text-dim">CTAs</span>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <input
                 type="text"
                 value={ctaInput}
                 onChange={(e) => setCtaInput(e.target.value)}
                 onKeyDown={handleCtaKeyDown}
                 placeholder="e.g. Book now, Learn more"
-                className="flex-1 bg-surface-active/50 rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-dim focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
+                className="flex-1 bg-white/[0.04] rounded-lg px-3 py-2 text-[11px] text-text placeholder:text-text-dim/50 focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
               />
               <button
                 type="button"
                 onClick={addCta}
                 disabled={!ctaInput.trim()}
-                className="px-3 py-2 rounded-lg text-text-dim hover:text-text-muted hover:bg-surface-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-text-dim hover:bg-white/[0.08] hover:text-text-muted transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <Plus size={15} />
+                <Plus size={14} strokeWidth={1.5} />
               </button>
             </div>
             {ctas.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {ctas.map((cta) => (
                   <span
                     key={cta}
-                    className="inline-flex items-center gap-1.5 bg-surface rounded-lg px-3 py-1.5 text-xs font-medium text-text"
+                    className="inline-flex items-center gap-1.5 bg-white/[0.06] rounded-md px-2.5 py-1 text-[10px] font-medium text-text-muted"
                   >
                     {cta}
                     <button
@@ -473,7 +499,7 @@ export default function AdVariationsView() {
                       onClick={() => removeCta(cta)}
                       className="text-text-dim hover:text-accent transition-colors duration-150"
                     >
-                      <X size={11} />
+                      <X size={10} strokeWidth={2} />
                     </button>
                   </span>
                 ))}
@@ -482,27 +508,31 @@ export default function AdVariationsView() {
           </div>
 
           {/* Pacing toggles */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-1">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between py-2">
               <span className="text-[11px] text-text-dim">Include faster cut</span>
               <Toggle enabled={includeFasterPacing} onChange={setIncludeFasterPacing} />
             </div>
-            <div className="flex items-center justify-between py-1">
+            <div className="flex items-center justify-between py-2">
               <span className="text-[11px] text-text-dim">Include slower cut</span>
               <Toggle enabled={includeSlowerPacing} onChange={setIncludeSlowerPacing} />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Static Ads */}
-        <div className="space-y-5 pt-2">
+        <Divider />
+
+        {/* ── Static Ads ─────────────────────────────── */}
+        <section className="py-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-[11px] text-text-dim">Static Ads</h3>
+            <h3 className="text-[11px] font-medium text-text-muted uppercase tracking-wide">
+              Static Ads
+            </h3>
             <Toggle enabled={includeStatics} onChange={setIncludeStatics} />
           </div>
 
           {includeStatics && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="segmented-control">
                 {STATIC_TYPE_OPTIONS.map((opt) => (
                   <button
@@ -516,168 +546,179 @@ export default function AdVariationsView() {
                 ))}
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <input
                   type="text"
                   value={headline}
                   onChange={(e) => setHeadline(e.target.value)}
-                  placeholder="Headline text (optional — Claude will generate)"
-                  className="w-full bg-surface-active/50 rounded-lg px-3 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
+                  placeholder="Headline text (optional)"
+                  className="w-full bg-white/[0.04] rounded-lg px-3 py-2 text-[11px] text-text placeholder:text-text-dim/50 focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
                 />
                 <input
                   type="text"
                   value={subheadline}
                   onChange={(e) => setSubheadline(e.target.value)}
                   placeholder="Subheadline text (optional)"
-                  className="w-full bg-surface-active/50 rounded-lg px-3 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
+                  className="w-full bg-white/[0.04] rounded-lg px-3 py-2 text-[11px] text-text placeholder:text-text-dim/50 focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
                 />
               </div>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Variations grid */}
+        {/* ── Variations grid ────────────────────────── */}
         {variations.length > 0 && (
-          <div className="space-y-4 pt-2">
-            <p className="text-[11px] text-text-dim">
-              {videoCount} video variation{videoCount !== 1 ? 's' : ''}, {staticCount} static variation{staticCount !== 1 ? 's' : ''}
-            </p>
+          <>
+            <Divider />
+            <section className="py-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] font-medium text-text-muted uppercase tracking-wide">
+                  Generated
+                </h3>
+                <p className="text-[10px] text-text-dim tabular-nums font-mono">
+                  {videoCount} video, {staticCount} static
+                </p>
+              </div>
 
-            <div className="segmented-control">
-              {filterTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveFilter(tab.id)}
-                  data-active={activeFilter === tab.id}
-                >
-                  {tab.label}
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span className="ml-1 opacity-50">{tab.count}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              {filteredVariations.map((variation) => {
-                const isApproved = variation.status === 'approved'
-                const isRejected = variation.status === 'rejected'
-
-                return (
-                  <div
-                    key={variation.id}
-                    className={`rounded-lg overflow-hidden transition-all duration-150 ${
-                      isApproved
-                        ? 'bg-green-dim'
-                        : isRejected
-                          ? 'bg-surface opacity-40'
-                          : 'bg-surface hover:bg-surface-hover'
-                    }`}
+              <div className="segmented-control">
+                {filterTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveFilter(tab.id)}
+                    data-active={activeFilter === tab.id}
                   >
-                    <div className="flex items-center justify-center bg-bg p-4">
-                      {variation.type === 'video' ? (
-                        <Film size={22} className="text-text-dim opacity-30" />
-                      ) : (
-                        <Image size={22} className="text-text-dim opacity-30" />
-                      )}
-                    </div>
+                    {tab.label}
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span className="ml-1 opacity-50">{tab.count}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
 
-                    <div className="p-3 space-y-2">
-                      <div className="flex flex-wrap gap-1">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-surface-active text-[10px] font-mono font-medium text-text-dim tabular-nums">
-                          {variation.format}
-                        </span>
-                        {variation.type === 'video' && variation.length && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-surface-active text-[10px] font-mono font-medium text-text-dim tabular-nums">
-                            {variation.length}s
-                          </span>
-                        )}
-                        {variation.type === 'static' && variation.staticType && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-surface-active text-[10px] font-medium text-text-dim">
-                            {STATIC_TYPE_LABELS[variation.staticType]}
-                          </span>
-                        )}
-                        {variation.hookVariant && variation.hookVariant > 1 && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-accent-dim text-[10px] font-medium text-accent">
-                            Hook {variation.hookVariant}
-                          </span>
-                        )}
-                        {variation.pacing && variation.pacing !== 'normal' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-amber-dim text-[10px] font-medium text-amber">
-                            {PACING_LABELS[variation.pacing]}
-                          </span>
+              <div className="grid grid-cols-3 gap-1.5">
+                {filteredVariations.map((variation) => {
+                  const isApproved = variation.status === 'approved'
+                  const isRejected = variation.status === 'rejected'
+
+                  return (
+                    <div
+                      key={variation.id}
+                      className={`rounded-lg overflow-hidden transition-all duration-150 ${
+                        isApproved
+                          ? 'bg-green/[0.06] ring-1 ring-green/[0.12]'
+                          : isRejected
+                            ? 'bg-white/[0.02] opacity-40'
+                            : 'bg-white/[0.03] hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      {/* Thumbnail placeholder */}
+                      <div className="flex items-center justify-center bg-white/[0.02] py-3">
+                        {variation.type === 'video' ? (
+                          <Film size={18} strokeWidth={1.5} className="text-text-dim/30" />
+                        ) : (
+                          <Image size={18} strokeWidth={1.5} className="text-text-dim/30" />
                         )}
                       </div>
 
-                      {variation.cta && (
-                        <p className="text-[11px] text-text-dim truncate">{variation.cta}</p>
-                      )}
+                      <div className="p-2.5 space-y-1.5">
+                        {/* Badges */}
+                        <div className="flex flex-wrap gap-1">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.06] text-[9px] font-mono font-medium text-text-dim tabular-nums">
+                            {variation.format}
+                          </span>
+                          {variation.type === 'video' && variation.length && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.06] text-[9px] font-mono font-medium text-text-dim tabular-nums">
+                              {variation.length}s
+                            </span>
+                          )}
+                          {variation.type === 'static' && variation.staticType && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.06] text-[9px] font-medium text-text-dim">
+                              {STATIC_TYPE_LABELS[variation.staticType]}
+                            </span>
+                          )}
+                          {variation.hookVariant && variation.hookVariant > 1 && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-accent-dim text-[9px] font-medium text-accent">
+                              Hook {variation.hookVariant}
+                            </span>
+                          )}
+                          {variation.pacing && variation.pacing !== 'normal' && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-dim text-[9px] font-medium text-amber">
+                              {PACING_LABELS[variation.pacing]}
+                            </span>
+                          )}
+                        </div>
 
-                      <div className="flex items-center gap-0.5 pt-0.5">
-                        <button
-                          type="button"
-                          onClick={() => setVariationStatus(variation.id, 'approved')}
-                          className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors duration-150 ${
-                            isApproved
-                              ? 'text-green'
-                              : 'text-text-dim hover:text-green hover:bg-surface-hover'
-                          }`}
-                        >
-                          <CheckCircle2 size={13} />
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setVariationStatus(variation.id, 'rejected')}
-                          className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors duration-150 ${
-                            isRejected
-                              ? 'text-accent'
-                              : 'text-text-dim hover:text-accent hover:bg-surface-hover'
-                          }`}
-                        >
-                          <XCircle size={13} />
-                          Reject
-                        </button>
+                        {variation.cta && (
+                          <p className="text-[10px] text-text-dim truncate">{variation.cta}</p>
+                        )}
+
+                        {/* Approve / Reject */}
+                        <div className="flex items-center gap-px pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setVariationStatus(variation.id, 'approved')}
+                            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded text-[10px] font-medium transition-colors duration-150 ${
+                              isApproved
+                                ? 'text-green'
+                                : 'text-text-dim hover:text-green hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            <CheckCircle2 size={11} strokeWidth={1.5} />
+                            <span>Yes</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVariationStatus(variation.id, 'rejected')}
+                            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded text-[10px] font-medium transition-colors duration-150 ${
+                              isRejected
+                                ? 'text-accent'
+                                : 'text-text-dim hover:text-accent hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            <XCircle size={11} strokeWidth={1.5} />
+                            <span>No</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+                  )
+                })}
+              </div>
+            </section>
+          </>
         )}
       </div>
 
-      {/* Bottom bar */}
+      {/* ── Bottom bar ───────────────────────────────── */}
       {variations.length > 0 ? (
-        <div className="shrink-0 px-8 py-4 flex items-center justify-between">
-          <p className="text-[11px] text-text-dim">
+        <div className="shrink-0 px-6 py-3.5 border-t border-border flex items-center justify-between">
+          <p className="text-[10px] text-text-dim tabular-nums font-mono">
             {approvedCount} approved, {rejectedCount} rejected, {pendingCount} pending
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={approveAll}
-              className="text-[11px] text-text-dim hover:text-text-muted rounded-lg hover:bg-surface-hover px-2.5 py-1.5 transition-colors duration-150"
+              className="text-[10px] font-medium text-text-dim hover:text-text-muted rounded-md hover:bg-white/[0.04] px-2 py-1.5 transition-colors duration-150"
             >
               Approve All
             </button>
             <button
               type="button"
               onClick={resetAll}
-              className="flex items-center gap-1 text-[11px] text-text-dim hover:text-text-muted rounded-lg hover:bg-surface-hover px-2.5 py-1.5 transition-colors duration-150"
+              className="flex items-center gap-1 text-[10px] font-medium text-text-dim hover:text-text-muted rounded-md hover:bg-white/[0.04] px-2 py-1.5 transition-colors duration-150"
             >
-              <RotateCcw size={11} />
+              <RotateCcw size={10} strokeWidth={1.5} />
               Reset
             </button>
             <button
               type="button"
               onClick={handleExportApproved}
               disabled={approvedCount === 0 || exporting || storyboardClips.length === 0}
-              className="flex items-center gap-2 bg-accent rounded-lg px-4 py-2 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 bg-accent rounded-lg px-4 py-2 text-[11px] font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              {exporting && <Loader2 size={13} className="animate-spin" />}
+              {exporting && <Loader2 size={12} className="animate-spin" />}
               {exporting && exportProgress
                 ? `Exporting ${exportProgress.done}/${exportProgress.total}...`
                 : 'Export Approved'}
@@ -685,14 +726,14 @@ export default function AdVariationsView() {
           </div>
         </div>
       ) : (
-        <div className="shrink-0 px-8 py-5">
+        <div className="shrink-0 px-6 py-4 border-t border-border flex justify-end">
           <button
             type="button"
             onClick={handleGenerate}
             disabled={selectedFormats.size === 0}
-            className="w-full bg-accent rounded-lg py-3 px-8 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="bg-accent rounded-lg py-2 px-5 text-[11px] font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
-            <Sparkles size={14} />
+            <Sparkles size={12} />
             Generate {totalVariationCount} variation{totalVariationCount !== 1 ? 's' : ''}
           </button>
         </div>

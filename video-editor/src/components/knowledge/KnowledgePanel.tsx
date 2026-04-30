@@ -99,18 +99,18 @@ const CATEGORY_ORDER: SkillFile['category'][] = [
   'project-learned',
 ]
 
-const SOURCE_CONFIG: Record<SkillFile['source'], { icon: typeof Youtube; colorClass: string }> = {
-  youtube: { icon: Youtube, colorClass: 'bg-accent-dim text-accent' },
-  article: { icon: Globe, colorClass: 'bg-green-dim text-green' },
-  pdf: { icon: FileText, colorClass: 'bg-green-dim text-green' },
-  manual: { icon: PenLine, colorClass: 'bg-amber-dim text-amber' },
-  'project-analysis': { icon: FolderSearch, colorClass: 'bg-amber-dim text-amber' },
+const SOURCE_CONFIG: Record<SkillFile['source'], { icon: typeof Youtube; label: string }> = {
+  youtube: { icon: Youtube, label: 'YouTube' },
+  article: { icon: Globe, label: 'Article' },
+  pdf: { icon: FileText, label: 'PDF' },
+  manual: { icon: PenLine, label: 'Notes' },
+  'project-analysis': { icon: FolderSearch, label: 'Project' },
 }
 
 const SOURCE_TYPE_BADGE: Record<ResourceSuggestion['sourceType'], { label: string; colorClass: string }> = {
-  youtube: { label: 'YouTube', colorClass: 'bg-accent-dim text-accent' },
-  article: { label: 'Article', colorClass: 'bg-green-dim text-green' },
-  blog: { label: 'Blog', colorClass: 'bg-amber-dim text-amber' },
+  youtube: { label: 'YouTube', colorClass: 'bg-surface-active text-text-muted' },
+  article: { label: 'Article', colorClass: 'bg-surface-active text-text-muted' },
+  blog: { label: 'Blog', colorClass: 'bg-surface-active text-text-muted' },
 }
 
 function relativeTime(dateStr: string): string {
@@ -151,46 +151,51 @@ function SkillCard({ skill, onDelete }: { skill: SkillFile; onDelete: (id: strin
     <button
       type="button"
       onClick={() => setExpanded(!expanded)}
-      className="w-full rounded-lg px-3.5 py-3 mb-0.5 text-left transition-colors duration-150 hover:bg-surface-hover"
+      className="group w-full text-left transition-colors duration-150 hover:bg-surface-hover/50"
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-2.5 pl-5 pr-3.5 py-2.5">
+        {/* Left accent line */}
+        <div className="w-px self-stretch bg-border shrink-0 group-hover:bg-border-active transition-colors duration-150" />
+
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-0.5">
             <span className="text-[11px] font-medium text-text truncate">{skill.name}</span>
-            <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-medium shrink-0 ${sourceConfig.colorClass}`}>
-              <SourceIcon size={9} />
-              {skill.source}
+            <span className="inline-flex items-center gap-1 rounded px-1.5 py-px text-[9px] font-medium shrink-0 bg-surface-active text-text-dim">
+              <SourceIcon size={8} />
+              {sourceConfig.label}
             </span>
+            {skill.sourceUrl && (
+              <a
+                href={skill.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-text-dim hover:text-text-muted transition-colors duration-150 shrink-0"
+                aria-label="Open source"
+              >
+                <ExternalLink size={10} />
+              </a>
+            )}
           </div>
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[10px] text-text-dim tabular-nums">{skill.topicCount} topics</span>
+          <div className="flex items-center gap-2.5">
+            <span className="text-[10px] text-text-dim tabular-nums">{skill.topicCount} topics</span>
             <span className="text-[10px] text-text-dim">{relativeTime(skill.createdAt)}</span>
           </div>
-          {skill.sourceUrl && (
-            <a
-              href={skill.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1 text-[10px] text-text-dim hover:text-accent mt-1 truncate max-w-full transition-colors duration-150"
-            >
-              <ExternalLink size={9} />
-              <span className="truncate">{skill.sourceUrl}</span>
-            </a>
-          )}
         </div>
+
         <button
           type="button"
           onClick={handleDelete}
           disabled={deleting}
           aria-label="Delete skill"
-          className="text-text-dim hover:text-accent transition-colors duration-150 p-1 shrink-0 disabled:opacity-50"
+          className="text-text-dim opacity-0 group-hover:opacity-100 hover:text-accent transition-all duration-150 p-1 shrink-0 disabled:opacity-50"
         >
-          {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+          {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
         </button>
       </div>
+
       {expanded && (
-        <div className="mt-2 pt-2 border-t border-border">
+        <div className="ml-[21px] pl-5 pr-3.5 pb-2.5 border-l border-border">
           <p className="text-[10px] text-text-muted leading-relaxed">{truncatedContent}</p>
         </div>
       )}
@@ -212,7 +217,7 @@ function ResourceCard({
   if (suggestion.status === 'rejected') return null
 
   return (
-    <div className="rounded-lg p-3.5 bg-surface-active/40 transition-all duration-150">
+    <div className="rounded-lg p-3 bg-surface/80 border border-border transition-all duration-150">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -220,21 +225,21 @@ function ResourceCard({
               href={suggestion.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] font-medium text-text hover:text-accent transition-colors duration-150 truncate"
+              className="text-[11px] font-medium text-text hover:text-text-muted transition-colors duration-150 truncate"
             >
               {suggestion.title}
             </a>
-            <span className={`rounded-lg px-2 py-0.5 text-[10px] font-medium shrink-0 ${badge.colorClass}`}>
+            <span className={`rounded px-1.5 py-px text-[9px] font-medium shrink-0 ${badge.colorClass}`}>
               {badge.label}
             </span>
           </div>
-          <p className="text-[10px] text-text-muted leading-relaxed">{suggestion.description}</p>
+          <p className="text-[10px] text-text-dim leading-relaxed">{suggestion.description}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 mt-2.5">
         {suggestion.status === 'processing' ? (
-          <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
-            <Loader2 size={11} className="animate-spin" />
+          <div className="flex items-center gap-1.5 text-[10px] text-text-dim">
+            <Loader2 size={10} className="animate-spin" />
             Learning...
           </div>
         ) : suggestion.status === 'approved' ? (
@@ -244,17 +249,17 @@ function ResourceCard({
             <button
               type="button"
               onClick={() => onApprove(suggestion)}
-              className="flex items-center gap-1 bg-green-dim text-green rounded-lg px-3 py-1.5 text-[10px] font-semibold hover:opacity-80 transition-opacity duration-150"
+              className="flex items-center gap-1 bg-surface-active text-text rounded px-3 py-1.5 text-[10px] font-medium hover:bg-surface-hover transition-colors duration-150"
             >
-              <BookmarkPlus size={11} />
+              <BookmarkPlus size={10} />
               Approve
             </button>
             <button
               type="button"
               onClick={() => onReject(suggestion.id)}
-              className="flex items-center gap-1 text-text-dim rounded-lg px-3 py-1.5 text-[10px] font-medium hover:bg-surface-hover hover:text-text-muted transition-colors duration-150"
+              className="flex items-center gap-1 text-text-dim rounded px-3 py-1.5 text-[10px] font-medium hover:bg-surface-hover hover:text-text-muted transition-colors duration-150"
             >
-              <X size={11} />
+              <X size={10} />
               Reject
             </button>
           </>
@@ -316,21 +321,21 @@ function ResourceFinder() {
   const visibleSuggestions = suggestions.filter((s) => s.status !== 'rejected')
 
   return (
-    <div className="pt-3 space-y-3">
-      <div className="grid grid-cols-2 gap-1.5">
+    <div className="pt-3 space-y-2.5">
+      <div className="grid grid-cols-2 gap-1">
         {RESOURCE_CATEGORIES.map((cat) => (
           <button
             key={cat}
             type="button"
             onClick={() => handleSearch(cat)}
             disabled={searchingTopic === cat}
-            className="flex items-center justify-between bg-surface-active/50 rounded-lg px-3 py-2 text-[10px] font-medium text-text-muted hover:bg-surface-hover hover:text-text transition-colors duration-150 disabled:opacity-50"
+            className="flex items-center justify-between rounded-md px-2.5 py-1.5 text-[10px] font-medium text-text-dim hover:bg-surface-active hover:text-text-muted transition-colors duration-150 disabled:opacity-50"
           >
             <span className="truncate">{cat}</span>
             {searchingTopic === cat ? (
-              <Loader2 size={11} className="animate-spin shrink-0 ml-1" />
+              <Loader2 size={10} className="animate-spin shrink-0 ml-1" />
             ) : (
-              <Search size={11} className="shrink-0 ml-1 opacity-40" />
+              <Search size={10} className="shrink-0 ml-1 opacity-30" />
             )}
           </button>
         ))}
@@ -387,7 +392,7 @@ function QuickAdd() {
   }
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2">
       <input
         type="text"
         value={input}
@@ -398,8 +403,8 @@ function QuickAdd() {
             handleSubmit()
           }
         }}
-        placeholder="Paste a YouTube link, URL, or type notes..."
-        className="w-full bg-surface-active/50 rounded-lg px-3.5 py-2.5 text-xs text-text placeholder:text-text-dim focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
+        placeholder="Paste a link or type notes..."
+        className="w-full bg-surface-active/40 rounded-md px-3 py-2 text-[11px] text-text placeholder:text-text-dim/60 focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
         disabled={loading}
       />
       <div className="flex items-center justify-between">
@@ -419,9 +424,9 @@ function QuickAdd() {
           type="button"
           onClick={handleSubmit}
           disabled={!input.trim() || loading}
-          className="bg-accent rounded-lg px-4 py-2 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40"
+          className="rounded-md px-3.5 py-1.5 text-[11px] font-semibold text-text bg-surface-active hover:bg-surface-hover transition-colors duration-150 disabled:opacity-30 disabled:hover:bg-surface-active"
         >
-          {loading ? <Loader2 size={13} className="animate-spin" /> : 'Learn'}
+          {loading ? <Loader2 size={12} className="animate-spin" /> : 'Learn'}
         </button>
       </div>
     </div>
@@ -478,62 +483,97 @@ export default function KnowledgePanel() {
     return acc
   }, {})
 
+  const nonEmptyCategories = CATEGORY_ORDER.filter((cat) => grouped[cat].length > 0)
+  const emptyCategories = CATEGORY_ORDER.filter((cat) => grouped[cat].length === 0)
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-5 pt-5 pb-4 space-y-4 shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-display font-semibold text-sm text-text">Knowledge Base</h2>
-            <p className="text-[11px] text-text-dim">{skills.length} skills learned</p>
+      {/* Header area — title, QuickAdd, and Find Resources integrated */}
+      <div className="px-4 pt-4 pb-3 shrink-0 space-y-3 border-b border-border">
+        <div className="flex items-baseline justify-between">
+          <div className="flex items-baseline gap-2">
+            <h2 className="font-display font-semibold text-sm text-text">Knowledge</h2>
+            <span className="text-[10px] text-text-dim tabular-nums">{skills.length}</span>
           </div>
           <button
             type="button"
             onClick={() => setResourceFinderOpen(!resourceFinderOpen)}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-text-dim hover:bg-surface-hover hover:text-text-muted transition-colors duration-150"
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[10px] font-medium text-text-dim bg-surface-active/50 hover:bg-surface-active hover:text-text-muted transition-colors duration-150"
           >
-            <Search size={13} />
-            Find Resources
+            <Search size={11} />
+            Find
           </button>
         </div>
 
-        {resourceFinderOpen && <ResourceFinder />}
-
         <QuickAdd />
+
+        {resourceFinderOpen && <ResourceFinder />}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-4">
-        {CATEGORY_ORDER.map((cat) => {
+      {/* Skill list — grouped by category */}
+      <div className="flex-1 overflow-y-auto py-2">
+        {nonEmptyCategories.map((cat, idx) => {
           const catSkills = grouped[cat]
           const isExpanded = expandedCategories.has(cat)
 
           return (
-            <div key={cat} className="mb-4">
+            <div key={cat}>
+              {idx > 0 && <div className="mx-4 my-1 border-t border-border" />}
+
               <button
                 type="button"
                 onClick={() => toggleCategory(cat)}
-                className="flex items-center gap-1.5 w-full pb-2 mb-1"
+                className="flex items-center gap-1.5 w-full px-4 py-2 hover:bg-surface-hover/30 transition-colors duration-150"
               >
                 {isExpanded ? (
-                  <ChevronDown size={11} className="text-text-dim" />
+                  <ChevronDown size={10} className="text-text-dim shrink-0" />
                 ) : (
-                  <ChevronRight size={11} className="text-text-dim" />
+                  <ChevronRight size={10} className="text-text-dim shrink-0" />
                 )}
-                <span className="text-[10px] font-mono text-text-dim uppercase tracking-widest">
+                <span className="text-[10px] font-medium text-text-dim uppercase tracking-wider">
                   {CATEGORY_MAP[cat]}
                 </span>
-                <span className="font-mono text-[10px] text-text-dim tabular-nums ml-auto">{catSkills.length}</span>
+                <span className="text-[10px] text-text-dim tabular-nums ml-auto">{catSkills.length}</span>
               </button>
 
               {isExpanded && (
-                <>
-                  {catSkills.length === 0 ? (
-                    <p className="text-text-dim text-[10px] pl-5 py-1">No skills yet</p>
-                  ) : (
-                    catSkills.map((skill) => (
-                      <SkillCard key={skill.id} skill={skill} onDelete={handleDelete} />
-                    ))
-                  )}
-                </>
+                <div className="pb-1">
+                  {catSkills.map((skill) => (
+                    <SkillCard key={skill.id} skill={skill} onDelete={handleDelete} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {emptyCategories.length > 0 && nonEmptyCategories.length > 0 && (
+          <div className="mx-4 my-1 border-t border-border" />
+        )}
+
+        {emptyCategories.map((cat) => {
+          const isExpanded = expandedCategories.has(cat)
+
+          return (
+            <div key={cat}>
+              <button
+                type="button"
+                onClick={() => toggleCategory(cat)}
+                className="flex items-center gap-1.5 w-full px-4 py-2 hover:bg-surface-hover/30 transition-colors duration-150"
+              >
+                {isExpanded ? (
+                  <ChevronDown size={10} className="text-text-dim shrink-0" />
+                ) : (
+                  <ChevronRight size={10} className="text-text-dim shrink-0" />
+                )}
+                <span className="text-[10px] font-medium text-text-dim/60 uppercase tracking-wider">
+                  {CATEGORY_MAP[cat]}
+                </span>
+                <span className="text-[10px] text-text-dim/40 tabular-nums ml-auto">0</span>
+              </button>
+
+              {isExpanded && (
+                <p className="text-text-dim/40 text-[10px] pl-9 pr-4 py-1">No skills yet</p>
               )}
             </div>
           )
