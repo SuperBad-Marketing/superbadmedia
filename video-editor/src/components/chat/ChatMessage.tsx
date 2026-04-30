@@ -1,0 +1,151 @@
+import {
+  Upload,
+  Layers,
+  ArrowRightLeft,
+  Volume2,
+  Palette,
+  Download,
+  BookOpen,
+  Music,
+  Crop,
+  Captions,
+  Type,
+  Search,
+  Check,
+  X,
+  Loader2,
+} from 'lucide-react'
+import type { ChatMessage as ChatMessageType, ChatAction } from '../../types'
+
+const actionIcons: Record<ChatAction['type'], React.ElementType> = {
+  ingest: Upload,
+  assemble: Layers,
+  transition: ArrowRightLeft,
+  sfx: Volume2,
+  grade: Palette,
+  export: Download,
+  learn: BookOpen,
+  'music-search': Music,
+  reframe: Crop,
+  caption: Captions,
+  'title-card': Type,
+  'find-clips': Search,
+}
+
+function formatTime(timestamp: string): string {
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function parseInlineFormatting(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = []
+  const regex = /(\*\*(.+?)\*\*|`(.+?)`)/g
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index))
+    }
+    if (match[2]) {
+      parts.push(
+        <strong key={match.index} className="font-semibold">
+          {match[2]}
+        </strong>
+      )
+    } else if (match[3]) {
+      parts.push(
+        <code
+          key={match.index}
+          className="bg-bg px-1.5 py-0.5 rounded text-accent font-mono text-[0.85em]"
+        >
+          {match[3]}
+        </code>
+      )
+    }
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
+  }
+
+  return parts
+}
+
+function ActionCard({ action }: { action: ChatAction }) {
+  const Icon = actionIcons[action.type]
+
+  return (
+    <div className="mt-2 bg-surface border border-border rounded-lg p-3 flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <Icon className="w-4 h-4 text-text-muted shrink-0" />
+        <span className="text-sm text-text flex-1">{action.description}</span>
+        {action.status === 'running' && (
+          <Loader2 className="w-4 h-4 text-accent animate-spin shrink-0" />
+        )}
+        {action.status === 'complete' && (
+          <Check className="w-4 h-4 text-green shrink-0" />
+        )}
+        {action.status === 'error' && (
+          <X className="w-4 h-4 text-accent shrink-0" />
+        )}
+        {action.status === 'pending' && (
+          <span className="w-2 h-2 rounded-full bg-text-dim shrink-0" />
+        )}
+      </div>
+      {action.status === 'running' && action.progress != null && (
+        <div className="w-full h-1 bg-bg rounded-full overflow-hidden">
+          <div
+            className="h-full bg-accent rounded-full transition-all duration-300"
+            style={{ width: `${action.progress}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function LoadingDots() {
+  return (
+    <span className="inline-flex gap-1 items-center h-5">
+      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-[pulse_1.4s_ease-in-out_infinite]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-[pulse_1.4s_ease-in-out_0.4s_infinite]" />
+    </span>
+  )
+}
+
+export default function ChatMessage({ message }: { message: ChatMessageType }) {
+  if (message.role === 'system') {
+    return (
+      <div className="flex justify-center px-4 py-1">
+        <span className="text-text-dim text-xs italic">
+          {parseInlineFormatting(message.content)}
+        </span>
+      </div>
+    )
+  }
+
+  const isUser = message.role === 'user'
+
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} px-4 py-1`}>
+      <div className={`max-w-[85%] flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+        <div
+          className={`px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+            isUser
+              ? 'bg-accent text-white rounded-2xl rounded-br-sm'
+              : 'bg-surface-active text-text rounded-2xl rounded-bl-sm'
+          }`}
+        >
+          {message.isLoading ? <LoadingDots /> : parseInlineFormatting(message.content)}
+        </div>
+        {message.action && <ActionCard action={message.action} />}
+        <span className="text-text-dim text-xs mt-1 px-1">
+          {formatTime(message.timestamp)}
+        </span>
+      </div>
+    </div>
+  )
+}

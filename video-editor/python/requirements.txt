@@ -1,0 +1,2 @@
+# DaVinciResolveScript is provided by DaVinci Resolve installation
+# No additional pip packages required for the bridge
