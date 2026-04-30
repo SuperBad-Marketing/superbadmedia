@@ -161,11 +161,6 @@ export interface ExportJob {
   outputPath?: string
 }
 
-// App-level view state
-export type CentreView = 'dashboard' | 'brief' | 'ingest' | 'storyboard' | 'preview' | 'grading' | 'captions' | 'export' | 'ads'
-export type RightPanelTab = 'chat' | 'music' | 'knowledge' | 'sfx' | 'transitions' | 'titles'
-
-// New workflow-based navigation
 export type WorkflowPhase = 'home' | 'import' | 'brief' | 'assemble' | 'refine' | 'deliver'
 export type DockPanel = 'media' | 'ai' | 'music' | 'sound' | 'transitions' | 'text' | 'knowledge'
 

@@ -1,13 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CentreView, RightPanelTab, WorkflowPhase, DockPanel, Project, Clip, ClipAnalysis, StoryboardClip, ChatMessage, SkillFile, IngestJob, MusicTrack, SfxPlacement, TransitionPlacement } from '../types'
+import type { WorkflowPhase, DockPanel, Project, Clip, ClipAnalysis, StoryboardClip, ChatMessage, SkillFile, IngestJob, MusicTrack, SfxPlacement, TransitionPlacement } from '../types'
 
 interface AppState {
-  // View state
-  centreView: CentreView
-  rightPanelTab: RightPanelTab
-  setCentreView: (view: CentreView) => void
-  setRightPanelTab: (tab: RightPanelTab) => void
 
   // Project
   currentProject: Project | null
@@ -63,10 +58,6 @@ interface AppState {
   loadProjectState: (state: Record<string, any>) => void
   resetToNewProject: () => void
 
-  // Left panel collapse
-  leftPanelCollapsed: boolean
-  toggleLeftPanel: () => void
-
   // Workflow navigation
   workflowPhase: WorkflowPhase
   setWorkflowPhase: (phase: WorkflowPhase) => void
@@ -80,11 +71,6 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      centreView: 'dashboard' as CentreView,
-      rightPanelTab: 'chat' as RightPanelTab,
-      setCentreView: (view) => set({ centreView: view }),
-      setRightPanelTab: (tab) => set({ rightPanelTab: tab }),
-
       currentProject: null as Project | null,
       setCurrentProject: (project) => set({ currentProject: project }),
 
@@ -170,7 +156,7 @@ export const useAppStore = create<AppState>()(
         editTransitions: state.editTransitions || [],
         chatMessages: state.chatMessages || [],
         selectedTrack: state.selectedTrack || null,
-        centreView: 'brief' as CentreView,
+        workflowPhase: 'brief' as WorkflowPhase,
       }),
       resetToNewProject: () => set({
         currentProject: null,
@@ -181,11 +167,8 @@ export const useAppStore = create<AppState>()(
         chatMessages: [],
         selectedTrack: null,
         currentIngest: null,
-        centreView: 'ingest' as CentreView,
+        workflowPhase: 'import' as WorkflowPhase,
       }),
-
-      leftPanelCollapsed: false,
-      toggleLeftPanel: () => set((state) => ({ leftPanelCollapsed: !state.leftPanelCollapsed })),
 
       workflowPhase: 'home' as WorkflowPhase,
       setWorkflowPhase: (phase) => set({ workflowPhase: phase }),
@@ -199,8 +182,6 @@ export const useAppStore = create<AppState>()(
     {
       name: 'superedits-state',
       partialize: (state: AppState) => ({
-        centreView: state.centreView,
-        rightPanelTab: state.rightPanelTab,
         currentProject: state.currentProject,
         clips: state.clips,
         storyboardClips: state.storyboardClips,
@@ -209,7 +190,6 @@ export const useAppStore = create<AppState>()(
         chatMessages: state.chatMessages,
         selectedTrack: state.selectedTrack,
         skills: state.skills,
-        leftPanelCollapsed: state.leftPanelCollapsed,
         workflowPhase: state.workflowPhase,
       }),
     },
