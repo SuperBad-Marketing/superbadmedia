@@ -9,26 +9,17 @@ import sys
 import json
 import os
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 def get_resolve():
     """Connect to a running DaVinci Resolve instance."""
     try:
-        script_module = None
-
-        # macOS paths
-        resolve_script_paths = [
-            "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules",
-            os.path.expanduser("~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules"),
-        ]
-
-        for p in resolve_script_paths:
-            if os.path.exists(p) and p not in sys.path:
-                sys.path.append(p)
-
-        import DaVinciResolveScript as dvr
-        resolve = dvr.scriptapp("Resolve")
+        import resolve_loader
+        script_module = resolve_loader.load()
+        if not script_module:
+            return None
+        resolve = script_module.scriptapp("Resolve")
         return resolve
-    except ImportError:
-        return None
     except Exception:
         return None
 
