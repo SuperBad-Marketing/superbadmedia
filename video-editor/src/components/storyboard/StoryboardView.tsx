@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -11,8 +11,9 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { Play, Pause, Plus, ArrowRight } from 'lucide-react'
+import { Play, Pause, Plus, ArrowRight, Loader2 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
+import { sendToResolve } from '../../lib/api'
 import StoryboardClipCard from './StoryboardClipCard'
 
 function seededRandom(seed: number) {
@@ -74,6 +75,47 @@ export default function StoryboardView() {
   const isPlaying = useAppStore((s) => s.isPlaying)
   const setIsPlaying = useAppStore((s) => s.setIsPlaying)
   const setRightPanelTab = useAppStore((s) => s.setRightPanelTab)
+  const resolveConnected = useAppStore((s) => s.resolveConnected)
+  const addChatMessage = useAppStore((s) => s.addChatMessage)
+  const [sending, setSending] = useState(false)
+
+  const handleSendToResolve = useCallback(async () => {
+    if (sending) return
+    setSending(true)
+    try {
+      const filePaths = storyboardClips.map((c) => c.clip.filePath)
+      const importResult = await sendToResolve('import_media', { file_paths: filePaths })
+
+      if (importResult.error) {
+        addChatMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          content: `Failed to send to Resolve: ${importResult.error}`,
+          timestamp: new Date().toISOString(),
+        })
+      } else {
+        const clipIndices = filePaths.map((_, i) => i)
+        await sendToResolve('create_timeline', { name: 'SuperEdits Assembly' })
+        await sendToResolve('add_clips', { clip_indices: clipIndices })
+
+        addChatMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          content: `Sent ${filePaths.length} clips to Resolve. Timeline "SuperEdits Assembly" created.`,
+          timestamp: new Date().toISOString(),
+        })
+      }
+    } catch {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: 'Could not reach Resolve. Make sure it is running and connected.',
+        timestamp: new Date().toISOString(),
+      })
+    } finally {
+      setSending(false)
+    }
+  }, [sending, storyboardClips, addChatMessage])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -198,8 +240,13 @@ export default function StoryboardView() {
           </span>
         </div>
 
-        <button className="bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors">
-          Send to Resolve
+        <button
+          onClick={handleSendToResolve}
+          disabled={sending || !resolveConnected}
+          className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {sending && <Loader2 size={14} className="animate-spin" />}
+          {sending ? 'Sending...' : resolveConnected ? 'Send to Resolve' : 'Connect Resolve first'}
         </button>
       </div>
     </div>

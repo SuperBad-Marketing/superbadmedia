@@ -75,12 +75,29 @@ export async function selectFolder(): Promise<string | null> {
   return data.path
 }
 
-export async function checkResolveConnection(): Promise<boolean> {
+export async function checkResolveConnection(): Promise<{ connected: boolean; project?: string; timeline?: string }> {
   try {
     const res = await fetch(`${API_BASE}/resolve/status`)
-    const data = await res.json()
-    return data.connected
+    return res.json()
   } catch {
-    return false
+    return { connected: false }
   }
+}
+
+export async function connectResolve(): Promise<{ connected: boolean; version?: string; project?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/resolve/connect`, { method: 'POST' })
+    return res.json()
+  } catch {
+    return { connected: false, error: 'Server unreachable' }
+  }
+}
+
+export async function sendToResolve(action: string, params?: Record<string, any>): Promise<any> {
+  const res = await fetch(`${API_BASE}/resolve/command`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, params }),
+  })
+  return res.json()
 }

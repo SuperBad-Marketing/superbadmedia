@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Palette, Film, RotateCcw, Columns, Layers } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
+import { sendChatMessage } from '../../lib/api'
 
 const QUICK_CHIPS = [
   'Warmer',
@@ -27,9 +28,12 @@ type ViewMode = 'split' | 'overlay'
 export default function GradingView() {
   const currentProject = useAppStore((s) => s.currentProject)
   const storyboardClips = useAppStore((s) => s.storyboardClips)
+  const addChatMessage = useAppStore((s) => s.addChatMessage)
+  const updateChatMessage = useAppStore((s) => s.updateChatMessage)
   const [description, setDescription] = useState('')
   const [activePreset, setActivePreset] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('split')
+  const [applying, setApplying] = useState(false)
 
   const hasTimeline = currentProject && storyboardClips.length > 0
 
@@ -45,17 +49,39 @@ export default function GradingView() {
     )
   }
 
+  const sendGradeCommand = useCallback(async (command: string) => {
+    if (applying) return
+    setApplying(true)
+
+    const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: `Grade: ${command}`, timestamp: new Date().toISOString() }
+    addChatMessage(userMsg)
+
+    const loadingId = crypto.randomUUID()
+    addChatMessage({ id: loadingId, role: 'assistant', content: '', timestamp: new Date().toISOString(), isLoading: true })
+
+    try {
+      const response = await sendChatMessage(`Grade the footage: ${command}`, currentProject?.id)
+      updateChatMessage(loadingId, { content: response.content, isLoading: false, action: response.action })
+    } catch {
+      updateChatMessage(loadingId, { content: 'Failed to apply grade.', isLoading: false })
+    } finally {
+      setApplying(false)
+    }
+  }, [applying, addChatMessage, updateChatMessage, currentProject?.id])
+
   function handleApply() {
     if (!description.trim()) return
+    sendGradeCommand(description.trim())
     setDescription('')
   }
 
   function handleChipClick(chip: string) {
-    setDescription(chip.toLowerCase())
+    sendGradeCommand(chip.toLowerCase())
   }
 
   function handlePresetClick(preset: string) {
     setActivePreset(activePreset === preset ? null : preset)
+    sendGradeCommand(`Apply ${preset} preset`)
   }
 
   function handleReset() {

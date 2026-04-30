@@ -10,6 +10,8 @@ export default function IngestView() {
   const currentIngest = useAppStore((s) => s.currentIngest)
   const setCurrentIngest = useAppStore((s) => s.setCurrentIngest)
   const setCentreView = useAppStore((s) => s.setCentreView)
+  const setClips = useAppStore((s) => s.setClips)
+  const setCurrentProject = useAppStore((s) => s.setCurrentProject)
 
   const [viewState, setViewState] = useState<ViewState>(() => {
     if (currentIngest) return 'progress'
@@ -54,13 +56,40 @@ export default function IngestView() {
       try {
         const updated = await getIngestStatus(currentIngest.id)
         setCurrentIngest(updated)
+
+        if (updated.status === 'complete' && updated.clips?.length) {
+          const mapped = updated.clips.map((c: any) => ({
+            id: c.id,
+            projectId: updated.projectId,
+            filePath: c.filePath,
+            fileName: c.fileName,
+            thumbnailPath: c.thumbnailPath ? `/thumbnails/${c.id}.jpg` : undefined,
+            duration: c.duration,
+            width: c.width,
+            height: c.height,
+            fps: c.fps,
+            codec: c.codec,
+            isLog: c.isLog,
+            camera: c.camera,
+            analysis: c.analysis,
+          }))
+          setClips(mapped)
+          setCurrentProject({
+            id: updated.projectId,
+            name: clientName || 'Untitled',
+            clientName: clientName || 'Unknown',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            status: 'ready',
+          })
+        }
       } catch {
         // silent
       }
     }, 2000)
 
     return () => clearInterval(interval)
-  }, [currentIngest, setCurrentIngest])
+  }, [currentIngest, setCurrentIngest, setClips, setCurrentProject, clientName])
 
   if (currentProject && !currentIngest) {
     return (
@@ -172,7 +201,7 @@ function IngestProgress({
 
   const isComplete = ingest.status === 'complete'
   const isError = ingest.status === 'error'
-  const progressPercent = Math.round(ingest.progress * 100)
+  const progressPercent = Math.round(ingest.progress)
 
   return (
     <div className="flex-1 flex items-center justify-center p-8">

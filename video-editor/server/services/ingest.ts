@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { ClipAnalysisService } from './clipAnalysis.js'
 
 interface IngestJob {
   id: string
@@ -13,6 +14,7 @@ interface IngestJob {
   processedFiles: number
   errors: string[]
   destinationPath?: string
+  clips?: any[]
 }
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mpg', '.mts', '.r3d', '.braw', '.ari']
@@ -92,7 +94,12 @@ export class IngestService {
       job.status = 'analyzing'
       job.progress = 85
 
-      await new Promise(r => setTimeout(r, 1500))
+      const clipAnalysis = new ClipAnalysisService()
+      const clips = await clipAnalysis.analyzeDirectory(
+        path.join(destBase, 'footage'),
+        job.projectId
+      )
+      job.clips = clips
       job.progress = 95
 
       job.status = 'creating-project'

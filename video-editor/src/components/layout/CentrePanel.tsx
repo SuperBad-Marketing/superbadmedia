@@ -4,6 +4,7 @@ import type { CentreView } from '../../types'
 
 const IngestView = lazy(() => import('../ingest/IngestView'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
+const PreviewView = lazy(() => import('../preview/PreviewView'))
 const GradingView = lazy(() => import('../grading/GradingView'))
 const ExportView = lazy(() => import('../export/ExportView'))
 const AdVariationsView = lazy(() => import('../ads/AdVariationsView'))
@@ -28,7 +29,7 @@ function ActiveView({ view }: { view: CentreView }) {
     case 'storyboard':
       return <Suspense fallback={<ViewFallback />}><StoryboardView /></Suspense>
     case 'preview':
-      return <div className="flex-1 flex items-center justify-center text-text-dim text-sm">Preview</div>
+      return <Suspense fallback={<ViewFallback />}><PreviewView /></Suspense>
     case 'grading':
       return <Suspense fallback={<ViewFallback />}><GradingView /></Suspense>
     case 'export':

@@ -1,22 +1,51 @@
-import { HardDrive, Wifi, WifiOff } from 'lucide-react'
+import { useEffect, useCallback, useState } from 'react'
+import { HardDrive, Wifi, WifiOff, Loader2 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
+import { checkResolveConnection, connectResolve } from '../../lib/api'
 
 export default function BottomBar() {
   const resolveConnected = useAppStore((s) => s.resolveConnected)
+  const setResolveConnected = useAppStore((s) => s.setResolveConnected)
+  const [resolveProject, setResolveProject] = useState<string | null>(null)
+  const [connecting, setConnecting] = useState(false)
+
+  const pollStatus = useCallback(async () => {
+    const status = await checkResolveConnection()
+    setResolveConnected(status.connected)
+    setResolveProject(status.project ?? null)
+  }, [setResolveConnected])
+
+  useEffect(() => {
+    pollStatus()
+    const interval = setInterval(pollStatus, 10000)
+    return () => clearInterval(interval)
+  }, [pollStatus])
+
+  const handleConnect = async () => {
+    setConnecting(true)
+    const result = await connectResolve()
+    setResolveConnected(result.connected)
+    setConnecting(false)
+  }
 
   return (
     <div className="flex items-center justify-between h-8 px-4 bg-surface border-t border-border shrink-0 font-mono text-xs select-none">
       <div className="flex items-center gap-2">
-        {resolveConnected ? (
+        {connecting ? (
+          <>
+            <Loader2 size={12} className="text-text-muted animate-spin" />
+            <span className="text-text-muted">Connecting...</span>
+          </>
+        ) : resolveConnected ? (
           <>
             <Wifi size={12} className="text-green" />
-            <span className="text-green">Connected</span>
+            <span className="text-green">Resolve{resolveProject ? ` — ${resolveProject}` : ''}</span>
           </>
         ) : (
-          <>
+          <button onClick={handleConnect} className="flex items-center gap-2 hover:text-text transition-colors">
             <WifiOff size={12} className="text-accent" />
-            <span className="text-accent">Disconnected</span>
-          </>
+            <span className="text-accent">Connect Resolve</span>
+          </button>
         )}
       </div>
 

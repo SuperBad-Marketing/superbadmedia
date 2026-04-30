@@ -117,6 +117,7 @@ export interface IngestJob {
   totalFiles: number
   processedFiles: number
   errors: string[]
+  clips?: Clip[]
 }
 
 // Export

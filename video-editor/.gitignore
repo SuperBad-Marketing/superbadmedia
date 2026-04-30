@@ -4,3 +4,4 @@ dist/
 *.db
 skills/*.json
 .playwright-mcp/
+.thumbnails/
