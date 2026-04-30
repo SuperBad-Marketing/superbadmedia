@@ -135,7 +135,33 @@ export interface ExportJob {
 
 // App-level view state
 export type CentreView = 'ingest' | 'storyboard' | 'preview' | 'grading' | 'captions' | 'export' | 'ads'
-export type RightPanelTab = 'chat' | 'music' | 'knowledge'
+export type RightPanelTab = 'chat' | 'music' | 'knowledge' | 'sfx' | 'transitions' | 'titles'
+
+export interface SfxPreset {
+  id: string
+  name: string
+  category: 'impact' | 'whoosh' | 'riser' | 'ambient' | 'foley' | 'ui' | 'musical'
+  description: string
+  duration: number
+  tags: string[]
+}
+
+export interface TransitionPreset {
+  id: string
+  name: string
+  category: 'impact' | 'dissolve' | 'wipe' | 'zoom' | 'film' | 'glitch'
+  description: string
+  duration: number
+  hasSfx: boolean
+}
+
+export interface TitleCardPreset {
+  id: string
+  name: string
+  type: 'title' | 'lower-third' | 'end-card' | 'chapter' | 'quote'
+  description: string
+  hasAnimation: boolean
+}
 
 export interface AdVariationConfig {
   formats: ('16:9' | '9:16' | '1:1' | '4:5')[]

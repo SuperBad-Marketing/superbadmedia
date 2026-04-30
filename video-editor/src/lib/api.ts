@@ -1,4 +1,4 @@
-import type { ChatAction, IngestJob, MusicTrack, SkillFile } from '../types'
+import type { ChatAction, IngestJob, MusicTrack, SkillFile, SfxPreset, TransitionPreset, TitleCardPreset } from '../types'
 
 const API_BASE = '/api'
 
@@ -132,5 +132,29 @@ export async function startExport(config: {
 export async function getExportStatus(jobId: string): Promise<any> {
   const res = await fetch(`${API_BASE}/export/status/${jobId}`)
   if (!res.ok) throw new Error('Failed to get export status')
+  return res.json()
+}
+
+export async function getSfxLibrary(): Promise<SfxPreset[]> {
+  const res = await fetch(`${API_BASE}/sfx/library`)
+  if (!res.ok) throw new Error('Failed to get SFX library')
+  return res.json()
+}
+
+export async function searchSfx(query: string): Promise<SfxPreset[]> {
+  const res = await fetch(`${API_BASE}/sfx/search?q=${encodeURIComponent(query)}`)
+  if (!res.ok) throw new Error('Failed to search SFX')
+  return res.json()
+}
+
+export async function getTransitionPresets(): Promise<TransitionPreset[]> {
+  const res = await fetch(`${API_BASE}/transitions/presets`)
+  if (!res.ok) throw new Error('Failed to get transition presets')
+  return res.json()
+}
+
+export async function getTitleCardPresets(): Promise<TitleCardPreset[]> {
+  const res = await fetch(`${API_BASE}/title-cards/presets`)
+  if (!res.ok) throw new Error('Failed to get title card presets')
   return res.json()
 }
