@@ -11,9 +11,41 @@ import {
   spotifyWizard,
   type SpotifyPayload,
 } from "@/lib/wizards/defs/spotify";
+import {
+  SPOTIFY_OAUTH_SCOPES,
+  SPOTIFY_OAUTH_AUTHORIZE_URL,
+} from "@/lib/integrations/vendors/spotify";
+import { getAppUrl } from "@/lib/env/app-url";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 
 const SPOTIFY_VAULT_CONTEXT = "spotify.credentials";
+const SPOTIFY_OAUTH_STATE_CONTEXT = "spotify.oauth-state";
+
+export async function prepareSpotifyOAuthAction(
+  clientId: string,
+  clientSecret: string,
+): Promise<{ ok: true; authorizeUrl: string } | { ok: false; reason: string }> {
+  if (!clientId.trim() || !clientSecret.trim()) {
+    return { ok: false, reason: "Both client ID and secret are required." };
+  }
+
+  const state = vault.encrypt(
+    JSON.stringify({ clientId: clientId.trim(), clientSecret: clientSecret.trim() }),
+    SPOTIFY_OAUTH_STATE_CONTEXT,
+  );
+
+  const appUrl = getAppUrl();
+  const redirectUri = `${appUrl}/api/oauth/spotify/callback`;
+  const params = new URLSearchParams({
+    client_id: clientId.trim(),
+    response_type: "code",
+    redirect_uri: redirectUri,
+    scope: SPOTIFY_OAUTH_SCOPES.join(" "),
+    state,
+  });
+
+  return { ok: true, authorizeUrl: `${SPOTIFY_OAUTH_AUTHORIZE_URL}?${params.toString()}` };
+}
 
 export async function decryptSpotifyTokenAction(
   ct: string,
@@ -61,6 +93,8 @@ export async function completeSpotifyAction(
       manifest: spotifyWizard.vendorManifest!,
       credentials: {
         plaintext: JSON.stringify({
+          clientId: payload.clientId,
+          clientSecret: payload.clientSecret,
           accessToken: payload.accessToken,
           refreshToken: payload.refreshToken,
         }),

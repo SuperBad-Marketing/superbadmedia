@@ -1,13 +1,29 @@
+import { z } from "zod";
 import { spotifyManifest } from "@/lib/integrations/vendors/spotify";
 import { registerWizard } from "@/lib/wizards/registry";
 import type { WizardDefinition } from "@/lib/wizards/types";
 
 export type SpotifyPayload = {
+  clientId: string;
+  clientSecret: string;
   accessToken: string;
   refreshToken: string;
   verifiedAt: number;
   confirmedAt: number;
 };
+
+export const spotifyCredentialsSchema = z.object({
+  clientId: z.string().trim().min(1, "Paste your Spotify client ID."),
+  clientSecret: z.string().trim().min(1, "Paste your Spotify client secret."),
+});
+
+export function maskSpotifyClientId(id: string): string {
+  return id.length >= 8 ? `${id.slice(0, 4)}…${id.slice(-4)}` : id;
+}
+
+export function maskSpotifySecret(secret: string): string {
+  return secret.length >= 4 ? `…${secret.slice(-4)}` : secret;
+}
 
 async function pingSpotifyMe(
   token: string,
@@ -42,6 +58,13 @@ export const spotifyWizard: WizardDefinition<SpotifyPayload> = {
   renderMode: "dedicated-route",
   steps: [
     {
+      key: "paste-credentials",
+      type: "form",
+      label: "App credentials",
+      resumable: true,
+      config: { schema: spotifyCredentialsSchema },
+    },
+    {
       key: "consent",
       type: "oauth-consent",
       label: "Authorise Spotify",
@@ -63,14 +86,14 @@ export const spotifyWizard: WizardDefinition<SpotifyPayload> = {
     },
   ],
   completionContract: {
-    required: ["accessToken", "refreshToken", "verifiedAt", "confirmedAt"],
+    required: ["clientId", "clientSecret", "accessToken", "refreshToken", "verifiedAt", "confirmedAt"],
     verify: async (p) => pingSpotifyMe(p.accessToken),
     artefacts: { integrationConnections: true },
   },
   vendorManifest: spotifyManifest,
   voiceTreatment: {
     introCopy:
-      "Spotify next. Tap through the consent screen and your playlists show up on the cockpit.",
+      "Spotify. Grab your client ID and secret from the Spotify Developer Dashboard, then we'll walk through the OAuth consent.",
     outroCopy:
       "Spotify's connected. Pick a playlist from the cockpit and you're sorted.",
     tabTitlePool: {

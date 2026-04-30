@@ -31,6 +31,11 @@ const ENV_VAR_MAP: Record<string, string> = {
   openweather: "OPENWEATHER_API_KEY",
   "football-data": "FOOTBALL_DATA_API_KEY",
   spotify: "SPOTIFY_ACCESS_TOKEN",
+  medium: "MEDIUM_INTEGRATION_TOKEN",
+  linkedin_articles: "LINKEDIN_ACCESS_TOKEN",
+  ghost: "GHOST_ADMIN_API_KEY",
+  beehiiv: "BEEHIIV_API_KEY",
+  wordpress: "WORDPRESS_ACCESS_TOKEN",
 };
 
 export async function getCredential(

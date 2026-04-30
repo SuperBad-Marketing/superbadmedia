@@ -7,18 +7,7 @@ import { getAppUrl } from "@/lib/env/app-url";
 
 const WIZARD_PATH = "/lite/setup/admin/spotify";
 const VAULT_CONTEXT = "spotify.credentials";
-
-function getClientId(): string {
-  const v = process.env.SPOTIFY_CLIENT_ID;
-  if (!v) throw new Error("SPOTIFY_CLIENT_ID env var is not set");
-  return v;
-}
-
-function getClientSecret(): string {
-  const v = process.env.SPOTIFY_CLIENT_SECRET;
-  if (!v) throw new Error("SPOTIFY_CLIENT_SECRET env var is not set");
-  return v;
-}
+const OAUTH_STATE_CONTEXT = "spotify.oauth-state";
 
 function getRedirectUri(): string {
   return `${getAppUrl()}/api/oauth/spotify/callback`;
@@ -34,6 +23,8 @@ interface SpotifyTokenResponse {
 
 async function exchangeCodeForTokens(
   code: string,
+  clientId: string,
+  clientSecret: string,
 ): Promise<{ accessToken: string; refreshToken: string; expiresAtMs: number }> {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
@@ -42,7 +33,7 @@ async function exchangeCodeForTokens(
   });
 
   const basic = Buffer.from(
-    `${getClientId()}:${getClientSecret()}`,
+    `${clientId}:${clientSecret}`,
   ).toString("base64");
 
   const res = await fetch(SPOTIFY_TOKEN_URL, {
@@ -73,6 +64,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const error = url.searchParams.get("error");
   const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
 
   const appUrl = getAppUrl();
   const redirectUrl = new URL(WIZARD_PATH, appUrl);
@@ -90,9 +82,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  if (!state) {
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set("reason", "Missing OAuth state — try the wizard again from step 1");
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  let clientId: string;
+  let clientSecret: string;
+  try {
+    const decrypted = vault.decrypt(state, OAUTH_STATE_CONTEXT);
+    const parsed = JSON.parse(decrypted) as { clientId: string; clientSecret: string };
+    clientId = parsed.clientId;
+    clientSecret = parsed.clientSecret;
+  } catch {
+    redirectUrl.searchParams.set("oauth", "error");
+    redirectUrl.searchParams.set("reason", "Invalid OAuth state — try the wizard again from step 1");
+    return NextResponse.redirect(redirectUrl);
+  }
+
   try {
     const { accessToken, refreshToken, expiresAtMs } =
-      await exchangeCodeForTokens(code);
+      await exchangeCodeForTokens(code, clientId, clientSecret);
 
     const encrypted = vault.encrypt(
       JSON.stringify({ accessToken, refreshToken, expiresAtMs }),

@@ -8,17 +8,28 @@ import type {
   WizardAudience,
 } from "@/lib/wizards/types";
 import {
+  prepareSpotifyOAuthAction,
   completeSpotifyAction,
   decryptSpotifyTokenAction,
 } from "../actions-spotify";
-import type { SpotifyPayload } from "@/lib/wizards/defs/spotify";
+import {
+  type SpotifyPayload,
+  maskSpotifyClientId,
+  maskSpotifySecret,
+  spotifyCredentialsSchema,
+} from "@/lib/wizards/defs/spotify";
 import type { CelebrationCompleteResult } from "@/components/lite/wizard-steps/celebration-step";
 import { useAdminShell, type StepStates } from "./use-admin-shell";
+
+type PasteCredentialsState = {
+  values: { clientId: string; clientSecret: string };
+};
 
 type OAuthConsentState = {
   token: string | null;
   refreshToken: string | null;
   vendorLabel: string;
+  authorizeUrl: string;
 };
 
 type ReviewState = {
@@ -31,16 +42,19 @@ export type SpotifyClientProps = {
   steps: WizardStepDefinition[];
   outroCopy: string;
   expiryDays: number;
-  authorizeUrl: string;
   allowTestTokenInjection: boolean;
 };
 
 function initialSpotifyStates(outroCopy: string): StepStates {
   return {
+    "paste-credentials": {
+      values: { clientId: "", clientSecret: "" },
+    } satisfies PasteCredentialsState,
     consent: {
       token: null,
       refreshToken: null,
       vendorLabel: "Spotify",
+      authorizeUrl: "#",
     } satisfies OAuthConsentState,
     review: { summary: [], confirmed: false } satisfies ReviewState,
     celebrate: { outroCopy, observatorySummary: null },
@@ -49,17 +63,18 @@ function initialSpotifyStates(outroCopy: string): StepStates {
 
 function tokenSuffix(token: string | null): string {
   if (!token) return "(not yet)";
-  const tail = token.slice(-6);
-  return `…${tail}`;
+  return `…${token.slice(-6)}`;
 }
 
 function buildReviewSummary(states: StepStates) {
+  const pasted = states["paste-credentials"] as PasteCredentialsState;
   const consent = states.consent as OAuthConsentState;
+  const clientId = (pasted.values.clientId ?? "").trim();
+  const clientSecret = (pasted.values.clientSecret ?? "").trim();
   return [
-    {
-      label: "Spotify account",
-      value: consent.token ? "Authorised" : "Not yet",
-    },
+    { label: "Client ID", value: clientId ? maskSpotifyClientId(clientId) : "(not set)" },
+    { label: "Client secret", value: clientSecret ? maskSpotifySecret(clientSecret) : "(not set)" },
+    { label: "Spotify account", value: consent.token ? "Authorised" : "Not yet" },
     { label: "Access token", value: tokenSuffix(consent.token) },
   ];
 }
@@ -69,7 +84,6 @@ export function SpotifyClient({
   steps,
   outroCopy,
   expiryDays,
-  authorizeUrl,
   allowTestTokenInjection,
 }: SpotifyClientProps) {
   const {
@@ -89,10 +103,33 @@ export function SpotifyClient({
 
   const searchParams = useSearchParams();
   const [oauthError, setOauthError] = React.useState<string | null>(null);
-
   const advanceRef = React.useRef(advance);
   advanceRef.current = advance;
 
+  // Build the OAuth authorize URL when advancing to the consent step
+  const originalAdvance = advance;
+  const wrappedAdvance = React.useCallback(async () => {
+    if (step.type === "form") {
+      const pasted = states["paste-credentials"] as PasteCredentialsState;
+      const clientId = pasted.values.clientId.trim();
+      const clientSecret = pasted.values.clientSecret.trim();
+      const result = await prepareSpotifyOAuthAction(clientId, clientSecret);
+      if (!result.ok) {
+        setOauthError(result.reason);
+        return;
+      }
+      setStates((prev) => ({
+        ...prev,
+        consent: {
+          ...(prev.consent as OAuthConsentState),
+          authorizeUrl: result.authorizeUrl,
+        },
+      }));
+    }
+    originalAdvance();
+  }, [step.type, states, setStates, originalAdvance]);
+
+  // Handle OAuth callback params
   React.useEffect(() => {
     const oauthParam = searchParams.get("oauth");
     if (oauthParam === "error") {
@@ -131,6 +168,7 @@ export function SpotifyClient({
     });
   }, [searchParams, setStates]);
 
+  // Test token injection (dev only)
   React.useEffect(() => {
     if (!allowTestTokenInjection) return;
     const injected = searchParams.get("testToken");
@@ -145,6 +183,7 @@ export function SpotifyClient({
     });
   }, [allowTestTokenInjection, searchParams, setStates]);
 
+  // Build review summary
   React.useEffect(() => {
     if (step.type !== "review-and-confirm") return;
     setStates((prev) => {
@@ -173,6 +212,7 @@ export function SpotifyClient({
 
   const onComplete =
     React.useCallback(async (): Promise<CelebrationCompleteResult> => {
+      const pasted = states["paste-credentials"] as PasteCredentialsState;
       const consent = states.consent as OAuthConsentState;
       const reviewed = states.review as ReviewState;
       if (!consent.token || !consent.refreshToken) {
@@ -182,6 +222,8 @@ export function SpotifyClient({
         };
       }
       const payload: SpotifyPayload = {
+        clientId: pasted.values.clientId.trim(),
+        clientSecret: pasted.values.clientSecret.trim(),
         accessToken: consent.token,
         refreshToken: consent.refreshToken,
         verifiedAt: consent.token ? Date.now() : 0,
@@ -191,13 +233,17 @@ export function SpotifyClient({
     }, [states]);
 
   const configuredStep: WizardStepDefinition = React.useMemo(() => {
+    if (step.type === "form") {
+      return { ...step, config: { ...step.config, schema: spotifyCredentialsSchema } };
+    }
     if (step.type === "oauth-consent") {
+      const consent = states.consent as OAuthConsentState;
       return {
         ...step,
         config: {
           ...(step.config ?? {}),
           vendorLabel: "Spotify",
-          authorizeUrl,
+          authorizeUrl: consent.authorizeUrl,
         },
       };
     }
@@ -205,7 +251,7 @@ export function SpotifyClient({
       return { ...step, config: { onDone, onComplete } };
     }
     return step;
-  }, [step, authorizeUrl, onComplete, onDone]);
+  }, [step, states, onComplete, onDone]);
 
   return (
     <WizardShell
@@ -218,7 +264,7 @@ export function SpotifyClient({
       step={configuredStep}
       stepState={stepState}
       onStepStateChange={onStepStateChange}
-      onNext={advance}
+      onNext={wrappedAdvance}
     />
   );
 }

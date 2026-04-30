@@ -36,10 +36,6 @@ import {
   GOOGLE_OAUTH_AUTHORIZE_URL,
 } from "@/lib/integrations/vendors/google-ads";
 import {
-  SPOTIFY_OAUTH_SCOPES,
-  SPOTIFY_OAUTH_AUTHORIZE_URL,
-} from "@/lib/integrations/vendors/spotify";
-import {
   isApiKeyVendor,
   getApiKeyVendorProfile,
 } from "@/lib/wizards/defs/api-key";
@@ -53,6 +49,13 @@ import { HiringRoleBriefClient } from "./clients/hiring-role-brief-client";
 import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
 import { PosthogAdminClient } from "./clients/posthog-admin-client";
 import { SpotifyClient } from "./clients/spotify-client";
+import { MediumClient } from "./clients/medium-client";
+import { LinkedinArticlesClient } from "./clients/linkedin-articles-client";
+import { GhostClient } from "./clients/ghost-client";
+import { BeehiivClient } from "./clients/beehiiv-client";
+import { WordPressClient } from "./clients/wordpress-client";
+import { OpenWeatherClient } from "./clients/openweather-client";
+import { FootballDataClient } from "./clients/football-data-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -105,13 +108,19 @@ const CLIENT_MAP: Record<string, ClientRenderer> = {
     <HiringRoleBriefClient {...common} />
   ),
   posthog: ({ common }) => <PosthogAdminClient {...common} />,
+  openweather: ({ common }) => <OpenWeatherClient {...common} />,
+  "football-data": ({ common }) => <FootballDataClient {...common} />,
   spotify: ({ common, allowTestTokenInjection }) => (
     <SpotifyClient
       {...common}
-      authorizeUrl={buildSpotifyAuthorizeUrl()}
       allowTestTokenInjection={allowTestTokenInjection}
     />
   ),
+  medium: ({ common }) => <MediumClient {...common} />,
+  linkedin_articles: ({ common }) => <LinkedinArticlesClient {...common} />,
+  ghost: ({ common }) => <GhostClient {...common} />,
+  beehiiv: ({ common }) => <BeehiivClient {...common} />,
+  wordpress: ({ common }) => <WordPressClient {...common} />,
   "api-key": ({ common, searchParams }) => {
     const raw =
       typeof searchParams.vendor === "string" ? searchParams.vendor : "";
@@ -256,16 +265,3 @@ function buildGoogleAuthorizeUrl(): string {
   return `${GOOGLE_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
 }
 
-function buildSpotifyAuthorizeUrl(): string {
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const appUrl = getAppUrl();
-  if (!clientId) return "#";
-  const redirectUri = `${appUrl}/api/oauth/spotify/callback`;
-  const params = new URLSearchParams({
-    client_id: clientId,
-    response_type: "code",
-    redirect_uri: redirectUri,
-    scope: SPOTIFY_OAUTH_SCOPES.join(" "),
-  });
-  return `${SPOTIFY_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
-}
