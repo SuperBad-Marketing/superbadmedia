@@ -260,6 +260,19 @@ export type IGComment = {
   timestamp: string;
 };
 
+export async function getComment(
+  commentId: string,
+  accessToken: string,
+): Promise<IGApiResult<IGComment>> {
+  return callApi(
+    "GET",
+    `${GRAPH_FB_BASE}/${commentId}?fields=id,text,username,timestamp`,
+    accessToken,
+    undefined,
+    "get_comment",
+  );
+}
+
 export async function getMediaComments(
   mediaId: string,
   accessToken: string,
