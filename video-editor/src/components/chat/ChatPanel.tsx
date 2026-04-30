@@ -25,7 +25,7 @@ function WelcomeScreen({ onQuickAction }: { onQuickAction: (action: typeof quick
             key={action.label}
             type="button"
             onClick={() => onQuickAction(action)}
-            className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-border text-text-dim text-sm hover:border-border-active hover:text-text-muted transition-colors duration-150"
+            className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-border text-text-dim text-sm hover:border-accent/40 hover:text-text hover:bg-accent-dim transition-colors duration-150"
           >
             <action.icon size={16} />
             {action.label}

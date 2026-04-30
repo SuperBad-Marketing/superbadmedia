@@ -165,7 +165,7 @@ export default function IngestView() {
         </div>
 
         <div className="flex items-stretch gap-5">
-          <button className="group w-[220px] bg-surface border border-border rounded-xl p-7 text-left hover:border-border-active transition-colors duration-150">
+          <button className="group w-[220px] bg-surface border border-border rounded-xl p-7 text-left hover:border-pink/30 hover:bg-pink-dim transition-colors duration-150">
             <CreditCard size={28} className="text-text-dim group-hover:text-pink transition-colors duration-150 mb-4" />
             <p className="text-base font-display font-semibold text-text">From Card</p>
             <p className="text-sm text-text-dim mt-1.5">Auto-detect SD / CF Express</p>
@@ -173,7 +173,7 @@ export default function IngestView() {
 
           <button
             onClick={handleSelectFolder}
-            className="group w-[220px] bg-surface border border-border rounded-xl p-7 text-left hover:border-border-active transition-colors duration-150"
+            className="group w-[220px] bg-surface border border-border rounded-xl p-7 text-left hover:border-orange/30 hover:bg-orange-dim transition-colors duration-150"
           >
             <FolderOpen size={28} className="text-text-dim group-hover:text-orange transition-colors duration-150 mb-4" />
             <p className="text-base font-display font-semibold text-text">From Folder</p>

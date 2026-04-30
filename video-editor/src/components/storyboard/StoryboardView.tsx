@@ -276,12 +276,12 @@ export default function StoryboardView() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="size-8 rounded-full bg-surface-active flex items-center justify-center hover:bg-surface-hover transition-colors duration-150"
+            className="size-8 rounded-full bg-accent-dim flex items-center justify-center hover:bg-accent/30 transition-colors duration-150"
           >
             {isPlaying ? (
-              <Pause size={13} className="text-text" />
+              <Pause size={13} className="text-accent" />
             ) : (
-              <Play size={13} className="text-text ml-0.5" />
+              <Play size={13} className="text-accent ml-0.5" />
             )}
           </button>
           <span className="font-mono text-[11px] text-text-dim tabular-nums">

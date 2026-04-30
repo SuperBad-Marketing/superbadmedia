@@ -177,7 +177,7 @@ export default function GradingView() {
                 key={chip}
                 type="button"
                 onClick={() => handleChipClick(chip)}
-                className="bg-surface border border-border rounded-lg px-3.5 py-1.5 text-xs text-text-dim hover:border-border-active hover:text-text-muted transition-colors duration-150"
+                className="bg-surface border border-border rounded-lg px-3.5 py-1.5 text-xs text-text-dim hover:border-accent/30 hover:text-text hover:bg-accent-dim transition-colors duration-150"
               >
                 {chip}
               </button>

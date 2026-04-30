@@ -160,9 +160,9 @@ export default function PreviewView() {
           </button>
           <button
             onClick={togglePlay}
-            className="size-8 rounded-full bg-surface-active flex items-center justify-center hover:bg-surface-hover transition-colors duration-150"
+            className="size-8 rounded-full bg-accent-dim flex items-center justify-center hover:bg-accent/30 transition-colors duration-150"
           >
-            {isPlaying ? <Pause size={13} className="text-text" /> : <Play size={13} className="text-text ml-0.5" />}
+            {isPlaying ? <Pause size={13} className="text-accent" /> : <Play size={13} className="text-accent ml-0.5" />}
           </button>
           <button onClick={handleNext} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150">
             <SkipForward size={15} />

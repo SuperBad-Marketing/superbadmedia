@@ -23,17 +23,19 @@ export default function TrackCard({ track, isSelected, onSelect }: TrackCardProp
           : 'border border-transparent hover:bg-surface-hover'
       }`}
     >
-      <div className="size-8 rounded-full bg-surface-active flex items-center justify-center shrink-0">
-        <Play size={11} className="text-text ml-0.5" />
+      <div className={`size-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-150 ${
+        isSelected ? 'bg-accent-dim' : 'bg-surface-active'
+      }`}>
+        <Play size={12} className={`ml-0.5 transition-colors duration-150 ${isSelected ? 'text-accent' : 'text-text-muted'}`} />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] font-medium text-text truncate">{track.title}</div>
-        <div className="text-[11px] text-text-dim truncate">{track.artist}</div>
+        <div className="text-sm font-medium text-text truncate">{track.title}</div>
+        <div className="text-xs text-text-dim truncate">{track.artist}</div>
         {track.mood.length > 0 && (
-          <div className="flex gap-1.5 mt-0.5">
+          <div className="flex gap-1.5 mt-1">
             {track.mood.slice(0, 2).map((m) => (
-              <span key={m} className="text-[9px] text-text-dim font-mono">{m}</span>
+              <span key={m} className="text-[10px] text-pink font-mono">{m}</span>
             ))}
           </div>
         )}

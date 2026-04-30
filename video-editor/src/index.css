@@ -2,19 +2,19 @@
 
 @theme {
   /* Surfaces — warm charcoal, not cool black */
-  --color-bg: #1A1A18;
-  --color-surface: #232321;
-  --color-surface-hover: #2C2C29;
-  --color-surface-active: #353532;
+  --color-bg: #161614;
+  --color-surface: #1E1E1C;
+  --color-surface-hover: #282826;
+  --color-surface-active: #333330;
 
-  /* Borders — warm */
-  --color-border: #3A3A36;
-  --color-border-active: #4E4E48;
+  /* Borders — warm, subtle */
+  --color-border: #2E2E2A;
+  --color-border-active: #4A4A44;
 
   /* Text — warm cream spectrum */
   --color-text: #FDF5E6;
-  --color-text-muted: #A8A298;
-  --color-text-dim: #706B60;
+  --color-text-muted: #B5AFA4;
+  --color-text-dim: #7A7568;
 
   /* Brand — SuperBad palette */
   --color-accent: #B22848;

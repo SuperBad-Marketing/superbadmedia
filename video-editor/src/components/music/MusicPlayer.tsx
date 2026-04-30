@@ -39,13 +39,13 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
         </button>
         <button
           onClick={() => setPlaying(!playing)}
-          className="size-7 rounded-full bg-surface-active flex items-center justify-center hover:bg-surface-hover transition-colors duration-150"
+          className="size-8 rounded-full bg-accent-dim flex items-center justify-center hover:bg-accent/30 transition-colors duration-150"
           aria-label={playing ? 'Pause' : 'Play'}
         >
           {playing ? (
-            <Pause size={11} className="text-text" />
+            <Pause size={12} className="text-accent" />
           ) : (
-            <Play size={11} className="text-text ml-0.5" />
+            <Play size={12} className="text-accent ml-0.5" />
           )}
         </button>
         <button className="text-text-dim hover:text-text transition-colors duration-150" aria-label="Next">

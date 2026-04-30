@@ -29,7 +29,7 @@ export default function BottomBar() {
   }
 
   return (
-    <div className="flex items-center justify-between h-9 px-5 bg-bg border-t border-border shrink-0 font-mono text-xs select-none">
+    <div className="flex items-center justify-between h-9 px-5 bg-bg border-t border-accent/20 shrink-0 font-mono text-xs select-none">
       <div className="flex items-center gap-2">
         {connecting ? (
           <>

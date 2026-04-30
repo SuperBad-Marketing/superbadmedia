@@ -38,9 +38,9 @@ export default function RightPanel() {
           <button
             key={tab.id}
             onClick={() => setRightPanelTab(tab.id)}
-            className={`relative px-3.5 py-1.5 text-xs font-medium tracking-wide uppercase transition-colors duration-150 rounded-md ${
+            className={`relative px-3.5 py-2.5 text-xs font-semibold tracking-wide uppercase transition-colors duration-150 ${
               rightPanelTab === tab.id
-                ? 'text-text bg-surface-active'
+                ? 'text-text after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-accent after:rounded-full'
                 : 'text-text-dim hover:text-text-muted'
             }`}
           >

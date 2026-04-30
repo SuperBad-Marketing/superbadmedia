@@ -10,23 +10,23 @@ export default function HeaderBar() {
 
   return (
     <>
-      <div className="flex items-center justify-between h-14 px-6 bg-surface border-b border-border shrink-0 select-none">
+      <div className="flex items-center justify-between h-14 px-6 bg-surface border-b border-accent/20 shrink-0 select-none">
         <div className="flex items-center gap-3">
-          <span className="font-display font-bold text-lg tracking-tight text-text">SuperEdits</span>
-          <span className="text-[11px] font-medium text-text-dim tracking-widest uppercase">by SuperBad</span>
+          <span className="font-display font-extrabold text-xl tracking-tight text-text">SuperEdits</span>
+          <span className="text-[11px] font-semibold text-pink tracking-widest uppercase">by SuperBad</span>
         </div>
 
         <div>
           {currentProject ? (
-            <span className="font-display font-semibold text-text-muted text-sm tracking-wide">{currentProject.name}</span>
+            <span className="font-display font-semibold text-text text-sm tracking-wide">{currentProject.name}</span>
           ) : (
-            <span className="text-text-dim text-sm">No project</span>
+            <span className="text-text-dim text-sm italic">No project</span>
           )}
         </div>
 
         <button
           onClick={() => setSettingsOpen(true)}
-          className="p-2 rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150"
+          className="p-2 rounded-lg text-text-muted hover:text-accent hover:bg-accent-dim transition-colors duration-150"
           aria-label="Settings"
         >
           <Settings size={18} />
