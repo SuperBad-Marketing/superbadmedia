@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth/session";
@@ -13,6 +13,10 @@ import { context_summaries } from "@/lib/db/schema/context-summaries";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 import { contacts } from "@/lib/db/schema/contacts";
 import { companies } from "@/lib/db/schema/companies";
+import { contentEngineConfig } from "@/lib/db/schema/content-engine-config";
+import { contentTopics } from "@/lib/db/schema/content-topics";
+import { deals } from "@/lib/db/schema/deals";
+import { blogPosts } from "@/lib/db/schema/blog-posts";
 import { logActivity } from "@/lib/activity-log";
 
 type ResetResult = { ok: true; cleared: number } | { ok: false; error: string };
@@ -142,4 +146,96 @@ export async function listCompaniesForResetAction(): Promise<
     .from(companies)
     .orderBy(companies.name)
     .all();
+}
+
+export type CompanyListItem = {
+  id: string;
+  name: string;
+  domain: string | null;
+  contactCount: number;
+  dealCount: number;
+  postCount: number;
+  hasContentEngine: boolean;
+  createdAtMs: number;
+};
+
+export async function listCompaniesWithStatsAction(): Promise<CompanyListItem[]> {
+  const user = await requireAdmin();
+  if (!user) return [];
+
+  const rows = await db
+    .select({ id: companies.id, name: companies.name, domain: companies.domain, created_at_ms: companies.created_at_ms })
+    .from(companies)
+    .orderBy(companies.name)
+    .all();
+
+  const result: CompanyListItem[] = [];
+
+  for (const row of rows) {
+    const [contactRows, dealRows, postRows, ceRows] = await Promise.all([
+      db.select({ c: sql<number>`count(*)` }).from(contacts).where(eq(contacts.company_id, row.id)),
+      db.select({ c: sql<number>`count(*)` }).from(deals).where(eq(deals.company_id, row.id)),
+      db.select({ c: sql<number>`count(*)` }).from(blogPosts).where(eq(blogPosts.company_id, row.id)),
+      db.select({ c: sql<number>`count(*)` }).from(contentEngineConfig).where(eq(contentEngineConfig.company_id, row.id)),
+    ]);
+
+    result.push({
+      id: row.id,
+      name: row.name,
+      domain: row.domain,
+      contactCount: contactRows[0]?.c ?? 0,
+      dealCount: dealRows[0]?.c ?? 0,
+      postCount: postRows[0]?.c ?? 0,
+      hasContentEngine: (ceRows[0]?.c ?? 0) > 0,
+      createdAtMs: row.created_at_ms,
+    });
+  }
+
+  return result;
+}
+
+export async function deleteCompanyAction(
+  companyId: string,
+): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
+  const user = await requireAdmin();
+  if (!user) return { ok: false, error: "Not authorised." };
+
+  if (!companyId) return { ok: false, error: "No company specified." };
+
+  const company = await db
+    .select({ id: companies.id, name: companies.name })
+    .from(companies)
+    .where(eq(companies.id, companyId))
+    .get();
+
+  if (!company) return { ok: false, error: "Company not found." };
+
+  await db.delete(contentTopics).where(eq(contentTopics.company_id, companyId));
+  await db.delete(contentEngineConfig).where(eq(contentEngineConfig.company_id, companyId));
+
+  const profileIds = (
+    await db
+      .select({ id: brand_dna_profiles.id })
+      .from(brand_dna_profiles)
+      .where(eq(brand_dna_profiles.company_id, companyId))
+  ).map((r) => r.id);
+
+  if (profileIds.length > 0) {
+    await db.delete(brand_dna_answers).where(inArray(brand_dna_answers.profile_id, profileIds));
+    await db.delete(brand_dna_profiles).where(inArray(brand_dna_profiles.id, profileIds));
+  }
+  await db.delete(brand_dna_blends).where(eq(brand_dna_blends.company_id, companyId));
+
+  await db.delete(companies).where(eq(companies.id, companyId));
+
+  await logActivity({
+    kind: "company_deleted",
+    body: `Deleted company: ${company.name}`,
+    meta: { company_id: companyId, company_name: company.name },
+  });
+
+  revalidatePath("/lite/admin/settings/data-management");
+  revalidatePath("/lite/content");
+  revalidatePath("/lite/admin/companies");
+  return { ok: true, name: company.name };
 }

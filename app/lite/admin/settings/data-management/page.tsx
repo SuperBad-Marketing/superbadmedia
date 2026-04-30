@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
-import { listCompaniesForResetAction } from "./actions";
+import { listCompaniesForResetAction, listCompaniesWithStatsAction } from "./actions";
 import { DataManagementClient } from "./data-management-client";
 
 export const metadata: Metadata = {
@@ -16,7 +16,10 @@ export default async function DataManagementPage() {
     redirect("/api/auth/signin");
   }
 
-  const companies = await listCompaniesForResetAction();
+  const [companies, companiesWithStats] = await Promise.all([
+    listCompaniesForResetAction(),
+    listCompaniesWithStatsAction(),
+  ]);
 
   return (
     <div>
@@ -47,7 +50,7 @@ export default async function DataManagementPage() {
         </p>
       </header>
 
-      <DataManagementClient companies={companies} />
+      <DataManagementClient companies={companies} companiesWithStats={companiesWithStats} />
     </div>
   );
 }

@@ -1,16 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { resetBrandDnaAction, resetClientContextAction } from "./actions";
+import { Trash2 } from "lucide-react";
+import {
+  resetBrandDnaAction,
+  resetClientContextAction,
+  deleteCompanyAction,
+  type CompanyListItem,
+} from "./actions";
 
 interface Props {
   companies: { id: string; name: string }[];
+  companiesWithStats: CompanyListItem[];
 }
 
-export function DataManagementClient({ companies }: Props) {
+export function DataManagementClient({ companies, companiesWithStats }: Props) {
   return (
     <div className="space-y-6 px-4 pb-12">
+      <CompanyDatabaseSection initialCompanies={companiesWithStats} />
+
       <ResetSection
         title="Brand DNA"
         description="Clear all Brand DNA profiles, answers, blends, and invites for clients. This does not affect your own SuperBad self-assessment."
@@ -33,6 +42,131 @@ export function DataManagementClient({ companies }: Props) {
           return result;
         }}
       />
+    </div>
+  );
+}
+
+function CompanyDatabaseSection({
+  initialCompanies,
+}: {
+  initialCompanies: CompanyListItem[];
+}) {
+  const [items, setItems] = useState(initialCompanies);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function handleDelete(companyId: string) {
+    startTransition(async () => {
+      const result = await deleteCompanyAction(companyId);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      setItems((prev) => prev.filter((c) => c.id !== companyId));
+      setConfirmingId(null);
+      toast.success(`Deleted ${result.name} and all related data.`);
+    });
+  }
+
+  return (
+    <div
+      className="rounded-xl border p-5"
+      style={{
+        backgroundColor: "var(--color-neutral-900)",
+        borderColor: "rgba(253, 245, 230, 0.06)",
+      }}
+    >
+      <h3 className="font-[family-name:var(--font-body)] text-[15px] font-medium text-[color:var(--color-brand-cream)]">
+        Company Database
+      </h3>
+      <p className="mt-1.5 max-w-lg font-[family-name:var(--font-body)] text-[13px] leading-[1.5] text-[color:var(--color-neutral-500)]">
+        Every company in the system. Deleting removes the company and all
+        linked data (contacts, deals, content, Brand DNA, invoices).
+      </p>
+
+      {items.length === 0 ? (
+        <p className="mt-4 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-600)]">
+          No companies in the database.
+        </p>
+      ) : (
+        <div className="mt-4 space-y-2">
+          {items.map((c) => (
+            <div
+              key={c.id}
+              className="flex items-center gap-4 rounded-lg px-4 py-3"
+              style={{
+                backgroundColor: "var(--color-neutral-800)",
+                border: "1px solid rgba(253, 245, 230, 0.04)",
+              }}
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-[family-name:var(--font-body)] text-[14px] font-medium text-[color:var(--color-brand-cream)]">
+                    {c.name}
+                  </span>
+                  {c.hasContentEngine && (
+                    <span
+                      className="rounded-full px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+                      style={{
+                        backgroundColor: "rgba(253, 245, 230, 0.06)",
+                        color: "var(--color-semantic-success)",
+                        letterSpacing: "1px",
+                      }}
+                    >
+                      Content Engine
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 flex gap-3 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+                  {c.domain && <span>{c.domain}</span>}
+                  <span>{c.contactCount} contacts</span>
+                  <span>{c.dealCount} deals</span>
+                  <span>{c.postCount} posts</span>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                {confirmingId === c.id ? (
+                  <>
+                    <span className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-brand-red)]">
+                      Gone forever.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(c.id)}
+                      disabled={pending}
+                      className="rounded-md px-3 py-1.5 font-[family-name:var(--font-body)] text-[12px] font-medium transition-opacity"
+                      style={{
+                        backgroundColor: "var(--color-brand-red)",
+                        color: "var(--color-brand-cream)",
+                        opacity: pending ? 0.5 : 1,
+                      }}
+                    >
+                      {pending ? "Deleting…" : "Confirm"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingId(null)}
+                      className="rounded-md px-2 py-1.5 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-brand-cream)]"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingId(c.id)}
+                    className="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-[family-name:var(--font-body)] text-[12px] transition-colors hover:bg-[color:var(--color-neutral-700)]"
+                    style={{ color: "var(--color-neutral-500)" }}
+                  >
+                    <Trash2 size={13} /> Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
