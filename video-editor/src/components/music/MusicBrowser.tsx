@@ -1,90 +1,46 @@
-import { useState, useMemo } from 'react'
-import { Search } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Search, Loader2, Music } from 'lucide-react'
 import type { MusicTrack } from '../../types'
+import { searchMusic } from '../../lib/api'
 import TrackCard from './TrackCard'
 import MusicPlayer from './MusicPlayer'
 
 const MOOD_FILTERS = ['Cinematic', 'Dynamic', 'Upbeat', 'Moody', 'Chill', 'Energetic', 'Ambient'] as const
 
-const DEMO_TRACKS: MusicTrack[] = [
-  {
-    id: 'track-1',
-    title: 'Midnight Drive',
-    artist: 'Vektor',
-    duration: 198,
-    bpm: 110,
-    genre: 'Electronic',
-    mood: ['Cinematic', 'Moody'],
-    energy: 65,
-    hasStems: true,
-    source: 'epidemic',
-  },
-  {
-    id: 'track-2',
-    title: 'Golden Hour',
-    artist: 'Luma',
-    duration: 224,
-    bpm: 92,
-    genre: 'Indie',
-    mood: ['Chill', 'Ambient'],
-    energy: 35,
-    hasStems: true,
-    source: 'epidemic',
-  },
-  {
-    id: 'track-3',
-    title: 'Break Through',
-    artist: 'Apex Sound',
-    duration: 180,
-    bpm: 140,
-    genre: 'Electronic',
-    mood: ['Dynamic', 'Energetic'],
-    energy: 88,
-    hasStems: false,
-    source: 'epidemic',
-  },
-  {
-    id: 'track-4',
-    title: 'Slow Burn',
-    artist: 'Glass Atlas',
-    duration: 256,
-    bpm: 78,
-    genre: 'Ambient',
-    mood: ['Cinematic', 'Ambient'],
-    energy: 25,
-    hasStems: true,
-    source: 'epidemic',
-  },
-  {
-    id: 'track-5',
-    title: 'Neon Pulse',
-    artist: 'Synth Theory',
-    duration: 210,
-    bpm: 128,
-    genre: 'Synthwave',
-    mood: ['Upbeat', 'Energetic'],
-    energy: 78,
-    hasStems: false,
-    source: 'epidemic',
-  },
-  {
-    id: 'track-6',
-    title: 'Paper Walls',
-    artist: 'Hollow Sun',
-    duration: 192,
-    bpm: 96,
-    genre: 'Post-Rock',
-    mood: ['Moody', 'Cinematic'],
-    energy: 52,
-    hasStems: true,
-    source: 'epidemic',
-  },
-]
-
 export default function MusicBrowser() {
   const [search, setSearch] = useState('')
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set())
   const [previewTrack, setPreviewTrack] = useState<MusicTrack | null>(null)
+  const [tracks, setTracks] = useState<MusicTrack[]>([])
+  const [loading, setLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+
+  const fetchTracks = useCallback(async (query: string, moods: Set<string>) => {
+    setLoading(true)
+    try {
+      const moodParam = moods.size === 1 ? [...moods][0] : undefined
+      const results = await searchMusic(query, { mood: moodParam })
+      setTracks(results)
+      setHasSearched(true)
+    } catch {
+      setTracks([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchTracks('', activeFilters)
+  }, [fetchTracks, activeFilters])
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      if (search) fetchTracks(search, activeFilters)
+    }, 400)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [search, fetchTracks, activeFilters])
 
   function toggleFilter(mood: string) {
     setActiveFilters((prev) => {
@@ -92,34 +48,12 @@ export default function MusicBrowser() {
       if (next.has(mood)) {
         next.delete(mood)
       } else {
+        next.clear()
         next.add(mood)
       }
       return next
     })
   }
-
-  const filteredTracks = useMemo(() => {
-    let result = DEMO_TRACKS
-
-    if (search) {
-      const q = search.toLowerCase()
-      result = result.filter(
-        (t) =>
-          t.title.toLowerCase().includes(q) ||
-          t.artist.toLowerCase().includes(q) ||
-          t.genre.toLowerCase().includes(q) ||
-          t.mood.some((m) => m.toLowerCase().includes(q))
-      )
-    }
-
-    if (activeFilters.size > 0) {
-      result = result.filter((t) =>
-        t.mood.some((m) => activeFilters.has(m))
-      )
-    }
-
-    return result
-  }, [search, activeFilters])
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -130,7 +64,7 @@ export default function MusicBrowser() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search music..."
+            placeholder="Search Epidemic Sound..."
             className="w-full bg-bg border border-border rounded-lg text-sm text-text placeholder:text-text-dim pl-9 pr-3 py-2.5 focus:outline-none focus:border-border-active transition-colors duration-150"
           />
         </div>
@@ -153,13 +87,20 @@ export default function MusicBrowser() {
       </div>
 
       <div className="flex-1 overflow-y-auto py-3">
-        {filteredTracks.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-sm text-text-dim">No tracks found</span>
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <Loader2 size={20} className="text-text-dim animate-spin" />
+          </div>
+        ) : tracks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <Music size={24} className="text-text-dim opacity-40" />
+            <span className="text-sm text-text-dim">
+              {hasSearched ? 'No tracks found' : 'Search for music'}
+            </span>
           </div>
         ) : (
           <div className="flex flex-col gap-1.5 px-4">
-            {filteredTracks.map((track) => (
+            {tracks.map((track) => (
               <TrackCard
                 key={track.id}
                 track={track}

@@ -72,6 +72,7 @@ export interface MusicTrack {
   energy: number // 0-100
   hasStems: boolean
   previewUrl?: string
+  coverUrl?: string
   source: 'epidemic' | 'local'
   filePath?: string
 }

@@ -2,35 +2,101 @@ import { Router } from 'express'
 
 const router = Router()
 
-const MOCK_TRACKS = [
-  { id: '1', title: 'Golden Hour', artist: 'Dusk & Dawn', duration: 195, bpm: 92, genre: 'Cinematic', mood: ['warm', 'hopeful'], energy: 45, hasStems: true, source: 'epidemic' as const },
-  { id: '2', title: 'Neon Drive', artist: 'Pulse Theory', duration: 168, bpm: 128, genre: 'Electronic', mood: ['energetic', 'driving'], energy: 85, hasStems: true, source: 'epidemic' as const },
-  { id: '3', title: 'Still Waters', artist: 'Ambient Fields', duration: 240, bpm: 68, genre: 'Ambient', mood: ['calm', 'contemplative'], energy: 20, hasStems: false, source: 'epidemic' as const },
-  { id: '4', title: 'Raw Power', artist: 'Iron Circuit', duration: 142, bpm: 140, genre: 'Rock', mood: ['intense', 'raw'], energy: 95, hasStems: true, source: 'epidemic' as const },
-  { id: '5', title: 'Sunday Morning', artist: 'Velvet Keys', duration: 210, bpm: 78, genre: 'Indie', mood: ['relaxed', 'nostalgic'], energy: 35, hasStems: true, source: 'epidemic' as const },
-  { id: '6', title: 'City Lights', artist: 'Metro Sound', duration: 185, bpm: 110, genre: 'Pop', mood: ['upbeat', 'modern'], energy: 70, hasStems: true, source: 'epidemic' as const },
-]
+const ES_BASE = 'https://www.epidemicsound.com/json/search/tracks/'
 
-router.get('/search', (req, res) => {
-  const query = (req.query.q as string || '').toLowerCase()
+interface EsTrack {
+  id: number
+  title: string
+  length: number
+  bpm: number
+  energyLevel: string
+  creatives: { mainArtists: { name: string }[] }
+  genres: { displayTag: string }[]
+  moods: { displayTag: string; tag: string }[]
+  stems: { full?: { lqMp3Url: string; waveformUrl?: string } }
+  cover?: string
+  imageUrl?: string
+  hasVocals: boolean
+}
+
+function mapTrack(t: EsTrack) {
+  const energyMap: Record<string, number> = { low: 25, medium: 50, high: 75 }
+  return {
+    id: String(t.id),
+    title: t.title,
+    artist: t.creatives?.mainArtists?.[0]?.name || 'Unknown',
+    duration: t.length || 0,
+    bpm: t.bpm || 0,
+    genre: t.genres?.[0]?.displayTag || '',
+    mood: t.moods?.map(m => m.displayTag) || [],
+    energy: energyMap[t.energyLevel] || 50,
+    hasStems: true,
+    previewUrl: t.stems?.full?.lqMp3Url || undefined,
+    coverUrl: t.cover || t.imageUrl || undefined,
+    source: 'epidemic' as const,
+  }
+}
+
+router.get('/search', async (req, res) => {
+  const query = (req.query.q as string) || ''
   const mood = req.query.mood as string | undefined
+  const genre = req.query.genre as string | undefined
 
-  let results = [...MOCK_TRACKS]
+  const searchTerms = [query, mood, genre].filter(Boolean).join(' ') || 'cinematic'
 
-  if (query) {
-    results = results.filter(t =>
-      t.title.toLowerCase().includes(query) ||
-      t.artist.toLowerCase().includes(query) ||
-      t.genre.toLowerCase().includes(query) ||
-      t.mood.some(m => m.includes(query))
-    )
+  const params = new URLSearchParams()
+  params.set('term', searchTerms)
+  params.set('limit', '20')
+
+  try {
+    const response = await fetch(`${ES_BASE}?${params}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'Accept': 'application/json',
+      },
+    })
+    if (!response.ok) throw new Error(`Epidemic Sound API: ${response.status}`)
+
+    const data = await response.json()
+
+    let tracks: EsTrack[] = []
+    if (data.entities?.tracks) {
+      const trackMap = data.entities.tracks as Record<string, EsTrack>
+      if (data.data && Array.isArray(data.data)) {
+        tracks = data.data.map((id: number) => trackMap[String(id)]).filter(Boolean)
+      } else {
+        tracks = Object.values(trackMap)
+      }
+    } else if (Array.isArray(data)) {
+      tracks = data
+    }
+
+    res.json(tracks.map(mapTrack))
+  } catch (err: any) {
+    console.error('Epidemic Sound search error:', err.message)
+    res.json([])
+  }
+})
+
+router.get('/proxy-audio', async (req, res) => {
+  const url = req.query.url as string
+  if (!url || !url.includes('epidemicsound.com')) {
+    res.status(400).json({ error: 'Invalid audio URL' })
+    return
   }
 
-  if (mood) {
-    results = results.filter(t => t.mood.includes(mood.toLowerCase()))
-  }
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`Audio fetch failed: ${response.status}`)
 
-  res.json(results)
+    res.set('Content-Type', 'audio/mpeg')
+    res.set('Accept-Ranges', 'bytes')
+    const buffer = Buffer.from(await response.arrayBuffer())
+    res.send(buffer)
+  } catch (err: any) {
+    console.error('Audio proxy error:', err.message)
+    res.status(502).json({ error: 'Failed to proxy audio' })
+  }
 })
 
 export { router as musicRouter }

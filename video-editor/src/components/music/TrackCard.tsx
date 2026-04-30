@@ -23,11 +23,19 @@ export default function TrackCard({ track, isSelected, onSelect }: TrackCardProp
           : 'border border-transparent hover:bg-surface-hover'
       }`}
     >
-      <div className={`size-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-150 ${
-        isSelected ? 'bg-accent-dim' : 'bg-surface-active'
-      }`}>
-        <Play size={12} className={`ml-0.5 transition-colors duration-150 ${isSelected ? 'text-accent' : 'text-text-muted'}`} />
-      </div>
+      {track.coverUrl ? (
+        <img
+          src={track.coverUrl}
+          alt=""
+          className="size-9 rounded-md object-cover shrink-0"
+        />
+      ) : (
+        <div className={`size-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-150 ${
+          isSelected ? 'bg-accent-dim' : 'bg-surface-active'
+        }`}>
+          <Play size={12} className={`ml-0.5 transition-colors duration-150 ${isSelected ? 'text-accent' : 'text-text-muted'}`} />
+        </div>
+      )}
 
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-text truncate">{track.title}</div>
