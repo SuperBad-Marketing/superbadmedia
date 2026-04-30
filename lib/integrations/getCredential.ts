@@ -28,6 +28,9 @@ const ENV_VAR_MAP: Record<string, string> = {
   posthog: "POSTHOG_API_KEY",
   higgsfield: "HIGGSFIELD_API_KEY",
   "google-ads": "GOOGLE_ADS_API_KEY",
+  openweather: "OPENWEATHER_API_KEY",
+  "football-data": "FOOTBALL_DATA_API_KEY",
+  spotify: "SPOTIFY_ACCESS_TOKEN",
 };
 
 export async function getCredential(

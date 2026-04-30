@@ -27,3 +27,6 @@ import "./content-engine-onboarding";
 import "./hiring-role-brief";
 import "./finance-tax-rates";
 import "./posthog";
+import "./openweather";
+import "./football-data";
+import "./spotify";

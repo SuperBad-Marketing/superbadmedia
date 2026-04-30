@@ -36,6 +36,10 @@ import {
   GOOGLE_OAUTH_AUTHORIZE_URL,
 } from "@/lib/integrations/vendors/google-ads";
 import {
+  SPOTIFY_OAUTH_SCOPES,
+  SPOTIFY_OAUTH_AUTHORIZE_URL,
+} from "@/lib/integrations/vendors/spotify";
+import {
   isApiKeyVendor,
   getApiKeyVendorProfile,
 } from "@/lib/wizards/defs/api-key";
@@ -48,6 +52,7 @@ import { SaasProductSetupClient } from "./clients/saas-product-setup-client";
 import { HiringRoleBriefClient } from "./clients/hiring-role-brief-client";
 import { PixiesetAdminClient } from "./clients/pixieset-admin-client";
 import { PosthogAdminClient } from "./clients/posthog-admin-client";
+import { SpotifyClient } from "./clients/spotify-client";
 
 // Side-effect import — registers every WizardDefinition via the barrel.
 import "@/lib/wizards/defs";
@@ -100,6 +105,13 @@ const CLIENT_MAP: Record<string, ClientRenderer> = {
     <HiringRoleBriefClient {...common} />
   ),
   posthog: ({ common }) => <PosthogAdminClient {...common} />,
+  spotify: ({ common, allowTestTokenInjection }) => (
+    <SpotifyClient
+      {...common}
+      authorizeUrl={buildSpotifyAuthorizeUrl()}
+      allowTestTokenInjection={allowTestTokenInjection}
+    />
+  ),
   "api-key": ({ common, searchParams }) => {
     const raw =
       typeof searchParams.vendor === "string" ? searchParams.vendor : "";
@@ -242,4 +254,18 @@ function buildGoogleAuthorizeUrl(): string {
     include_granted_scopes: "true",
   });
   return `${GOOGLE_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
+}
+
+function buildSpotifyAuthorizeUrl(): string {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const appUrl = getAppUrl();
+  if (!clientId) return "#";
+  const redirectUri = `${appUrl}/api/oauth/spotify/callback`;
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: "code",
+    redirect_uri: redirectUri,
+    scope: SPOTIFY_OAUTH_SCOPES.join(" "),
+  });
+  return `${SPOTIFY_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
 }
