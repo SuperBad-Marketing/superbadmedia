@@ -6,6 +6,7 @@ import { skillsRouter } from './routes/skills.js'
 import { musicRouter } from './routes/music.js'
 import { resolveRouter } from './routes/resolve.js'
 import { filesRouter } from './routes/files.js'
+import { adsRouter } from './routes/ads.js'
 
 const app = express()
 const PORT = 5201
@@ -19,6 +20,7 @@ app.use('/api/skills', skillsRouter)
 app.use('/api/music', musicRouter)
 app.use('/api/resolve', resolveRouter)
 app.use('/api/files', filesRouter)
+app.use('/api/ads', adsRouter)
 
 app.listen(PORT, () => {
   console.warn(`SuperEdits server running on port ${PORT}`)

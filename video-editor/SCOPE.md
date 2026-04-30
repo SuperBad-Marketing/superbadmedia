@@ -223,7 +223,43 @@ Before/after preview shown inline in the app. "More" / "back" / "perfect" to ite
 - "Thumbnail for YouTube from the shot at 14 seconds, add the client name" → generates options
 - Claude auto-suggests thumbnail candidates from the most visually striking moments
 
-### 11. Multi-format export
+### 11. Ad variation generator
+
+**One edit → full ad package (video + static).**
+
+Triggered via chat: "create ad variations — 15s and 30s, reels and feed, test 3 hooks"
+
+**Video variations — axes:**
+- **Format** — 16:9, 9:16, 1:1, 4:5 (auto-reframed with subject tracking)
+- **Length** — 6s, 15s, 30s, 60s cuts (Claude picks the strongest moments for each duration)
+- **Hook** — first 3 seconds swapped out. Takes best 3-5 opening moments, creates a version with each as the hook
+- **CTA** — different end cards/closing frames: "Book now", "Learn more", "Limited time", custom
+- **Pacing** — faster and slower cuts from the same footage, same story arc
+
+Combinatorial: 4 formats x 3 lengths x 3 hooks x 2 CTAs = 72 variations from one edit. Generated in storyboard preview for review — approve, reject, then batch export.
+
+**Static variations:**
+- **Single image** — hero frame with text overlay (headline, CTA, logo). Auto-selects strongest frames (composition, expression, focus, dynamic moments)
+- **Carousel** — 3-5 frames telling the story in stills, each with text
+- **Before/after** — side-by-side or swipe-style frames if content supports it
+- **Quote card** — key line from audio transcript overlaid on the strongest frame
+- **Format variants** — each static in story (9:16), feed (1:1, 4:5), and landscape (16:9)
+
+**Text overlay controls:**
+- Headline, subheadline, CTA text — user-provided or Claude-generated from brief
+- Font from curated set or client brand font (from Brand DNA)
+- Auto-positioning based on subject location — text never covers the focal point
+- Background treatments: darken, blur, solid bar — chosen automatically
+
+**Workflow:**
+1. Finish primary edit
+2. "Create ad variations" via chat
+3. SuperEdits generates all video and static variations in storyboard preview
+4. Scroll through, reject weak ones, approve the rest
+5. Export all approved variations in one batch
+6. Deliver to Cloudinary / client portal
+
+### 12. Multi-format export
 
 **One edit, multiple outputs.**
 

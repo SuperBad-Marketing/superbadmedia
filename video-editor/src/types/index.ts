@@ -132,5 +132,33 @@ export interface ExportJob {
 }
 
 // App-level view state
-export type CentreView = 'ingest' | 'storyboard' | 'preview' | 'grading' | 'export'
+export type CentreView = 'ingest' | 'storyboard' | 'preview' | 'grading' | 'export' | 'ads'
 export type RightPanelTab = 'chat' | 'music' | 'knowledge'
+
+export interface AdVariationConfig {
+  formats: ('16:9' | '9:16' | '1:1' | '4:5')[]
+  lengths: number[]
+  hookCount: number
+  ctas: string[]
+  includeFasterPacing: boolean
+  includeSlowerPacing: boolean
+  includeStatics: boolean
+  staticTypes: ('single' | 'carousel' | 'before-after' | 'quote-card')[]
+  headline?: string
+  subheadline?: string
+}
+
+export interface AdVariation {
+  id: string
+  type: 'video' | 'static'
+  format: '16:9' | '9:16' | '1:1' | '4:5'
+  length?: number
+  hookVariant?: number
+  cta?: string
+  pacing?: 'normal' | 'fast' | 'slow'
+  staticType?: 'single' | 'carousel' | 'before-after' | 'quote-card'
+  thumbnailUrl?: string
+  status: 'pending' | 'generating' | 'ready' | 'approved' | 'rejected'
+  headline?: string
+  subheadline?: string
+}
