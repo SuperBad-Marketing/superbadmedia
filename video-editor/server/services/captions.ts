@@ -1,6 +1,10 @@
 import { execSync } from 'child_process'
 import crypto from 'crypto'
 import fs from 'fs'
+import path from 'path'
+import os from 'os'
+
+const WHISPER_VENV = path.join(os.homedir(), '.local', 'whisper-venv', 'bin', 'whisper')
 
 export interface Caption {
   id: string
@@ -54,8 +58,9 @@ export class CaptionService {
   private tryWhisper(audioPath: string): Caption[] {
     // Try whisper CLI (Python package: pip install openai-whisper)
     try {
+      const whisperBin = fs.existsSync(WHISPER_VENV) ? WHISPER_VENV : 'whisper'
       execSync(
-        `whisper "${audioPath}" --model tiny --language en --output_format json --output_dir /tmp 2>/dev/null`,
+        `"${whisperBin}" "${audioPath}" --model tiny --language en --output_format json --output_dir /tmp 2>/dev/null`,
         { encoding: 'utf-8', timeout: 120000 }
       )
       // whisper outputs a .json file next to the input
