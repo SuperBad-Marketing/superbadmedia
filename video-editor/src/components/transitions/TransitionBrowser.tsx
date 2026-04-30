@@ -58,28 +58,24 @@ export default function TransitionBrowser() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-6 py-4 space-y-3 border-b border-border">
+      <div className="px-5 pt-5 pb-4 space-y-3">
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search transitions..."
-            className="w-full bg-bg border border-border rounded-lg text-sm text-text placeholder:text-text-dim pl-9 pr-3 py-2.5 focus:outline-none focus:border-border-active transition-colors duration-150"
+            className="w-full bg-surface-active/50 rounded-lg text-xs text-text placeholder:text-text-dim pl-9 pr-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+        <div className="segmented-control">
           {CATEGORY_FILTERS.map((cat) => (
             <button
               key={cat}
               onClick={() => toggleCategory(cat)}
-              className={`rounded-lg px-3 py-1.5 text-xs whitespace-nowrap transition-colors duration-150 ${
-                activeCategory === cat.toLowerCase()
-                  ? 'bg-pink-dim border border-pink/30 text-pink font-medium'
-                  : 'bg-surface border border-border text-text-dim hover:text-text-muted hover:border-border-active'
-              }`}
+              data-active={activeCategory === cat.toLowerCase()}
             >
               {cat}
             </button>
@@ -87,36 +83,36 @@ export default function TransitionBrowser() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-3">
+      <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <Loader2 size={20} className="text-text-dim animate-spin" />
+            <Loader2 size={18} className="text-text-dim animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3">
-            <Layers size={24} className="text-text-dim opacity-40" />
-            <span className="text-sm text-text-dim">No transitions match your search</span>
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <Layers size={18} className="text-text-dim opacity-40" />
+            <span className="text-[11px] text-text-dim">No transitions match your search</span>
           </div>
         ) : (
-          <div className="flex flex-col gap-1.5 px-4">
+          <div className="flex flex-col gap-0.5 px-3">
             {filtered.map((preset) => {
               const justApplied = appliedId === preset.id
               return (
                 <div
                   key={preset.id}
-                  className="w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left border border-transparent hover:bg-surface-hover transition-colors duration-150"
+                  className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-lg text-left hover:bg-surface-hover transition-colors duration-150"
                 >
-                  <div className="size-9 rounded-lg bg-surface-active flex items-center justify-center shrink-0">
-                    <Layers size={14} className="text-text-muted" />
+                  <div className="size-8 rounded-lg bg-surface-active/80 flex items-center justify-center shrink-0">
+                    <Layers size={13} className="text-text-muted" />
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-text truncate">{preset.name}</div>
-                    <div className="text-xs text-text-dim truncate">{preset.description}</div>
+                    <div className="text-[11px] font-medium text-text truncate">{preset.name}</div>
+                    <div className="text-[10px] text-text-dim truncate mt-0.5">{preset.description}</div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-[10px] text-text-dim font-mono uppercase">{preset.category}</span>
+                  <div className="flex flex-col items-end gap-0.5 shrink-0">
+                    <span className="font-mono text-[10px] text-text-dim tabular-nums uppercase">{preset.category}</span>
                     <span className="font-mono text-[10px] text-text-dim tabular-nums">{formatDuration(preset.duration)}</span>
                     {preset.hasSfx && (
                       <span className="text-[10px] text-pink font-mono">+ SFX</span>
@@ -145,12 +141,12 @@ export default function TransitionBrowser() {
                       setTimeout(() => setAppliedId(null), 2000)
                     }}
                     disabled={storyboardClips.length < 2}
-                    className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors duration-150 ${
+                    className={`shrink-0 rounded-lg px-3 py-1.5 text-[10px] font-semibold transition-colors duration-150 ${
                       justApplied
                         ? 'bg-green-dim text-green'
                         : storyboardClips.length < 2
-                          ? 'bg-surface text-text-dim opacity-40'
-                          : 'bg-accent-dim text-accent hover:bg-accent/30'
+                          ? 'text-text-dim opacity-30'
+                          : 'bg-accent-dim text-accent hover:bg-accent/25'
                     }`}
                   >
                     {justApplied ? <Check size={10} /> : 'Apply'}
@@ -162,8 +158,8 @@ export default function TransitionBrowser() {
         )}
       </div>
 
-      <div className="bg-bg border-t border-border px-4 py-3">
-        <p className="text-[11px] text-text-dim leading-relaxed">
+      <div className="bg-surface-active/30 px-5 py-3">
+        <p className="text-[10px] text-text-dim leading-relaxed">
           {storyboardClips.length < 2
             ? 'Add 2+ clips to storyboard to apply transitions'
             : <><span className="text-text-muted">Apply</span> adds the transition to all cut points</>

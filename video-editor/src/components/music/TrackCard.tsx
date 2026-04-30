@@ -17,10 +17,10 @@ export default function TrackCard({ track, isSelected, onSelect }: TrackCardProp
   return (
     <button
       onClick={() => onSelect(track)}
-      className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left transition-colors duration-150 ${
+      className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-lg text-left transition-colors duration-150 ${
         isSelected
-          ? 'bg-surface-active border border-accent/40'
-          : 'border border-transparent hover:bg-surface-hover'
+          ? 'bg-accent-dim'
+          : 'hover:bg-surface-hover'
       }`}
     >
       {track.coverUrl ? (
@@ -30,28 +30,28 @@ export default function TrackCard({ track, isSelected, onSelect }: TrackCardProp
           className="size-9 rounded-md object-cover shrink-0"
         />
       ) : (
-        <div className={`size-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-150 ${
-          isSelected ? 'bg-accent-dim' : 'bg-surface-active'
+        <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-150 ${
+          isSelected ? 'bg-accent/20' : 'bg-surface-active/60'
         }`}>
-          <Play size={12} className={`ml-0.5 transition-colors duration-150 ${isSelected ? 'text-accent' : 'text-text-muted'}`} />
+          <Play size={11} className={`ml-0.5 transition-colors duration-150 ${isSelected ? 'text-accent' : 'text-text-dim'}`} />
         </div>
       )}
 
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-text truncate">{track.title}</div>
-        <div className="text-xs text-text-dim truncate">{track.artist}</div>
+        <div className="text-[11px] font-medium text-text truncate">{track.title}</div>
+        <div className="text-[10px] text-text-dim truncate mt-0.5">{track.artist}</div>
         {track.mood.length > 0 && (
           <div className="flex gap-1.5 mt-1">
             {track.mood.slice(0, 2).map((m) => (
-              <span key={m} className="text-[10px] text-pink font-mono">{m}</span>
+              <span key={m} className="text-[9px] text-pink font-mono">{m}</span>
             ))}
           </div>
         )}
       </div>
 
-      <div className="flex flex-col items-end gap-1 shrink-0">
+      <div className="flex flex-col items-end gap-0.5 shrink-0">
         <span className="font-mono text-[10px] text-text-dim tabular-nums">{track.bpm}</span>
-        <span className="text-[10px] text-text-dim font-mono tabular-nums">{formatDuration(track.duration)}</span>
+        <span className="font-mono text-[10px] text-text-dim tabular-nums">{formatDuration(track.duration)}</span>
       </div>
     </button>
   )

@@ -55,28 +55,24 @@ export default function SfxBrowser() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-6 py-4 space-y-3 border-b border-border">
+      <div className="px-5 pt-5 pb-4 space-y-3">
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setActiveFilter(null) }}
             placeholder="Search Epidemic Sound SFX..."
-            className="w-full bg-bg border border-border rounded-lg text-sm text-text placeholder:text-text-dim pl-9 pr-3 py-2.5 focus:outline-none focus:border-border-active transition-colors duration-150"
+            className="w-full bg-surface-active/50 rounded-lg text-xs text-text placeholder:text-text-dim pl-9 pr-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+        <div className="segmented-control">
           {QUICK_SEARCHES.map((term) => (
             <button
               key={term}
               onClick={() => selectFilter(term)}
-              className={`rounded-lg px-3 py-1.5 text-xs whitespace-nowrap transition-colors duration-150 ${
-                activeFilter === term
-                  ? 'bg-pink-dim border border-pink/30 text-pink font-medium'
-                  : 'bg-surface border border-border text-text-dim hover:text-text-muted hover:border-border-active'
-              }`}
+              data-active={activeFilter === term}
             >
               {term}
             </button>
@@ -84,20 +80,20 @@ export default function SfxBrowser() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-3">
+      <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <Loader2 size={20} className="text-text-dim animate-spin" />
+            <Loader2 size={18} className="text-text-dim animate-spin" />
           </div>
         ) : results.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3">
-            <Volume2 size={24} className="text-text-dim opacity-40" />
-            <span className="text-sm text-text-dim">
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <Volume2 size={18} className="text-text-dim opacity-40" />
+            <span className="text-[11px] text-text-dim">
               {hasSearched ? 'No sounds found' : 'Search for sound effects'}
             </span>
           </div>
         ) : (
-          <div className="flex flex-col gap-1.5 px-4">
+          <div className="flex flex-col gap-0.5 px-3">
             {results.map((sfx) => (
               <SfxCard
                 key={sfx.id}

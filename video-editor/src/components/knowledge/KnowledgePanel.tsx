@@ -151,20 +151,20 @@ function SkillCard({ skill, onDelete }: { skill: SkillFile; onDelete: (id: strin
     <button
       type="button"
       onClick={() => setExpanded(!expanded)}
-      className="w-full bg-surface border border-border rounded-lg p-3 mb-2 text-left transition-colors hover:border-border-active"
+      className="w-full rounded-lg px-3.5 py-3 mb-0.5 text-left transition-colors duration-150 hover:bg-surface-hover"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-sm font-medium text-text truncate">{skill.name}</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-medium text-text truncate">{skill.name}</span>
             <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-medium shrink-0 ${sourceConfig.colorClass}`}>
-              <SourceIcon size={10} />
+              <SourceIcon size={9} />
               {skill.source}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs text-text-dim">{skill.topicCount} topics</span>
-            <span className="text-xs text-text-dim">{relativeTime(skill.createdAt)}</span>
+            <span className="font-mono text-[10px] text-text-dim tabular-nums">{skill.topicCount} topics</span>
+            <span className="text-[10px] text-text-dim">{relativeTime(skill.createdAt)}</span>
           </div>
           {skill.sourceUrl && (
             <a
@@ -172,9 +172,9 @@ function SkillCard({ skill, onDelete }: { skill: SkillFile; onDelete: (id: strin
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1 text-xs text-text-dim hover:text-accent mt-1 truncate max-w-full transition-colors"
+              className="inline-flex items-center gap-1 text-[10px] text-text-dim hover:text-accent mt-1 truncate max-w-full transition-colors duration-150"
             >
-              <ExternalLink size={10} />
+              <ExternalLink size={9} />
               <span className="truncate">{skill.sourceUrl}</span>
             </a>
           )}
@@ -186,12 +186,12 @@ function SkillCard({ skill, onDelete }: { skill: SkillFile; onDelete: (id: strin
           aria-label="Delete skill"
           className="text-text-dim hover:text-accent transition-colors duration-150 p-1 shrink-0 disabled:opacity-50"
         >
-          {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+          {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
         </button>
       </div>
       {expanded && (
         <div className="mt-2 pt-2 border-t border-border">
-          <p className="text-xs text-text-muted leading-relaxed">{truncatedContent}</p>
+          <p className="text-[10px] text-text-muted leading-relaxed">{truncatedContent}</p>
         </div>
       )}
     </button>
@@ -212,7 +212,7 @@ function ResourceCard({
   if (suggestion.status === 'rejected') return null
 
   return (
-    <div className="bg-bg border border-border rounded-lg p-3 transition-all">
+    <div className="rounded-lg p-3.5 bg-surface-active/40 transition-all duration-150">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -220,7 +220,7 @@ function ResourceCard({
               href={suggestion.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-text hover:text-accent transition-colors truncate"
+              className="text-[11px] font-medium text-text hover:text-accent transition-colors duration-150 truncate"
             >
               {suggestion.title}
             </a>
@@ -228,33 +228,33 @@ function ResourceCard({
               {badge.label}
             </span>
           </div>
-          <p className="text-xs text-text-muted leading-relaxed">{suggestion.description}</p>
+          <p className="text-[10px] text-text-muted leading-relaxed">{suggestion.description}</p>
         </div>
       </div>
-      <div className="flex items-center gap-2 mt-2">
+      <div className="flex items-center gap-2 mt-2.5">
         {suggestion.status === 'processing' ? (
-          <div className="flex items-center gap-1.5 text-xs text-text-muted">
-            <Loader2 size={12} className="animate-spin" />
+          <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
+            <Loader2 size={11} className="animate-spin" />
             Learning...
           </div>
         ) : suggestion.status === 'approved' ? (
-          <span className="text-xs text-green font-medium">Added to knowledge base</span>
+          <span className="text-[10px] text-green font-medium">Added to knowledge base</span>
         ) : (
           <>
             <button
               type="button"
               onClick={() => onApprove(suggestion)}
-              className="flex items-center gap-1 bg-green-dim text-green rounded-md px-2.5 py-1 text-xs font-medium hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1 bg-green-dim text-green rounded-lg px-3 py-1.5 text-[10px] font-semibold hover:opacity-80 transition-opacity duration-150"
             >
-              <BookmarkPlus size={12} />
+              <BookmarkPlus size={11} />
               Approve
             </button>
             <button
               type="button"
               onClick={() => onReject(suggestion.id)}
-              className="flex items-center gap-1 bg-surface text-text-dim rounded-md px-2.5 py-1 text-xs font-medium hover:text-accent transition-colors"
+              className="flex items-center gap-1 text-text-dim rounded-lg px-3 py-1.5 text-[10px] font-medium hover:bg-surface-hover hover:text-text-muted transition-colors duration-150"
             >
-              <X size={12} />
+              <X size={11} />
               Reject
             </button>
           </>
@@ -316,28 +316,28 @@ function ResourceFinder() {
   const visibleSuggestions = suggestions.filter((s) => s.status !== 'rejected')
 
   return (
-    <div className="border-t border-border pt-3 space-y-3">
-      <div className="grid grid-cols-2 gap-2">
+    <div className="pt-3 space-y-3">
+      <div className="grid grid-cols-2 gap-1.5">
         {RESOURCE_CATEGORIES.map((cat) => (
           <button
             key={cat}
             type="button"
             onClick={() => handleSearch(cat)}
             disabled={searchingTopic === cat}
-            className="flex items-center justify-between bg-bg border border-border rounded-lg px-3 py-2 text-xs font-medium text-text-muted hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
+            className="flex items-center justify-between bg-surface-active/50 rounded-lg px-3 py-2 text-[10px] font-medium text-text-muted hover:bg-surface-hover hover:text-text transition-colors duration-150 disabled:opacity-50"
           >
             <span className="truncate">{cat}</span>
             {searchingTopic === cat ? (
-              <Loader2 size={12} className="animate-spin shrink-0 ml-1" />
+              <Loader2 size={11} className="animate-spin shrink-0 ml-1" />
             ) : (
-              <Search size={12} className="shrink-0 ml-1 opacity-40" />
+              <Search size={11} className="shrink-0 ml-1 opacity-40" />
             )}
           </button>
         ))}
       </div>
 
       {visibleSuggestions.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {visibleSuggestions.map((s) => (
             <ResourceCard
               key={s.id}
@@ -387,7 +387,7 @@ function QuickAdd() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <input
         type="text"
         value={input}
@@ -399,21 +399,17 @@ function QuickAdd() {
           }
         }}
         placeholder="Paste a YouTube link, URL, or type notes..."
-        className="w-full bg-bg border border-border rounded-lg p-2 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors"
+        className="w-full bg-surface-active/50 rounded-lg px-3.5 py-2.5 text-xs text-text placeholder:text-text-dim focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
         disabled={loading}
       />
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
+        <div className="segmented-control">
           {sourceOptions.map((opt) => (
             <button
               key={opt.id}
               type="button"
               onClick={() => setSource(opt.id)}
-              className={`rounded-lg px-2.5 py-0.5 text-[10px] font-medium transition-colors duration-150 ${
-                source === opt.id
-                  ? 'bg-accent-dim text-accent border border-accent'
-                  : 'bg-surface border border-border text-text-dim hover:text-text-muted'
-              }`}
+              data-active={source === opt.id}
             >
               {opt.label}
             </button>
@@ -423,9 +419,9 @@ function QuickAdd() {
           type="button"
           onClick={handleSubmit}
           disabled={!input.trim() || loading}
-          className="bg-accent rounded-lg px-3 py-1.5 text-sm font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50"
+          className="bg-accent rounded-lg px-4 py-2 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40"
         >
-          {loading ? <Loader2 size={14} className="animate-spin" /> : 'Learn'}
+          {loading ? <Loader2 size={13} className="animate-spin" /> : 'Learn'}
         </button>
       </div>
     </div>
@@ -484,18 +480,18 @@ export default function KnowledgePanel() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-6 py-5 space-y-4 border-b border-border shrink-0">
+      <div className="px-5 pt-5 pb-4 space-y-4 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-display text-lg font-bold text-text">Knowledge Base</h2>
-            <p className="text-sm text-text-muted">{skills.length} skills learned</p>
+            <h2 className="font-display font-semibold text-sm text-text">Knowledge Base</h2>
+            <p className="text-[11px] text-text-dim">{skills.length} skills learned</p>
           </div>
           <button
             type="button"
             onClick={() => setResourceFinderOpen(!resourceFinderOpen)}
-            className="flex items-center gap-1.5 bg-surface border border-border rounded-lg px-3 py-1.5 text-sm font-medium text-text-muted hover:border-accent hover:text-accent transition-colors"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-text-dim hover:bg-surface-hover hover:text-text-muted transition-colors duration-150"
           >
-            <Search size={14} />
+            <Search size={13} />
             Find Resources
           </button>
         </div>
@@ -505,7 +501,7 @@ export default function KnowledgePanel() {
         <QuickAdd />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-5">
+      <div className="flex-1 overflow-y-auto px-5 py-4">
         {CATEGORY_ORDER.map((cat) => {
           const catSkills = grouped[cat]
           const isExpanded = expandedCategories.has(cat)
@@ -515,23 +511,23 @@ export default function KnowledgePanel() {
               <button
                 type="button"
                 onClick={() => toggleCategory(cat)}
-                className="flex items-center gap-1.5 w-full pb-1.5 mb-2 border-b border-border"
+                className="flex items-center gap-1.5 w-full pb-2 mb-1"
               >
                 {isExpanded ? (
-                  <ChevronDown size={12} className="text-text-dim" />
+                  <ChevronDown size={11} className="text-text-dim" />
                 ) : (
-                  <ChevronRight size={12} className="text-text-dim" />
+                  <ChevronRight size={11} className="text-text-dim" />
                 )}
                 <span className="text-[10px] font-mono text-text-dim uppercase tracking-widest">
                   {CATEGORY_MAP[cat]}
                 </span>
-                <span className="text-xs text-text-dim font-mono ml-auto">{catSkills.length}</span>
+                <span className="font-mono text-[10px] text-text-dim tabular-nums ml-auto">{catSkills.length}</span>
               </button>
 
               {isExpanded && (
                 <>
                   {catSkills.length === 0 ? (
-                    <p className="text-text-dim text-xs italic pl-5 py-1">No skills yet</p>
+                    <p className="text-text-dim text-[10px] pl-5 py-1">No skills yet</p>
                   ) : (
                     catSkills.map((skill) => (
                       <SkillCard key={skill.id} skill={skill} onDelete={handleDelete} />

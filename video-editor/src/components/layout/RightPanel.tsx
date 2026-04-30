@@ -15,7 +15,7 @@ const tabs: { id: RightPanelTab; label: string }[] = [
   { id: 'sfx', label: 'SFX' },
   { id: 'transitions', label: 'Trans.' },
   { id: 'titles', label: 'Titles' },
-  { id: 'knowledge', label: 'Know.' },
+  { id: 'knowledge', label: 'Learn' },
 ]
 
 function PanelFallback() {
@@ -44,21 +44,19 @@ export default function RightPanel() {
   const setRightPanelTab = useAppStore((s) => s.setRightPanelTab)
 
   return (
-    <div className="w-[380px] bg-surface border-l border-border shrink-0 flex flex-col">
-      <div className="flex items-center gap-0.5 px-4 h-12 border-b border-border shrink-0 select-none">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setRightPanelTab(tab.id)}
-            className={`relative px-3 py-3 text-[11px] font-semibold tracking-wide uppercase transition-colors duration-150 ${
-              rightPanelTab === tab.id
-                ? 'text-text after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-accent after:rounded-full'
-                : 'text-text-dim hover:text-text-muted'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="w-[360px] panel-sidebar border-l border-border shrink-0 flex flex-col">
+      <div className="flex items-center justify-center px-3 h-10 border-b border-border shrink-0 select-none">
+        <div className="segmented-control">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setRightPanelTab(tab.id)}
+              data-active={rightPanelTab === tab.id}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <ActivePanel tab={rightPanelTab} />

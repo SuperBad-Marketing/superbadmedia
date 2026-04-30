@@ -10,26 +10,26 @@ export default function HeaderBar() {
 
   return (
     <>
-      <div className="flex items-center justify-between h-16 px-10 bg-surface border-b border-accent/20 shrink-0 select-none">
-        <div className="flex items-center gap-4">
-          <span className="font-display font-extrabold text-xl tracking-tight text-text">SuperEdits</span>
-          <span className="text-[11px] font-semibold text-pink tracking-widest uppercase">by SuperBad</span>
+      <div className="relative flex items-center justify-between h-12 px-5 bg-surface shrink-0 select-none border-b border-border">
+        <div className="flex items-center gap-3">
+          <span className="font-display font-bold text-sm tracking-tight text-text">SuperEdits</span>
+          <span className="text-[9px] font-semibold text-pink/50 tracking-[0.2em] uppercase">SuperBad</span>
         </div>
 
-        <div>
+        <div className="absolute left-1/2 -translate-x-1/2">
           {currentProject ? (
-            <span className="font-display font-semibold text-text text-sm tracking-wide">{currentProject.name}</span>
+            <span className="text-xs font-medium text-text-muted">{currentProject.name}</span>
           ) : (
-            <span className="text-text-dim text-sm italic">No project</span>
+            <span className="text-xs text-text-dim">No project</span>
           )}
         </div>
 
         <button
           onClick={() => setSettingsOpen(true)}
-          className="p-2 rounded-lg text-text-muted hover:text-accent hover:bg-accent-dim transition-colors duration-150"
+          className="size-7 rounded-lg flex items-center justify-center text-text-dim hover:text-text-muted hover:bg-surface-hover transition-colors duration-150"
           aria-label="Settings"
         >
-          <Settings size={18} />
+          <Settings size={15} />
         </button>
       </div>
 

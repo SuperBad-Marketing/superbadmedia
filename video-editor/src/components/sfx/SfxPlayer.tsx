@@ -81,35 +81,35 @@ export default function SfxPlayer({ sfx }: SfxPlayerProps) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
-    <div className="bg-bg border-t border-border p-4 flex flex-col gap-3">
+    <div className="bg-surface-active/40 px-5 py-4 flex flex-col gap-3">
       <audio ref={audioRef} preload="none" />
 
       <div className="flex items-center gap-3">
         <button
           onClick={togglePlay}
-          className="size-8 rounded-full bg-accent-dim flex items-center justify-center hover:bg-accent/30 transition-colors duration-150 shrink-0"
+          className="size-8 rounded-full bg-accent/15 flex items-center justify-center hover:bg-accent/25 transition-colors duration-150 shrink-0"
           aria-label={playing ? 'Pause' : 'Play'}
         >
           {playing ? (
-            <Pause size={12} className="text-accent" />
+            <Pause size={11} className="text-accent" />
           ) : (
-            <Play size={12} className="text-accent ml-0.5" />
+            <Play size={11} className="text-accent ml-0.5" />
           )}
         </button>
         <div className="min-w-0 flex-1">
-          <div className="text-[13px] font-medium text-text truncate">{sfx.title}</div>
-          <div className="text-[11px] text-text-dim truncate">{sfx.category}{sfx.subCategory !== sfx.category ? ` · ${sfx.subCategory}` : ''}</div>
+          <div className="text-[11px] font-medium text-text truncate">{sfx.title}</div>
+          <div className="text-[10px] text-text-dim truncate">{sfx.category}{sfx.subCategory !== sfx.category ? ` · ${sfx.subCategory}` : ''}</div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <div
           ref={progressRef}
           onClick={handleSeek}
-          className="h-1 bg-border rounded-full overflow-hidden cursor-pointer"
+          className="h-1 bg-surface-active rounded-full overflow-hidden cursor-pointer"
         >
           <div
-            className="h-full bg-pink rounded-full"
+            className="h-full bg-pink rounded-full transition-[width] duration-100"
             style={{ width: `${progress}%` }}
           />
         </div>

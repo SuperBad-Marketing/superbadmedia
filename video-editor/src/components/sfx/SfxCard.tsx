@@ -17,21 +17,21 @@ export default function SfxCard({ sfx, isSelected, onSelect }: SfxCardProps) {
   return (
     <button
       onClick={() => onSelect(sfx)}
-      className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left transition-colors duration-150 ${
+      className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-lg text-left transition-colors duration-150 ${
         isSelected
-          ? 'bg-surface-active border border-accent/40'
-          : 'border border-transparent hover:bg-surface-hover'
+          ? 'bg-accent-dim'
+          : 'hover:bg-surface-hover'
       }`}
     >
-      <div className={`size-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-150 ${
-        isSelected ? 'bg-accent-dim' : 'bg-surface-active'
+      <div className={`size-8 rounded-full flex items-center justify-center shrink-0 transition-colors duration-150 ${
+        isSelected ? 'bg-accent/20' : 'bg-surface-active/80'
       }`}>
-        <Play size={12} className={`ml-0.5 transition-colors duration-150 ${isSelected ? 'text-accent' : 'text-text-muted'}`} />
+        <Play size={11} className={`ml-0.5 transition-colors duration-150 ${isSelected ? 'text-accent' : 'text-text-muted'}`} />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-text truncate">{sfx.title}</div>
-        <div className="flex gap-1.5 mt-1">
+        <div className="text-[11px] font-medium text-text truncate">{sfx.title}</div>
+        <div className="flex gap-1.5 mt-0.5">
           <span className="text-[10px] text-pink font-mono">{sfx.category}</span>
           {sfx.subCategory && sfx.subCategory !== sfx.category && (
             <span className="text-[10px] text-text-dim font-mono">{sfx.subCategory}</span>

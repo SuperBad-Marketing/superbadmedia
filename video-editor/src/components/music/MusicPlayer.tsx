@@ -83,55 +83,55 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
-    <div className="bg-bg border-t border-border p-4 flex flex-col gap-3">
+    <div className="bg-surface/80 p-4 flex flex-col gap-3">
       <audio ref={audioRef} preload="none" />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {track.coverUrl && (
             <img src={track.coverUrl} alt="" className="size-8 rounded-md object-cover shrink-0" />
           )}
           <div className="min-w-0">
-            <div className="text-[13px] font-medium text-text truncate">{track.title}</div>
-            <div className="text-[11px] text-text-dim truncate">{track.artist}</div>
+            <div className="text-[11px] font-medium text-text truncate">{track.title}</div>
+            <div className="text-[10px] text-text-dim truncate">{track.artist}</div>
           </div>
         </div>
         <button
           onClick={() => setSelectedTrack(track)}
-          className="bg-accent hover:bg-accent-hover text-white rounded-lg px-3 py-1 text-[11px] font-display font-semibold transition-colors duration-150 shrink-0 ml-2"
+          className="bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 text-xs font-semibold transition-colors duration-150 shrink-0"
         >
-          Use this track
+          Use track
         </button>
       </div>
 
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center gap-5">
         <button className="text-text-dim hover:text-text transition-colors duration-150" aria-label="Previous">
-          <SkipBack size={13} />
+          <SkipBack size={12} />
         </button>
         <button
           onClick={togglePlay}
-          className="size-8 rounded-full bg-accent-dim flex items-center justify-center hover:bg-accent/30 transition-colors duration-150"
+          className="size-8 rounded-full bg-surface-active/60 flex items-center justify-center hover:bg-surface-active transition-colors duration-150"
           aria-label={playing ? 'Pause' : 'Play'}
         >
           {playing ? (
-            <Pause size={12} className="text-accent" />
+            <Pause size={12} className="text-text" />
           ) : (
-            <Play size={12} className="text-accent ml-0.5" />
+            <Play size={12} className="text-text ml-0.5" />
           )}
         </button>
         <button className="text-text-dim hover:text-text transition-colors duration-150" aria-label="Next">
-          <SkipForward size={13} />
+          <SkipForward size={12} />
         </button>
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <div
           ref={progressRef}
           onClick={handleSeek}
-          className="h-1 bg-border rounded-full overflow-hidden cursor-pointer"
+          className="h-1 bg-surface-active rounded-full overflow-hidden cursor-pointer"
         >
           <div
-            className="h-full bg-pink rounded-full"
+            className="h-full bg-pink rounded-full transition-[width] duration-150"
             style={{ width: `${progress}%` }}
           />
         </div>

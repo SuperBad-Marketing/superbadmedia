@@ -57,7 +57,7 @@ function parseInlineFormatting(text: string): React.ReactNode[] {
       parts.push(
         <code
           key={match.index}
-          className="bg-surface-active px-1.5 py-0.5 rounded text-pink font-mono text-[0.85em]"
+          className="bg-surface-active/60 px-1.5 py-0.5 rounded text-pink font-mono text-[0.85em]"
         >
           {match[3]}
         </code>
@@ -77,10 +77,10 @@ function ActionCard({ action }: { action: ChatAction }) {
   const Icon = actionIcons[action.type]
 
   return (
-    <div className="mt-2 bg-bg border border-border rounded-lg p-3 flex flex-col gap-2">
-      <div className="flex items-center gap-2">
+    <div className="mt-2 bg-surface-active/40 rounded-lg p-3.5 flex flex-col gap-2.5">
+      <div className="flex items-center gap-2.5">
         <Icon className="w-3.5 h-3.5 text-text-dim shrink-0" />
-        <span className="text-[13px] text-text-muted flex-1">{action.description}</span>
+        <span className="text-[11px] text-text-muted flex-1">{action.description}</span>
         {action.status === 'running' && (
           <Loader2 className="w-3.5 h-3.5 text-orange animate-spin shrink-0" />
         )}
@@ -95,7 +95,7 @@ function ActionCard({ action }: { action: ChatAction }) {
         )}
       </div>
       {action.status === 'running' && action.progress != null && (
-        <div className="w-full h-1 bg-surface-active rounded-full overflow-hidden">
+        <div className="w-full h-0.5 bg-surface-active rounded-full overflow-hidden">
           <div
             className="h-full bg-orange rounded-full transition-all duration-300"
             style={{ width: `${action.progress}%` }}
@@ -119,8 +119,8 @@ function LoadingDots() {
 export default function ChatMessage({ message }: { message: ChatMessageType }) {
   if (message.role === 'system') {
     return (
-      <div className="flex justify-center px-4 py-1">
-        <span className="text-text-dim text-xs italic">
+      <div className="flex justify-center px-5 py-1">
+        <span className="text-text-dim text-[10px]">
           {parseInlineFormatting(message.content)}
         </span>
       </div>
@@ -130,19 +130,19 @@ export default function ChatMessage({ message }: { message: ChatMessageType }) {
   const isUser = message.role === 'user'
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} px-4 py-1`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} px-5 py-1.5`}>
       <div className={`max-w-[85%] flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
         <div
           className={`px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
             isUser
-              ? 'bg-accent text-white rounded-2xl rounded-br-sm'
-              : 'bg-surface-active text-text-muted rounded-2xl rounded-bl-sm'
+              ? 'bg-accent text-white rounded-2xl rounded-br-md'
+              : 'bg-surface-active/50 text-text-muted rounded-2xl rounded-bl-md'
           }`}
         >
           {message.isLoading ? <LoadingDots /> : parseInlineFormatting(message.content)}
         </div>
         {message.action && <ActionCard action={message.action} />}
-        <span className="text-text-dim text-[10px] mt-1 px-1 font-mono">
+        <span className="text-text-dim text-[10px] mt-1.5 px-1 font-mono tabular-nums">
           {formatTime(message.timestamp)}
         </span>
       </div>

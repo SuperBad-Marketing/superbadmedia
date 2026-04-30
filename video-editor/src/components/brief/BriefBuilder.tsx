@@ -123,11 +123,11 @@ export default function BriefBuilder() {
   if (clips.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-8">
-        <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
+        <div className="size-20 rounded-2xl bg-surface-active/50 flex items-center justify-center">
           <FileText size={32} className="text-text-dim" />
         </div>
-        <h2 className="font-display text-3xl font-bold text-text text-balance text-center">Brief Builder</h2>
-        <p className="text-text-muted text-base text-center text-pretty max-w-sm">
+        <h2 className="font-display text-sm font-semibold text-text">Brief Builder</h2>
+        <p className="text-[11px] text-text-dim text-center text-pretty max-w-xs leading-relaxed">
           Import footage first. Once your clips are analysed, come back here to build a rough cut from a brief.
         </p>
       </div>
@@ -137,14 +137,14 @@ export default function BriefBuilder() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-8 py-12 space-y-10">
+        <div className="max-w-xl mx-auto px-8 py-12 space-y-10">
 
           {/* Phase 1: Braindump */}
           {phase === 'braindump' && (
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <h2 className="font-display text-3xl font-bold text-text">What are we making?</h2>
-                <p className="text-text-muted text-sm leading-relaxed">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="font-display font-semibold text-sm text-text">What are we making?</h2>
+                <p className="text-[11px] text-text-dim leading-relaxed">
                   Dump everything in your head. Platform, mood, what shots you want, pacing, vibe, whatever. I'll sort it out.
                 </p>
               </div>
@@ -154,15 +154,15 @@ export default function BriefBuilder() {
                 onChange={(e) => setBraindump(e.target.value)}
                 placeholder="e.g. Pumping venue showcase for Instagram. Fast cuts, electronic music. Start with the exterior wide shots, then interior details, then the crowd. 30 seconds. High energy, make it look premium."
                 rows={6}
-                className="w-full bg-surface border border-border rounded-2xl text-sm text-text placeholder:text-text-dim px-6 py-5 resize-none focus:outline-none focus:border-border-active transition-colors leading-relaxed"
+                className="w-full bg-surface-active/50 rounded-lg text-xs text-text placeholder:text-text-dim px-4 py-3 resize-none focus:outline-none focus:ring-1 focus:ring-border-active transition-colors leading-relaxed"
               />
 
               <button
                 onClick={handleParse}
                 disabled={!braindump.trim() || parsing}
-                className="flex items-center gap-3 bg-accent hover:bg-accent-hover rounded-xl px-8 py-4 font-display font-bold text-sm text-white transition-colors duration-150 disabled:opacity-40"
+                className="flex items-center gap-2.5 bg-accent hover:bg-accent-hover rounded-lg px-4 py-2 font-semibold text-xs text-white transition-colors duration-150 disabled:opacity-40"
               >
-                {parsing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                {parsing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                 {parsing ? 'Reading your mind...' : 'Parse brief'}
               </button>
             </div>
@@ -170,49 +170,46 @@ export default function BriefBuilder() {
 
           {/* Phase 2: Structured fields */}
           {phase === 'fields' && fields && (
-            <div className="space-y-10">
-              <div className="space-y-3">
-                <h2 className="font-display text-3xl font-bold text-text">Here's what I got</h2>
-                <p className="text-text-muted text-sm leading-relaxed">
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <h2 className="font-display font-semibold text-sm text-text">Here's what I got</h2>
+                <p className="text-[11px] text-text-dim leading-relaxed">
                   Tweak anything that's off, then hit build.
                 </p>
               </div>
 
               {/* Duration */}
-              <div className="space-y-2.5">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-muted uppercase tracking-wide">
-                  <Clock size={12} />
+              <div className="space-y-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-text-dim">
+                  <Clock size={11} />
                   Duration
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <input
                     type="number"
                     value={fields.duration}
                     onChange={(e) => updateField('duration', Number(e.target.value))}
                     min={5}
                     max={300}
-                    className="w-24 bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text font-mono tabular-nums focus:outline-none focus:border-border-active"
+                    className="w-20 bg-surface-active/50 rounded-lg px-3 py-2 text-xs text-text font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-border-active"
                   />
-                  <span className="text-sm text-text-dim">seconds</span>
+                  <span className="text-[11px] text-text-dim">seconds</span>
                 </div>
               </div>
 
               {/* Platform */}
-              <div className="space-y-2.5">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-muted uppercase tracking-wide">
-                  <Monitor size={12} />
+              <div className="space-y-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-text-dim">
+                  <Monitor size={11} />
                   Platform
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="segmented-control">
                   {PLATFORMS.map((p) => (
                     <button
                       key={p.id}
+                      type="button"
                       onClick={() => updateField('platform', p.id)}
-                      className={`rounded-xl px-5 py-3 text-xs font-medium transition-colors duration-150 ${
-                        fields.platform === p.id
-                          ? 'bg-accent-dim border border-accent/40 text-accent'
-                          : 'bg-surface border border-border text-text-dim hover:text-text-muted hover:border-border-active'
-                      }`}
+                      data-active={fields.platform === p.id}
                     >
                       {p.label}
                     </button>
@@ -221,47 +218,43 @@ export default function BriefBuilder() {
               </div>
 
               {/* Mood */}
-              <div className="space-y-2.5">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-muted uppercase tracking-wide">
-                  <Sparkles size={12} />
+              <div className="space-y-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-text-dim">
+                  <Sparkles size={11} />
                   Mood
                 </label>
                 <input
                   type="text"
                   value={fields.mood}
                   onChange={(e) => updateField('mood', e.target.value)}
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text focus:outline-none focus:border-border-active"
+                  className="w-full bg-surface-active/50 rounded-lg px-3 py-2 text-xs text-text focus:outline-none focus:ring-1 focus:ring-border-active"
                 />
               </div>
 
               {/* Pacing */}
-              <div className="space-y-2.5">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-muted uppercase tracking-wide">
-                  <Zap size={12} />
+              <div className="space-y-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-text-dim">
+                  <Zap size={11} />
                   Pacing
                 </label>
-                <div className="flex gap-2">
+                <div className="segmented-control">
                   {PACING_OPTIONS.map((p) => (
                     <button
                       key={p.id}
+                      type="button"
                       onClick={() => updateField('pacing', p.id as BriefFields['pacing'])}
-                      className={`flex-1 flex flex-col items-center gap-1 rounded-xl py-4 text-xs font-medium transition-colors duration-150 ${
-                        fields.pacing === p.id
-                          ? 'bg-accent-dim border border-accent/40 text-accent'
-                          : 'bg-surface border border-border text-text-dim hover:text-text-muted hover:border-border-active'
-                      }`}
+                      data-active={fields.pacing === p.id}
                     >
-                      <span className="font-semibold">{p.label}</span>
-                      <span className="text-[10px] opacity-60">{p.desc}</span>
+                      {p.label}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Music keywords */}
-              <div className="space-y-2.5">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-muted uppercase tracking-wide">
-                  <Music size={12} />
+              <div className="space-y-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-text-dim">
+                  <Music size={11} />
                   Music search
                 </label>
                 <input
@@ -269,27 +262,27 @@ export default function BriefBuilder() {
                   value={fields.musicKeywords}
                   onChange={(e) => updateField('musicKeywords', e.target.value)}
                   placeholder="e.g. upbeat electronic, chill acoustic"
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-border-active"
+                  className="w-full bg-surface-active/50 rounded-lg px-3 py-2 text-xs text-text placeholder:text-text-dim focus:outline-none focus:ring-1 focus:ring-border-active"
                 />
               </div>
 
               {/* Narrative notes */}
-              <div className="space-y-2.5">
-                <label className="flex items-center gap-2 text-xs font-semibold text-text-muted uppercase tracking-wide">
-                  <FileText size={12} />
+              <div className="space-y-2">
+                <label className="flex items-center gap-1.5 text-[11px] text-text-dim">
+                  <FileText size={11} />
                   Narrative notes
                 </label>
                 <textarea
                   value={fields.narrativeNotes}
                   onChange={(e) => updateField('narrativeNotes', e.target.value)}
                   rows={3}
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text resize-none focus:outline-none focus:border-border-active leading-relaxed"
+                  className="w-full bg-surface-active/50 rounded-lg px-3 py-2 text-xs text-text resize-none focus:outline-none focus:ring-1 focus:ring-border-active leading-relaxed"
                 />
               </div>
 
               {/* Clip selection hints */}
-              <div className="space-y-2.5">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">
+              <div className="space-y-2">
+                <label className="text-[11px] text-text-dim">
                   Clip preferences
                 </label>
                 <textarea
@@ -297,23 +290,23 @@ export default function BriefBuilder() {
                   onChange={(e) => updateField('clipSelectionHints', e.target.value)}
                   rows={2}
                   placeholder="e.g. wide exterior shots first, then detail close-ups"
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-dim resize-none focus:outline-none focus:border-border-active leading-relaxed"
+                  className="w-full bg-surface-active/50 rounded-lg px-3 py-2 text-xs text-text placeholder:text-text-dim resize-none focus:outline-none focus:ring-1 focus:ring-border-active leading-relaxed"
                 />
               </div>
 
-              <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center gap-3 pt-2">
                 <button
                   onClick={() => setPhase('braindump')}
-                  className="flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-medium text-text-muted hover:text-text hover:bg-surface-hover transition-colors duration-150"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150"
                 >
-                  <RotateCcw size={14} />
+                  <RotateCcw size={12} />
                   Back
                 </button>
                 <button
                   onClick={handleBuild}
-                  className="flex items-center gap-3 bg-accent hover:bg-accent-hover rounded-xl px-8 py-4 font-display font-bold text-sm text-white transition-colors duration-150"
+                  className="flex items-center gap-2.5 bg-accent hover:bg-accent-hover rounded-lg px-4 py-2 font-semibold text-xs text-white transition-colors duration-150"
                 >
-                  <Sparkles size={16} />
+                  <Sparkles size={14} />
                   Build rough cut
                 </button>
               </div>
@@ -322,28 +315,28 @@ export default function BriefBuilder() {
 
           {/* Phase 3: Building */}
           {phase === 'building' && (
-            <div className="flex flex-col items-center justify-center gap-6 py-20">
-              <Loader2 size={32} className="text-accent animate-spin" />
-              <div className="text-center space-y-2">
-                <h2 className="font-display text-2xl font-bold text-text">Building your edit</h2>
-                <p className="text-text-muted text-sm">{buildStatus}</p>
+            <div className="flex flex-col items-center justify-center gap-5 py-20">
+              <Loader2 size={28} className="text-accent animate-spin" />
+              <div className="text-center space-y-1.5">
+                <h2 className="font-display font-semibold text-sm text-text">Building your edit</h2>
+                <p className="text-[11px] text-text-dim">{buildStatus}</p>
               </div>
             </div>
           )}
 
           {/* Phase 4: Done */}
           {phase === 'done' && result && (
-            <div className="space-y-10">
-              <div className="space-y-3">
-                <h2 className="font-display text-3xl font-bold text-text">Rough cut ready</h2>
-                <p className="text-text-muted text-sm leading-relaxed">{result.narrative}</p>
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <h2 className="font-display font-semibold text-sm text-text">Rough cut ready</h2>
+                <p className="text-[11px] text-text-dim leading-relaxed">{result.narrative}</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 {result.storyboardClips.map((sc, i) => (
-                  <div key={sc.id} className="flex items-center gap-4 p-4 rounded-xl bg-surface border border-border">
-                    <span className="text-xs font-mono text-text-dim tabular-nums w-6 text-right">{i + 1}</span>
-                    <div className="size-12 rounded-lg bg-surface-active overflow-hidden shrink-0">
+                  <div key={sc.id} className="flex items-center gap-3 p-3 rounded-lg bg-surface-active/50">
+                    <span className="text-[10px] font-mono text-text-dim tabular-nums w-5 text-right">{i + 1}</span>
+                    <div className="size-10 rounded-md bg-surface-active overflow-hidden shrink-0">
                       {sc.thumbnailPath && (
                         <img
                           src={`http://localhost:5201/thumbnails/${sc.thumbnailPath.split('/').pop()}`}
@@ -353,30 +346,30 @@ export default function BriefBuilder() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-text truncate">{sc.fileName}</p>
-                      <p className="text-xs text-text-dim">{sc.reason}</p>
+                      <p className="text-xs text-text truncate">{sc.fileName}</p>
+                      <p className="text-[10px] text-text-dim mt-0.5">{sc.reason}</p>
                     </div>
-                    <span className="text-xs font-mono text-text-dim tabular-nums shrink-0">
+                    <span className="text-[10px] font-mono text-text-dim tabular-nums shrink-0">
                       {sc.endTime.toFixed(1)}s
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center gap-3 pt-2">
                 <button
                   onClick={handleReset}
-                  className="flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-medium text-text-muted hover:text-text hover:bg-surface-hover transition-colors duration-150"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150"
                 >
-                  <RotateCcw size={14} />
+                  <RotateCcw size={12} />
                   Start over
                 </button>
                 <button
                   onClick={() => setCentreView('storyboard')}
-                  className="flex items-center gap-3 bg-accent hover:bg-accent-hover rounded-xl px-8 py-4 font-display font-bold text-sm text-white transition-colors duration-150"
+                  className="flex items-center gap-2.5 bg-accent hover:bg-accent-hover rounded-lg px-4 py-2 font-semibold text-xs text-white transition-colors duration-150"
                 >
                   View storyboard
-                  <ArrowRight size={14} />
+                  <ArrowRight size={12} />
                 </button>
               </div>
             </div>

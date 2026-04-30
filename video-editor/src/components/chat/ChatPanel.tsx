@@ -14,20 +14,20 @@ const quickActions = [
 
 function WelcomeScreen({ onQuickAction }: { onQuickAction: (action: typeof quickActions[number]) => void }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-8 gap-10">
-      <div className="text-center space-y-3">
-        <h1 className="font-display text-3xl font-bold text-text tracking-tight">SuperEdits</h1>
-        <p className="text-text-muted text-base">What are you working on?</p>
+    <div className="flex-1 flex flex-col items-center justify-center px-10 gap-12">
+      <div className="text-center space-y-2">
+        <h1 className="font-display text-2xl font-semibold text-text tracking-tight">SuperEdits</h1>
+        <p className="text-[11px] text-text-dim">What are you working on?</p>
       </div>
-      <div className="flex flex-wrap justify-center gap-3 max-w-[320px]">
+      <div className="flex flex-wrap justify-center gap-2.5 max-w-[300px]">
         {quickActions.map((action) => (
           <button
             key={action.label}
             type="button"
             onClick={() => onQuickAction(action)}
-            className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-border text-text-dim text-sm hover:border-accent/40 hover:text-text hover:bg-accent-dim transition-colors duration-150"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-active/50 text-text-dim text-xs hover:bg-surface-hover hover:text-text transition-colors duration-150"
           >
-            <action.icon size={16} />
+            <action.icon size={14} className="shrink-0" />
             {action.label}
           </button>
         ))}
@@ -80,7 +80,7 @@ export default function ChatPanel() {
       {chatMessages.length === 0 ? (
         <WelcomeScreen onQuickAction={handleQuickAction} />
       ) : (
-        <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 space-y-1">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto py-5 space-y-0.5">
           {chatMessages.map((msg) => (
             <ChatMessageComponent key={msg.id} message={msg} />
           ))}

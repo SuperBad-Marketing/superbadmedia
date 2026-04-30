@@ -97,14 +97,9 @@ export default function CaptionsView() {
 
   if (!hasTimeline) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8">
-        <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
-          <Type size={32} className="text-text-dim" />
-        </div>
-        <h2 className="font-display text-3xl font-bold text-text">Captions</h2>
-        <p className="text-text-muted text-base text-center text-pretty max-w-sm">
-          Build your timeline first, then generate captions from the audio
-        </p>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
+        <Type size={28} className="text-text-dim" />
+        <p className="text-[11px] text-text-dim">Build your timeline first, then generate captions</p>
       </div>
     )
   }
@@ -113,11 +108,11 @@ export default function CaptionsView() {
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 flex min-h-0">
         {/* Caption list */}
-        <div className="flex-1 flex flex-col min-h-0 border-r border-border">
-          <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex items-center justify-between px-5 py-4 shrink-0">
             <div>
-              <h2 className="text-sm font-display font-semibold text-text">
-                Captions {captions.length > 0 && <span className="font-mono text-text-dim">({captions.length})</span>}
+              <h2 className="font-display font-semibold text-sm text-text">
+                Captions {captions.length > 0 && <span className="font-mono text-[10px] text-text-dim tabular-nums">({captions.length})</span>}
               </h2>
               {transcriptionMethod && (
                 <span className={`text-[10px] font-mono ${transcriptionMethod === 'whisper' ? 'text-green' : transcriptionMethod === 'silence-detection' ? 'text-amber' : 'text-text-dim'}`}>
@@ -125,18 +120,18 @@ export default function CaptionsView() {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={addCaption}
-                className="flex items-center gap-1 text-xs text-text-muted hover:text-text transition-colors duration-150"
+                className="flex items-center gap-1 text-[11px] text-text-dim hover:text-text-muted rounded-lg hover:bg-surface-hover px-2 py-1 transition-colors duration-150"
               >
-                <Plus size={12} />
+                <Plus size={11} />
                 Add
               </button>
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="flex items-center gap-1.5 bg-accent rounded-lg px-3 py-1.5 text-xs font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50"
+                className="flex items-center gap-1.5 bg-accent rounded-lg px-4 py-2 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50"
               >
                 {generating && <Loader2 size={12} className="animate-spin" />}
                 {generating ? 'Generating...' : captions.length > 0 ? 'Regenerate' : 'Generate'}
@@ -144,30 +139,30 @@ export default function CaptionsView() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-3.5">
+          <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-2 scrollbar-none">
             {captions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-2 text-text-dim text-sm">
-                <Type size={24} />
-                <p>Click Generate to create captions from audio</p>
+              <div className="flex flex-col items-center justify-center h-full gap-2.5">
+                <Type size={20} className="text-text-dim opacity-40" />
+                <p className="text-[11px] text-text-dim">Click Generate to create captions from audio</p>
               </div>
             ) : (
               captions.map((caption, i) => (
                 <div
                   key={caption.id}
-                  className={`bg-surface border rounded-lg p-3 space-y-2 transition-colors ${
-                    editingId === caption.id ? 'border-accent' : 'border-border'
+                  className={`rounded-lg p-3.5 space-y-2.5 transition-colors duration-150 ${
+                    editingId === caption.id ? 'bg-surface-active' : 'bg-surface hover:bg-surface-hover'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-text-dim font-mono tabular-nums">
-                      #{i + 1} &middot; {formatTime(caption.startTime)} → {formatTime(caption.endTime)}
+                      #{i + 1} &middot; {formatTime(caption.startTime)} &rarr; {formatTime(caption.endTime)}
                     </span>
                     <button
                       onClick={() => removeCaption(caption.id)}
                       aria-label="Remove caption"
-                      className="text-text-dim hover:text-accent transition-colors duration-150"
+                      className="text-text-dim hover:text-accent rounded-lg hover:bg-surface-hover p-1 transition-colors duration-150"
                     >
-                      <Trash2 size={12} />
+                      <Trash2 size={11} />
                     </button>
                   </div>
 
@@ -177,29 +172,29 @@ export default function CaptionsView() {
                     onFocus={() => setEditingId(caption.id)}
                     onBlur={() => setEditingId(null)}
                     rows={2}
-                    className="w-full bg-bg border border-border rounded px-2 py-1.5 text-sm text-text resize-none focus:outline-none focus:border-accent transition-colors"
+                    className="w-full bg-surface-active/50 rounded-lg px-3 py-2 text-sm text-text resize-none focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
                     placeholder="Caption text..."
                   />
 
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1">
-                      <label className="text-[10px] text-text-dim">In</label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-[10px] text-text-dim font-mono">In</label>
                       <input
                         type="number"
                         value={caption.startTime}
                         onChange={(e) => updateCaption(caption.id, { startTime: Number(e.target.value) })}
                         step={0.1}
-                        className="w-16 bg-bg border border-border rounded px-1.5 py-0.5 text-xs text-text font-mono tabular-nums focus:outline-none focus:border-accent"
+                        className="w-16 bg-surface-active/50 rounded-lg px-2 py-1 text-[10px] text-text font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
                       />
                     </div>
-                    <div className="flex items-center gap-1">
-                      <label className="text-[10px] text-text-dim">Out</label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-[10px] text-text-dim font-mono">Out</label>
                       <input
                         type="number"
                         value={caption.endTime}
                         onChange={(e) => updateCaption(caption.id, { endTime: Number(e.target.value) })}
                         step={0.1}
-                        className="w-16 bg-bg border border-border rounded px-1.5 py-0.5 text-xs text-text font-mono tabular-nums focus:outline-none focus:border-accent"
+                        className="w-16 bg-surface-active/50 rounded-lg px-2 py-1 text-[10px] text-text font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-border-active transition-all duration-150"
                       />
                     </div>
                   </div>
@@ -210,27 +205,27 @@ export default function CaptionsView() {
         </div>
 
         {/* Style panel */}
-        <div className="w-72 shrink-0 p-6 space-y-6 overflow-y-auto">
-          <h3 className="text-sm font-display font-semibold text-text">Style</h3>
+        <div className="w-72 shrink-0 bg-surface/50 p-5 space-y-5 overflow-y-auto scrollbar-none">
+          <h3 className="font-display font-semibold text-sm text-text">Style</h3>
 
           {/* Font */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-text-dim">Font</label>
+          <div className="space-y-2">
+            <label className="text-[11px] text-text-dim">Font</label>
             <div className="relative">
               <button
                 onClick={() => setFontOpen(!fontOpen)}
-                className="w-full flex items-center justify-between bg-bg border border-border rounded-lg px-3 py-1.5 text-sm text-text hover:border-border-active transition-colors"
+                className="w-full flex items-center justify-between bg-surface-active/50 rounded-lg px-3 py-2 text-sm text-text hover:bg-surface-hover transition-colors duration-150"
               >
                 {style.font}
-                <ChevronDown size={14} className="text-text-dim" />
+                <ChevronDown size={13} className="text-text-dim" />
               </button>
               {fontOpen && (
-                <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-lg shadow-lg z-10 max-h-[200px] overflow-y-auto">
+                <div className="absolute top-full left-0 mt-1.5 w-full bg-surface-raised rounded-xl shadow-xl shadow-black/30 z-10 max-h-[200px] overflow-y-auto py-1">
                   {FONTS.map((font) => (
                     <button
                       key={font}
                       onClick={() => { setStyle({ ...style, font }); setFontOpen(false) }}
-                      className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${
+                      className={`w-full text-left px-3 py-2 text-sm transition-colors duration-150 ${
                         style.font === font ? 'text-accent bg-accent-dim' : 'text-text-muted hover:bg-surface-hover'
                       }`}
                       style={{ fontFamily: font }}
@@ -244,18 +239,15 @@ export default function CaptionsView() {
           </div>
 
           {/* Size */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-text-dim">Size</label>
-            <div className="flex gap-1.5">
+          <div className="space-y-2">
+            <label className="text-[11px] text-text-dim">Size</label>
+            <div className="segmented-control w-full">
               {(['small', 'medium', 'large'] as const).map((size) => (
                 <button
                   key={size}
                   onClick={() => setStyle({ ...style, size })}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${
-                    style.size === size
-                      ? 'bg-accent-dim border border-accent text-accent'
-                      : 'bg-surface border border-border text-text-muted hover:border-border-active'
-                  }`}
+                  data-active={style.size === size}
+                  className="flex-1 capitalize"
                 >
                   {size}
                 </button>
@@ -264,18 +256,15 @@ export default function CaptionsView() {
           </div>
 
           {/* Position */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-text-dim">Position</label>
-            <div className="flex gap-1.5">
+          <div className="space-y-2">
+            <label className="text-[11px] text-text-dim">Position</label>
+            <div className="segmented-control w-full">
               {(['top', 'center', 'bottom'] as const).map((pos) => (
                 <button
                   key={pos}
                   onClick={() => setStyle({ ...style, position: pos })}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${
-                    style.position === pos
-                      ? 'bg-accent-dim border border-accent text-accent'
-                      : 'bg-surface border border-border text-text-muted hover:border-border-active'
-                  }`}
+                  data-active={style.position === pos}
+                  className="flex-1 capitalize"
                 >
                   {pos}
                 </button>
@@ -284,18 +273,15 @@ export default function CaptionsView() {
           </div>
 
           {/* Animation */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-text-dim">Animation</label>
-            <div className="grid grid-cols-2 gap-1.5">
+          <div className="space-y-2">
+            <label className="text-[11px] text-text-dim">Animation</label>
+            <div className="segmented-control w-full flex-wrap">
               {ANIMATIONS.map((anim) => (
                 <button
                   key={anim.id}
                   onClick={() => setStyle({ ...style, animation: anim.id as CaptionStyle['animation'] })}
-                  className={`py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    style.animation === anim.id
-                      ? 'bg-accent-dim border border-accent text-accent'
-                      : 'bg-surface border border-border text-text-muted hover:border-border-active'
-                  }`}
+                  data-active={style.animation === anim.id}
+                  className="flex-1"
                 >
                   {anim.label}
                 </button>
@@ -304,16 +290,16 @@ export default function CaptionsView() {
           </div>
 
           {/* Background toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-text-muted">Background</span>
+          <div className="flex items-center justify-between py-1">
+            <span className="text-[11px] text-text-dim">Background</span>
             <button
               onClick={() => setStyle({ ...style, background: !style.background })}
-              className={`relative w-10 h-5 rounded-full transition-colors ${
+              className={`relative w-10 h-5 rounded-full transition-colors duration-150 ${
                 style.background ? 'bg-accent' : 'bg-surface-active'
               }`}
             >
               <div
-                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150 ${
                   style.background ? 'translate-x-5' : 'translate-x-0.5'
                 }`}
               />
@@ -321,12 +307,12 @@ export default function CaptionsView() {
           </div>
 
           {/* Preview */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-text-dim">Preview</label>
-            <div className="aspect-video bg-surface-active rounded-lg flex items-center justify-center relative overflow-hidden">
+          <div className="space-y-2">
+            <label className="text-[11px] text-text-dim">Preview</label>
+            <div className="aspect-video bg-bg rounded-xl flex items-center justify-center relative overflow-hidden">
               <div className="w-full h-full bg-gradient-to-b from-transparent via-transparent to-black/50" />
               <div
-                className={`absolute px-3 py-1 rounded ${
+                className={`absolute px-3 py-1.5 rounded-lg ${
                   style.background ? 'bg-black/70' : ''
                 } ${
                   style.position === 'top' ? 'top-3' :

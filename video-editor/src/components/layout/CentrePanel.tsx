@@ -53,20 +53,18 @@ export default function CentrePanel() {
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
-      <div className="flex items-center gap-2 px-8 h-12 border-b border-border shrink-0 select-none">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setCentreView(tab.id)}
-            className={`relative px-4 py-3 text-xs font-semibold tracking-wide uppercase transition-colors duration-150 ${
-              centreView === tab.id
-                ? 'text-text after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-accent after:rounded-full'
-                : 'text-text-dim hover:text-text-muted'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex items-center px-4 h-10 border-b border-border shrink-0 select-none">
+        <div className="segmented-control">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setCentreView(tab.id)}
+              data-active={centreView === tab.id}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <ActiveView view={centreView} />

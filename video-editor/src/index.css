@@ -1,35 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  /* Surfaces — warm charcoal, not cool black */
-  --color-bg: #161614;
-  --color-surface: #1E1E1C;
-  --color-surface-hover: #282826;
-  --color-surface-active: #333330;
+  /* Surfaces — warm charcoal, layered depth */
+  --color-bg: #141412;
+  --color-surface: #1C1C1A;
+  --color-surface-hover: #242422;
+  --color-surface-active: #2C2C28;
+  --color-surface-raised: #343430;
 
-  /* Borders — warm, subtle */
-  --color-border: #2E2E2A;
-  --color-border-active: #4A4A44;
+  /* Borders — barely there */
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-active: rgba(255, 255, 255, 0.12);
 
   /* Text — warm cream spectrum */
-  --color-text: #FDF5E6;
-  --color-text-muted: #B5AFA4;
-  --color-text-dim: #7A7568;
+  --color-text: #F5EDE0;
+  --color-text-muted: #A8A298;
+  --color-text-dim: #6A6560;
 
   /* Brand — SuperBad palette */
   --color-accent: #B22848;
-  --color-accent-hover: #9A2240;
-  --color-accent-dim: rgba(178, 40, 72, 0.12);
+  --color-accent-hover: #C93058;
+  --color-accent-dim: rgba(178, 40, 72, 0.10);
   --color-pink: #F4A0B0;
-  --color-pink-dim: rgba(244, 160, 176, 0.12);
+  --color-pink-dim: rgba(244, 160, 176, 0.10);
   --color-orange: #F28C52;
-  --color-orange-dim: rgba(242, 140, 82, 0.12);
+  --color-orange-dim: rgba(242, 140, 82, 0.10);
 
   /* Status */
   --color-green: #6BBF6E;
-  --color-green-dim: rgba(107, 191, 110, 0.12);
+  --color-green-dim: rgba(107, 191, 110, 0.10);
   --color-amber: #E8A840;
-  --color-amber-dim: rgba(232, 168, 64, 0.12);
+  --color-amber-dim: rgba(232, 168, 64, 0.10);
 
   /* Typography */
   --font-display: 'Space Grotesk', system-ui, sans-serif;
@@ -53,11 +54,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar — warm, subtle */
-::-webkit-scrollbar { width: 5px; }
+/* Scrollbar — invisible until hover */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-border-active); }
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+*:hover > ::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
 
 /* Selection */
 ::selection {
@@ -65,8 +73,44 @@ body {
   color: var(--color-text);
 }
 
-/* Focus ring */
+/* Focus ring — subtle */
 :focus-visible {
   outline: 1.5px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* Segmented control base */
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 1px;
+}
+.segmented-control button {
+  position: relative;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-dim);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.segmented-control button:hover {
+  color: var(--color-text-muted);
+}
+.segmented-control button[data-active="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Panel sidebar glass effect */
+.panel-sidebar {
+  background: rgba(28, 28, 26, 0.85);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
 }

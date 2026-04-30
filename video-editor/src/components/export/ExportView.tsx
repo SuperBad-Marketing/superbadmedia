@@ -100,8 +100,8 @@ function AspectPreview({ formatId, selected }: { formatId: string; selected: boo
   return (
     <div className="flex items-center justify-center" style={{ width: maxSize, height: maxSize }}>
       <div
-        className={`rounded-sm border-2 transition-colors ${
-          selected ? 'border-accent bg-accent/10' : 'border-border bg-surface-active'
+        className={`rounded-sm transition-colors duration-150 ${
+          selected ? 'bg-accent/20' : 'bg-surface-active'
         }`}
         style={{ width: w, height: h }}
       />
@@ -112,13 +112,13 @@ function AspectPreview({ formatId, selected }: { formatId: string; selected: boo
 function StatusIcon({ status }: { status: ExportStatus }) {
   switch (status) {
     case 'waiting':
-      return <Clock size={14} className="text-text-dim" />
+      return <Clock size={13} className="text-text-dim" />
     case 'rendering':
-      return <Loader2 size={14} className="text-accent animate-spin" />
+      return <Loader2 size={13} className="text-accent animate-spin" />
     case 'uploading':
-      return <Upload size={14} className="text-amber animate-pulse" />
+      return <Upload size={13} className="text-amber animate-pulse" />
     case 'complete':
-      return <CheckCircle2 size={14} className="text-green" />
+      return <CheckCircle2 size={13} className="text-green" />
   }
 }
 
@@ -245,26 +245,21 @@ export default function ExportView() {
 
   if (!hasTimeline) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8">
-        <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
-          <Monitor size={32} className="text-text-dim" />
-        </div>
-        <h2 className="font-display text-3xl font-bold text-text">Export</h2>
-        <p className="text-text-muted text-base text-center text-pretty max-w-sm">
-          Build your timeline first, then come back here to export
-        </p>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
+        <Monitor size={28} className="text-text-dim" />
+        <p className="text-[11px] text-text-dim">Build your timeline first, then export</p>
       </div>
     )
   }
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-none">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-none">
         {/* Format selection */}
         <div className="space-y-4">
-          <h2 className="font-display text-2xl font-bold text-text">Export</h2>
+          <h2 className="font-display font-semibold text-sm text-text">Export</h2>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             {FORMATS.map((format) => {
               const selected = selectedFormats.has(format.id)
               const Icon = format.icon
@@ -273,27 +268,27 @@ export default function ExportView() {
                   key={format.id}
                   type="button"
                   onClick={() => toggleFormat(format.id)}
-                  className={`relative bg-surface border rounded-xl p-5 text-left transition-all duration-150 ${
+                  className={`relative rounded-xl p-5 text-left transition-all duration-150 ${
                     selected
-                      ? 'border-accent bg-accent-dim'
-                      : 'border-border hover:border-border-active'
+                      ? 'bg-accent-dim'
+                      : 'bg-surface hover:bg-surface-hover'
                   }`}
                 >
                   {selected && (
-                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
-                      <Check size={12} className="text-white" />
+                    <div className="absolute top-3.5 right-3.5 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                      <Check size={11} className="text-white" />
                     </div>
                   )}
 
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3.5">
                     <AspectPreview formatId={format.id} selected={selected} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <Icon size={14} className={selected ? 'text-accent' : 'text-text-dim'} />
+                        <Icon size={13} className={selected ? 'text-accent' : 'text-text-dim'} />
                         <span className="text-sm font-medium text-text">{format.label}</span>
                       </div>
-                      <p className="text-xs text-text-muted mt-0.5">{format.subtitle}</p>
-                      <p className="font-mono text-xs text-text-dim mt-1.5">{format.resolution}</p>
+                      <p className="text-[11px] text-text-dim mt-0.5">{format.subtitle}</p>
+                      <p className="font-mono text-[10px] text-text-dim tabular-nums mt-1.5">{format.resolution}</p>
                     </div>
                   </div>
                 </button>
@@ -303,23 +298,23 @@ export default function ExportView() {
         </div>
 
         {/* Settings */}
-        <div className="space-y-5 border-t border-border pt-8">
-          <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Settings</h3>
+        <div className="space-y-4 pt-2">
+          <h3 className="text-[11px] text-text-dim">Settings</h3>
 
           {/* Quality */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-text-muted">Quality</span>
+          <div className="flex items-center justify-between py-1">
+            <span className="text-[11px] text-text-dim">Quality</span>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setQualityOpen(!qualityOpen)}
-                className="flex items-center gap-2 bg-bg border border-border rounded-lg px-3 py-1.5 text-sm text-text hover:border-border-active transition-colors"
+                className="flex items-center gap-2 bg-surface-active/50 rounded-lg px-3 py-1.5 text-sm text-text hover:bg-surface-hover transition-colors duration-150"
               >
                 {QUALITY_OPTIONS.find((q) => q.value === quality)?.label}
-                <ChevronDown size={14} className="text-text-dim" />
+                <ChevronDown size={13} className="text-text-dim" />
               </button>
               {qualityOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-surface border border-border rounded-lg shadow-lg z-10 min-w-[180px]">
+                <div className="absolute right-0 top-full mt-1.5 bg-surface-raised rounded-xl shadow-xl shadow-black/30 z-10 min-w-[180px] py-1">
                   {QUALITY_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -328,7 +323,7 @@ export default function ExportView() {
                         setQuality(opt.value)
                         setQualityOpen(false)
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                      className={`w-full text-left px-3 py-2 text-sm transition-colors duration-150 ${
                         quality === opt.value
                           ? 'text-accent bg-accent-dim'
                           : 'text-text-muted hover:bg-surface-hover hover:text-text'
@@ -343,10 +338,10 @@ export default function ExportView() {
           </div>
 
           {/* Destination */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-text-muted">Destination</span>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-text-dim max-w-[200px] truncate">
+          <div className="flex items-center justify-between py-1">
+            <span className="text-[11px] text-text-dim">Destination</span>
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-[10px] text-text-dim tabular-nums max-w-[200px] truncate">
                 {destination}
               </span>
               <button
@@ -354,29 +349,29 @@ export default function ExportView() {
                 onClick={() => {
                   /* file picker would go here */
                 }}
-                className="flex items-center gap-1.5 text-xs text-accent hover:text-accent-hover transition-colors"
+                className="flex items-center gap-1.5 text-[11px] text-text-dim hover:text-text-muted rounded-lg hover:bg-surface-hover px-2 py-1 transition-colors duration-150"
               >
-                <FolderOpen size={12} />
+                <FolderOpen size={11} />
                 Change
               </button>
             </div>
           </div>
 
           {/* Upload to Cloudinary */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-2">
-              <Cloud size={14} className="text-text-dim" />
-              <span className="text-sm text-text-muted">Upload to Cloudinary</span>
+              <Cloud size={13} className="text-text-dim" />
+              <span className="text-[11px] text-text-dim">Upload to Cloudinary</span>
             </div>
             <button
               type="button"
               onClick={() => setUploadToCloud(!uploadToCloud)}
-              className={`relative w-10 h-5 rounded-full transition-colors ${
+              className={`relative w-10 h-5 rounded-full transition-colors duration-150 ${
                 uploadToCloud ? 'bg-accent' : 'bg-surface-active'
               }`}
             >
               <div
-                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150 ${
                   uploadToCloud ? 'translate-x-5' : 'translate-x-0.5'
                 }`}
               />
@@ -384,20 +379,20 @@ export default function ExportView() {
           </div>
 
           {/* Notify client */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-2">
-              <Bell size={14} className="text-text-dim" />
-              <span className="text-sm text-text-muted">Notify client</span>
+              <Bell size={13} className="text-text-dim" />
+              <span className="text-[11px] text-text-dim">Notify client</span>
             </div>
             <button
               type="button"
               onClick={() => setNotifyClient(!notifyClient)}
-              className={`relative w-10 h-5 rounded-full transition-colors ${
+              className={`relative w-10 h-5 rounded-full transition-colors duration-150 ${
                 notifyClient ? 'bg-accent' : 'bg-surface-active'
               }`}
             >
               <div
-                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150 ${
                   notifyClient ? 'translate-x-5' : 'translate-x-0.5'
                 }`}
               />
@@ -405,28 +400,26 @@ export default function ExportView() {
           </div>
         </div>
 
-        {/* Export queue (visible when exporting) */}
+        {/* Export queue */}
         {exportJobs.length > 0 && (
-          <div className="space-y-3 border-t border-border pt-6">
-            <h3 className="text-[10px] font-mono text-text-dim uppercase tracking-widest">
-              Export Queue
-            </h3>
+          <div className="space-y-3 pt-2">
+            <h3 className="text-[11px] text-text-dim">Export Queue</h3>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {exportJobs.map((job) => (
                 <div
                   key={job.formatId}
-                  className="bg-surface border border-border rounded-lg p-3 space-y-2"
+                  className="bg-surface rounded-lg p-4 space-y-2.5"
                 >
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex items-baseline gap-2">
                       <span className="text-sm font-medium text-text">{job.label}</span>
-                      <span className="font-mono text-xs text-text-dim ml-2">{job.resolution}</span>
+                      <span className="font-mono text-[10px] text-text-dim tabular-nums">{job.resolution}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <StatusIcon status={job.status} />
                       <span
-                        className={`text-xs font-medium ${
+                        className={`text-[11px] font-medium ${
                           job.status === 'complete'
                             ? 'text-green'
                             : job.status === 'rendering'
@@ -442,7 +435,7 @@ export default function ExportView() {
                   </div>
 
                   {(job.status === 'rendering' || job.status === 'uploading') && (
-                    <div className="w-full h-1.5 bg-bg rounded-full overflow-hidden">
+                    <div className="w-full h-1 bg-bg rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ease-out ${
                           job.status === 'uploading' ? 'bg-amber' : 'bg-accent'
@@ -453,7 +446,7 @@ export default function ExportView() {
                   )}
 
                   {job.status === 'complete' && (
-                    <div className="w-full h-1.5 bg-green-dim rounded-full overflow-hidden">
+                    <div className="w-full h-1 bg-green-dim rounded-full overflow-hidden">
                       <div className="h-full bg-green rounded-full w-full" />
                     </div>
                   )}
@@ -465,12 +458,12 @@ export default function ExportView() {
       </div>
 
       {/* Sticky export button */}
-      <div className="shrink-0 px-10 py-6 border-t border-border">
+      <div className="shrink-0 px-8 py-5">
         <button
           type="button"
           onClick={handleExport}
           disabled={selectedCount === 0 || isExporting}
-          className="w-full bg-accent rounded-xl py-3 px-8 font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full bg-accent rounded-lg py-3 px-8 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isExporting
             ? 'Exporting...'

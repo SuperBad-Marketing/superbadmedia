@@ -87,18 +87,19 @@ export default function PreviewView() {
 
   if (previewClips.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8">
-        <div className="size-20 rounded-2xl bg-surface-active flex items-center justify-center">
-          <Play size={32} className="text-text-dim ml-1" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
+        <div className="size-14 rounded-xl bg-surface-active/60 flex items-center justify-center">
+          <Play size={24} className="text-text-dim ml-0.5" />
         </div>
-        <h2 className="font-display text-3xl font-bold text-text">Preview</h2>
-        <p className="text-text-muted text-base text-pretty text-center max-w-sm">Import footage or build a storyboard to preview clips here</p>
+        <h2 className="font-display font-semibold text-sm text-text">Preview</h2>
+        <p className="text-[11px] text-text-dim text-pretty text-center max-w-sm">Import footage or build a storyboard to preview clips here</p>
       </div>
     )
   }
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
+      {/* Video canvas */}
       <div className="flex-1 bg-black flex items-center justify-center relative min-h-0">
         {currentClip?.filePath ? (
           <video
@@ -110,21 +111,21 @@ export default function PreviewView() {
             onEnded={() => setIsPlaying(false)}
           />
         ) : (
-          <div className="text-text-dim text-sm">No preview available</div>
+          <div className="text-text-dim text-[11px]">No preview available</div>
         )}
 
-        <div className="absolute top-3 right-3 flex items-center gap-2">
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
           <button
             onClick={() => setShowGrade(!showGrade)}
-            className={`px-2 py-1 rounded text-[11px] font-medium transition-colors duration-150 ${
-              showGrade ? 'bg-accent text-white' : 'bg-surface/80 text-text-muted hover:text-text'
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors duration-150 ${
+              showGrade ? 'bg-accent text-white' : 'bg-surface-active/80 text-text-muted hover:text-text'
             }`}
           >
             {showGrade ? 'Graded' : 'Original'}
           </button>
           <button
             onClick={handleGrabFrame}
-            className="p-1.5 bg-surface/80 rounded hover:bg-surface transition-colors duration-150"
+            className="p-1.5 bg-surface-active/80 rounded-lg hover:bg-surface-raised transition-colors duration-150"
             title="Grab frame"
             aria-label="Grab frame"
           >
@@ -133,15 +134,16 @@ export default function PreviewView() {
         </div>
 
         {currentClip && (
-          <div className="absolute bottom-3 left-3 bg-surface/80 rounded px-2 py-1">
-            <span className="text-[11px] text-text font-mono">
+          <div className="absolute bottom-3 left-3 bg-surface-active/80 rounded-lg px-2.5 py-1">
+            <span className="text-[10px] text-text font-mono tabular-nums">
               {currentClip.fileName}
             </span>
           </div>
         )}
       </div>
 
-      <div className="px-8 py-2">
+      {/* Scrubber */}
+      <div className="px-5 py-2">
         <input
           type="range"
           min={0}
@@ -149,32 +151,33 @@ export default function PreviewView() {
           step={0.01}
           value={currentTime}
           onChange={handleSeek}
-          className="w-full h-1 appearance-none bg-surface-active rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent"
+          className="w-full h-1 appearance-none bg-surface-active rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-text"
         />
       </div>
 
-      <div className="h-14 shrink-0 px-8 flex items-center justify-between border-t border-border">
+      {/* Transport controls */}
+      <div className="shrink-0 px-5 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={handlePrev} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150">
-            <SkipBack size={15} />
+          <button onClick={handlePrev} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150 rounded-lg hover:bg-surface-hover">
+            <SkipBack size={14} />
           </button>
           <button
             onClick={togglePlay}
-            className="size-8 rounded-full bg-accent-dim flex items-center justify-center hover:bg-accent/30 transition-colors duration-150"
+            className="size-7 rounded-full bg-surface-active flex items-center justify-center hover:bg-surface-raised transition-colors duration-150"
           >
-            {isPlaying ? <Pause size={13} className="text-accent" /> : <Play size={13} className="text-accent ml-0.5" />}
+            {isPlaying ? <Pause size={12} className="text-text" /> : <Play size={12} className="text-text ml-0.5" />}
           </button>
-          <button onClick={handleNext} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150">
-            <SkipForward size={15} />
+          <button onClick={handleNext} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150 rounded-lg hover:bg-surface-hover">
+            <SkipForward size={14} />
           </button>
 
-          <span className="font-mono text-[11px] text-text-dim tabular-nums">
+          <span className="font-mono text-[10px] text-text-dim tabular-nums">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-[11px] text-text-muted font-mono tabular-nums">
+          <span className="text-[11px] text-text-dim font-mono tabular-nums">
             {currentClipIndex + 1}/{previewClips.length}
           </span>
 
@@ -183,16 +186,16 @@ export default function PreviewView() {
               <button
                 key={clip.id}
                 onClick={() => setCurrentClipIndex(i)}
-                className={`w-12 h-8 rounded border shrink-0 overflow-hidden transition-colors duration-150 ${
+                className={`w-11 h-7 rounded-md shrink-0 overflow-hidden transition-all duration-150 ${
                   i === currentClipIndex
-                    ? 'border-accent ring-1 ring-accent/30'
-                    : 'border-border hover:border-border-active'
+                    ? 'ring-1.5 ring-text ring-offset-1 ring-offset-bg'
+                    : 'opacity-60 hover:opacity-100'
                 }`}
               >
                 {clip.thumbnailPath ? (
                   <img src={clip.thumbnailPath} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-bg flex items-center justify-center">
+                  <div className="w-full h-full bg-surface-active flex items-center justify-center">
                     <Image size={9} className="text-text-dim" />
                   </div>
                 )}

@@ -2,15 +2,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import MediaBrowser from '../media/MediaBrowser'
 
-const statusColors: Record<string, string> = {
-  ingesting: 'bg-amber-dim text-amber',
-  ready: 'bg-green-dim text-green',
-  editing: 'bg-accent-dim text-accent',
-  grading: 'bg-accent-dim text-accent',
-  exporting: 'bg-amber-dim text-amber',
-  delivered: 'bg-green-dim text-green',
-}
-
 export default function LeftPanel() {
   const currentProject = useAppStore((s) => s.currentProject)
   const leftPanelCollapsed = useAppStore((s) => s.leftPanelCollapsed)
@@ -18,37 +9,34 @@ export default function LeftPanel() {
 
   if (leftPanelCollapsed) {
     return (
-      <div className="w-10 bg-surface border-r border-border shrink-0 flex flex-col items-center pt-3">
+      <div className="w-10 panel-sidebar border-r border-border shrink-0 flex flex-col items-center pt-3">
         <button
           onClick={toggleLeftPanel}
-          className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150"
+          className="size-6 rounded-md flex items-center justify-center text-text-dim hover:text-text-muted hover:bg-surface-hover transition-colors duration-150"
           aria-label="Expand panel"
         >
-          <ChevronRight size={15} />
+          <ChevronRight size={13} />
         </button>
       </div>
     )
   }
 
   return (
-    <div className="w-[280px] bg-surface border-r border-border shrink-0 flex flex-col">
-      <div className="flex items-center justify-between px-6 py-5 border-b border-accent/20">
-        {currentProject ? (
-          <div className="flex flex-col gap-2 min-w-0">
-            <span className="font-display text-base font-semibold text-text truncate">{currentProject.clientName}</span>
-            <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full w-fit uppercase tracking-wider ${statusColors[currentProject.status] || 'bg-surface-hover text-text-dim'}`}>
-              {currentProject.status}
-            </span>
-          </div>
-        ) : (
-          <span className="text-sm text-text-dim">No project loaded</span>
-        )}
+    <div className="w-[260px] panel-sidebar border-r border-border shrink-0 flex flex-col">
+      <div className="flex items-center justify-between px-4 h-10 border-b border-border shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          {currentProject ? (
+            <span className="text-xs font-medium text-text truncate">{currentProject.clientName}</span>
+          ) : (
+            <span className="text-xs text-text-dim">Media</span>
+          )}
+        </div>
         <button
           onClick={toggleLeftPanel}
-          className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150 shrink-0"
+          className="size-6 rounded-md flex items-center justify-center text-text-dim hover:text-text-muted hover:bg-surface-hover transition-colors duration-150 shrink-0"
           aria-label="Collapse panel"
         >
-          <ChevronLeft size={15} />
+          <ChevronLeft size={13} />
         </button>
       </div>
 

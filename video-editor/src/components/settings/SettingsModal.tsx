@@ -52,19 +52,24 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-surface border border-border rounded-xl shadow-2xl p-6 space-y-6">
+      <div className="absolute inset-0 bg-bg/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-surface rounded-2xl shadow-2xl shadow-black/40 p-8 space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-text">Settings</h2>
-          <button onClick={onClose} className="text-text-dim hover:text-text transition-colors duration-150">
-            <X size={16} />
+          <h2 className="font-display font-semibold text-sm text-text">Settings</h2>
+          <button
+            onClick={onClose}
+            className="size-7 flex items-center justify-center rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150"
+          >
+            <X size={14} />
           </button>
         </div>
 
+        {/* API Key section */}
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-text">
-              <Key size={13} />
+            <label className="flex items-center gap-1.5 text-[11px] text-text-dim">
+              <Key size={11} />
               Anthropic API Key
             </label>
             <input
@@ -72,9 +77,9 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
               value={apiKey}
               onChange={(e) => { setApiKey(e.target.value); setSaved(false) }}
               placeholder="sk-ant-..."
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-[13px] text-text font-mono placeholder:text-text-dim focus:outline-none focus:border-border-active transition-colors duration-150"
+              className="w-full bg-surface-active/50 rounded-lg px-3 py-2 text-xs text-text font-mono placeholder:text-text-dim focus:outline-none focus:ring-1 focus:ring-border-active transition-colors duration-150"
             />
-            <p className="text-[11px] text-text-dim">
+            <p className="text-[10px] text-text-dim leading-relaxed">
               Required for chat, grading commands, and clip analysis descriptions.
               Your key stays on your machine.
             </p>
@@ -90,16 +95,16 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
           <button
             onClick={handleSave}
             disabled={saving || !apiKey.trim() || apiKey.includes('•')}
-            className="w-full flex items-center justify-center gap-2 bg-accent rounded-lg py-2.5 px-4 text-[13px] font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40"
+            className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 disabled:opacity-40"
           >
             {saved ? (
               <>
-                <Check size={14} />
+                <Check size={13} />
                 Saved
               </>
             ) : (
               <>
-                <Save size={14} />
+                <Save size={13} />
                 {saving ? 'Saving...' : 'Save'}
               </>
             )}
