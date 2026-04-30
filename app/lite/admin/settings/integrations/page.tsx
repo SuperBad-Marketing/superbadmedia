@@ -120,6 +120,62 @@ const INTEGRATIONS: IntegrationDef[] = [
     wizardPath: "/lite/setup/admin/posthog",
     envHint: "NEXT_PUBLIC_POSTHOG_KEY",
   },
+  {
+    vendorKey: "openweather",
+    label: "OpenWeather",
+    description: "Weather data for cockpit tickers.",
+    wizardPath: "/lite/setup/admin/openweather",
+    envHint: "OPENWEATHER_API_KEY",
+  },
+  {
+    vendorKey: "football-data",
+    label: "Football-Data.org",
+    description: "Live football scores for cockpit tickers.",
+    wizardPath: "/lite/setup/admin/football-data",
+    envHint: "FOOTBALL_DATA_API_KEY",
+  },
+  {
+    vendorKey: "spotify",
+    label: "Spotify",
+    description: "Playlist picker and cockpit music embed.",
+    wizardPath: "/lite/setup/admin/spotify",
+    envHint: null,
+  },
+  {
+    vendorKey: "medium",
+    label: "Medium",
+    description: "Blog syndication — auto-publish with canonical backlink.",
+    wizardPath: null,
+    envHint: null,
+  },
+  {
+    vendorKey: "linkedin_articles",
+    label: "LinkedIn Articles",
+    description: "Blog syndication — share as LinkedIn article.",
+    wizardPath: null,
+    envHint: null,
+  },
+  {
+    vendorKey: "ghost",
+    label: "Ghost",
+    description: "Blog syndication — publish to Ghost CMS.",
+    wizardPath: null,
+    envHint: null,
+  },
+  {
+    vendorKey: "beehiiv",
+    label: "Beehiiv",
+    description: "Blog syndication — publish to Beehiiv newsletter.",
+    wizardPath: null,
+    envHint: null,
+  },
+  {
+    vendorKey: "wordpress",
+    label: "WordPress.com",
+    description: "Blog syndication — publish to WordPress site.",
+    wizardPath: null,
+    envHint: null,
+  },
 ];
 
 export default async function IntegrationsPage() {
