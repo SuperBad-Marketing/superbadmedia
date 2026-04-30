@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   instagram_accounts,
@@ -15,6 +15,7 @@ import {
 import { processInbound, type InboundMessage } from "@/lib/channels/instagram/reply-pipeline";
 import { sendAllApproved } from "@/lib/channels/instagram/send-reply";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { scheduled_tasks } from "@/lib/db/schema/scheduled-tasks";
 import { logActivity } from "@/lib/activity-log";
 import settings from "@/lib/settings";
 import type { HandlerMap } from "@/lib/scheduled-tasks/worker";
@@ -203,6 +204,40 @@ async function scheduleNext(): Promise<void> {
     task_type: "instagram_reply_poll",
     runAt: Date.now() + interval * 1000,
     idempotencyKey: `ig-reply-poll-${Date.now()}`,
+  });
+}
+
+/**
+ * Called on server boot to ensure the reply-poll loop is alive.
+ * If a pending or running task already exists, this is a no-op.
+ * Otherwise enqueues one to run immediately.
+ */
+export async function ensureInstagramReplyPollEnqueued(): Promise<void> {
+  const active = await db
+    .select({ id: instagram_accounts.id })
+    .from(instagram_accounts)
+    .where(eq(instagram_accounts.status, "active"))
+    .limit(1);
+
+  if (active.length === 0) return;
+
+  const existing = await db
+    .select({ id: scheduled_tasks.id })
+    .from(scheduled_tasks)
+    .where(
+      and(
+        eq(scheduled_tasks.task_type, "instagram_reply_poll"),
+        inArray(scheduled_tasks.status, ["pending", "running"]),
+      ),
+    )
+    .limit(1);
+
+  if (existing.length > 0) return;
+
+  await enqueueTask({
+    task_type: "instagram_reply_poll",
+    runAt: Date.now(),
+    idempotencyKey: `ig-reply-poll-boot-${Date.now()}`,
   });
 }
 

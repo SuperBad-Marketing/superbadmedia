@@ -1,12 +1,13 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { scheduled_tasks } from "@/lib/db/schema/scheduled-tasks";
 import {
   instagram_accounts,
   instagram_content_plans,
@@ -602,18 +603,44 @@ export async function syncInstagramDataAction(): Promise<
 // ── Start reply polling ──────────────────────────────────────────────────
 
 export async function startReplyPollingAction(): Promise<
-  { ok: true } | { ok: false; error: string }
+  { ok: true; alreadyRunning?: boolean } | { ok: false; error: string }
 > {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
     return { ok: false, error: "Unauthorised" };
   }
 
-  await enqueueTask({
+  const account = await db.query.instagram_accounts.findFirst({
+    where: (t, { eq: e }) => e(t.status, "active"),
+  });
+  if (!account) {
+    return { ok: false, error: "No active Instagram account. Connect one in Settings first." };
+  }
+
+  const existing = await db
+    .select({ id: scheduled_tasks.id, status: scheduled_tasks.status })
+    .from(scheduled_tasks)
+    .where(
+      and(
+        eq(scheduled_tasks.task_type, "instagram_reply_poll"),
+        inArray(scheduled_tasks.status, ["pending", "running"]),
+      ),
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    return { ok: true, alreadyRunning: true };
+  }
+
+  const result = await enqueueTask({
     task_type: "instagram_reply_poll",
     runAt: Date.now(),
-    idempotencyKey: `ig-reply-poll-initial-${new Date().toISOString().slice(0, 10)}`,
+    idempotencyKey: `ig-reply-poll-${Date.now()}`,
   });
+
+  if (!result) {
+    return { ok: false, error: "Could not enqueue reply polling. Try again." };
+  }
 
   return { ok: true };
 }

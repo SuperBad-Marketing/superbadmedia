@@ -12,9 +12,9 @@ import {
   retryInstagramDiscoveryAction,
   approvePlanSlotsAction,
   updatePlanSlotAction,
-  syncInstagramDataAction,
   startReplyPollingAction,
 } from "../actions";
+import { SyncProgressOverlay } from "./sync-progress-overlay";
 import {
   generateStrategyAction,
   reactToInspirationAction,
@@ -51,15 +51,36 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
   const router = useRouter();
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
+  const [syncOverlayOpen, setSyncOverlayOpen] = useState(false);
   const [startingReplies, setStartingReplies] = useState(false);
+
+  const handleSyncComplete = useCallback(
+    (result: { followers: number; postsSynced: number } | null) => {
+      setSyncOverlayOpen(false);
+      if (result) {
+        toast.success(
+          `Synced — ${result.followers.toLocaleString()} followers, ${result.postsSynced} posts updated.`,
+        );
+      }
+      router.refresh();
+    },
+    [router],
+  );
+
+  const handleSyncError = useCallback((message: string) => {
+    toast.error(message);
+  }, []);
 
   async function handleStartReplies() {
     setStartingReplies(true);
     try {
       const result = await startReplyPollingAction();
       if (result.ok) {
-        toast.success("Reply polling started. Checking for comments and DMs.");
+        if (result.alreadyRunning) {
+          toast.success("Reply polling is already running.");
+        } else {
+          toast.success("Reply polling started. Checking for comments and DMs.");
+        }
         router.refresh();
       } else {
         toast.error(result.error);
@@ -80,25 +101,6 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
       router.refresh();
     } else {
       setRetryError(result.error);
-    }
-  }
-
-  async function handleSync() {
-    setSyncing(true);
-    try {
-      const result = await syncInstagramDataAction();
-      if (result.ok) {
-        toast.success(
-          `Synced — ${result.value.followers.toLocaleString()} followers, ${result.value.postsSynced} posts updated.`,
-        );
-        router.refresh();
-      } else {
-        toast.error(result.error);
-      }
-    } catch {
-      toast.error("Sync failed. Try again.");
-    } finally {
-      setSyncing(false);
     }
   }
 
@@ -171,6 +173,11 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
 
   return (
     <div className="space-y-6 pb-12">
+      <SyncProgressOverlay
+        open={syncOverlayOpen}
+        onComplete={handleSyncComplete}
+        onError={handleSyncError}
+      />
       {/* Account header */}
       <div
         className="flex items-center justify-between rounded-xl border px-5 py-4"
@@ -199,8 +206,8 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleSync}
-            disabled={syncing}
+            onClick={() => setSyncOverlayOpen(true)}
+            disabled={syncOverlayOpen}
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-opacity disabled:opacity-50"
             style={{
               backgroundColor: "var(--color-neutral-800)",
@@ -208,23 +215,19 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
               border: "1px solid rgba(253, 245, 230, 0.08)",
             }}
           >
-            {syncing ? (
-              <Loader2 className="size-3 animate-spin" strokeWidth={1.5} />
-            ) : (
-              <svg
-                className="size-3"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M1.5 8a6.5 6.5 0 0 1 11.3-4.4M14.5 8a6.5 6.5 0 0 1-11.3 4.4" />
-                <path d="M13.5 1v3.5H10M2.5 15v-3.5H6" />
-              </svg>
-            )}
-            {syncing ? "Syncing…" : "Sync"}
+            <svg
+              className="size-3"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M1.5 8a6.5 6.5 0 0 1 11.3-4.4M14.5 8a6.5 6.5 0 0 1-11.3 4.4" />
+              <path d="M13.5 1v3.5H10M2.5 15v-3.5H6" />
+            </svg>
+            Sync
           </button>
           <button
             onClick={handleStartReplies}

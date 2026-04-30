@@ -31,6 +31,13 @@ export async function register() {
       ensureLeadGenDailySearchEnqueued().catch((err) => {
         console.error("[instrumentation] lead-gen bootstrap failed:", err);
       });
+
+      const { ensureInstagramReplyPollEnqueued } = await import(
+        "./lib/scheduled-tasks/handlers/instagram-reply-poll"
+      );
+      ensureInstagramReplyPollEnqueued().catch((err) => {
+        console.error("[instrumentation] instagram reply-poll bootstrap failed:", err);
+      });
     }
   }
 
