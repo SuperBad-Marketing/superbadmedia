@@ -92,15 +92,21 @@ export class IngestService {
       }
 
       job.status = 'analyzing'
-      job.progress = 85
+      job.progress = 80
+      job.clips = []
 
       const clipAnalysis = new ClipAnalysisService()
-      const clips = await clipAnalysis.analyzeDirectory(
+      await clipAnalysis.analyzeDirectory(
         path.join(destBase, 'footage'),
-        job.projectId
+        job.projectId,
+        (clip, done, total) => {
+          job.clips!.push(clip)
+          job.processedFiles = done
+          job.totalFiles = total
+          job.progress = 80 + Math.round((done / total) * 18)
+        },
       )
-      job.clips = clips
-      job.progress = 95
+      job.progress = 98
 
       job.status = 'creating-project'
       await new Promise(r => setTimeout(r, 1000))

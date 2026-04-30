@@ -66,7 +66,7 @@ export default function IngestView() {
         setPollingError(null)
         setCurrentIngest(updated)
 
-        if (updated.status === 'complete' && updated.clips?.length) {
+        if (updated.clips?.length) {
           const mapped = updated.clips.map((c: any) => ({
             id: c.id,
             projectId: updated.projectId,
@@ -83,6 +83,9 @@ export default function IngestView() {
             analysis: c.analysis,
           }))
           setClips(mapped)
+        }
+
+        if (updated.status === 'complete') {
           setCurrentProject({
             id: updated.projectId,
             name: clientName || 'Untitled',

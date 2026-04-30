@@ -78,7 +78,11 @@ export class ClipAnalysisService {
     return result
   }
 
-  async analyzeDirectory(dirPath: string, projectId: string): Promise<ClipAnalysisResult[]> {
+  async analyzeDirectory(
+    dirPath: string,
+    projectId: string,
+    onClipReady?: (clip: ClipAnalysisResult, done: number, total: number) => void,
+  ): Promise<ClipAnalysisResult[]> {
     const videoExtensions = ['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mts', '.r3d', '.braw']
 
     const files = this.walkDir(dirPath).filter(f => {
@@ -97,6 +101,7 @@ export class ClipAnalysisService {
       for (const result of settled) {
         if (result.status === 'fulfilled') {
           results.push(result.value)
+          onClipReady?.(result.value, results.length, files.length)
         }
       }
     }
