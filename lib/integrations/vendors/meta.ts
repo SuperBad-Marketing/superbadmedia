@@ -55,7 +55,6 @@ export const META_OAUTH_SCOPES = [
   "instagram_manage_insights",
   "instagram_manage_comments",
   "instagram_manage_messages",
-  "instagram_business_manage_messages",
   "ads_read",
   "ads_management",
 ];
