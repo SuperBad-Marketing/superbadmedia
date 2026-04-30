@@ -49,11 +49,13 @@ export const metaManifest: VendorManifest = {
 export const META_OAUTH_SCOPES = [
   "pages_show_list",
   "pages_read_engagement",
+  "pages_messaging",
   "instagram_basic",
   "instagram_content_publish",
   "instagram_manage_insights",
   "instagram_manage_comments",
   "instagram_manage_messages",
+  "instagram_business_manage_messages",
   "ads_read",
   "ads_management",
 ];
