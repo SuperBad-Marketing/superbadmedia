@@ -12,7 +12,7 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { Play, Pause, Plus, Zap, Volume2, Send, Loader2, Music, X, ChevronRight, GripVertical, Film } from 'lucide-react'
+import { Play, Pause, Plus, Zap, Volume2, Send, Loader2, Music, X, ChevronRight, Film } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { sendToResolve } from '../../lib/api'
 import { thumbUrl } from '../../lib/thumbUrl'
