@@ -396,7 +396,7 @@ export async function deleteCompanyAction(
       .where(eq(deals.company_id, companyId));
     for (const d of companyDeals) {
       await db.update(auditSubmissions).set({ deal_id: null }).where(eq(auditSubmissions.deal_id, d.id));
-      await db.update(outreachSequences).set({ deal_id: null }).where(eq(outreachSequences.deal_id, d.id));
+      await db.delete(outreachSequences).where(eq(outreachSequences.deal_id, d.id));
     }
 
     await db.delete(companies).where(eq(companies.id, companyId));
