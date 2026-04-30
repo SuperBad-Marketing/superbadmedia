@@ -6,6 +6,7 @@ import {
 } from "@/lib/db/schema/instagram";
 import { replyToComment, sendDirectMessage } from "./client";
 import { logActivity } from "@/lib/activity-log";
+import { getCredential } from "@/lib/integrations/getCredential";
 
 export type SendResult =
   | { ok: true; sentCount: number }
@@ -45,9 +46,12 @@ export async function sendApprovedReply(replyId: string): Promise<SendResult> {
     if (!reply.ig_conversation_id)
       return { ok: false, error: "No conversation ID for DM" };
 
+    const userToken = await getCredential("meta");
+    const messagingToken = userToken ?? account.access_token;
+
     const res = await sendDirectMessage(
       account.instagram_user_id,
-      account.access_token,
+      messagingToken,
       reply.ig_conversation_id,
       text,
     );

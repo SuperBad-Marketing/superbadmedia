@@ -15,6 +15,7 @@ import {
 import { sendPrivateReplyToComment } from "@/lib/channels/instagram/client";
 import { invokeLlmText } from "@/lib/ai/invoke";
 import { logActivity } from "@/lib/activity-log";
+import { getCredential } from "@/lib/integrations/getCredential";
 
 type Result<T = void> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -335,12 +336,14 @@ export async function retryFailedFiresAction(
 
   let succeeded = 0;
 
+  const userToken = await getCredential("meta");
+  const messagingToken = userToken ?? account.access_token;
   const senderId = account.page_id ?? account.instagram_user_id;
 
   for (const fire of failedFires) {
     const dmRes = await sendPrivateReplyToComment(
       senderId,
-      account.access_token,
+      messagingToken,
       fire.ig_comment_id,
       trigger.dm_message_text,
     );

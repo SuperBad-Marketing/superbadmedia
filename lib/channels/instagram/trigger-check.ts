@@ -11,12 +11,15 @@ import {
 } from "@/lib/channels/instagram/client";
 import type { InstagramAccountRow } from "@/lib/db/schema/instagram";
 import { logActivity } from "@/lib/activity-log";
+import { getCredential } from "@/lib/integrations/getCredential";
 
 export async function checkAndFireTriggersForComment(
   triggers: (typeof instagram_comment_triggers.$inferSelect)[],
   comment: IGComment,
   account: InstagramAccountRow,
 ): Promise<void> {
+  const userToken = await getCredential("meta");
+
   for (const trigger of triggers) {
     const alreadyFired = await db
       .select({ id: instagram_trigger_fires.id })
@@ -44,10 +47,11 @@ export async function checkAndFireTriggersForComment(
     let error: string | null = null;
 
     try {
+      const messagingToken = userToken ?? account.access_token;
       const senderId = account.page_id ?? account.instagram_user_id;
       const dmRes = await sendPrivateReplyToComment(
         senderId,
-        account.access_token,
+        messagingToken,
         comment.id,
         trigger.dm_message_text,
       );
