@@ -64,12 +64,12 @@ export function PublicCrtTurnOffEgg() {
 
   return (
     <AnimatePresence>
-      <PublicCrtActive key="public-crt-active" phase={phase as ActivePhase} />
+      <PublicCrtActive key="public-crt-active" phase={phase as ActivePhase} onDismiss={() => setPhase("idle")} />
     </AnimatePresence>
   );
 }
 
-function PublicCrtActive({ phase }: { phase: ActivePhase }) {
+function PublicCrtActive({ phase, onDismiss }: { phase: ActivePhase; onDismiss: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -147,6 +147,17 @@ function PublicCrtActive({ phase }: { phase: ActivePhase }) {
           >
             close this tab.
           </p>
+
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="mt-4 text-xs tracking-widest uppercase cursor-pointer transition-colors"
+            style={{ color: neutral[600] }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = neutral[500])}
+            onMouseLeave={(e) => (e.currentTarget.style.color = neutral[600])}
+          >
+            or don&rsquo;t. dismiss.
+          </button>
         </motion.div>
       )}
 

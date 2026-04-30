@@ -50,6 +50,23 @@ export function MelbourneRainEgg() {
     };
   }, [handleFired]);
 
+  const dismiss = useCallback(() => {
+    setVisible(false);
+    if (audioRef.current) {
+      const audio = audioRef.current;
+      let vol = audio.volume;
+      const fadeOut = setInterval(() => {
+        vol = Math.max(vol - 0.005, 0);
+        audio.volume = vol;
+        if (vol <= 0) {
+          clearInterval(fadeOut);
+          audio.pause();
+          audioRef.current = null;
+        }
+      }, 50);
+    }
+  }, []);
+
   return (
     <AnimatePresence>
       {visible && (
@@ -61,12 +78,25 @@ export function MelbourneRainEgg() {
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
-          <p
-            className="pointer-events-auto max-w-lg text-center font-serif text-sm leading-relaxed italic"
-            style={{ color: neutral[500] }}
-          >
-            raining in Melbourne. we&rsquo;re glad you&rsquo;re inside.
-          </p>
+          <div className="pointer-events-auto flex items-start gap-3">
+            <p
+              className="max-w-lg text-center font-serif text-sm leading-relaxed italic"
+              style={{ color: neutral[500] }}
+            >
+              raining in Melbourne. we&rsquo;re glad you&rsquo;re inside.
+            </p>
+            <button
+              type="button"
+              onClick={dismiss}
+              className="shrink-0 mt-0.5 text-[13px] leading-none cursor-pointer transition-colors"
+              style={{ color: neutral[600] }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = neutral[500])}
+              onMouseLeave={(e) => (e.currentTarget.style.color = neutral[600])}
+              aria-label="Dismiss"
+            >
+              &times;
+            </button>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

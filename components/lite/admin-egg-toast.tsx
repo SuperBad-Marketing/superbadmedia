@@ -48,7 +48,7 @@ export function AdminEggToast({ eggId, copy }: AdminEggToastProps) {
           className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
         >
           <div
-            className="rounded-xl px-6 py-4 shadow-2xl"
+            className="rounded-xl px-6 py-4 shadow-2xl flex items-start gap-3"
             style={{
               backgroundColor: neutral[800],
               border: `1px solid ${neutral[700]}`,
@@ -61,6 +61,17 @@ export function AdminEggToast({ eggId, copy }: AdminEggToastProps) {
             >
               {copy}
             </p>
+            <button
+              type="button"
+              onClick={() => setPhase("exiting")}
+              className="shrink-0 mt-0.5 text-[13px] leading-none cursor-pointer transition-colors"
+              style={{ color: neutral[500] }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = neutral[300])}
+              onMouseLeave={(e) => (e.currentTarget.style.color = neutral[500])}
+              aria-label="Dismiss"
+            >
+              &times;
+            </button>
           </div>
         </motion.div>
       )}
