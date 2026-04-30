@@ -15,7 +15,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
-import { getSkills, deleteSkill, learnFromUrl } from '../../lib/api'
+import { getSkills, deleteSkill, learnFromUrl, createManualSkill } from '../../lib/api'
 import type { SkillFile } from '../../types'
 
 interface ResourceSuggestion {
@@ -372,17 +372,8 @@ function QuickAdd() {
 
     try {
       if (source === 'notes') {
-        const newSkill: SkillFile = {
-          id: crypto.randomUUID(),
-          name: input.trim().slice(0, 50),
-          category: 'personal',
-          source: 'manual',
-          content: input.trim(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          topicCount: 1,
-        }
-        addSkill(newSkill)
+        const skill = await createManualSkill(input.trim().slice(0, 50), input.trim())
+        addSkill(skill)
       } else {
         const skill = await learnFromUrl(input.trim())
         addSkill(skill)

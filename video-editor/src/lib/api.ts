@@ -63,6 +63,16 @@ export async function getSkills(): Promise<SkillFile[]> {
   return res.json()
 }
 
+export async function createManualSkill(name: string, content: string): Promise<SkillFile> {
+  const res = await fetch(`${API_BASE}/skills/learn`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content }),
+  })
+  if (!res.ok) throw new Error('Failed to create skill')
+  return res.json()
+}
+
 export async function deleteSkill(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/skills/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to delete skill')
