@@ -16,7 +16,7 @@ const MODES: { id: RefineMode; label: string; icon: typeof Play }[] = [
 ]
 
 function ModeFallback() {
-  return <ViewLoader />
+  return <ViewLoader message="Setting up the tools." />
 }
 
 export default function RefineView() {

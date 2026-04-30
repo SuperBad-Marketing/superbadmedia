@@ -20,7 +20,7 @@ export default function ImportScreen() {
     if (!folderPath) return
 
     setImporting(true)
-    setStatusText('Starting import...')
+    setStatusText('Kicking things off.')
 
     try {
       const job = await startIngest(folderPath, 'New Project', sourceType)
@@ -32,11 +32,11 @@ export default function ImportScreen() {
           setProgress(status.progress)
 
           if (status.status === 'copying') {
-            setStatusText(`Copying files. ${status.processedFiles} of ${status.totalFiles}.`)
+            setStatusText(`Grabbing your files. ${status.processedFiles} of ${status.totalFiles}.`)
           } else if (status.status === 'analyzing') {
-            setStatusText(`Watching your footage. ${status.processedFiles} of ${status.totalFiles}.`)
+            setStatusText(`Watching everything. ${status.processedFiles} of ${status.totalFiles} clips reviewed.`)
           } else if (status.status === 'creating-project') {
-            setStatusText('Setting up your project.')
+            setStatusText('Nearly there. Wiring it all together.')
           }
 
           if (status.status === 'complete') {

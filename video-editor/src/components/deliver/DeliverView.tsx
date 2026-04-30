@@ -14,7 +14,7 @@ const MODES: { id: DeliverMode; label: string; icon: typeof Package }[] = [
 ]
 
 function ModeFallback() {
-  return <ViewLoader />
+  return <ViewLoader message="Warming up the export engine." />
 }
 
 export default function DeliverView() {

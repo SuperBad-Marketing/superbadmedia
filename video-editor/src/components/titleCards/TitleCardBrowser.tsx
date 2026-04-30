@@ -83,7 +83,7 @@ export default function TitleCardBrowser() {
 
       <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
-          <PanelLoader />
+          <PanelLoader message="Loading title cards." />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <Type size={18} className="text-text-dim opacity-40" />

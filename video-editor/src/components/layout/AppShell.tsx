@@ -15,7 +15,7 @@ const RefineView = lazy(() => import('../refine/RefineView'))
 const DeliverView = lazy(() => import('../deliver/DeliverView'))
 
 function ViewFallback() {
-  return <ViewLoader />
+  return <ViewLoader message="Loading your workspace." />
 }
 
 function WorkspaceView({ phase }: { phase: WorkflowPhase }) {

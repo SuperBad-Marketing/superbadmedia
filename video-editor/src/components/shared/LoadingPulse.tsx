@@ -25,7 +25,7 @@ function Dots({ size = 'md' }: { size?: 'sm' | 'md' }) {
   )
 }
 
-export function ViewLoader({ message }: { message?: string }) {
+export function ViewLoader({ message = 'Getting things ready.' }: { message?: string }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center select-none">
       <motion.div
@@ -41,30 +41,37 @@ export function ViewLoader({ message }: { message?: string }) {
         >
           <Dots />
         </motion.div>
-        {message && (
-          <motion.p
-            className="text-text-dim text-xs"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
-          >
-            {message}
-          </motion.p>
-        )}
+        <motion.p
+          className="text-text-dim text-xs"
+          key={message}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+        >
+          {message}
+        </motion.p>
       </motion.div>
     </div>
   )
 }
 
-export function PanelLoader() {
+export function PanelLoader({ message = 'Pulling that up.' }: { message?: string }) {
   return (
     <motion.div
-      className="flex items-center justify-center h-32"
+      className="flex flex-col items-center justify-center gap-3 h-32"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
     >
       <Dots />
+      <motion.p
+        className="text-text-dim text-[11px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.3 }}
+      >
+        {message}
+      </motion.p>
     </motion.div>
   )
 }
