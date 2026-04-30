@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
-import { motion } from 'motion/react'
-import { HardDrive, CreditCard, ArrowLeft } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
+import { HardDrive, CreditCard, ArrowLeft, AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { startIngest, getIngestStatus, selectFolder } from '../../lib/api'
 import { ProgressLoader } from '../shared/LoadingPulse'
@@ -14,22 +14,35 @@ export default function ImportScreen() {
   const [importing, setImporting] = useState(false)
   const [progress, setProgress] = useState(0)
   const [statusText, setStatusText] = useState('')
+  const [errorText, setErrorText] = useState('')
 
   const handleImport = useCallback(async (sourceType: 'card' | 'folder') => {
     const folderPath = await selectFolder()
     if (!folderPath) return
 
     setImporting(true)
+    setProgress(0)
     setStatusText('Kicking things off.')
+    setErrorText('')
 
     try {
       const job = await startIngest(folderPath, 'New Project', sourceType)
       setCurrentIngest(job)
 
+      let lastProgress = -1
+      let staleTicks = 0
+
       const poll = setInterval(async () => {
         try {
           const status = await getIngestStatus(job.id)
           setProgress(status.progress)
+
+          if (status.progress === lastProgress) {
+            staleTicks++
+          } else {
+            staleTicks = 0
+            lastProgress = status.progress
+          }
 
           if (status.status === 'copying') {
             setStatusText(`Grabbing your files. ${status.processedFiles} of ${status.totalFiles}.`)
@@ -54,17 +67,21 @@ export default function ImportScreen() {
           } else if (status.status === 'error') {
             clearInterval(poll)
             setImporting(false)
-            setStatusText('Something went wrong. Try again.')
+            setErrorText(status.errors?.length ? status.errors[0] : 'Something went wrong. Try again.')
+          } else if (staleTicks > 120) {
+            clearInterval(poll)
+            setImporting(false)
+            setErrorText('Import stalled. Check the folder has media files and try again.')
           }
         } catch {
           clearInterval(poll)
           setImporting(false)
-          setStatusText('Lost connection. Try again.')
+          setErrorText('Lost connection to the server. Make sure the backend is running.')
         }
       }, 1000)
     } catch {
       setImporting(false)
-      setStatusText('Couldn\'t start import. Try again.')
+      setErrorText('Server not reachable. Start the backend with npm run dev:server.')
     }
   }, [setClips, setCurrentIngest, setCurrentProject, setWorkflowPhase])
 
@@ -88,6 +105,21 @@ export default function ImportScreen() {
         <p className="text-text-dim text-base mt-6">
           Point us at the files. We'll handle the rest.
         </p>
+
+        <AnimatePresence>
+          {errorText && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-10 flex items-center gap-3 px-5 py-3.5 rounded-xl bg-red-500/10 border border-red-500/20 max-w-md"
+            >
+              <AlertCircle size={16} className="text-red-400 shrink-0" />
+              <p className="text-sm text-red-300">{errorText}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex gap-6 mt-20">
           <motion.button

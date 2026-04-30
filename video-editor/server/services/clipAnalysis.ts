@@ -1,7 +1,11 @@
-import { execSync } from 'child_process'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 import path from 'path'
-import fs from 'fs'
+import fs from 'fs/promises'
+import fss from 'fs'
 import crypto from 'crypto'
+
+const execAsync = promisify(exec)
 
 interface ClipMetadata {
   id: string
@@ -43,7 +47,7 @@ export class ClipAnalysisService {
   private analysedClips: ClipAnalysisResult[] = []
 
   constructor() {
-    fs.mkdirSync(THUMBNAIL_DIR, { recursive: true })
+    fss.mkdirSync(THUMBNAIL_DIR, { recursive: true })
   }
 
   getAllAnalysed(): ClipAnalysisResult[] {
@@ -54,8 +58,8 @@ export class ClipAnalysisService {
     const id = crypto.randomUUID()
     const fileName = path.basename(filePath)
 
-    const metadata = this.getMetadata(filePath)
-    const thumbnailPath = this.generateThumbnail(filePath, id, metadata.duration)
+    const metadata = await this.getMetadata(filePath)
+    const thumbnailPath = await this.generateThumbnail(filePath, id, metadata.duration)
     const analysis = this.analyzeQuality(filePath, metadata)
 
     const result: ClipAnalysisResult = {
@@ -67,7 +71,6 @@ export class ClipAnalysisService {
       analysis,
     }
 
-    // Cache result for later search
     const existing = this.analysedClips.findIndex(c => c.filePath === filePath)
     if (existing !== -1) {
       this.analysedClips[existing] = result
@@ -83,14 +86,14 @@ export class ClipAnalysisService {
     projectId: string,
     onClipReady?: (clip: ClipAnalysisResult, done: number, total: number) => void,
   ): Promise<ClipAnalysisResult[]> {
-    const videoExtensions = ['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mts', '.r3d', '.braw']
+    const videoExtensions = new Set(['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mts', '.r3d', '.braw'])
 
-    const files = this.walkDir(dirPath).filter(f => {
+    const files = (await this.walkDir(dirPath)).filter(f => {
       const ext = path.extname(f).toLowerCase()
-      return videoExtensions.includes(ext)
+      return videoExtensions.has(ext)
     })
 
-    const CONCURRENCY = 6
+    const CONCURRENCY = 4
     const results: ClipAnalysisResult[] = []
 
     for (let i = 0; i < files.length; i += CONCURRENCY) {
@@ -109,14 +112,14 @@ export class ClipAnalysisService {
     return results
   }
 
-  private getMetadata(filePath: string): Omit<ClipMetadata, 'id' | 'filePath' | 'fileName' | 'thumbnailPath'> {
+  private async getMetadata(filePath: string): Promise<Omit<ClipMetadata, 'id' | 'filePath' | 'fileName' | 'thumbnailPath'>> {
     try {
-      const probeJson = execSync(
+      const { stdout } = await execAsync(
         `ffprobe -v quiet -print_format json -show_format -show_streams "${filePath}"`,
-        { encoding: 'utf-8', timeout: 30000 }
+        { timeout: 30000 }
       )
 
-      const probe = JSON.parse(probeJson)
+      const probe = JSON.parse(stdout)
       const videoStream = probe.streams?.find((s: any) => s.codec_type === 'video')
       const audioStream = probe.streams?.find((s: any) => s.codec_type === 'audio')
       const format = probe.format || {}
@@ -156,20 +159,20 @@ export class ClipAnalysisService {
     }
   }
 
-  private generateThumbnail(filePath: string, clipId: string, duration: number): string {
+  private async generateThumbnail(filePath: string, clipId: string, duration: number): Promise<string> {
     const timestamp = Math.max(0, duration * 0.25)
     const thumbnailPath = path.join(THUMBNAIL_DIR, `${clipId}.jpg`)
 
     try {
-      execSync(
+      await execAsync(
         `ffmpeg -y -ss ${timestamp} -i "${filePath}" -vframes 1 -q:v 3 -vf "scale=320:-1" "${thumbnailPath}"`,
-        { timeout: 15000, stdio: 'pipe' }
+        { timeout: 15000 }
       )
     } catch {
       try {
-        execSync(
+        await execAsync(
           `ffmpeg -y -i "${filePath}" -vframes 1 -q:v 3 -vf "scale=320:-1" "${thumbnailPath}"`,
-          { timeout: 15000, stdio: 'pipe' }
+          { timeout: 15000 }
         )
       } catch {
         return ''
@@ -241,15 +244,16 @@ export class ClipAnalysisService {
     }
   }
 
-  private walkDir(dir: string): string[] {
+  private async walkDir(dir: string): Promise<string[]> {
     const files: string[] = []
     try {
-      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      const entries = await fs.readdir(dir, { withFileTypes: true })
       for (const entry of entries) {
         if (entry.name.startsWith('.')) continue
+        if (entry.name === '__MACOSX') continue
         const fullPath = path.join(dir, entry.name)
         if (entry.isDirectory()) {
-          files.push(...this.walkDir(fullPath))
+          files.push(...await this.walkDir(fullPath))
         } else {
           files.push(fullPath)
         }

@@ -1,6 +1,8 @@
-import fs from 'fs'
+import fs from 'fs/promises'
+import fss from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import os from 'os'
 import { getClipAnalysisService } from './clipAnalysis.js'
 
 interface IngestJob {
@@ -17,9 +19,12 @@ interface IngestJob {
   clips?: any[]
 }
 
-const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mpg', '.mts', '.r3d', '.braw', '.ari']
-const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.aac', '.flac', '.aif', '.aiff']
-const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tiff', '.tif', '.cr2', '.cr3', '.arw', '.nef', '.dng']
+const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mpg', '.mts', '.r3d', '.braw', '.ari'])
+const AUDIO_EXTENSIONS = new Set(['.wav', '.mp3', '.aac', '.flac', '.aif', '.aiff'])
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.tiff', '.tif', '.cr2', '.cr3', '.arw', '.nef', '.dng'])
+const MEDIA_EXTENSIONS = new Set([...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS, ...IMAGE_EXTENSIONS])
+
+const PROJECTS_DIR = path.join(os.homedir(), 'SuperEdits', 'projects')
 
 export class IngestService {
   private jobs: Map<string, IngestJob> = new Map()
@@ -29,7 +34,7 @@ export class IngestService {
     const projectId = crypto.randomUUID()
     const date = new Date().toISOString().split('T')[0]
     const safeName = clientName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-')
-    const destBase = path.join(path.dirname(sourcePath), `${safeName}_${date}`)
+    const destBase = path.join(PROJECTS_DIR, `${safeName}_${date}_${id.slice(0, 8)}`)
 
     const job: IngestJob = {
       id,
@@ -57,43 +62,59 @@ export class IngestService {
     try {
       const subDirs = ['footage', 'audio', 'graphics', 'exports', 'project']
       for (const dir of subDirs) {
-        fs.mkdirSync(path.join(destBase, dir), { recursive: true })
+        await fs.mkdir(path.join(destBase, dir), { recursive: true })
       }
 
       job.status = 'copying'
-      const allFiles = this.walkDir(job.sourcePath)
-      job.totalFiles = allFiles.length
 
-      for (const filePath of allFiles) {
+      const allFiles = await this.walkDir(job.sourcePath)
+      const mediaFiles = allFiles.filter(f => MEDIA_EXTENSIONS.has(path.extname(f).toLowerCase()))
+      job.totalFiles = mediaFiles.length
+
+      if (mediaFiles.length === 0) {
+        job.status = 'error'
+        job.errors.push('No media files found in the selected folder.')
+        return
+      }
+
+      for (let i = 0; i < mediaFiles.length; i++) {
+        const filePath = mediaFiles[i]
         const ext = path.extname(filePath).toLowerCase()
         let destDir = 'footage'
 
-        if (AUDIO_EXTENSIONS.includes(ext)) destDir = 'audio'
-        else if (IMAGE_EXTENSIONS.includes(ext)) destDir = 'graphics'
-        else if (!VIDEO_EXTENSIONS.includes(ext)) continue
+        if (AUDIO_EXTENSIONS.has(ext)) destDir = 'audio'
+        else if (IMAGE_EXTENSIONS.has(ext)) destDir = 'graphics'
 
         const fileName = path.basename(filePath)
         const destPath = path.join(destBase, destDir, fileName)
 
         try {
           if (job.sourceType === 'card') {
-            fs.copyFileSync(filePath, destPath)
+            await fs.copyFile(filePath, destPath)
           } else {
-            if (!fs.existsSync(destPath)) {
-              fs.symlinkSync(filePath, destPath)
+            try {
+              await fs.access(destPath)
+            } catch {
+              await fs.symlink(filePath, destPath)
             }
           }
         } catch (err: any) {
           job.errors.push(`Failed to process ${fileName}: ${err.message}`)
         }
 
-        job.processedFiles++
+        job.processedFiles = i + 1
         job.progress = Math.round((job.processedFiles / job.totalFiles) * 80)
+
+        // Yield event loop every 10 files so polls can respond
+        if (i % 10 === 0) {
+          await new Promise(r => setImmediate(r))
+        }
       }
 
       job.status = 'analyzing'
       job.progress = 80
       job.clips = []
+      job.processedFiles = 0
 
       const clipAnalysis = getClipAnalysisService()
       await clipAnalysis.analyzeDirectory(
@@ -109,7 +130,7 @@ export class IngestService {
       job.progress = 98
 
       job.status = 'creating-project'
-      await new Promise(r => setTimeout(r, 1000))
+      await new Promise(r => setTimeout(r, 500))
 
       job.status = 'complete'
       job.progress = 100
@@ -119,15 +140,16 @@ export class IngestService {
     }
   }
 
-  private walkDir(dir: string): string[] {
+  private async walkDir(dir: string): Promise<string[]> {
     const files: string[] = []
     try {
-      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      const entries = await fs.readdir(dir, { withFileTypes: true })
       for (const entry of entries) {
         if (entry.name.startsWith('.')) continue
+        if (entry.name === '__MACOSX') continue
         const fullPath = path.join(dir, entry.name)
         if (entry.isDirectory()) {
-          files.push(...this.walkDir(fullPath))
+          files.push(...await this.walkDir(fullPath))
         } else {
           files.push(fullPath)
         }
