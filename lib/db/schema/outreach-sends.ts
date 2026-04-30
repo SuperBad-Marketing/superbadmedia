@@ -19,13 +19,15 @@ export const outreachSends = sqliteTable(
     draft_id: text("draft_id")
       .notNull()
       .references(() => outreachDrafts.id),
+    candidate_id: text("candidate_id"),
     sequence_id: text("sequence_id").notNull(),
-    deal_id: text("deal_id").notNull(),
+    deal_id: text("deal_id"),
 
     resend_message_id: text("resend_message_id").notNull().unique(),
     sent_at: integer("sent_at", { mode: "timestamp_ms" }).notNull(),
 
-    // Engagement signals from Resend webhooks
+    delivered_at: integer("delivered_at", { mode: "timestamp_ms" }),
+
     first_opened_at: integer("first_opened_at", { mode: "timestamp_ms" }),
     open_count: integer("open_count").notNull().default(0),
     first_open_dwell_sec: integer("first_open_dwell_sec"),
@@ -45,6 +47,7 @@ export const outreachSends = sqliteTable(
       t.sequence_id,
       t.sent_at,
     ),
+    by_candidate: index("outreach_sends_candidate_idx").on(t.candidate_id),
     by_deal: index("outreach_sends_deal_idx").on(t.deal_id),
     by_resend: index("outreach_sends_resend_idx").on(t.resend_message_id),
   }),

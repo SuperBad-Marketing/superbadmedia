@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const TABS = [
   { label: "Queue", href: "/lite/admin/lead-gen", active: true },
+  { label: "Inbox", href: "/lite/admin/lead-gen/inbox", active: true },
   { label: "Candidates", href: "/lite/admin/lead-gen/candidates", active: true },
   { label: "Runs", href: "/lite/admin/lead-gen/runs", active: true },
   { label: "Metrics", href: "/lite/admin/lead-gen/metrics", active: true },

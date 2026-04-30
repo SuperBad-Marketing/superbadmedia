@@ -358,6 +358,7 @@ export async function executeSend(
     body: htmlBody + renderUnsubscribeFooter(unsubUrl),
     classification: "outreach",
     purpose: `lead_gen_${draft.touch_kind}_touch_${draft.touch_index}`,
+    from: SUPERBAD_FROM_STRING,
     replyTo: SUPERBAD_SENDER.reply_to,
     headers: {
       "List-Unsubscribe": `<${unsubUrl}>`,
@@ -381,6 +382,7 @@ export async function executeSend(
   await dbInstance.insert(outreachSends).values({
     id: sendId,
     draft_id: draftId,
+    candidate_id: seq.candidate_id,
     sequence_id: sequenceId,
     deal_id: seq.deal_id,
     resend_message_id: sendResult.messageId ?? randomUUID(),

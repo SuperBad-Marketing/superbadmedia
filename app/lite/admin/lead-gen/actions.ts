@@ -25,9 +25,9 @@ import { isBlockedFromOutreach } from "@/lib/lead-gen/dnc";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
 import { enforceWarmupCap, recordWarmupSend } from "@/lib/lead-gen/warmup";
 import { isWithinQuietWindow } from "@/lib/channels/email/quiet-window";
-import { autoEnrichCompanyIfNeeded } from "@/lib/crm/auto-enrich";
+
 import { createUnsubscribeUrl } from "@/lib/lead-gen/unsubscribe-token";
-import { SUPERBAD_SENDER } from "@/lib/lead-gen/sender";
+import { SUPERBAD_SENDER, SUPERBAD_FROM_STRING } from "@/lib/lead-gen/sender";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -705,58 +705,21 @@ export async function approveAndSendManualDraftAction(
     return { ok: false, error: "Outside send hours — try again during the quiet window." };
   }
 
-  // Resolve or create deal + sequence
-  let dealId = candidate.promoted_to_deal_id;
-
-  if (!dealId) {
-    try {
-      const dealResult = createDealFromLead({
-        company: {
-          name: candidate.company_name,
-          domain: candidate.domain ?? undefined,
-          billing_mode: "stripe",
-        },
-        contact: {
-          name: candidate.contact_name ?? candidate.company_name,
-          email: candidate.contact_email,
-          role: candidate.contact_role ?? undefined,
-        },
-        source: `lead_gen_${candidate.sourced_from}`,
-      });
-
-      if (!dealResult.deal) {
-        return { ok: false, error: "Failed to create deal for this candidate." };
-      }
-
-      dealId = dealResult.deal.id;
-
-      await db
-        .update(leadCandidates)
-        .set({ promoted_to_deal_id: dealId, promoted_at: new Date() })
-        .where(eq(leadCandidates.id, candidateId));
-
-      // Fire-and-forget enrichment for the new company
-      void autoEnrichCompanyIfNeeded(dealResult.company.id, { by });
-    } catch {
-      return { ok: false, error: "Failed to create deal — check candidate data." };
-    }
-  }
-
   const sequenceId = randomUUID();
   await db.insert(outreachSequences).values({
     id: sequenceId,
-    deal_id: dealId,
+    candidate_id: candidateId,
+    deal_id: candidate.promoted_to_deal_id ?? undefined,
     track: candidate.qualified_track as "saas" | "retainer",
     status: "active",
     touches_sent: 0,
   });
 
-  // Persist + approve draft
   const draftId = randomUUID();
   await db.insert(outreachDrafts).values({
     id: draftId,
     candidate_id: candidateId,
-    deal_id: dealId,
+    deal_id: candidate.promoted_to_deal_id ?? undefined,
     sequence_id: sequenceId,
     touch_kind: "first_touch",
     touch_index: 1,
@@ -790,6 +753,7 @@ export async function approveAndSendManualDraftAction(
     body: htmlBody + unsubFooter,
     classification: "outreach",
     purpose: "lead_gen_first_touch_manual",
+    from: SUPERBAD_FROM_STRING,
     replyTo: SUPERBAD_SENDER.reply_to,
     headers: {
       "List-Unsubscribe": `<${unsubUrl}>`,
@@ -810,13 +774,13 @@ export async function approveAndSendManualDraftAction(
     return { ok: false, error: sendResult.reason ?? "Send failed." };
   }
 
-  // Record send
   const sendId = randomUUID();
   await db.insert(outreachSends).values({
     id: sendId,
     draft_id: draftId,
+    candidate_id: candidateId,
     sequence_id: sequenceId,
-    deal_id: dealId,
+    deal_id: candidate.promoted_to_deal_id ?? undefined,
     resend_message_id: sendResult.messageId ?? randomUUID(),
     sent_at: new Date(),
   });
@@ -841,7 +805,7 @@ export async function approveAndSendManualDraftAction(
 
   await logActivity({
     kind: "outreach_sent",
-    dealId,
+    dealId: candidate.promoted_to_deal_id ?? undefined,
     body: `Manual approve & send: first touch to ${candidate.contact_email}`,
     createdBy: by,
     meta: {

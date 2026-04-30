@@ -5,9 +5,9 @@
 
 export const SUPERBAD_SENDER = {
   display_name: "Andy Robinson",
-  local_part: "hi",
-  domain: "contact.superbadmedia.com.au",
-  reply_to: "hi@contact.superbadmedia.com.au",
+  local_part: "andy",
+  domain: "superbadmedia.com.au",
+  reply_to: "andy@superbadmedia.com.au",
 } as const;
 
 export const SUPERBAD_FROM_STRING =

@@ -56,6 +56,8 @@ export interface SendEmailParams {
   headers?: Record<string, string>;
   /** Optional file attachments (e.g. PDF reports) */
   attachments?: Array<{ filename: string; content: Buffer }>;
+  /** Optional from address override (defaults to EMAIL_FROM env vars) */
+  from?: string;
 }
 
 export interface SendEmailResult {
@@ -107,14 +109,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   }
 
   // --- Send via Resend ---
-  const from = process.env.EMAIL_FROM_NAME
-    ? `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM ?? "support@superbadmedia.com.au"}>`
-    : (process.env.EMAIL_FROM ?? "support@superbadmedia.com.au");
+  const fromAddress = params.from
+    ?? (process.env.EMAIL_FROM_NAME
+      ? `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM ?? "support@superbadmedia.com.au"}>`
+      : (process.env.EMAIL_FROM ?? "support@superbadmedia.com.au"));
 
   const html = wrapEmailHtml(body, preheader);
 
   const { data, error } = await resend.emails.send({
-    from,
+    from: fromAddress,
     to: recipients,
     subject,
     html,

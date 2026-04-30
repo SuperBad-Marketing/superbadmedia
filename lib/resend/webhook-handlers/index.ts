@@ -4,6 +4,7 @@ import { db as defaultDb } from "@/lib/db";
 import settings from "@/lib/settings";
 import { handleEmailBounced } from "./email-bounced";
 import { handleEmailComplained } from "./email-complained";
+import { handleEmailDelivered } from "./email-delivered";
 import { handleEmailOpened } from "./email-opened";
 import { handleEmailClicked } from "./email-clicked";
 import {
@@ -79,6 +80,8 @@ export async function dispatchResendEvent(
       }
       return result;
     }
+    case "email.delivered":
+      return handleEmailDelivered(event, handlerOpts);
     case "email.opened":
       return handleEmailOpened(event, handlerOpts);
     case "email.clicked":

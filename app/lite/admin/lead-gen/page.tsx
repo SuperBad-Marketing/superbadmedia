@@ -7,6 +7,7 @@ import { LeadGenTabs } from "./_components/lead-gen-tabs";
 import { QueueTab } from "./QueueTab";
 import { LeadGenRunButton } from "./_components/lead-gen-run-button";
 import { DiscoverySuggestions } from "./_components/discovery-suggestions";
+import { InboxSummaryCard } from "./_components/inbox-summary-card";
 
 export const metadata: Metadata = {
   title: "Lead Gen — SuperBad",
@@ -62,6 +63,9 @@ export default async function LeadGenQueuePage() {
         </div>
       </header>
       <LeadGenTabs currentPath="/lite/admin/lead-gen" />
+      <div className="px-4">
+        <InboxSummaryCard />
+      </div>
       <DiscoverySuggestions />
       <QueueTab drafts={drafts} headerData={headerData} llmEnabled={llmEnabled} />
     </div>

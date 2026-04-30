@@ -280,9 +280,19 @@ export async function POST(req: Request): Promise<NextResponse> {
       },
     });
 
-    // Stop active outreach sequence with stopped_reply
-    if (candidate.promoted_to_deal_id) {
-      const activeSeqs = await db
+    // Stop active outreach sequences — check candidate_id first, then deal_id
+    let activeSeqs = await db
+      .select({ id: outreachSequences.id })
+      .from(outreachSequences)
+      .where(
+        and(
+          eq(outreachSequences.candidate_id, candidate.id),
+          eq(outreachSequences.status, "active"),
+        ),
+      );
+
+    if (activeSeqs.length === 0 && candidate.promoted_to_deal_id) {
+      activeSeqs = await db
         .select({ id: outreachSequences.id })
         .from(outreachSequences)
         .where(
@@ -291,18 +301,19 @@ export async function POST(req: Request): Promise<NextResponse> {
             eq(outreachSequences.status, "active"),
           ),
         );
+    }
 
-      for (const seq of activeSeqs) {
-        await db
-          .update(outreachSequences)
-          .set({
-            status: "stopped_reply",
-            stopped_reason: `Inbound reply: ${result.classification}`,
-          })
-          .where(eq(outreachSequences.id, seq.id));
-      }
+    for (const seq of activeSeqs) {
+      await db
+        .update(outreachSequences)
+        .set({
+          status: "stopped_reply",
+          stopped_reason: `Inbound reply: ${result.classification}`,
+        })
+        .where(eq(outreachSequences.id, seq.id));
+    }
 
-      // Advance deal contacted → conversation on inbound reply
+    if (candidate.promoted_to_deal_id) {
       const [deal] = await db
         .select({ id: deals.id, stage: deals.stage, company_id: deals.company_id })
         .from(deals)
