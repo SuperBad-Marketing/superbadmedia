@@ -187,6 +187,8 @@ export const MODELS = {
   // productions (2)
   "productions-angle-gen": "sonnet",
   "productions-brainstorm": "sonnet",
+  // projects (1)
+  "project-breakdown": "opus",
 } as const satisfies Record<string, ModelTier>;
 
 export type ModelJobSlug = keyof typeof MODELS;
@@ -242,6 +244,8 @@ const PROFILE_INJECTION_EXCLUDED: ReadonlySet<ModelJobSlug> = new Set([
   // Profile's own generators — avoid circular injection
   "profile-generate-prose-summary",
   "profile-refine-braindump",
+  // Projects — structural analysis, no voice
+  "project-breakdown",
 ]);
 
 export function isProfileInjectionExcluded(job: ModelJobSlug): boolean {
