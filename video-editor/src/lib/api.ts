@@ -1,4 +1,4 @@
-import type { ChatAction, IngestJob, MusicTrack, SkillFile, SfxPreset, TransitionPreset, TitleCardPreset } from '../types'
+import type { ChatAction, IngestJob, MusicTrack, SkillFile, SfxPreset, EpidemicSfx, TransitionPreset, TitleCardPreset } from '../types'
 
 const API_BASE = '/api'
 
@@ -144,6 +144,12 @@ export async function getSfxLibrary(): Promise<SfxPreset[]> {
 export async function searchSfx(query: string): Promise<SfxPreset[]> {
   const res = await fetch(`${API_BASE}/sfx/search?q=${encodeURIComponent(query)}`)
   if (!res.ok) throw new Error('Failed to search SFX')
+  return res.json()
+}
+
+export async function searchEpidemicSfx(query: string): Promise<EpidemicSfx[]> {
+  const res = await fetch(`${API_BASE}/sfx/epidemic/search?q=${encodeURIComponent(query)}`)
+  if (!res.ok) throw new Error('Failed to search Epidemic Sound SFX')
   return res.json()
 }
 

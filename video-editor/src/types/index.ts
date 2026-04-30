@@ -146,6 +146,19 @@ export interface SfxPreset {
   tags: string[]
 }
 
+export interface EpidemicSfx {
+  id: string
+  title: string
+  duration: number
+  category: string
+  subCategory: string
+  tags: string[]
+  previewUrl?: string
+  waveformUrl?: string
+  coverUrl?: string
+  source: 'epidemic'
+}
+
 export interface TransitionPreset {
   id: string
   name: string
