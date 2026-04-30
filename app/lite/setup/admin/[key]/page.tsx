@@ -213,6 +213,7 @@ function buildMetaAuthorizeUrl(): string {
     response_type: "code",
     redirect_uri: redirectUri,
     scope: META_OAUTH_SCOPES.join(","),
+    auth_type: "rerequest",
   });
   return `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 }
