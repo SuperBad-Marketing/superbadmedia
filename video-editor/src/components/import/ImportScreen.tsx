@@ -48,6 +48,8 @@ export default function ImportScreen() {
             setStatusText(`Grabbing your files. ${status.processedFiles} of ${status.totalFiles}.`)
           } else if (status.status === 'analyzing') {
             setStatusText(`Watching everything. ${status.processedFiles} of ${status.totalFiles} clips reviewed.`)
+          } else if (status.status === 'cleaning-audio') {
+            setStatusText('Cleaning up the audio. Making things sound decent.')
           } else if (status.status === 'creating-project') {
             setStatusText('Nearly there. Wiring it all together.')
           }

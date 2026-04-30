@@ -141,7 +141,7 @@ export interface IngestJob {
   projectId: string
   sourcePath: string
   sourceType: 'card' | 'folder'
-  status: 'pending' | 'copying' | 'analyzing' | 'creating-project' | 'complete' | 'error'
+  status: 'pending' | 'copying' | 'analyzing' | 'cleaning-audio' | 'creating-project' | 'complete' | 'error'
   progress: number
   totalFiles: number
   processedFiles: number

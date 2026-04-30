@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import {
   Monitor,
@@ -16,7 +16,7 @@ import {
   Package,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve, startExport, getExportStatus } from '../../lib/api'
+import { sendToResolve, startExport, getExportStatus, uploadToCloudinary, checkCloudinaryStatus } from '../../lib/api'
 import ProgressRing from '../shared/ProgressRing'
 
 interface FormatOption {
@@ -151,12 +151,17 @@ export default function ExportView() {
   const [qualityOpen, setQualityOpen] = useState(false)
   const [destination, setDestination] = useState('~/Desktop/Exports')
   const [uploadToCloud, setUploadToCloud] = useState(false)
+  const [cloudinaryReady, setCloudinaryReady] = useState(false)
   const [notifyClient, setNotifyClient] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
 
   const resolveConnected = useAppStore((s) => s.resolveConnected)
   const hasTimeline = currentProject && storyboardClips.length > 0
+
+  useEffect(() => {
+    checkCloudinaryStatus().then((s) => setCloudinaryReady(s.configured)).catch(() => {})
+  }, [])
   const selectedCount = selectedFormats.size
 
   function toggleFormat(id: string) {
@@ -251,6 +256,30 @@ export default function ExportView() {
                     : 'rendering' as ExportStatus,
                 } : j))
                 if (status.status === 'complete') {
+                  if (uploadToCloud && cloudinaryReady) {
+                    setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
+                      ...j,
+                      status: 'uploading' as ExportStatus,
+                      progress: 0,
+                    } : j))
+                    try {
+                      await uploadToCloudinary(
+                        outputPath,
+                        currentProject?.name || 'exports',
+                      )
+                      setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
+                        ...j,
+                        status: 'complete' as ExportStatus,
+                        progress: 100,
+                      } : j))
+                    } catch {
+                      setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
+                        ...j,
+                        status: 'error' as ExportStatus,
+                        errorMessage: 'Rendered but Cloudinary upload failed',
+                      } : j))
+                    }
+                  }
                   done = true
                 }
               }
@@ -415,19 +444,25 @@ export default function ExportView() {
           {/* Upload to Cloudinary */}
           <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-2">
-              <Cloud size={13} className="text-text-dim" />
-              <span className="text-[11px] text-text-dim">Upload to Cloudinary</span>
+              <Cloud size={13} className={cloudinaryReady ? 'text-text-dim' : 'text-text-dim/40'} />
+              <span className={`text-[11px] ${cloudinaryReady ? 'text-text-dim' : 'text-text-dim/40'}`}>
+                Upload to Cloudinary
+              </span>
+              {!cloudinaryReady && (
+                <span className="text-[9px] text-text-dim/40 font-mono">not configured</span>
+              )}
             </div>
             <button
               type="button"
-              onClick={() => setUploadToCloud(!uploadToCloud)}
+              onClick={() => cloudinaryReady && setUploadToCloud(!uploadToCloud)}
+              disabled={!cloudinaryReady}
               className={`relative w-10 h-5 rounded-full transition-colors duration-150 ${
-                uploadToCloud ? 'bg-accent' : 'bg-surface-active'
-              }`}
+                uploadToCloud && cloudinaryReady ? 'bg-accent' : 'bg-surface-active'
+              } ${!cloudinaryReady ? 'opacity-30' : ''}`}
             >
               <div
                 className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150 ${
-                  uploadToCloud ? 'translate-x-5' : 'translate-x-0.5'
+                  uploadToCloud && cloudinaryReady ? 'translate-x-5' : 'translate-x-0.5'
                 }`}
               />
             </button>

@@ -4,13 +4,14 @@ import path from 'path'
 import crypto from 'crypto'
 import os from 'os'
 import { getClipAnalysisService } from './clipAnalysis.js'
+import { cleanupAudio, isDolbyConfigured } from './audioCleanup.js'
 
 interface IngestJob {
   id: string
   projectId: string
   sourcePath: string
   sourceType: 'card' | 'folder'
-  status: 'pending' | 'copying' | 'analyzing' | 'creating-project' | 'complete' | 'error'
+  status: 'pending' | 'copying' | 'analyzing' | 'cleaning-audio' | 'creating-project' | 'complete' | 'error'
   progress: number
   totalFiles: number
   processedFiles: number
@@ -127,8 +128,34 @@ export class IngestService {
           job.progress = 80 + Math.round((done / total) * 18)
         },
       )
-      job.progress = 98
+      job.progress = 95
 
+      // Audio cleanup — runs if any clips have noisy audio
+      const audioDir = path.join(destBase, 'audio-cleaned')
+      const clipsWithAudio = (job.clips || []).filter(
+        (c: any) => c.analysis?.audioQuality && c.analysis.audioQuality !== 'none',
+      )
+
+      if (clipsWithAudio.length > 0) {
+        job.status = 'cleaning-audio'
+        await fs.mkdir(audioDir, { recursive: true })
+
+        for (let i = 0; i < clipsWithAudio.length; i++) {
+          try {
+            const result = await cleanupAudio(clipsWithAudio[i].filePath, audioDir)
+            if (!result.skipped) {
+              clipsWithAudio[i].cleanedAudioPath = result.outputPath
+              clipsWithAudio[i].audioCleanupApplied = result.applied
+            }
+          } catch {
+            // Audio cleanup is best-effort — don't fail the ingest
+          }
+          job.progress = 95 + Math.round(((i + 1) / clipsWithAudio.length) * 3)
+          await new Promise(r => setImmediate(r))
+        }
+      }
+
+      job.progress = 98
       job.status = 'creating-project'
       await new Promise(r => setTimeout(r, 500))
 

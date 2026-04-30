@@ -376,3 +376,58 @@ export async function autoSelectSkills(
   const data = await res.json()
   return data.selectedIds
 }
+
+// Cloudinary
+export async function checkCloudinaryStatus(): Promise<{ configured: boolean }> {
+  const res = await fetch(`${API_BASE}/cloudinary/status`)
+  return res.json()
+}
+
+export async function uploadToCloudinary(
+  filePath: string,
+  folder?: string,
+): Promise<{ publicId: string; secureUrl: string; bytes: number }> {
+  const res = await fetch(`${API_BASE}/cloudinary/upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filePath, folder }),
+  })
+  if (!res.ok) throw new Error('Cloudinary upload failed')
+  return res.json()
+}
+
+// Audio cleanup
+export async function checkAudioStatus(): Promise<{ dolbyConfigured: boolean; ffmpegAvailable: boolean }> {
+  const res = await fetch(`${API_BASE}/audio/status`)
+  return res.json()
+}
+
+export async function analyzeAudio(filePath: string): Promise<{
+  hasAudio: boolean
+  noiseLevel: 'clean' | 'moderate' | 'noisy'
+  peakDb: number
+  needsCleanup: boolean
+}> {
+  const res = await fetch(`${API_BASE}/audio/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filePath }),
+  })
+  if (!res.ok) throw new Error('Audio analysis failed')
+  return res.json()
+}
+
+// Settings
+export async function getSettings(): Promise<Record<string, boolean>> {
+  const res = await fetch(`${API_BASE}/settings`)
+  return res.json()
+}
+
+export async function saveSettings(settings: Record<string, string>): Promise<{ success: boolean; error?: string }> {
+  const res = await fetch(`${API_BASE}/settings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  })
+  return res.json()
+}
