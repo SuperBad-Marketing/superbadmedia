@@ -17,6 +17,7 @@ import {
   updateTrialShootPlan,
   type TrialShootStatus,
 } from "@/lib/crm";
+import { normalisePhone } from "@/lib/crm/normalise";
 
 import type {
   InfraEmailListValue,
@@ -244,10 +245,6 @@ export interface ContactInput {
 
 function normaliseEmail(raw: string): string {
   return raw.trim().toLowerCase();
-}
-
-function normalisePhone(raw: string): string {
-  return raw.replace(/[^+\d]/g, "");
 }
 
 export async function createContactAction(

@@ -12,9 +12,7 @@ export function normaliseEmail(raw: string | null | undefined): string | null {
 }
 
 export function normalisePhone(raw: string | null | undefined): string | null {
-  if (raw == null) return null;
-  const digits = raw.replace(/\D+/g, "");
-  return digits.length === 0 ? null : digits;
+  return toE164(raw);
 }
 
 export function toE164(raw: string | null | undefined): string | null {
