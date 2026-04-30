@@ -11,6 +11,7 @@
  *   2. Generate social drafts (text per platform)
  *   3. Generate visual assets (template/AI render per draft)
  *   4. Rewrite for newsletter (Haiku, creates scheduled newsletter_sends row)
+ *   5. Enqueue cross-platform syndication (CE-14, v1.1)
  *
  * Steps 2+3 run in sequence because visuals need the draft rows from step 2.
  * Step 4 is independent of 2+3. All steps are best-effort — a failure in
@@ -141,6 +142,20 @@ export const handleContentFanOut: TaskHandler = async (task) => {
       body: `Fan-out: newsletter error — ${err instanceof Error ? err.message : "unknown"}`,
       meta: { post_id, error: true },
     });
+  }
+
+  // Step 5: Enqueue cross-platform syndication (CE-14, v1.1, best-effort)
+  if (publishResult.ok) {
+    try {
+      await enqueueTask({
+        task_type: "content_syndicate",
+        runAt: Date.now(),
+        payload: { post_id, company_id },
+        idempotencyKey: `content_syndicate:${post_id}`,
+      });
+    } catch {
+      // Enqueue failure doesn't block the rest of fan-out
+    }
   }
 };
 

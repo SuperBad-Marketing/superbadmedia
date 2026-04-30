@@ -100,6 +100,14 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       )}
+      {(post as Record<string, unknown>).faq_schema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify((post as Record<string, unknown>).faq_schema),
+          }}
+        />
+      )}
 
       {/* ── Fixed nav (mirrors blog index) ── */}
       <nav

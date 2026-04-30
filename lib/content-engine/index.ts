@@ -151,6 +151,26 @@ export type {
   ContentOutreachDraft,
 } from "./outreach-match";
 
+// Cross-platform syndication (CE-14)
+export {
+  syndicateBlogPost,
+  getSyndicationStatus,
+  getEnabledTargets,
+  retrySyndication,
+} from "./syndicate";
+export type {
+  SyndicateInput,
+  SyndicateResult,
+  SyndicationOrchestrationResult,
+} from "./syndicate";
+
+// FAQ schema generation (CE-14)
+export { extractFaqPairs, buildFaqSchema } from "./faq-schema";
+export type { FaqPair } from "./faq-schema";
+
+// Shared markdown conversion
+export { markdownToHtml, stripMarkdown } from "./markdown-to-html";
+
 // Claimable content items (CE-13)
 export {
   listClaimableContentItems,

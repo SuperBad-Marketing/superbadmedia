@@ -18,6 +18,7 @@ import { CONTENT_FAN_OUT_HANDLERS } from "./content-fan-out";
 import { CONTENT_NEWSLETTER_SEND_HANDLERS } from "./content-newsletter-send";
 import { CONTENT_RANKING_SNAPSHOT_HANDLERS } from "./content-ranking-snapshot";
 import { CONTENT_OUTREACH_MATCH_HANDLERS } from "./content-outreach-match";
+import { CONTENT_SYNDICATE_HANDLERS } from "./content-syndicate";
 import { LEAD_GEN_DAILY_SEARCH_HANDLERS } from "./lead-gen-daily-search";
 import { LEAD_GEN_SEQUENCE_HANDLERS } from "./lead-gen-sequence";
 import { CLIENT_DATA_EXPORT_HANDLERS } from "./client-data-export";
@@ -94,6 +95,7 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...CONTENT_NEWSLETTER_SEND_HANDLERS,
   ...CONTENT_RANKING_SNAPSHOT_HANDLERS,
   ...CONTENT_OUTREACH_MATCH_HANDLERS,
+  ...CONTENT_SYNDICATE_HANDLERS,
   ...LEAD_GEN_DAILY_SEARCH_HANDLERS,
   ...LEAD_GEN_SEQUENCE_HANDLERS,
   ...CLIENT_DATA_EXPORT_HANDLERS,

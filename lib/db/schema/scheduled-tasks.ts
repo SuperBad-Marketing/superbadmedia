@@ -21,13 +21,14 @@ export const SCHEDULED_TASK_TYPES = [
   // --- Client Context Engine (2) ---
   "context_summary_regenerate",
   "context_action_item_extract",
-  // --- Content Engine (6) ---
+  // --- Content Engine (7) ---
   "content_keyword_research",
   "content_generate_draft",
   "content_fan_out",
   "content_newsletter_send",
   "content_ranking_snapshot",
   "content_outreach_match",
+  "content_syndicate",
   // --- Client Management (2) ---
   "client_data_export",
   "intro_funnel_portal_migration",

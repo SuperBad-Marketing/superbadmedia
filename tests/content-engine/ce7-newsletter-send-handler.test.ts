@@ -114,6 +114,7 @@ function makePost(overrides: Record<string, unknown> = {}) {
     meta_description: "A test post",
     og_image_url: null,
     structured_data: null,
+    faq_schema: null,
     internal_links: null,
     snippet_target_section: null,
     status: "published" as const,

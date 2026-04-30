@@ -12,6 +12,7 @@ import { db } from "@/lib/db";
 import { blogPosts } from "@/lib/db/schema/blog-posts";
 import { companies } from "@/lib/db/schema/companies";
 import { logActivity } from "@/lib/activity-log";
+import { extractFaqPairs, buildFaqSchema } from "./faq-schema";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,6 +79,10 @@ export async function publishBlogPost(postId: string): Promise<PublishResult> {
     (structuredData.author as Record<string, unknown>).name = company.name;
   }
 
+  // Generate FAQ schema from question-style headings (CE-14 v1.1)
+  const faqPairs = extractFaqPairs(post.body);
+  const faqSchema = buildFaqSchema(faqPairs);
+
   await db
     .update(blogPosts)
     .set({
@@ -86,6 +91,7 @@ export async function publishBlogPost(postId: string): Promise<PublishResult> {
       published_url: publishedUrl,
       internal_links: internalLinks,
       structured_data: structuredData,
+      faq_schema: faqSchema,
       updated_at_ms: now,
     })
     .where(eq(blogPosts.id, postId));

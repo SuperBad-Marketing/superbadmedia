@@ -34,6 +34,7 @@ export type KillSwitchKey =
   | "content_automations_enabled"
   | "content_newsletter_enabled"
   | "content_outreach_enabled"
+  | "content_syndication_enabled"
   | "lead_gen_enabled"
   | "plan_automations_enabled"
   | "tasks_digest_enabled"
@@ -119,6 +120,10 @@ const defaults: KillSwitchRegistry = {
   // CE-1: gates content-to-outreach matching pipeline. When OFF, publish
   // does not queue content-match prospecting emails. SuperBad-only.
   content_outreach_enabled: false,
+  // CE-14: gates cross-platform syndication (Medium, LinkedIn Articles,
+  // Ghost, Beehiiv, WordPress.com). When OFF, fan-out skips syndication
+  // step and syndicate handler exits early.
+  content_syndication_enabled: false,
   lead_gen_enabled: true,
   // SWP-3: gates the six-week plan generator pipeline, expiry jobs, and
   // migrate-on-Won handler. When OFF, all SWP scheduled-task handlers
@@ -151,6 +156,16 @@ const defaults: KillSwitchRegistry = {
 // workflows that need a subset of switches enabled without rebuilding.
 // Unknown keys are ignored. Never set in production until B1's DB-backed
 // path lands — this is a stop-gap for out-of-process enablement only.
+const isDev = process.env.NODE_ENV === "development";
+
+// In development, LLM calls and automations are OFF unless explicitly
+// opted-in via KILL_SWITCHES_ON. Prevents burning API credits while
+// working locally — add the keys you need when testing:
+//   KILL_SWITCHES_ON=llm_calls_enabled,scheduled_tasks_enabled
+const devOverrides: Partial<KillSwitchRegistry> = isDev
+  ? { llm_calls_enabled: false, scheduled_tasks_enabled: false }
+  : {};
+
 const envOverride = process.env.KILL_SWITCHES_ON;
 const enabled = new Set<string>(
   envOverride
@@ -164,7 +179,7 @@ const enabled = new Set<string>(
 export const killSwitches: KillSwitchRegistry = Object.fromEntries(
   (Object.keys(defaults) as KillSwitchKey[]).map((k) => [
     k,
-    enabled.has(k) ? true : defaults[k],
+    enabled.has(k) ? true : (devOverrides[k] ?? defaults[k]),
   ]),
 ) as KillSwitchRegistry;
 

@@ -38,6 +38,7 @@ export const blogPosts = sqliteTable(
     meta_description: text("meta_description"),
     og_image_url: text("og_image_url"),
     structured_data: text("structured_data", { mode: "json" }),
+    faq_schema: text("faq_schema", { mode: "json" }),
     internal_links: text("internal_links", { mode: "json" }),
     snippet_target_section: text("snippet_target_section"),
     status: text("status", { enum: BLOG_POST_STATUSES })
