@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Check, X, ExternalLink, Send, Eye } from "lucide-react";
+import { Check, X, ExternalLink, Send, Eye, Trash2 } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
 import type { NeedsYouItem } from "@/lib/cockpit/needs-you";
 import {
@@ -11,6 +11,7 @@ import {
   approveInstagramReplyAction,
   approveContentDraftAction,
   rejectContentDraftAction,
+  deleteEmailThreadFromCockpitAction,
 } from "@/app/lite/cockpit/actions";
 
 interface ActionPanelProps {
@@ -286,6 +287,17 @@ function ContentDraftPanel({
 }
 
 function EmailPanel({ item, onResolved }: ActionPanelProps) {
+  const [pending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      const res = await deleteEmailThreadFromCockpitAction(
+        item.meta.threadId as string,
+      );
+      if (res.ok) onResolved();
+    });
+  };
+
   return (
     <div className="space-y-3">
       <p
@@ -306,7 +318,10 @@ function EmailPanel({ item, onResolved }: ActionPanelProps) {
         >
           <ExternalLink size={14} /> Open in Inbox
         </a>
-        <ActionButton onClick={onResolved} variant="reject">
+        <ActionButton onClick={handleDelete} disabled={pending} variant="reject">
+          <Trash2 size={14} /> Delete
+        </ActionButton>
+        <ActionButton onClick={onResolved} disabled={pending} variant="neutral">
           <X size={14} /> Dismiss
         </ActionButton>
       </div>

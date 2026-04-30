@@ -13,6 +13,7 @@ import { instagram_replies } from "@/lib/db/schema/instagram";
 import { and, eq } from "drizzle-orm";
 import { melbourneWallDate } from "@/lib/time/melbourne";
 import { logActivity } from "@/lib/activity-log";
+import { deleteThreadAction } from "@/app/lite/inbox/_actions/delete";
 
 export async function regenerateBriefAction() {
   const session = await auth();
@@ -187,4 +188,12 @@ export async function rejectContentDraftAction(
 
   revalidatePath("/lite/cockpit");
   return { ok: true as const };
+}
+
+export async function deleteEmailThreadFromCockpitAction(threadId: string) {
+  const result = await deleteThreadAction({ threadId });
+  if (result.ok) {
+    revalidatePath("/lite/cockpit");
+  }
+  return result;
 }
