@@ -115,32 +115,48 @@ export default function GradingView() {
             </button>
           </div>
 
-          {viewMode === 'split' ? (
-            <div className="flex-1 flex gap-3 min-h-0">
+          {(() => {
+            const firstClip = storyboardClips[0]?.clip
+            const videoSrc = firstClip ? `file://${firstClip.filePath}` : undefined
+            return viewMode === 'split' ? (
+              <div className="flex-1 flex gap-3 min-h-0">
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <span className="text-[10px] text-text-dim font-mono uppercase tracking-widest">Before</span>
+                  <div className="flex-1 aspect-video bg-bg rounded-lg overflow-hidden flex items-center justify-center">
+                    {videoSrc ? (
+                      <video src={videoSrc} className="w-full h-full object-contain" muted />
+                    ) : (
+                      <Film size={28} className="text-text-dim opacity-30" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <span className="text-[10px] text-text-dim font-mono uppercase tracking-widest">After</span>
+                  <div className="flex-1 aspect-video bg-bg rounded-lg overflow-hidden flex items-center justify-center">
+                    {videoSrc ? (
+                      <video src={videoSrc} className="w-full h-full object-contain" muted />
+                    ) : (
+                      <Film size={28} className="text-text-dim opacity-30" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
               <div className="flex-1 flex flex-col gap-1.5">
-                <span className="text-[10px] text-text-dim font-mono uppercase tracking-widest">Before</span>
-                <div className="flex-1 aspect-video bg-bg rounded-lg flex items-center justify-center">
-                  <Film size={28} className="text-text-dim opacity-30" />
+                <span className="text-[10px] text-text-dim font-mono uppercase tracking-widest">Preview</span>
+                <div className="flex-1 aspect-video bg-bg rounded-lg overflow-hidden flex items-center justify-center relative">
+                  {videoSrc ? (
+                    <video src={videoSrc} className="w-full h-full object-contain" muted />
+                  ) : (
+                    <Film size={32} className="text-text-dim opacity-30" />
+                  )}
+                  <div className="absolute top-2 left-2 bg-surface/80 rounded px-2 py-0.5 text-[9px] text-text-dim font-mono">
+                    OVERLAY
+                  </div>
                 </div>
               </div>
-              <div className="flex-1 flex flex-col gap-1.5">
-                <span className="text-[10px] text-text-dim font-mono uppercase tracking-widest">After</span>
-                <div className="flex-1 aspect-video bg-bg rounded-lg flex items-center justify-center">
-                  <Film size={28} className="text-text-dim opacity-30" />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col gap-1.5">
-              <span className="text-[10px] text-text-dim font-mono uppercase tracking-widest">Preview</span>
-              <div className="flex-1 aspect-video bg-bg rounded-lg flex items-center justify-center relative">
-                <Film size={32} className="text-text-dim opacity-30" />
-                <div className="absolute top-2 left-2 bg-surface/80 rounded px-2 py-0.5 text-[9px] text-text-dim font-mono">
-                  OVERLAY
-                </div>
-              </div>
-            </div>
-          )}
+            )
+          })()}
         </div>
 
         <div className="shrink-0 space-y-6 border-t border-border pt-6">

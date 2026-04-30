@@ -41,6 +41,7 @@ export default function CaptionsView() {
   const [captions, setCaptions] = useState<Caption[]>([])
   const [generating, setGenerating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [transcriptionMethod, setTranscriptionMethod] = useState<string | null>(null)
   const [style, setStyle] = useState<CaptionStyle>({
     font: 'Inter',
     size: 'medium',
@@ -67,13 +68,11 @@ export default function CaptionsView() {
       const data = await res.json()
       if (data.captions) {
         setCaptions(data.captions)
+        setTranscriptionMethod(data.method || null)
       }
     } catch {
-      setCaptions([
-        { id: crypto.randomUUID(), startTime: 0, endTime: 3, text: '[Caption 1]' },
-        { id: crypto.randomUUID(), startTime: 4, endTime: 7, text: '[Caption 2]' },
-        { id: crypto.randomUUID(), startTime: 8, endTime: 11, text: '[Caption 3]' },
-      ])
+      setCaptions([])
+      setTranscriptionMethod(null)
     } finally {
       setGenerating(false)
     }
@@ -116,9 +115,16 @@ export default function CaptionsView() {
         {/* Caption list */}
         <div className="flex-1 flex flex-col min-h-0 border-r border-border">
           <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-            <h2 className="text-sm font-display font-semibold text-text">
-              Captions {captions.length > 0 && <span className="font-mono text-text-dim">({captions.length})</span>}
-            </h2>
+            <div>
+              <h2 className="text-sm font-display font-semibold text-text">
+                Captions {captions.length > 0 && <span className="font-mono text-text-dim">({captions.length})</span>}
+              </h2>
+              {transcriptionMethod && (
+                <span className={`text-[10px] font-mono ${transcriptionMethod === 'whisper' ? 'text-green' : transcriptionMethod === 'silence-detection' ? 'text-amber' : 'text-text-dim'}`}>
+                  {transcriptionMethod === 'whisper' ? 'Transcribed with Whisper' : transcriptionMethod === 'silence-detection' ? 'Speech segments detected' : 'Placeholder — install Whisper for real transcription'}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={addCaption}

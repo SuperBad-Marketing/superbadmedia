@@ -14,8 +14,11 @@ import {
   CheckCircle2,
   XCircle,
   RotateCcw,
+  Loader2,
 } from 'lucide-react'
 import type { AdVariation, AdVariationConfig } from '../../types'
+import { useAppStore } from '../../stores/appStore'
+import { startExport, getExportStatus } from '../../lib/api'
 
 type AspectFormat = '16:9' | '9:16' | '1:1' | '4:5'
 type StaticType = 'single' | 'carousel' | 'before-after' | 'quote-card'
@@ -134,7 +137,15 @@ function generateVariations(config: AdVariationConfig): AdVariation[] {
   return variations
 }
 
+const FORMAT_RESOLUTIONS: Record<AspectFormat, string> = {
+  '16:9': '1920x1080',
+  '9:16': '1080x1920',
+  '1:1': '1080x1080',
+  '4:5': '1080x1350',
+}
+
 export default function AdVariationsView() {
+  const storyboardClips = useAppStore((s) => s.storyboardClips)
   const [selectedFormats, setSelectedFormats] = useState<Set<AspectFormat>>(new Set(['16:9']))
   const [selectedLengths, setSelectedLengths] = useState<Set<number>>(new Set([30]))
   const [hookCount, setHookCount] = useState(1)
@@ -148,6 +159,8 @@ export default function AdVariationsView() {
   const [subheadline, setSubheadline] = useState('')
   const [variations, setVariations] = useState<AdVariation[]>([])
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
+  const [exporting, setExporting] = useState(false)
+  const [exportProgress, setExportProgress] = useState<{ done: number; total: number } | null>(null)
 
   function toggleFormat(id: AspectFormat) {
     setSelectedFormats((prev) => {
@@ -253,6 +266,45 @@ export default function AdVariationsView() {
 
   function resetAll() {
     setVariations((prev) => prev.map((v) => ({ ...v, status: 'ready' as const })))
+  }
+
+  async function handleExportApproved() {
+    const approved = variations.filter((v) => v.status === 'approved' && v.type === 'video')
+    if (approved.length === 0 || storyboardClips.length === 0) return
+
+    setExporting(true)
+    setExportProgress({ done: 0, total: approved.length })
+
+    const clipPaths = storyboardClips.map((sc) => sc.clip.filePath)
+    let done = 0
+
+    for (const variation of approved) {
+      try {
+        const res = await startExport({
+          clipPaths,
+          outputPath: `~/Desktop/ad-${variation.format.replace(':', 'x')}-${variation.length || 30}s-${variation.id}.mp4`,
+          format: 'mp4',
+          codec: 'h264',
+          resolution: FORMAT_RESOLUTIONS[variation.format] || '1920x1080',
+        })
+
+        if (res.jobId) {
+          let status = await getExportStatus(res.jobId)
+          while (status.status === 'running') {
+            await new Promise((r) => setTimeout(r, 1000))
+            status = await getExportStatus(res.jobId)
+          }
+        }
+      } catch {
+        // continue to next variation
+      }
+
+      done++
+      setExportProgress({ done, total: approved.length })
+    }
+
+    setExporting(false)
+    setExportProgress(null)
   }
 
   const filteredVariations = useMemo(() => {
@@ -633,10 +685,14 @@ export default function AdVariationsView() {
             </button>
             <button
               type="button"
-              disabled={approvedCount === 0}
-              className="bg-accent rounded-lg px-6 py-2 font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={handleExportApproved}
+              disabled={approvedCount === 0 || exporting || storyboardClips.length === 0}
+              className="flex items-center gap-2 bg-accent rounded-lg px-6 py-2 font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Export Approved
+              {exporting && <Loader2 size={14} className="animate-spin" />}
+              {exporting && exportProgress
+                ? `Exporting ${exportProgress.done}/${exportProgress.total}...`
+                : 'Export Approved'}
             </button>
           </div>
         </div>

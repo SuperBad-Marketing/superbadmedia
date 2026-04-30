@@ -12,8 +12,8 @@ router.post('/transcribe', async (req, res) => {
   }
 
   try {
-    const captions = await captionService.transcribe(filePath)
-    res.json({ captions })
+    const result = await captionService.transcribe(filePath)
+    res.json(result)
   } catch (err: any) {
     res.status(500).json({ error: err.message })
   }

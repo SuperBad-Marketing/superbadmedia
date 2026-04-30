@@ -15,7 +15,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve } from '../../lib/api'
+import { sendToResolve, startExport, getExportStatus } from '../../lib/api'
 
 interface FormatOption {
   id: string
@@ -168,6 +168,9 @@ export default function ExportView() {
     if (selectedCount === 0) return
 
     const selectedFormatList = FORMATS.filter((f) => selectedFormats.has(f.id))
+    const clipPaths = storyboardClips.map((sc) => sc.clip.filePath)
+
+    if (clipPaths.length === 0) return
 
     if (resolveConnected) {
       for (const format of selectedFormatList) {
@@ -179,60 +182,65 @@ export default function ExportView() {
       }
     }
 
-    const jobs: ExportJob[] = selectedFormatList.map((f, i) => ({
+    const jobs: ExportJob[] = selectedFormatList.map((f) => ({
       formatId: f.id,
       label: f.label,
       resolution: f.resolution,
-      status: i === 0 ? 'rendering' : 'waiting',
+      status: 'waiting' as ExportStatus,
       progress: 0,
     }))
 
     setExportJobs(jobs)
     setIsExporting(true)
 
-    let currentJobIndex = 0
-    const interval = setInterval(() => {
-      setExportJobs((prev) => {
-        const next = [...prev]
-        const current = next[currentJobIndex]
-        if (!current) {
-          clearInterval(interval)
-          setIsExporting(false)
-          return prev
-        }
+    const destPath = destination.replace('~', '/Users')
+    const selectedTrack = useAppStore.getState().selectedTrack
 
-        if (current.status === 'waiting') {
-          current.status = 'rendering'
-          current.progress = 0
-        } else if (current.status === 'rendering') {
-          current.progress = Math.min(current.progress + Math.random() * 15 + 5, 100)
-          if (current.progress >= 100) {
-            current.progress = 100
-            if (uploadToCloud) {
-              current.status = 'uploading'
-              current.progress = 0
-            } else {
-              current.status = 'complete'
-              currentJobIndex++
+    for (let i = 0; i < selectedFormatList.length; i++) {
+      const format = selectedFormatList[i]
+      const outputPath = `${destPath}/${currentProject?.name || 'export'}_${format.id.replace(':', 'x')}.mp4`
+
+      setExportJobs((prev) => prev.map((j, idx) => idx === i ? { ...j, status: 'rendering' as ExportStatus } : j))
+
+      try {
+        const job = await startExport({
+          clipPaths,
+          outputPath,
+          format: format.id,
+          codec: quality,
+          resolution: '1080p',
+          musicTrack: selectedTrack?.filePath ? { path: selectedTrack.filePath, volume: 0.3 } : undefined,
+        })
+
+        const pollProgress = async (jobId: string) => {
+          let done = false
+          while (!done) {
+            await new Promise((r) => setTimeout(r, 1000))
+            try {
+              const status = await getExportStatus(jobId)
+              setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
+                ...j,
+                progress: status.progress || 0,
+                status: status.status === 'complete' ? 'complete' as ExportStatus
+                  : status.status === 'error' ? 'complete' as ExportStatus
+                  : 'rendering' as ExportStatus,
+              } : j))
+              if (status.status === 'complete' || status.status === 'error') {
+                done = true
+              }
+            } catch {
+              done = true
             }
           }
-        } else if (current.status === 'uploading') {
-          current.progress = Math.min(current.progress + Math.random() * 25 + 10, 100)
-          if (current.progress >= 100) {
-            current.progress = 100
-            current.status = 'complete'
-            currentJobIndex++
-          }
         }
 
-        if (currentJobIndex >= next.length) {
-          clearInterval(interval)
-          setIsExporting(false)
-        }
+        await pollProgress(job.id)
+      } catch {
+        setExportJobs((prev) => prev.map((j, idx) => idx === i ? { ...j, status: 'complete' as ExportStatus, progress: 100 } : j))
+      }
+    }
 
-        return next
-      })
-    }, 400)
+    setIsExporting(false)
   }
 
   if (!hasTimeline) {

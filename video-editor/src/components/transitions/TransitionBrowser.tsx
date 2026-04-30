@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Search, Loader2, Layers } from 'lucide-react'
-import type { TransitionPreset } from '../../types'
+import { Search, Loader2, Layers, Check } from 'lucide-react'
+import type { TransitionPreset, Transition } from '../../types'
 import { getTransitionPresets } from '../../lib/api'
+import { useAppStore } from '../../stores/appStore'
 
 const CATEGORY_FILTERS = ['Impact', 'Dissolve', 'Wipe', 'Zoom', 'Film', 'Glitch'] as const
 
@@ -9,11 +10,26 @@ function formatDuration(seconds: number): string {
   return `${seconds.toFixed(1)}s`
 }
 
+function mapCategory(cat: string): Transition['type'] {
+  const map: Record<string, Transition['type']> = {
+    impact: 'impact',
+    dissolve: 'dissolve',
+    wipe: 'wipe',
+    zoom: 'zoom-blur',
+    film: 'film-burn',
+    glitch: 'glitch',
+  }
+  return map[cat] || 'custom'
+}
+
 export default function TransitionBrowser() {
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [presets, setPresets] = useState<TransitionPreset[]>([])
   const [loading, setLoading] = useState(true)
+  const [appliedId, setAppliedId] = useState<string | null>(null)
+  const storyboardClips = useAppStore((s) => s.storyboardClips)
+  const setStoryboardClips = useAppStore((s) => s.setStoryboardClips)
 
   useEffect(() => {
     getTransitionPresets()
@@ -83,36 +99,75 @@ export default function TransitionBrowser() {
           </div>
         ) : (
           <div className="flex flex-col gap-1.5 px-4">
-            {filtered.map((preset) => (
-              <button
-                key={preset.id}
-                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left border border-transparent hover:bg-surface-hover transition-colors duration-150"
-              >
-                <div className="size-9 rounded-lg bg-surface-active flex items-center justify-center shrink-0">
-                  <Layers size={14} className="text-text-muted" />
-                </div>
+            {filtered.map((preset) => {
+              const justApplied = appliedId === preset.id
+              return (
+                <div
+                  key={preset.id}
+                  className="w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left border border-transparent hover:bg-surface-hover transition-colors duration-150"
+                >
+                  <div className="size-9 rounded-lg bg-surface-active flex items-center justify-center shrink-0">
+                    <Layers size={14} className="text-text-muted" />
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-text truncate">{preset.name}</div>
-                  <div className="text-xs text-text-dim truncate">{preset.description}</div>
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text truncate">{preset.name}</div>
+                    <div className="text-xs text-text-dim truncate">{preset.description}</div>
+                  </div>
 
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-[10px] text-text-dim font-mono uppercase">{preset.category}</span>
-                  <span className="font-mono text-[10px] text-text-dim tabular-nums">{formatDuration(preset.duration)}</span>
-                  {preset.hasSfx && (
-                    <span className="text-[10px] text-pink font-mono">+ SFX</span>
-                  )}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-[10px] text-text-dim font-mono uppercase">{preset.category}</span>
+                    <span className="font-mono text-[10px] text-text-dim tabular-nums">{formatDuration(preset.duration)}</span>
+                    {preset.hasSfx && (
+                      <span className="text-[10px] text-pink font-mono">+ SFX</span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (storyboardClips.length < 2) return
+                      const updated = storyboardClips.map((clip, i) => {
+                        if (i < storyboardClips.length - 1) {
+                          return {
+                            ...clip,
+                            transitionOut: {
+                              type: mapCategory(preset.category),
+                              duration: preset.duration,
+                              sfxId: preset.hasSfx ? preset.id : undefined,
+                              isFromLibrary: true,
+                            },
+                          }
+                        }
+                        return clip
+                      })
+                      setStoryboardClips(updated)
+                      setAppliedId(preset.id)
+                      setTimeout(() => setAppliedId(null), 2000)
+                    }}
+                    disabled={storyboardClips.length < 2}
+                    className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors duration-150 ${
+                      justApplied
+                        ? 'bg-green-dim text-green'
+                        : storyboardClips.length < 2
+                          ? 'bg-surface text-text-dim opacity-40'
+                          : 'bg-accent-dim text-accent hover:bg-accent/30'
+                    }`}
+                  >
+                    {justApplied ? <Check size={10} /> : 'Apply'}
+                  </button>
                 </div>
-              </button>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
 
       <div className="bg-bg border-t border-border px-4 py-3">
         <p className="text-[11px] text-text-dim leading-relaxed">
-          Tell the chat to <span className="text-text-muted">"add a whip pan between clips 2 and 3"</span> or drag onto the storyboard
+          {storyboardClips.length < 2
+            ? 'Add 2+ clips to storyboard to apply transitions'
+            : <><span className="text-text-muted">Apply</span> adds the transition to all cut points</>
+          }
         </p>
       </div>
     </div>

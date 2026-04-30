@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Search, Loader2, Type } from 'lucide-react'
+import { Search, Loader2, Type, Check, Plus } from 'lucide-react'
 import type { TitleCardPreset } from '../../types'
 import { getTitleCardPresets } from '../../lib/api'
+import { useAppStore } from '../../stores/appStore'
 
 const TYPE_FILTERS = ['Title', 'Lower-Third', 'End-Card', 'Chapter', 'Quote'] as const
 
@@ -21,6 +22,11 @@ export default function TitleCardBrowser() {
   const [activeType, setActiveType] = useState<string | null>(null)
   const [presets, setPresets] = useState<TitleCardPreset[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
+  const [titleText, setTitleText] = useState('')
+  const [subtitleText, setSubtitleText] = useState('')
+  const [insertedId, setInsertedId] = useState<string | null>(null)
+  const addChatMessage = useAppStore((s) => s.addChatMessage)
 
   useEffect(() => {
     getTitleCardPresets()
@@ -90,37 +96,89 @@ export default function TitleCardBrowser() {
           </div>
         ) : (
           <div className="flex flex-col gap-1.5 px-4">
-            {filtered.map((preset) => (
-              <button
-                key={preset.id}
-                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left border border-transparent hover:bg-surface-hover transition-colors duration-150"
-              >
-                <div className="size-9 rounded-lg bg-surface-active flex items-center justify-center shrink-0">
-                  <Type size={14} className="text-text-muted" />
-                </div>
+            {filtered.map((preset) => {
+              const isSelected = selectedPreset === preset.id
+              const justInserted = insertedId === preset.id
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => setSelectedPreset(isSelected ? null : preset.id)}
+                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left transition-colors duration-150 ${
+                    isSelected
+                      ? 'bg-surface-active border border-accent/40'
+                      : justInserted
+                        ? 'bg-green-dim border border-green/30'
+                        : 'border border-transparent hover:bg-surface-hover'
+                  }`}
+                >
+                  <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-accent-dim' : 'bg-surface-active'}`}>
+                    {justInserted ? <Check size={14} className="text-green" /> : <Type size={14} className="text-text-muted" />}
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-text truncate">{preset.name}</div>
-                  <div className="text-xs text-text-dim truncate">{preset.description}</div>
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text truncate">{preset.name}</div>
+                    <div className="text-xs text-text-dim truncate">{preset.description}</div>
+                  </div>
 
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-[10px] text-text-dim font-mono uppercase">{typeLabel(preset.type)}</span>
-                  {preset.hasAnimation && (
-                    <span className="text-[10px] text-pink font-mono">animated</span>
-                  )}
-                </div>
-              </button>
-            ))}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-[10px] text-text-dim font-mono uppercase">{typeLabel(preset.type)}</span>
+                    {preset.hasAnimation && (
+                      <span className="text-[10px] text-pink font-mono">animated</span>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
           </div>
         )}
       </div>
 
-      <div className="bg-bg border-t border-border px-4 py-3">
-        <p className="text-[11px] text-text-dim leading-relaxed">
-          Tell the chat <span className="text-text-muted">"add a cinematic title saying 'Chapter 1'"</span> or <span className="text-text-muted">"lower third at 12 seconds"</span>
-        </p>
-      </div>
+      {selectedPreset ? (
+        <div className="bg-bg border-t border-border p-4 space-y-3">
+          <input
+            type="text"
+            value={titleText}
+            onChange={(e) => setTitleText(e.target.value)}
+            placeholder="Title text..."
+            className="w-full bg-surface border border-border rounded-lg text-sm text-text placeholder:text-text-dim px-3 py-2 focus:outline-none focus:border-border-active transition-colors duration-150"
+          />
+          <input
+            type="text"
+            value={subtitleText}
+            onChange={(e) => setSubtitleText(e.target.value)}
+            placeholder="Subtitle (optional)"
+            className="w-full bg-surface border border-border rounded-lg text-sm text-text placeholder:text-text-dim px-3 py-2 focus:outline-none focus:border-border-active transition-colors duration-150"
+          />
+          <button
+            onClick={() => {
+              if (!titleText.trim()) return
+              const preset = presets.find((p) => p.id === selectedPreset)
+              addChatMessage({
+                id: crypto.randomUUID(),
+                role: 'user',
+                content: `Add a ${preset?.name || 'title card'} saying "${titleText}"${subtitleText ? ` with subtitle "${subtitleText}"` : ''}`,
+                timestamp: new Date().toISOString(),
+              })
+              setInsertedId(selectedPreset)
+              setTimeout(() => setInsertedId(null), 2000)
+              setTitleText('')
+              setSubtitleText('')
+              setSelectedPreset(null)
+            }}
+            disabled={!titleText.trim()}
+            className="w-full flex items-center justify-center gap-1.5 bg-accent rounded-lg px-3 py-2 text-xs font-display font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40"
+          >
+            <Plus size={12} />
+            Insert Title Card
+          </button>
+        </div>
+      ) : (
+        <div className="bg-bg border-t border-border px-4 py-3">
+          <p className="text-[11px] text-text-dim leading-relaxed">
+            Select a preset above, then enter your text to insert
+          </p>
+        </div>
+      )}
     </div>
   )
 }

@@ -18,8 +18,13 @@ export interface CaptionStyle {
   animation: 'none' | 'fade' | 'pop' | 'typewriter'
 }
 
+export interface TranscribeResult {
+  captions: Caption[]
+  method: 'whisper' | 'silence-detection' | 'placeholder'
+}
+
 export class CaptionService {
-  async transcribe(filePath: string): Promise<Caption[]> {
+  async transcribe(filePath: string): Promise<TranscribeResult> {
     const audioPath = `/tmp/superedits-audio-${crypto.randomUUID()}.wav`
     try {
       execSync(
@@ -27,21 +32,22 @@ export class CaptionService {
         { timeout: 60000, stdio: 'pipe' }
       )
 
-      // Try whisper transcription first
       const whisperCaptions = this.tryWhisper(audioPath)
       if (whisperCaptions.length > 0) {
         this.cleanup(audioPath)
-        return whisperCaptions
+        return { captions: whisperCaptions, method: 'whisper' }
       }
 
-      // Fall back to silence-based segmentation
       const captions = this.segmentByEnergy(filePath, audioPath)
       this.cleanup(audioPath)
-      return captions
+      if (captions.length > 0 && !captions[0].text.startsWith('[Caption')) {
+        return { captions, method: 'silence-detection' }
+      }
+      return { captions, method: captions.length > 0 ? 'silence-detection' : 'placeholder' }
     } catch (err: any) {
       console.error('Transcription failed:', err.message)
       this.cleanup(audioPath)
-      return this.generatePlaceholderCaptions(filePath)
+      return { captions: this.generatePlaceholderCaptions(filePath), method: 'placeholder' }
     }
   }
 
