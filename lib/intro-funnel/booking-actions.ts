@@ -16,6 +16,7 @@ import { computeAvailableSlots } from "@/lib/intro-funnel/calendar";
 import { maybeRegenerateBrief } from "@/lib/cockpit/brief-triggers";
 import { generateIntroPortalLink } from "@/lib/intro-funnel/portal-link";
 import { enqueueTask } from "@/lib/scheduled-tasks/enqueue";
+import { cancelPendingSequenceByEmail } from "@/lib/rundown/sequence-cancel";
 
 const MAX_RESCHEDULES = 2;
 const RESCHEDULE_MINIMUM_HOURS = 48;
@@ -114,6 +115,11 @@ export async function bookSlotAction(
     body: `Trial shoot booked for ${new Date(slotStartMs).toLocaleDateString("en-AU")}`,
     meta: { booking_id: bookingId, slot_start_ms: slotStartMs },
   });
+
+  cancelPendingSequenceByEmail(
+    submission.submitted_email,
+    "trial_shoot_booked",
+  ).catch(() => {});
 
   maybeRegenerateBrief("intro_funnel_booking_confirmed", {
     submission_id: submission.id,

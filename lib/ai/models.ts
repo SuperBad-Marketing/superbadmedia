@@ -141,6 +141,9 @@ export const MODELS = {
   // free-audit-tool (2)
   "audit-category-explanation": "haiku",
   "audit-followup-draft": "opus",
+  // rundown-sequence (2)
+  "rundown-sequence-draft-email": "opus",
+  "rundown-sequence-classify-reply": "haiku",
   // content-studio (4)
   "content-studio-generate-copy": "sonnet",
   "content-studio-generate-motion-copy": "sonnet",

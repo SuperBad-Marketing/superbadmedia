@@ -45,6 +45,7 @@ export interface ResendEventData {
   /** Some Resend payloads send the bounce classification at top-level. */
   bounce_type?: "hard" | "soft" | string;
   tags?: Record<string, string> | Array<{ name: string; value: string }>;
+  click?: { url?: string };
 }
 
 export interface DispatchOutcome {

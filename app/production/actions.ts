@@ -1,6 +1,7 @@
 "use server";
 
 import { Resend } from "resend";
+import { cancelPendingSequenceByEmail } from "@/lib/rundown/sequence-cancel";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -28,6 +29,8 @@ export async function submitProductionInquiry(formData: FormData) {
         .filter(Boolean)
         .join("\n"),
     });
+    cancelPendingSequenceByEmail(email, "production_inquiry").catch(() => {});
+
     return { success: true };
   } catch {
     return { error: "Something went wrong. Try emailing directly." };

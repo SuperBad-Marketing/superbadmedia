@@ -13,6 +13,8 @@ import { companies } from "@/lib/db/schema/companies";
 import { BRAND_DNA_TRACKS } from "@/lib/db/schema/brand-dna-profiles";
 import { logActivity } from "@/lib/activity-log";
 import { createDealFromLead } from "@/lib/crm/create-deal-from-lead";
+import { scheduleRundownSequence } from "@/lib/rundown/sequence-schedule";
+import { isMelbourneArea } from "@/lib/rundown/location";
 import {
   getQuestionsForSection,
   getQuestionById,
@@ -379,6 +381,18 @@ export async function markRundownProfileComplete(
       revealAccessToken,
       sessionToken,
     ).catch(() => {});
+  }
+
+  // ── Schedule nurture sequence (fire and forget) ──
+  if (session && existing.candidate_id) {
+    const track = isMelbourneArea(session.city) ? "melbourne" as const : "non_melbourne" as const;
+    scheduleRundownSequence({
+      sessionId: session.id,
+      sessionToken,
+      candidateId: existing.candidate_id,
+      track,
+      completedAtMs: now,
+    }).catch(() => {});
   }
 }
 

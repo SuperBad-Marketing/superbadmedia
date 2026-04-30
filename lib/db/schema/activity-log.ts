@@ -440,6 +440,8 @@ export const ACTIVITY_LOG_KINDS = [
   "rundown_assessment_started",
   "rundown_completed",
   "rundown_followup_sent",
+  "rundown_sequence_sent",
+  "rundown_sequence_cancelled",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

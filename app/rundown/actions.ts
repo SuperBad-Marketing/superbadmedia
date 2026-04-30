@@ -10,6 +10,7 @@ import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { contacts } from "@/lib/db/schema/contacts";
 import { logActivity } from "@/lib/activity-log";
 import { verifyTurnstile } from "@/lib/audit/turnstile";
+import { isMelbourneArea } from "@/lib/rundown/location";
 
 function normaliseEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -34,6 +35,7 @@ const entrySchema = z.object({
   businessName: z.string().trim().min(1).max(200),
   website: z.string().trim().max(500).optional(),
   instagramHandle: z.string().trim().max(100).optional(),
+  city: z.string().trim().max(200).optional(),
   turnstileToken: z.string().default(""),
   utmSource: z.string().max(200).optional(),
   utmMedium: z.string().max(200).optional(),
@@ -181,6 +183,8 @@ export async function submitRundownEntry(
     business_name: input.businessName,
     website: input.website ?? null,
     instagram_handle: igHandle,
+    city: input.city ?? null,
+    is_melbourne_area: input.city ? isMelbourneArea(input.city) : null,
     candidate_id: candidateId,
     profile_id: profileId,
     status: "entry_submitted",

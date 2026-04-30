@@ -237,6 +237,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
   const [businessName, setBusinessName] = useState(prefilled?.businessName ?? "");
   const [website, setWebsite] = useState(prefilled?.website ?? "");
   const [instagramHandle, setInstagramHandle] = useState(prefilled?.instagramHandle ?? "");
+  const [city, setCity] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showClientOverride, setShowClientOverride] = useState(false);
@@ -273,6 +274,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
           businessName: businessName.trim(),
           website: website.trim() || undefined,
           instagramHandle: instagramHandle.trim() || undefined,
+          city: city.trim() || undefined,
           turnstileToken: token,
           utmSource: searchParams.get("utm_source") ?? undefined,
           utmMedium: searchParams.get("utm_medium") ?? undefined,
@@ -305,7 +307,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
         setSubmitting(false);
       }
     },
-    [name, email, businessName, website, instagramHandle, submitting, searchParams, router],
+    [name, email, businessName, website, instagramHandle, city, submitting, searchParams, router],
   );
 
   const delRef = useRef<HTMLDivElement>(null);
@@ -761,6 +763,12 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                   value={instagramHandle}
                   onChange={setInstagramHandle}
                   placeholder="@yourbusiness"
+                />
+                <InputField
+                  label="City"
+                  value={city}
+                  onChange={setCity}
+                  placeholder="Melbourne"
                 />
 
                 {error && (

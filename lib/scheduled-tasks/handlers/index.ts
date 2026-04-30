@@ -61,6 +61,7 @@ import { WEEKLY_DIGEST_SEND_HANDLERS } from "./weekly-digest-send";
 import { COCKPIT_BRIEF_REGENERATE_HANDLERS } from "./cockpit-brief-regenerate";
 import { INSTAGRAM_TOKEN_REFRESH_HANDLERS } from "./instagram-token-refresh";
 import { INSTAGRAM_REPLY_POLL_HANDLERS } from "./instagram-reply-poll";
+import { RUNDOWN_SEQUENCE_HANDLERS } from "./rundown-sequence";
 
 /**
  * Single dispatch map consumed by `lib/scheduled-tasks/worker.ts`.
@@ -136,4 +137,5 @@ export const HANDLER_REGISTRY: HandlerMap = {
   ...COCKPIT_BRIEF_REGENERATE_HANDLERS,
   ...INSTAGRAM_TOKEN_REFRESH_HANDLERS,
   ...INSTAGRAM_REPLY_POLL_HANDLERS,
+  ...RUNDOWN_SEQUENCE_HANDLERS,
 };

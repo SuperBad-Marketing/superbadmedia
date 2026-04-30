@@ -88,6 +88,9 @@ export const EMAIL_CLASSIFICATIONS = [
   // link + Brand Pack download. Transactional: prospect just completed, these
   // are their deliverables.
   "rundown_followup",
+  // Rundown — post-completion nurture sequence (3 emails over 10 days).
+  // Non-transactional: marketing follow-up referencing Brand DNA findings.
+  "rundown_sequence",
 ] as const;
 
 export type EmailClassification = (typeof EMAIL_CLASSIFICATIONS)[number];

@@ -30,6 +30,7 @@ import { deals } from "@/lib/db/schema/deals";
 import { handleInboundReply } from "@/lib/lead-gen/reply-handler";
 import { transitionDealStage } from "@/lib/crm/transition-deal-stage";
 import { logActivity } from "@/lib/activity-log";
+import { handleRundownSequenceReply } from "@/lib/rundown/sequence-reply";
 
 interface ResendInboundPayload {
   created_at?: string;
@@ -166,6 +167,21 @@ export async function POST(req: Request): Promise<NextResponse> {
     .then((rows) => rows[0] ?? null);
 
   if (!candidate) {
+    const inReplyToMessageId = extractInReplyTo(payload.headers);
+    const rundownResult = await handleRundownSequenceReply(
+      senderEmail,
+      replyText,
+      inReplyToMessageId,
+    );
+    if (rundownResult.matched) {
+      await updateWebhookResult(eventId, "ok");
+      return NextResponse.json({
+        received: true,
+        dispatch: "ok",
+        source: "rundown_sequence",
+        classification: rundownResult.classification,
+      });
+    }
     await updateWebhookResult(eventId, "skipped", "no_matching_candidate");
     return NextResponse.json({ received: true, dispatch: "skipped" });
   }
@@ -222,6 +238,20 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   if (!inReplyToDraftId) {
+    const rundownResult = await handleRundownSequenceReply(
+      senderEmail,
+      replyText,
+      inReplyToMessageId,
+    );
+    if (rundownResult.matched) {
+      await updateWebhookResult(eventId, "ok");
+      return NextResponse.json({
+        received: true,
+        dispatch: "ok",
+        source: "rundown_sequence",
+        classification: rundownResult.classification,
+      });
+    }
     await logActivity({
       kind: "candidate_rescored",
       body: `Inbound reply from ${senderEmail} — no matching outreach draft found`,

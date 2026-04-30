@@ -11,6 +11,8 @@ import { CandidateActions } from "./candidate-actions";
 import { CandidateContactEdit } from "./candidate-contact-edit";
 import { EnrichmentCard } from "@/components/lite/enrichment-card";
 import { SocialProfilesCard } from "@/components/lite/social-profiles-card";
+import { RundownSequenceCard } from "./_components/rundown-sequence-card";
+import { getSequenceEmailsForCandidate } from "@/lib/rundown/sequence-queries";
 
 export const metadata: Metadata = {
   title: "Candidate Detail — Lead Gen — SuperBad",
@@ -72,6 +74,8 @@ export default async function CandidateDetailPage({
   const rundownSession = await db.query.rundownSessions.findFirst({
     where: eq(rundownSessions.candidate_id, id),
   });
+
+  const sequenceEmails = await getSequenceEmailsForCandidate(id);
 
   const profile = candidate.viability_profile_json as ViabilityProfile;
 
@@ -210,6 +214,13 @@ export default async function CandidateDetailPage({
           }}
         />
       </div>
+
+      {/* Rundown nurture sequence */}
+      {sequenceEmails.length > 0 && (
+        <div className="mt-8 px-4">
+          <RundownSequenceCard emails={sequenceEmails} />
+        </div>
+      )}
 
       {/* Enrichment — collapsible card with re-enrich */}
       <div className="mt-8 px-4">

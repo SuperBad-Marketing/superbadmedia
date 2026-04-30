@@ -33,6 +33,11 @@ export const rundownSessions = sqliteTable(
     website: text("website"),
     instagram_handle: text("instagram_handle"),
 
+    /** Optional city/suburb — captured at entry form. */
+    city: text("city"),
+    /** Whether this lead is in Melbourne metro + Geelong service area. */
+    is_melbourne_area: integer("is_melbourne_area", { mode: "boolean" }),
+
     // ── Linked records ──
     candidate_id: text("candidate_id"),
     profile_id: text("profile_id"),
