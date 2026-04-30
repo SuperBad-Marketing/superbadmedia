@@ -13,8 +13,9 @@
  * env var ANTHROPIC_API_KEY is the fallback for local dev.
  */
 import Anthropic from "@anthropic-ai/sdk";
+import { APIError, RateLimitError } from "@anthropic-ai/sdk";
 import { eq, and } from "drizzle-orm";
-import { modelFor, modelTierFor, isProfileInjectionExcluded, type ModelJobSlug } from "./models";
+import { modelFor, modelTierFor, isProfileInjectionExcluded, jobPriorityFor, type ModelJobSlug, type ModelTier, type JobPriority } from "./models";
 import { logExternalCall } from "@/lib/observatory/log-external-call";
 import { estimateAnthropicCostAud } from "@/lib/observatory/pricing";
 import { db } from "@/lib/db";
@@ -64,6 +65,86 @@ async function getClient(): Promise<Anthropic> {
   }
   cacheExpiresAt = now + CACHE_TTL_MS;
   return cachedClient;
+}
+
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 1000;
+
+function parseRetryAfter(err: unknown): number | null {
+  if (err instanceof APIError) {
+    const header = err.headers?.["retry-after"];
+    if (header) {
+      const seconds = Number(header);
+      if (!isNaN(seconds) && seconds > 0) return seconds * 1000;
+    }
+  }
+  return null;
+}
+
+async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const isRateLimit =
+        err instanceof RateLimitError ||
+        (err instanceof APIError && err.status === 429);
+
+      if (!isRateLimit || attempt === MAX_RETRIES) {
+        if (isRateLimit) {
+          throw new Error(
+            "Claude is busy right now — too many requests in the last minute. Try again in 30 seconds.",
+          );
+        }
+        throw err;
+      }
+
+      const retryAfterMs = parseRetryAfter(err);
+      const backoffMs = retryAfterMs ?? BASE_DELAY_MS * Math.pow(2, attempt);
+      await new Promise((r) => setTimeout(r, backoffMs));
+    }
+  }
+  throw new Error("Rate limit retries exhausted.");
+}
+
+// ---------------------------------------------------------------------------
+// Deferrable gate — spaces out background calls to stay under rate limits.
+// Interactive calls bypass entirely.
+// ---------------------------------------------------------------------------
+
+const DEFERRABLE_SPACING_MS: Record<ModelTier, number> = {
+  haiku: 5000,
+  sonnet: 4000,
+  opus: 6000,
+};
+
+class DeferrableGate {
+  private nextSlotMs = 0;
+
+  constructor(private spacingMs: number) {}
+
+  async waitForSlot(): Promise<void> {
+    const now = Date.now();
+    if (now >= this.nextSlotMs) {
+      this.nextSlotMs = now + this.spacingMs;
+      return;
+    }
+    const waitMs = this.nextSlotMs - now;
+    this.nextSlotMs += this.spacingMs;
+    await new Promise((r) => setTimeout(r, waitMs));
+  }
+}
+
+const deferrableGates: Record<ModelTier, DeferrableGate> = {
+  haiku: new DeferrableGate(DEFERRABLE_SPACING_MS.haiku),
+  sonnet: new DeferrableGate(DEFERRABLE_SPACING_MS.sonnet),
+  opus: new DeferrableGate(DEFERRABLE_SPACING_MS.opus),
+};
+
+async function applyDeferrableGate(job: ModelJobSlug, priorityOverride?: JobPriority): Promise<void> {
+  const priority = priorityOverride ?? jobPriorityFor(job);
+  if (priority === "interactive") return;
+  await deferrableGates[modelTierFor(job)].waitForSlot();
 }
 
 function safeUsage(response: { usage?: { input_tokens?: number; output_tokens?: number } }): {
@@ -126,6 +207,9 @@ export interface InvokeLlmTextOptions {
   /** Actor attribution for cost logging (spec §4.1). */
   actorType?: "internal" | "external" | "shared" | "prospect";
   actorId?: string | null;
+  /** Override the job-registry priority. Use sparingly — e.g. a cron re-running
+   *  an otherwise-interactive job should pass "deferrable". */
+  priority?: JobPriority;
 }
 
 /**
@@ -141,15 +225,19 @@ export async function invokeLlmText({
   maxTokens,
   actorType = "internal",
   actorId,
+  priority,
 }: InvokeLlmTextOptions): Promise<string> {
+  await applyDeferrableGate(job, priority);
   const client = await getClient();
   const resolvedSystem = await resolveSystemWithProfile(job, system);
-  const response = await client.messages.create({
-    model: modelFor(job),
-    max_tokens: maxTokens,
-    ...(resolvedSystem ? { system: resolvedSystem } : {}),
-    messages: [{ role: "user", content: prompt }],
-  });
+  const response = await withRateLimitRetry(() =>
+    client.messages.create({
+      model: modelFor(job),
+      max_tokens: maxTokens,
+      ...(resolvedSystem ? { system: resolvedSystem } : {}),
+      messages: [{ role: "user", content: prompt }],
+    }),
+  );
   const usage = safeUsage(response);
   logCost(job, usage, actorType, actorId);
   return response.content.find((b) => b.type === "text")?.text?.trim() ?? "";
@@ -164,14 +252,17 @@ export interface InvokeLlmResult {
 export async function invokeLlmTextWithMeta(
   options: InvokeLlmTextOptions,
 ): Promise<InvokeLlmResult> {
+  await applyDeferrableGate(options.job, options.priority);
   const client = await getClient();
   const resolvedSystem = await resolveSystemWithProfile(options.job, options.system);
-  const response = await client.messages.create({
-    model: modelFor(options.job),
-    max_tokens: options.maxTokens,
-    ...(resolvedSystem ? { system: resolvedSystem } : {}),
-    messages: [{ role: "user", content: options.prompt }],
-  });
+  const response = await withRateLimitRetry(() =>
+    client.messages.create({
+      model: modelFor(options.job),
+      max_tokens: options.maxTokens,
+      ...(resolvedSystem ? { system: resolvedSystem } : {}),
+      messages: [{ role: "user", content: options.prompt }],
+    }),
+  );
   const usage = safeUsage(response);
   logCost(options.job, usage, options.actorType ?? "internal", options.actorId);
   return {
@@ -188,6 +279,7 @@ export interface InvokeLlmVisionOptions {
   maxTokens: number;
   actorType?: "internal" | "external" | "shared" | "prospect";
   actorId?: string | null;
+  priority?: JobPriority;
 }
 
 export async function invokeLlmVision({
@@ -198,7 +290,9 @@ export async function invokeLlmVision({
   maxTokens,
   actorType = "internal",
   actorId,
+  priority,
 }: InvokeLlmVisionOptions): Promise<InvokeLlmResult> {
+  await applyDeferrableGate(job, priority);
   const imageBlocks: Anthropic.ImageBlockParam[] = imageUrls.map((url) => ({
     type: "image" as const,
     source: { type: "url" as const, url },
@@ -206,20 +300,22 @@ export async function invokeLlmVision({
 
   const client = await getClient();
   const resolvedSystem = await resolveSystemWithProfile(job, system);
-  const response = await client.messages.create({
-    model: modelFor(job),
-    max_tokens: maxTokens,
-    ...(resolvedSystem ? { system: resolvedSystem } : {}),
-    messages: [
-      {
-        role: "user",
-        content: [
-          ...imageBlocks,
-          { type: "text" as const, text: prompt },
-        ],
-      },
-    ],
-  });
+  const response = await withRateLimitRetry(() =>
+    client.messages.create({
+      model: modelFor(job),
+      max_tokens: maxTokens,
+      ...(resolvedSystem ? { system: resolvedSystem } : {}),
+      messages: [
+        {
+          role: "user",
+          content: [
+            ...imageBlocks,
+            { type: "text" as const, text: prompt },
+          ],
+        },
+      ],
+    }),
+  );
 
   const usage = safeUsage(response);
   logCost(job, usage, actorType, actorId);

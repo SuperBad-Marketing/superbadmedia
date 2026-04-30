@@ -246,3 +246,104 @@ const PROFILE_INJECTION_EXCLUDED: ReadonlySet<ModelJobSlug> = new Set([
 export function isProfileInjectionExcluded(job: ModelJobSlug): boolean {
   return PROFILE_INJECTION_EXCLUDED.has(job);
 }
+
+// ---------------------------------------------------------------------------
+// Job priority — interactive (user waiting) vs deferrable (background/batch)
+// ---------------------------------------------------------------------------
+
+export type JobPriority = "interactive" | "deferrable";
+
+const DEFERRABLE_JOBS: ReadonlySet<ModelJobSlug> = new Set([
+  // Lead gen — batch enrichment, outreach, classification
+  "lead-gen-outreach-draft",
+  "lead-gen-nudge-rewrite",
+  "lead-gen-case-snippet",
+  "lead-gen-candidate-summary",
+  "lead-gen-suggest-search",
+  "lead-gen-discovery-suggestions",
+  "lead-gen-icp-prefilter",
+  "lead-gen-deep-website-distill",
+  "lead-gen-reply-classify",
+  "lead-gen-soft-adjustment",
+  // Content engine — batch scoring, generation, matching
+  "content-score-keyword-rankability",
+  "content-generate-topic-outline",
+  "content-generate-blog-post",
+  "content-rewrite-for-newsletter",
+  "content-generate-social-draft",
+  "content-select-visual-template",
+  "content-generate-image-prompt",
+  "content-match-content-to-prospects",
+  "content-draft-outreach-email",
+  "content-generate-embed-form-styles",
+  // Intro funnel — automated classification & emails
+  "intro-funnel-signal-tag-extraction",
+  "intro-funnel-abandon-email",
+  "intro-funnel-apology-email",
+  // Client context — background summarisation
+  "client-context-summarise",
+  "client-context-extract-action-items",
+  "client-context-reformat-draft-for-channel",
+  // Inbox — auto-classification
+  "inbox-classify-inbound-route",
+  "inbox-classify-notification-priority",
+  "inbox-classify-signal-noise",
+  "inbox-classify-support-ticket-type",
+  "inbox-compose-subject",
+  // Hiring — background scoring & processing
+  "hiring-brief-synthesize",
+  "hiring-discovery-agent",
+  "hiring-candidate-score",
+  "hiring-invite-draft",
+  "hiring-followup-question-draft",
+  "hiring-trial-task-author",
+  "hiring-portfolio-ingest-vision",
+  "hiring-archive-reflection-ingest",
+  "hiring-reply-classify",
+  // Six-week plan — background validation
+  "six-week-plan-review",
+  "six-week-plan-revision-reply",
+  // Observatory & finance — cron-driven
+  "observatory-diagnose-cost-anomaly",
+  "observatory-draft-negative-margin-email",
+  "observatory-draft-weekly-digest",
+  "finance-draft-narrative",
+  // Drift check — automated grading
+  "drift-check-grader",
+  // Surprise and delight — automated
+  "sd-generate-in-voice",
+  "sd-milestone-extract",
+  "sd-riddle-wrong-fallback",
+  // Background helpers
+  "quote-builder-draft-scope-summary",
+  "invoice-draft-supersede-notification",
+  "video-brief-builder",
+  "client-mgmt-bartender-opening-line",
+  "client-mgmt-escalation-summary",
+  "referral-follow-up-draft",
+  // Instagram — auto-classification & batch analysis
+  "instagram-classify-inbound",
+  "instagram-escalation-summary",
+  "instagram-strategy-digest",
+  "instagram-realtime-alert",
+  "instagram-boost-rationale",
+  "instagram-competitive-strategy",
+  "instagram-post-why-high",
+  "instagram-taste-analysis",
+  // Talking head — background generation
+  "talking-head-generate-edit-brief",
+  "talking-head-generate-publish-meta",
+  // Call notes — background prep
+  "call-custom-questions",
+  // Rundown — automated sequences
+  "rundown-sequence-draft-email",
+  "rundown-sequence-classify-reply",
+  // Content studio — background template selection
+  "content-studio-pick-template",
+  // Audit — background explanation
+  "audit-category-explanation",
+]);
+
+export function jobPriorityFor(job: ModelJobSlug): JobPriority {
+  return DEFERRABLE_JOBS.has(job) ? "deferrable" : "interactive";
+}
