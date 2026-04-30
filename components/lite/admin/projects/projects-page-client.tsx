@@ -14,8 +14,18 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
-import type { ProjectRow } from "@/lib/db/schema/projects";
-import type { ProjectStatus, DraftTask } from "@/lib/db/schema/projects";
+import type { ProjectStatus, DraftTask } from "@/lib/projects/types";
+
+interface ProjectRow {
+  id: string;
+  title: string;
+  brain_dump: string;
+  status: string;
+  breakdown_json: unknown;
+  draft_tasks_json: unknown;
+  updated_at_ms: number;
+  created_at_ms: number;
+}
 import { createProjectAction } from "@/app/lite/projects/actions";
 
 // ---------------------------------------------------------------------------

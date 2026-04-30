@@ -1,15 +1,9 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { user } from "./user";
+import { PROJECT_STATUSES } from "@/lib/projects/types";
 
-export const PROJECT_STATUSES = [
-  "idea",
-  "planning",
-  "active",
-  "paused",
-  "completed",
-  "archived",
-] as const;
-export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
+export { PROJECT_STATUSES } from "@/lib/projects/types";
+export type { ProjectStatus, ProjectBreakdown, DraftTask } from "@/lib/projects/types";
 
 export const projects = sqliteTable(
   "projects",
@@ -37,24 +31,3 @@ export const projects = sqliteTable(
 
 export type ProjectRow = typeof projects.$inferSelect;
 export type ProjectInsert = typeof projects.$inferInsert;
-
-export interface ProjectBreakdown {
-  summary: string;
-  goals: string[];
-  phases: {
-    name: string;
-    description: string;
-    tasks: string[];
-  }[];
-  risks: string[];
-  estimated_effort: string;
-}
-
-export interface DraftTask {
-  temp_id: string;
-  title: string;
-  body: string | null;
-  priority: "high" | "normal" | "low";
-  phase: string;
-  approved: boolean;
-}

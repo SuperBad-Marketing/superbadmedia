@@ -18,13 +18,28 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
-import type { ProjectRow } from "@/lib/db/schema/projects";
 import type {
   ProjectStatus,
   ProjectBreakdown,
   DraftTask,
-} from "@/lib/db/schema/projects";
-import type { TaskRow } from "@/lib/db/schema/tasks";
+} from "@/lib/projects/types";
+
+interface ProjectRow {
+  id: string;
+  title: string;
+  brain_dump: string;
+  status: string;
+  breakdown_json: unknown;
+  draft_tasks_json: unknown;
+  updated_at_ms: number;
+  created_at_ms: number;
+}
+
+interface TaskRow {
+  id: string;
+  title: string;
+  status: string;
+}
 import {
   generateBreakdownAction,
   updateProjectAction,
