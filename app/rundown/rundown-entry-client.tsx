@@ -736,7 +736,7 @@ export function RundownEntryClient({ prefilled }: { prefilled?: PrefilledData })
                   value={name}
                   onChange={setName}
                   required
-                  autoFocus={!prefilled?.name}
+                  autoFocus={false}
                 />
                 <InputField
                   label="Email"
