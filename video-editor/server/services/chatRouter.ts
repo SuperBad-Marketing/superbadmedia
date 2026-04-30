@@ -58,6 +58,7 @@ Parameter extraction:
 
 export class ChatRouter {
   private anthropic: Anthropic | null = null
+  private lastApiKey: string | undefined = undefined
   private ingestService = new IngestService()
   private clipAnalysis = new ClipAnalysisService()
   private skillService = new SkillService()
@@ -67,17 +68,20 @@ export class ChatRouter {
   private sfxService = new SfxService()
   private conversationHistory: { role: 'user' | 'assistant'; content: string }[] = []
 
-  constructor() {
+  private getClient(): Anthropic | null {
     const apiKey = process.env.ANTHROPIC_API_KEY
-    if (apiKey) {
+    if (!apiKey) return null
+    if (apiKey !== this.lastApiKey) {
       this.anthropic = new Anthropic({ apiKey })
+      this.lastApiKey = apiKey
     }
+    return this.anthropic
   }
 
   async route(message: string, projectId?: string): Promise<ChatResponse> {
-    if (!this.anthropic) {
+    if (!this.getClient()) {
       return {
-        content: "I need an API key to work. Add your Anthropic API key to a `.env` file in the video-editor folder:\n\n`ANTHROPIC_API_KEY=your-key-here`\n\nThen restart the server.",
+        content: "I need an API key to work. Click the **gear icon** in the top right to add your Anthropic API key, or add it to a `.env` file in the video-editor folder.",
       }
     }
 
@@ -101,10 +105,11 @@ export class ChatRouter {
   }
 
   private async classifyIntent(message: string): Promise<{ intent: string; params: Record<string, any> }> {
-    if (!this.anthropic) return { intent: 'general', params: {} }
+    const client = this.getClient()
+    if (!client) return { intent: 'general', params: {} }
 
     try {
-      const response = await this.anthropic.messages.create({
+      const response = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 200,
         system: INTENT_SYSTEM,
@@ -477,8 +482,11 @@ ${resolveContext}${skillContext}`
 
     this.conversationHistory.push({ role: 'user', content: message })
 
+    const client = this.getClient()
+    if (!client) return { content: 'API key not configured.' }
+
     try {
-      const response = await this.anthropic!.messages.create({
+      const response = await client.messages.create({
         model: 'claude-sonnet-4-6',
         max_tokens: 1024,
         system: systemPrompt,

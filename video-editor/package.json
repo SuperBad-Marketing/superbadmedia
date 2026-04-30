@@ -17,6 +17,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "better-sqlite3": "^11.8.1",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^4.21.0",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
