@@ -6,6 +6,7 @@ const IngestView = lazy(() => import('../ingest/IngestView'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
 const PreviewView = lazy(() => import('../preview/PreviewView'))
 const GradingView = lazy(() => import('../grading/GradingView'))
+const CaptionsView = lazy(() => import('../captions/CaptionsView'))
 const ExportView = lazy(() => import('../export/ExportView'))
 const AdVariationsView = lazy(() => import('../ads/AdVariationsView'))
 
@@ -14,6 +15,7 @@ const tabs: { id: CentreView; label: string }[] = [
   { id: 'storyboard', label: 'Storyboard' },
   { id: 'preview', label: 'Preview' },
   { id: 'grading', label: 'Grading' },
+  { id: 'captions', label: 'Captions' },
   { id: 'export', label: 'Export' },
   { id: 'ads', label: 'Ads' },
 ]
@@ -32,6 +34,8 @@ function ActiveView({ view }: { view: CentreView }) {
       return <Suspense fallback={<ViewFallback />}><PreviewView /></Suspense>
     case 'grading':
       return <Suspense fallback={<ViewFallback />}><GradingView /></Suspense>
+    case 'captions':
+      return <Suspense fallback={<ViewFallback />}><CaptionsView /></Suspense>
     case 'export':
       return <Suspense fallback={<ViewFallback />}><ExportView /></Suspense>
     case 'ads':

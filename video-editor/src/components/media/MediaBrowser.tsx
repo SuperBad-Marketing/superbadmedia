@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { useState, useMemo, useCallback } from 'react'
+import { Search, SlidersHorizontal, ListPlus } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import ClipCard from './ClipCard'
 
@@ -19,6 +19,9 @@ export default function MediaBrowser() {
   const [filter, setFilter] = useState<FilterMode>('all')
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
+  const addToStoryboard = useAppStore((s) => s.addToStoryboard)
+  const storyboardClips = useAppStore((s) => s.storyboardClips)
+  const setCentreView = useAppStore((s) => s.setCentreView)
 
   const filteredClips = useMemo(() => {
     let result = clips
@@ -51,6 +54,16 @@ export default function MediaBrowser() {
 
     return result
   }, [clips, search, filter])
+
+  const handleAddAll = useCallback(() => {
+    const inStoryboard = new Set(storyboardClips.map((sc) => sc.clipId))
+    for (const clip of filteredClips) {
+      if (!inStoryboard.has(clip.id)) {
+        addToStoryboard(clip)
+      }
+    }
+    setCentreView('storyboard')
+  }, [filteredClips, storyboardClips, addToStoryboard, setCentreView])
 
   if (!currentProject || clips.length === 0) {
     return (
@@ -123,11 +136,18 @@ export default function MediaBrowser() {
         </div>
       </div>
 
-      <div className="px-3 py-2 border-t border-border">
+      <div className="px-3 py-2 border-t border-border flex items-center justify-between">
         <span className="text-text-dim text-xs">
           {filteredClips.length} clip{filteredClips.length !== 1 ? 's' : ''}
           {filter !== 'all' && ` (filtered from ${clips.length})`}
         </span>
+        <button
+          onClick={handleAddAll}
+          className="flex items-center gap-1 text-xs text-accent hover:text-accent-hover transition-colors"
+        >
+          <ListPlus size={12} />
+          Add all
+        </button>
       </div>
     </div>
   )

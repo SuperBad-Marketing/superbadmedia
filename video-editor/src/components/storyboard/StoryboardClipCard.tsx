@@ -1,7 +1,8 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Film, GripVertical } from 'lucide-react'
+import { Film, GripVertical, X } from 'lucide-react'
 import type { StoryboardClip } from '../../types'
+import { useAppStore } from '../../stores/appStore'
 
 interface StoryboardClipCardProps {
   storyboardClip: StoryboardClip
@@ -9,6 +10,7 @@ interface StoryboardClipCardProps {
 }
 
 export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCardProps) {
+  const removeFromStoryboard = useAppStore((s) => s.removeFromStoryboard)
   const {
     attributes,
     listeners,
@@ -36,7 +38,7 @@ export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCar
           : 'border-border hover:border-border-active'
       }`}
     >
-      <div className="aspect-video bg-surface-active flex items-center justify-center">
+      <div className="aspect-video bg-surface-active flex items-center justify-center relative group/thumb">
         {storyboardClip.clip.thumbnailPath ? (
           <img
             src={storyboardClip.clip.thumbnailPath}
@@ -46,6 +48,13 @@ export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCar
         ) : (
           <Film size={20} className="text-text-dim" />
         )}
+        <button
+          onClick={() => removeFromStoryboard(storyboardClip.id)}
+          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-bg/70 text-text-muted opacity-0 group-hover/thumb:opacity-100 hover:bg-accent hover:text-white flex items-center justify-center transition-all"
+          title="Remove from storyboard"
+        >
+          <X size={10} />
+        </button>
       </div>
 
       <div className="p-2 flex flex-col gap-1">

@@ -15,6 +15,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
+import { sendToResolve } from '../../lib/api'
 
 interface FormatOption {
   id: string
@@ -147,6 +148,7 @@ export default function ExportView() {
   const [isExporting, setIsExporting] = useState(false)
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
 
+  const resolveConnected = useAppStore((s) => s.resolveConnected)
   const hasTimeline = currentProject && storyboardClips.length > 0
   const selectedCount = selectedFormats.size
 
@@ -162,10 +164,22 @@ export default function ExportView() {
     })
   }
 
-  function handleExport() {
+  async function handleExport() {
     if (selectedCount === 0) return
 
-    const jobs: ExportJob[] = FORMATS.filter((f) => selectedFormats.has(f.id)).map((f, i) => ({
+    const selectedFormatList = FORMATS.filter((f) => selectedFormats.has(f.id))
+
+    if (resolveConnected) {
+      for (const format of selectedFormatList) {
+        sendToResolve('render', {
+          output_path: destination.replace('~', '/Users'),
+          width: format.width,
+          height: format.height,
+        })
+      }
+    }
+
+    const jobs: ExportJob[] = selectedFormatList.map((f, i) => ({
       formatId: f.id,
       label: f.label,
       resolution: f.resolution,
@@ -176,7 +190,6 @@ export default function ExportView() {
     setExportJobs(jobs)
     setIsExporting(true)
 
-    // Simulate export progress
     let currentJobIndex = 0
     const interval = setInterval(() => {
       setExportJobs((prev) => {

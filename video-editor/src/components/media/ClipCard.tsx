@@ -1,5 +1,6 @@
-import { Film, Star } from 'lucide-react'
+import { Film, Star, Plus, Check } from 'lucide-react'
 import type { Clip } from '../../types'
+import { useAppStore } from '../../stores/appStore'
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -21,16 +22,20 @@ interface ClipCardProps {
 }
 
 export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
+  const addToStoryboard = useAppStore((s) => s.addToStoryboard)
+  const storyboardClips = useAppStore((s) => s.storyboardClips)
+  const isInStoryboard = storyboardClips.some((sc) => sc.clipId === clip.id)
+
   return (
-    <button
+    <div
       onClick={onClick}
-      className={`group w-full text-left rounded-lg border transition-all duration-200 overflow-hidden ${
+      className={`group w-full text-left rounded-lg border transition-all duration-200 overflow-hidden cursor-pointer ${
         isSelected
           ? 'border-accent ring-1 ring-accent'
           : 'border-border hover:border-border-active'
       } hover:brightness-110`}
     >
-      <div className="aspect-video bg-surface-active rounded-t-lg flex items-center justify-center overflow-hidden">
+      <div className="aspect-video bg-surface-active rounded-t-lg flex items-center justify-center overflow-hidden relative">
         {clip.thumbnailPath ? (
           <img
             src={clip.thumbnailPath}
@@ -40,6 +45,21 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
         ) : (
           <Film size={24} className="text-text-dim" />
         )}
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            if (!isInStoryboard) addToStoryboard(clip)
+          }}
+          className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+            isInStoryboard
+              ? 'bg-green text-white'
+              : 'bg-bg/70 text-text-muted opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-white'
+          }`}
+          title={isInStoryboard ? 'In storyboard' : 'Add to storyboard'}
+        >
+          {isInStoryboard ? <Check size={12} /> : <Plus size={12} />}
+        </button>
       </div>
 
       <div className="p-2 space-y-1.5">
@@ -94,6 +114,6 @@ export default function ClipCard({ clip, onClick, isSelected }: ClipCardProps) {
           </>
         )}
       </div>
-    </button>
+    </div>
   )
 }

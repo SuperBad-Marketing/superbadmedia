@@ -20,6 +20,8 @@ interface AppState {
   // Storyboard
   storyboardClips: StoryboardClip[]
   setStoryboardClips: (clips: StoryboardClip[]) => void
+  addToStoryboard: (clip: Clip) => void
+  removeFromStoryboard: (id: string) => void
   reorderStoryboardClip: (fromIndex: number, toIndex: number) => void
 
   // Chat
@@ -68,6 +70,22 @@ export const useAppStore = create<AppState>((set) => ({
 
   storyboardClips: [],
   setStoryboardClips: (clips) => set({ storyboardClips: clips }),
+  addToStoryboard: (clip) => set((state) => {
+    const sc: StoryboardClip = {
+      id: crypto.randomUUID(),
+      clipId: clip.id,
+      clip,
+      startTime: 0,
+      endTime: clip.duration,
+      position: state.storyboardClips.length,
+    }
+    return { storyboardClips: [...state.storyboardClips, sc] }
+  }),
+  removeFromStoryboard: (id) => set((state) => ({
+    storyboardClips: state.storyboardClips
+      .filter((c) => c.id !== id)
+      .map((c, i) => ({ ...c, position: i })),
+  })),
   reorderStoryboardClip: (fromIndex, toIndex) => set((state) => {
     const newClips = [...state.storyboardClips]
     const [moved] = newClips.splice(fromIndex, 1)

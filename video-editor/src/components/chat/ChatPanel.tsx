@@ -1,17 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { Upload, FolderPlus, BookOpen, Music } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
+import { sendChatMessage } from '../../lib/api'
 import ChatMessageComponent from './ChatMessage'
 import ChatInput from './ChatInput'
 
 const quickActions = [
-  { label: 'Import footage', icon: Upload },
-  { label: 'Start a new project', icon: FolderPlus },
-  { label: 'Learn from a video', icon: BookOpen },
-  { label: 'Browse music', icon: Music },
+  { label: 'Import footage', icon: Upload, view: 'ingest' as const },
+  { label: 'Start a new project', icon: FolderPlus, view: 'ingest' as const },
+  { label: 'Learn from a video', icon: BookOpen, tab: 'knowledge' as const },
+  { label: 'Browse music', icon: Music, tab: 'music' as const },
 ]
 
-function WelcomeScreen({ onQuickAction }: { onQuickAction: (label: string) => void }) {
+function WelcomeScreen({ onQuickAction }: { onQuickAction: (action: typeof quickActions[number]) => void }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6">
       <div className="text-center">
@@ -19,15 +20,15 @@ function WelcomeScreen({ onQuickAction }: { onQuickAction: (label: string) => vo
         <p className="text-text-muted text-sm mt-1">What are you working on?</p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        {quickActions.map(({ label, icon: Icon }) => (
+        {quickActions.map((action) => (
           <button
-            key={label}
+            key={action.label}
             type="button"
-            onClick={() => onQuickAction(label)}
+            onClick={() => onQuickAction(action)}
             className="flex items-center gap-2 px-4 py-2 rounded-full border border-border text-text-muted text-sm hover:border-accent hover:text-accent transition-colors"
           >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
+            <action.icon className="w-3.5 h-3.5" />
+            {action.label}
           </button>
         ))}
       </div>
@@ -36,7 +37,7 @@ function WelcomeScreen({ onQuickAction }: { onQuickAction: (label: string) => vo
 }
 
 export default function ChatPanel() {
-  const { chatMessages, addChatMessage } = useAppStore()
+  const { chatMessages, addChatMessage, updateChatMessage, setCentreView, setRightPanelTab, currentProject } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -46,14 +47,33 @@ export default function ChatPanel() {
     }
   }, [chatMessages])
 
-  const handleQuickAction = (label: string) => {
-    addChatMessage({
+  const handleQuickAction = useCallback((action: typeof quickActions[number]) => {
+    if (action.view) {
+      setCentreView(action.view)
+    }
+    if (action.tab) {
+      setRightPanelTab(action.tab)
+    }
+
+    const userMsg = {
       id: crypto.randomUUID(),
-      role: 'user',
-      content: label,
+      role: 'user' as const,
+      content: action.label,
       timestamp: new Date().toISOString(),
-    })
-  }
+    }
+    addChatMessage(userMsg)
+
+    const loadingId = crypto.randomUUID()
+    addChatMessage({ id: loadingId, role: 'assistant', content: '', timestamp: new Date().toISOString(), isLoading: true })
+
+    sendChatMessage(action.label, currentProject?.id)
+      .then((response) => {
+        updateChatMessage(loadingId, { content: response.content, isLoading: false, action: response.action })
+      })
+      .catch(() => {
+        updateChatMessage(loadingId, { content: 'Something went wrong. Try again.', isLoading: false })
+      })
+  }, [addChatMessage, updateChatMessage, setCentreView, setRightPanelTab, currentProject?.id])
 
   return (
     <div className="flex flex-col h-full">

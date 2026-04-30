@@ -11,10 +11,21 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { Play, Pause, Plus, ArrowRight, Loader2 } from 'lucide-react'
+import { Play, Pause, Plus, ArrowRight, Loader2, X, Zap } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { sendToResolve } from '../../lib/api'
 import StoryboardClipCard from './StoryboardClipCard'
+
+const TRANSITION_PRESETS = [
+  { id: 'cut', name: 'Cut', icon: '✂️' },
+  { id: 'dissolve-soft', name: 'Dissolve', icon: '🌊' },
+  { id: 'impact-shake', name: 'Impact', icon: '💥' },
+  { id: 'wipe-whip', name: 'Whip Pan', icon: '💨' },
+  { id: 'zoom-blur-in', name: 'Zoom Blur', icon: '🔍' },
+  { id: 'dissolve-light-leak', name: 'Light Leak', icon: '✨' },
+  { id: 'glitch-digital', name: 'Glitch', icon: '📺' },
+  { id: 'film-grain', name: 'Film Grain', icon: '🎞️' },
+] as const
 
 function seededRandom(seed: number) {
   let s = seed
@@ -31,14 +42,49 @@ function formatTotalDuration(seconds: number): string {
   return `${m.toString().padStart(2, '0')}:${s2.toString().padStart(2, '0')}.${ms}`
 }
 
-function TransitionIndicator() {
+function TransitionIndicator({ index }: { index: number }) {
+  const [open, setOpen] = useState(false)
+  const [selected, setSelected] = useState<string | null>(null)
+
+  const selectedPreset = selected ? TRANSITION_PRESETS.find((p) => p.id === selected) : null
+
   return (
-    <div className="flex flex-col items-center justify-center px-1 shrink-0">
+    <div className="flex flex-col items-center justify-center px-1 shrink-0 relative">
       <div className="w-px h-8 bg-border" />
-      <div className="w-5 h-5 rounded-full bg-surface-active border border-border flex items-center justify-center">
-        <Plus size={10} className="text-text-dim" />
-      </div>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] transition-all ${
+          selectedPreset
+            ? 'bg-accent/20 border border-accent text-accent'
+            : 'bg-surface-active border border-border text-text-dim hover:border-accent hover:text-accent'
+        }`}
+        title={selectedPreset ? selectedPreset.name : 'Add transition'}
+      >
+        {selectedPreset ? selectedPreset.icon : <Zap size={10} />}
+      </button>
       <div className="w-px h-8 bg-border" />
+
+      {open && (
+        <div className="absolute top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg p-2 min-w-[140px]">
+          {TRANSITION_PRESETS.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => {
+                setSelected(preset.id === selected ? null : preset.id)
+                setOpen(false)
+              }}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
+                preset.id === selected
+                  ? 'bg-accent-dim text-accent'
+                  : 'text-text-muted hover:bg-surface-hover hover:text-text'
+              }`}
+            >
+              <span>{preset.icon}</span>
+              <span>{preset.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -210,7 +256,7 @@ export default function StoryboardView() {
             <SortableContext items={clipIds} strategy={horizontalListSortingStrategy}>
               {storyboardClips.map((clip, index) => (
                 <div key={clip.id} className="flex items-center">
-                  {index > 0 && <TransitionIndicator />}
+                  {index > 0 && <TransitionIndicator index={index} />}
                   <StoryboardClipCard storyboardClip={clip} index={index} />
                 </div>
               ))}
