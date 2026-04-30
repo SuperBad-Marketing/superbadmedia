@@ -9,13 +9,13 @@ import {
   FolderOpen,
   Cloud,
   Bell,
-  Loader2,
   CheckCircle2,
   Clock,
-  Upload,
+  AlertCircle,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { sendToResolve, startExport, getExportStatus } from '../../lib/api'
+import ProgressRing from '../shared/ProgressRing'
 
 interface FormatOption {
   id: string
@@ -28,7 +28,7 @@ interface FormatOption {
 }
 
 type Quality = 'h265' | 'h264' | 'prores'
-type ExportStatus = 'waiting' | 'rendering' | 'uploading' | 'complete'
+type ExportStatus = 'waiting' | 'rendering' | 'uploading' | 'complete' | 'error'
 
 interface ExportJob {
   formatId: string
@@ -36,6 +36,7 @@ interface ExportJob {
   resolution: string
   status: ExportStatus
   progress: number
+  errorMessage?: string
 }
 
 const FORMATS: FormatOption[] = [
@@ -109,16 +110,18 @@ function AspectPreview({ formatId, selected }: { formatId: string; selected: boo
   )
 }
 
-function StatusIcon({ status }: { status: ExportStatus }) {
+function StatusIcon({ status, progress }: { status: ExportStatus; progress: number }) {
   switch (status) {
     case 'waiting':
       return <Clock size={13} className="text-text-dim" />
     case 'rendering':
-      return <Loader2 size={13} className="text-accent animate-spin" />
+      return <ProgressRing progress={progress} size={20} strokeWidth={2} showPercent={false} />
     case 'uploading':
-      return <Upload size={13} className="text-amber animate-pulse" />
+      return <ProgressRing progress={progress} size={20} strokeWidth={2} showPercent={false} color="var(--color-amber)" />
     case 'complete':
       return <CheckCircle2 size={13} className="text-green" />
+    case 'error':
+      return <AlertCircle size={13} className="text-accent" />
   }
 }
 
@@ -132,6 +135,8 @@ function statusLabel(status: ExportStatus): string {
       return 'Uploading'
     case 'complete':
       return 'Complete'
+    case 'error':
+      return 'Failed'
   }
 }
 
@@ -214,21 +219,45 @@ export default function ExportView() {
 
         const pollProgress = async (jobId: string) => {
           let done = false
+          let iterations = 0
+          const maxIterations = 300
           while (!done) {
             await new Promise((r) => setTimeout(r, 1000))
-            try {
-              const status = await getExportStatus(jobId)
+            iterations++
+            if (iterations > maxIterations) {
               setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
                 ...j,
-                progress: status.progress || 0,
-                status: status.status === 'complete' ? 'complete' as ExportStatus
-                  : status.status === 'error' ? 'complete' as ExportStatus
-                  : 'rendering' as ExportStatus,
+                status: 'error' as ExportStatus,
+                errorMessage: 'Export timed out after 5 minutes',
               } : j))
-              if (status.status === 'complete' || status.status === 'error') {
+              break
+            }
+            try {
+              const status = await getExportStatus(jobId)
+              if (status.status === 'error') {
+                setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
+                  ...j,
+                  status: 'error' as ExportStatus,
+                  errorMessage: status.error || 'Export failed',
+                } : j))
                 done = true
+              } else {
+                setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
+                  ...j,
+                  progress: status.progress || 0,
+                  status: status.status === 'complete' ? 'complete' as ExportStatus
+                    : 'rendering' as ExportStatus,
+                } : j))
+                if (status.status === 'complete') {
+                  done = true
+                }
               }
             } catch {
+              setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
+                ...j,
+                status: 'error' as ExportStatus,
+                errorMessage: 'Lost connection to export process',
+              } : j))
               done = true
             }
           }
@@ -236,7 +265,7 @@ export default function ExportView() {
 
         await pollProgress(job.id)
       } catch {
-        setExportJobs((prev) => prev.map((j, idx) => idx === i ? { ...j, status: 'complete' as ExportStatus, progress: 100 } : j))
+        setExportJobs((prev) => prev.map((j, idx) => idx === i ? { ...j, status: 'error' as ExportStatus, errorMessage: 'Failed to start export' } : j))
       }
     }
 
@@ -417,16 +446,18 @@ export default function ExportView() {
                       <span className="font-mono text-[10px] text-text-dim tabular-nums">{job.resolution}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <StatusIcon status={job.status} />
+                      <StatusIcon status={job.status} progress={job.progress} />
                       <span
                         className={`text-[11px] font-medium ${
                           job.status === 'complete'
                             ? 'text-green'
-                            : job.status === 'rendering'
+                            : job.status === 'error'
                               ? 'text-accent'
-                              : job.status === 'uploading'
-                                ? 'text-amber'
-                                : 'text-text-dim'
+                              : job.status === 'rendering'
+                                ? 'text-accent'
+                                : job.status === 'uploading'
+                                  ? 'text-amber'
+                                  : 'text-text-dim'
                         }`}
                       >
                         {statusLabel(job.status)}
@@ -435,7 +466,7 @@ export default function ExportView() {
                   </div>
 
                   {(job.status === 'rendering' || job.status === 'uploading') && (
-                    <div className="w-full h-1 bg-bg rounded-full overflow-hidden">
+                    <div className="w-full h-0.5 bg-bg rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ease-out ${
                           job.status === 'uploading' ? 'bg-amber' : 'bg-accent'
@@ -446,9 +477,13 @@ export default function ExportView() {
                   )}
 
                   {job.status === 'complete' && (
-                    <div className="w-full h-1 bg-green-dim rounded-full overflow-hidden">
+                    <div className="w-full h-0.5 bg-green-dim rounded-full overflow-hidden">
                       <div className="h-full bg-green rounded-full w-full" />
                     </div>
+                  )}
+
+                  {job.status === 'error' && job.errorMessage && (
+                    <p className="text-[10px] text-accent">{job.errorMessage}</p>
                   )}
                 </div>
               ))}
@@ -458,12 +493,12 @@ export default function ExportView() {
       </div>
 
       {/* Sticky export button */}
-      <div className="shrink-0 px-8 py-5">
+      <div className="shrink-0 px-8 py-5 flex justify-end">
         <button
           type="button"
           onClick={handleExport}
           disabled={selectedCount === 0 || isExporting}
-          className="w-full bg-accent rounded-lg py-3 px-8 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="bg-accent rounded-lg py-3 px-6 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isExporting
             ? 'Exporting...'

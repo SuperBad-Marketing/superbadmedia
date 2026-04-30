@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { Loader2, Sparkles, Music, Clock, Monitor, Zap, FileText, ArrowRight, RotateCcw } from 'lucide-react'
+import { Sparkles, Music, Clock, Monitor, Zap, FileText, ArrowRight, RotateCcw } from 'lucide-react'
+import ProgressRing from '../shared/ProgressRing'
 import { parseBrief, buildFromBrief, searchMusic } from '../../lib/api'
 import type { BriefFields, AssembledResult } from '../../lib/api'
 import { useAppStore } from '../../stores/appStore'
@@ -34,6 +35,7 @@ export default function BriefBuilder() {
   const [parsing, setParsing] = useState(false)
   const [building, setBuilding] = useState(false)
   const [buildStatus, setBuildStatus] = useState('')
+  const [buildError, setBuildError] = useState<string | null>(null)
 
   const handleParse = useCallback(async () => {
     if (!braindump.trim()) return
@@ -62,6 +64,7 @@ export default function BriefBuilder() {
     if (!fields) return
     setBuilding(true)
     setPhase('building')
+    setBuildError(null)
 
     try {
       setBuildStatus('Searching for music...')
@@ -101,7 +104,9 @@ export default function BriefBuilder() {
 
       setPhase('done')
     } catch {
-      setBuildStatus('Something went wrong. Try again.')
+      setBuildStatus('')
+      setBuildError('Something went wrong. Try again.')
+      setTimeout(() => setPhase('fields'), 2000)
     } finally {
       setBuilding(false)
     }
@@ -113,6 +118,7 @@ export default function BriefBuilder() {
     setFields(null)
     setResult(null)
     setBuildStatus('')
+    setBuildError(null)
   }
 
   const updateField = <K extends keyof BriefFields>(key: K, value: BriefFields[K]) => {
@@ -162,7 +168,7 @@ export default function BriefBuilder() {
                 disabled={!braindump.trim() || parsing}
                 className="flex items-center gap-2.5 bg-accent hover:bg-accent-hover rounded-lg px-4 py-2 font-semibold text-xs text-white transition-colors duration-150 disabled:opacity-40"
               >
-                {parsing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                {parsing ? <ProgressRing size={14} strokeWidth={2} showPercent={false} /> : <Sparkles size={14} />}
                 {parsing ? 'Reading your mind...' : 'Parse brief'}
               </button>
             </div>
@@ -310,17 +316,18 @@ export default function BriefBuilder() {
                   Build rough cut
                 </button>
               </div>
+
+              {buildError && (
+                <p className="text-[10px] text-accent">{buildError}</p>
+              )}
             </div>
           )}
 
           {/* Phase 3: Building */}
           {phase === 'building' && (
             <div className="flex flex-col items-center justify-center gap-5 py-20">
-              <Loader2 size={28} className="text-accent animate-spin" />
-              <div className="text-center space-y-1.5">
-                <h2 className="font-display font-semibold text-sm text-text">Building your edit</h2>
-                <p className="text-[11px] text-text-dim">{buildStatus}</p>
-              </div>
+              <h2 className="font-display font-semibold text-sm text-text">Building your edit</h2>
+              <ProgressRing label={buildStatus} />
             </div>
           )}
 

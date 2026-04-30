@@ -114,3 +114,21 @@ body {
   backdrop-filter: blur(20px) saturate(1.2);
   -webkit-backdrop-filter: blur(20px) saturate(1.2);
 }
+
+/* Indeterminate progress ring */
+@keyframes progress-spin {
+  to { transform: rotate(360deg); }
+}
+.progress-indeterminate {
+  animation: progress-spin 1.4s linear infinite;
+}
+.progress-indeterminate circle:last-child {
+  stroke-dasharray: 80, 200;
+  stroke-dashoffset: 0;
+  animation: progress-dash 1.4s ease-in-out infinite;
+}
+@keyframes progress-dash {
+  0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 80, 200; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 80, 200; stroke-dashoffset: -125; }
+}

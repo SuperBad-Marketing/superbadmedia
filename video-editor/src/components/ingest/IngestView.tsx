@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
-import { HardDrive, CreditCard, FolderOpen, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { HardDrive, CreditCard, FolderOpen, ArrowRight } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { selectFolder, startIngest, getIngestStatus } from '../../lib/api'
+import ProgressRing from '../shared/ProgressRing'
 
 type ViewState = 'landing' | 'form' | 'progress'
 
@@ -49,12 +50,20 @@ export default function IngestView() {
     setViewState('landing')
   }, [])
 
+  const consecutiveErrors = useRef(0)
+  const [pollingError, setPollingError] = useState<string | null>(null)
+
   useEffect(() => {
     if (!currentIngest || currentIngest.status === 'complete' || currentIngest.status === 'error') return
+
+    consecutiveErrors.current = 0
+    setPollingError(null)
 
     const interval = setInterval(async () => {
       try {
         const updated = await getIngestStatus(currentIngest.id)
+        consecutiveErrors.current = 0
+        setPollingError(null)
         setCurrentIngest(updated)
 
         if (updated.status === 'complete' && updated.clips?.length) {
@@ -83,8 +92,13 @@ export default function IngestView() {
             status: 'ready',
           })
         }
-      } catch {
-        // silent
+      } catch (err) {
+        consecutiveErrors.current += 1
+        if (consecutiveErrors.current >= 3) {
+          setPollingError(
+            err instanceof Error ? err.message : 'Lost connection to import process'
+          )
+        }
       }
     }, 2000)
 
@@ -100,7 +114,7 @@ export default function IngestView() {
   }
 
   if (viewState === 'progress' && currentIngest) {
-    return <IngestProgress ingest={currentIngest} onOpenStoryboard={() => setCentreView('storyboard')} />
+    return <IngestProgress ingest={currentIngest} onOpenStoryboard={() => setCentreView('storyboard')} pollingError={pollingError} />
   }
 
   if (viewState === 'form') {
@@ -196,9 +210,11 @@ export default function IngestView() {
 function IngestProgress({
   ingest,
   onOpenStoryboard,
+  pollingError,
 }: {
   ingest: NonNullable<ReturnType<typeof useAppStore.getState>['currentIngest']>
   onOpenStoryboard: () => void
+  pollingError: string | null
 }) {
   const statusText: Record<string, string> = {
     pending: 'Preparing...',
@@ -213,33 +229,76 @@ function IngestProgress({
   const isError = ingest.status === 'error'
   const progressPercent = Math.round(ingest.progress)
 
+  // Stall detection: warn if progress hasn't changed in 60 seconds
+  const lastProgressRef = useRef({ value: progressPercent, time: Date.now() })
+  const [isStalled, setIsStalled] = useState(false)
+
+  useEffect(() => {
+    if (isComplete || isError) return
+
+    if (lastProgressRef.current.value !== progressPercent) {
+      lastProgressRef.current = { value: progressPercent, time: Date.now() }
+      setIsStalled(false)
+    }
+
+    const timer = setInterval(() => {
+      if (Date.now() - lastProgressRef.current.time >= 60_000) {
+        setIsStalled(true)
+      }
+    }, 5_000)
+
+    return () => clearInterval(timer)
+  }, [progressPercent, isComplete, isError])
+
   return (
     <div className="flex-1 flex items-center justify-center p-8">
-      <div className="w-full max-w-sm space-y-5">
-        <div className="flex flex-col items-center gap-2.5">
-          {isComplete && <CheckCircle2 size={24} className="text-green" strokeWidth={1.5} />}
-          {isError && <AlertCircle size={24} className="text-accent" strokeWidth={1.5} />}
-
-          <h2 className="font-display font-semibold text-sm text-text tracking-tight">
-            {statusText[ingest.status] || 'Processing...'}
-          </h2>
-        </div>
-
+      <div className="w-full max-w-sm flex flex-col items-center gap-5">
+        {/* Progress ring for all states */}
+        {isComplete && (
+          <ProgressRing
+            progress={100}
+            size={80}
+            color="var(--color-green)"
+            label={statusText[ingest.status]}
+          />
+        )}
+        {isError && (
+          <ProgressRing
+            progress={100}
+            size={80}
+            color="var(--color-accent)"
+            label={statusText[ingest.status]}
+          />
+        )}
         {!isComplete && !isError && (
-          <div className="space-y-2.5">
-            <div className="w-full h-0.5 bg-surface-active rounded-full overflow-hidden">
-              <div
-                className="h-full bg-orange rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-
-            <p className="font-mono text-[10px] text-text-dim text-center tabular-nums">
-              {ingest.processedFiles} / {ingest.totalFiles} files processed
-            </p>
-          </div>
+          <ProgressRing
+            progress={progressPercent}
+            size={80}
+            color="var(--color-orange)"
+            label={statusText[ingest.status] || 'Processing...'}
+          />
         )}
 
+        {/* File counter */}
+        {!isComplete && !isError && (
+          <p className="font-mono text-[10px] text-text-dim text-center tabular-nums">
+            {ingest.processedFiles} / {ingest.totalFiles} files processed
+          </p>
+        )}
+
+        {/* Stall warning */}
+        {isStalled && !isComplete && !isError && (
+          <p className="text-[10px] text-orange text-center">
+            Import may be stalled — check Resolve
+          </p>
+        )}
+
+        {/* Polling error */}
+        {pollingError && !isComplete && !isError && (
+          <p className="text-[10px] text-accent text-center">{pollingError}</p>
+        )}
+
+        {/* Complete state */}
         {isComplete && (
           <div className="flex flex-col items-center gap-3.5">
             <p className="font-mono text-[10px] text-text-dim tabular-nums">
@@ -255,6 +314,7 @@ function IngestProgress({
           </div>
         )}
 
+        {/* Error details */}
         {isError && ingest.errors.length > 0 && (
           <div className="bg-surface border border-border rounded-lg p-3.5 space-y-1.5">
             {ingest.errors.map((err, i) => (
