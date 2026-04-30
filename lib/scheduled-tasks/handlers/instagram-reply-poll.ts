@@ -12,8 +12,7 @@ import {
   getMediaComments,
   getConversations,
   getConversationMessages,
-  getCommentAuthorId,
-  sendDirectMessage,
+  sendPrivateReplyToComment,
   type IGComment,
   type IGMessage,
 } from "@/lib/channels/instagram/client";
@@ -239,27 +238,17 @@ async function checkAndFireTriggers(
     let error: string | null = null;
 
     try {
-      const authorRes = await getCommentAuthorId(
-        comment.id,
+      const dmRes = await sendPrivateReplyToComment(
+        account.instagram_user_id,
         account.access_token,
+        comment.id,
+        trigger.dm_message_text,
       );
 
-      if (!authorRes.ok) {
-        error = `Could not resolve commenter ID: ${authorRes.error}`;
+      if (dmRes.ok) {
+        dmSent = true;
       } else {
-        const recipientId = authorRes.data.from.id;
-        const dmRes = await sendDirectMessage(
-          account.instagram_user_id,
-          account.access_token,
-          recipientId,
-          trigger.dm_message_text,
-        );
-
-        if (dmRes.ok) {
-          dmSent = true;
-        } else {
-          error = dmRes.error;
-        }
+        error = dmRes.error;
       }
     } catch (err) {
       error =

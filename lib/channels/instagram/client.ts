@@ -287,6 +287,21 @@ export async function getCommentAuthorId(
   );
 }
 
+export async function sendPrivateReplyToComment(
+  igUserId: string,
+  accessToken: string,
+  commentId: string,
+  message: string,
+): Promise<IGApiResult<{ id: string }>> {
+  return callApi(
+    "POST",
+    `${GRAPH_FB_BASE}/${igUserId}/messages`,
+    accessToken,
+    { recipient: { comment_id: commentId }, message: { text: message } },
+    "send_private_reply",
+  );
+}
+
 export async function replyToComment(
   commentId: string,
   accessToken: string,
