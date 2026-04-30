@@ -19,7 +19,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   const [progress] = useState(0)
 
   return (
-    <div className="bg-bg border-t border-border p-3 flex flex-col gap-2">
+    <div className="bg-bg border-t border-border p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-[13px] font-medium text-text truncate">{track.title}</div>

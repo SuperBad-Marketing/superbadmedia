@@ -115,7 +115,7 @@ export default function CaptionsView() {
       <div className="flex-1 flex min-h-0">
         {/* Caption list */}
         <div className="flex-1 flex flex-col min-h-0 border-r border-border">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <div className="flex items-center justify-between px-5 py-5 border-b border-border">
             <h2 className="text-sm font-display font-semibold text-text">
               Captions {captions.length > 0 && <span className="font-mono text-text-dim">({captions.length})</span>}
             </h2>
@@ -138,7 +138,7 @@ export default function CaptionsView() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
             {captions.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2 text-text-dim text-sm">
                 <Type size={24} />
@@ -204,7 +204,7 @@ export default function CaptionsView() {
         </div>
 
         {/* Style panel */}
-        <div className="w-72 shrink-0 p-5 space-y-5 overflow-y-auto">
+        <div className="w-72 shrink-0 p-6 space-y-6 overflow-y-auto">
           <h3 className="text-sm font-display font-semibold text-text">Style</h3>
 
           {/* Font */}

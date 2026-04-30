@@ -94,7 +94,7 @@ export default function GradingView() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 flex flex-col min-h-0 p-5 gap-5">
-        <div className="flex-1 min-h-0 flex flex-col gap-3">
+        <div className="flex-1 min-h-0 flex flex-col gap-4">
           <div className="flex items-center justify-end">
             <button
               type="button"
@@ -143,7 +143,7 @@ export default function GradingView() {
           )}
         </div>
 
-        <div className="shrink-0 space-y-5 border-t border-border pt-5">
+        <div className="shrink-0 space-y-6 border-t border-border pt-6">
           <div className="space-y-3">
             <h3 className="text-base font-display font-semibold text-text">Describe what you want</h3>
             <div className="flex gap-3">

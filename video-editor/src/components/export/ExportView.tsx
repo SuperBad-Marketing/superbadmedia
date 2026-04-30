@@ -251,7 +251,7 @@ export default function ExportView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none">
+      <div className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-none">
         {/* Format selection */}
         <div className="space-y-4">
           <h2 className="font-display text-2xl font-bold text-text">Export</h2>
@@ -457,7 +457,7 @@ export default function ExportView() {
       </div>
 
       {/* Sticky export button */}
-      <div className="shrink-0 p-5 border-t border-border">
+      <div className="shrink-0 p-6 border-t border-border">
         <button
           type="button"
           onClick={handleExport}

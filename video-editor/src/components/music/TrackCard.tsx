@@ -17,7 +17,7 @@ export default function TrackCard({ track, isSelected, onSelect }: TrackCardProp
   return (
     <button
       onClick={() => onSelect(track)}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors duration-150 ${
+      className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg text-left transition-colors duration-150 ${
         isSelected
           ? 'bg-surface-active border border-accent/40'
           : 'border border-transparent hover:bg-surface-hover'
@@ -41,7 +41,7 @@ export default function TrackCard({ track, isSelected, onSelect }: TrackCardProp
         )}
       </div>
 
-      <div className="flex flex-col items-end gap-0.5 shrink-0">
+      <div className="flex flex-col items-end gap-1 shrink-0">
         <span className="font-mono text-[10px] text-text-dim tabular-nums">{track.bpm}</span>
         <span className="text-[10px] text-text-dim font-mono tabular-nums">{formatDuration(track.duration)}</span>
       </div>

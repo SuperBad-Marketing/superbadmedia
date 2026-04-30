@@ -298,8 +298,8 @@ export default function AdVariationsView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none">
-        <div className="space-y-1.5">
+      <div className="flex-1 overflow-y-auto p-10 space-y-12 scrollbar-none">
+        <div className="space-y-2">
           <h2 className="font-display text-2xl font-bold text-text">Ad Variations</h2>
           <p className="text-text-muted text-base">Generate video and static ad variations from your edit</p>
         </div>
@@ -611,7 +611,7 @@ export default function AdVariationsView() {
       </div>
 
       {variations.length > 0 ? (
-        <div className="shrink-0 px-4 py-3 border-t border-border flex items-center justify-between">
+        <div className="shrink-0 px-6 py-4 border-t border-border flex items-center justify-between">
           <p className="text-sm text-text-muted">
             {approvedCount} approved, {rejectedCount} rejected, {pendingCount} pending
           </p>
@@ -641,7 +641,7 @@ export default function AdVariationsView() {
           </div>
         </div>
       ) : (
-        <div className="shrink-0 p-5 border-t border-border">
+        <div className="shrink-0 p-6 border-t border-border">
           <button
             type="button"
             onClick={handleGenerate}

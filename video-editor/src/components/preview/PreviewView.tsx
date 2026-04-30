@@ -141,7 +141,7 @@ export default function PreviewView() {
         )}
       </div>
 
-      <div className="px-4 py-1">
+      <div className="px-5 py-2">
         <input
           type="range"
           min={0}
@@ -153,7 +153,7 @@ export default function PreviewView() {
         />
       </div>
 
-      <div className="h-12 shrink-0 px-4 flex items-center justify-between border-t border-border">
+      <div className="h-14 shrink-0 px-5 flex items-center justify-between border-t border-border">
         <div className="flex items-center gap-3">
           <button onClick={handlePrev} className="p-1.5 text-text-dim hover:text-text transition-colors duration-150">
             <SkipBack size={15} />

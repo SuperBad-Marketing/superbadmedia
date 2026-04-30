@@ -49,12 +49,12 @@ export default function CentrePanel() {
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
-      <div className="flex items-center gap-0.5 px-4 h-11 border-b border-border shrink-0 select-none">
+      <div className="flex items-center gap-1 px-5 h-12 border-b border-border shrink-0 select-none">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setCentreView(tab.id)}
-            className={`relative px-3.5 py-2.5 text-xs font-semibold tracking-wide uppercase transition-colors duration-150 ${
+            className={`relative px-4 py-3 text-xs font-semibold tracking-wide uppercase transition-colors duration-150 ${
               centreView === tab.id
                 ? 'text-text after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-accent after:rounded-full'
                 : 'text-text-dim hover:text-text-muted'

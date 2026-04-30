@@ -212,7 +212,7 @@ export default function StoryboardView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="h-20 shrink-0 px-4 pt-3 pb-2 flex flex-col gap-1.5">
+      <div className="h-20 shrink-0 px-5 pt-3.5 pb-2.5 flex flex-col gap-2">
         {selectedTrack ? (
           <>
             <div className="flex items-center justify-between">
@@ -250,7 +250,7 @@ export default function StoryboardView() {
       </div>
 
       <div className="flex-1 overflow-x-auto overflow-y-hidden border-y border-border">
-        <div className="flex items-center gap-0 px-4 py-4 min-h-full">
+        <div className="flex items-center gap-0 px-5 py-5 min-h-full">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -272,7 +272,7 @@ export default function StoryboardView() {
         </div>
       </div>
 
-      <div className="h-12 shrink-0 px-4 flex items-center justify-between">
+      <div className="h-14 shrink-0 px-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
