@@ -301,14 +301,14 @@ export async function getCommentAuthorId(
 }
 
 export async function sendPrivateReplyToComment(
-  igUserId: string,
+  pageOrIgUserId: string,
   accessToken: string,
   commentId: string,
   message: string,
 ): Promise<IGApiResult<{ id: string }>> {
   return callApi(
     "POST",
-    `${GRAPH_FB_BASE}/${igUserId}/messages`,
+    `${GRAPH_FB_BASE}/${pageOrIgUserId}/messages`,
     accessToken,
     { recipient: { comment_id: commentId }, message: { text: message } },
     "send_private_reply",

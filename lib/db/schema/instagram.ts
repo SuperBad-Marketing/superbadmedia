@@ -12,6 +12,7 @@ export const instagram_accounts = sqliteTable(
   {
     id: text("id").primaryKey(),
     instagram_user_id: text("instagram_user_id").notNull(),
+    page_id: text("page_id"),
     username: text("username").notNull(),
     account_type: text("account_type", { enum: ["own", "client"] as const })
       .notNull()

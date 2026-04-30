@@ -335,9 +335,11 @@ export async function retryFailedFiresAction(
 
   let succeeded = 0;
 
+  const senderId = account.page_id ?? account.instagram_user_id;
+
   for (const fire of failedFires) {
     const dmRes = await sendPrivateReplyToComment(
-      account.instagram_user_id,
+      senderId,
       account.access_token,
       fire.ig_comment_id,
       trigger.dm_message_text,

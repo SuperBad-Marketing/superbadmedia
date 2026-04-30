@@ -44,8 +44,9 @@ export async function checkAndFireTriggersForComment(
     let error: string | null = null;
 
     try {
+      const senderId = account.page_id ?? account.instagram_user_id;
       const dmRes = await sendPrivateReplyToComment(
-        account.instagram_user_id,
+        senderId,
         account.access_token,
         comment.id,
         trigger.dm_message_text,

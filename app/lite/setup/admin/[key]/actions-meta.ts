@@ -52,7 +52,7 @@ function contractVersion(): string {
 async function discoverInstagramAccount(
   accessToken: string,
 ): Promise<
-  | { ok: true; igUserId: string; username: string; pageAccessToken: string }
+  | { ok: true; igUserId: string; username: string; pageId: string; pageAccessToken: string }
   | { ok: false; reason: string }
 > {
   // Check what permissions the token actually has
@@ -100,6 +100,7 @@ async function discoverInstagramAccount(
       ok: true,
       igUserId: igBizAccount.id,
       username: infoResult.data.username,
+      pageId: page.id,
       pageAccessToken: page.access_token,
     };
   }
@@ -147,6 +148,7 @@ export async function completeMetaAction(
           .update(instagram_accounts)
           .set({
             access_token: igDiscovery.pageAccessToken,
+            page_id: igDiscovery.pageId,
             token_expires_at_ms: Date.now() + 60 * 86400 * 1000,
             status: "active",
           })
@@ -161,6 +163,7 @@ export async function completeMetaAction(
         await db.insert(instagram_accounts).values({
           id: randomUUID(),
           instagram_user_id: igDiscovery.igUserId,
+          page_id: igDiscovery.pageId,
           username: igDiscovery.username,
           account_type: "own",
           access_token: igDiscovery.pageAccessToken,
