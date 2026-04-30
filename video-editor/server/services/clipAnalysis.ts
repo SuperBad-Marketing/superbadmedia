@@ -184,20 +184,7 @@ export class ClipAnalysisService {
     const bitsPerPixel = metadata.bitrate / Math.max(1, pixelRate)
     const sharpness = Math.min(95, Math.max(30, bitsPerPixel * 500))
 
-    let exposure = 0
-    try {
-      const sampleTime = Math.max(0, metadata.duration * 0.25)
-      const result = execSync(
-        `ffmpeg -ss ${sampleTime} -i "${filePath}" -frames:v 1 -vf "format=gray,scale=1:1" -f rawvideo -pix_fmt gray - 2>/dev/null | od -A n -t u1 | head -1`,
-        { encoding: 'utf-8', timeout: 5000 }
-      )
-      const val = Number(result.trim())
-      if (!isNaN(val)) {
-        exposure = (val - 128) / 64
-      }
-    } catch {
-      exposure = 0
-    }
+    const exposure = metadata.isLog ? -0.5 : 0
 
     let movementLevel: 'static' | 'low' | 'medium' | 'high' = 'medium'
     let energyLevel = 50
