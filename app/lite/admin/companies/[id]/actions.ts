@@ -332,7 +332,13 @@ export async function deleteContactAction(
     .get();
   if (!contact) return { ok: false, error: "Contact not found." };
 
-  await db.delete(contacts).where(eq(contacts.id, contactId));
+  try {
+    const { auditSubmissions } = await import("@/lib/db/schema/audit-submissions");
+    await db.update(auditSubmissions).set({ contact_id: null }).where(eq(auditSubmissions.contact_id, contactId));
+    await db.delete(contacts).where(eq(contacts.id, contactId));
+  } catch {
+    return { ok: false, error: "Delete failed — this contact may have linked records that couldn't be removed." };
+  }
 
   if (contact.is_primary) {
     const remaining = await db
@@ -349,6 +355,63 @@ export async function deleteContactAction(
   }
 
   revalidatePath(`/lite/admin/companies/${companyId}`);
+  return { ok: true };
+}
+
+export async function deleteCompanyAction(
+  companyId: string,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { ok: false, error: "Not authorised." };
+  }
+
+  const { companies } = await import("@/lib/db/schema/companies");
+  const company = await db
+    .select({ id: companies.id, name: companies.name })
+    .from(companies)
+    .where(eq(companies.id, companyId))
+    .get();
+  if (!company) return { ok: false, error: "Company not found." };
+
+  try {
+    const { auditSubmissions } = await import("@/lib/db/schema/audit-submissions");
+    const { caseSnippets } = await import("@/lib/db/schema/case-snippets");
+    await db.update(auditSubmissions).set({ company_id: null }).where(eq(auditSubmissions.company_id, companyId));
+    await db.update(auditSubmissions).set({ contact_id: null }).where(
+      eq(auditSubmissions.company_id, companyId),
+    );
+    await db.delete(caseSnippets).where(eq(caseSnippets.company_id, companyId));
+
+    const companyContacts = await db
+      .select({ id: contacts.id })
+      .from(contacts)
+      .where(eq(contacts.company_id, companyId));
+    for (const c of companyContacts) {
+      await db.update(auditSubmissions).set({ contact_id: null }).where(eq(auditSubmissions.contact_id, c.id));
+    }
+
+    const companyDeals = await db
+      .select({ id: deals.id })
+      .from(deals)
+      .where(eq(deals.company_id, companyId));
+    for (const d of companyDeals) {
+      await db.update(auditSubmissions).set({ deal_id: null }).where(eq(auditSubmissions.deal_id, d.id));
+    }
+
+    await db.delete(companies).where(eq(companies.id, companyId));
+  } catch {
+    return { ok: false, error: "Delete failed — this company may have linked records that couldn't be removed." };
+  }
+
+  await logActivity({
+    kind: "company_deleted",
+    body: `Deleted company ${company.name}`,
+    createdBy: `user:${session.user.id ?? "admin"}`,
+    meta: { company_id: companyId },
+  });
+
+  revalidatePath("/lite/admin/companies");
   return { ok: true };
 }
 

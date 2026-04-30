@@ -53,6 +53,7 @@ import { LinkedContactsPanel } from "@/components/lite/admin/companies/linked-co
 import { CompanyBriefsTab } from "@/components/lite/admin/companies/company-briefs-tab";
 import { EnrichmentCard } from "@/components/lite/enrichment-card";
 import { SocialProfilesCard } from "@/components/lite/social-profiles-card";
+import { CompanyDangerZone } from "@/components/lite/admin/companies/company-danger-zone";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
 export const metadata: Metadata = {
@@ -653,6 +654,12 @@ export default async function CompanyAdminPage({
           activities={activityData ?? []}
           privateNotes={companyPrivateNotes ?? undefined}
         />
+      ) : null}
+
+      {activeTab === "overview" ? (
+        <div className="px-4 pt-8 pb-12">
+          <CompanyDangerZone companyId={company.id} companyName={company.name} />
+        </div>
       ) : null}
     </div>
   );

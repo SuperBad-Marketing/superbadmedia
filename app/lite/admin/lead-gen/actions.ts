@@ -369,7 +369,18 @@ export async function deleteCandidateAction(
 
   if (!candidate) return { ok: false, error: "Candidate not found." };
 
-  await db.delete(leadCandidates).where(eq(leadCandidates.id, candidateId));
+  try {
+    await db.delete(outreachSends).where(eq(outreachSends.candidate_id, candidateId));
+    await db.delete(outreachDrafts).where(eq(outreachDrafts.candidate_id, candidateId));
+    await db.delete(outreachSequences).where(eq(outreachSequences.candidate_id, candidateId));
+    const { replyDrafts } = await import("@/lib/db/schema/reply-drafts");
+    await db.delete(replyDrafts).where(eq(replyDrafts.candidate_id, candidateId));
+    const { rundown_sequence_emails } = await import("@/lib/db/schema/rundown-sequence-emails");
+    await db.delete(rundown_sequence_emails).where(eq(rundown_sequence_emails.candidate_id, candidateId));
+    await db.delete(leadCandidates).where(eq(leadCandidates.id, candidateId));
+  } catch {
+    return { ok: false, error: "Delete failed — this candidate may have linked records that couldn't be removed." };
+  }
 
   await logActivity({
     kind: "lead_candidate_deleted",

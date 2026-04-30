@@ -117,7 +117,13 @@ export async function deleteDealAction(dealId: string): Promise<ActionResult> {
   const [deal] = db.select({ id: deals.id }).from(deals).where(eq(deals.id, dealId)).limit(1).all();
   if (!deal) return { ok: false, error: "Deal not found." };
 
-  db.delete(deals).where(eq(deals.id, dealId)).run();
+  try {
+    const { auditSubmissions } = await import("@/lib/db/schema/audit-submissions");
+    await db.update(auditSubmissions).set({ deal_id: null }).where(eq(auditSubmissions.deal_id, dealId));
+    await db.delete(deals).where(eq(deals.id, dealId));
+  } catch {
+    return { ok: false, error: "Delete failed — this deal may have linked records that couldn't be removed." };
+  }
 
   void logActivity({
     kind: "deal_deleted",

@@ -102,19 +102,58 @@ export function CandidateActions({
 
   if (isPromoted) {
     return (
-      <div
-        className="flex items-center gap-2 rounded-xl px-4 py-3"
-        style={{ backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.15)" }}
-      >
-        <span
-          className="inline-block rounded-full px-2.5 py-1 font-[family-name:var(--font-label)] text-[10px] uppercase"
-          style={{ letterSpacing: "1.2px", backgroundColor: "rgba(34, 197, 94, 0.15)", color: "#86efac" }}
+      <div className="space-y-3">
+        <div
+          className="flex items-center gap-2 rounded-xl px-4 py-3"
+          style={{ backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.15)" }}
         >
-          Promoted
-        </span>
-        <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]">
-          This candidate has been promoted to a deal.
-        </span>
+          <span
+            className="inline-block rounded-full px-2.5 py-1 font-[family-name:var(--font-label)] text-[10px] uppercase"
+            style={{ letterSpacing: "1.2px", backgroundColor: "rgba(34, 197, 94, 0.15)", color: "#86efac" }}
+          >
+            Promoted
+          </span>
+          <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]">
+            This candidate has been promoted to a deal.
+          </span>
+        </div>
+        <div
+          className="rounded-xl px-4 py-3"
+          style={{ backgroundColor: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.12)" }}
+        >
+          <div className="flex items-center gap-2">
+            {showDeleteConfirm && (
+              <span className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-400)]">
+                Are you sure?
+              </span>
+            )}
+            <button
+              disabled={pending}
+              onClick={handleDelete}
+              className="rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors hover:brightness-110 cursor-pointer"
+              style={{
+                letterSpacing: "1.2px",
+                backgroundColor: showDeleteConfirm ? "rgba(239, 68, 68, 0.25)" : "rgba(239, 68, 68, 0.08)",
+                color: "#fca5a5",
+              }}
+            >
+              {pending ? "..." : showDeleteConfirm ? "Confirm Delete" : "Delete Candidate"}
+            </button>
+            {showDeleteConfirm && (
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)] cursor-pointer"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+          {error && (
+            <div className="mt-2 font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-red)]">
+              {error}
+            </div>
+          )}
+        </div>
       </div>
     );
   }

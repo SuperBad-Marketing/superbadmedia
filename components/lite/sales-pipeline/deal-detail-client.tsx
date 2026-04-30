@@ -164,12 +164,22 @@ export function DealDetailClient({ deal }: { deal: DealDetailData }) {
   const [sendingLink, setSendingLink] = React.useState(false);
   const [linkStatus, setLinkStatus] = React.useState<string | null>(null);
 
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+
   const handleDelete = async () => {
     setDeleting(true);
-    const result = await deleteDealAction(deal.id);
-    if (result.ok) {
-      router.push("/lite/admin/pipeline");
-    } else {
+    setDeleteError(null);
+    try {
+      const result = await deleteDealAction(deal.id);
+      if (result.ok) {
+        router.push("/lite/admin/pipeline");
+      } else {
+        setDeleteError(result.error);
+        setDeleting(false);
+        setConfirmDelete(false);
+      }
+    } catch {
+      setDeleteError("Something went wrong. Try again.");
       setDeleting(false);
       setConfirmDelete(false);
     }
@@ -419,6 +429,11 @@ export function DealDetailClient({ deal }: { deal: DealDetailData }) {
         >
           Danger zone
         </div>
+        {deleteError && (
+          <div className="mb-3 font-[family-name:var(--font-dm-sans)] text-[13px] text-[color:var(--color-brand-red)]">
+            {deleteError}
+          </div>
+        )}
         {!confirmDelete ? (
           <button
             type="button"
