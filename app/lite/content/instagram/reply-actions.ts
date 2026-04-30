@@ -256,3 +256,120 @@ export async function toggleAutonomyAction(
   revalidatePath("/lite/content/instagram/replies");
   return { ok: true, value: undefined };
 }
+
+// ── Comments feed ───────────────────────────────────────────────────────
+
+export interface CommentItem {
+  id: string;
+  inboundText: string;
+  inboundAuthor: string | null;
+  classification: string | null;
+  draftText: string;
+  finalText: string | null;
+  status: string;
+  createdAtMs: number;
+  sentAtMs: number | null;
+}
+
+export async function getCommentsAction(
+  limit = 100,
+): Promise<Result<CommentItem[]>> {
+  await requireAdmin();
+
+  const rows = await db
+    .select()
+    .from(instagram_replies)
+    .where(eq(instagram_replies.reply_type, "comment"))
+    .orderBy(desc(instagram_replies.created_at_ms))
+    .limit(limit);
+
+  return {
+    ok: true,
+    value: rows.map((r) => ({
+      id: r.id,
+      inboundText: r.inbound_text,
+      inboundAuthor: r.inbound_author,
+      classification: r.classification,
+      draftText: r.draft_text,
+      finalText: r.final_text,
+      status: r.status,
+      createdAtMs: r.created_at_ms,
+      sentAtMs: r.sent_at_ms,
+    })),
+  };
+}
+
+// ── DM inbox ────────────────────────────────────────────────────────────
+
+export interface InboxThread {
+  conversationId: string;
+  author: string | null;
+  lastMessageText: string;
+  lastMessageAtMs: number;
+  messageCount: number;
+  latestStatus: string;
+  latestClassification: string | null;
+  messages: {
+    id: string;
+    inboundText: string;
+    draftText: string;
+    finalText: string | null;
+    status: string;
+    classification: string | null;
+    createdAtMs: number;
+    sentAtMs: number | null;
+  }[];
+}
+
+export async function getInboxAction(
+  limit = 50,
+): Promise<Result<InboxThread[]>> {
+  await requireAdmin();
+
+  const rows = await db
+    .select()
+    .from(instagram_replies)
+    .where(eq(instagram_replies.reply_type, "dm"))
+    .orderBy(desc(instagram_replies.created_at_ms))
+    .limit(limit * 5);
+
+  const threadMap = new Map<string, (typeof rows)[number][]>();
+
+  for (const row of rows) {
+    const key = row.ig_conversation_id ?? row.inbound_author ?? row.id;
+    const existing = threadMap.get(key) ?? [];
+    existing.push(row);
+    threadMap.set(key, existing);
+  }
+
+  const threads: InboxThread[] = [];
+
+  for (const [convId, messages] of threadMap) {
+    const sorted = messages.sort((a, b) => b.created_at_ms - a.created_at_ms);
+    const latest = sorted[0];
+
+    threads.push({
+      conversationId: convId,
+      author: latest.inbound_author,
+      lastMessageText: latest.inbound_text,
+      lastMessageAtMs: latest.created_at_ms,
+      messageCount: sorted.length,
+      latestStatus: latest.status,
+      latestClassification: latest.classification,
+      messages: sorted.slice(0, 20).map((m) => ({
+        id: m.id,
+        inboundText: m.inbound_text,
+        draftText: m.draft_text,
+        finalText: m.final_text,
+        status: m.status,
+        classification: m.classification,
+        createdAtMs: m.created_at_ms,
+        sentAtMs: m.sent_at_ms,
+      })),
+    });
+  }
+
+  threads.sort((a, b) => b.lastMessageAtMs - a.lastMessageAtMs);
+
+  return { ok: true, value: threads.slice(0, limit) };
+}

@@ -5,16 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send, MessageSquare, RotateCcw, ArrowRight, Trash2, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Check, CheckCheck, Pencil, Calendar, Loader2, Heart, X, Camera, Monitor, Sparkles, Clock, ChevronDown, ChevronUp, Send, RotateCcw, ArrowRight, Trash2, RefreshCw, Eye, EyeOff } from "lucide-react";
 import type { ContentPlanSlot } from "@/lib/db/schema/instagram";
 import type { EnhancedContentPlanSlot } from "@/lib/db/schema/instagram-competitive";
 import {
   retryInstagramDiscoveryAction,
   approvePlanSlotsAction,
   updatePlanSlotAction,
-  startReplyPollingAction,
 } from "../actions";
 import { SyncProgressOverlay } from "./sync-progress-overlay";
+import { CommentsPanel } from "./comments-panel";
+import { InboxPanel } from "./inbox-panel";
 import {
   generateStrategyAction,
   reactToInspirationAction,
@@ -52,7 +53,7 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
   const [syncOverlayOpen, setSyncOverlayOpen] = useState(false);
-  const [startingReplies, setStartingReplies] = useState(false);
+  const [activeView, setActiveView] = useState<"overview" | "comments" | "inbox">("overview");
 
   const handleSyncComplete = useCallback(
     (result: { followers: number; postsSynced: number } | null) => {
@@ -70,27 +71,6 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
   const handleSyncError = useCallback((message: string) => {
     toast.error(message);
   }, []);
-
-  async function handleStartReplies() {
-    setStartingReplies(true);
-    try {
-      const result = await startReplyPollingAction();
-      if (result.ok) {
-        if (result.alreadyRunning) {
-          toast.success("Reply polling is already running.");
-        } else {
-          toast.success("Reply polling started. Checking for comments and DMs.");
-        }
-        router.refresh();
-      } else {
-        toast.error(result.error);
-      }
-    } catch {
-      toast.error("Failed to start reply polling.");
-    } finally {
-      setStartingReplies(false);
-    }
-  }
 
   async function handleRetry() {
     setRetrying(true);
@@ -229,37 +209,9 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
             </svg>
             Sync
           </button>
-          <button
-            onClick={handleStartReplies}
-            disabled={startingReplies}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] transition-opacity disabled:opacity-50"
-            style={{
-              backgroundColor: "var(--color-neutral-800)",
-              color: "var(--color-brand-cream)",
-              border: "1px solid rgba(253, 245, 230, 0.08)",
-            }}
-          >
-            {startingReplies ? (
-              <Loader2 className="size-3 animate-spin" strokeWidth={1.5} />
-            ) : (
-              <MessageSquare className="size-3" strokeWidth={1.5} />
-            )}
-            {startingReplies ? "Starting…" : "Start replies"}
-          </button>
-          <Link
-            href="/lite/content/instagram/replies"
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px]"
-            style={{
-              backgroundColor: "var(--color-neutral-800)",
-              color: "var(--color-brand-pink)",
-              border: "1px solid rgba(253, 245, 230, 0.08)",
-            }}
-          >
-            Reply queue
-          </Link>
           <div className="flex items-center gap-2">
             <span
-              className="inline-block h-2 w-2 rounded-full"
+              className="inline-block size-2 rounded-full"
               style={{ backgroundColor: "var(--color-brand-pink)" }}
             />
             <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-500)]">
@@ -269,48 +221,100 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
         </div>
       </div>
 
-      {/* Generate / Regenerate Strategy */}
-      <GenerateStrategySection hasExistingPlan={plans.length > 0} />
-
-      {/* Content plans */}
-      {plans.map((plan) => {
-        const acct = accounts.find((a) => a.id === plan.accountId);
-        return (
-          <ContentPlanCard
-            key={plan.id}
-            plan={plan}
-            username={acct?.username ?? "unknown"}
-          />
-        );
-      })}
-
-      {/* Inspiration Feed */}
-      <InspirationFeed />
-
-      {/* Placeholder sections — will be populated in subsequent sessions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <DashboardCard title="Followers" subtitle="Growth over time">
-          <PlaceholderChart />
-        </DashboardCard>
-        <DashboardCard title="Engagement" subtitle="Saves, shares, comments">
-          <PlaceholderChart />
-        </DashboardCard>
-        <DashboardCard title="Reach" subtitle="Accounts reached">
-          <PlaceholderChart />
-        </DashboardCard>
+      {/* Sub-tab navigation */}
+      <div
+        className="flex items-center gap-1"
+        style={{ borderBottom: "1px solid rgba(253, 245, 230, 0.05)" }}
+      >
+        {(
+          [
+            { key: "overview", label: "Overview" },
+            { key: "comments", label: "Comments" },
+            { key: "inbox", label: "Inbox" },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveView(tab.key)}
+            className="px-3 pb-3 font-[family-name:var(--font-label)] text-[10px] uppercase transition-colors"
+            style={{
+              letterSpacing: "1.5px",
+              color:
+                activeView === tab.key
+                  ? "var(--color-brand-cream)"
+                  : "var(--color-neutral-500)",
+              borderBottom:
+                activeView === tab.key
+                  ? "2px solid var(--color-brand-red)"
+                  : "2px solid transparent",
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+        <Link
+          href="/lite/content/instagram/replies"
+          className="px-3 pb-3 font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)] transition-colors hover:text-[color:var(--color-neutral-400)]"
+          style={{
+            letterSpacing: "1.5px",
+            borderBottom: "2px solid transparent",
+          }}
+        >
+          Reply queue
+        </Link>
       </div>
 
-      <DashboardCard title="Recent Posts" subtitle="Performance by post">
-        <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
-          Metrics sync will populate this once the scheduled task runs.
-        </div>
-      </DashboardCard>
+      {/* View content */}
+      {activeView === "overview" && (
+        <>
+          {/* Generate / Regenerate Strategy */}
+          <GenerateStrategySection hasExistingPlan={plans.length > 0} />
 
-      <DashboardCard title="Audience" subtitle="Demographics and activity">
-        <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
-          Available after 100+ followers.
-        </div>
-      </DashboardCard>
+          {/* Content plans */}
+          {plans.map((plan) => {
+            const acct = accounts.find((a) => a.id === plan.accountId);
+            return (
+              <ContentPlanCard
+                key={plan.id}
+                plan={plan}
+                username={acct?.username ?? "unknown"}
+              />
+            );
+          })}
+
+          {/* Inspiration Feed */}
+          <InspirationFeed />
+
+          {/* Metrics */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <DashboardCard title="Followers" subtitle="Growth over time">
+              <PlaceholderChart />
+            </DashboardCard>
+            <DashboardCard title="Engagement" subtitle="Saves, shares, comments">
+              <PlaceholderChart />
+            </DashboardCard>
+            <DashboardCard title="Reach" subtitle="Accounts reached">
+              <PlaceholderChart />
+            </DashboardCard>
+          </div>
+
+          <DashboardCard title="Recent Posts" subtitle="Performance by post">
+            <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
+              Metrics sync will populate this once the scheduled task runs.
+            </div>
+          </DashboardCard>
+
+          <DashboardCard title="Audience" subtitle="Demographics and activity">
+            <div className="py-8 text-center font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-500)]">
+              Available after 100+ followers.
+            </div>
+          </DashboardCard>
+        </>
+      )}
+
+      {activeView === "comments" && <CommentsPanel />}
+
+      {activeView === "inbox" && <InboxPanel />}
     </div>
   );
 }
