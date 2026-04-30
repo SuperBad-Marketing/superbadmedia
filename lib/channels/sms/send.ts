@@ -20,6 +20,7 @@ import { dnc_phones } from "@/lib/db/schema/dnc-phones";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { TWILIO_API_BASE } from "@/lib/integrations/vendors/twilio";
 import { getTwilioCredentials } from "./credentials";
+import { toE164 } from "@/lib/crm/normalise";
 import settings from "@/lib/settings";
 
 export interface SendSmsParams {
@@ -53,7 +54,12 @@ async function isSmsQuietHours(): Promise<boolean> {
 }
 
 export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
-  const { to, body, submissionId, dealId, purpose } = params;
+  const { body, submissionId, dealId, purpose } = params;
+
+  const toNormalised = toE164(params.to);
+  if (!toNormalised) {
+    return { sent: false, skipped: true, reason: "invalid_phone_number" };
+  }
 
   const creds = await getTwilioCredentials();
   if (!creds) {
@@ -65,7 +71,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   const dncRows = await db
     .select()
     .from(dnc_phones)
-    .where(eq(dnc_phones.phone, to))
+    .where(eq(dnc_phones.phone, toNormalised))
     .limit(1);
   if (dncRows.length > 0) {
     return { sent: false, skipped: true, reason: `dnc:${dncRows[0].reason}` };
@@ -84,7 +90,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   const authHeader = `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`;
 
   const formData = new URLSearchParams();
-  formData.append("To", to);
+  formData.append("To", toNormalised);
   formData.append("From", fromNumber);
   formData.append("Body", body);
 
@@ -121,7 +127,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
     direction: "outbound",
     twilio_message_sid: data.sid,
     from_number: fromNumber,
-    to_number: to,
+    to_number: toNormalised,
     body,
     status: data.status as "queued" | "sent",
     created_at_ms: Date.now(),

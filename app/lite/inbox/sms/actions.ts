@@ -13,7 +13,7 @@ import { contacts } from "@/lib/db/schema/contacts";
 import { getTwilioCredentials } from "@/lib/channels/sms/credentials";
 import { TWILIO_API_BASE } from "@/lib/integrations/vendors/twilio";
 import { logActivity } from "@/lib/activity-log";
-import { normalisePhone } from "@/lib/crm/normalise";
+import { toE164 } from "@/lib/crm/normalise";
 
 const SendSmsReplySchema = z.object({
   threadId: z.string().min(1),
@@ -40,6 +40,11 @@ export async function sendSmsReply(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
 
+  const toPhone = toE164(parsed.data.toPhone);
+  if (!toPhone) {
+    return { ok: false, error: "Invalid phone number." };
+  }
+
   const creds = await getTwilioCredentials();
   if (!creds) {
     return { ok: false, error: "Twilio not configured. Run the setup wizard and set TWILIO_PHONE_NUMBER." };
@@ -51,7 +56,7 @@ export async function sendSmsReply(
   const authHeader = `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`;
 
   const formData = new URLSearchParams();
-  formData.append("To", parsed.data.toPhone);
+  formData.append("To", toPhone);
   formData.append("From", fromNumber);
   formData.append("Body", parsed.data.body);
 
@@ -93,7 +98,7 @@ export async function sendSmsReply(
     direction: "outbound",
     channel: "sms",
     from_address: fromNumber,
-    to_addresses: JSON.stringify([parsed.data.toPhone]),
+    to_addresses: JSON.stringify([toPhone]),
     body_text: parsed.data.body,
     sent_at_ms: nowMs,
     priority_class: "signal",
@@ -119,7 +124,7 @@ export async function sendSmsReply(
     direction: "outbound",
     twilio_message_sid: twilioData.sid,
     from_number: fromNumber,
-    to_number: parsed.data.toPhone,
+    to_number: toPhone,
     body: parsed.data.body,
     status: twilioData.status as "queued" | "sent",
     created_at_ms: nowMs,
@@ -143,7 +148,7 @@ export async function sendSmsReply(
       thread_id: parsed.data.threadId,
       message_id: messageId,
       twilio_message_sid: twilioData.sid,
-      to: parsed.data.toPhone,
+      to: toPhone,
     },
     createdBy: `user:${session.user.id}`,
   });
@@ -177,6 +182,11 @@ export async function sendNewSms(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
 
+  const toPhone = toE164(parsed.data.toPhone);
+  if (!toPhone) {
+    return { ok: false, error: "Invalid phone number." };
+  }
+
   const creds = await getTwilioCredentials();
   if (!creds) {
     return { ok: false, error: "Twilio not configured. Run the setup wizard and set TWILIO_PHONE_NUMBER." };
@@ -188,7 +198,7 @@ export async function sendNewSms(
   const authHeader = `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`;
 
   const formData = new URLSearchParams();
-  formData.append("To", parsed.data.toPhone);
+  formData.append("To", toPhone);
   formData.append("From", fromNumber);
   formData.append("Body", parsed.data.body);
 
@@ -244,7 +254,7 @@ export async function sendNewSms(
     direction: "outbound",
     channel: "sms",
     from_address: fromNumber,
-    to_addresses: JSON.stringify([parsed.data.toPhone]),
+    to_addresses: JSON.stringify([toPhone]),
     body_text: parsed.data.body,
     sent_at_ms: nowMs,
     priority_class: "signal",
@@ -258,7 +268,7 @@ export async function sendNewSms(
     direction: "outbound",
     twilio_message_sid: twilioData.sid,
     from_number: fromNumber,
-    to_number: parsed.data.toPhone,
+    to_number: toPhone,
     body: parsed.data.body,
     status: twilioData.status as "queued" | "sent",
     created_at_ms: nowMs,
@@ -282,7 +292,7 @@ export async function sendNewSms(
       thread_id: threadId,
       message_id: messageId,
       twilio_message_sid: twilioData.sid,
-      to: parsed.data.toPhone,
+      to: toPhone,
     },
     createdBy: `user:${session.user.id}`,
   });
