@@ -134,7 +134,7 @@ export interface ExportJob {
 }
 
 // App-level view state
-export type CentreView = 'ingest' | 'storyboard' | 'preview' | 'grading' | 'captions' | 'export' | 'ads'
+export type CentreView = 'brief' | 'ingest' | 'storyboard' | 'preview' | 'grading' | 'captions' | 'export' | 'ads'
 export type RightPanelTab = 'chat' | 'music' | 'knowledge' | 'sfx' | 'transitions' | 'titles'
 
 export interface SfxPreset {

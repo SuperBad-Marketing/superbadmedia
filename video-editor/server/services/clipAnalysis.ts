@@ -80,19 +80,24 @@ export class ClipAnalysisService {
 
   async analyzeDirectory(dirPath: string, projectId: string): Promise<ClipAnalysisResult[]> {
     const videoExtensions = ['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mts', '.r3d', '.braw']
-    const results: ClipAnalysisResult[] = []
 
     const files = this.walkDir(dirPath).filter(f => {
       const ext = path.extname(f).toLowerCase()
       return videoExtensions.includes(ext)
     })
 
-    for (const file of files) {
-      try {
-        const result = await this.analyzeClip(file, projectId)
-        results.push(result)
-      } catch (err) {
-        console.error(`Failed to analyze ${file}:`, err)
+    const CONCURRENCY = 6
+    const results: ClipAnalysisResult[] = []
+
+    for (let i = 0; i < files.length; i += CONCURRENCY) {
+      const batch = files.slice(i, i + CONCURRENCY)
+      const settled = await Promise.allSettled(
+        batch.map(file => this.analyzeClip(file, projectId))
+      )
+      for (const result of settled) {
+        if (result.status === 'fulfilled') {
+          results.push(result.value)
+        }
       }
     }
 

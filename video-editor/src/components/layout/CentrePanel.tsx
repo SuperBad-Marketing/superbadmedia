@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import type { CentreView } from '../../types'
 
+const BriefBuilder = lazy(() => import('../brief/BriefBuilder'))
 const IngestView = lazy(() => import('../ingest/IngestView'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
 const PreviewView = lazy(() => import('../preview/PreviewView'))
@@ -11,6 +12,7 @@ const ExportView = lazy(() => import('../export/ExportView'))
 const AdVariationsView = lazy(() => import('../ads/AdVariationsView'))
 
 const tabs: { id: CentreView; label: string }[] = [
+  { id: 'brief', label: 'Brief' },
   { id: 'ingest', label: 'Ingest' },
   { id: 'storyboard', label: 'Storyboard' },
   { id: 'preview', label: 'Preview' },
@@ -26,6 +28,8 @@ function ViewFallback() {
 
 function ActiveView({ view }: { view: CentreView }) {
   switch (view) {
+    case 'brief':
+      return <Suspense fallback={<ViewFallback />}><BriefBuilder /></Suspense>
     case 'ingest':
       return <Suspense fallback={<ViewFallback />}><IngestView /></Suspense>
     case 'storyboard':

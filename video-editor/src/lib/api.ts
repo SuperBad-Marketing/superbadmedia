@@ -164,3 +164,55 @@ export async function getTitleCardPresets(): Promise<TitleCardPreset[]> {
   if (!res.ok) throw new Error('Failed to get title card presets')
   return res.json()
 }
+
+export interface BriefFields {
+  duration: number
+  platform: string
+  mood: string
+  pacing: 'fast' | 'medium' | 'slow'
+  musicKeywords: string
+  narrativeNotes: string
+  clipSelectionHints: string
+}
+
+export interface AssembledResult {
+  storyboardClips: {
+    id: string
+    clipId: string
+    filePath: string
+    fileName: string
+    thumbnailPath: string
+    duration: number
+    width: number
+    height: number
+    fps: number
+    codec: string
+    startTime: number
+    endTime: number
+    position: number
+    reason: string
+  }[]
+  musicQuery: string
+  totalDuration: number
+  narrative: string
+}
+
+export async function parseBrief(braindump: string): Promise<BriefFields> {
+  const res = await fetch(`${API_BASE}/brief/parse`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ braindump }),
+  })
+  if (!res.ok) throw new Error('Failed to parse brief')
+  return res.json()
+}
+
+export async function buildFromBrief(brief: BriefFields): Promise<AssembledResult> {
+  const res = await fetch(`${API_BASE}/brief/build`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brief }),
+  })
+  if (!res.ok) throw new Error('Failed to build assembly')
+  return res.json()
+}
