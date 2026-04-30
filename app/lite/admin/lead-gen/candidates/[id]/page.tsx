@@ -1,7 +1,10 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { rundownSessions } from "@/lib/db/schema/rundown-sessions";
 import { getCandidateById } from "@/lib/lead-gen/queries";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 import { CandidateActions } from "./candidate-actions";
@@ -66,6 +69,10 @@ export default async function CandidateDetailPage({
   const candidate = await getCandidateById(id);
   if (!candidate) notFound();
 
+  const rundownSession = await db.query.rundownSessions.findFirst({
+    where: eq(rundownSessions.candidate_id, id),
+  });
+
   const profile = candidate.viability_profile_json as ViabilityProfile;
 
   const createdDate = candidate.created_at
@@ -119,6 +126,24 @@ export default async function CandidateDetailPage({
           <span>{createdDate}</span>
         </div>
       </header>
+
+      {rundownSession?.profile_id && (
+        <div className="mt-4 px-4">
+          <Link
+            href={`/rundown/s/${rundownSession.session_token}/reveal`}
+            target="_blank"
+            className="inline-flex items-center gap-2 rounded-[8px] px-4 py-2.5 font-[family-name:var(--font-label)] text-[11px] uppercase transition-all hover:opacity-80"
+            style={{
+              letterSpacing: "1.5px",
+              background: "rgba(178, 40, 72, 0.15)",
+              color: "var(--color-brand-red)",
+            }}
+          >
+            See Brand DNA
+            <span aria-hidden="true" style={{ fontSize: "13px" }}>&rarr;</span>
+          </Link>
+        </div>
+      )}
 
       <div className="mt-2 px-4">
         <CandidateActions

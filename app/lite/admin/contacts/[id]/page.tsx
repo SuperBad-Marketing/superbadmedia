@@ -3,7 +3,7 @@
  * Spec: docs/specs/client-management.md §3.
  */
 import { notFound, redirect } from "next/navigation";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -15,6 +15,7 @@ import { deals, type DealStage } from "@/lib/db/schema/deals";
 import { activity_log } from "@/lib/db/schema/activity-log";
 import { private_notes } from "@/lib/db/schema/private-notes";
 import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
+import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { threads, messages } from "@/lib/db/schema/messages";
 import { portal_chat_messages } from "@/lib/db/schema/portal-chat-messages";
 
@@ -159,9 +160,27 @@ export default async function ContactAdminPage({
   const primaryDeal = dealRows[0] ?? null;
 
   // Tab-specific data loads.
-  const brandDnaData = activeTab === "brand-dna"
-    ? await db.select().from(brand_dna_profiles).where(eq(brand_dna_profiles.contact_id, id)).orderBy(desc(brand_dna_profiles.created_at_ms))
-    : null;
+  let brandDnaData: (typeof brand_dna_profiles.$inferSelect)[] | null = null;
+  if (activeTab === "brand-dna") {
+    const candidateIds = contact.email_normalised
+      ? (await db
+          .select({ id: leadCandidates.id })
+          .from(leadCandidates)
+          .where(sql`lower(${leadCandidates.contact_email}) = ${contact.email_normalised}`)
+        ).map((r) => r.id)
+      : [];
+
+    const conditions = [eq(brand_dna_profiles.contact_id, id)];
+    if (candidateIds.length > 0) {
+      conditions.push(inArray(brand_dna_profiles.candidate_id, candidateIds));
+    }
+
+    brandDnaData = await db
+      .select()
+      .from(brand_dna_profiles)
+      .where(or(...conditions))
+      .orderBy(desc(brand_dna_profiles.created_at_ms));
+  }
 
   const commsData = activeTab === "comms"
     ? await db.select().from(threads).where(eq(threads.contact_id, id)).orderBy(desc(threads.last_message_at_ms))
