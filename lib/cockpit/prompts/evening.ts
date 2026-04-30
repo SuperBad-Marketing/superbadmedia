@@ -31,5 +31,10 @@ export function buildEveningPrompt(ctx: BriefContext): string {
 
 Wrap the day. Say how it closed — what resolved, what didn't. If tomorrow has something material (a shoot, a deadline, a big meeting), mention it. Reference earlier briefs if they set something up. If the day was quiet, say so plainly. Dry, direct, honest.
 
+CRITICAL RULES:
+- Describe each calendar event using ONLY its own data (subject, organizer, time). Never infer the purpose of a calendar event from waiting items, emails, or other signals.
+- Do not connect unrelated signals. A waiting email from one person has nothing to do with a meeting with a different person.
+- If a calendar event has no subject or organizer, just state the type and time. Do not guess.
+
 ${sections.join("\n")}`;
 }

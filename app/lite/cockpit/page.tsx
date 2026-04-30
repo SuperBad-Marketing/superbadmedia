@@ -2,24 +2,26 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import { auth } from "@/lib/auth/session";
-import { mergeWaitingItems, mergeHealthBanners } from "@/lib/cockpit/aggregator";
 import { getCurrentBrief, getTodayCalendarEvents, getTodayBraindump } from "@/lib/cockpit/queries";
 import { generateBriefForSlot } from "@/lib/cockpit/generate-brief";
 import { getCurrentSlot } from "@/lib/cockpit/queries";
 import { getTasksForCockpitKanban } from "@/lib/tasks/cockpit";
-import { getTodayHabits } from "@/lib/habits/queries";
+import { getNeedsYouItems } from "@/lib/cockpit/needs-you";
+import { getAvailableQuickMoves } from "@/lib/cockpit/quick-moves";
+import { getOvernightPulse } from "@/lib/cockpit/pulse";
+import { pickMantra, pickRotatingCard } from "@/lib/cockpit/mantras";
+
 import { BriefPanel } from "@/components/lite/cockpit/brief-panel";
-import { HabitsPanel } from "@/components/lite/cockpit/habits-panel";
-import { AttentionRail } from "@/components/lite/cockpit/attention-rail";
-import { BannerStrip } from "@/components/lite/cockpit/banner-strip";
+import { NeedsYouFeed } from "@/components/lite/cockpit/needs-you-feed";
+import { QuickMoves } from "@/components/lite/cockpit/quick-moves";
 import { CalendarPreview } from "@/components/lite/cockpit/calendar-preview";
 import { PlanningView } from "@/components/lite/cockpit/planning-view";
-import { BraindumpSection } from "@/components/lite/cockpit/braindump-section";
 import { AiChatFab } from "@/components/lite/cockpit/ai-chat-panel";
-import {
-  CockpitContent,
-  CockpitSection,
-} from "@/components/lite/cockpit/cockpit-content";
+import { CockpitShell, CockpitSection } from "@/components/lite/cockpit/cockpit-shell";
+import { TickerStrip } from "@/components/lite/cockpit/tickers/ticker-strip";
+import { EventCards } from "@/components/lite/cockpit/tickers/event-cards";
+import { RotatingCard } from "@/components/lite/cockpit/tickers/rotating-card";
+import { SpotifyEmbed } from "@/components/lite/cockpit/tickers/spotify-embed";
 
 export const metadata: Metadata = {
   title: "SuperBad — Cockpit",
@@ -34,16 +36,23 @@ export default async function CockpitPage() {
 
   const nowMs = Date.now();
 
-  const [briefResult, waitingItems, banners, calendarEvents, kanban, todayBraindump, todayHabits] =
-    await Promise.all([
-      getCurrentBrief(session.user.id!, nowMs),
-      mergeWaitingItems(nowMs),
-      mergeHealthBanners(nowMs),
-      getTodayCalendarEvents(nowMs),
-      getTasksForCockpitKanban(nowMs),
-      getTodayBraindump(session.user.id!, nowMs),
-      getTodayHabits(nowMs),
-    ]);
+  const [
+    briefResult,
+    calendarEvents,
+    kanban,
+    todayBraindump,
+    needsYouItems,
+    quickMoves,
+    pulse,
+  ] = await Promise.all([
+    getCurrentBrief(session.user.id!, nowMs),
+    getTodayCalendarEvents(nowMs),
+    getTasksForCockpitKanban(nowMs),
+    getTodayBraindump(session.user.id!, nowMs),
+    getNeedsYouItems(nowMs),
+    getAvailableQuickMoves(nowMs),
+    getOvernightPulse(nowMs),
+  ]);
 
   if (briefResult.fallback) {
     try {
@@ -66,16 +75,19 @@ export default async function CockpitPage() {
         briefResult.fallback = false;
       }
     } catch {
-      // Generation failed — show fallback rather than crash
+      // Generation failed — show fallback
     }
   }
+
+  const mantra = pickMantra(nowMs);
+  const rotatingCard = pickRotatingCard(nowMs);
 
   return (
     <>
       <AiChatFab />
-      <CockpitContent>
-        {/* Brief — hero card */}
-        <CockpitSection>
+      <CockpitShell mantra={mantra} braindumpDone={!!todayBraindump}>
+        {/* Brief */}
+        <CockpitSection className="mt-8">
           <div
             className="rounded-2xl p-8"
             style={{
@@ -93,52 +105,73 @@ export default async function CockpitPage() {
           </div>
         </CockpitSection>
 
-        {/* Habits */}
-        {todayHabits.length > 0 && (
-          <CockpitSection className="mt-6">
-            <HabitsPanel habits={todayHabits} />
-          </CockpitSection>
-        )}
-
-        {/* Morning braindump */}
-        <CockpitSection className="mt-6">
+        {/* Needs You */}
+        <CockpitSection className="mt-8">
           <div
             className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
             style={{
               letterSpacing: "2px",
-              color: "var(--color-neutral-500)",
+              color: "var(--color-brand-orange)",
             }}
           >
-            Braindump
+            Needs You
+            {needsYouItems.length > 0 && (
+              <span
+                className="ml-2 inline-flex size-5 items-center justify-center rounded-full text-[10px] tabular-nums"
+                style={{
+                  background: "var(--color-brand-orange)",
+                  color: "var(--color-neutral-950)",
+                }}
+              >
+                {needsYouItems.length}
+              </span>
+            )}
           </div>
-          <BraindumpSection todayBraindump={todayBraindump} />
+          <NeedsYouFeed items={needsYouItems} />
         </CockpitSection>
 
-        {/* Attention rail */}
-        {waitingItems.length > 0 && (
-          <CockpitSection className="mt-6">
+        {/* Quick Moves */}
+        {quickMoves.length > 0 && (
+          <CockpitSection className="mt-8">
             <div
               className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
               style={{
                 letterSpacing: "2px",
-                color: "var(--color-brand-orange)",
+                color: "var(--color-neutral-500)",
               }}
             >
-              Needs Attention
+              Quick Moves
             </div>
-            <AttentionRail items={waitingItems} />
+            <QuickMoves moves={quickMoves} />
           </CockpitSection>
         )}
 
-        {/* Health banners */}
-        {banners.length > 0 && (
-          <CockpitSection className="mt-5">
-            <BannerStrip banners={banners} />
-          </CockpitSection>
-        )}
+        {/* Tickers — Tier 1 strip */}
+        <CockpitSection className="mt-8">
+          <TickerStrip pulse={pulse} />
+        </CockpitSection>
+
+        {/* Tickers — Tier 2 event cards */}
+        <CockpitSection className="mt-3">
+          <EventCards />
+        </CockpitSection>
+
+        {/* Tickers — Tier 3 rotating card */}
+        <CockpitSection className="mt-3">
+          <RotatingCard
+            type={rotatingCard.type}
+            content={rotatingCard.content}
+            subtitle={rotatingCard.subtitle}
+          />
+        </CockpitSection>
+
+        {/* Spotify */}
+        <CockpitSection className="mt-4">
+          <SpotifyEmbed />
+        </CockpitSection>
 
         {/* Calendar */}
-        <CockpitSection className="mt-6">
+        <CockpitSection className="mt-8">
           <div
             className="mb-3 font-[family-name:var(--font-label)] text-[10px] uppercase"
             style={{
@@ -182,7 +215,7 @@ export default async function CockpitPage() {
             <PlanningView kanban={kanban} />
           </div>
         </CockpitSection>
-      </CockpitContent>
+      </CockpitShell>
     </>
   );
 }

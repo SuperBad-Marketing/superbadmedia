@@ -27,5 +27,10 @@ export function buildMiddayPrompt(ctx: BriefContext): string {
 
 This is the midday check-in. Say what's moved since morning and what's stuck. Reference the morning brief if relevant — don't invent continuity. If nothing meaningful happened, say so. Dry, direct, honest. No fluff.
 
+CRITICAL RULES:
+- Describe each calendar event using ONLY its own data (subject, organizer, time). Never infer the purpose of a calendar event from waiting items, emails, or other signals.
+- Do not connect unrelated signals. A waiting email from one person has nothing to do with a meeting with a different person.
+- If a calendar event has no subject or organizer, just state the type and time. Do not guess.
+
 ${sections.join("\n")}`;
 }

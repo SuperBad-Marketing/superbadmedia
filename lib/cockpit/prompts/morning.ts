@@ -24,7 +24,12 @@ export function buildMorningPrompt(ctx: BriefContext): string {
 
 Tell Andy what today looks like. Name specific things that need attention. Be dry, direct, honest. No motivational fluff. No greetings (the UI handles that separately). If nothing is urgent, say so plainly.
 
-Reference specific entities by name when available. The attention rail carries the chips; the brief carries the narrative. Don't list everything — name what matters most.
+Reference specific entities by name when available. Don't list everything — name what matters most.
+
+CRITICAL RULES:
+- Describe each calendar event using ONLY its own data (subject, organizer, time). Never infer the purpose of a calendar event from waiting items, emails, or other signals.
+- Do not connect unrelated signals. A waiting email from one person has nothing to do with a meeting with a different person.
+- If a calendar event has no subject or organizer, just state the type and time. Do not guess.
 
 ${sections.join("\n")}`;
 }

@@ -1,4 +1,4 @@
-import { and, eq, lte, isNotNull, sql } from "drizzle-orm";
+import { and, eq, lte, gte, isNotNull, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { threads } from "@/lib/db/schema/messages";
@@ -7,6 +7,7 @@ import type { WaitingItem } from "@/lib/tasks/cockpit";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const MS_48H = 48 * 60 * 60 * 1000;
+const MS_7D = 7 * 24 * 60 * 60 * 1000;
 
 export async function getInboxWaitingItems(
   nowMs: number = Date.now(),
@@ -30,6 +31,7 @@ export async function getInboxWaitingItems(
         isNotNull(threads.last_inbound_at_ms),
         sql`(${threads.last_outbound_at_ms} IS NULL OR ${threads.last_inbound_at_ms} > ${threads.last_outbound_at_ms})`,
         lte(threads.last_inbound_at_ms, nowMs - MS_24H),
+        gte(threads.last_inbound_at_ms, nowMs - MS_7D),
       ),
     )
     .all();
@@ -59,6 +61,7 @@ export async function getInboxWaitingItems(
       and(
         eq(threads.ticket_status, "open"),
         lte(threads.created_at_ms, nowMs - MS_48H),
+        gte(threads.created_at_ms, nowMs - MS_7D),
       ),
     )
     .all();

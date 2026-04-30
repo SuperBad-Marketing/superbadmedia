@@ -225,6 +225,10 @@ export const ACTIVITY_LOG_KINDS = [
   "cockpit_chip_tapped",
   "cockpit_banner_dismissed",
   "cockpit_slot_rolled_over",
+  "cockpit_quick_move_triggered",
+  "cockpit_followup_drafted",
+  "cockpit_shoot_brief_prepped",
+  "cockpit_invoice_chase_triggered",
   // --- Onboarding + Segmentation (8) ---
   "onboarding_started",
   "onboarding_welcome_email_sent",

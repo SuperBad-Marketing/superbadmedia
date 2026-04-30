@@ -69,7 +69,7 @@ export async function generateBriefForSlot(
     waitingItemsSummary: summariseWaitingItems(waitingItems),
     healthBannersSummary: summariseBanners(healthBanners),
     calendarSummary: calendarEvents.length > 0
-      ? calendarEvents.map((e) => `- ${e.booking_type.replace(/_/g, " ")} (${new Date(e.start_at_ms).toLocaleTimeString("en-AU", { timeZone: "Australia/Melbourne", hour: "2-digit", minute: "2-digit" })})`).join("\n")
+      ? calendarEvents.map((e) => formatCalendarEvent(e)).join("\n")
       : null,
     tomorrowCalendarSummary: slot === "evening" ? await getTomorrowCalendarSummary(nowMs) : null,
     morningProse: priorBriefs.morning,
@@ -218,9 +218,7 @@ async function getTomorrowCalendarSummary(nowMs: number): Promise<string | null>
 
   if (events.length === 0) return null;
 
-  return events
-    .map((e) => `- ${e.booking_type.replace(/_/g, " ")} (${new Date(e.start_at_ms).toLocaleTimeString("en-AU", { timeZone: "Australia/Melbourne", hour: "2-digit", minute: "2-digit" })})`)
-    .join("\n");
+  return events.map((e) => formatCalendarEvent(e)).join("\n");
 }
 
 function summariseWaitingItems(items: WaitingItem[]): string | null {
@@ -236,6 +234,32 @@ function summariseBanners(banners: HealthBanner[]): string | null {
   return banners
     .map((b) => `- [${b.severity}] ${b.summary}`)
     .join("\n");
+}
+
+const BOOKING_TYPE_LABELS: Record<string, string> = {
+  intro_funnel_shoot: "Trial shoot",
+  followup_conversation: "Sales call",
+  marketing_site_booking: "Booking",
+};
+
+function formatCalendarEvent(e: { booking_type: string; start_at_ms: number; metadata_json: unknown }): string {
+  const time = new Date(e.start_at_ms).toLocaleTimeString("en-AU", {
+    timeZone: "Australia/Melbourne",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const meta = e.metadata_json as Record<string, unknown> | null;
+  const subject = meta?.subject as string | undefined;
+  const organizer = meta?.organizer as string | undefined;
+
+  const label = BOOKING_TYPE_LABELS[e.booking_type] ?? e.booking_type.replace(/_/g, " ");
+  const parts = [label];
+  if (subject) parts.push(`"${subject}"`);
+  if (organizer) parts.push(`with ${organizer}`);
+  parts.push(`at ${time}`);
+
+  return `- ${parts.join(" ")}`;
 }
 
 function toDateString(ms: number): string {
