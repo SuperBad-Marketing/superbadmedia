@@ -232,13 +232,13 @@ export default function StoryboardView() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col items-center"
         >
-          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-6">
+          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-8">
             <Film size={28} className="text-text-dim/40" />
           </div>
-          <h2 className="font-display font-bold text-lg tracking-tight text-text mb-2">
+          <h2 className="font-display font-bold text-xl tracking-tight text-text mb-3">
             Build your story
           </h2>
-          <p className="text-text-dim text-xs text-center text-pretty max-w-xs mb-8">
+          <p className="text-text-dim text-sm text-center text-pretty max-w-xs mb-10">
             Head back to the brief and describe what you want, or add clips manually from the media dock.
           </p>
 

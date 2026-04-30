@@ -165,7 +165,7 @@ export default function HomeScreen() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="mt-6 w-full"
+            className="mt-8 w-full"
           >
             <h3 className="text-[10px] font-semibold text-text-dim tracking-[0.15em] uppercase mb-3 px-1">
               Recent
@@ -195,7 +195,7 @@ export default function HomeScreen() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.4 }}
           onClick={startNew}
-          className="mt-8 flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 cursor-pointer"
+          className="mt-10 flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 cursor-pointer"
         >
           <Plus size={14} />
           New project

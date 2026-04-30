@@ -298,13 +298,13 @@ export default function PreviewView() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col items-center"
         >
-          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-6">
+          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-8">
             <Film size={28} className="text-text-dim/40" />
           </div>
-          <h2 className="font-display font-bold text-lg tracking-tight text-text mb-2">
+          <h2 className="font-display font-bold text-xl tracking-tight text-text mb-3">
             Preview
           </h2>
-          <p className="text-text-dim text-xs text-center text-pretty max-w-xs">
+          <p className="text-text-dim text-sm text-center text-pretty max-w-xs">
             Build a storyboard first, then come here to watch it back.
           </p>
         </motion.div>

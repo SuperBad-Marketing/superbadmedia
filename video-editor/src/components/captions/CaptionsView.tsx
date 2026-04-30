@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { motion } from 'motion/react'
 import { Type, Trash2, Plus, Loader2, ChevronDown } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 
@@ -97,9 +98,23 @@ export default function CaptionsView() {
 
   if (!hasTimeline) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
-        <Type size={28} className="text-text-dim" />
-        <p className="text-[11px] text-text-dim">Build your timeline first, then generate captions</p>
+      <div className="flex-1 flex flex-col items-center justify-center select-none">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-center"
+        >
+          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-8">
+            <Type size={28} className="text-text-dim/40" />
+          </div>
+          <h2 className="font-display font-bold text-xl tracking-tight text-text mb-3">
+            Captions
+          </h2>
+          <p className="text-text-dim text-sm text-center text-pretty max-w-xs">
+            Build your timeline first, then generate captions from audio.
+          </p>
+        </motion.div>
       </div>
     )
   }
@@ -109,9 +124,9 @@ export default function CaptionsView() {
       <div className="flex-1 flex min-h-0">
         {/* Caption list */}
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex items-center justify-between px-5 py-4 shrink-0">
+          <div className="flex items-center justify-between px-6 py-5 shrink-0">
             <div>
-              <h2 className="font-display font-semibold text-sm text-text">
+              <h2 className="font-display font-bold text-sm tracking-tight text-text">
                 Captions {captions.length > 0 && <span className="font-mono text-[10px] text-text-dim tabular-nums">({captions.length})</span>}
               </h2>
               {transcriptionMethod && (
@@ -139,7 +154,7 @@ export default function CaptionsView() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-2 scrollbar-none">
+          <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-3 scrollbar-none">
             {captions.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2.5">
                 <Type size={20} className="text-text-dim opacity-40" />
@@ -149,7 +164,7 @@ export default function CaptionsView() {
               captions.map((caption, i) => (
                 <div
                   key={caption.id}
-                  className={`rounded-lg p-3.5 space-y-2.5 transition-colors duration-150 ${
+                  className={`rounded-xl p-4 space-y-3 transition-colors duration-150 ${
                     editingId === caption.id ? 'bg-surface-active' : 'bg-surface hover:bg-surface-hover'
                   }`}
                 >
@@ -205,8 +220,8 @@ export default function CaptionsView() {
         </div>
 
         {/* Style panel */}
-        <div className="w-72 shrink-0 bg-surface/50 p-5 space-y-5 overflow-y-auto scrollbar-none">
-          <h3 className="font-display font-semibold text-sm text-text">Style</h3>
+        <div className="w-72 shrink-0 bg-surface/50 p-6 space-y-6 overflow-y-auto scrollbar-none">
+          <h3 className="font-display font-bold text-sm tracking-tight text-text">Style</h3>
 
           {/* Font */}
           <div className="space-y-2">

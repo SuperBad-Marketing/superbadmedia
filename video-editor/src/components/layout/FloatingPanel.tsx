@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { X } from 'lucide-react'
+import { PanelLoader } from '../shared/LoadingPulse'
 import { useAppStore } from '../../stores/appStore'
 import type { DockPanel } from '../../types'
 
@@ -24,11 +25,7 @@ const PANEL_CONFIG: Record<DockPanel, { title: string; width: number }> = {
 }
 
 function PanelContent({ panel }: { panel: DockPanel }) {
-  const fallback = (
-    <div className="flex items-center justify-center h-32 text-text-dim text-xs">
-      Pulling that up.
-    </div>
-  )
+  const fallback = <PanelLoader />
 
   switch (panel) {
     case 'media':

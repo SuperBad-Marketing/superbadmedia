@@ -1,33 +1,36 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { Upload, FolderPlus, BookOpen, Music } from 'lucide-react'
+import { Sparkles, Film, BookOpen, Music } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { sendChatMessage } from '../../lib/api'
 import ChatMessageComponent from './ChatMessage'
 import ChatInput from './ChatInput'
+import type { DockPanel } from '../../types'
 
 const quickActions = [
-  { label: 'Import footage', icon: Upload, view: 'ingest' as const },
-  { label: 'Start a new project', icon: FolderPlus, view: 'ingest' as const },
-  { label: 'Learn from a video', icon: BookOpen, tab: 'knowledge' as const },
-  { label: 'Browse music', icon: Music, tab: 'music' as const },
+  { label: 'Browse my footage', icon: Film, panel: 'media' as DockPanel },
+  { label: 'Find music', icon: Music, panel: 'music' as DockPanel },
+  { label: 'Learn something new', icon: BookOpen, panel: 'knowledge' as DockPanel },
 ]
 
-function WelcomeScreen({ onQuickAction }: { onQuickAction: (action: typeof quickActions[number]) => void }) {
+function EmptyChat({ onQuickAction }: { onQuickAction: (action: typeof quickActions[number]) => void }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-10 gap-12">
-      <div className="text-center space-y-2">
-        <h1 className="font-display text-2xl font-semibold text-text tracking-tight">SuperEdits</h1>
-        <p className="text-[11px] text-text-dim">What are you working on?</p>
+    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6">
+      <div className="size-10 rounded-xl bg-accent/10 flex items-center justify-center">
+        <Sparkles size={18} className="text-accent" />
       </div>
-      <div className="flex flex-wrap justify-center gap-2.5 max-w-[300px]">
+      <div className="text-center space-y-1">
+        <p className="text-xs text-text font-medium">What can I help with?</p>
+        <p className="text-[10px] text-text-dim">Ask me anything about your edit.</p>
+      </div>
+      <div className="flex flex-wrap justify-center gap-1.5">
         {quickActions.map((action) => (
           <button
             key={action.label}
             type="button"
             onClick={() => onQuickAction(action)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-active/50 text-text-dim text-xs hover:bg-surface-hover hover:text-text transition-colors duration-150"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-active/40 text-text-dim text-[10px] hover:bg-surface-hover hover:text-text-muted transition-colors duration-150 cursor-pointer"
           >
-            <action.icon size={14} className="shrink-0" />
+            <action.icon size={11} className="shrink-0" />
             {action.label}
           </button>
         ))}
@@ -37,7 +40,11 @@ function WelcomeScreen({ onQuickAction }: { onQuickAction: (action: typeof quick
 }
 
 export default function ChatPanel() {
-  const { chatMessages, addChatMessage, updateChatMessage, setCentreView, setRightPanelTab, currentProject } = useAppStore()
+  const chatMessages = useAppStore((s) => s.chatMessages)
+  const addChatMessage = useAppStore((s) => s.addChatMessage)
+  const updateChatMessage = useAppStore((s) => s.updateChatMessage)
+  const currentProject = useAppStore((s) => s.currentProject)
+  const setActiveDockPanel = useAppStore((s) => s.setActiveDockPanel)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,11 +55,8 @@ export default function ChatPanel() {
   }, [chatMessages])
 
   const handleQuickAction = useCallback((action: typeof quickActions[number]) => {
-    if (action.view) {
-      setCentreView(action.view)
-    }
-    if (action.tab) {
-      setRightPanelTab(action.tab)
+    if (action.panel) {
+      setActiveDockPanel(action.panel)
     }
 
     const userMsg = {
@@ -73,14 +77,14 @@ export default function ChatPanel() {
       .catch(() => {
         updateChatMessage(loadingId, { content: 'Something went wrong. Try again.', isLoading: false })
       })
-  }, [addChatMessage, updateChatMessage, setCentreView, setRightPanelTab, currentProject?.id])
+  }, [addChatMessage, updateChatMessage, setActiveDockPanel, currentProject?.id])
 
   return (
     <div className="flex flex-col h-full">
       {chatMessages.length === 0 ? (
-        <WelcomeScreen onQuickAction={handleQuickAction} />
+        <EmptyChat onQuickAction={handleQuickAction} />
       ) : (
-        <div ref={scrollRef} className="flex-1 overflow-y-auto py-5 space-y-0.5">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto py-3 space-y-0.5">
           {chatMessages.map((msg) => (
             <ChatMessageComponent key={msg.id} message={msg} />
           ))}

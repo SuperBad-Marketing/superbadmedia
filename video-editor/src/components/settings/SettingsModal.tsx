@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'motion/react'
 import { X, Key, Save, Check, AlertCircle } from 'lucide-react'
 
 interface SettingsModalProps {
@@ -52,11 +53,22 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-bg/80 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-surface rounded-2xl shadow-2xl shadow-black/40 p-8 space-y-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        className="absolute inset-0 bg-bg/80 backdrop-blur-md"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 12, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="relative w-full max-w-md floating-panel rounded-2xl p-8 space-y-6"
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-semibold text-sm text-text">Settings</h2>
+          <h2 className="font-display font-bold text-sm text-text tracking-tight">Settings</h2>
           <button
             onClick={onClose}
             className="size-7 flex items-center justify-center rounded-lg text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-150"
@@ -110,7 +122,7 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
             )}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

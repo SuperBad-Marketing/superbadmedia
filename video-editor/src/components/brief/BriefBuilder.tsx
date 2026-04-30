@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Sparkles, Music, Clock, Monitor, Zap, ArrowRight, RotateCcw, Volume2, BookOpen, Check } from 'lucide-react'
-import ProgressRing from '../shared/ProgressRing'
+import { ViewLoader, InlineLoader } from '../shared/LoadingPulse'
 import { parseBrief, buildFromBrief, searchMusic, analyzeClipVision, getBriefSkills, autoSelectSkills } from '../../lib/api'
 import type { BriefFields, AssembledResult, SkillSummary } from '../../lib/api'
 import { useAppStore } from '../../stores/appStore'
@@ -278,7 +278,7 @@ export default function BriefBuilder() {
                 >
                   {parsing ? (
                     <>
-                      <ProgressRing size={14} strokeWidth={2} showPercent={false} />
+                      <InlineLoader />
                       Reading your mind...
                     </>
                   ) : (
@@ -441,8 +441,7 @@ export default function BriefBuilder() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <ProgressRing size={48} strokeWidth={2.5} showPercent={false} color="var(--color-accent)" />
-            <p className="text-sm text-text-muted mt-6">{buildStatus}</p>
+            <ViewLoader message={buildStatus} />
           </motion.div>
         )}
 

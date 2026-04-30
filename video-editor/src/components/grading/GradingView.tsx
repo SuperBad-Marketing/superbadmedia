@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { motion } from 'motion/react'
 import { Palette, Film, RotateCcw, Columns, Layers } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { sendChatMessage } from '../../lib/api'
@@ -39,9 +40,23 @@ export default function GradingView() {
 
   if (!hasTimeline) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
-        <Palette size={28} className="text-text-dim" />
-        <p className="text-[11px] text-text-dim">Import footage and build your timeline first</p>
+      <div className="flex-1 flex flex-col items-center justify-center select-none">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-center"
+        >
+          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-8">
+            <Palette size={28} className="text-text-dim/40" />
+          </div>
+          <h2 className="font-display font-bold text-xl tracking-tight text-text mb-3">
+            Colour grading
+          </h2>
+          <p className="text-text-dim text-sm text-center text-pretty max-w-xs">
+            Build your timeline first, then come here to dial in the look.
+          </p>
+        </motion.div>
       </div>
     )
   }
@@ -88,7 +103,7 @@ export default function GradingView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 flex flex-col min-h-0 p-6 gap-5">
+      <div className="flex-1 flex flex-col min-h-0 p-6 gap-6">
         {/* Preview area */}
         <div className="flex-1 min-h-0 flex flex-col gap-3">
           <div className="flex items-center justify-end">
@@ -161,10 +176,10 @@ export default function GradingView() {
         </div>
 
         {/* Controls */}
-        <div className="shrink-0 space-y-5 pt-5">
+        <div className="shrink-0 space-y-6 pt-6">
           {/* Input */}
-          <div className="space-y-3">
-            <h3 className="font-display font-semibold text-sm text-text">Describe what you want</h3>
+          <div className="space-y-4">
+            <h3 className="font-display font-bold text-sm tracking-tight text-text">Describe what you want</h3>
             <div className="flex gap-2.5">
               <input
                 type="text"
@@ -206,7 +221,7 @@ export default function GradingView() {
 
           {/* Presets */}
           <div className="space-y-2.5">
-            <span className="text-[11px] text-text-dim">Presets</span>
+            <span className="text-[10px] font-semibold text-text-dim tracking-[0.1em] uppercase">Presets</span>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
               {PRESETS.map((preset) => (
                 <button

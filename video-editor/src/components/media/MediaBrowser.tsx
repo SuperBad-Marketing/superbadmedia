@@ -26,7 +26,7 @@ export default function MediaBrowser() {
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
   const addToStoryboard = useAppStore((s) => s.addToStoryboard)
   const storyboardClips = useAppStore((s) => s.storyboardClips)
-  const setCentreView = useAppStore((s) => s.setCentreView)
+  const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
 
   const [visionRunning, setVisionRunning] = useState(false)
   const [visionProgress, setVisionProgress] = useState(0)
@@ -124,8 +124,8 @@ export default function MediaBrowser() {
         addToStoryboard(clip)
       }
     }
-    setCentreView('storyboard')
-  }, [filteredClips, storyboardClips, addToStoryboard, setCentreView])
+    setWorkflowPhase('assemble')
+  }, [filteredClips, storyboardClips, addToStoryboard, setWorkflowPhase])
 
   if (!currentProject || clips.length === 0) {
     return (

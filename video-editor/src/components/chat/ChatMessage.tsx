@@ -108,10 +108,16 @@ function ActionCard({ action }: { action: ChatAction }) {
 
 function LoadingDots() {
   return (
-    <span className="inline-flex gap-1 items-center h-5">
-      <span className="w-1.5 h-1.5 rounded-full bg-text-dim animate-[pulse_1.4s_ease-in-out_infinite]" />
-      <span className="w-1.5 h-1.5 rounded-full bg-text-dim animate-[pulse_1.4s_ease-in-out_0.2s_infinite]" />
-      <span className="w-1.5 h-1.5 rounded-full bg-text-dim animate-[pulse_1.4s_ease-in-out_0.4s_infinite]" />
+    <span className="inline-flex gap-1.5 items-center h-5">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="size-1 rounded-full bg-text-dim"
+          style={{
+            animation: `pulse 1.6s ease-in-out ${i * 0.15}s infinite`,
+          }}
+        />
+      ))}
     </span>
   )
 }

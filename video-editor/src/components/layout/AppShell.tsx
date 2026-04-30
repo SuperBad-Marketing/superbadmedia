@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import HeaderBar from './HeaderBar'
 import Dock from './Dock'
 import FloatingPanelLayer from './FloatingPanel'
+import { ViewLoader } from '../shared/LoadingPulse'
 import { useAppStore } from '../../stores/appStore'
 import type { WorkflowPhase } from '../../types'
 
@@ -10,15 +11,11 @@ const HomeScreen = lazy(() => import('../home/HomeScreen'))
 const ImportScreen = lazy(() => import('../import/ImportScreen'))
 const BriefBuilder = lazy(() => import('../brief/BriefBuilder'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
-const PreviewView = lazy(() => import('../preview/PreviewView'))
-const ExportView = lazy(() => import('../export/ExportView'))
+const RefineView = lazy(() => import('../refine/RefineView'))
+const DeliverView = lazy(() => import('../deliver/DeliverView'))
 
 function ViewFallback() {
-  return (
-    <div className="flex-1 flex items-center justify-center text-text-dim text-xs">
-      One moment.
-    </div>
-  )
+  return <ViewLoader />
 }
 
 function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
@@ -34,15 +31,13 @@ function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
     case 'refine':
       return (
         <Suspense fallback={<ViewFallback />}>
-          <PreviewView />
+          <RefineView />
         </Suspense>
       )
     case 'deliver':
       return (
         <Suspense fallback={<ViewFallback />}>
-          <div className="flex-1 flex flex-col min-h-0">
-            <ExportView />
-          </div>
+          <DeliverView />
         </Suspense>
       )
   }

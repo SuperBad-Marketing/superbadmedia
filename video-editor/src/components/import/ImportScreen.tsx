@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react'
 import { motion } from 'motion/react'
-import { HardDrive, CreditCard, ArrowLeft, Loader2 } from 'lucide-react'
+import { HardDrive, CreditCard, ArrowLeft } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { startIngest, getIngestStatus, selectFolder } from '../../lib/api'
-import ProgressRing from '../shared/ProgressRing'
+import { ProgressLoader } from '../shared/LoadingPulse'
 
 export default function ImportScreen() {
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
@@ -70,23 +70,7 @@ export default function ImportScreen() {
 
   if (importing) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center select-none">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center"
-        >
-          <ProgressRing
-            progress={progress}
-            size={64}
-            strokeWidth={3}
-            showPercent
-            color="var(--color-accent)"
-          />
-          <p className="text-sm text-text-muted mt-6">{statusText}</p>
-        </motion.div>
-      </div>
+      <ProgressLoader progress={progress} status={statusText} />
     )
   }
 
@@ -98,14 +82,14 @@ export default function ImportScreen() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col items-center"
       >
-        <h1 className="font-display font-bold text-xl tracking-tight text-text mb-2">
+        <h1 className="font-display font-bold text-4xl tracking-tight text-text">
           Where's your footage?
         </h1>
-        <p className="text-text-dim text-xs mb-12">
+        <p className="text-text-dim text-base mt-6">
           Point us at the files. We'll handle the rest.
         </p>
 
-        <div className="flex gap-5">
+        <div className="flex gap-6 mt-20">
           <motion.button
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -113,13 +97,13 @@ export default function ImportScreen() {
             onClick={() => handleImport('folder')}
             className="group cursor-pointer"
           >
-            <div className="w-56 h-56 rounded-2xl border border-border hover:border-border-active bg-surface hover:bg-surface-hover flex flex-col items-center justify-center gap-4 transition-all duration-300">
+            <div className="w-56 rounded-2xl border border-border hover:border-border-active bg-surface hover:bg-surface-hover flex flex-col items-center justify-center py-14 gap-6 transition-all duration-300">
               <div className="size-14 rounded-xl bg-accent-dim flex items-center justify-center group-hover:bg-accent/15 transition-colors duration-300">
                 <HardDrive size={24} className="text-accent" strokeWidth={1.5} />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-text">From drive</p>
-                <p className="text-[11px] text-text-dim mt-0.5">SSD, hard drive, folder</p>
+                <p className="text-base font-medium text-text">From drive</p>
+                <p className="text-sm text-text-dim mt-2">SSD, hard drive, folder</p>
               </div>
             </div>
           </motion.button>
@@ -131,13 +115,13 @@ export default function ImportScreen() {
             onClick={() => handleImport('card')}
             className="group cursor-pointer"
           >
-            <div className="w-56 h-56 rounded-2xl border border-border hover:border-border-active bg-surface hover:bg-surface-hover flex flex-col items-center justify-center gap-4 transition-all duration-300">
+            <div className="w-56 rounded-2xl border border-border hover:border-border-active bg-surface hover:bg-surface-hover flex flex-col items-center justify-center py-14 gap-6 transition-all duration-300">
               <div className="size-14 rounded-xl bg-pink-dim flex items-center justify-center group-hover:bg-pink/15 transition-colors duration-300">
                 <CreditCard size={24} className="text-pink" strokeWidth={1.5} />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-text">From card</p>
-                <p className="text-[11px] text-text-dim mt-0.5">Camera card, SD, CFexpress</p>
+                <p className="text-base font-medium text-text">From card</p>
+                <p className="text-sm text-text-dim mt-2">Camera card, SD, CFexpress</p>
               </div>
             </div>
           </motion.button>
@@ -148,9 +132,9 @@ export default function ImportScreen() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.4 }}
           onClick={() => setWorkflowPhase('home')}
-          className="mt-10 flex items-center gap-1.5 text-text-dim hover:text-text-muted text-xs transition-colors duration-200 cursor-pointer"
+          className="mt-16 flex items-center gap-2 text-text-dim hover:text-text-muted text-sm transition-colors duration-200 cursor-pointer"
         >
-          <ArrowLeft size={12} />
+          <ArrowLeft size={14} />
           Back
         </motion.button>
       </motion.div>

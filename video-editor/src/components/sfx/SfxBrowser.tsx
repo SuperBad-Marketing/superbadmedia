@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, Loader2, Volume2 } from 'lucide-react'
+import { Search, Volume2 } from 'lucide-react'
+import { PanelLoader } from '../shared/LoadingPulse'
 import type { EpidemicSfx } from '../../types'
 import { searchEpidemicSfx } from '../../lib/api'
 import SfxCard from './SfxCard'
@@ -82,9 +83,7 @@ export default function SfxBrowser() {
 
       <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <Loader2 size={18} className="text-text-dim animate-spin" />
-          </div>
+          <PanelLoader />
         ) : results.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <Volume2 size={18} className="text-text-dim opacity-40" />

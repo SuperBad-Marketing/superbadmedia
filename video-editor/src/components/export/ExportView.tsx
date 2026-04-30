@@ -283,13 +283,13 @@ export default function ExportView() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col items-center"
         >
-          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-6">
+          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-8">
             <Package size={28} className="text-text-dim/40" />
           </div>
-          <h2 className="font-display font-bold text-lg tracking-tight text-text mb-2">
+          <h2 className="font-display font-bold text-xl tracking-tight text-text mb-3">
             Nothing to export yet
           </h2>
-          <p className="text-text-dim text-xs text-center text-pretty max-w-xs">
+          <p className="text-text-dim text-sm text-center text-pretty max-w-xs">
             Build your timeline first, then come here to render.
           </p>
         </motion.div>
@@ -299,17 +299,17 @@ export default function ExportView() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-none">
+      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none">
         {/* Format selection */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="space-y-4"
+          className="space-y-5"
         >
-          <h2 className="font-display font-bold text-lg tracking-tight text-text">Deliver</h2>
+          <h2 className="font-display font-bold text-xl tracking-tight text-text">Deliver</h2>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-3">
             {FORMATS.map((format) => {
               const selected = selectedFormats.has(format.id)
               const Icon = format.icon
@@ -318,7 +318,7 @@ export default function ExportView() {
                   key={format.id}
                   type="button"
                   onClick={() => toggleFormat(format.id)}
-                  className={`relative rounded-xl p-5 text-left transition-all duration-150 ${
+                  className={`relative rounded-xl p-6 text-left transition-all duration-150 ${
                     selected
                       ? 'bg-accent-dim'
                       : 'bg-surface hover:bg-surface-hover'
@@ -352,7 +352,7 @@ export default function ExportView() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="space-y-4 pt-2"
+          className="space-y-5 pt-2"
         >
           <h3 className="text-[10px] font-semibold text-text-dim tracking-[0.1em] uppercase">Settings</h3>
 

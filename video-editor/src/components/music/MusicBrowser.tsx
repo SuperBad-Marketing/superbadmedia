@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Search, Loader2, Music } from 'lucide-react'
+import { Search, Music } from 'lucide-react'
+import { PanelLoader } from '../shared/LoadingPulse'
 import type { MusicTrack } from '../../types'
 import { searchMusic } from '../../lib/api'
 import TrackCard from './TrackCard'
@@ -84,9 +85,7 @@ export default function MusicBrowser() {
 
       <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <Loader2 size={18} className="text-text-dim animate-spin" />
-          </div>
+          <PanelLoader />
         ) : tracks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <Music size={18} className="text-text-dim opacity-40" />

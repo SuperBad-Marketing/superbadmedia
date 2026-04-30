@@ -74,7 +74,7 @@ export default function ChatInput() {
   }
 
   return (
-    <div className="px-5 pb-5 pt-3">
+    <div className="px-3 pb-3 pt-2">
       <div className="relative flex items-end gap-1 bg-surface-active/50 rounded-lg focus-within:ring-1 focus-within:ring-border-active transition-all duration-150">
         <button
           type="button"

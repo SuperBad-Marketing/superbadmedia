@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Search, Loader2, Type, Check, Plus } from 'lucide-react'
+import { Search, Type, Check, Plus } from 'lucide-react'
+import { PanelLoader } from '../shared/LoadingPulse'
 import type { TitleCardPreset } from '../../types'
 import { getTitleCardPresets } from '../../lib/api'
 import { useAppStore } from '../../stores/appStore'
@@ -82,9 +83,7 @@ export default function TitleCardBrowser() {
 
       <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <Loader2 size={18} className="text-text-dim animate-spin" />
-          </div>
+          <PanelLoader />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <Type size={18} className="text-text-dim opacity-40" />
