@@ -180,33 +180,20 @@ export class ClipAnalysisService {
   }
 
   private analyzeQuality(filePath: string, metadata: Omit<ClipMetadata, 'id' | 'filePath' | 'fileName' | 'thumbnailPath'>): ClipAnalysisResult['analysis'] {
-    let sharpness = 70
-    try {
-      const blurResult = execSync(
-        `ffmpeg -i "${filePath}" -vf "select='not(mod(n,${Math.max(1, Math.floor(metadata.fps * metadata.duration / 5))}))'" -frames:v 5 -vf "laplacian" -f null - 2>&1 | grep -i "lavfi" | tail -5`,
-        { encoding: 'utf-8', timeout: 20000, stdio: ['pipe', 'pipe', 'pipe'] }
-      )
-      if (blurResult.trim()) {
-        sharpness = Math.min(95, Math.max(20, 70 + Math.random() * 20))
-      }
-    } catch {
-      const pixelRate = metadata.width * metadata.height * metadata.fps
-      const bitsPerPixel = metadata.bitrate / Math.max(1, pixelRate)
-      sharpness = Math.min(95, Math.max(30, bitsPerPixel * 500))
-    }
+    const pixelRate = metadata.width * metadata.height * metadata.fps
+    const bitsPerPixel = metadata.bitrate / Math.max(1, pixelRate)
+    const sharpness = Math.min(95, Math.max(30, bitsPerPixel * 500))
 
     let exposure = 0
     try {
-      const brightnessResult = execSync(
-        `ffprobe -v quiet -f lavfi -i "movie='${filePath.replace(/'/g, "'\\''")}',signalstats" -show_entries frame_tags=lavfi.signalstats.YAVG -of csv=p=0 2>&1 | head -5`,
-        { encoding: 'utf-8', timeout: 15000, stdio: ['pipe', 'pipe', 'pipe'] }
+      const sampleTime = Math.max(0, metadata.duration * 0.25)
+      const result = execSync(
+        `ffmpeg -ss ${sampleTime} -i "${filePath}" -frames:v 1 -vf "format=gray,scale=1:1" -f rawvideo -pix_fmt gray - 2>/dev/null | od -A n -t u1 | head -1`,
+        { encoding: 'utf-8', timeout: 5000 }
       )
-      if (brightnessResult.trim()) {
-        const values = brightnessResult.trim().split('\n').map(Number).filter(n => !isNaN(n))
-        if (values.length > 0) {
-          const avgBrightness = values.reduce((a, b) => a + b, 0) / values.length
-          exposure = (avgBrightness - 128) / 64
-        }
+      const val = Number(result.trim())
+      if (!isNaN(val)) {
+        exposure = (val - 128) / 64
       }
     } catch {
       exposure = 0
