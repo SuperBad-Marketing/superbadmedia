@@ -237,7 +237,7 @@ export const instagram_comment_triggers = sqliteTable(
   {
     id: text("id").primaryKey(),
     account_id: text("account_id").notNull(),
-    media_id: text("media_id").notNull(),
+    media_id: text("media_id"),
     trigger_type: text("trigger_type", {
       enum: ["any_comment", "keyword_match"] as const,
     }).notNull(),

@@ -257,6 +257,49 @@ export async function toggleAutonomyAction(
   return { ok: true, value: undefined };
 }
 
+// ── Pending approval summaries (for overview tab) ──────────────────────
+
+export interface PendingItem {
+  id: string;
+  replyType: "comment" | "dm";
+  inboundText: string;
+  inboundAuthor: string | null;
+  classification: string | null;
+  draftText: string;
+  createdAtMs: number;
+}
+
+export async function getPendingApprovalsAction(): Promise<
+  Result<{ comments: PendingItem[]; messages: PendingItem[] }>
+> {
+  await requireAdmin();
+
+  const rows = await db
+    .select()
+    .from(instagram_replies)
+    .where(eq(instagram_replies.status, "pending_review"))
+    .orderBy(desc(instagram_replies.created_at_ms))
+    .limit(50);
+
+  const items: PendingItem[] = rows.map((r) => ({
+    id: r.id,
+    replyType: r.reply_type,
+    inboundText: r.inbound_text,
+    inboundAuthor: r.inbound_author,
+    classification: r.classification,
+    draftText: r.draft_text,
+    createdAtMs: r.created_at_ms,
+  }));
+
+  return {
+    ok: true,
+    value: {
+      comments: items.filter((i) => i.replyType === "comment"),
+      messages: items.filter((i) => i.replyType === "dm"),
+    },
+  };
+}
+
 // ── Comments feed ───────────────────────────────────────────────────────
 
 export interface CommentItem {

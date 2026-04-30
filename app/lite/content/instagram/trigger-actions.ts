@@ -28,7 +28,7 @@ async function requireAdmin() {
 
 export interface TriggerItem {
   id: string;
-  mediaId: string;
+  mediaId: string | null;
   mediaCaption: string | null;
   mediaThumbnail: string | null;
   mediaPermalink: string | null;
@@ -49,7 +49,7 @@ export async function listTriggersAction(): Promise<Result<TriggerItem[]>> {
     .from(instagram_comment_triggers)
     .orderBy(desc(instagram_comment_triggers.created_at_ms));
 
-  const mediaIds = [...new Set(triggers.map((t) => t.media_id))];
+  const mediaIds = [...new Set(triggers.map((t) => t.media_id).filter((id): id is string => id !== null))];
   const mediaRows =
     mediaIds.length > 0
       ? await db
@@ -68,7 +68,7 @@ export async function listTriggersAction(): Promise<Result<TriggerItem[]>> {
   return {
     ok: true,
     value: triggers.map((t) => {
-      const media = mediaMap.get(t.media_id);
+      const media = t.media_id ? mediaMap.get(t.media_id) : undefined;
       return {
         id: t.id,
         mediaId: t.media_id,
@@ -169,22 +169,36 @@ The user will give you a brief describing what the DM should contain (usually a 
 // ── Create trigger ──────────────────────────────────────────────────────
 
 export async function createTriggerAction(params: {
-  mediaId: string;
+  mediaId: string | null;
   triggerType: "any_comment" | "keyword_match";
   keyword?: string;
   dmMessageText: string;
 }): Promise<Result<{ id: string }>> {
   await requireAdmin();
 
-  const media = await db.query.instagram_media.findFirst({
-    where: eq(instagram_media.id, params.mediaId),
-  });
-  if (!media) return { ok: false, error: "Post not found" };
+  let accountId: string;
+  let label: string;
+
+  if (params.mediaId) {
+    const media = await db.query.instagram_media.findFirst({
+      where: eq(instagram_media.id, params.mediaId),
+    });
+    if (!media) return { ok: false, error: "Post not found" };
+    accountId = media.account_id;
+    label = (media.caption ?? "").slice(0, 60);
+  } else {
+    const account = await db.query.instagram_accounts.findFirst({
+      where: eq(instagram_accounts.status, "active"),
+    });
+    if (!account) return { ok: false, error: "No active Instagram account" };
+    accountId = account.id;
+    label = "all posts";
+  }
 
   const id = randomUUID();
   await db.insert(instagram_comment_triggers).values({
     id,
-    account_id: media.account_id,
+    account_id: accountId,
     media_id: params.mediaId,
     trigger_type: params.triggerType,
     keyword:
@@ -198,7 +212,7 @@ export async function createTriggerAction(params: {
 
   await logActivity({
     kind: "instagram_trigger_created",
-    body: `Comment automation created for post: ${(media.caption ?? "").slice(0, 60)}`,
+    body: `Comment automation created for ${label}`,
     meta: {
       trigger_id: id,
       media_id: params.mediaId,

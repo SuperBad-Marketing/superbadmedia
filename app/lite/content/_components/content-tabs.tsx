@@ -15,7 +15,6 @@ const TABS = [
   { label: "Video Library", href: "/lite/content/video-studio", active: true },
   { label: "Studio", href: "/lite/content/studio", active: true },
   { label: "Instagram", href: "/lite/content/instagram", active: true },
-  { label: "Replies", href: "/lite/content/instagram/replies", active: true },
   { label: "Script Studio", href: "/lite/content/script-studio", active: true },
 ] as const;
 

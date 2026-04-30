@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq, and, inArray, desc, sql } from "drizzle-orm";
+import { eq, and, or, inArray, desc, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   instagram_accounts,
@@ -63,7 +63,10 @@ async function pollComments(
       .from(instagram_comment_triggers)
       .where(
         and(
-          eq(instagram_comment_triggers.media_id, media.id),
+          or(
+            eq(instagram_comment_triggers.media_id, media.id),
+            isNull(instagram_comment_triggers.media_id),
+          ),
           eq(instagram_comment_triggers.is_active, true),
         ),
       );

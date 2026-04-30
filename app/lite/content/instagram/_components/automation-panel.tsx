@@ -153,7 +153,7 @@ export function AutomationPanel() {
             No automations yet.
           </p>
           <p className="mt-1 max-w-[360px] mx-auto font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-600)] text-pretty">
-            Set up a trigger to auto-DM anyone who comments on a specific post.
+            Set up a trigger to auto-DM anyone who comments — on a specific post or across all posts.
           </p>
         </div>
       ) : (
@@ -188,6 +188,7 @@ function TriggerCreator({
   const [postsLoaded, setPostsLoaded] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedPost, setSelectedPost] = useState<PostPickerItem | null>(null);
+  const [allPosts, setAllPosts] = useState(false);
   const [triggerType, setTriggerType] = useState<"any_comment" | "keyword_match">("any_comment");
   const [keyword, setKeyword] = useState("");
   const [dmText, setDmText] = useState("");
@@ -227,10 +228,10 @@ function TriggerCreator({
   }
 
   async function handleSave() {
-    if (!selectedPost || !dmText.trim()) return;
+    if ((!selectedPost && !allPosts) || !dmText.trim()) return;
     setSaving(true);
     const result = await createTriggerAction({
-      mediaId: selectedPost.id,
+      mediaId: allPosts ? null : selectedPost!.id,
       triggerType,
       keyword: triggerType === "keyword_match" ? keyword : undefined,
       dmMessageText: dmText.trim(),
@@ -315,6 +316,46 @@ function TriggerCreator({
       {/* Step 1: Pick post */}
       {step === "pick_post" && (
         <div className="space-y-3">
+          {/* All posts option */}
+          <button
+            onClick={() => {
+              setAllPosts(true);
+              setSelectedPost(null);
+              setStep("set_trigger");
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
+            style={{
+              backgroundColor: "rgba(242, 140, 82, 0.08)",
+              border: "1px solid rgba(242, 140, 82, 0.15)",
+            }}
+          >
+            <div
+              className="flex size-10 shrink-0 items-center justify-center rounded-lg"
+              style={{ backgroundColor: "rgba(242, 140, 82, 0.12)" }}
+            >
+              <Zap className="size-4 text-[color:var(--color-brand-orange)]" strokeWidth={1.5} />
+            </div>
+            <div>
+              <p className="font-[family-name:var(--font-body)] text-[13px] font-medium text-[color:var(--color-brand-orange)]">
+                All posts
+              </p>
+              <p className="mt-0.5 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]">
+                Trigger on comments across every post
+              </p>
+            </div>
+          </button>
+
+          <div
+            className="flex items-center gap-3"
+            style={{ color: "var(--color-neutral-600)" }}
+          >
+            <div className="h-px flex-1" style={{ backgroundColor: "rgba(253, 245, 230, 0.06)" }} />
+            <span className="font-[family-name:var(--font-label)] text-[8px] uppercase" style={{ letterSpacing: "1px" }}>
+              or pick a specific post
+            </span>
+            <div className="h-px flex-1" style={{ backgroundColor: "rgba(253, 245, 230, 0.06)" }} />
+          </div>
+
           <div className="relative">
             <Search
               className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[color:var(--color-neutral-600)]"
@@ -340,6 +381,7 @@ function TriggerCreator({
                 <button
                   key={post.id}
                   onClick={() => {
+                    setAllPosts(false);
                     setSelectedPost(post);
                     setStep("set_trigger");
                   }}
@@ -412,33 +454,49 @@ function TriggerCreator({
       )}
 
       {/* Step 2: Set trigger */}
-      {step === "set_trigger" && selectedPost && (
+      {step === "set_trigger" && (selectedPost || allPosts) && (
         <div className="space-y-4">
           {/* Selected post summary */}
           <div
             className="flex items-center gap-3 rounded-lg px-3 py-2"
             style={{ backgroundColor: "rgba(253, 245, 230, 0.03)" }}
           >
-            <div
-              className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded"
-              style={{ backgroundColor: "var(--color-neutral-800)" }}
-            >
-              {selectedPost.thumbnailUrl ? (
-                <img
-                  src={selectedPost.thumbnailUrl}
-                  alt=""
-                  className="size-8 object-cover"
-                />
-              ) : (
-                <ImageIcon
-                  className="size-3 text-[color:var(--color-neutral-700)]"
-                  strokeWidth={1.5}
-                />
-              )}
-            </div>
-            <p className="min-w-0 flex-1 truncate font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-400)]">
-              {selectedPost.caption?.slice(0, 60) ?? "No caption"}
-            </p>
+            {allPosts ? (
+              <>
+                <div
+                  className="flex size-8 shrink-0 items-center justify-center rounded"
+                  style={{ backgroundColor: "rgba(242, 140, 82, 0.12)" }}
+                >
+                  <Zap className="size-3.5 text-[color:var(--color-brand-orange)]" strokeWidth={1.5} />
+                </div>
+                <p className="min-w-0 flex-1 font-[family-name:var(--font-body)] text-[12px] font-medium text-[color:var(--color-brand-orange)]">
+                  All posts
+                </p>
+              </>
+            ) : (
+              <>
+                <div
+                  className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded"
+                  style={{ backgroundColor: "var(--color-neutral-800)" }}
+                >
+                  {selectedPost!.thumbnailUrl ? (
+                    <img
+                      src={selectedPost!.thumbnailUrl}
+                      alt=""
+                      className="size-8 object-cover"
+                    />
+                  ) : (
+                    <ImageIcon
+                      className="size-3 text-[color:var(--color-neutral-700)]"
+                      strokeWidth={1.5}
+                    />
+                  )}
+                </div>
+                <p className="min-w-0 flex-1 truncate font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-400)]">
+                  {selectedPost!.caption?.slice(0, 60) ?? "No caption"}
+                </p>
+              </>
+            )}
             <button
               onClick={() => setStep("pick_post")}
               className="font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-pink)]"
@@ -518,7 +576,7 @@ function TriggerCreator({
       )}
 
       {/* Step 3: DM content */}
-      {step === "set_dm" && selectedPost && (
+      {step === "set_dm" && (selectedPost || allPosts) && (
         <div className="space-y-4">
           <div className="space-y-2">
             <span className="font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)]" style={{ letterSpacing: "1px" }}>
@@ -588,7 +646,7 @@ function TriggerCreator({
                 {triggerType === "any_comment"
                   ? "anyone comments"
                   : `a comment contains "${keyword}"`}{" "}
-                on this post, send them this DM automatically.
+                on {allPosts ? "any post" : "this post"}, send them this DM automatically.
               </p>
             </div>
           )}
@@ -676,9 +734,11 @@ function TriggerCard({
         {/* Post thumbnail */}
         <div
           className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg"
-          style={{ backgroundColor: "var(--color-neutral-800)" }}
+          style={{ backgroundColor: trigger.mediaId ? "var(--color-neutral-800)" : "rgba(242, 140, 82, 0.12)" }}
         >
-          {trigger.mediaThumbnail ? (
+          {!trigger.mediaId ? (
+            <Zap className="size-3.5 text-[color:var(--color-brand-orange)]" strokeWidth={1.5} />
+          ) : trigger.mediaThumbnail ? (
             <img
               src={trigger.mediaThumbnail}
               alt=""
@@ -727,7 +787,9 @@ function TriggerCard({
             )}
           </div>
           <p className="mt-0.5 truncate font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-neutral-500)]">
-            {trigger.mediaCaption?.slice(0, 60) ?? "No caption"}
+            {trigger.mediaId
+              ? (trigger.mediaCaption?.slice(0, 60) ?? "No caption")
+              : "All posts"}
           </p>
         </div>
 

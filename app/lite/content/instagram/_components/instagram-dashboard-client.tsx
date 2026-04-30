@@ -17,6 +17,7 @@ import { SyncProgressOverlay } from "./sync-progress-overlay";
 import { CommentsPanel } from "./comments-panel";
 import { InboxPanel } from "./inbox-panel";
 import { AutomationPanel } from "./automation-panel";
+import { PendingApprovals } from "./pending-approvals";
 import {
   generateStrategyAction,
   reactToInspirationAction,
@@ -269,6 +270,9 @@ export function InstagramDashboardClient({ accounts, metaConnected, plans = [] }
       {/* View content */}
       {activeView === "overview" && (
         <>
+          {/* Pending approvals */}
+          <PendingApprovals />
+
           {/* Generate / Regenerate Strategy */}
           <GenerateStrategySection hasExistingPlan={plans.length > 0} />
 
