@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Film, GripVertical, X } from 'lucide-react'
 import type { StoryboardClip } from '../../types'
 import { useAppStore } from '../../stores/appStore'
+import { thumbUrl } from '../../lib/thumbUrl'
 
 interface StoryboardClipCardProps {
   storyboardClip: StoryboardClip
@@ -41,7 +42,7 @@ export default function StoryboardClipCard({ storyboardClip }: StoryboardClipCar
       <div className="aspect-video bg-bg flex items-center justify-center relative group/thumb">
         {storyboardClip.clip.thumbnailPath ? (
           <img
-            src={storyboardClip.clip.thumbnailPath}
+            src={thumbUrl(storyboardClip.clip.thumbnailPath)}
             alt={storyboardClip.clip.fileName}
             className="w-full h-full object-cover"
           />

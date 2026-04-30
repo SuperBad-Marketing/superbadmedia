@@ -1,41 +1,81 @@
-import { useState, lazy, Suspense } from 'react'
+import { lazy, Suspense } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import HeaderBar from './HeaderBar'
-import LeftPanel from './LeftPanel'
-import CentrePanel from './CentrePanel'
-import RightPanel from './RightPanel'
-import BottomBar from './BottomBar'
+import Dock from './Dock'
+import FloatingPanelLayer from './FloatingPanel'
+import { useAppStore } from '../../stores/appStore'
+import type { WorkflowPhase } from '../../types'
 
-const WelcomeOverlay = lazy(() => import('../onboarding/WelcomeOverlay'))
+const HomeScreen = lazy(() => import('../home/HomeScreen'))
+const ImportScreen = lazy(() => import('../import/ImportScreen'))
+const BriefBuilder = lazy(() => import('../brief/BriefBuilder'))
+const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
+const PreviewView = lazy(() => import('../preview/PreviewView'))
+const ExportView = lazy(() => import('../export/ExportView'))
 
-const ONBOARDING_KEY = 'superedits-onboarding-seen'
+function ViewFallback() {
+  return (
+    <div className="flex-1 flex items-center justify-center text-text-dim text-xs">
+      One moment.
+    </div>
+  )
+}
+
+function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
+  switch (phase) {
+    case 'home':
+      return <Suspense fallback={<ViewFallback />}><HomeScreen /></Suspense>
+    case 'import':
+      return <Suspense fallback={<ViewFallback />}><ImportScreen /></Suspense>
+    case 'brief':
+      return <Suspense fallback={<ViewFallback />}><BriefBuilder /></Suspense>
+    case 'assemble':
+      return <Suspense fallback={<ViewFallback />}><StoryboardView /></Suspense>
+    case 'refine':
+      return (
+        <Suspense fallback={<ViewFallback />}>
+          <PreviewView />
+        </Suspense>
+      )
+    case 'deliver':
+      return (
+        <Suspense fallback={<ViewFallback />}>
+          <div className="flex-1 flex flex-col min-h-0">
+            <ExportView />
+          </div>
+        </Suspense>
+      )
+  }
+}
+
+const showChromePhases: WorkflowPhase[] = ['brief', 'assemble', 'refine', 'deliver']
 
 export default function AppShell() {
-  const [showWelcome, setShowWelcome] = useState(
-    () => !localStorage.getItem(ONBOARDING_KEY)
-  )
-
-  function dismissWelcome() {
-    localStorage.setItem(ONBOARDING_KEY, '1')
-    setShowWelcome(false)
-  }
+  const workflowPhase = useAppStore((s) => s.workflowPhase)
+  const showChrome = showChromePhases.includes(workflowPhase)
 
   return (
     <div className="flex flex-col h-dvh bg-bg text-text overflow-hidden">
-      <HeaderBar />
+      {showChrome && <HeaderBar />}
 
-      <div className="flex flex-1 min-h-0">
-        <LeftPanel />
-        <CentrePanel />
-        <RightPanel />
+      <div className={`flex-1 flex flex-col min-h-0 relative ${showChrome ? 'pb-16' : ''}`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={workflowPhase}
+            className="flex-1 flex flex-col min-h-0"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 8 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <WorkspaceView phase={workflowPhase} />
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      <BottomBar />
+      {showChrome && <Dock />}
 
-      {showWelcome && (
-        <Suspense fallback={null}>
-          <WelcomeOverlay onDismiss={dismissWelcome} />
-        </Suspense>
-      )}
+      <FloatingPanelLayer />
     </div>
   )
 }

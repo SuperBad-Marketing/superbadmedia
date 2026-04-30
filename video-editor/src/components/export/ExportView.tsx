@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'motion/react'
 import {
   Monitor,
   Smartphone,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  Package,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { sendToResolve, startExport, getExportStatus } from '../../lib/api'
@@ -274,9 +276,23 @@ export default function ExportView() {
 
   if (!hasTimeline) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
-        <Monitor size={28} className="text-text-dim" />
-        <p className="text-[11px] text-text-dim">Build your timeline first, then export</p>
+      <div className="flex-1 flex flex-col items-center justify-center select-none">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-center"
+        >
+          <div className="size-16 rounded-2xl bg-surface-active/40 flex items-center justify-center mb-6">
+            <Package size={28} className="text-text-dim/40" />
+          </div>
+          <h2 className="font-display font-bold text-lg tracking-tight text-text mb-2">
+            Nothing to export yet
+          </h2>
+          <p className="text-text-dim text-xs text-center text-pretty max-w-xs">
+            Build your timeline first, then come here to render.
+          </p>
+        </motion.div>
       </div>
     )
   }
@@ -285,8 +301,13 @@ export default function ExportView() {
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-none">
         {/* Format selection */}
-        <div className="space-y-4">
-          <h2 className="font-display font-semibold text-sm text-text">Export</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-4"
+        >
+          <h2 className="font-display font-bold text-lg tracking-tight text-text">Deliver</h2>
 
           <div className="grid grid-cols-2 gap-2.5">
             {FORMATS.map((format) => {
@@ -324,11 +345,16 @@ export default function ExportView() {
               )
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Settings */}
-        <div className="space-y-4 pt-2">
-          <h3 className="text-[11px] text-text-dim">Settings</h3>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-4 pt-2"
+        >
+          <h3 className="text-[10px] font-semibold text-text-dim tracking-[0.1em] uppercase">Settings</h3>
 
           {/* Quality */}
           <div className="flex items-center justify-between py-1">
@@ -427,7 +453,7 @@ export default function ExportView() {
               />
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Export queue */}
         {exportJobs.length > 0 && (
@@ -493,20 +519,25 @@ export default function ExportView() {
       </div>
 
       {/* Sticky export button */}
-      <div className="shrink-0 px-8 py-5 flex justify-end">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="shrink-0 px-8 py-5 flex justify-end border-t border-border/30"
+      >
         <button
           type="button"
           onClick={handleExport}
           disabled={selectedCount === 0 || isExporting}
-          className="bg-accent rounded-lg py-3 px-6 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="bg-accent rounded-xl py-3 px-6 text-xs font-semibold text-white hover:bg-accent-hover transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
         >
           {isExporting
             ? 'Exporting...'
             : selectedCount === 0
               ? 'Select a format'
-              : `Export ${selectedCount === 1 ? '1 Format' : `All ${selectedCount} Formats`}`}
+              : `Export ${selectedCount === 1 ? '1 format' : `all ${selectedCount} formats`}`}
         </button>
-      </div>
+      </motion.div>
     </div>
   )
 }

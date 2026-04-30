@@ -39,6 +39,22 @@ export interface ClipAnalysis {
   audioQuality?: 'good' | 'fair' | 'poor' | 'none'
   description?: string
   isBestMoment?: boolean
+  visionAnalyzed?: boolean
+  hasSmiles?: boolean
+  hasAction?: boolean
+  bestMomentTimestamps?: number[]
+  sceneType?: string
+  dominantColors?: string[]
+  composition?: string
+  emotionalTone?: string
+  shotType?: 'drone-aerial' | 'wide' | 'medium' | 'close-up' | 'extreme-close-up' | 'macro' | 'pov' | 'over-shoulder' | 'tracking'
+  cameraMovement?: 'static' | 'pan' | 'tilt' | 'dolly' | 'handheld' | 'gimbal-smooth' | 'drone-orbit' | 'crane' | 'whip-pan'
+  humanContent?: ('emotion-joy' | 'emotion-focus' | 'emotion-surprise' | 'emotion-sadness' | 'candid-moment' | 'posed' | 'interaction' | 'solo' | 'group' | 'crowd')[]
+  activityType?: ('working' | 'socialising' | 'eating-drinking' | 'sport-action' | 'creative-process' | 'presenting' | 'conversation' | 'walking' | 'celebration' | 'performing')[]
+  environment?: 'indoor' | 'outdoor' | 'urban' | 'nature' | 'studio' | 'venue' | 'office' | 'retail' | 'restaurant' | 'residential'
+  lighting?: 'golden-hour' | 'daylight' | 'overcast' | 'night' | 'artificial' | 'mixed' | 'backlit' | 'dramatic'
+  editUtility?: ('b-roll' | 'hero-shot' | 'establishing' | 'detail-insert' | 'reaction' | 'transition-friendly' | 'opener' | 'closer')[]
+  rankedMoments?: { timestamp: number; score: number; reason: string }[]
 }
 
 // Storyboard
@@ -95,6 +111,16 @@ export interface ChatAction {
 }
 
 // Skill / Knowledge
+export interface SkillQualityScore {
+  quantifiedParams: number
+  conditionalLogic: number
+  structuredPatterns: number
+  decisionBoundaries: number
+  total: number
+  passing: boolean
+  gaps: string[]
+}
+
 export interface SkillFile {
   id: string
   name: string
@@ -105,6 +131,8 @@ export interface SkillFile {
   createdAt: string
   updatedAt: string
   topicCount: number
+  qualityScore?: SkillQualityScore
+  llmReady?: boolean
 }
 
 // Ingest
@@ -134,8 +162,12 @@ export interface ExportJob {
 }
 
 // App-level view state
-export type CentreView = 'brief' | 'ingest' | 'storyboard' | 'preview' | 'grading' | 'captions' | 'export' | 'ads'
+export type CentreView = 'dashboard' | 'brief' | 'ingest' | 'storyboard' | 'preview' | 'grading' | 'captions' | 'export' | 'ads'
 export type RightPanelTab = 'chat' | 'music' | 'knowledge' | 'sfx' | 'transitions' | 'titles'
+
+// New workflow-based navigation
+export type WorkflowPhase = 'home' | 'import' | 'brief' | 'assemble' | 'refine' | 'deliver'
+export type DockPanel = 'media' | 'ai' | 'music' | 'sound' | 'transitions' | 'text' | 'knowledge'
 
 export interface SfxPreset {
   id: string
@@ -174,6 +206,35 @@ export interface TitleCardPreset {
   type: 'title' | 'lower-third' | 'end-card' | 'chapter' | 'quote'
   description: string
   hasAnimation: boolean
+}
+
+// SFX Placement (timeline-level, from assembly)
+export interface SfxPlacement {
+  id: string
+  category: string
+  role: string
+  searchQuery: string
+  timelineStart: number
+  timelineEnd?: number
+  volume: number
+  fadeIn: number
+  fadeOut: number
+  reason: string
+  epidemicTrack?: {
+    id: string
+    title: string
+    previewUrl?: string
+  }
+}
+
+// Transition Placement (between clips, from assembly)
+export interface TransitionPlacement {
+  id: string
+  afterClipPosition: number
+  presetId: string
+  presetName: string
+  duration: number
+  reason: string
 }
 
 export interface AdVariationConfig {

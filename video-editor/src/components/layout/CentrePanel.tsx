@@ -1,7 +1,9 @@
 import { lazy, Suspense } from 'react'
+import { FolderOpen } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import type { CentreView } from '../../types'
 
+const DashboardView = lazy(() => import('../dashboard/DashboardView'))
 const BriefBuilder = lazy(() => import('../brief/BriefBuilder'))
 const IngestView = lazy(() => import('../ingest/IngestView'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
@@ -11,7 +13,7 @@ const CaptionsView = lazy(() => import('../captions/CaptionsView'))
 const ExportView = lazy(() => import('../export/ExportView'))
 const AdVariationsView = lazy(() => import('../ads/AdVariationsView'))
 
-const tabs: { id: CentreView; label: string }[] = [
+const editTabs: { id: CentreView; label: string }[] = [
   { id: 'brief', label: 'Brief' },
   { id: 'ingest', label: 'Ingest' },
   { id: 'storyboard', label: 'Storyboard' },
@@ -28,6 +30,8 @@ function ViewFallback() {
 
 function ActiveView({ view }: { view: CentreView }) {
   switch (view) {
+    case 'dashboard':
+      return <Suspense fallback={<ViewFallback />}><DashboardView /></Suspense>
     case 'brief':
       return <Suspense fallback={<ViewFallback />}><BriefBuilder /></Suspense>
     case 'ingest':
@@ -54,8 +58,20 @@ export default function CentrePanel() {
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <div className="flex items-center px-4 h-10 border-b border-border shrink-0 select-none">
+        <button
+          onClick={() => setCentreView('dashboard')}
+          className={`flex items-center gap-1.5 px-2.5 py-1 mr-2 text-[11px] font-medium rounded-md transition-colors duration-150 ${
+            centreView === 'dashboard'
+              ? 'text-accent bg-accent-dim'
+              : 'text-text-dim hover:text-text hover:bg-surface-active'
+          }`}
+        >
+          <FolderOpen size={12} />
+          Projects
+        </button>
+        <div className="w-px h-4 bg-border mr-2" />
         <div className="segmented-control">
-          {tabs.map((tab) => (
+          {editTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setCentreView(tab.id)}
@@ -67,7 +83,9 @@ export default function CentrePanel() {
         </div>
       </div>
 
-      <ActiveView view={centreView} />
+      <div className="flex-1 flex flex-col min-h-0">
+        <ActiveView view={centreView} />
+      </div>
     </div>
   )
 }
