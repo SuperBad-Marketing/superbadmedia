@@ -23,6 +23,15 @@ import { integration_connections } from "@/lib/db/schema/integration-connections
 import { vault } from "@/lib/crypto/vault";
 import { loadSuperBadContext } from "@/lib/business-profile/load-context";
 import settingsRegistry from "@/lib/settings";
+import { killSwitches } from "@/lib/kill-switches";
+
+function assertLlmEnabled(job: string): void {
+  if (!killSwitches.llm_calls_enabled) {
+    throw new Error(
+      `LLM calls disabled (job: ${job}). Set KILL_SWITCHES_ON=llm_calls_enabled in .env.local to enable.`,
+    );
+  }
+}
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 let cachedKey: string | null = null;
@@ -227,6 +236,7 @@ export async function invokeLlmText({
   actorId,
   priority,
 }: InvokeLlmTextOptions): Promise<string> {
+  assertLlmEnabled(job);
   await applyDeferrableGate(job, priority);
   const client = await getClient();
   const resolvedSystem = await resolveSystemWithProfile(job, system);
@@ -252,6 +262,7 @@ export interface InvokeLlmResult {
 export async function invokeLlmTextWithMeta(
   options: InvokeLlmTextOptions,
 ): Promise<InvokeLlmResult> {
+  assertLlmEnabled(options.job);
   await applyDeferrableGate(options.job, options.priority);
   const client = await getClient();
   const resolvedSystem = await resolveSystemWithProfile(options.job, options.system);
@@ -292,6 +303,7 @@ export async function invokeLlmVision({
   actorId,
   priority,
 }: InvokeLlmVisionOptions): Promise<InvokeLlmResult> {
+  assertLlmEnabled(job);
   await applyDeferrableGate(job, priority);
   const imageBlocks: Anthropic.ImageBlockParam[] = imageUrls.map((url) => ({
     type: "image" as const,

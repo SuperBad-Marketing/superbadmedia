@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@/lib/auth/session";
 import { modelFor } from "@/lib/ai/models";
+import { killSwitches } from "@/lib/kill-switches";
 import { logExternalCall } from "@/lib/observatory/log-external-call";
 import { estimateAnthropicCostAud } from "@/lib/observatory/pricing";
 import { db } from "@/lib/db";
@@ -97,6 +98,13 @@ export async function POST(req: Request) {
   const body = await req.json();
   const productionId: string = body.productionId;
   const messages: ChatMessage[] = body.messages ?? [];
+
+  if (!killSwitches.llm_calls_enabled) {
+    return Response.json(
+      { error: "LLM calls disabled. Set KILL_SWITCHES_ON=llm_calls_enabled in .env.local to enable." },
+      { status: 503 },
+    );
+  }
 
   if (!productionId || !messages.length) {
     return Response.json(
