@@ -38,7 +38,7 @@ export function AdminEggToast({ eggId, copy }: AdminEggToastProps) {
 
   return (
     <AnimatePresence onExitComplete={() => setPhase("idle")}>
-      {phase !== "idle" && (
+      {phase === "showing" && (
         <motion.div
           key={`egg-toast-${eggId}`}
           initial={{ opacity: 0, y: 24, scale: 0.96 }}

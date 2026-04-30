@@ -53,7 +53,7 @@ export function PublicEggMarginNote({
 
   return (
     <AnimatePresence onExitComplete={() => setPhase("idle")}>
-      {phase !== "idle" && (
+      {phase === "showing" && (
         <motion.div
           key={`egg-note-${eggId}`}
           className={`${PLACEMENT_CLASSES[placement]} pointer-events-none flex justify-center px-6`}

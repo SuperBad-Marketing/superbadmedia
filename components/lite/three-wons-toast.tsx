@@ -30,7 +30,7 @@ export function ThreeWonsToast() {
 
   return (
     <AnimatePresence onExitComplete={() => setPhase("idle")}>
-      {phase !== "idle" && (
+      {phase === "showing" && (
         <motion.div
           key="three-wons"
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
