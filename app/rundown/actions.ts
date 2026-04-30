@@ -228,10 +228,22 @@ async function triggerEnrichment(
         : {},
     });
 
+    const { assignTrack } = await import("@/lib/lead-gen/scoring");
+    const trackAssignment = assignTrack(result.profile);
+
     await db
       .update(leadCandidates)
       .set({
         viability_profile_json: result.profile,
+        saas_score: trackAssignment.saas.score,
+        retainer_score: trackAssignment.retainer.score,
+        qualified_track: trackAssignment.track ?? "retainer",
+        scoring_debug_json: {
+          saas: trackAssignment.saas.breakdown,
+          retainer: trackAssignment.retainer.breakdown,
+          winner: trackAssignment.track,
+          soft_adjustment: 0,
+        },
       })
       .where(eq(leadCandidates.id, candidateId));
   } catch {
