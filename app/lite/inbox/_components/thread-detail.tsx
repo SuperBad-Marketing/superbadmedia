@@ -22,6 +22,7 @@ import { deleteThreadAction } from "../_actions/delete";
 import { ConversationStream } from "./conversation-stream";
 import { CustomerContextPanel } from "./customer-context-panel";
 import { ReplyComposer } from "./reply-composer";
+import { SmsReplyComposer } from "./sms-reply-composer";
 import { TicketOverlay } from "./ticket-overlay";
 
 function buildConversationHref(
@@ -69,10 +70,16 @@ export function ThreadDetail({
     ? (thread.cached_draft_low_confidence_flags as DraftReplyLowConfidenceFlag[])
     : [];
 
+  const isSms = thread.channel_of_origin === "sms";
+
   const inboundFrom = [...messages]
     .reverse()
     .find((m) => m.direction === "inbound")?.from_address;
   const toAddresses = inboundFrom ? [inboundFrom] : contact?.email ? [contact.email] : [];
+
+  const smsPhone = isSms
+    ? (inboundFrom ?? contact?.phone ?? null)
+    : null;
 
   return (
     <motion.div
@@ -87,7 +94,7 @@ export function ThreadDetail({
             className="font-[family-name:var(--font-righteous)] text-[length:var(--text-micro)] uppercase text-[color:var(--color-neutral-500)]"
             style={{ letterSpacing: "2px" }}
           >
-            Thread · {thread.channel_of_origin}
+            {thread.channel_of_origin === "sms" ? "SMS" : `Thread · ${thread.channel_of_origin}`}
           </span>
           <h1
             className="font-[family-name:var(--font-display)] text-[28px] leading-none text-[color:var(--color-brand-cream)]"
@@ -159,20 +166,30 @@ export function ThreadDetail({
             <ConversationStream messages={messages} sendEnabled={sendEnabled} />
           </div>
 
-          <ReplyComposer
-            threadId={thread.id}
-            contactId={thread.contact_id}
-            companyId={thread.company_id}
-            toAddresses={toAddresses}
-            sendingAddress={thread.sending_address ?? "andy@"}
-            subject={thread.subject}
-            cachedDraftBody={thread.cached_draft_body}
-            cachedDraftStale={thread.cached_draft_stale}
-            lowConfidenceFlags={flags}
-            ticketStatus={thread.ticket_status ?? null}
-            sendEnabled={sendEnabled}
-            llmEnabled={llmEnabled}
-          />
+          {isSms && smsPhone ? (
+            <SmsReplyComposer
+              threadId={thread.id}
+              contactId={thread.contact_id}
+              companyId={thread.company_id}
+              toPhone={smsPhone}
+              sendEnabled={sendEnabled}
+            />
+          ) : (
+            <ReplyComposer
+              threadId={thread.id}
+              contactId={thread.contact_id}
+              companyId={thread.company_id}
+              toAddresses={toAddresses}
+              sendingAddress={thread.sending_address ?? "andy@"}
+              subject={thread.subject}
+              cachedDraftBody={thread.cached_draft_body}
+              cachedDraftStale={thread.cached_draft_stale}
+              lowConfidenceFlags={flags}
+              ticketStatus={thread.ticket_status ?? null}
+              sendEnabled={sendEnabled}
+              llmEnabled={llmEnabled}
+            />
+          )}
         </div>
 
         {thread.sending_address === "support@" && customerContext && (

@@ -12,6 +12,7 @@ import {
   MessageCircle,
   MessageSquare,
   Paperclip,
+  Phone,
   Pin,
   VolumeX,
 } from "lucide-react";
@@ -56,8 +57,9 @@ function ChannelIcon({
   switch (channel) {
     case "email":
       return <Mail {...common} />;
-    case "portal_chat":
     case "sms":
+      return <Phone {...common} />;
+    case "portal_chat":
     case "whatsapp":
       return <MessageSquare {...common} />;
     case "task_feedback":

@@ -19,6 +19,7 @@ import { twilio_sms_log } from "@/lib/db/schema/twilio-sms-log";
 import { dnc_phones } from "@/lib/db/schema/dnc-phones";
 import { external_call_log } from "@/lib/db/schema/external-call-log";
 import { TWILIO_API_BASE } from "@/lib/integrations/vendors/twilio";
+import { getTwilioCredentials } from "./credentials";
 import settings from "@/lib/settings";
 
 export interface SendSmsParams {
@@ -54,13 +55,11 @@ async function isSmsQuietHours(): Promise<boolean> {
 export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   const { to, body, submissionId, dealId, purpose } = params;
 
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
-
-  if (!accountSid || !authToken || !fromNumber) {
+  const creds = await getTwilioCredentials();
+  if (!creds) {
     return { sent: false, skipped: true, reason: "twilio_not_configured" };
   }
+  const { accountSid, authToken, fromNumber } = creds;
 
   // DNC check
   const dncRows = await db

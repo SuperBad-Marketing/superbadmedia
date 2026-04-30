@@ -302,6 +302,8 @@ export const ACTIVITY_LOG_KINDS = [
   "inbox_age_cleanup",
   "inbox_trash_emptied",
   "inbox_digest_sent",
+  "sms_sent",
+  "sms_received",
   // --- Six-Week Plan Generator (17) ---
   "six_week_plan_generation_started",
   "six_week_plan_strategy_ready_for_review",
@@ -381,6 +383,8 @@ export const ACTIVITY_LOG_KINDS = [
   // --- Deal admin (2) ---
   "deal_updated",
   "deal_deleted",
+  // --- Company admin ---
+  "company_deleted",
   // --- Quotes (quote_sent already listed above) ---
   "quote_drafted",
   "quote_deleted",

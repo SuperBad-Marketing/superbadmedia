@@ -8,6 +8,8 @@ export type ContactSuggestion = {
   id: string;
   name: string;
   email: string | null;
+  phone: string | null;
+  companyId: string | null;
   companyName: string | null;
 };
 
@@ -24,10 +26,18 @@ export function ContactPicker({
   onPick,
   search,
   initialQuery = "",
+  mode = "email",
 }: {
-  onPick: (picked: { contactId: string | null; email: string; name: string | null }) => void;
+  onPick: (picked: {
+    contactId: string | null;
+    companyId: string | null;
+    email: string;
+    phone: string | null;
+    name: string | null;
+  }) => void;
   search: (q: string) => Promise<ContactSuggestion[]>;
   initialQuery?: string;
+  mode?: "email" | "sms";
 }) {
   const [query, setQuery] = React.useState(initialQuery);
   const [results, setResults] = React.useState<ContactSuggestion[]>([]);
@@ -48,19 +58,23 @@ export function ContactPicker({
     };
   }, [query, search]);
 
-  const fallbackEmail = query.includes("@") ? query.trim() : null;
+  const fallbackEmail = mode === "email" && query.includes("@") ? query.trim() : null;
+  const filteredResults = mode === "sms"
+    ? results.filter((r) => r.phone)
+    : results;
 
   function commit(index: number) {
-    if (index < results.length) {
-      const hit = results[index];
-      if (hit.email) {
-        onPick({ contactId: hit.id, email: hit.email, name: hit.name });
-      } else {
-        // no email on record, caller will prompt
-        onPick({ contactId: hit.id, email: "", name: hit.name });
-      }
+    if (index < filteredResults.length) {
+      const hit = filteredResults[index];
+      onPick({
+        contactId: hit.id,
+        companyId: hit.companyId,
+        email: hit.email ?? "",
+        phone: hit.phone,
+        name: hit.name,
+      });
     } else if (fallbackEmail) {
-      onPick({ contactId: null, email: fallbackEmail, name: null });
+      onPick({ contactId: null, companyId: null, email: fallbackEmail, phone: null, name: null });
     }
     setQuery("");
     setResults([]);
@@ -70,7 +84,7 @@ export function ContactPicker({
   function handleKey(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlight((h) => Math.min(h + 1, results.length));
+      setHighlight((h) => Math.min(h + 1, filteredResults.length));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlight((h) => Math.max(h - 1, 0));
@@ -92,7 +106,7 @@ export function ContactPicker({
         onFocus={() => setFocused(true)}
         onBlur={() => setTimeout(() => setFocused(false), 150)}
         onKeyDown={handleKey}
-        placeholder="To: name or email…"
+        placeholder={mode === "sms" ? "To: name or phone…" : "To: name or email…"}
         className={cn(
           "w-full rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2",
           "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)]",
@@ -100,7 +114,7 @@ export function ContactPicker({
         )}
       />
       <AnimatePresence>
-        {focused && (results.length > 0 || fallbackEmail) && (
+        {focused && (filteredResults.length > 0 || fallbackEmail) && (
           <motion.ul
             role="listbox"
             initial={{ opacity: 0, y: -4 }}
@@ -111,7 +125,7 @@ export function ContactPicker({
               "rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] py-1 shadow-lg",
             )}
           >
-            {results.map((r, idx) => (
+            {filteredResults.map((r, idx) => (
               <li
                 key={r.id}
                 role="option"
@@ -129,21 +143,23 @@ export function ContactPicker({
               >
                 <span className="block">{r.name}</span>
                 <span className="block text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]">
-                  {r.email ?? "no email on record"} · {r.companyName ?? "-"}
+                  {mode === "sms"
+                    ? `${r.phone ?? "no phone"} · ${r.companyName ?? "-"}`
+                    : `${r.email ?? "no email on record"} · ${r.companyName ?? "-"}`}
                 </span>
               </li>
             ))}
             {fallbackEmail && (
               <li
                 role="option"
-                aria-selected={highlight === results.length}
+                aria-selected={highlight === filteredResults.length}
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  commit(results.length);
+                  commit(filteredResults.length);
                 }}
                 className={cn(
                   "cursor-pointer border-t border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)]",
-                  highlight === results.length
+                  highlight === filteredResults.length
                     ? "bg-[color:var(--color-surface-2)] text-[color:var(--color-neutral-100)]"
                     : "text-[color:var(--color-neutral-300)]",
                 )}

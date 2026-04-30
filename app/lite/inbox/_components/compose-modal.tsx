@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarDays, Paperclip, Send, Sparkles, Trash2, X } from "lucide-react";
+import { CalendarDays, Mail, Paperclip, Phone, Send, Sparkles, Trash2, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +11,7 @@ import {
   sendCompose,
   discardComposeDraft,
 } from "@/app/lite/inbox/compose/actions";
+import { sendNewSms } from "@/app/lite/inbox/sms/actions";
 import { searchContacts } from "../_queries/search-contacts";
 import {
   AttachmentUpload,
@@ -24,12 +25,17 @@ import type { DraftReplyLowConfidenceFlag } from "@/lib/graph/draft-reply";
 
 export const COMPOSE_MODAL_MAX_WIDTH_PX = 720;
 
+type ComposeChannel = "email" | "sms";
+
 type Recipient = {
   contactId: string | null;
   companyId: string | null;
   email: string;
+  phone: string | null;
   name: string | null;
 };
+
+const SMS_SEGMENT_LENGTH = 160;
 
 async function runSearch(q: string): Promise<ContactSuggestion[]> {
   const rows = await searchContacts(q);
@@ -37,6 +43,8 @@ async function runSearch(q: string): Promise<ContactSuggestion[]> {
     id: r.id,
     name: r.name,
     email: r.email,
+    phone: r.phone,
+    companyId: r.companyId,
     companyName: r.companyName,
   }));
 }
@@ -56,6 +64,7 @@ export function ComposeModal({
   llmEnabled: boolean;
   variant?: ComposeModalVariant;
 }) {
+  const [channel, setChannel] = React.useState<ComposeChannel>("email");
   const [recipient, setRecipient] = React.useState<Recipient | null>(null);
   const [showCcBcc, setShowCcBcc] = React.useState(false);
   const [cc, setCc] = React.useState("");
@@ -79,6 +88,7 @@ export function ComposeModal({
   }, [open]);
 
   function resetAll() {
+    setChannel("email");
     setRecipient(null);
     setShowCcBcc(false);
     setCc("");
@@ -128,6 +138,38 @@ export function ComposeModal({
   async function handleSend() {
     if (!recipient) {
       setError("Pick a recipient first.");
+      return;
+    }
+    if (channel === "sms") {
+      if (!recipient.phone) {
+        setError("This contact doesn't have a phone number on file.");
+        return;
+      }
+      if (!recipient.contactId) {
+        setError("SMS requires a known contact.");
+        return;
+      }
+      setBusy("send");
+      setError(null);
+      try {
+        const result = await sendNewSms({
+          contactId: recipient.contactId,
+          companyId: recipient.companyId,
+          toPhone: recipient.phone,
+          contactName: recipient.name ?? recipient.phone,
+          body: body.trim(),
+        });
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        resetAll();
+        onClose();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to send SMS.");
+      } finally {
+        setBusy("idle");
+      }
       return;
     }
     setBusy("send");
@@ -286,22 +328,52 @@ export function ComposeModal({
             }
           >
             <header className="flex items-center justify-between border-b border-[color:var(--color-neutral-700)] px-5 py-4">
-              <div className="flex flex-col">
-                <span
-                  className="font-[family-name:var(--font-righteous)] text-[length:var(--text-micro)] uppercase text-[color:var(--color-neutral-500)]"
-                  style={{ letterSpacing: "2px" }}
-                >
-                  Compose
-                </span>
-                <span className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-h3)] text-[color:var(--color-neutral-100)]">
-                  New message
-                </span>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
+                  <span
+                    className="font-[family-name:var(--font-righteous)] text-[length:var(--text-micro)] uppercase text-[color:var(--color-neutral-500)]"
+                    style={{ letterSpacing: "2px" }}
+                  >
+                    Compose
+                  </span>
+                  <span className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-h3)] text-[color:var(--color-neutral-100)]">
+                    {channel === "sms" ? "New SMS" : "New message"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 rounded-sm border border-[color:var(--color-neutral-700)] p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => { setChannel("email"); setRecipient(null); }}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-sm px-2.5 py-1 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] transition-colors",
+                      channel === "email"
+                        ? "bg-[color:var(--color-surface-2)] text-[color:var(--color-neutral-100)]"
+                        : "text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]",
+                    )}
+                  >
+                    <Mail size={12} strokeWidth={1.75} aria-hidden />
+                    Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setChannel("sms"); setRecipient(null); }}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-sm px-2.5 py-1 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] transition-colors",
+                      channel === "sms"
+                        ? "bg-[color:var(--color-surface-2)] text-[color:var(--color-neutral-100)]"
+                        : "text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-300)]",
+                    )}
+                  >
+                    <Phone size={12} strokeWidth={1.75} aria-hidden />
+                    SMS
+                  </button>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close compose"
-                className="rounded-sm p-2 text-[color:var(--color-neutral-300)] outline-none hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)]"
+                className="self-start rounded-sm p-2 text-[color:var(--color-neutral-300)] outline-none hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)]"
               >
                 <X size={16} strokeWidth={1.75} aria-hidden />
               </button>
@@ -314,10 +386,10 @@ export function ComposeModal({
                     <div className="flex items-center justify-between rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2">
                       <div className="flex flex-col">
                         <span className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)]">
-                          {recipient.name ?? recipient.email}
+                          {recipient.name ?? (channel === "sms" ? recipient.phone : recipient.email)}
                         </span>
                         <span className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]">
-                          {recipient.email}
+                          {channel === "sms" ? (recipient.phone ?? "no phone on file") : recipient.email}
                         </span>
                       </div>
                       <button
@@ -331,11 +403,13 @@ export function ComposeModal({
                   ) : (
                     <ContactPicker
                       search={runSearch}
-                      onPick={({ contactId, email, name }) => {
+                      mode={channel}
+                      onPick={({ contactId, companyId, email, phone, name }) => {
                         setRecipient({
                           contactId,
-                          companyId: null,
+                          companyId,
                           email,
+                          phone,
                           name,
                         });
                       }}
@@ -343,40 +417,44 @@ export function ComposeModal({
                   )}
                 </div>
 
-                {!showCcBcc && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCcBcc(true)}
-                    className="self-start font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-100)]"
-                  >
-                    + Cc / Bcc
-                  </button>
-                )}
-                {showCcBcc && (
-                  <div className="flex flex-col gap-2">
+                {channel === "email" && (
+                  <>
+                    {!showCcBcc && (
+                      <button
+                        type="button"
+                        onClick={() => setShowCcBcc(true)}
+                        className="self-start font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-neutral-100)]"
+                      >
+                        + Cc / Bcc
+                      </button>
+                    )}
+                    {showCcBcc && (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          value={cc}
+                          onChange={(e) => setCc(e.target.value)}
+                          placeholder="Cc (comma-separated)"
+                          className="rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
+                        />
+                        <input
+                          value={bcc}
+                          onChange={(e) => setBcc(e.target.value)}
+                          placeholder="Bcc (comma-separated)"
+                          className="rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
+                        />
+                      </div>
+                    )}
+
                     <input
-                      value={cc}
-                      onChange={(e) => setCc(e.target.value)}
-                      placeholder="Cc (comma-separated)"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Subject (optional, I'll pick one at send time)"
                       className="rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
                     />
-                    <input
-                      value={bcc}
-                      onChange={(e) => setBcc(e.target.value)}
-                      placeholder="Bcc (comma-separated)"
-                      className="rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
-                    />
-                  </div>
+                  </>
                 )}
 
-                <input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Subject (optional, I'll pick one at send time)"
-                  className="rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
-                />
-
-                {intentVisible && (
+                {channel === "email" && intentVisible && (
                   <div className="flex items-center gap-2">
                     <input
                       value={intent}
@@ -399,12 +477,30 @@ export function ComposeModal({
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  rows={10}
-                  placeholder="Write…"
-                  className="min-h-[14rem] resize-y rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]"
+                  rows={channel === "sms" ? 4 : 10}
+                  placeholder={channel === "sms" ? "Your message…" : "Write…"}
+                  className={cn(
+                    "resize-y rounded-sm border border-[color:var(--color-neutral-700)] bg-[color:var(--color-background)] px-3 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none focus-visible:border-[color:var(--color-accent-cta)]",
+                    channel === "sms" ? "min-h-[6rem]" : "min-h-[14rem]",
+                  )}
                 />
 
-                {(attachOpen || attachments.length > 0) && (
+                {channel === "sms" && body.length > 0 && (
+                  <span
+                    className={cn(
+                      "font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)]",
+                      body.length > SMS_SEGMENT_LENGTH
+                        ? "text-[color:var(--color-brand-pink)]"
+                        : "text-[color:var(--color-neutral-500)]",
+                    )}
+                  >
+                    {body.length} char{body.length !== 1 ? "s" : ""}
+                    {Math.ceil(body.length / SMS_SEGMENT_LENGTH) > 1 &&
+                      ` · ${Math.ceil(body.length / SMS_SEGMENT_LENGTH)} segments`}
+                  </span>
+                )}
+
+                {channel === "email" && (attachOpen || attachments.length > 0) && (
                   <AttachmentUpload
                     files={attachments}
                     onChange={setAttachments}
@@ -425,65 +521,69 @@ export function ComposeModal({
             </div>
 
             <footer className="flex flex-wrap items-center gap-2 border-t border-[color:var(--color-neutral-700)] px-5 py-3">
-              <button
-                type="button"
-                onClick={() => setIntentVisible((v) => !v)}
-                disabled={!llmEnabled}
-                title={!llmEnabled ? "Draft-for-me paused, LLM calls off." : undefined}
-                className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Sparkles size={12} strokeWidth={1.75} aria-hidden />
-                Draft this for me
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAttachOpen(true);
-                  fileInputRef.current?.click();
-                }}
-                title={
-                  attachments.length > 0
-                    ? `${attachments.length} attached, click to add more`
-                    : "Attach files"
-                }
-                className={cn(
-                  "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)]",
-                  attachments.length > 0
-                    ? "text-[color:var(--color-accent-cta)]"
-                    : "text-[color:var(--color-neutral-300)] hover:text-[color:var(--color-neutral-100)]",
-                )}
-              >
-                <Paperclip size={12} strokeWidth={1.75} aria-hidden />
-                {attachments.length > 0 ? `Attach · ${attachments.length}` : "Attach"}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  handleFilesFromPicker(e.target.files);
-                  e.target.value = "";
-                }}
-              />
-              <button
-                type="button"
-                disabled
-                title="Sending new invites from Lite, coming later."
-                className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)] opacity-50"
-              >
-                <CalendarDays size={12} strokeWidth={1.75} aria-hidden />
-                Invite
-              </button>
-              <button
-                type="button"
-                onClick={() => setSidecarOpen(true)}
-                disabled={!llmEnabled || body.trim().length === 0}
-                className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Sparkles size={12} strokeWidth={1.75} aria-hidden />
-                Refine
-              </button>
+              {channel === "email" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIntentVisible((v) => !v)}
+                    disabled={!llmEnabled}
+                    title={!llmEnabled ? "Draft-for-me paused, LLM calls off." : undefined}
+                    className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Sparkles size={12} strokeWidth={1.75} aria-hidden />
+                    Draft this for me
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttachOpen(true);
+                      fileInputRef.current?.click();
+                    }}
+                    title={
+                      attachments.length > 0
+                        ? `${attachments.length} attached, click to add more`
+                        : "Attach files"
+                    }
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)]",
+                      attachments.length > 0
+                        ? "text-[color:var(--color-accent-cta)]"
+                        : "text-[color:var(--color-neutral-300)] hover:text-[color:var(--color-neutral-100)]",
+                    )}
+                  >
+                    <Paperclip size={12} strokeWidth={1.75} aria-hidden />
+                    {attachments.length > 0 ? `Attach · ${attachments.length}` : "Attach"}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      handleFilesFromPicker(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled
+                    title="Sending new invites from Lite, coming later."
+                    className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-500)] opacity-50"
+                  >
+                    <CalendarDays size={12} strokeWidth={1.75} aria-hidden />
+                    Invite
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSidecarOpen(true)}
+                    disabled={!llmEnabled || body.trim().length === 0}
+                    className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Sparkles size={12} strokeWidth={1.75} aria-hidden />
+                    Refine
+                  </button>
+                </>
+              )}
 
               <div className="ml-auto flex items-center gap-2">
                 <button
@@ -494,14 +594,16 @@ export function ComposeModal({
                   <Trash2 size={12} strokeWidth={1.75} aria-hidden />
                   Discard
                 </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={busy !== "idle" || body.trim().length === 0}
-                  className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {busy === "save" ? "Saving…" : "Save to drafts"}
-                </button>
+                {channel === "email" && (
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={busy !== "idle" || body.trim().length === 0}
+                    className="flex items-center gap-1.5 rounded-sm border border-[color:var(--color-neutral-700)] px-3 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-neutral-100)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {busy === "save" ? "Saving…" : "Save to drafts"}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleSend}
@@ -513,8 +615,12 @@ export function ComposeModal({
                   }
                   className="flex items-center gap-1.5 rounded-sm bg-[color:var(--color-accent-cta)] px-4 py-1.5 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-100)] outline-none transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Send size={12} strokeWidth={1.75} aria-hidden />
-                  {busy === "send" ? "Sending…" : "Send"}
+                  {channel === "sms" ? (
+                    <Phone size={12} strokeWidth={1.75} aria-hidden />
+                  ) : (
+                    <Send size={12} strokeWidth={1.75} aria-hidden />
+                  )}
+                  {busy === "send" ? "Sending…" : channel === "sms" ? "Send SMS" : "Send"}
                 </button>
               </div>
             </footer>

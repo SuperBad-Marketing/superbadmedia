@@ -10,6 +10,8 @@ export type ContactSearchHit = {
   id: string;
   name: string;
   email: string | null;
+  phone: string | null;
+  companyId: string | null;
   companyName: string | null;
 };
 
@@ -33,6 +35,9 @@ export async function searchContacts(query: string): Promise<ContactSearchHit[]>
       name: contacts.name,
       email: contacts.email,
       email_normalised: contacts.email_normalised,
+      phone: contacts.phone,
+      phone_normalised: contacts.phone_normalised,
+      company_id: contacts.company_id,
       company_name: companies.name,
     })
     .from(contacts)
@@ -41,6 +46,7 @@ export async function searchContacts(query: string): Promise<ContactSearchHit[]>
       or(
         like(sql`lower(${contacts.name})`, pattern),
         like(contacts.email_normalised, pattern),
+        like(contacts.phone_normalised, pattern),
       ),
     )
     .limit(20);
@@ -49,6 +55,8 @@ export async function searchContacts(query: string): Promise<ContactSearchHit[]>
     id: r.id,
     name: r.name,
     email: r.email,
+    phone: r.phone,
+    companyId: r.company_id,
     companyName: r.company_name ?? null,
   }));
 }

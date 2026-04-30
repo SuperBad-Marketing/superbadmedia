@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConversationStream } from "./conversation-stream";
 import { ReplyComposer } from "./reply-composer";
+import { SmsReplyComposer } from "./sms-reply-composer";
 import { TicketOverlay } from "./ticket-overlay";
 import { MobileCustomerContextSheet } from "./mobile-customer-context-sheet";
 import { deleteThreadAction } from "../_actions/delete";
@@ -87,6 +88,8 @@ export function MobileThreadDetail({
     ? (thread.cached_draft_low_confidence_flags as DraftReplyLowConfidenceFlag[])
     : [];
 
+  const isSms = thread.channel_of_origin === "sms";
+
   const inboundFrom = [...messages]
     .reverse()
     .find((m) => m.direction === "inbound")?.from_address;
@@ -95,6 +98,10 @@ export function MobileThreadDetail({
     : contact?.email
       ? [contact.email]
       : [];
+
+  const smsPhone = isSms
+    ? (inboundFrom ?? contact?.phone ?? null)
+    : null;
 
   const isSupport = thread.sending_address === "support@";
 
@@ -210,21 +217,31 @@ export function MobileThreadDetail({
         <ConversationStream messages={messages} sendEnabled={sendEnabled} />
       </div>
 
-      <ReplyComposer
-        threadId={thread.id}
-        contactId={thread.contact_id}
-        companyId={thread.company_id}
-        toAddresses={toAddresses}
-        sendingAddress={thread.sending_address ?? "andy@"}
-        subject={thread.subject}
-        cachedDraftBody={thread.cached_draft_body}
-        cachedDraftStale={thread.cached_draft_stale}
-        lowConfidenceFlags={flags}
-        ticketStatus={thread.ticket_status ?? null}
-        sendEnabled={sendEnabled}
-        llmEnabled={llmEnabled}
-        variant="mobile"
-      />
+      {isSms && smsPhone ? (
+        <SmsReplyComposer
+          threadId={thread.id}
+          contactId={thread.contact_id}
+          companyId={thread.company_id}
+          toPhone={smsPhone}
+          sendEnabled={sendEnabled}
+        />
+      ) : (
+        <ReplyComposer
+          threadId={thread.id}
+          contactId={thread.contact_id}
+          companyId={thread.company_id}
+          toAddresses={toAddresses}
+          sendingAddress={thread.sending_address ?? "andy@"}
+          subject={thread.subject}
+          cachedDraftBody={thread.cached_draft_body}
+          cachedDraftStale={thread.cached_draft_stale}
+          lowConfidenceFlags={flags}
+          ticketStatus={thread.ticket_status ?? null}
+          sendEnabled={sendEnabled}
+          llmEnabled={llmEnabled}
+          variant="mobile"
+        />
+      )}
 
       {isSupport && customerContext && (
         <MobileCustomerContextSheet
