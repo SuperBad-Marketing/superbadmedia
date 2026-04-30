@@ -39,7 +39,159 @@ const LIBRARY: SfxPreset[] = [
   { id: 'musical-logo-reveal', name: 'Logo Reveal', category: 'musical', description: 'Elegant logo reveal sound', duration: 2.0, tags: ['logo', 'elegant'] },
 ]
 
+const ES_SFX_BASE = 'https://www.epidemicsound.com/json/search/sfx/'
+
+export interface EpidemicSfxResult {
+  id: string
+  title: string
+  duration: number
+  category: string
+  tags: string[]
+  subCategory: string
+  previewUrl?: string
+  matchScore?: number
+}
+
 export class SfxService {
+  async searchEpidemic(query: string, limit = 5): Promise<EpidemicSfxResult[]> {
+    const params = new URLSearchParams({ term: query, limit: String(Math.max(limit, 10)) })
+    try {
+      const response = await fetch(`${ES_SFX_BASE}?${params}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          'Accept': 'application/json',
+        },
+      })
+      if (!response.ok) {
+        console.error(`Epidemic SFX search failed: ${response.status} for query "${query}"`)
+        return []
+      }
+      const data = await response.json()
+      const trackMap = data.entities?.tracks as Record<string, any> | undefined
+      if (!trackMap) return []
+
+      const ids: number[] = Array.isArray(data.data) ? data.data : Object.keys(trackMap).map(Number)
+      const results = ids.map((id) => {
+        const t = trackMap[String(id)]
+        if (!t) return null
+
+        const tags: string[] = []
+        if (t.genres) for (const g of t.genres) if (g.displayTag) tags.push(g.displayTag.toLowerCase())
+        if (t.metadataTags) for (const tag of t.metadataTags) tags.push(String(tag).toLowerCase())
+        if (t.moods) for (const m of t.moods) if (m.displayTag) tags.push(m.displayTag.toLowerCase())
+
+        return {
+          id: String(t.id),
+          title: t.title || '',
+          duration: t.length || 0,
+          category: t.genres?.[0]?.displayTag || 'SFX',
+          subCategory: t.genres?.[1]?.displayTag || '',
+          tags,
+          previewUrl: t.stems?.full?.lqMp3Url || undefined,
+        }
+      }).filter(Boolean) as EpidemicSfxResult[]
+
+      return results.slice(0, limit)
+    } catch (err: any) {
+      console.error(`Epidemic SFX search error for "${query}":`, err.message)
+      return []
+    }
+  }
+
+  scoreSfxMatch(
+    result: EpidemicSfxResult,
+    intent: { category: string; role: string; searchQuery: string },
+  ): number {
+    let score = 0
+    const queryWords = intent.searchQuery.toLowerCase().split(/\s+/)
+    const titleLower = result.title.toLowerCase()
+    const allTags = [...result.tags, result.category.toLowerCase(), result.subCategory.toLowerCase()]
+
+    for (const word of queryWords) {
+      if (titleLower.includes(word)) score += 2
+      if (allTags.some(t => t.includes(word))) score += 1
+    }
+
+    if (allTags.some(t => t.includes(intent.category.toLowerCase()))) score += 3
+    if (allTags.some(t => t.includes(intent.role.toLowerCase()))) score += 1
+
+    return score
+  }
+
+  async searchAndScore(
+    searchQuery: string,
+    intent: { category: string; role: string; searchQuery: string },
+  ): Promise<EpidemicSfxResult | null> {
+    const results = await this.searchEpidemic(searchQuery, 10)
+    if (results.length === 0) return null
+
+    const scored = results.map(r => ({
+      ...r,
+      matchScore: this.scoreSfxMatch(r, intent),
+    }))
+    scored.sort((a, b) => b.matchScore - a.matchScore)
+
+    return scored[0]
+  }
+
+  async buildSfxCatalogue(
+    environment: string[],
+    activities: string[],
+    intensity: number,
+  ): Promise<EpidemicSfxResult[]> {
+    const queries: { query: string; category: string }[] = []
+
+    queries.push({ query: 'cinematic impact hit', category: 'impact' })
+    queries.push({ query: 'deep bass boom', category: 'impact' })
+    queries.push({ query: 'fast whoosh transition', category: 'whoosh' })
+    queries.push({ query: 'cinematic tension riser', category: 'riser' })
+
+    if (environment.includes('outdoor') || environment.includes('nature')) {
+      queries.push({ query: 'outdoor nature ambience birds', category: 'ambient' })
+    }
+    if (environment.includes('urban') || environment.includes('indoor')) {
+      queries.push({ query: 'city urban ambience', category: 'ambient' })
+    }
+    if (environment.includes('venue') || environment.includes('restaurant')) {
+      queries.push({ query: 'crowd restaurant ambience', category: 'ambient' })
+    }
+    if (environment.length === 0) {
+      queries.push({ query: 'neutral room tone ambience', category: 'ambient' })
+    }
+
+    if (activities.includes('sport-action')) {
+      queries.push({ query: 'sports crowd cheering', category: 'ambient' })
+      queries.push({ query: 'athletic whoosh movement', category: 'whoosh' })
+    }
+    if (activities.includes('eating-drinking')) {
+      queries.push({ query: 'restaurant foley glass clink', category: 'foley' })
+    }
+    if (activities.includes('creative-process') || activities.includes('working')) {
+      queries.push({ query: 'workshop tools foley', category: 'foley' })
+    }
+
+    if (intensity > 60) {
+      queries.push({ query: 'electronic bass drop impact', category: 'impact' })
+      queries.push({ query: 'dramatic orchestral riser', category: 'riser' })
+    }
+
+    const catalogue: EpidemicSfxResult[] = []
+    const seen = new Set<string>()
+
+    const searches = queries.map(async ({ query, category }) => {
+      const results = await this.searchEpidemic(query, 3)
+      for (const r of results) {
+        if (!seen.has(r.id)) {
+          seen.add(r.id)
+          catalogue.push({ ...r, category: category || r.category })
+        }
+      }
+    })
+    await Promise.all(searches)
+
+    return catalogue
+  }
+
   getLibrary(): SfxPreset[] {
     return LIBRARY
   }

@@ -258,3 +258,12 @@ export class ClipAnalysisService {
     return files
   }
 }
+
+let sharedInstance: ClipAnalysisService | null = null
+
+export function getClipAnalysisService(): ClipAnalysisService {
+  if (!sharedInstance) {
+    sharedInstance = new ClipAnalysisService()
+  }
+  return sharedInstance
+}

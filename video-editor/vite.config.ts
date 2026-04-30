@@ -17,6 +17,14 @@ export default defineConfig({
         target: 'http://localhost:5201',
         changeOrigin: true,
       },
+      '/thumbnails': {
+        target: 'http://localhost:5201',
+        changeOrigin: true,
+      },
+      '/media': {
+        target: 'http://localhost:5201',
+        changeOrigin: true,
+      },
     },
   },
 })

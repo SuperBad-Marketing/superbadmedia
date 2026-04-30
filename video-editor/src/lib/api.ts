@@ -2,6 +2,57 @@ import type { ChatAction, IngestJob, MusicTrack, SkillFile, SfxPreset, EpidemicS
 
 const API_BASE = '/api'
 
+// Projects
+export interface ProjectSummary {
+  id: string
+  name: string
+  clientName: string
+  createdAt: string
+  updatedAt: string
+  status: string
+  clipCount: number
+  storyboardClipCount: number
+  totalDuration: number
+  musicTrackTitle?: string
+  notes?: string
+}
+
+export async function listProjects(): Promise<ProjectSummary[]> {
+  const res = await fetch(`${API_BASE}/projects`)
+  if (!res.ok) throw new Error('Failed to list projects')
+  return res.json()
+}
+
+export async function loadProject(id: string): Promise<{ state: Record<string, any> } & ProjectSummary> {
+  const res = await fetch(`${API_BASE}/projects/${id}`)
+  if (!res.ok) throw new Error('Failed to load project')
+  return res.json()
+}
+
+export async function saveProject(id: string, name: string, clientName: string, state: Record<string, any>): Promise<ProjectSummary> {
+  const res = await fetch(`${API_BASE}/projects/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, clientName, state }),
+  })
+  if (res.status === 404) {
+    const createRes = await fetch(`${API_BASE}/projects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name, clientName, state }),
+    })
+    if (!createRes.ok) throw new Error('Failed to create project')
+    return createRes.json()
+  }
+  if (!res.ok) throw new Error('Failed to save project')
+  return res.json()
+}
+
+export async function deleteProject(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/projects/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to delete project')
+}
+
 export async function sendChatMessage(
   message: string,
   projectId?: string
@@ -37,11 +88,13 @@ export async function getIngestStatus(jobId: string): Promise<IngestJob> {
 
 export async function searchMusic(
   query: string,
-  filters?: { mood?: string; genre?: string; bpm?: [number, number]; energy?: [number, number] }
+  filters?: { mood?: string; genre?: string; pacing?: string; intensity?: number }
 ): Promise<MusicTrack[]> {
   const params = new URLSearchParams({ q: query })
   if (filters?.mood) params.set('mood', filters.mood)
   if (filters?.genre) params.set('genre', filters.genre)
+  if (filters?.pacing) params.set('pacing', filters.pacing)
+  if (filters?.intensity !== undefined) params.set('intensity', String(filters.intensity))
   const res = await fetch(`${API_BASE}/music/search?${params}`)
   if (!res.ok) throw new Error('Failed to search music')
   return res.json()
@@ -165,6 +218,12 @@ export async function getTitleCardPresets(): Promise<TitleCardPreset[]> {
   return res.json()
 }
 
+export interface MoodAxes {
+  intensity: number
+  intimacy: number
+  chaos: number
+}
+
 export interface BriefFields {
   duration: number
   platform: string
@@ -173,6 +232,7 @@ export interface BriefFields {
   musicKeywords: string
   narrativeNotes: string
   clipSelectionHints: string
+  moodAxes?: MoodAxes
 }
 
 export interface AssembledResult {
@@ -192,9 +252,78 @@ export interface AssembledResult {
     position: number
     reason: string
   }[]
+  sfxPlacements: {
+    id: string
+    category: string
+    role: string
+    searchQuery: string
+    timelineStart: number
+    timelineEnd?: number
+    volume: number
+    fadeIn: number
+    fadeOut: number
+    reason: string
+    epidemicTrack?: { id: string; title: string; previewUrl?: string }
+  }[]
+  transitions: {
+    id: string
+    afterClipPosition: number
+    presetId: string
+    presetName: string
+    duration: number
+    reason: string
+  }[]
   musicQuery: string
   totalDuration: number
   narrative: string
+}
+
+export interface VisionAnalysisResult {
+  description: string
+  contentTags: string[]
+  hasFaces: boolean
+  faceCount: number
+  hasSmiles: boolean
+  hasAction: boolean
+  bestMomentTimestamps: number[]
+  sceneType: string
+  dominantColors: string[]
+  composition: string
+  emotionalTone: string
+  shotType: string
+  cameraMovement: string
+  humanContent: string[]
+  activityType: string[]
+  environment: string
+  lighting: string
+  editUtility: string[]
+  rankedMoments: { timestamp: number; score: number; reason: string }[]
+}
+
+export async function analyzeClipVision(
+  filePath: string,
+  clipId: string,
+  duration: number,
+): Promise<VisionAnalysisResult> {
+  const res = await fetch(`${API_BASE}/clips/vision-analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filePath, clipId, duration }),
+  })
+  if (!res.ok) throw new Error('Vision analysis failed')
+  return res.json()
+}
+
+export async function analyzeClipsBatchVision(
+  clips: { id: string; filePath: string; duration: number }[],
+): Promise<{ results: Record<string, VisionAnalysisResult>; errors: Record<string, string> }> {
+  const res = await fetch(`${API_BASE}/clips/vision-analyze-batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clips }),
+  })
+  if (!res.ok) throw new Error('Batch vision analysis failed')
+  return res.json()
 }
 
 export async function parseBrief(braindump: string): Promise<BriefFields> {
@@ -207,12 +336,43 @@ export async function parseBrief(braindump: string): Promise<BriefFields> {
   return res.json()
 }
 
-export async function buildFromBrief(brief: BriefFields): Promise<AssembledResult> {
+export async function buildFromBrief(
+  brief: BriefFields & { selectedSkillIds?: string[] },
+  clips?: any[],
+  music?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number },
+): Promise<AssembledResult> {
   const res = await fetch(`${API_BASE}/brief/build`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ brief }),
+    body: JSON.stringify({ brief, clips, music }),
   })
   if (!res.ok) throw new Error('Failed to build assembly')
   return res.json()
+}
+
+export interface SkillSummary {
+  id: string
+  name: string
+  category: string
+  llmReady: boolean
+}
+
+export async function getBriefSkills(): Promise<SkillSummary[]> {
+  const res = await fetch(`${API_BASE}/brief/skills`)
+  if (!res.ok) throw new Error('Failed to get skills')
+  return res.json()
+}
+
+export async function autoSelectSkills(
+  clips: any[],
+  brief: BriefFields,
+): Promise<string[]> {
+  const res = await fetch(`${API_BASE}/brief/auto-select-skills`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clips, brief }),
+  })
+  if (!res.ok) throw new Error('Failed to auto-select skills')
+  const data = await res.json()
+  return data.selectedIds
 }

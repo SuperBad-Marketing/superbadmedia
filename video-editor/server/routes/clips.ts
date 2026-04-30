@@ -1,9 +1,11 @@
 import { Router } from 'express'
-import { ClipAnalysisService } from '../services/clipAnalysis.js'
+import { getClipAnalysisService } from '../services/clipAnalysis.js'
+import { VisionAnalysisService } from '../services/visionAnalysis.js'
 import path from 'path'
 
 const router = Router()
-const analysisService = new ClipAnalysisService()
+const analysisService = getClipAnalysisService()
+const visionService = new VisionAnalysisService()
 
 router.post('/analyze', async (req, res) => {
   const { dirPath, projectId } = req.body
@@ -31,6 +33,46 @@ router.post('/analyze-single', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ error: error.message })
   }
+})
+
+router.post('/vision-analyze', async (req, res) => {
+  const { filePath, clipId, duration } = req.body
+  if (!filePath || !clipId) {
+    res.status(400).json({ error: 'filePath and clipId are required' })
+    return
+  }
+  try {
+    const result = await visionService.analyzeClipVision(filePath, clipId, duration || 10)
+    res.json(result)
+  } catch (error: any) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/vision-analyze-batch', async (req, res) => {
+  const { clips } = req.body
+  if (!clips || !Array.isArray(clips)) {
+    res.status(400).json({ error: 'clips array is required' })
+    return
+  }
+
+  const results: Record<string, any> = {}
+  const errors: Record<string, string> = {}
+
+  for (const clip of clips) {
+    try {
+      const result = await visionService.analyzeClipVision(
+        clip.filePath,
+        clip.id,
+        clip.duration || 10,
+      )
+      results[clip.id] = result
+    } catch (error: any) {
+      errors[clip.id] = error.message
+    }
+  }
+
+  res.json({ results, errors, total: clips.length, analyzed: Object.keys(results).length })
 })
 
 router.get('/thumbnail/:clipId', (req, res) => {

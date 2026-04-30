@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { resolveBridge } from './resolveBridge.js'
 import { IngestService } from './ingest.js'
-import { ClipAnalysisService } from './clipAnalysis.js'
+import { getClipAnalysisService } from './clipAnalysis.js'
 import { SkillService, type SkillFile } from './skills.js'
 import { CaptionService } from './captions.js'
 import { TransitionService } from './transitions.js'
@@ -60,7 +60,7 @@ export class ChatRouter {
   private anthropic: Anthropic | null = null
   private lastApiKey: string | undefined = undefined
   private ingestService = new IngestService()
-  private clipAnalysis = new ClipAnalysisService()
+  private clipAnalysis = getClipAnalysisService()
   private skillService = new SkillService()
   private captionService = new CaptionService()
   private transitionService = new TransitionService()

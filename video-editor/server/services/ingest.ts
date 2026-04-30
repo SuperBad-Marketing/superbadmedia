@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import { ClipAnalysisService } from './clipAnalysis.js'
+import { getClipAnalysisService } from './clipAnalysis.js'
 
 interface IngestJob {
   id: string
@@ -95,7 +95,7 @@ export class IngestService {
       job.progress = 80
       job.clips = []
 
-      const clipAnalysis = new ClipAnalysisService()
+      const clipAnalysis = getClipAnalysisService()
       await clipAnalysis.analyzeDirectory(
         path.join(destBase, 'footage'),
         job.projectId,

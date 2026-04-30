@@ -4,6 +4,16 @@ import crypto from 'crypto'
 import { execSync } from 'child_process'
 import Anthropic from '@anthropic-ai/sdk'
 
+export interface SkillQualityScore {
+  quantifiedParams: number
+  conditionalLogic: number
+  structuredPatterns: number
+  decisionBoundaries: number
+  total: number
+  passing: boolean
+  gaps: string[]
+}
+
 export interface SkillFile {
   id: string
   name: string
@@ -14,7 +24,11 @@ export interface SkillFile {
   createdAt: string
   updatedAt: string
   topicCount: number
+  qualityScore?: SkillQualityScore
+  llmReady?: boolean
 }
+
+const QUALITY_THRESHOLD = 12
 
 interface ResourceSuggestion {
   id: string
@@ -101,6 +115,8 @@ export class SkillService {
       finalTitle = distilled.title
     }
 
+    const score = this.evaluateQuality(finalContent)
+
     const skill: SkillFile = {
       id: crypto.randomUUID(),
       name: finalTitle.slice(0, 50),
@@ -111,9 +127,16 @@ export class SkillService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       topicCount: finalContent.split('\n').filter(l => l.trim().startsWith('-')).length || 1,
+      qualityScore: score,
+      llmReady: score.passing,
     }
 
     this.save(skill)
+
+    if (!score.passing && this.anthropic) {
+      return this.upgradeSkill(skill)
+    }
+
     return skill
   }
 
@@ -188,6 +211,319 @@ export class SkillService {
         topic,
       }))
     }
+  }
+
+  getEditorialSkills(): SkillFile[] {
+    return this.getAll().filter(s => s.category === 'editorial-craft')
+  }
+
+  getLlmReadySkills(): SkillFile[] {
+    return this.getAll().filter(s => s.category === 'editorial-craft' && s.llmReady !== false)
+  }
+
+  getSkillSummaries(): { id: string; name: string; category: string; llmReady: boolean }[] {
+    return this.getAll()
+      .filter(s => s.category === 'editorial-craft')
+      .map(s => ({ id: s.id, name: s.name, category: s.category, llmReady: s.llmReady ?? false }))
+  }
+
+  autoSelectSkills(footageProfile: {
+    hasPersonContent: boolean
+    hasActionContent: boolean
+    hasStaticContent: boolean
+    hasDroneFootage: boolean
+    hasInteractions: boolean
+    dominantActivities: string[]
+    dominantSceneTypes: string[]
+  }, pacing: string, intensity: number): string[] {
+    const skills = this.getLlmReadySkills()
+    const selected: string[] = []
+
+    const nameMatches = (skill: SkillFile, ...keywords: string[]) =>
+      keywords.some(k => skill.name.toLowerCase().includes(k))
+
+    for (const skill of skills) {
+      const name = skill.name.toLowerCase()
+
+      if (nameMatches(skill, 'montage', 'shot sequencing', 'clip selection', 'energy curve')) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'pacing', 'editorial pacing') && !nameMatches(skill, 'genre')) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'genre pacing') && (footageProfile.hasActionContent || pacing === 'fast' || intensity > 60)) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'sound design', 'sfx')) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'music editorial')) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'speed ramp', 'slow motion') && (pacing === 'fast' || intensity > 50)) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'interview', 'multicam') && (
+        footageProfile.dominantSceneTypes.includes('interview') ||
+        footageProfile.hasInteractions
+      )) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'social format') && ['instagram-reel', 'youtube-short', 'tiktok'].some(p => pacing === p)) {
+        selected.push(skill.id)
+        continue
+      }
+
+      if (nameMatches(skill, 'colour', 'color', 'grading')) {
+        continue
+      }
+
+      if (nameMatches(skill, 'transition')) {
+        selected.push(skill.id)
+        continue
+      }
+    }
+
+    return selected
+  }
+
+  getSkillsByIds(ids: string[]): SkillFile[] {
+    const all = this.getLlmReadySkills()
+    return ids.map(id => all.find(s => s.id === id)).filter(Boolean) as SkillFile[]
+  }
+
+  evaluateQuality(content: string): SkillQualityScore {
+    const lines = content.split('\n').filter(l => l.trim().startsWith('-') || l.trim().startsWith('*'))
+
+    let quantifiedParams = 0
+    let conditionalLogic = 0
+    let structuredPatterns = 0
+    let decisionBoundaries = 0
+
+    const numberPattern = /\b\d+(\.\d+)?\s*(s|ms|seconds|fps|bpm|db|%|px|cuts?|shots?|beats?)\b/i
+    const rangePattern = /\b\d+(\.\d+)?\s*[-–—to]+\s*\d+(\.\d+)?\s*(s|ms|seconds|fps|bpm|db|%)\b/i
+    const conditionalPattern = /\b(if|when|for|during|after|before|unless|while)\b.*\b(use|cut|hold|reduce|increase|apply|switch|set|drop|add|remove|avoid|prefer)\b/i
+    const patternNamePattern = /\*\*[^*]+\*\*\s*[:—–-]/
+    const sequencePattern = /→|->|then|followed by|into|before.*after/i
+    const decisionPattern = /\b(vs\.?|versus|instead of|rather than|not\b.*\buse\b|never.*when|always.*when|works? best (for|with|when)|use for|avoid for|good for|bad for)\b/i
+    const thresholdPattern = /\b(minimum|maximum|at least|no more than|threshold|limit|cap at|floor|ceiling)\b/i
+
+    for (const line of lines) {
+      if (numberPattern.test(line) || rangePattern.test(line)) quantifiedParams++
+      if (conditionalPattern.test(line)) conditionalLogic++
+      if (patternNamePattern.test(line) || sequencePattern.test(line)) structuredPatterns++
+      if (decisionPattern.test(line) || thresholdPattern.test(line)) decisionBoundaries++
+    }
+
+    const headings = content.match(/^##\s+.+/gm) || []
+    structuredPatterns += Math.min(headings.length, 5)
+
+    const total = quantifiedParams + conditionalLogic + structuredPatterns + decisionBoundaries
+
+    const gaps: string[] = []
+    if (quantifiedParams < 3) gaps.push('needs more specific numbers, durations, and thresholds')
+    if (conditionalLogic < 3) gaps.push('needs more if/when conditional rules (e.g. "when pacing is fast, cut at 0.2-0.4s")')
+    if (structuredPatterns < 3) gaps.push('needs more named patterns with step-by-step sequences')
+    if (decisionBoundaries < 2) gaps.push('needs more decision boundaries (when to use X vs Y)')
+
+    return {
+      quantifiedParams,
+      conditionalLogic,
+      structuredPatterns,
+      decisionBoundaries,
+      total,
+      passing: total >= QUALITY_THRESHOLD,
+      gaps,
+    }
+  }
+
+  async upgradeSkill(skill: SkillFile): Promise<SkillFile> {
+    if (!this.anthropic) return skill
+
+    const score = this.evaluateQuality(skill.content)
+    if (score.passing) {
+      skill.qualityScore = score
+      skill.llmReady = true
+      this.save(skill)
+      return skill
+    }
+
+    const reDistilled = await this.reDistillForLlm(skill.content, skill.name, score.gaps)
+    if (reDistilled) {
+      const reScore = this.evaluateQuality(reDistilled)
+      if (reScore.passing) {
+        skill.content = reDistilled
+        skill.qualityScore = reScore
+        skill.llmReady = true
+        skill.updatedAt = new Date().toISOString()
+        skill.topicCount = reDistilled.split('\n').filter(l => l.trim().startsWith('-')).length || 1
+        this.save(skill)
+        return skill
+      }
+    }
+
+    const supplemented = await this.gapSearch(skill.name, score.gaps, skill.content)
+    if (supplemented) {
+      const merged = skill.content + '\n\n' + supplemented
+      const mergeScore = this.evaluateQuality(merged)
+      skill.content = merged
+      skill.qualityScore = mergeScore
+      skill.llmReady = mergeScore.passing
+      skill.updatedAt = new Date().toISOString()
+      skill.topicCount = merged.split('\n').filter(l => l.trim().startsWith('-')).length || 1
+      this.save(skill)
+    } else {
+      skill.qualityScore = score
+      skill.llmReady = false
+      this.save(skill)
+    }
+
+    return skill
+  }
+
+  async upgradeAll(): Promise<{ upgraded: number; total: number; results: { name: string; before: number; after: number; passing: boolean }[] }> {
+    const skills = this.getAll().filter(s => s.category === 'editorial-craft')
+    const results: { name: string; before: number; after: number; passing: boolean }[] = []
+    let upgraded = 0
+
+    for (const skill of skills) {
+      const before = this.evaluateQuality(skill.content).total
+      const updated = await this.upgradeSkill(skill)
+      const after = updated.qualityScore?.total ?? before
+      if (after > before) upgraded++
+      results.push({ name: skill.name, before, after, passing: updated.llmReady ?? false })
+    }
+
+    return { upgraded, total: skills.length, results }
+  }
+
+  private async reDistillForLlm(content: string, title: string, gaps: string[]): Promise<string | null> {
+    try {
+      const response = await this.anthropic!.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        messages: [{
+          role: 'user',
+          content: `You are converting video editing knowledge into a format that another LLM can use to make precise editing decisions (choosing clips, setting cut durations, placing SFX, picking transitions).
+
+SOURCE SKILL: "${title}"
+
+CURRENT CONTENT:
+${content.slice(0, 6000)}
+
+THIS SKILL IS MISSING:
+${gaps.map(g => `- ${g}`).join('\n')}
+
+REWRITE the skill as prescriptive, machine-actionable rules:
+1. Every rule that involves timing MUST include specific numbers (e.g. "0.2-0.4s" not "fast")
+2. Every technique MUST have conditional triggers (e.g. "WHEN pacing is fast AND movement is high, THEN cut duration = 0.1-0.3s")
+3. Every pattern MUST be a named sequence with explicit steps (e.g. "Accelerating cascade: 2.0s → 1.5s → 0.8s → 0.4s → 0.2s")
+4. Every choice MUST have decision boundaries (e.g. "Use dissolve for pace changes >2x. Use hard cut for energy maintenance. Use impact for drops >3x energy shift.")
+
+Keep the original knowledge but restructure it so an LLM can follow the rules mechanically. Use markdown with ## headings and bullet points.
+
+Respond with ONLY the rewritten content (no JSON wrapper, no explanation).`
+        }],
+      })
+
+      const text = response.content.find(b => b.type === 'text')?.text
+      if (text && text.length > 200) return text
+    } catch (err: any) {
+      console.error('Re-distillation failed:', err.message)
+    }
+    return null
+  }
+
+  private async gapSearch(skillName: string, gaps: string[], existingContent: string): Promise<string | null> {
+    if (!this.anthropic) return null
+
+    const queryResponse = await this.anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 500,
+      messages: [{
+        role: 'user',
+        content: `A video editing skill file called "${skillName}" is missing these qualities:
+${gaps.map(g => `- ${g}`).join('\n')}
+
+Generate 2-3 specific YouTube search queries that would find tutorials teaching the MISSING knowledge. Focus on practical technique tutorials, not reviews or vlogs.
+
+Respond with ONLY a JSON array of strings, e.g. ["query one", "query two"]`
+      }],
+    })
+
+    const queryText = queryResponse.content.find(b => b.type === 'text')?.text ?? '[]'
+    let queries: string[]
+    try {
+      queries = JSON.parse(queryText.match(/\[[\s\S]*\]/)?.[0] || '[]')
+    } catch {
+      return null
+    }
+
+    const allTranscripts: string[] = []
+
+    for (const query of queries.slice(0, 3)) {
+      const results = this.searchYouTube(query, 2)
+      for (const result of results) {
+        try {
+          const raw = this.getYouTubeTranscript(`https://youtube.com/watch?v=${result.id}`)
+          const cleaned = this.cleanTranscript(raw)
+          if (cleaned.length > 200 && !cleaned.startsWith('[')) {
+            allTranscripts.push(`Source: "${result.title}" by ${result.channel}\n${cleaned.slice(0, 3000)}`)
+          }
+        } catch {
+          // skip
+        }
+      }
+    }
+
+    if (allTranscripts.length === 0) return null
+
+    try {
+      const supplementResponse = await this.anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 3000,
+        messages: [{
+          role: 'user',
+          content: `Extract ONLY the knowledge that fills these specific gaps for a video editing skill called "${skillName}":
+${gaps.map(g => `- ${g}`).join('\n')}
+
+EXISTING SKILL CONTENT (do NOT repeat this):
+${existingContent.slice(0, 2000)}
+
+NEW SOURCE MATERIAL:
+${allTranscripts.join('\n\n---\n\n')}
+
+Rules:
+1. Only extract knowledge that addresses the listed gaps
+2. Convert everything to prescriptive rules with specific numbers and conditions
+3. Use markdown ## headings and bullet points
+4. Do NOT repeat anything already in the existing content
+
+Respond with ONLY the supplementary content (no JSON, no explanation). If the source material doesn't contain useful gap-filling knowledge, respond with exactly "NO_USEFUL_CONTENT".`
+        }],
+      })
+
+      const text = supplementResponse.content.find(b => b.type === 'text')?.text
+      if (text && text.length > 100 && !text.includes('NO_USEFUL_CONTENT')) return text
+    } catch (err: any) {
+      console.error('Gap search supplement failed:', err.message)
+    }
+
+    return null
   }
 
   delete(id: string): void {
