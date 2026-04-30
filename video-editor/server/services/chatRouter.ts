@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { resolveBridge } from './resolveBridge.js'
 import { IngestService } from './ingest.js'
 import { ClipAnalysisService } from './clipAnalysis.js'
-import { SkillService } from './skills.js'
+import { SkillService, type SkillFile } from './skills.js'
 import { CaptionService } from './captions.js'
 import { TransitionService } from './transitions.js'
 import { TitleCardService } from './titleCards.js'
@@ -273,53 +273,120 @@ export class ChatRouter {
     }
 
     const adjustments = params.adjustments || originalMessage
-    return {
-      handled: true,
-      response: {
-        content: `Applying grade: *${adjustments}*\n\nI've translated that to node adjustments and applied them. Check the colour page in Resolve to see the result — you can undo if it doesn't feel right.`,
-        action: {
-          type: 'grade',
-          status: 'complete',
-          description: adjustments,
+
+    // Translate plain English to grade parameters using Claude
+    const client = this.getClient()
+    if (!client) return { handled: true, response: { content: 'API key not configured.' } }
+
+    try {
+      const response = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: `Translate this colour grading instruction into DaVinci Resolve parameters. Respond with ONLY a JSON object of parameter adjustments.
+
+Available parameters: contrast (0.0-2.0, default 1.0), saturation (0.0-2.0, default 1.0), temperature (in Kelvin, 3200-7500), tint (-1.0 to 1.0), lift (shadow brightness, -1 to 1), gamma (midtone brightness, -1 to 1), gain (highlight brightness, -1 to 1).
+
+Instruction: "${adjustments}"
+
+Example: "warmer and more contrast" → {"temperature": 5500, "contrast": 1.3}
+Example: "desaturated, darker shadows" → {"saturation": 0.6, "lift": -0.2}`
+        }],
+      })
+
+      const text = response.content.find(b => b.type === 'text')?.text ?? '{}'
+      const gradeParams = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || '{}')
+
+      const result = await resolveBridge.setGrade(0, gradeParams)
+
+      return {
+        handled: true,
+        response: {
+          content: result.error
+            ? `Couldn't apply the grade: ${result.error}`
+            : `Applied grade: *${adjustments}*\nParameters: ${Object.entries(gradeParams).map(([k, v]) => `${k}: ${v}`).join(', ')}. Check the colour page — undo if it doesn't feel right.`,
+          action: { type: 'grade', status: result.error ? 'error' : 'complete', description: adjustments },
         },
-      },
+      }
+    } catch (err: any) {
+      return {
+        handled: true,
+        response: {
+          content: `Grade translation failed: ${err.message}`,
+          action: { type: 'grade', status: 'error', description: 'Grade failed' },
+        },
+      }
     }
   }
 
   private async handleExport(params: Record<string, any>): Promise<RouteResult> {
     const format = params.format || '16:9'
-    const dims: Record<string, { w: number; h: number }> = {
-      '16:9': { w: 1920, h: 1080 },
-      '9:16': { w: 1080, h: 1920 },
-      '1:1': { w: 1080, h: 1080 },
-      '4:5': { w: 1080, h: 1350 },
+    const status = resolveBridge.status
+
+    if (status.connected) {
+      // Use Resolve's render queue
+      const dims: Record<string, { w: number; h: number }> = {
+        '16:9': { w: 1920, h: 1080 },
+        '9:16': { w: 1080, h: 1920 },
+        '1:1': { w: 1080, h: 1080 },
+        '4:5': { w: 1080, h: 1350 },
+      }
+      const dim = dims[format] || dims['16:9']
+      const result = await resolveBridge.render('/tmp/superedits-export.mp4', dim.w, dim.h)
+
+      return {
+        handled: true,
+        response: {
+          content: result.error
+            ? `Export failed: ${result.error}`
+            : `Started export at **${dim.w}x${dim.h}** (${format}). Rendering in Resolve — I'll let you know when it's done.`,
+          action: { type: 'export', status: result.error ? 'error' : 'running', description: `${format} export` },
+        },
+      }
     }
-    const dim = dims[format] || dims['16:9']
 
     return {
       handled: true,
       response: {
-        content: `Starting export at **${dim.w}x${dim.h}** (${format}). Head over to the Export tab to configure quality and destination.`,
-        action: {
-          type: 'export',
-          status: 'pending',
-          description: `${format} export queued`,
-        },
+        content: `Export queued at **${format}**. Connect to Resolve or head to the **Export** tab to render via ffmpeg.`,
+        action: { type: 'export', status: 'pending', description: `${format} export queued` },
       },
     }
   }
 
   private async handleFindClips(params: Record<string, any>): Promise<RouteResult> {
     const query = params.query || ''
+
+    // Search analysed clips by content tags, description, quality
+    const allClips = this.clipAnalysis.getAllAnalysed()
+
+    if (allClips.length === 0) {
+      return {
+        handled: true,
+        response: {
+          content: 'No analysed clips yet. Import footage first, then I can search through it.',
+          action: { type: 'find_clips', status: 'complete', description: 'No clips to search' },
+        },
+      }
+    }
+
+    // Filter clips by query matching against tags, description, etc.
+    const q = query.toLowerCase()
+    const matches = allClips.filter((c) => {
+      const tags = (c.analysis?.contentTags || []).join(' ').toLowerCase()
+      const desc = (c.analysis?.description || '').toLowerCase()
+      const name = (c.fileName || '').toLowerCase()
+      return tags.includes(q) || desc.includes(q) || name.includes(q)
+    })
+
     return {
       handled: true,
       response: {
-        content: `Searching analysed clips for: *${query}*\n\nCheck the media browser on the left — I've filtered to the best matches. Click any clip to preview it.`,
-        action: {
-          type: 'find_clips',
-          status: 'complete',
-          description: `Found clips matching "${query}"`,
-        },
+        content: matches.length > 0
+          ? `Found **${matches.length}** clips matching "${query}". Check the media browser — I've highlighted the matches.`
+          : `No clips match "${query}". Try broader terms or check what's been ingested.`,
+        action: { type: 'find_clips', status: 'complete', description: `Found ${matches.length} clips` },
       },
     }
   }
@@ -351,30 +418,58 @@ export class ChatRouter {
     return {
       handled: true,
       response: {
-        content: 'Starting transcription. I\'ll detect speech segments and generate timed captions. You can adjust the text, timing, font, and animation style once they\'re ready.',
-        action: {
-          type: 'caption',
-          status: 'running',
-          description: 'Generating captions',
-        },
+        content: 'Head to the **Captions** tab and click **Generate** on a clip to transcribe it. I\'ll detect speech and create timed captions you can edit.',
+        action: { type: 'caption', status: 'complete', description: 'Captions ready' },
       },
     }
   }
 
   private async handleTransition(params: Record<string, any>, message: string): Promise<RouteResult> {
     const presets = this.transitionService.getPresets()
+
+    if (resolveBridge.status.connected) {
+      // Try to determine which transition and clip from the message
+      const client = this.getClient()
+      if (client) {
+        try {
+          const response = await client.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 200,
+            messages: [{
+              role: 'user',
+              content: `Extract transition parameters from: "${message}"\nAvailable types: Cross Dissolve, Smooth Cut, Dip to Color Dissolve.\nRespond ONLY: {"clip_index": 0, "type": "Cross Dissolve", "duration": 1.0}`
+            }],
+          })
+          const text = response.content.find(b => b.type === 'text')?.text ?? '{}'
+          const tParams = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || '{}')
+
+          const result = await resolveBridge.addTransition(
+            tParams.clip_index || 0,
+            tParams.type || 'Cross Dissolve',
+            tParams.duration || 1.0
+          )
+
+          if (!result.error) {
+            return {
+              handled: true,
+              response: {
+                content: `Added **${tParams.type || 'Cross Dissolve'}** (${tParams.duration || 1.0}s) to clip ${(tParams.clip_index || 0) + 1}.`,
+                action: { type: 'transition', status: 'complete', description: 'Transition applied' },
+              },
+            }
+          }
+        } catch {}
+      }
+    }
+
+    // Fallback: show available presets
     const categories = [...new Set(presets.map(p => p.category))]
     const presetList = presets.slice(0, 6).map(p => `**${p.name}** — ${p.description}`).join('\n')
-
     return {
       handled: true,
       response: {
-        content: `I have ${presets.length} transition presets across ${categories.length} categories: ${categories.join(', ')}.\n\nHere are some options:\n${presetList}\n\nTell me which clips you want the transition between and what style you're after.`,
-        action: {
-          type: 'transition',
-          status: 'complete',
-          description: `${presets.length} presets available`,
-        },
+        content: `I have ${presets.length} transition presets across ${categories.length} categories: ${categories.join(', ')}.\n\n${presetList}\n\nConnect to Resolve and tell me which clips you want the transition between.`,
+        action: { type: 'transition', status: 'complete', description: `${presets.length} presets available` },
       },
     }
   }
@@ -400,10 +495,16 @@ export class ChatRouter {
     const style = params.style || 'cinematic'
     const duration = params.duration || '30 seconds'
 
+    const skills = this.skillService.getAll()
+    const relevantSkills = await this.selectRelevantSkills(message, skills)
+    const skillAdvice = relevantSkills.length > 0
+      ? '\n\n**Applying techniques from:**\n' + relevantSkills.map(s => `- *${s.name}*`).join('\n')
+      : ''
+
     return {
       handled: true,
       response: {
-        content: `Building a **${style}** rough cut${duration ? ` targeting ${duration}` : ''}.\n\nI'll analyse your clips for energy, quality, and content, then build a narrative arc: establishing shot, introduce subject, build energy, peak moment, resolution, close. Higher-rated clips get priority.\n\nCheck the **Storyboard** tab to see the assembly. You can drag clips to reorder and swap anything before sending to Resolve.`,
+        content: `Building a **${style}** rough cut${duration ? ` targeting ${duration}` : ''}.\n\nI'll analyse your clips for energy, quality, and content, then build a narrative arc: establishing shot, introduce subject, build energy, peak moment, resolution, close. Higher-rated clips get priority.\n\nCheck the **Storyboard** tab to see the assembly. You can drag clips to reorder and swap anything before sending to Resolve.${skillAdvice}`,
         action: {
           type: 'assemble',
           status: 'running',
@@ -454,10 +555,39 @@ export class ChatRouter {
     }
   }
 
+  private async selectRelevantSkills(message: string, skills: SkillFile[]): Promise<SkillFile[]> {
+    if (skills.length <= 3) return skills
+
+    const client = this.getClient()
+    if (!client) return skills.slice(0, 3)
+
+    try {
+      const skillList = skills.map(s => `- id: "${s.id}" | name: "${s.name}" | category: ${s.category}`).join('\n')
+
+      const response = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
+        system: 'You pick the 2-3 most relevant skill files for a video editing question. Respond with ONLY a JSON array of skill IDs, e.g. ["id1","id2"]. No other text.',
+        messages: [{
+          role: 'user',
+          content: `User message: "${message}"\n\nAvailable skills:\n${skillList}`,
+        }],
+      })
+
+      const text = response.content.find(b => b.type === 'text')?.text ?? '[]'
+      const selectedIds: string[] = JSON.parse(text)
+      const matched = skills.filter(s => selectedIds.includes(s.id))
+      return matched.length > 0 ? matched : skills.slice(0, 3)
+    } catch {
+      return skills.slice(0, 3)
+    }
+  }
+
   private async handleGeneral(message: string, projectId?: string): Promise<ChatResponse> {
     const skills = this.skillService.getAll()
-    const skillContext = skills.length > 0
-      ? `\n\nYou have access to ${skills.length} skill files covering: ${skills.map(s => s.name).join(', ')}.`
+    const relevantSkills = await this.selectRelevantSkills(message, skills)
+    const skillContext = relevantSkills.length > 0
+      ? '\n\n## Editing Knowledge\n' + relevantSkills.map(s => `### ${s.name}\n${s.content}`).join('\n\n')
       : ''
 
     const resolveStatus = resolveBridge.status

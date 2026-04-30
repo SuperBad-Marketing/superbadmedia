@@ -1,5 +1,6 @@
 import { execSync } from 'child_process'
 import crypto from 'crypto'
+import fs from 'fs'
 
 export interface Caption {
   id: string
@@ -19,25 +20,67 @@ export interface CaptionStyle {
 
 export class CaptionService {
   async transcribe(filePath: string): Promise<Caption[]> {
+    const audioPath = `/tmp/superedits-audio-${crypto.randomUUID()}.wav`
     try {
-      const audioPath = `/tmp/superedits-audio-${crypto.randomUUID()}.wav`
       execSync(
         `ffmpeg -y -i "${filePath}" -vn -acodec pcm_s16le -ar 16000 -ac 1 "${audioPath}"`,
         { timeout: 60000, stdio: 'pipe' }
       )
 
-      // Whisper transcription when available; fall back to silence-based segmentation
-      const captions = this.segmentByEnergy(filePath, audioPath)
-      try {
-        const { unlinkSync } = require('fs')
-        unlinkSync(audioPath)
-      } catch {}
+      // Try whisper transcription first
+      const whisperCaptions = this.tryWhisper(audioPath)
+      if (whisperCaptions.length > 0) {
+        this.cleanup(audioPath)
+        return whisperCaptions
+      }
 
+      // Fall back to silence-based segmentation
+      const captions = this.segmentByEnergy(filePath, audioPath)
+      this.cleanup(audioPath)
       return captions
     } catch (err: any) {
       console.error('Transcription failed:', err.message)
+      this.cleanup(audioPath)
       return this.generatePlaceholderCaptions(filePath)
     }
+  }
+
+  private tryWhisper(audioPath: string): Caption[] {
+    // Try whisper CLI (Python package: pip install openai-whisper)
+    try {
+      execSync(
+        `whisper "${audioPath}" --model tiny --language en --output_format json --output_dir /tmp 2>/dev/null`,
+        { encoding: 'utf-8', timeout: 120000 }
+      )
+      // whisper outputs a .json file next to the input
+      const jsonPath = audioPath.replace('.wav', '.json')
+      if (fs.existsSync(jsonPath)) {
+        const data = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'))
+        const captions = data.segments.map((seg: any) => ({
+          id: crypto.randomUUID(),
+          startTime: Math.round(seg.start * 100) / 100,
+          endTime: Math.round(seg.end * 100) / 100,
+          text: seg.text.trim(),
+        }))
+        try { fs.unlinkSync(jsonPath) } catch {}
+        return captions
+      }
+    } catch {}
+
+    // Try whisper-cpp if installed
+    try {
+      execSync(
+        `which whisper-cpp 2>/dev/null || which whisper.cpp 2>/dev/null || which main 2>/dev/null`,
+        { encoding: 'utf-8', timeout: 5000 }
+      ).trim()
+      // whisper-cpp exists but we'd need the model path — skip for now
+    } catch {}
+
+    return []
+  }
+
+  private cleanup(audioPath: string) {
+    try { fs.unlinkSync(audioPath) } catch {}
   }
 
   private segmentByEnergy(videoPath: string, audioPath: string): Caption[] {

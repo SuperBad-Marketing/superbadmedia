@@ -157,8 +157,9 @@ class ResolveBridge:
         return {"clips": clips}
 
     def set_clip_color_grade(self, clip_index, grade_params):
-        """Apply grade adjustments to a clip. grade_params can include:
-        lift, gamma, gain (each as [r, g, b, y] arrays), contrast, saturation, etc."""
+        """Apply grade adjustments to a clip via Resolve's property system.
+        grade_params can include CDL-compatible keys like lift, gamma, gain,
+        contrast, saturation, etc."""
         if not self.timeline:
             return {"error": "No timeline active"}
 
@@ -168,14 +169,21 @@ class ResolveBridge:
 
         clip = track_clips[clip_index]
 
-        # Apply grade parameters through the clip's color properties
+        # Resolve color grading works through the Color page.
+        # We adjust primary properties via CDL (Color Decision List)
+        # available through clip properties.
+        applied = {}
         for param, value in grade_params.items():
             try:
-                clip.SetProperty(param, value)
-            except Exception:
-                pass
+                result = clip.SetProperty(param, value)
+                if result:
+                    applied[param] = value
+                else:
+                    applied[param] = "not applied"
+            except Exception as e:
+                applied[param] = f"failed: {str(e)}"
 
-        return {"success": True}
+        return {"success": True, "applied": applied}
 
     def apply_lut(self, clip_index, lut_path):
         if not self.timeline:
@@ -188,22 +196,81 @@ class ResolveBridge:
         clip = track_clips[clip_index]
 
         try:
+            # SetLUT takes a node index and a path string.
+            # Apply to the last node in the clip's grade.
             node_count = clip.GetNumNodes()
-            clip.SetLUT(node_count, {"node_index": node_count, "lut_path": lut_path})
-            return {"success": True}
+            result = clip.SetLUT(node_count, lut_path)
+            return {"success": bool(result), "lut_path": lut_path, "node": node_count}
         except Exception as e:
             return {"error": str(e)}
 
-    def render(self, output_path, format_preset="H.264 Master", width=1920, height=1080):
+    def add_transition(self, clip_index, transition_type="Cross Dissolve", duration=1.0):
+        """Add a transition between clips on the timeline."""
+        if not self.timeline:
+            return {"error": "No timeline active"}
+
+        track_clips = self.timeline.GetItemListInTrack("video", 1)
+        if not track_clips or clip_index >= len(track_clips):
+            return {"error": "Invalid clip index"}
+
+        clip = track_clips[clip_index]
+        try:
+            result = clip.AddTransition("End", transition_type, duration)
+            return {"success": bool(result), "transition": transition_type, "duration": duration}
+        except Exception as e:
+            return {"error": f"Failed to add transition: {str(e)}"}
+
+    def set_clip_speed(self, clip_index, speed_percent):
+        """Change playback speed of a clip (100 = normal speed)."""
+        if not self.timeline:
+            return {"error": "No timeline active"}
+
+        track_clips = self.timeline.GetItemListInTrack("video", 1)
+        if not track_clips or clip_index >= len(track_clips):
+            return {"error": "Invalid clip index"}
+
+        clip = track_clips[clip_index]
+        try:
+            result = clip.SetClipProperty("Speed", speed_percent)
+            return {"success": bool(result), "speed": speed_percent}
+        except Exception as e:
+            return {"error": str(e)}
+
+    def add_fusion_comp(self, clip_index, fusion_script=""):
+        """Add a Fusion composition to a clip."""
+        if not self.timeline:
+            return {"error": "No timeline active"}
+
+        track_clips = self.timeline.GetItemListInTrack("video", 1)
+        if not track_clips or clip_index >= len(track_clips):
+            return {"error": "Invalid clip index"}
+
+        clip = track_clips[clip_index]
+        try:
+            fusion_comp = clip.GetFusionCompByIndex(0)
+            if not fusion_comp:
+                clip.AddFusionComp()
+                fusion_comp = clip.GetFusionCompByIndex(0)
+            return {"success": True, "has_comp": fusion_comp is not None}
+        except Exception as e:
+            return {"error": str(e)}
+
+    def render(self, output_path, width=1920, height=1080, codec="H.264", quality="High"):
         if not self.project:
             return {"error": "No project open"}
 
-        self.project.SetRenderSettings({
-            "TargetDir": output_path,
+        target_dir = os.path.dirname(output_path) or output_path
+        filename = os.path.basename(output_path) if '.' in os.path.basename(output_path) else None
+
+        settings = {
+            "TargetDir": target_dir,
             "FormatWidth": width,
             "FormatHeight": height,
-        })
+        }
+        if filename:
+            settings["CustomName"] = os.path.splitext(filename)[0]
 
+        self.project.SetRenderSettings(settings)
         self.project.AddRenderJob()
         self.project.StartRendering()
 
@@ -236,6 +303,9 @@ def handle_command(bridge, command):
         "get_timeline_clips": lambda: bridge.get_timeline_clips(),
         "set_grade": lambda: bridge.set_clip_color_grade(params.get("clip_index", 0), params.get("grade_params", {})),
         "apply_lut": lambda: bridge.apply_lut(params.get("clip_index", 0), params.get("lut_path", "")),
+        "add_transition": lambda: bridge.add_transition(params.get("clip_index", 0), params.get("transition_type", "Cross Dissolve"), params.get("duration", 1.0)),
+        "set_clip_speed": lambda: bridge.set_clip_speed(params.get("clip_index", 0), params.get("speed_percent", 100)),
+        "add_fusion_comp": lambda: bridge.add_fusion_comp(params.get("clip_index", 0), params.get("fusion_script", "")),
         "render": lambda: bridge.render(**params),
         "render_status": lambda: bridge.get_render_status(),
     }

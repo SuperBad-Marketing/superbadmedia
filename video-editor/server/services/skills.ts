@@ -4,7 +4,7 @@ import crypto from 'crypto'
 import { execSync } from 'child_process'
 import Anthropic from '@anthropic-ai/sdk'
 
-interface SkillFile {
+export interface SkillFile {
   id: string
   name: string
   category: 'resolve-core' | 'editorial-craft' | 'integration' | 'personal' | 'project-learned'

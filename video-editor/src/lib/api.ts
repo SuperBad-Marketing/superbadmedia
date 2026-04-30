@@ -111,3 +111,26 @@ export async function sendToResolve(action: string, params?: Record<string, any>
   })
   return res.json()
 }
+
+export async function startExport(config: {
+  clipPaths: string[]
+  outputPath: string
+  format: string
+  codec: string
+  resolution: string
+  musicTrack?: { path: string; volume: number }
+}): Promise<any> {
+  const res = await fetch(`${API_BASE}/export/render`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  })
+  if (!res.ok) throw new Error('Export failed')
+  return res.json()
+}
+
+export async function getExportStatus(jobId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/export/status/${jobId}`)
+  if (!res.ok) throw new Error('Failed to get export status')
+  return res.json()
+}

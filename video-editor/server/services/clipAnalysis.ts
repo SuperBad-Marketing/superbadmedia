@@ -40,8 +40,14 @@ interface ClipAnalysisResult extends ClipMetadata {
 const THUMBNAIL_DIR = path.join(process.cwd(), '.thumbnails')
 
 export class ClipAnalysisService {
+  private analysedClips: ClipAnalysisResult[] = []
+
   constructor() {
     fs.mkdirSync(THUMBNAIL_DIR, { recursive: true })
+  }
+
+  getAllAnalysed(): ClipAnalysisResult[] {
+    return this.analysedClips
   }
 
   async analyzeClip(filePath: string, projectId: string): Promise<ClipAnalysisResult> {
@@ -52,7 +58,7 @@ export class ClipAnalysisService {
     const thumbnailPath = this.generateThumbnail(filePath, id, metadata.duration)
     const analysis = this.analyzeQuality(filePath, metadata)
 
-    return {
+    const result: ClipAnalysisResult = {
       id,
       filePath,
       fileName,
@@ -60,6 +66,16 @@ export class ClipAnalysisService {
       ...metadata,
       analysis,
     }
+
+    // Cache result for later search
+    const existing = this.analysedClips.findIndex(c => c.filePath === filePath)
+    if (existing !== -1) {
+      this.analysedClips[existing] = result
+    } else {
+      this.analysedClips.push(result)
+    }
+
+    return result
   }
 
   async analyzeDirectory(dirPath: string, projectId: string): Promise<ClipAnalysisResult[]> {

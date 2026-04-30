@@ -201,10 +201,31 @@ export class ResolveBridgeService {
     })
   }
 
-  async render(outputPath: string, width = 1920, height = 1080) {
+  async addTransition(clipIndex: number, transitionType = 'Cross Dissolve', duration = 1.0) {
+    return this.send({
+      action: 'add_transition',
+      params: { clip_index: clipIndex, transition_type: transitionType, duration },
+    })
+  }
+
+  async setClipSpeed(clipIndex: number, speedPercent: number) {
+    return this.send({
+      action: 'set_clip_speed',
+      params: { clip_index: clipIndex, speed_percent: speedPercent },
+    })
+  }
+
+  async addFusionComp(clipIndex: number, fusionScript = '') {
+    return this.send({
+      action: 'add_fusion_comp',
+      params: { clip_index: clipIndex, fusion_script: fusionScript },
+    })
+  }
+
+  async render(outputPath: string, width = 1920, height = 1080, codec = 'H.264', quality = 'High') {
     return this.send({
       action: 'render',
-      params: { output_path: outputPath, width, height },
+      params: { output_path: outputPath, width, height, codec, quality },
     })
   }
 

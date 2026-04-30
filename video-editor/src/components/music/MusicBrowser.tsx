@@ -14,7 +14,7 @@ export default function MusicBrowser() {
   const [tracks, setTracks] = useState<MusicTrack[]>([])
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const fetchTracks = useCallback(async (query: string, moods: Set<string>) => {
     setLoading(true)

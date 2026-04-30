@@ -15,6 +15,7 @@ import { transitionsRouter } from './routes/transitions.js'
 import { titleCardsRouter } from './routes/titleCards.js'
 import { sfxRouter } from './routes/sfx.js'
 import { settingsRouter } from './routes/settings.js'
+import { exportRouter } from './routes/export.js'
 
 const app = express()
 const PORT = 5201
@@ -37,6 +38,7 @@ app.use('/api/transitions', transitionsRouter)
 app.use('/api/title-cards', titleCardsRouter)
 app.use('/api/sfx', sfxRouter)
 app.use('/api/settings', settingsRouter)
+app.use('/api/export', exportRouter)
 
 app.listen(PORT, () => {
   console.warn(`SuperEdits server running on port ${PORT}`)
