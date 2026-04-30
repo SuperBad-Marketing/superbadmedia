@@ -12,6 +12,7 @@ import {
   instagram_media,
   instagram_accounts,
 } from "@/lib/db/schema/instagram";
+import { sendPrivateReplyToComment } from "@/lib/channels/instagram/client";
 import { invokeLlmText } from "@/lib/ai/invoke";
 import { logActivity } from "@/lib/activity-log";
 
@@ -299,4 +300,63 @@ export async function getTriggerFiresAction(
       firedAtMs: f.fired_at_ms,
     })),
   };
+}
+
+// ── Retry failed fires ─────────────────────────────────────────────────
+
+export async function retryFailedFiresAction(
+  triggerId: string,
+): Promise<Result<{ retried: number; succeeded: number }>> {
+  await requireAdmin();
+
+  const trigger = await db.query.instagram_comment_triggers.findFirst({
+    where: eq(instagram_comment_triggers.id, triggerId),
+  });
+  if (!trigger) return { ok: false, error: "Trigger not found" };
+
+  const account = await db.query.instagram_accounts.findFirst({
+    where: eq(instagram_accounts.id, trigger.account_id),
+  });
+  if (!account || account.status !== "active")
+    return { ok: false, error: "Account not active" };
+
+  const failedFires = await db
+    .select()
+    .from(instagram_trigger_fires)
+    .where(
+      and(
+        eq(instagram_trigger_fires.trigger_id, triggerId),
+        eq(instagram_trigger_fires.dm_sent, false),
+      ),
+    );
+
+  if (failedFires.length === 0)
+    return { ok: true, value: { retried: 0, succeeded: 0 } };
+
+  let succeeded = 0;
+
+  for (const fire of failedFires) {
+    const dmRes = await sendPrivateReplyToComment(
+      account.instagram_user_id,
+      account.access_token,
+      fire.ig_comment_id,
+      trigger.dm_message_text,
+    );
+
+    if (dmRes.ok) {
+      succeeded++;
+      await db
+        .update(instagram_trigger_fires)
+        .set({ dm_sent: true, error: null })
+        .where(eq(instagram_trigger_fires.id, fire.id));
+    } else {
+      await db
+        .update(instagram_trigger_fires)
+        .set({ error: dmRes.error })
+        .where(eq(instagram_trigger_fires.id, fire.id));
+    }
+  }
+
+  revalidatePath("/lite/content/instagram");
+  return { ok: true, value: { retried: failedFires.length, succeeded } };
 }

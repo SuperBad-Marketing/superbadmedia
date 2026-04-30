@@ -15,6 +15,7 @@ import {
   Search,
   MessageCircle,
   Send,
+  RotateCcw,
   Image as ImageIcon,
 } from "lucide-react";
 import {
@@ -25,6 +26,7 @@ import {
   deleteTriggerAction,
   draftTriggerDmAction,
   getTriggerFiresAction,
+  retryFailedFiresAction,
   type TriggerItem,
   type PostPickerItem,
   type TriggerFireItem,
@@ -704,6 +706,7 @@ function TriggerCard({
   const [fires, setFires] = useState<TriggerFireItem[]>([]);
   const [firesLoaded, setFiresLoaded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   async function loadFires() {
     if (firesLoaded) return;
@@ -893,8 +896,45 @@ function TriggerCard({
             </p>
           )}
 
-          {/* Delete */}
-          <div className="flex justify-end">
+          {/* Actions */}
+          <div className="flex items-center justify-between">
+            {/* Retry failed */}
+            {fires.some((f) => !f.dmSent) ? (
+              <button
+                onClick={async () => {
+                  setRetrying(true);
+                  const result = await retryFailedFiresAction(trigger.id);
+                  if (result.ok) {
+                    const { retried, succeeded } = result.value;
+                    if (succeeded === retried) {
+                      toast.success(`${succeeded} DM${succeeded !== 1 ? "s" : ""} sent.`);
+                    } else {
+                      toast.error(`${succeeded}/${retried} succeeded. Check errors below.`);
+                    }
+                    setFiresLoaded(false);
+                    const fresh = await getTriggerFiresAction(trigger.id);
+                    if (fresh.ok) setFires(fresh.value);
+                    setFiresLoaded(true);
+                  } else {
+                    toast.error(result.error);
+                  }
+                  setRetrying(false);
+                }}
+                disabled={retrying}
+                className="flex items-center gap-1 font-[family-name:var(--font-body)] text-[11px] text-[color:var(--color-brand-orange)] transition-colors hover:text-[color:var(--color-brand-cream)] disabled:opacity-40"
+              >
+                {retrying ? (
+                  <Loader2 className="size-3 animate-spin" strokeWidth={1.5} />
+                ) : (
+                  <RotateCcw className="size-3" strokeWidth={1.5} />
+                )}
+                {retrying ? "Retrying…" : "Retry failed"}
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {/* Delete */}
             {confirmDelete ? (
               <div className="flex items-center gap-2">
                 <button
