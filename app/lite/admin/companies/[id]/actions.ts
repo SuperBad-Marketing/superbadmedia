@@ -377,10 +377,9 @@ export async function deleteCompanyAction(
   try {
     const { auditSubmissions } = await import("@/lib/db/schema/audit-submissions");
     const { caseSnippets } = await import("@/lib/db/schema/case-snippets");
+    const { outreachSequences } = await import("@/lib/db/schema/outreach-sequences");
+
     await db.update(auditSubmissions).set({ company_id: null }).where(eq(auditSubmissions.company_id, companyId));
-    await db.update(auditSubmissions).set({ contact_id: null }).where(
-      eq(auditSubmissions.company_id, companyId),
-    );
     await db.delete(caseSnippets).where(eq(caseSnippets.company_id, companyId));
 
     const companyContacts = await db
@@ -397,11 +396,13 @@ export async function deleteCompanyAction(
       .where(eq(deals.company_id, companyId));
     for (const d of companyDeals) {
       await db.update(auditSubmissions).set({ deal_id: null }).where(eq(auditSubmissions.deal_id, d.id));
+      await db.update(outreachSequences).set({ deal_id: null }).where(eq(outreachSequences.deal_id, d.id));
     }
 
     await db.delete(companies).where(eq(companies.id, companyId));
-  } catch {
-    return { ok: false, error: "Delete failed — this company may have linked records that couldn't be removed." };
+  } catch (err) {
+    console.error("[deleteCompany] Failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : "Delete failed — this company may have linked records that couldn't be removed." };
   }
 
   await logActivity({
