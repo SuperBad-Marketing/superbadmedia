@@ -32,7 +32,7 @@ export default function LeftPanel() {
 
   return (
     <div className="w-[280px] bg-surface border-r border-border shrink-0 flex flex-col">
-      <div className="flex items-center justify-between px-5 py-5 border-b border-accent/20">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-accent/20">
         {currentProject ? (
           <div className="flex flex-col gap-2 min-w-0">
             <span className="font-display text-base font-semibold text-text truncate">{currentProject.clientName}</span>

@@ -457,7 +457,7 @@ export default function ExportView() {
       </div>
 
       {/* Sticky export button */}
-      <div className="shrink-0 p-6 border-t border-border">
+      <div className="shrink-0 px-10 py-6 border-t border-border">
         <button
           type="button"
           onClick={handleExport}

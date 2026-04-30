@@ -75,7 +75,7 @@ export default function MediaBrowser() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-5 py-4 space-y-3 border-b border-border">
+      <div className="px-6 py-4 space-y-3 border-b border-border">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
           <input
@@ -123,7 +123,7 @@ export default function MediaBrowser() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-5">
         <div className="grid grid-cols-2 gap-3.5">
           {filteredClips.map((clip) => (
             <ClipCard
@@ -136,7 +136,7 @@ export default function MediaBrowser() {
         </div>
       </div>
 
-      <div className="px-5 py-3.5 border-t border-border flex items-center justify-between">
+      <div className="px-6 py-3.5 border-t border-border flex items-center justify-between">
         <span className="text-text-dim text-xs font-mono tabular-nums">
           {filteredClips.length} clip{filteredClips.length !== 1 ? 's' : ''}
           {filter !== 'all' && ` / ${clips.length}`}

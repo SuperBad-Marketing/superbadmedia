@@ -123,7 +123,7 @@ export default function MusicBrowser() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-5 py-4 space-y-3 border-b border-border">
+      <div className="px-6 py-4 space-y-3 border-b border-border">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
           <input
@@ -158,7 +158,7 @@ export default function MusicBrowser() {
             <span className="text-sm text-text-dim">No tracks found</span>
           </div>
         ) : (
-          <div className="flex flex-col gap-1.5 px-3">
+          <div className="flex flex-col gap-1.5 px-4">
             {filteredTracks.map((track) => (
               <TrackCard
                 key={track.id}

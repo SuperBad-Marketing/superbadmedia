@@ -49,7 +49,7 @@ export default function CentrePanel() {
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
-      <div className="flex items-center gap-1 px-5 h-12 border-b border-border shrink-0 select-none">
+      <div className="flex items-center gap-2 px-8 h-12 border-b border-border shrink-0 select-none">
         {tabs.map((tab) => (
           <button
             key={tab.id}

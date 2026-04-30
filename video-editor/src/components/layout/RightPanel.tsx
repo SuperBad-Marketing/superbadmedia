@@ -33,7 +33,7 @@ export default function RightPanel() {
 
   return (
     <div className="w-[380px] bg-surface border-l border-border shrink-0 flex flex-col">
-      <div className="flex items-center gap-1 px-5 h-12 border-b border-border shrink-0 select-none">
+      <div className="flex items-center gap-2 px-7 h-12 border-b border-border shrink-0 select-none">
         {tabs.map((tab) => (
           <button
             key={tab.id}

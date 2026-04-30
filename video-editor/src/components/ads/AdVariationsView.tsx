@@ -611,7 +611,7 @@ export default function AdVariationsView() {
       </div>
 
       {variations.length > 0 ? (
-        <div className="shrink-0 px-6 py-4 border-t border-border flex items-center justify-between">
+        <div className="shrink-0 px-10 py-4 border-t border-border flex items-center justify-between">
           <p className="text-sm text-text-muted">
             {approvedCount} approved, {rejectedCount} rejected, {pendingCount} pending
           </p>
@@ -641,7 +641,7 @@ export default function AdVariationsView() {
           </div>
         </div>
       ) : (
-        <div className="shrink-0 p-6 border-t border-border">
+        <div className="shrink-0 px-10 py-6 border-t border-border">
           <button
             type="button"
             onClick={handleGenerate}

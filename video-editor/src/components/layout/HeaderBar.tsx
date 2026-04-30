@@ -10,8 +10,8 @@ export default function HeaderBar() {
 
   return (
     <>
-      <div className="flex items-center justify-between h-16 px-8 bg-surface border-b border-accent/20 shrink-0 select-none">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between h-16 px-10 bg-surface border-b border-accent/20 shrink-0 select-none">
+        <div className="flex items-center gap-4">
           <span className="font-display font-extrabold text-xl tracking-tight text-text">SuperEdits</span>
           <span className="text-[11px] font-semibold text-pink tracking-widest uppercase">by SuperBad</span>
         </div>
