@@ -12,10 +12,11 @@ const WORKFLOW_STEPS: { id: WorkflowPhase; label: string }[] = [
   { id: 'brief', label: 'Brief' },
   { id: 'assemble', label: 'Assemble' },
   { id: 'refine', label: 'Refine' },
+  { id: 'polish', label: 'Polish' },
   { id: 'deliver', label: 'Deliver' },
 ]
 
-const PHASE_ORDER: WorkflowPhase[] = ['home', 'import', 'brief', 'assemble', 'refine', 'deliver']
+const PHASE_ORDER: WorkflowPhase[] = ['home', 'import', 'brief', 'assemble', 'refine', 'polish', 'deliver']
 
 function getPhaseIndex(phase: WorkflowPhase): number {
   return PHASE_ORDER.indexOf(phase)

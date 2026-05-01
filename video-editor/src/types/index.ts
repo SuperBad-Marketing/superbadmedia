@@ -161,7 +161,7 @@ export interface ExportJob {
   outputPath?: string
 }
 
-export type WorkflowPhase = 'home' | 'import' | 'brief' | 'assemble' | 'refine' | 'deliver' | 'queue'
+export type WorkflowPhase = 'home' | 'import' | 'brief' | 'assemble' | 'refine' | 'polish' | 'deliver' | 'queue'
 export type DockPanel = 'media' | 'ai' | 'music' | 'sound' | 'transitions' | 'text' | 'knowledge'
 
 export interface SfxPreset {

@@ -12,6 +12,7 @@ const ImportScreen = lazy(() => import('../import/ImportScreen'))
 const BriefBuilder = lazy(() => import('../brief/BriefBuilder'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
 const RefineView = lazy(() => import('../refine/RefineView'))
+const PolishView = lazy(() => import('../polish/PolishView'))
 const DeliverView = lazy(() => import('../deliver/DeliverView'))
 const QueueView = lazy(() => import('../queue/QueueView'))
 
@@ -35,6 +36,12 @@ function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
           <RefineView />
         </Suspense>
       )
+    case 'polish':
+      return (
+        <Suspense fallback={<ViewFallback />}>
+          <PolishView />
+        </Suspense>
+      )
     case 'deliver':
       return (
         <Suspense fallback={<ViewFallback />}>
@@ -50,7 +57,7 @@ function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
   }
 }
 
-const showChromePhases: WorkflowPhase[] = ['brief', 'assemble', 'refine', 'deliver']
+const showChromePhases: WorkflowPhase[] = ['brief', 'assemble', 'refine', 'polish', 'deliver']
 
 export default function AppShell() {
   const workflowPhase = useAppStore((s) => s.workflowPhase)

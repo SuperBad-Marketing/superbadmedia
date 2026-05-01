@@ -1,38 +1,38 @@
 import { useState, useCallback, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Play, Palette, Type, MessageSquare, Send, Loader2, CheckCircle2 } from 'lucide-react'
+import { Clock, Volume2, Type, CheckCircle2, Loader2, ArrowRight, Send } from 'lucide-react'
 import { ViewLoader } from '../shared/LoadingPulse'
 import { useAppStore } from '../../stores/appStore'
 import { sendToResolve, saveProject } from '../../lib/api'
 
-const PreviewView = lazy(() => import('../preview/PreviewView'))
-const GradingView = lazy(() => import('../grading/GradingView'))
-const CaptionsView = lazy(() => import('../captions/CaptionsView'))
-const RevisionChat = lazy(() => import('../revision/RevisionChat'))
+const TimingView = lazy(() => import('./TimingView'))
+const SoundDesignView = lazy(() => import('./SoundDesignView'))
+const TextTitlesView = lazy(() => import('./TextTitlesView'))
+const FinalReviewView = lazy(() => import('./FinalReviewView'))
 
-type RefineMode = 'preview' | 'grade' | 'captions' | 'revise'
+type PolishMode = 'timing' | 'sound' | 'text' | 'review'
 
-const MODES: { id: RefineMode; label: string; icon: typeof Play }[] = [
-  { id: 'preview', label: 'Preview', icon: Play },
-  { id: 'grade', label: 'Grade', icon: Palette },
-  { id: 'captions', label: 'Captions', icon: Type },
-  { id: 'revise', label: 'Revise', icon: MessageSquare },
+const MODES: { id: PolishMode; label: string; icon: typeof Clock }[] = [
+  { id: 'timing', label: 'Timing', icon: Clock },
+  { id: 'sound', label: 'Sound Design', icon: Volume2 },
+  { id: 'text', label: 'Text & Titles', icon: Type },
+  { id: 'review', label: 'Final Review', icon: CheckCircle2 },
 ]
 
 function ModeFallback() {
-  return <ViewLoader message="Setting up the tools." />
+  return <ViewLoader message="Loading polish tools." />
 }
 
-export default function RefineView() {
-  const [mode, setMode] = useState<RefineMode>('preview')
-  const [sending, setSending] = useState(false)
-  const [approving, setApproving] = useState(false)
+export default function PolishView() {
+  const [mode, setMode] = useState<PolishMode>('timing')
+  const [finalizing, setFinalizing] = useState(false)
+  const [pushing, setPushing] = useState(false)
 
   const resolveConnected = useAppStore((s) => s.resolveConnected)
   const storyboardClips = useAppStore((s) => s.storyboardClips)
   const editTransitions = useAppStore((s) => s.editTransitions)
-  const sfxPlacements = useAppStore((s) => s.sfxPlacements)
   const currentProject = useAppStore((s) => s.currentProject)
+  const setCurrentProject = useAppStore((s) => s.setCurrentProject)
   const addChatMessage = useAppStore((s) => s.addChatMessage)
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
   const saveCurrentProject = useAppStore((s) => s.saveCurrentProject)
@@ -40,10 +40,7 @@ export default function RefineView() {
   const pushTimelineToResolve = useCallback(async () => {
     const uniquePaths = [...new Set(storyboardClips.map((c) => c.clip.filePath))]
     const importResult = await sendToResolve('import_media', { file_paths: uniquePaths })
-
-    if (importResult.error) {
-      throw new Error(importResult.error)
-    }
+    if (importResult.error) throw new Error(importResult.error)
 
     const projectName = currentProject?.name || 'SuperEdits Assembly'
     await sendToResolve('create_timeline', { name: projectName })
@@ -67,14 +64,14 @@ export default function RefineView() {
   }, [storyboardClips, editTransitions, currentProject])
 
   const handlePushToResolve = useCallback(async () => {
-    if (sending) return
-    setSending(true)
+    if (pushing) return
+    setPushing(true)
     try {
       const result = await pushTimelineToResolve()
       addChatMessage({
         id: crypto.randomUUID(),
         role: 'system',
-        content: `Pushed ${result.clipCount} clips to Resolve${result.transitionCount > 0 ? ` with ${result.transitionCount} transitions` : ''}. Timeline updated.`,
+        content: `Synced ${result.clipCount} clips to Resolve${result.transitionCount > 0 ? ` with ${result.transitionCount} transitions` : ''}.`,
         timestamp: new Date().toISOString(),
       })
     } catch (err: any) {
@@ -83,30 +80,28 @@ export default function RefineView() {
         role: 'system',
         content: err?.message?.includes('Bridge')
           ? 'Could not reach Resolve. Make sure it is running and connected.'
-          : `Failed to send to Resolve: ${err?.message || 'Unknown error'}`,
+          : `Failed to sync to Resolve: ${err?.message || 'Unknown error'}`,
         timestamp: new Date().toISOString(),
       })
     } finally {
-      setSending(false)
+      setPushing(false)
     }
-  }, [sending, pushTimelineToResolve, addChatMessage])
+  }, [pushing, pushTimelineToResolve, addChatMessage])
 
-  const handleApproveRoughCut = useCallback(async () => {
-    if (approving) return
-    setApproving(true)
+  const handleFinalize = useCallback(async () => {
+    if (finalizing) return
+    setFinalizing(true)
     try {
-      // Push timeline to Resolve if connected
       if (resolveConnected) {
         const result = await pushTimelineToResolve()
         addChatMessage({
           id: crypto.randomUUID(),
           role: 'system',
-          content: `Rough cut approved. Pushed ${result.clipCount} clips${result.transitionCount > 0 ? ` with ${result.transitionCount} transitions` : ''} to Resolve timeline "${currentProject?.name || 'SuperEdits Assembly'}".`,
+          content: `Finalized. Pushed ${result.clipCount} clips${result.transitionCount > 0 ? ` with ${result.transitionCount} transitions` : ''} to Resolve.`,
           timestamp: new Date().toISOString(),
         })
       }
 
-      // Save project state
       if (currentProject?.id) {
         const state = saveCurrentProject()
         await saveProject(
@@ -115,23 +110,34 @@ export default function RefineView() {
           currentProject.clientName,
           state,
         ).catch(() => {})
+
+        setCurrentProject({
+          ...currentProject,
+          status: 'exporting',
+          updatedAt: new Date().toISOString(),
+        })
       }
 
-      // Move to polish phase
-      setWorkflowPhase('polish')
+      setWorkflowPhase('deliver')
     } catch (err: any) {
       addChatMessage({
         id: crypto.randomUUID(),
         role: 'system',
-        content: `Resolve push failed: ${err?.message || 'Unknown error'}. You can still continue polishing.`,
+        content: `Resolve sync failed: ${err?.message || 'Unknown error'}. Proceeding to export anyway.`,
         timestamp: new Date().toISOString(),
       })
-      // Still move to polish even if Resolve push failed
-      setWorkflowPhase('polish')
+      if (currentProject) {
+        setCurrentProject({
+          ...currentProject,
+          status: 'exporting',
+          updatedAt: new Date().toISOString(),
+        })
+      }
+      setWorkflowPhase('deliver')
     } finally {
-      setApproving(false)
+      setFinalizing(false)
     }
-  }, [approving, resolveConnected, pushTimelineToResolve, currentProject, saveCurrentProject, addChatMessage, setWorkflowPhase])
+  }, [finalizing, resolveConnected, pushTimelineToResolve, currentProject, saveCurrentProject, addChatMessage, setWorkflowPhase, setCurrentProject])
 
   const hasClips = storyboardClips.length > 0
 
@@ -177,16 +183,16 @@ export default function RefineView() {
           transition={{ duration: 0.2 }}
         >
           <Suspense fallback={<ModeFallback />}>
-            {mode === 'preview' && <PreviewView />}
-            {mode === 'grade' && <GradingView />}
-            {mode === 'captions' && <CaptionsView />}
-            {mode === 'revise' && <RevisionChat />}
+            {mode === 'timing' && <TimingView />}
+            {mode === 'sound' && <SoundDesignView />}
+            {mode === 'text' && <TextTitlesView />}
+            {mode === 'review' && <FinalReviewView />}
           </Suspense>
         </motion.div>
       </AnimatePresence>
 
       {/* Footer actions */}
-      {hasClips && mode !== 'revise' && (
+      {hasClips && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -195,36 +201,36 @@ export default function RefineView() {
         >
           <button
             onClick={handlePushToResolve}
-            disabled={sending || !resolveConnected}
+            disabled={pushing || !resolveConnected}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
-            {sending ? (
+            {pushing ? (
               <>
                 <Loader2 size={12} className="animate-spin" />
-                Pushing...
+                Syncing...
               </>
             ) : (
               <>
                 <Send size={12} />
-                {resolveConnected ? 'Push to Resolve' : 'Connect Resolve'}
+                {resolveConnected ? 'Sync to Resolve' : 'Connect Resolve'}
               </>
             )}
           </button>
 
           <button
-            onClick={handleApproveRoughCut}
-            disabled={approving}
-            className="flex items-center gap-2 bg-green hover:bg-green/90 text-white rounded-xl px-5 py-2.5 text-xs font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            onClick={handleFinalize}
+            disabled={finalizing}
+            className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white rounded-xl px-5 py-2.5 text-xs font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            {approving ? (
+            {finalizing ? (
               <>
                 <Loader2 size={13} className="animate-spin" />
-                Approving...
+                Finalizing...
               </>
             ) : (
               <>
-                <CheckCircle2 size={13} />
-                Approve rough cut
+                <ArrowRight size={13} />
+                Finalize & deliver
               </>
             )}
           </button>
