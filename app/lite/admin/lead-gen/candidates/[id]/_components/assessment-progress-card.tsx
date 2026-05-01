@@ -1,8 +1,7 @@
 import { eq, count } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { brand_dna_answers } from "@/lib/db/schema/brand-dna-answers";
-import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
-import { getQuestionsForTrack } from "@/lib/brand-dna/question-bank";
+import { getQuestionsForSection } from "@/lib/brand-dna/question-bank";
 import type { SectionNumber } from "@/lib/brand-dna/question-bank";
 import type { RundownSessionRow } from "@/lib/db/schema/rundown-sessions";
 
@@ -51,23 +50,6 @@ interface Props {
 export async function AssessmentProgressCard({ session }: Props) {
   if (!session.profile_id) return null;
 
-  const profileRows = await db
-    .select({
-      current_section: brand_dna_profiles.current_section,
-      track: brand_dna_profiles.track,
-      status: brand_dna_profiles.status,
-    })
-    .from(brand_dna_profiles)
-    .where(eq(brand_dna_profiles.id, session.profile_id))
-    .limit(1);
-
-  const profile = profileRows[0];
-  if (!profile) return null;
-
-  const track = (profile.track === "founder" || profile.track === "business")
-    ? profile.track
-    : "founder";
-
   const answerCounts = await db
     .select({
       section: brand_dna_answers.section,
@@ -88,7 +70,7 @@ export async function AssessmentProgressCard({ session }: Props) {
   };
 
   const sections: SectionProgress[] = ([1, 2, 3, 4, 5] as const).map((n) => {
-    const totalQuestions = getQuestionsForTrack(n as SectionNumber, track).length;
+    const totalQuestions = getQuestionsForSection(n as SectionNumber).length;
     const answered = countMap.get(n) ?? 0;
     const completedAt = sectionTimestamps[n] ?? null;
 
