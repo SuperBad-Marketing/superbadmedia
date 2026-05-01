@@ -47,6 +47,8 @@ function ensureColumns(sqlite: Database.Database): void {
   const required: Array<{ table: string; column: string; type: string }> = [
     { table: "brand_dna_profiles", column: "signal_scores_intro", type: "text" },
     { table: "brand_dna_profiles", column: "signal_descriptions_json", type: "text" },
+    { table: "rundown_sessions", column: "gap_reveal_json", type: "text" },
+    { table: "brand_dna_profiles", column: "long_tail_summary", type: "text" },
   ];
 
   for (const { table, column, type } of required) {

@@ -13,6 +13,7 @@ import { generateProsePortrait } from "@/lib/brand-dna/generate-prose-portrait";
 import { generateSignalScoresIntro } from "@/lib/brand-dna/generate-signal-scores-intro";
 import { generateSignalDescriptions } from "@/lib/brand-dna/generate-signal-descriptions";
 import { buildSignalScoresData } from "@/lib/brand-dna/build-signal-scores-data";
+import { generateLongTailSummary } from "@/lib/brand-dna/generate-long-tail-summary";
 import { generateGapReveal } from "@/lib/brand-dna/generate-gap-reveal";
 import { buildPresenceScores } from "@/lib/brand-dna/build-presence-scores";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
@@ -103,6 +104,12 @@ async function RevealContent({
     signalDescriptions,
   );
 
+  const longTailSummary = await generateLongTailSummary(
+    profileId,
+    longTail,
+    scores.map((s) => s.tag),
+  ).catch(() => "");
+
   const enrichmentData = candidateRows[0]?.viability_profile_json as ViabilityProfile | null;
 
   const gapReveal = await generateGapReveal(
@@ -126,7 +133,7 @@ async function RevealContent({
         sectionTitles={sectionTitles}
         signalScoresIntro={signalScoresIntro}
         signalScores={scores}
-        signalScoresLongTail={longTail}
+        signalScoresLongTail={longTailSummary}
         alreadyComplete={profile.status === "complete"}
         markComplete={boundComplete}
       />

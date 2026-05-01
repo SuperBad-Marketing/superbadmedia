@@ -128,6 +128,8 @@ export const brand_dna_profiles = sqliteTable(
     signal_scores_intro: text("signal_scores_intro"),
     /** JSON: Record<tag, contextualSentence> — Opus-generated per-signal descriptions for top 12. */
     signal_descriptions_json: text("signal_descriptions_json"),
+    /** 1-sentence Opus summary tying together the long-tail (below-threshold) signals. */
+    long_tail_summary: text("long_tail_summary"),
     /** Cached Brand Pack LLM output. JSON: BrandPackData. */
     brand_pack_json: text("brand_pack_json"),
   },

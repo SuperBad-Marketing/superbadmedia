@@ -12,6 +12,7 @@ import { generateProsePortrait } from "@/lib/brand-dna/generate-prose-portrait";
 import { generateSignalScoresIntro } from "@/lib/brand-dna/generate-signal-scores-intro";
 import { generateSignalDescriptions } from "@/lib/brand-dna/generate-signal-descriptions";
 import { buildSignalScoresData } from "@/lib/brand-dna/build-signal-scores-data";
+import { generateLongTailSummary } from "@/lib/brand-dna/generate-long-tail-summary";
 
 import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
 
@@ -114,6 +115,12 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
     signalDescriptions,
   );
 
+  const longTailSummary = await generateLongTailSummary(
+    profileId,
+    longTail,
+    scores.map((s) => s.tag),
+  ).catch(() => "");
+
   async function noOp(_profileId: string) {
     "use server";
   }
@@ -127,7 +134,7 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
       sectionTitles={sectionTitles}
       signalScoresIntro={signalScoresIntro}
       signalScores={scores}
-      signalScoresLongTail={longTail}
+      signalScoresLongTail={longTailSummary}
       alreadyComplete={true}
       markComplete={noOp}
     />

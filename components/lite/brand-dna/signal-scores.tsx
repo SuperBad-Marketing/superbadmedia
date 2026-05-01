@@ -26,7 +26,7 @@ export interface SignalScoreEntry {
 export interface SignalScoresProps {
   intro: string;
   scores: SignalScoreEntry[];
-  longTail: string[];
+  longTailSummary: string;
 }
 
 // ── Motion constants ─────────────────────────────────────────────────
@@ -39,7 +39,7 @@ const BARS_DELAY = 0.2;
 
 // ── Main component ───────────────────────────────────────────────────
 
-export function SignalScores({ intro, scores, longTail }: SignalScoresProps) {
+export function SignalScores({ intro, scores, longTailSummary }: SignalScoresProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const inView = useInView(containerRef, { once: true, amount: 0.15 });
   const reduced = useReducedMotion();
@@ -155,7 +155,7 @@ export function SignalScores({ intro, scores, longTail }: SignalScoresProps) {
         </div>
 
         {/* Long tail summary */}
-        {longTail.length > 0 && (
+        {longTailSummary && (
           <motion.p
             initial={reduced ? false : { opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
@@ -164,15 +164,16 @@ export function SignalScores({ intro, scores, longTail }: SignalScoresProps) {
               delay: BARS_DELAY + totalBarsDuration + 0.15,
             }}
             style={{
-              fontFamily: "var(--font-body)",
+              fontFamily: "var(--font-narrative)",
+              fontStyle: "italic",
               fontSize: 14,
               lineHeight: 1.7,
               color: "var(--brand-cream)",
-              opacity: 0.35,
+              opacity: 0.4,
               marginTop: 32,
             }}
           >
-            Also present: {longTail.join(", ")}.
+            {longTailSummary}
           </motion.p>
         )}
       </div>

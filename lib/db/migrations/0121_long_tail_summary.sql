@@ -1,0 +1,1 @@
+ALTER TABLE `brand_dna_profiles` ADD `long_tail_summary` text;

@@ -36,7 +36,7 @@ interface RevealClientProps {
   sectionTitles: string[];
   signalScoresIntro: string;
   signalScores: SignalScoreEntry[];
-  signalScoresLongTail: string[];
+  signalScoresLongTail: string;
   alreadyComplete: boolean;
   markComplete?: (profileId: string) => Promise<void>;
 }
@@ -184,7 +184,7 @@ function RevealInner({
         <SignalScores
           intro={signalScoresIntro}
           scores={signalScores}
-          longTail={signalScoresLongTail}
+          longTailSummary={signalScoresLongTail}
         />
       )}
 
