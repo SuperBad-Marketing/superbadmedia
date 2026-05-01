@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import { toast } from "sonner";
 import { houseSpring } from "@/lib/design-tokens";
 import type {
   ProjectStatus,
@@ -96,8 +97,12 @@ export function ProjectDetailClient({ project, tasks }: Props) {
 
   async function handleGenerate() {
     setGenerating(true);
-    await generateBreakdownAction(project.id);
+    const result = await generateBreakdownAction(project.id);
     setGenerating(false);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
     router.refresh();
   }
 
