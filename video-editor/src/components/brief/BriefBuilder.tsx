@@ -26,6 +26,7 @@ type Phase = 'braindump' | 'fields' | 'questions' | 'building' | 'done'
 export default function BriefBuilder() {
   const setStoryboardClips = useAppStore((s) => s.setStoryboardClips)
   const setLastAssemblyId = useAppStore((s) => s.setLastAssemblyId)
+  const setLastEditIntent = useAppStore((s) => s.setLastEditIntent)
   const setSelectedTrack = useAppStore((s) => s.setSelectedTrack)
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
   const clips = useAppStore((s) => s.clips)
@@ -125,6 +126,7 @@ export default function BriefBuilder() {
         const projectId = useAppStore.getState().currentProject?.id
         const result = await buildEditIntent(newAnswers, projectId)
         setEditIntent(result.intent)
+        setLastEditIntent(result.intent)
       } catch {}
       setPhase('building')
     }

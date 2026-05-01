@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { motion } from 'motion/react'
-import { Play, Pause, SkipBack, SkipForward, Camera, Volume2, VolumeX, Film } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Camera, Volume2, VolumeX, Film, ArrowRightLeft } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { thumbUrl } from '../../lib/thumbUrl'
 
@@ -14,6 +14,8 @@ export default function PreviewView() {
   const clips = useAppStore((s) => s.clips)
   const storyboardClips = useAppStore((s) => s.storyboardClips)
   const selectedTrack = useAppStore((s) => s.selectedTrack)
+  const editTransitions = useAppStore((s) => s.editTransitions)
+  const sfxPlacements = useAppStore((s) => s.sfxPlacements)
 
   const [currentClipIndex, setCurrentClipIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -55,6 +57,12 @@ export default function PreviewView() {
   const currentEntry = timeline[currentClipIndex]
   const previewClips = hasStoryboard ? storyboardClips.map((sc) => sc.clip) : clips
   const currentClip = hasStoryboard ? currentEntry?.storyboardClip.clip : previewClips[currentClipIndex]
+
+  const editStats = useMemo(() => {
+    const jCuts = storyboardClips.filter(sc => sc.audioOffset < 0).length
+    const lCuts = storyboardClips.filter(sc => sc.audioOffset > 0).length
+    return { jCuts, lCuts, transitions: editTransitions.length, sfx: sfxPlacements.length }
+  }, [storyboardClips, editTransitions.length, sfxPlacements.length])
 
   const activeVideo = activeBuffer === 'a' ? videoRefA.current : videoRefB.current
   const standbyVideo = activeBuffer === 'a' ? videoRefB.current : videoRefA.current
@@ -398,10 +406,46 @@ export default function PreviewView() {
                       {entry.clipDuration.toFixed(1)}s
                     </span>
                   )}
+                  {entry.storyboardClip.audioOffset < 0 && (
+                    <span className="absolute top-0 left-0.5 text-[7px] text-cyan-400 font-mono" title={`J-cut: audio leads ${Math.abs(entry.storyboardClip.audioOffset).toFixed(1)}s`}>J</span>
+                  )}
+                  {entry.storyboardClip.audioOffset > 0 && (
+                    <span className="absolute top-0 right-0.5 text-[7px] text-amber-400 font-mono" title={`L-cut: audio trails ${entry.storyboardClip.audioOffset.toFixed(1)}s`}>L</span>
+                  )}
+                  {editTransitions.some(t => t.afterClipPosition === i) && (
+                    <span className="absolute top-0 right-0 bottom-0 w-0.5 bg-purple-400/70" title="Transition" />
+                  )}
                 </button>
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* Edit stats */}
+      {hasStoryboard && (editStats.jCuts > 0 || editStats.lCuts > 0 || editStats.transitions > 0 || editStats.sfx > 0) && (
+        <div className="px-5 pt-1 flex items-center gap-3">
+          {editStats.jCuts > 0 && (
+            <span className="text-[9px] text-cyan-400 font-mono">
+              {editStats.jCuts} J-cut{editStats.jCuts !== 1 ? 's' : ''}
+            </span>
+          )}
+          {editStats.lCuts > 0 && (
+            <span className="text-[9px] text-amber-400 font-mono">
+              {editStats.lCuts} L-cut{editStats.lCuts !== 1 ? 's' : ''}
+            </span>
+          )}
+          {editStats.transitions > 0 && (
+            <span className="text-[9px] text-purple-400 font-mono flex items-center gap-0.5">
+              <ArrowRightLeft size={8} />
+              {editStats.transitions}
+            </span>
+          )}
+          {editStats.sfx > 0 && (
+            <span className="text-[9px] text-text-dim font-mono">
+              {editStats.sfx} SFX
+            </span>
+          )}
         </div>
       )}
 

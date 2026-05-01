@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { TitleCardService } from '../services/titleCards.js'
+import { getTitlePipelineService } from '../services/titlePipeline.js'
+import { getEditIntentService } from '../services/editIntent.js'
 
 const router = Router()
 const titleCardService = new TitleCardService()
@@ -29,6 +31,26 @@ router.post('/generate', (req, res) => {
     insertAt: insertAt || 0,
   })
   res.json({ fusionScript: script })
+})
+
+router.post('/apply', async (req, res) => {
+  const { intentId, intent: rawIntent, projectName, clientName, brief } = req.body
+
+  const intentService = getEditIntentService()
+  const intent = rawIntent || (intentId ? intentService.loadIntent(intentId) : null)
+
+  if (!intent) {
+    res.status(400).json({ error: 'intentId or intent object required' })
+    return
+  }
+
+  try {
+    const pipeline = getTitlePipelineService()
+    const result = await pipeline.applyTitles(intent, brief, projectName, clientName)
+    res.json(result)
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 export { router as titleCardsRouter }

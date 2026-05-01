@@ -770,3 +770,51 @@ export async function buildEditIntent(
   if (!res.ok) throw new Error('Failed to build intent')
   return res.json()
 }
+
+// Audio mixing
+export async function applyAudioMix(intentId?: string, intent?: EditIntent): Promise<{
+  clipsProcessed: number
+  musicLevel: number | null
+  decisions: { clipIndex: number; fileName: string; volumeDb: number; muted: boolean; reason: string }[]
+}> {
+  const res = await fetch(`${API_BASE}/audio/mix`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ intentId, intent }),
+  })
+  if (!res.ok) throw new Error('Failed to apply audio mix')
+  return res.json()
+}
+
+// Title pipeline
+export async function applyTitles(
+  intentId?: string,
+  intent?: EditIntent,
+  projectName?: string,
+  clientName?: string,
+): Promise<{
+  placed: number
+  placements: { clipIndex: number; presetId: string; text: string; reason: string }[]
+}> {
+  const res = await fetch(`${API_BASE}/title-cards/apply`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ intentId, intent, projectName, clientName }),
+  })
+  if (!res.ok) throw new Error('Failed to apply titles')
+  return res.json()
+}
+
+// Grading
+export async function applyGrading(intentId?: string, intent?: EditIntent): Promise<{
+  graded: number
+  decisions: { clipIndex: number; fileName: string; nodes: any[] }[]
+}> {
+  const res = await fetch(`${API_BASE}/grading/apply`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ intentId, intent }),
+  })
+  if (!res.ok) throw new Error('Failed to apply grading')
+  return res.json()
+}

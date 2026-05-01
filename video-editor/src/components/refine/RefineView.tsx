@@ -1,9 +1,9 @@
 import { useState, useCallback, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Play, Palette, Type, MessageSquare, Send, Loader2, CheckCircle2 } from 'lucide-react'
+import { Play, Palette, Type, MessageSquare, Send, Loader2, CheckCircle2, Volume2, Wand2 } from 'lucide-react'
 import { ViewLoader } from '../shared/LoadingPulse'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve, saveProject } from '../../lib/api'
+import { sendToResolve, saveProject, applyGrading, applyAudioMix, applyTitles } from '../../lib/api'
 
 const PreviewView = lazy(() => import('../preview/PreviewView'))
 const GradingView = lazy(() => import('../grading/GradingView'))
@@ -33,9 +33,11 @@ export default function RefineView() {
   const editTransitions = useAppStore((s) => s.editTransitions)
   const sfxPlacements = useAppStore((s) => s.sfxPlacements)
   const currentProject = useAppStore((s) => s.currentProject)
+  const lastEditIntent = useAppStore((s) => s.lastEditIntent)
   const addChatMessage = useAppStore((s) => s.addChatMessage)
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
   const saveCurrentProject = useAppStore((s) => s.saveCurrentProject)
+  const [applyingPipeline, setApplyingPipeline] = useState<string | null>(null)
 
   const pushTimelineToResolve = useCallback(async () => {
     const uniquePaths = [...new Set(storyboardClips.map((c) => c.clip.filePath))]
@@ -52,6 +54,7 @@ export default function RefineView() {
       filePath: c.clip.filePath,
       startTime: c.startTime,
       endTime: c.endTime,
+      audioOffset: c.audioOffset || 0,
     }))
     await sendToResolve('add_clips_with_timing', { clips: clipData })
 
@@ -133,6 +136,44 @@ export default function RefineView() {
     }
   }, [approving, resolveConnected, pushTimelineToResolve, currentProject, saveCurrentProject, addChatMessage, setWorkflowPhase])
 
+  const handleApplyPipeline = useCallback(async (pipeline: 'grade' | 'audio' | 'titles') => {
+    if (!lastEditIntent || !resolveConnected || applyingPipeline) return
+    setApplyingPipeline(pipeline)
+
+    try {
+      let message = ''
+      if (pipeline === 'grade') {
+        const result = await applyGrading(undefined, lastEditIntent)
+        message = `Graded ${result.graded} clips (${lastEditIntent.grading.look || 'natural'} look).`
+      } else if (pipeline === 'audio') {
+        const result = await applyAudioMix(undefined, lastEditIntent)
+        message = `Mixed ${result.clipsProcessed} clips${result.musicLevel != null ? `, music at ${result.musicLevel}dB` : ''}.`
+      } else if (pipeline === 'titles') {
+        const result = await applyTitles(
+          undefined, lastEditIntent,
+          currentProject?.name, currentProject?.clientName,
+        )
+        message = `Placed ${result.placed} title${result.placed !== 1 ? 's' : ''}.`
+      }
+
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: message,
+        timestamp: new Date().toISOString(),
+      })
+    } catch (err: any) {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: `Failed to apply ${pipeline}: ${err?.message || 'Unknown error'}`,
+        timestamp: new Date().toISOString(),
+      })
+    } finally {
+      setApplyingPipeline(null)
+    }
+  }, [lastEditIntent, resolveConnected, applyingPipeline, currentProject, addChatMessage])
+
   const hasClips = storyboardClips.length > 0
 
   return (
@@ -210,6 +251,35 @@ export default function RefineView() {
               </>
             )}
           </button>
+
+          {lastEditIntent && resolveConnected && (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleApplyPipeline('grade')}
+                disabled={!!applyingPipeline}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-[11px] font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {applyingPipeline === 'grade' ? <Loader2 size={11} className="animate-spin" /> : <Palette size={11} />}
+                Grade
+              </button>
+              <button
+                onClick={() => handleApplyPipeline('audio')}
+                disabled={!!applyingPipeline}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-[11px] font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {applyingPipeline === 'audio' ? <Loader2 size={11} className="animate-spin" /> : <Volume2 size={11} />}
+                Mix
+              </button>
+              <button
+                onClick={() => handleApplyPipeline('titles')}
+                disabled={!!applyingPipeline}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-[11px] font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {applyingPipeline === 'titles' ? <Loader2 size={11} className="animate-spin" /> : <Type size={11} />}
+                Titles
+              </button>
+            </div>
+          )}
 
           <button
             onClick={handleApproveRoughCut}

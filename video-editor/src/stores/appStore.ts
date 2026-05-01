@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { WorkflowPhase, DockPanel, Project, Clip, ClipAnalysis, StoryboardClip, ChatMessage, SkillFile, IngestJob, MusicTrack, SfxPlacement, TransitionPlacement, AppliedEffect } from '../types'
+import type { EditIntent } from '../lib/api'
 
 interface AppState {
 
@@ -53,6 +54,10 @@ interface AppState {
   setSfxPlacements: (placements: SfxPlacement[]) => void
   editTransitions: TransitionPlacement[]
   setEditTransitions: (transitions: TransitionPlacement[]) => void
+
+  // Edit intent (from pre-edit questions)
+  lastEditIntent: EditIntent | null
+  setLastEditIntent: (intent: EditIntent | null) => void
 
   // Ingest
   currentIngest: IngestJob | null
@@ -154,6 +159,9 @@ export const useAppStore = create<AppState>()(
       editTransitions: [],
       setEditTransitions: (transitions) => set({ editTransitions: transitions }),
 
+      lastEditIntent: null,
+      setLastEditIntent: (intent) => set({ lastEditIntent: intent }),
+
       currentIngest: null,
       setCurrentIngest: (job) => set({ currentIngest: job }),
 
@@ -175,6 +183,7 @@ export const useAppStore = create<AppState>()(
           editTransitions: s.editTransitions,
           chatMessages: s.chatMessages,
           selectedTrack: s.selectedTrack,
+          lastEditIntent: s.lastEditIntent,
         }
       },
       loadProjectState: (state) => set({
@@ -187,6 +196,7 @@ export const useAppStore = create<AppState>()(
         editTransitions: state.editTransitions || [],
         chatMessages: state.chatMessages || [],
         selectedTrack: state.selectedTrack || null,
+        lastEditIntent: state.lastEditIntent || null,
         workflowPhase: 'brief' as WorkflowPhase,
       }),
       resetToNewProject: () => set({
@@ -199,6 +209,7 @@ export const useAppStore = create<AppState>()(
         editTransitions: [],
         chatMessages: [],
         selectedTrack: null,
+        lastEditIntent: null,
         currentIngest: null,
         workflowPhase: 'import' as WorkflowPhase,
       }),
