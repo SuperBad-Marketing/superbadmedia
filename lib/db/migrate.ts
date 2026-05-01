@@ -29,12 +29,39 @@ export function runMigrations(databaseUrl: string): void {
 
   const db = drizzle(sqlite);
   const migrationsFolder = path.join(process.cwd(), "lib/db/migrations");
+  ensureColumns(sqlite);
   patchPendingAlterColumns(sqlite, migrationsFolder);
   drizzleMigrate(db, { migrationsFolder });
 
   runSeeds(sqlite, migrationsFolder);
   seedAdminUser(sqlite);
   sqlite.close();
+}
+
+/**
+ * Ensure schema-required columns exist before the Drizzle migrator runs.
+ * This guards against bloated or failed migrations leaving the DB without
+ * columns that the ORM expects in every SELECT.
+ */
+function ensureColumns(sqlite: Database.Database): void {
+  const required: Array<{ table: string; column: string; type: string }> = [
+    { table: "brand_dna_profiles", column: "signal_scores_intro", type: "text" },
+    { table: "brand_dna_profiles", column: "signal_descriptions_json", type: "text" },
+  ];
+
+  for (const { table, column, type } of required) {
+    const cols = sqlite
+      .prepare(`PRAGMA table_info(${table})`)
+      .all() as { name: string }[];
+    if (cols.some((c) => c.name === column)) continue;
+    try {
+      sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+      console.info(`[migrate] ensured column ${table}.${column}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes("duplicate column")) throw err;
+    }
+  }
 }
 
 /**

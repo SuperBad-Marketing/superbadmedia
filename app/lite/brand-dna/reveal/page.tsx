@@ -72,13 +72,18 @@ async function RevealContent({ profileId }: { profileId: string }) {
     redirect("/lite/brand-dna");
   }
 
-  const [firstImpression, prosePortrait, signalScoresIntro, signalDescriptions] =
+  const [firstImpression, prosePortrait, signalScoresResult] =
     await Promise.all([
       generateFirstImpression(profileId),
       generateProsePortrait(profileId),
-      generateSignalScoresIntro(profileId),
-      generateSignalDescriptions(profileId),
+      Promise.all([
+        generateSignalScoresIntro(profileId),
+        generateSignalDescriptions(profileId),
+      ]).catch(() => null),
     ]);
+
+  const signalScoresIntro = signalScoresResult?.[0] ?? "";
+  const signalDescriptions = signalScoresResult?.[1] ?? {};
 
   const sectionInsights: string[] = parseSectionInsights(profile.section_insights);
 

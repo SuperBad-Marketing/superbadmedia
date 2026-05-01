@@ -91,13 +91,18 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
   const profile = profiles[0];
   if (!profile) notFound();
 
-  const [firstImpression, prosePortrait, signalScoresIntro, signalDescriptions] =
+  const [firstImpression, prosePortrait, signalScoresResult] =
     await Promise.all([
       generateFirstImpression(profileId),
       generateProsePortrait(profileId),
-      generateSignalScoresIntro(profileId),
-      generateSignalDescriptions(profileId),
+      Promise.all([
+        generateSignalScoresIntro(profileId),
+        generateSignalDescriptions(profileId),
+      ]).catch(() => null),
     ]);
+
+  const signalScoresIntro = signalScoresResult?.[0] ?? "";
+  const signalDescriptions = signalScoresResult?.[1] ?? {};
 
   const sectionInsights: string[] = parseSectionInsights(profile.section_insights);
   const sectionTitles: string[] = ([1, 2, 3, 4, 5] as const).map(
