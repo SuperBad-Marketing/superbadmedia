@@ -236,6 +236,7 @@ export interface BriefFields {
 }
 
 export interface AssembledResult {
+  assemblyId: string
   storyboardClips: {
     id: string
     clipId: string
@@ -340,11 +341,12 @@ export async function buildFromBrief(
   brief: BriefFields & { selectedSkillIds?: string[] },
   clips?: any[],
   music?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number },
+  projectId?: string,
 ): Promise<AssembledResult> {
   const res = await fetch(`${API_BASE}/brief/build`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ brief, clips, music }),
+    body: JSON.stringify({ brief, clips, music, projectId }),
   })
   if (!res.ok) throw new Error('Failed to build assembly')
   return res.json()
@@ -525,6 +527,7 @@ export interface ClientData {
   profile: ClientProfile
   instructions: ClientInstructions
   footageLibraryPath?: string
+  cloudinaryFolder?: string
   projectIds: string[]
 }
 
@@ -569,6 +572,31 @@ export async function addClientInstruction(
   return res.json()
 }
 
+export async function getClientCloudinary(id: string): Promise<{ folder: string; galleryUrl: string | null }> {
+  const res = await fetch(`${API_BASE}/clients/${id}/cloudinary`)
+  return res.json()
+}
+
+export async function setClientCloudinaryFolder(id: string, folder: string): Promise<{ folder: string; galleryUrl: string | null }> {
+  const res = await fetch(`${API_BASE}/clients/${id}/cloudinary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ folder }),
+  })
+  return res.json()
+}
+
+export async function deleteClient(id: string): Promise<void> {
+  await fetch(`${API_BASE}/clients/${id}`, { method: 'DELETE' })
+}
+
+export async function listCloudinaryFolders(prefix?: string): Promise<{ name: string; path: string }[]> {
+  const params = prefix ? `?prefix=${encodeURIComponent(prefix)}` : ''
+  const res = await fetch(`${API_BASE}/cloudinary/folders${params}`)
+  if (!res.ok) return []
+  return res.json()
+}
+
 // Revision
 export interface RevisionResult {
   response: string
@@ -578,6 +606,39 @@ export interface RevisionResult {
   learnedInstructions?: { category: string; instruction: string }[]
 }
 
+// Media Library
+const LIBRARY_API_BASE = 'http://localhost:5201/api'
+
+export interface LibraryStats {
+  totalClips: number
+  analyzed: number
+  visionAnalyzed: number
+  watchedFolder: string | null
+  isScanning: boolean
+  queueLength: number
+  lastScanAt: string | null
+}
+
+export interface LibraryProgress {
+  phase: 'scanning' | 'metadata' | 'vision' | 'idle'
+  total: number
+  done: number
+  currentFile: string
+}
+
+export async function getLibraryStats(): Promise<LibraryStats> {
+  const res = await fetch(`${LIBRARY_API_BASE}/library/stats`)
+  if (!res.ok) throw new Error('Failed to get library stats')
+  return res.json()
+}
+
+export async function getLibraryProgress(): Promise<LibraryProgress> {
+  const res = await fetch(`${LIBRARY_API_BASE}/library/progress`)
+  if (!res.ok) throw new Error('Failed to get library progress')
+  return res.json()
+}
+
+// Revision
 export async function sendRevision(
   context: any,
   feedback: string,
@@ -589,4 +650,77 @@ export async function sendRevision(
     body: JSON.stringify({ context, feedback, conversationHistory }),
   })
   return res.json()
+}
+
+// Taste Profile
+export interface TasteObservation {
+  pattern: string
+  confidence: number
+  occurrences: number
+  category: string
+}
+
+export interface TasteProfile {
+  totalEditsAnalyzed: number
+  lastUpdated: string
+  observations: TasteObservation[]
+  referenceStyles: ReferenceStyle[]
+}
+
+export interface ReferenceStyle {
+  id: string
+  name: string
+  avgCutLength: number
+  cutLengthVariance: number
+  rhythmPattern: string[]
+  shotTypeRatios: Record<string, number>
+  energyCurve: number[]
+  transitionDensity: number
+  totalDuration: number
+}
+
+export async function getTasteProfile(): Promise<TasteProfile> {
+  const res = await fetch(`${API_BASE}/taste/profile`)
+  if (!res.ok) throw new Error('Failed to get taste profile')
+  return res.json()
+}
+
+export async function submitTasteFeedback(
+  assemblyId: string,
+  clips: { clipId: string; startTime: number; endTime: number; position: number }[],
+  transitions: { afterPosition: number; presetId: string }[],
+  totalDuration: number,
+): Promise<{ captured: boolean; reason?: string }> {
+  const res = await fetch(`${API_BASE}/taste/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assemblyId, clips, transitions, totalDuration }),
+  })
+  if (!res.ok) throw new Error('Failed to submit feedback')
+  return res.json()
+}
+
+export async function saveReferenceStyle(
+  name: string,
+  clips: { clipId: string; startTime: number; endTime: number; position: number; shotType?: string }[],
+  transitions: { afterPosition: number; presetId: string }[],
+  totalDuration: number,
+): Promise<ReferenceStyle> {
+  const res = await fetch(`${API_BASE}/taste/reference`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, clips, transitions, totalDuration }),
+  })
+  if (!res.ok) throw new Error('Failed to save reference style')
+  return res.json()
+}
+
+export async function getReferenceStyles(): Promise<ReferenceStyle[]> {
+  const res = await fetch(`${API_BASE}/taste/references`)
+  if (!res.ok) throw new Error('Failed to get references')
+  return res.json()
+}
+
+export async function deleteReferenceStyle(id: string): Promise<void> {
+  await fetch(`${API_BASE}/taste/reference/${id}`, { method: 'DELETE' })
 }

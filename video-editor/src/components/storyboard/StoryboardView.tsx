@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/sortable'
 import { Play, Pause, Plus, Zap, Volume2, Send, Loader2, Music, X, ChevronRight, Film } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve } from '../../lib/api'
+import { sendToResolve, submitTasteFeedback } from '../../lib/api'
 import { thumbUrl } from '../../lib/thumbUrl'
 import type { StoryboardClip } from '../../types'
 
@@ -137,6 +137,7 @@ function MusicWaveform({ clipCount }: { clipCount: number }) {
 export default function StoryboardView() {
   const storyboardClips = useAppStore((s) => s.storyboardClips)
   const reorderStoryboardClip = useAppStore((s) => s.reorderStoryboardClip)
+  const lastAssemblyId = useAppStore((s) => s.lastAssemblyId)
   const selectedTrack = useAppStore((s) => s.selectedTrack)
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
   const isPlaying = useAppStore((s) => s.isPlaying)
@@ -186,6 +187,21 @@ export default function StoryboardView() {
           content: `Sent ${storyboardClips.length} clips to Resolve with in/out points${editTransitions.length > 0 ? ` and ${editTransitions.length} transitions` : ''}. Timeline "SuperEdits Assembly" created.`,
           timestamp: new Date().toISOString(),
         })
+
+        if (lastAssemblyId) {
+          const feedbackClips = storyboardClips.map((c) => ({
+            clipId: c.clipId,
+            startTime: c.startTime,
+            endTime: c.endTime,
+            position: c.position,
+          }))
+          const feedbackTransitions = editTransitions.map((t) => ({
+            afterPosition: t.afterClipPosition,
+            presetId: t.presetId,
+          }))
+          const totalDur = storyboardClips.reduce((sum, c) => sum + (c.endTime - c.startTime), 0)
+          submitTasteFeedback(lastAssemblyId, feedbackClips, feedbackTransitions, totalDur).catch(() => {})
+        }
       }
     } catch {
       addChatMessage({
@@ -197,7 +213,7 @@ export default function StoryboardView() {
     } finally {
       setSending(false)
     }
-  }, [sending, storyboardClips, editTransitions, addChatMessage])
+  }, [sending, storyboardClips, editTransitions, addChatMessage, lastAssemblyId])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

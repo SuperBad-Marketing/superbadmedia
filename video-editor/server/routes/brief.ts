@@ -22,7 +22,7 @@ router.post('/parse', async (req, res) => {
 })
 
 router.post('/build', async (req, res) => {
-  const { brief, clips, music } = req.body
+  const { brief, clips, music, projectId } = req.body
   if (!brief) {
     res.status(400).json({ error: 'brief is required' })
     return
@@ -32,6 +32,7 @@ router.post('/build', async (req, res) => {
     const result = await assembler.assemble(brief, clips, {
       ...music,
       selectedSkillIds: brief.selectedSkillIds,
+      projectId,
     })
     res.json(result)
   } catch (err: any) {

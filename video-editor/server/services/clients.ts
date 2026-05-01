@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { isCloudinaryConfigured, createCloudinaryFolder } from './cloudinary.js'
 
 export interface ClientProfile {
   id: string
@@ -24,6 +25,7 @@ export interface ClientData {
   profile: ClientProfile
   instructions: ClientInstructions
   footageLibraryPath?: string
+  cloudinaryFolder?: string
   projectIds: string[]
 }
 
@@ -60,6 +62,9 @@ class ClientService {
 
   create(profile: Omit<ClientProfile, 'id' | 'createdAt' | 'updatedAt'>): ClientData {
     const now = new Date().toISOString()
+    const safeName = profile.name.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-').toLowerCase()
+    const cloudinaryFolder = `clients/${safeName}`
+
     const data: ClientData = {
       profile: {
         ...profile,
@@ -68,9 +73,15 @@ class ClientService {
         updatedAt: now,
       },
       instructions: { editing: [], style: [], avoid: [], general: [] },
+      cloudinaryFolder,
       projectIds: [],
     }
     fs.writeFileSync(this.filePath(data.profile.id), JSON.stringify(data, null, 2))
+
+    if (isCloudinaryConfigured()) {
+      this.ensureCloudinaryFolder(data.profile.id, cloudinaryFolder)
+    }
+
     return data
   }
 
@@ -164,6 +175,41 @@ class ClientService {
       p.name.toLowerCase().includes(name.toLowerCase())
     )
     return match ? this.get(match.id) : null
+  }
+
+  setCloudinaryFolder(id: string, folder: string): ClientData | null {
+    const data = this.get(id)
+    if (!data) return null
+    data.cloudinaryFolder = folder
+    data.profile.updatedAt = new Date().toISOString()
+    fs.writeFileSync(this.filePath(id), JSON.stringify(data, null, 2))
+    return data
+  }
+
+  getCloudinaryFolder(id: string): string | null {
+    const data = this.get(id)
+    if (!data) return null
+    if (data.cloudinaryFolder) return data.cloudinaryFolder
+    const safeName = data.profile.name.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-').toLowerCase()
+    const folder = `clients/${safeName}`
+    this.setCloudinaryFolder(id, folder)
+    return folder
+  }
+
+  private async ensureCloudinaryFolder(_clientId: string, folder: string): Promise<void> {
+    try {
+      await createCloudinaryFolder(folder)
+    } catch {
+      // Folder may already exist — that's fine
+    }
+  }
+
+  getGalleryUrl(id: string): string | null {
+    const data = this.get(id)
+    if (!data?.cloudinaryFolder) return null
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+    if (!cloudName) return null
+    return `https://res.cloudinary.com/${cloudName}/video/upload/${data.cloudinaryFolder}/`
   }
 
   delete(id: string): boolean {

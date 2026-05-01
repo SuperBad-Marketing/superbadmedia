@@ -16,7 +16,7 @@ import {
   Package,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve, startExport, getExportStatus, uploadToCloudinary, checkCloudinaryStatus } from '../../lib/api'
+import { sendToResolve, startExport, getExportStatus, uploadToCloudinary, checkCloudinaryStatus, listClients, getClientCloudinary } from '../../lib/api'
 import ProgressRing from '../shared/ProgressRing'
 
 interface FormatOption {
@@ -152,6 +152,7 @@ export default function ExportView() {
   const [destination, setDestination] = useState('~/Desktop/Exports')
   const [uploadToCloud, setUploadToCloud] = useState(false)
   const [cloudinaryReady, setCloudinaryReady] = useState(false)
+  const [clientCloudFolder, setClientCloudFolder] = useState<string | null>(null)
   const [notifyClient, setNotifyClient] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
@@ -162,6 +163,21 @@ export default function ExportView() {
   useEffect(() => {
     checkCloudinaryStatus().then((s) => setCloudinaryReady(s.configured)).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (!currentProject?.clientName || currentProject.clientName === 'New Project') return
+    listClients().then((clients) => {
+      const match = clients.find((c) =>
+        c.name.toLowerCase() === currentProject.clientName.toLowerCase() ||
+        c.name.toLowerCase().includes(currentProject.clientName.toLowerCase())
+      )
+      if (match) {
+        getClientCloudinary(match.id)
+          .then((data) => setClientCloudFolder(data.folder))
+          .catch(() => {})
+      }
+    }).catch(() => {})
+  }, [currentProject?.clientName])
   const selectedCount = selectedFormats.size
 
   function toggleFormat(id: string) {
@@ -263,8 +279,8 @@ export default function ExportView() {
                       progress: 0,
                     } : j))
                     try {
-                      const cloudFolder = currentProject?.clientName && currentProject.clientName !== 'New Project'
-                        ? `clients/${currentProject.clientName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-')}/${currentProject.name || 'export'}`
+                      const cloudFolder = clientCloudFolder
+                        ? `${clientCloudFolder}/${currentProject?.name || 'export'}`
                         : currentProject?.name || 'exports'
                       await uploadToCloudinary(outputPath, cloudFolder)
                       setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
@@ -445,9 +461,14 @@ export default function ExportView() {
           <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-2">
               <Cloud size={13} className={cloudinaryReady ? 'text-text-dim' : 'text-text-dim/40'} />
-              <span className={`text-[11px] ${cloudinaryReady ? 'text-text-dim' : 'text-text-dim/40'}`}>
-                Upload to Cloudinary
-              </span>
+              <div>
+                <span className={`text-[11px] ${cloudinaryReady ? 'text-text-dim' : 'text-text-dim/40'}`}>
+                  Upload to Cloudinary
+                </span>
+                {cloudinaryReady && clientCloudFolder && uploadToCloud && (
+                  <p className="text-[9px] text-text-dim/60 font-mono mt-0.5">{clientCloudFolder}/</p>
+                )}
+              </div>
               {!cloudinaryReady && (
                 <span className="text-[9px] text-text-dim/40 font-mono">not configured</span>
               )}

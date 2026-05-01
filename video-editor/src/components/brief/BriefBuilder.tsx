@@ -25,6 +25,7 @@ type Phase = 'braindump' | 'fields' | 'building' | 'done'
 
 export default function BriefBuilder() {
   const setStoryboardClips = useAppStore((s) => s.setStoryboardClips)
+  const setLastAssemblyId = useAppStore((s) => s.setLastAssemblyId)
   const setSelectedTrack = useAppStore((s) => s.setSelectedTrack)
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
   const clips = useAppStore((s) => s.clips)
@@ -152,12 +153,15 @@ export default function BriefBuilder() {
       const musicInfo = topTrack || selectedTrack
       setBuildStatus('Building your edit.')
       const latestClips = useAppStore.getState().clips
+      const currentProjectId = useAppStore.getState().currentProject?.id
       const assembled = await buildFromBrief(
         { ...fields, selectedSkillIds: [...selectedSkillIds] },
         latestClips,
         musicInfo ? { musicBpm: musicInfo.bpm, musicMood: musicInfo.mood, musicPreviewUrl: musicInfo.previewUrl, musicDuration: musicInfo.duration } : undefined,
+        currentProjectId,
       )
       setResult(assembled)
+      if (assembled.assemblyId) setLastAssemblyId(assembled.assemblyId)
 
       if (assembled.storyboardClips.length > 0) {
         const storyboard = assembled.storyboardClips.map((sc) => {
@@ -197,7 +201,7 @@ export default function BriefBuilder() {
     } finally {
       setBuilding(false)
     }
-  }, [fields, clips, selectedTrack, selectedSkillIds, setStoryboardClips, setSelectedTrack, setSfxPlacements, setEditTransitions, updateClipAnalysis])
+  }, [fields, clips, selectedTrack, selectedSkillIds, setStoryboardClips, setLastAssemblyId, setSelectedTrack, setSfxPlacements, setEditTransitions, updateClipAnalysis])
 
   const handleReset = () => {
     setPhase('braindump')

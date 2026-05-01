@@ -12,6 +12,9 @@ export default defineConfig({
   },
   server: {
     port: 5200,
+    watch: {
+      ignored: ['**/.media-library/**', '**/.clients/**', '**/.projects/**', '**/.skills/**', '**/.taste/**', '**/.cut-review/**'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5201',

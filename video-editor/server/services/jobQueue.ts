@@ -239,7 +239,7 @@ class JobQueue {
         statusText: 'Building the rough cut',
       })
 
-      const result = await this.assembler.assemble(editBrief, clips, {})
+      const result = await this.assembler.assemble(editBrief, clips, { projectId: job.projectId })
 
       // --- Step 5: Push to Resolve ---
       let resolveProjectName: string | undefined

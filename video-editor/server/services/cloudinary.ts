@@ -82,6 +82,34 @@ export function getCloudinaryGalleryUrl(
   })
 }
 
+export async function listCloudinaryFolders(prefix?: string): Promise<{ name: string; path: string }[]> {
+  if (!ensureConfigured()) {
+    throw new Error('Cloudinary not configured')
+  }
+
+  try {
+    const result = prefix
+      ? await cloudinary.api.sub_folders(prefix)
+      : await cloudinary.api.root_folders()
+
+    return (result.folders || []).map((f: any) => ({
+      name: f.name,
+      path: f.path,
+    }))
+  } catch (err: any) {
+    if (err?.error?.http_code === 404) return []
+    throw err
+  }
+}
+
+export async function createCloudinaryFolder(folderPath: string): Promise<void> {
+  if (!ensureConfigured()) {
+    throw new Error('Cloudinary not configured')
+  }
+
+  await cloudinary.api.create_folder(folderPath)
+}
+
 export function isCloudinaryConfigured(): boolean {
   return ensureConfigured()
 }

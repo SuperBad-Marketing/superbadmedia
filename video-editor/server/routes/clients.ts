@@ -82,6 +82,30 @@ router.put('/:id/footage-path', (req, res) => {
   res.json(updated)
 })
 
+router.get('/:id/cloudinary', (req, res) => {
+  const folder = clientService.getCloudinaryFolder(req.params.id)
+  const galleryUrl = clientService.getGalleryUrl(req.params.id)
+  if (!folder) {
+    res.status(404).json({ error: 'Client not found' })
+    return
+  }
+  res.json({ folder, galleryUrl })
+})
+
+router.put('/:id/cloudinary', (req, res) => {
+  const { folder } = req.body
+  if (!folder) {
+    res.status(400).json({ error: 'folder is required' })
+    return
+  }
+  const updated = clientService.setCloudinaryFolder(req.params.id, folder)
+  if (!updated) {
+    res.status(404).json({ error: 'Client not found' })
+    return
+  }
+  res.json({ folder: updated.cloudinaryFolder, galleryUrl: clientService.getGalleryUrl(req.params.id) })
+})
+
 router.delete('/:id', (req, res) => {
   const removed = clientService.delete(req.params.id)
   if (!removed) {

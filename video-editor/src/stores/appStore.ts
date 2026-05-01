@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { WorkflowPhase, DockPanel, Project, Clip, ClipAnalysis, StoryboardClip, ChatMessage, SkillFile, IngestJob, MusicTrack, SfxPlacement, TransitionPlacement } from '../types'
+import type { WorkflowPhase, DockPanel, Project, Clip, ClipAnalysis, StoryboardClip, ChatMessage, SkillFile, IngestJob, MusicTrack, SfxPlacement, TransitionPlacement, AppliedEffect } from '../types'
 
 interface AppState {
 
@@ -15,6 +15,8 @@ interface AppState {
   updateClipAnalysis: (clipId: string, analysis: Partial<ClipAnalysis>) => void
 
   // Storyboard
+  lastAssemblyId: string | null
+  setLastAssemblyId: (id: string | null) => void
   storyboardClips: StoryboardClip[]
   setStoryboardClips: (clips: StoryboardClip[]) => void
   addToStoryboard: (clip: Clip) => void
@@ -39,6 +41,13 @@ interface AppState {
   addSkill: (skill: SkillFile) => void
   removeSkill: (id: string) => void
 
+  // Applied effects
+  appliedEffects: AppliedEffect[]
+  setAppliedEffects: (effects: AppliedEffect[]) => void
+  addAppliedEffect: (effect: AppliedEffect) => void
+  removeAppliedEffect: (id: string) => void
+  updateAppliedEffect: (id: string, updates: Partial<AppliedEffect>) => void
+
   // SFX & Transitions (from assembly)
   sfxPlacements: SfxPlacement[]
   setSfxPlacements: (placements: SfxPlacement[]) => void
@@ -48,6 +57,10 @@ interface AppState {
   // Ingest
   currentIngest: IngestJob | null
   setCurrentIngest: (job: IngestJob | null) => void
+
+  // Clip selection (for effects panel)
+  selectedClipIndex: number
+  setSelectedClipIndex: (index: number) => void
 
   // Resolve connection
   resolveConnected: boolean
@@ -83,6 +96,8 @@ export const useAppStore = create<AppState>()(
         ),
       })),
 
+      lastAssemblyId: null,
+      setLastAssemblyId: (id) => set({ lastAssemblyId: id }),
       storyboardClips: [],
       setStoryboardClips: (clips) => set({ storyboardClips: clips }),
       addToStoryboard: (clip) => set((state) => {
@@ -125,6 +140,14 @@ export const useAppStore = create<AppState>()(
       addSkill: (skill) => set((state) => ({ skills: [...state.skills, skill] })),
       removeSkill: (id) => set((state) => ({ skills: state.skills.filter((s) => s.id !== id) })),
 
+      appliedEffects: [],
+      setAppliedEffects: (effects) => set({ appliedEffects: effects }),
+      addAppliedEffect: (effect) => set((state) => ({ appliedEffects: [...state.appliedEffects, effect] })),
+      removeAppliedEffect: (id) => set((state) => ({ appliedEffects: state.appliedEffects.filter((e) => e.id !== id) })),
+      updateAppliedEffect: (id, updates) => set((state) => ({
+        appliedEffects: state.appliedEffects.map((e) => e.id === id ? { ...e, ...updates } : e),
+      })),
+
       sfxPlacements: [],
       setSfxPlacements: (placements) => set({ sfxPlacements: placements }),
       editTransitions: [],
@@ -132,6 +155,9 @@ export const useAppStore = create<AppState>()(
 
       currentIngest: null,
       setCurrentIngest: (job) => set({ currentIngest: job }),
+
+      selectedClipIndex: 0,
+      setSelectedClipIndex: (index) => set({ selectedClipIndex: index }),
 
       resolveConnected: false,
       setResolveConnected: (connected) => set({ resolveConnected: connected }),
@@ -141,7 +167,9 @@ export const useAppStore = create<AppState>()(
         return {
           currentProject: s.currentProject,
           clips: s.clips,
+          lastAssemblyId: s.lastAssemblyId,
           storyboardClips: s.storyboardClips,
+          appliedEffects: s.appliedEffects,
           sfxPlacements: s.sfxPlacements,
           editTransitions: s.editTransitions,
           chatMessages: s.chatMessages,
@@ -151,7 +179,9 @@ export const useAppStore = create<AppState>()(
       loadProjectState: (state) => set({
         currentProject: state.currentProject || null,
         clips: state.clips || [],
+        lastAssemblyId: state.lastAssemblyId || null,
         storyboardClips: state.storyboardClips || [],
+        appliedEffects: state.appliedEffects || [],
         sfxPlacements: state.sfxPlacements || [],
         editTransitions: state.editTransitions || [],
         chatMessages: state.chatMessages || [],
@@ -161,7 +191,9 @@ export const useAppStore = create<AppState>()(
       resetToNewProject: () => set({
         currentProject: null,
         clips: [],
+        lastAssemblyId: null,
         storyboardClips: [],
+        appliedEffects: [],
         sfxPlacements: [],
         editTransitions: [],
         chatMessages: [],
@@ -185,6 +217,7 @@ export const useAppStore = create<AppState>()(
         currentProject: state.currentProject,
         clips: state.clips,
         storyboardClips: state.storyboardClips,
+        appliedEffects: state.appliedEffects,
         sfxPlacements: state.sfxPlacements,
         editTransitions: state.editTransitions,
         chatMessages: state.chatMessages,

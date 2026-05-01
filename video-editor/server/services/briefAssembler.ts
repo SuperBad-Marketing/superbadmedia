@@ -1,10 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { execSync } from 'child_process'
+import fs from 'fs'
+import path from 'path'
 import { getClipAnalysisService } from './clipAnalysis.js'
 import { SfxService } from './sfx.js'
 import { TransitionService } from './transitions.js'
 import { SkillService } from './skills.js'
-import { MusicAnalysisService, MusicStructure } from './musicAnalysis.js'
+import { MusicAnalysisService, MusicStructure, type MusicSection } from './musicAnalysis.js'
+import { getMediaLibrary } from './mediaLibrary.js'
+import { getTasteProfileService } from './tasteProfile.js'
 import crypto from 'crypto'
+
+const CUT_REVIEW_DIR = path.join(process.cwd(), '.cut-review')
+
+const MAX_CLIP_USES = 2
 
 export interface MoodAxes {
   intensity: number
@@ -65,6 +74,7 @@ export interface TransitionResult {
 }
 
 export interface AssembledResult {
+  assemblyId: string
   storyboardClips: {
     id: string
     clipId: string
@@ -118,10 +128,30 @@ function buildStructuralPlanSystem(
   footageProfile: FootageProfile,
   moodAxes: MoodAxes,
   musicStructure: MusicStructure | null,
+  musicSkeleton: StructuralPlan | null,
 ): string {
   let musicInfo = ''
-  if (musicStructure && musicStructure.sections.length > 0) {
-    musicInfo = `\n## MUSIC STRUCTURE
+  let jobSection: string
+
+  if (musicSkeleton && musicSkeleton.sections.length > 0) {
+    musicInfo = `\n## MUSIC STRUCTURE (MANDATORY SCAFFOLD)
+
+BPM: ${musicStructure!.bpm} | Beat interval: ${musicStructure!.beatInterval.toFixed(3)}s | Duration: ${musicStructure!.totalDuration.toFixed(1)}s
+
+The following sections are LOCKED. Do NOT add, remove, merge, reorder, or rename them. Your ONLY job is to assign clips to these sections.
+
+${musicSkeleton.sections.map(s => `### ${s.label} — ${s.targetDuration.toFixed(1)}s${s.musicSectionType ? ` (energy: ${musicStructure!.sections.find(ms => ms.type === s.musicSectionType)?.energy || 'medium'})` : ''}`).join('\n')}
+`
+    jobSection = `## YOUR JOB
+1. The sections above are MANDATORY — use them exactly as given. Do NOT create new sections or change durations.
+2. Assign clips to each section based on content, energy, and edit utility
+3. Match clip energy to section energy — low-energy sections get breather/establishing clips, peak-energy sections get hero shots and high-movement clips
+4. Specify each clip's role (opener, hero-shot, detail-insert, reaction, breather, transition-bridge, etc.)
+5. Give approximate clip durations within each section — the precision editor will refine
+6. Plan rhythm variety — mix staccato bursts, held moments, cascades, call-and-response across sections`
+  } else {
+    if (musicStructure && musicStructure.sections.length > 0) {
+      musicInfo = `\n## MUSIC STRUCTURE
 
 BPM: ${musicStructure.bpm} | Beat interval: ${musicStructure.beatInterval.toFixed(3)}s | Duration: ${musicStructure.totalDuration.toFixed(1)}s
 
@@ -130,6 +160,14 @@ ${musicStructure.sections.map(s => `- ${s.type} (${s.startTime.toFixed(1)}s – 
 
 Map your edit sections to these music sections. Low-energy music wants slower cuts and breathing room. High-energy sections want faster cuts. Drops are peak moments — put your strongest clips there.
 `
+    }
+    jobSection = `## YOUR JOB
+1. Divide the edit into 3-8 sections, each with a label and target duration that sum to the target
+2. Assign clips to sections based on content, energy, and edit utility
+3. Specify each clip's role (opener, hero-shot, detail-insert, reaction, breather, transition-bridge, etc.)
+4. Give approximate durations — the precision editor will refine
+5. If music structure is available, map sections to music section types
+6. Plan rhythm variety — mix staccato bursts, held moments, cascades, call-and-response across sections`
   }
 
   return `You are a supervising editor creating a structural plan for a video edit. You decide WHICH clips to use, in WHAT order, for WHAT purpose. Another editor will handle precise in/out points, transitions, and SFX.
@@ -147,13 +185,7 @@ Lighting: ${footageProfile.lightingMix.join(', ') || 'mixed'}
 Has people: ${footageProfile.hasPersonContent} | Has drone: ${footageProfile.hasDroneFootage} | Has interactions: ${footageProfile.hasInteractions}
 Edit roles: ${footageProfile.editUtilityMap.join(', ') || 'b-roll'}
 ${musicInfo}
-## YOUR JOB
-1. Divide the edit into 3-8 sections, each with a label and target duration that sum to the target
-2. Assign clips to sections based on content, energy, and edit utility
-3. Specify each clip's role (opener, hero-shot, detail-insert, reaction, breather, transition-bridge, etc.)
-4. Give approximate durations — the precision editor will refine
-5. If music structure is available, map sections to music section types
-6. Plan rhythm variety — mix staccato bursts, held moments, cascades, call-and-response across sections
+${jobSection}
 
 ## CLIP SELECTION RULES
 - Use editUtility tags: "opener" clips early, "closer" clips late, "establishing" at section starts
@@ -163,6 +195,7 @@ ${musicInfo}
 - High-movement clips suit shorter holds; static/composed clips suit longer holds
 - You MAY reuse the same clip in different sections for different moments
 - Select more clips than strictly needed — the precision editor may drop some
+- Each clip has a "timesUsed" count. STRONGLY prefer clips with timesUsed: 0. Clips with timesUsed >= ${MAX_CLIP_USES} are EXCLUDED and will not appear in the list.
 
 Respond with ONLY a JSON object:
 {
@@ -189,6 +222,7 @@ function buildAssemblySystem(
   variationSeed: number,
   musicStructure: MusicStructure | null,
   structuralPlan: StructuralPlan | null,
+  tasteContext: string = '',
 ): string {
   let musicSection = ''
   if (musicStructure) {
@@ -282,6 +316,7 @@ Use this seed to make creative choices. Different seeds = different valid edits 
 4. Total edit duration within 10% of target.
 5. You MAY reuse the same clip at different in/out points for fast-cut sequences. Never reuse the exact same segment.
 6. MATCH cut duration to footage: high-movement clips → shorter holds. Static/composed shots → longer holds. Faces → 1.5-3s minimum.
+7. Each clip has a "timesUsed" count showing how many previous projects used it. STRONGLY prefer timesUsed: 0 clips. Clips at the usage cap are already excluded from the list.
 
 ## RHYTHM VOCABULARY (mix 2-3 patterns per 30s)
 - **Staccato burst → breath**: 4-8 rapid cuts then one held shot.
@@ -305,7 +340,7 @@ Use this seed to make creative choices. Different seeds = different valid edits 
 - Risers END at the moment of impact. Set timelineStart 2-8s before the hit.
 - Max 2-3 simultaneous SFX.
 
-${skills ? `## EDITORIAL KNOWLEDGE\n\n${skills}\n` : ''}
+${skills ? `## EDITORIAL KNOWLEDGE\n\n${skills}\n` : ''}${tasteContext ? `\n${tasteContext}\n` : ''}
 Respond with ONLY a JSON object:
 {
   "clips": [
@@ -518,15 +553,145 @@ export class BriefAssembler {
     )
   }
 
+  private async refineMotionCutPoints(result: AssembledResult, musicStructure: MusicStructure | null): Promise<void> {
+    const beatSet = new Set<number>()
+    if (musicStructure) {
+      for (const beat of musicStructure.beats) {
+        beatSet.add(Math.round(beat * 100))
+      }
+    }
+
+    for (const clip of result.storyboardClips) {
+      if (clip.endTime - clip.startTime < 0.5) continue
+      if (clip.codec === 'static') continue
+
+      const nudgeIn = this.findMotionRestPoint(clip.filePath, clip.startTime, clip.duration)
+      const nudgeOut = this.findMotionRestPoint(clip.filePath, clip.endTime, clip.duration)
+
+      if (nudgeIn !== null) {
+        const timelinePos = this.clipTimelinePosition(result, clip.position)
+        const onBeat = beatSet.has(Math.round((timelinePos) * 100))
+        if (!onBeat) {
+          const newStart = Math.max(0, nudgeIn)
+          if (newStart < clip.endTime - 0.2) clip.startTime = newStart
+        }
+      }
+
+      if (nudgeOut !== null) {
+        const newEnd = Math.min(clip.duration, nudgeOut)
+        if (newEnd > clip.startTime + 0.2) clip.endTime = newEnd
+      }
+    }
+
+    result.totalDuration = result.storyboardClips.reduce(
+      (sum, sc) => sum + (sc.endTime - sc.startTime), 0,
+    )
+  }
+
+  private clipTimelinePosition(result: AssembledResult, position: number): number {
+    let t = 0
+    for (const sc of result.storyboardClips) {
+      if (sc.position >= position) break
+      t += sc.endTime - sc.startTime
+    }
+    return t
+  }
+
+  private findMotionRestPoint(filePath: string, timestamp: number, clipDuration: number): number | null {
+    const windowSize = 0.15
+    const searchStart = Math.max(0, timestamp - windowSize)
+    const searchEnd = Math.min(clipDuration, timestamp + windowSize)
+    const searchDuration = searchEnd - searchStart
+
+    if (searchDuration < 0.05) return null
+
+    try {
+      const buf = execSync(
+        `ffmpeg -ss ${searchStart.toFixed(3)} -t ${searchDuration.toFixed(3)} -i "${filePath}" -vf "scale=80:-1,format=gray" -f rawvideo -pix_fmt gray pipe:1 2>/dev/null`,
+        { timeout: 5000, maxBuffer: 10 * 1024 * 1024 },
+      )
+
+      const probe = execSync(
+        `ffprobe -v quiet -select_streams v:0 -show_entries stream=height -of csv=p=0 "${filePath}"`,
+        { encoding: 'utf-8', timeout: 5000 },
+      ).trim()
+      const srcHeight = parseInt(probe) || 720
+      const scaledHeight = Math.round(srcHeight * (80 / 1920))
+      const frameSize = 80 * Math.max(scaledHeight, 1)
+      const frameCount = Math.floor(buf.length / frameSize)
+
+      if (frameCount < 3) return null
+
+      const fps = frameCount / searchDuration
+      let minDiff = Infinity
+      let minIdx = 0
+
+      for (let i = 0; i < frameCount - 1; i++) {
+        const a = buf.subarray(i * frameSize, (i + 1) * frameSize)
+        const b = buf.subarray((i + 1) * frameSize, (i + 2) * frameSize)
+        let diff = 0
+        for (let p = 0; p < frameSize; p++) {
+          diff += Math.abs(a[p] - b[p])
+        }
+        diff /= frameSize
+        if (diff < minDiff) {
+          minDiff = diff
+          minIdx = i
+        }
+      }
+
+      const restTimestamp = searchStart + (minIdx / fps)
+      if (Math.abs(restTimestamp - timestamp) < 0.02) return null
+
+      return Math.round(restTimestamp * 1000) / 1000
+    } catch {
+      return null
+    }
+  }
+
+  private buildMusicSkeleton(musicStructure: MusicStructure, brief: BriefFields): StructuralPlan {
+    const targetDuration = brief.duration
+    const musicDuration = musicStructure.totalDuration
+    const scale = targetDuration / musicDuration
+
+    const sections = musicStructure.sections.map((ms, i) => {
+      const sectionDuration = (ms.endTime - ms.startTime) * scale
+      const label = musicStructure.sections.filter((s, j) => j <= i && s.type === ms.type).length > 1
+        ? `${ms.type}-${musicStructure.sections.filter((s, j) => j <= i && s.type === ms.type).length}`
+        : ms.type
+
+      return {
+        label,
+        musicSectionType: ms.type,
+        targetDuration: Math.round(sectionDuration * 10) / 10,
+        clips: [],
+      }
+    })
+
+    return {
+      sections,
+      narrative: '',
+      rhythmStrategy: '',
+    }
+  }
+
+  private recordClipUsage(result: AssembledResult, projectId?: string): void {
+    if (!projectId) return
+    const library = getMediaLibrary()
+    const filePaths = result.storyboardClips.map(sc => sc.filePath)
+    library.recordUsage(projectId, filePaths)
+  }
+
   async assemble(
     brief: BriefFields,
     clientClips?: any[],
-    options?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number; selectedSkillIds?: string[] },
+    options?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number; selectedSkillIds?: string[]; projectId?: string; clientId?: string; referenceStyleId?: string },
   ): Promise<AssembledResult> {
     const serverClips = this.clipAnalysis.getAllAnalysed()
-    const allClips = serverClips.length > 0 ? serverClips : (clientClips || [])
+    const rawClips = serverClips.length > 0 ? serverClips : (clientClips || [])
 
     const emptyResult: AssembledResult = {
+      assemblyId: '',
       storyboardClips: [],
       sfxPlacements: [],
       transitions: [],
@@ -535,7 +700,22 @@ export class BriefAssembler {
       narrative: 'No analysed clips available. Import and ingest footage first.',
     }
 
-    if (allClips.length === 0) return emptyResult
+    if (rawClips.length === 0) return emptyResult
+
+    const library = getMediaLibrary()
+    const usageCounts = library.getUsageCounts()
+
+    const allClips = rawClips.filter((c: any) => {
+      const uses = usageCounts.get(c.filePath) || 0
+      return uses < MAX_CLIP_USES
+    })
+
+    if (allClips.length === 0) {
+      return {
+        ...emptyResult,
+        narrative: `All ${rawClips.length} clips have reached the usage cap (${MAX_CLIP_USES} projects each). Add new footage to continue.`,
+      }
+    }
 
     const client = this.getClient()
     if (!client) return this.assembleByHeuristics(allClips, brief)
@@ -558,10 +738,11 @@ export class BriefAssembler {
       }
     }
 
-    const compactSummaries = allClips.map(c => ({
+    const compactSummaries = allClips.map((c: any) => ({
       id: c.id,
       fileName: c.fileName,
       duration: Math.round(c.duration * 10) / 10,
+      timesUsed: usageCounts.get(c.filePath) || 0,
       tags: (c.analysis?.contentTags || []).slice(0, 5),
       description: c.analysis?.description || '',
       movement: c.analysis?.movementLevel || 'medium',
@@ -578,7 +759,7 @@ export class BriefAssembler {
       editUtility: c.analysis?.editUtility || [],
     }))
 
-    const fullSummaries = allClips.map(c => ({
+    const fullSummaries = allClips.map((c: any) => ({
       ...compactSummaries.find(s => s.id === c.id)!,
       fps: c.fps,
       composition: c.analysis?.composition || '',
@@ -607,14 +788,27 @@ export class BriefAssembler {
       duration: s.duration,
     }))
 
+    const musicSkeleton = musicStructure && musicStructure.sections.length > 0
+      ? this.buildMusicSkeleton(musicStructure, brief)
+      : null
+
+    const tasteService = getTasteProfileService()
+    let tasteContext = tasteService.getTasteContext()
+    if (options?.clientId) {
+      tasteContext += '\n' + tasteService.getClientStyleContext(options.clientId)
+    }
+    if (options?.referenceStyleId) {
+      tasteContext += '\n' + tasteService.getReferenceStyleContext(options.referenceStyleId)
+    }
+
     try {
       const plan = await this.runStructuralPlan(
-        client, brief, compactSummaries, footageProfile, moodAxes, musicStructure,
+        client, brief, compactSummaries, footageProfile, moodAxes, musicStructure, musicSkeleton,
       )
 
       const assembled = await this.runPrecisionEdit(
         client, brief, fullSummaries, footageProfile, moodAxes, variationSeed,
-        musicStructure, plan, skillsContent, transitionPresets, sfxCatalogueJson,
+        musicStructure, plan, skillsContent, transitionPresets, sfxCatalogueJson, tasteContext,
       )
 
       const result = this.buildFromEdits(
@@ -623,14 +817,53 @@ export class BriefAssembler {
       result.transitions = this.buildTransitions(assembled.transitions || [])
       result.sfxPlacements = await this.resolveSfx(assembled.sfx || [])
 
+      await this.refineMotionCutPoints(result, musicStructure)
+
       const reviewed = await this.runSelfReview(
         client, result, brief, allClips, musicStructure,
       )
 
-      return reviewed
+      const finalResult = await this.runCutPointVisualReview(client, reviewed, allClips)
+
+      const assemblyId = crypto.randomUUID()
+      finalResult.assemblyId = assemblyId
+
+      tasteService.saveOriginalAssembly({
+        id: assemblyId,
+        projectId: options?.projectId,
+        clientId: options?.clientId,
+        timestamp: new Date().toISOString(),
+        clips: finalResult.storyboardClips.map(sc => {
+          const source = allClips.find((c: any) => c.id === sc.clipId)
+          return {
+            clipId: sc.clipId,
+            filePath: sc.filePath,
+            startTime: sc.startTime,
+            endTime: sc.endTime,
+            position: sc.position,
+            shotType: source?.analysis?.shotType,
+            hasFaces: source?.analysis?.hasFaces,
+            environment: source?.analysis?.environment,
+            movement: source?.analysis?.movementLevel,
+          }
+        }),
+        transitions: finalResult.transitions.map(t => ({
+          afterPosition: t.afterClipPosition,
+          presetId: t.presetId,
+        })),
+        sfxCount: finalResult.sfxPlacements.length,
+        totalDuration: finalResult.totalDuration,
+        brief: { duration: brief.duration, mood: brief.mood, pacing: brief.pacing },
+      })
+
+      this.recordClipUsage(finalResult, options?.projectId)
+
+      return finalResult
     } catch (err: any) {
       console.error('Two-pass assembly failed, falling back to heuristics:', err.message)
-      return this.assembleByHeuristics(allClips, brief)
+      const fallback = this.assembleByHeuristics(allClips, brief)
+      this.recordClipUsage(fallback, options?.projectId)
+      return fallback
     }
   }
 
@@ -641,8 +874,9 @@ export class BriefAssembler {
     footageProfile: FootageProfile,
     moodAxes: MoodAxes,
     musicStructure: MusicStructure | null,
+    musicSkeleton: StructuralPlan | null = null,
   ): Promise<StructuralPlan> {
-    const system = buildStructuralPlanSystem(footageProfile, moodAxes, musicStructure)
+    const system = buildStructuralPlanSystem(footageProfile, moodAxes, musicStructure, musicSkeleton)
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -655,21 +889,59 @@ export class BriefAssembler {
 TIMING INSTRUCTIONS:
 ${brief.narrativeNotes}
 
-${brief.clipSelectionHints ? `CLIP PREFERENCES: ${brief.clipSelectionHints}\n\n` : ''}AVAILABLE CLIPS (${clips.length}):
+${brief.clipSelectionHints ? `CLIP PREFERENCES: ${brief.clipSelectionHints}\n\n` : ''}${musicSkeleton ? `LOCKED SECTIONS (use these exactly — do not add, remove, or rename):\n${musicSkeleton.sections.map(s => `- ${s.label}: ${s.targetDuration}s`).join('\n')}\n\n` : ''}AVAILABLE CLIPS (${clips.length}):
 ${JSON.stringify(clips, null, 2)}
 
-Create the structural plan now. Section durations must sum to ~${brief.duration}s.`,
+${musicSkeleton ? 'Fill clips into the locked sections above.' : `Create the structural plan now. Section durations must sum to ~${brief.duration}s.`}`,
       }],
     })
 
     const text = response.content.find(b => b.type === 'text')?.text ?? '{}'
     const parsed = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || '{}')
 
-    return {
+    let plan: StructuralPlan = {
       sections: parsed.sections || [],
       narrative: parsed.narrative || '',
       rhythmStrategy: parsed.rhythmStrategy || '',
     }
+
+    if (musicSkeleton) {
+      plan = this.enforceMusicSkeleton(plan, musicSkeleton)
+    }
+
+    return plan
+  }
+
+  private enforceMusicSkeleton(plan: StructuralPlan, skeleton: StructuralPlan): StructuralPlan {
+    if (plan.sections.length === skeleton.sections.length) return plan
+
+    const enforced: StructuralPlan = {
+      sections: skeleton.sections.map((skel) => {
+        const match = plan.sections.find(s =>
+          s.label === skel.label || s.musicSectionType === skel.musicSectionType
+        )
+        return {
+          ...skel,
+          clips: match?.clips || [],
+        }
+      }),
+      narrative: plan.narrative,
+      rhythmStrategy: plan.rhythmStrategy,
+    }
+
+    const assignedClipIds = new Set(enforced.sections.flatMap(s => s.clips.map(c => c.clipId)))
+    const unassigned = plan.sections.flatMap(s => s.clips).filter(c => !assignedClipIds.has(c.clipId))
+
+    if (unassigned.length > 0) {
+      for (const clip of unassigned) {
+        const emptiest = enforced.sections.reduce((a, b) =>
+          a.clips.length <= b.clips.length ? a : b
+        )
+        emptiest.clips.push(clip)
+      }
+    }
+
+    return enforced
   }
 
   private async runPrecisionEdit(
@@ -684,9 +956,10 @@ Create the structural plan now. Section durations must sum to ~${brief.duration}
     skills: string,
     transitionPresets: any[],
     sfxCatalogue: any[],
+    tasteContext: string = '',
   ): Promise<{ clips: any[]; transitions: any[]; sfx: any[]; narrative: string }> {
     const system = buildAssemblySystem(
-      skills, footageProfile, moodAxes, variationSeed, musicStructure, plan,
+      skills, footageProfile, moodAxes, variationSeed, musicStructure, plan, tasteContext,
     )
 
     const musicLine = musicStructure
@@ -905,6 +1178,7 @@ Build the precision edit now. Follow the structural plan. Use rankedMoments to p
     }
 
     return {
+      assemblyId: '',
       storyboardClips,
       sfxPlacements: [],
       transitions: [],
@@ -912,6 +1186,159 @@ Build the precision edit now. Follow the structural plan. Use rankedMoments to p
       totalDuration: accumulated,
       narrative: narrative || `${storyboardClips.length} clips, ~${Math.round(accumulated)}s. ${brief.mood}, ${brief.pacing} pacing.`,
     }
+  }
+
+  private async runCutPointVisualReview(
+    client: Anthropic,
+    result: AssembledResult,
+    allClips: any[],
+  ): Promise<AssembledResult> {
+    if (result.storyboardClips.length < 2) return result
+
+    fs.mkdirSync(CUT_REVIEW_DIR, { recursive: true })
+
+    const cutPairs: { index: number; outFrame: string; inFrame: string }[] = []
+
+    for (let i = 0; i < result.storyboardClips.length - 1; i++) {
+      const clipA = result.storyboardClips[i]
+      const clipB = result.storyboardClips[i + 1]
+
+      const outTimestamp = Math.max(0, clipA.endTime - 0.04)
+      const inTimestamp = clipB.startTime + 0.04
+
+      const outPath = path.join(CUT_REVIEW_DIR, `cut_${i}_out.jpg`)
+      const inPath = path.join(CUT_REVIEW_DIR, `cut_${i}_in.jpg`)
+
+      try {
+        execSync(
+          `ffmpeg -y -ss ${outTimestamp.toFixed(3)} -i "${clipA.filePath}" -frames:v 1 -q:v 2 "${outPath}" 2>/dev/null`,
+          { timeout: 5000 },
+        )
+        execSync(
+          `ffmpeg -y -ss ${inTimestamp.toFixed(3)} -i "${clipB.filePath}" -frames:v 1 -q:v 2 "${inPath}" 2>/dev/null`,
+          { timeout: 5000 },
+        )
+
+        if (fs.existsSync(outPath) && fs.existsSync(inPath)) {
+          cutPairs.push({ index: i, outFrame: outPath, inFrame: inPath })
+        }
+      } catch {
+        // Skip this cut point if frame extraction fails
+      }
+    }
+
+    if (cutPairs.length === 0) return result
+
+    const BATCH_SIZE = 5
+    const allIssues: { cutIndex: number; action: string; detail: string }[] = []
+
+    for (let b = 0; b < cutPairs.length; b += BATCH_SIZE) {
+      const batch = cutPairs.slice(b, b + BATCH_SIZE)
+
+      const imageContent: Anthropic.Messages.ContentBlockParam[] = []
+      for (const pair of batch) {
+        const outData = fs.readFileSync(pair.outFrame)
+        const inData = fs.readFileSync(pair.inFrame)
+
+        imageContent.push(
+          { type: 'text', text: `Cut ${pair.index} → ${pair.index + 1}:` },
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: outData.toString('base64') } },
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: inData.toString('base64') } },
+        )
+      }
+
+      try {
+        const response = await client.messages.create({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 2048,
+          system: `You review cut points in a video edit. For each pair of frames (last frame of outgoing clip, first frame of incoming clip), check:
+
+1. VISUAL CONTINUITY — do the shots contrast enough to justify a cut? Two nearly identical frames = bad cut (jump cut).
+2. FRAME QUALITY — is either frame blurry, overexposed, obstructed, or mid-blink?
+3. COMPOSITIONAL CLASH — does the eye have to jump too far between frames? (e.g. subject hard-left then hard-right with no motivation)
+
+For each cut, respond "ok" or flag the issue with an action:
+- "nudge-out": push the outgoing clip's end point earlier (bad exit frame)
+- "nudge-in": push the incoming clip's start point later (bad entry frame)
+- "swap": the two clips would flow better in reversed order
+- "extend": the outgoing clip is cut too short to read
+
+Respond with ONLY a JSON array:
+[{ "cut": 0, "status": "ok" }, { "cut": 1, "status": "issue", "action": "nudge-in", "detail": "incoming frame is motion-blurred" }]`,
+          messages: [{ role: 'user', content: imageContent }],
+        })
+
+        const text = response.content.find(b => b.type === 'text')?.text ?? '[]'
+        const parsed = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || '[]')
+
+        for (const item of parsed) {
+          if (item.status === 'issue' && item.action) {
+            allIssues.push({
+              cutIndex: batch[0].index + (item.cut ?? 0),
+              action: item.action,
+              detail: item.detail || '',
+            })
+          }
+        }
+      } catch (err: any) {
+        console.error('[CutReview] Vision batch failed:', err.message)
+      }
+    }
+
+    // Clean up frame files
+    for (const pair of cutPairs) {
+      try { fs.unlinkSync(pair.outFrame) } catch {}
+      try { fs.unlinkSync(pair.inFrame) } catch {}
+    }
+
+    if (allIssues.length === 0) return result
+
+    const fixed = { ...result, storyboardClips: [...result.storyboardClips] }
+    const clipLookup = new Map(allClips.map(c => [c.id, c]))
+
+    for (const issue of allIssues) {
+      const clipA = fixed.storyboardClips[issue.cutIndex]
+      const clipB = fixed.storyboardClips[issue.cutIndex + 1]
+      if (!clipA || !clipB) continue
+
+      const sourceA = clipLookup.get(clipA.clipId)
+      const sourceB = clipLookup.get(clipB.clipId)
+
+      switch (issue.action) {
+        case 'nudge-out': {
+          const newEnd = clipA.endTime - 0.15
+          if (newEnd > clipA.startTime + 0.2) clipA.endTime = Math.round(newEnd * 1000) / 1000
+          break
+        }
+        case 'nudge-in': {
+          const maxDur = sourceB?.duration || clipB.duration
+          const newStart = clipB.startTime + 0.15
+          if (newStart < clipB.endTime - 0.2 && newStart < maxDur) clipB.startTime = Math.round(newStart * 1000) / 1000
+          break
+        }
+        case 'swap': {
+          const posA = clipA.position
+          const posB = clipB.position
+          clipA.position = posB
+          clipB.position = posA
+          fixed.storyboardClips[issue.cutIndex] = clipB
+          fixed.storyboardClips[issue.cutIndex + 1] = clipA
+          break
+        }
+        case 'extend': {
+          const maxDur = sourceA?.duration || clipA.duration
+          const newEnd = Math.min(clipA.endTime + 0.3, maxDur)
+          if (newEnd > clipA.endTime) clipA.endTime = Math.round(newEnd * 1000) / 1000
+          break
+        }
+      }
+    }
+
+    fixed.totalDuration = fixed.storyboardClips.reduce(
+      (sum, sc) => sum + (sc.endTime - sc.startTime), 0,
+    )
+
+    return fixed
   }
 
   private assembleByHeuristics(allClips: any[], brief: BriefFields): AssembledResult {
@@ -965,6 +1392,7 @@ Build the precision edit now. Follow the structural plan. Use rankedMoments to p
     }
 
     return {
+      assemblyId: '',
       storyboardClips,
       sfxPlacements: [],
       transitions: [],
