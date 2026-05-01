@@ -43,7 +43,8 @@ Rules:
     maxTokens: 4096,
   });
 
-  const breakdown: ProjectBreakdown = JSON.parse(raw);
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "");
+  const breakdown: ProjectBreakdown = JSON.parse(cleaned);
 
   const draftTasks: DraftTask[] = breakdown.phases.flatMap((phase) =>
     phase.tasks.map((taskTitle) => ({
