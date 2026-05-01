@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { contacts } from "@/lib/db/schema/contacts";
-import { deals } from "@/lib/db/schema/deals";
-import { eq, and, isNotNull } from "drizzle-orm";
+import { companies } from "@/lib/db/schema/companies";
+import { eq, isNotNull } from "drizzle-orm";
 import { logActivity } from "@/lib/activity-log";
 
 export interface BundleHubState {
@@ -49,20 +49,15 @@ export async function getBundleHubState(
   if (!contact) return NOT_SHOWN;
   if (contact.bundled_hub_seen_at_ms !== null) return NOT_SHOWN;
 
-  const [deal] = await db
+  const [company] = await db
     .select({
-      cloudinary_gallery_folder: deals.cloudinary_gallery_folder,
+      cloudinary_gallery_folder: companies.cloudinary_gallery_folder,
     })
-    .from(deals)
-    .where(
-      and(
-        eq(deals.company_id, contact.company_id),
-        isNotNull(deals.cloudinary_gallery_folder),
-      ),
-    )
+    .from(companies)
+    .where(eq(companies.id, contact.company_id))
     .limit(1);
 
-  const hasGallery = !!deal?.cloudinary_gallery_folder;
+  const hasGallery = !!company?.cloudinary_gallery_folder;
   if (!hasGallery) return NOT_SHOWN;
 
   // Six-week plan check — table doesn't exist yet (Wave 15 SWP-1).

@@ -132,6 +132,11 @@ export function transformUrl(
   });
 }
 
+export async function createFolder(folderPath: string): Promise<void> {
+  await ensureConfigured();
+  await cloudinary.api.create_folder(folderPath);
+}
+
 export async function generateArchiveUrl(
   folder: string,
   resourceType: "image" | "video" = "image",

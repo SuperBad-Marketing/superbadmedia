@@ -1,8 +1,10 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { contacts } from "@/lib/db/schema/contacts";
-import { deals } from "@/lib/db/schema/deals";
+import { companies } from "@/lib/db/schema/companies";
+import { gallery_assets, type GalleryApprovalStatus } from "@/lib/db/schema/gallery-assets";
 import { eq, and, inArray } from "drizzle-orm";
 import { getPortalSession } from "@/lib/portal/guard";
 import {
@@ -23,6 +25,8 @@ export type GalleryItem = {
   width: number;
   height: number;
   bytes: number;
+  createdAt: string;
+  approvalStatus: GalleryApprovalStatus;
 };
 
 export type GalleryArchive = {
@@ -30,11 +34,10 @@ export type GalleryArchive = {
   url: string;
 };
 
-async function getGalleryFolder(): Promise<{
+async function getGalleryContext(): Promise<{
   folder: string | null;
   contactId: string;
   companyId: string | null;
-  dealId: string | null;
 }> {
   const session = await getPortalSession();
   if (!session) throw new Error("No portal session");
@@ -46,31 +49,62 @@ async function getGalleryFolder(): Promise<{
     .limit(1);
 
   if (!contact?.company_id) {
-    return { folder: null, contactId: session.contactId, companyId: null, dealId: null };
+    return { folder: null, contactId: session.contactId, companyId: null };
   }
 
-  const dealRows = await db
-    .select({
-      id: deals.id,
-      cloudinary_gallery_folder: deals.cloudinary_gallery_folder,
-    })
-    .from(deals)
-    .where(
-      and(
-        eq(deals.company_id, contact.company_id),
-        inArray(deals.stage, ["won", "trial_shoot", "quoted", "negotiating"]),
-      ),
-    )
-    .limit(5);
-
-  const withFolder = dealRows.find((d) => d.cloudinary_gallery_folder);
+  const [company] = await db
+    .select({ cloudinary_gallery_folder: companies.cloudinary_gallery_folder })
+    .from(companies)
+    .where(eq(companies.id, contact.company_id))
+    .limit(1);
 
   return {
-    folder: withFolder?.cloudinary_gallery_folder ?? null,
+    folder: company?.cloudinary_gallery_folder ?? null,
     contactId: session.contactId,
     companyId: contact.company_id,
-    dealId: withFolder?.id ?? dealRows[0]?.id ?? null,
   };
+}
+
+async function syncAssets(
+  companyId: string,
+  resources: CloudinaryResource[],
+): Promise<Map<string, GalleryApprovalStatus>> {
+  const existing = await db
+    .select({
+      cloudinary_public_id: gallery_assets.cloudinary_public_id,
+      approval_status: gallery_assets.approval_status,
+    })
+    .from(gallery_assets)
+    .where(eq(gallery_assets.company_id, companyId));
+
+  const statusMap = new Map<string, GalleryApprovalStatus>();
+  for (const row of existing) {
+    statusMap.set(row.cloudinary_public_id, row.approval_status as GalleryApprovalStatus);
+  }
+
+  const newResources = resources.filter(
+    (r) => !statusMap.has(r.public_id),
+  );
+
+  if (newResources.length > 0) {
+    const nowMs = Date.now();
+    const inserts = newResources.map((r) => ({
+      id: randomUUID(),
+      company_id: companyId,
+      cloudinary_public_id: r.public_id,
+      resource_type: r.resource_type as "image" | "video" | "raw",
+      approval_status: "new" as const,
+      cloudinary_created_at: r.created_at,
+      created_at_ms: nowMs,
+      updated_at_ms: nowMs,
+    }));
+    await db.insert(gallery_assets).values(inserts);
+    for (const r of newResources) {
+      statusMap.set(r.public_id, "new");
+    }
+  }
+
+  return statusMap;
 }
 
 export async function fetchGalleryItems(): Promise<{
@@ -78,13 +112,17 @@ export async function fetchGalleryItems(): Promise<{
   archives: GalleryArchive[];
   hasMore: boolean;
 }> {
-  const { folder, contactId, companyId, dealId } = await getGalleryFolder();
+  const { folder, contactId, companyId } = await getGalleryContext();
 
-  if (!folder) {
+  if (!folder || !companyId) {
     return { items: [], archives: [], hasMore: false };
   }
 
-  const { resources, hasMore } = await listFolderAll(folder, { maxResults: 100 });
+  const { resources, hasMore } = await listFolderAll(folder, {
+    maxResults: 100,
+  });
+
+  const statusMap = await syncAssets(companyId, resources);
 
   const items: GalleryItem[] = resources
     .filter(
@@ -118,6 +156,8 @@ export async function fetchGalleryItems(): Promise<{
       width: r.width,
       height: r.height,
       bytes: r.bytes,
+      createdAt: r.created_at,
+      approvalStatus: statusMap.get(r.public_id) ?? "new",
     }));
 
   const hasImages = items.some((i) => i.resourceType === "image");
@@ -159,10 +199,60 @@ export async function fetchGalleryItems(): Promise<{
   void logActivity({
     contactId,
     companyId,
-    dealId,
     kind: "deliverables_viewed",
     body: `Gallery viewed (${items.length} items)`,
   });
 
   return { items, archives, hasMore };
+}
+
+export async function updateGalleryAssetStatus(
+  publicId: string,
+  status: GalleryApprovalStatus,
+  note?: string,
+): Promise<{ ok: boolean }> {
+  const { contactId, companyId } = await getGalleryContext();
+  if (!companyId) return { ok: false };
+
+  const nowMs = Date.now();
+  const [existing] = await db
+    .select({ id: gallery_assets.id })
+    .from(gallery_assets)
+    .where(
+      and(
+        eq(gallery_assets.company_id, companyId),
+        eq(gallery_assets.cloudinary_public_id, publicId),
+      ),
+    )
+    .limit(1);
+
+  if (!existing) return { ok: false };
+
+  await db
+    .update(gallery_assets)
+    .set({
+      approval_status: status,
+      status_changed_by: contactId,
+      status_note: note ?? null,
+      status_changed_at_ms: nowMs,
+      updated_at_ms: nowMs,
+    })
+    .where(eq(gallery_assets.id, existing.id));
+
+  const kind =
+    status === "approved"
+      ? "gallery_asset_approved"
+      : status === "revision_requested"
+        ? "gallery_asset_revision_requested"
+        : "gallery_asset_status_changed";
+
+  void logActivity({
+    contactId,
+    companyId,
+    kind,
+    body: `Asset ${status}: ${publicId}`,
+    meta: { publicId, status, note: note ?? null },
+  });
+
+  return { ok: true };
 }

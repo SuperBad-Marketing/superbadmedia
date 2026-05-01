@@ -106,6 +106,7 @@ function company(
     facebook_url: null,
     linkedin_url: null,
     tiktok_url: null,
+    cloudinary_gallery_folder: null,
     viability_profile_json: null,
     enrichment_summary: null,
     enriched_at_ms: null,

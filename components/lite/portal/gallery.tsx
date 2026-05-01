@@ -1,15 +1,39 @@
 "use client";
 
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useTransition } from "react";
 import { houseSpring } from "@/lib/design-tokens";
 import type { GalleryItem, GalleryArchive } from "@/app/lite/portal/[token]/gallery/actions";
+import { updateGalleryAssetStatus } from "@/app/lite/portal/[token]/gallery/actions";
+import type { GalleryApprovalStatus } from "@/lib/db/schema/gallery-assets";
 
 interface Props {
   items: GalleryItem[];
   archives: GalleryArchive[];
   hasMore: boolean;
 }
+
+type SortOrder = "newest" | "oldest";
+type FilterStatus = "all" | GalleryApprovalStatus;
+
+const FILTER_OPTIONS: { value: FilterStatus; label: string }[] = [
+  { value: "all", label: "all" },
+  { value: "new", label: "new" },
+  { value: "approved", label: "approved" },
+  { value: "revision_requested", label: "revision" },
+];
+
+const STATUS_COLORS: Record<GalleryApprovalStatus, string> = {
+  new: "bg-[var(--color-brand-orange)]",
+  approved: "bg-emerald-500",
+  revision_requested: "bg-[var(--color-brand-red)]",
+};
+
+const STATUS_LABELS: Record<GalleryApprovalStatus, string> = {
+  new: "new",
+  approved: "approved",
+  revision_requested: "revision requested",
+};
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -27,14 +51,33 @@ function GalleryEmpty() {
   );
 }
 
+function StatusBadge({ status }: { status: GalleryApprovalStatus }) {
+  return (
+    <span
+      className={`absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-white ${STATUS_COLORS[status]}`}
+    >
+      {STATUS_LABELS[status]}
+    </span>
+  );
+}
+
 function GalleryLightbox({
   item,
   onClose,
+  onStatusChange,
 }: {
   item: GalleryItem;
   onClose: () => void;
+  onStatusChange: (publicId: string, status: GalleryApprovalStatus) => void;
 }) {
   const shouldReduceMotion = useReducedMotion();
+  const [isPending, startTransition] = useTransition();
+
+  const handleStatus = (status: GalleryApprovalStatus) => {
+    startTransition(() => {
+      onStatusChange(item.publicId, status);
+    });
+  };
 
   return (
     <motion.div
@@ -60,18 +103,18 @@ function GalleryLightbox({
             src={item.fullUrl}
             controls
             autoPlay
-            className="max-h-[85vh] max-w-[85vw] rounded-lg"
+            className="max-h-[80vh] max-w-[85vw] rounded-lg"
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.fullUrl}
             alt=""
-            className="max-h-[85vh] max-w-[85vw] rounded-lg object-contain"
+            className="max-h-[80vh] max-w-[85vw] rounded-lg object-contain"
           />
         )}
 
-        <div className="absolute -bottom-14 left-0 right-0 flex items-center justify-center gap-4">
+        <div className="absolute -bottom-16 left-0 right-0 flex flex-wrap items-center justify-center gap-3">
           <a
             href={item.downloadUrl}
             download
@@ -80,6 +123,20 @@ function GalleryLightbox({
           >
             download
           </a>
+          <button
+            onClick={() => handleStatus("approved")}
+            disabled={isPending || item.approvalStatus === "approved"}
+            className="rounded-full bg-emerald-600 px-4 py-2 text-xs text-white transition-colors hover:bg-emerald-500 disabled:opacity-40"
+          >
+            approve
+          </button>
+          <button
+            onClick={() => handleStatus("revision_requested")}
+            disabled={isPending || item.approvalStatus === "revision_requested"}
+            className="rounded-full bg-[var(--color-brand-red)] px-4 py-2 text-xs text-white transition-colors hover:bg-[var(--color-brand-red)]/80 disabled:opacity-40"
+          >
+            request revision
+          </button>
           <span className="text-xs text-[var(--color-neutral-500)]">
             {formatBytes(item.bytes)} &middot; {item.format.toUpperCase()}
           </span>
@@ -120,6 +177,8 @@ function GalleryCard({
       className="group relative w-full cursor-pointer overflow-hidden rounded-lg bg-[var(--color-neutral-800)]"
       style={{ aspectRatio }}
     >
+      <StatusBadge status={item.approvalStatus} />
+
       {item.resourceType === "video" ? (
         <div className="relative h-full w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -181,11 +240,43 @@ function GalleryCard({
   );
 }
 
-export function PortalGallery({ items, archives, hasMore }: Props) {
+export function PortalGallery({ items: initialItems, archives, hasMore }: Props) {
   const shouldReduceMotion = useReducedMotion();
+  const [items, setItems] = useState(initialItems);
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   const closeLightbox = useCallback(() => setLightboxItem(null), []);
+
+  const handleStatusChange = useCallback(
+    async (publicId: string, status: GalleryApprovalStatus) => {
+      const result = await updateGalleryAssetStatus(publicId, status);
+      if (!result.ok) return;
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item.publicId === publicId ? { ...item, approvalStatus: status } : item,
+        ),
+      );
+      setLightboxItem((prev) =>
+        prev?.publicId === publicId ? { ...prev, approvalStatus: status } : prev,
+      );
+    },
+    [],
+  );
+
+  const filteredAndSorted = useMemo(() => {
+    let result = items;
+    if (filterStatus !== "all") {
+      result = result.filter((item) => item.approvalStatus === filterStatus);
+    }
+    return [...result].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+  }, [items, sortOrder, filterStatus]);
 
   if (items.length === 0) {
     return (
@@ -258,28 +349,95 @@ export function PortalGallery({ items, archives, hasMore }: Props) {
         </div>
       </motion.div>
 
-      <div className="columns-2 gap-3 pt-8 md:columns-3 lg:columns-4 [&>button]:mb-3">
-        {items.map((item, i) => (
-          <GalleryCard
-            key={item.publicId}
-            item={item}
-            index={i}
-            onClick={() => setLightboxItem(item)}
-          />
-        ))}
-      </div>
+      {/* Sort + Filter controls */}
+      <motion.div
+        initial={shouldReduceMotion ? {} : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0 }
+            : { ...houseSpring, delay: 0.1 }
+        }
+        className="flex flex-wrap items-center gap-3 pb-2 pt-6"
+      >
+        <div className="flex items-center gap-1.5">
+          {FILTER_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setFilterStatus(opt.value)}
+              className={`rounded-full px-3 py-1.5 text-[11px] uppercase tracking-wider transition-colors ${
+                filterStatus === opt.value
+                  ? "bg-[var(--color-brand-red)] text-white"
+                  : "bg-[var(--color-neutral-800)] text-[var(--color-neutral-400)] hover:text-[var(--color-brand-cream)]"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <div className="ml-auto">
+          <button
+            onClick={() =>
+              setSortOrder((prev) =>
+                prev === "newest" ? "oldest" : "newest",
+              )
+            }
+            className="flex items-center gap-1.5 rounded-full bg-[var(--color-neutral-800)] px-3 py-1.5 text-[11px] uppercase tracking-wider text-[var(--color-neutral-400)] transition-colors hover:text-[var(--color-brand-cream)]"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              className={`transition-transform ${sortOrder === "oldest" ? "rotate-180" : ""}`}
+            >
+              <path
+                d="M6 2v8M3 7l3 3 3-3"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {sortOrder === "newest" ? "newest first" : "oldest first"}
+          </button>
+        </div>
+      </motion.div>
+
+      {filteredAndSorted.length === 0 ? (
+        <div className="flex min-h-[30vh] items-center justify-center">
+          <p className="font-[family-name:var(--font-playfair-display)] text-[14px] italic text-[var(--color-neutral-500)]">
+            no {filterStatus === "all" ? "" : filterStatus.replace("_", " ")} files.
+          </p>
+        </div>
+      ) : (
+        <div className="columns-2 gap-3 pt-4 md:columns-3 lg:columns-4 [&>button]:mb-3">
+          {filteredAndSorted.map((item, i) => (
+            <GalleryCard
+              key={item.publicId}
+              item={item}
+              index={i}
+              onClick={() => setLightboxItem(item)}
+            />
+          ))}
+        </div>
+      )}
 
       {hasMore && (
         <div className="flex justify-center pb-10 pt-6">
           <p className="font-[family-name:var(--font-playfair-display)] text-[13px] italic text-[var(--color-neutral-500)]">
-            showing first {items.length} files , more available on request.
+            showing first {items.length} files, more available on request.
           </p>
         </div>
       )}
 
       <AnimatePresence>
         {lightboxItem && (
-          <GalleryLightbox item={lightboxItem} onClose={closeLightbox} />
+          <GalleryLightbox
+            item={lightboxItem}
+            onClose={closeLightbox}
+            onStatusChange={handleStatusChange}
+          />
         )}
       </AnimatePresence>
     </div>

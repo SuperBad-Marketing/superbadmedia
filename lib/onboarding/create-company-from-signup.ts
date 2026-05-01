@@ -22,6 +22,7 @@ import {
   normaliseCompanyName,
   normalisePhone,
 } from "@/lib/crm/normalise";
+import { provisionCompanyGalleryFolder } from "@/lib/cloudinary/provision-company-folder";
 
 export interface CreateCompanyFromSignupInput {
   /** Customer's full name from signup form */
@@ -98,6 +99,8 @@ export function createCompanyFromSignup(
       })
       .run();
   });
+
+  provisionCompanyGalleryFolder(companyId, companyName).catch(() => {});
 
   return { companyId, contactId, companyName };
 }

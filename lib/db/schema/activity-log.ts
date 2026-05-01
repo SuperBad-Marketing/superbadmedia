@@ -460,6 +460,11 @@ export const ACTIVITY_LOG_KINDS = [
   "project_deleted",
   "project_breakdown_generated",
   "project_tasks_approved",
+  // --- Gallery (4) ---
+  "gallery_folder_provisioned",
+  "gallery_asset_status_changed",
+  "gallery_asset_approved",
+  "gallery_asset_revision_requested",
 ] as const;
 
 export type ActivityLogKind = (typeof ACTIVITY_LOG_KINDS)[number];

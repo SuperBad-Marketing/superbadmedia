@@ -23,6 +23,7 @@ import { normaliseEmail, normaliseCompanyName } from "@/lib/crm/normalise";
 import type { NormalizedMessage } from "./normalize";
 import { loadRouterPromptContext, buildRouterPrompt } from "./router-prompt";
 import settings from "@/lib/settings";
+import { provisionCompanyGalleryFolder } from "@/lib/cloudinary/provision-company-folder";
 
 // ── Output schema ────────────────────────────────────────────────────
 
@@ -269,6 +270,7 @@ async function handleNewContact(
       updated_at_ms: nowMs,
     };
     await db.insert(companies).values(insert);
+    provisionCompanyGalleryFolder(companyId, companyName).catch(() => {});
   }
 
   // Create contact

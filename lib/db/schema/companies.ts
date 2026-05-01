@@ -138,6 +138,9 @@ export const companies = sqliteTable(
     linkedin_url: text("linkedin_url"),
     tiktok_url: text("tiktok_url"),
 
+    // ── Cloudinary gallery ──
+    cloudinary_gallery_folder: text("cloudinary_gallery_folder"),
+
     // ── Enrichment data (company-level, single source of truth) ──
     viability_profile_json: text("viability_profile_json", { mode: "json" }),
     enrichment_summary: text("enrichment_summary"),

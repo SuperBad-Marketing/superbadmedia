@@ -117,3 +117,4 @@ export * from "./productions";
 export * from "./rundown-sessions";
 export * from "./rundown-sequence-emails";
 export * from "./projects";
+export * from "./gallery-assets";

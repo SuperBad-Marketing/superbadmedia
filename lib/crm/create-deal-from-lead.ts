@@ -28,6 +28,7 @@ import {
   normaliseCompanyName,
   normaliseDomain,
 } from "./normalise";
+import { provisionCompanyGalleryFolder } from "@/lib/cloudinary/provision-company-folder";
 
 /**
  * Maps ingress sources to the stage a new deal should land in. Omission
@@ -199,7 +200,7 @@ export function createDealFromLead(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const database = dbArg as any;
 
-  return database.transaction((tx: Db) => {
+  const result: CreateDealFromLeadResult = database.transaction((tx: Db) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const txDb = tx as any;
 
@@ -384,4 +385,11 @@ export function createDealFromLead(
       contactReused,
     };
   });
+
+  if (!result.companyReused && !result.company.cloudinary_gallery_folder) {
+    provisionCompanyGalleryFolder(result.company.id, result.company.name)
+      .catch(() => {});
+  }
+
+  return result;
 }

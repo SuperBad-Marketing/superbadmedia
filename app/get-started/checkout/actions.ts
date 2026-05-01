@@ -32,6 +32,7 @@ import { saas_tiers } from "@/lib/db/schema/saas-tiers";
 import { getStripe } from "@/lib/stripe/client";
 import { ensureStripeCustomer } from "@/lib/stripe/customer";
 import { buildMonthlySetupFeeInvoiceItems } from "@/lib/billing/setup-fee";
+import { provisionCompanyGalleryFolder } from "@/lib/cloudinary/provision-company-folder";
 import type { CommitmentCadence } from "@/lib/content/checkout-page";
 
 const CADENCES = ["monthly", "annual_monthly", "annual_upfront"] as const;
@@ -197,6 +198,11 @@ export async function createSaasSubscriptionAction(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { ok: false, reason: `Couldn't save your details: ${message}` };
+  }
+
+  if (!existingCompany) {
+    provisionCompanyGalleryFolder(companyId, input.businessName.trim())
+      .catch(() => {});
   }
 
   // 3. Ensure Stripe Customer + attach email/name.
