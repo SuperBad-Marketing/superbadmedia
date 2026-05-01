@@ -37,19 +37,49 @@ describe("guessInstagramHandle", () => {
 });
 
 describe("applyInstagramToProfile", () => {
-  it("merges successful Instagram data", () => {
+  it("merges manual Instagram data into main profile", () => {
     const result: InstagramResult = {
       follower_count: 3200,
       post_count: 145,
       posts_last_30d: 8,
       username: "acmecafe",
+      match_source: "manual",
     };
     const profile = applyInstagramToProfile({}, result);
 
     expect(profile.instagram?.follower_count).toBe(3200);
     expect(profile.instagram?.post_count).toBe(145);
     expect(profile.instagram?.posts_last_30d).toBe(8);
-    expect(profile.fetch_errors).toBeUndefined();
+    expect(profile.unverified_signals).toBeUndefined();
+  });
+
+  it("merges scraped Instagram data into main profile", () => {
+    const result: InstagramResult = {
+      follower_count: 500,
+      post_count: 30,
+      posts_last_30d: 2,
+      username: "test",
+      match_source: "scraped",
+    };
+    const profile = applyInstagramToProfile({}, result);
+
+    expect(profile.instagram?.follower_count).toBe(500);
+    expect(profile.unverified_signals).toBeUndefined();
+  });
+
+  it("diverts searched Instagram data to unverified_signals", () => {
+    const result: InstagramResult = {
+      follower_count: 3200,
+      post_count: 145,
+      posts_last_30d: 8,
+      username: "acmecafe",
+      match_source: "searched",
+    };
+    const profile = applyInstagramToProfile({}, result);
+
+    expect(profile.instagram).toBeUndefined();
+    expect(profile.unverified_signals?.instagram?.username).toBe("acmecafe");
+    expect(profile.unverified_signals?.instagram?.follower_count).toBe(3200);
   });
 
   it("skips instagram section when all fields null (no data)", () => {
@@ -58,11 +88,13 @@ describe("applyInstagramToProfile", () => {
       post_count: null,
       posts_last_30d: null,
       username: "acmecafe",
+      match_source: "searched",
       error: "Account not found",
     };
     const profile = applyInstagramToProfile({}, result);
 
     expect(profile.instagram).toBeUndefined();
+    expect(profile.unverified_signals).toBeUndefined();
     expect(profile.fetch_errors?.instagram).toBe("Account not found");
   });
 
@@ -80,6 +112,7 @@ describe("applyInstagramToProfile", () => {
       post_count: 30,
       posts_last_30d: 2,
       username: "test",
+      match_source: "manual",
     };
     const profile = applyInstagramToProfile(existing, result);
 
@@ -87,12 +120,13 @@ describe("applyInstagramToProfile", () => {
     expect(profile.meta_ads?.active_ad_count).toBe(3);
   });
 
-  it("defaults null follower_count to 0 when post_count is available", () => {
+  it("defaults null follower_count to 0 when post_count is available (manual)", () => {
     const result: InstagramResult = {
       follower_count: null,
       post_count: 10,
       posts_last_30d: null,
       username: "test",
+      match_source: "manual",
     };
     const profile = applyInstagramToProfile({}, result);
 

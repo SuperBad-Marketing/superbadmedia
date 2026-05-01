@@ -536,6 +536,60 @@ export function EnrichmentCard({
                     </div>
                   )}
 
+                  {/* Unverified signals — found via search, not confirmed */}
+                  {profile?.unverified_signals && (
+                    Object.keys(profile.unverified_signals).length > 0 && (
+                      <div
+                        className="mt-3 rounded-lg p-3"
+                        style={{
+                          backgroundColor: "rgba(245, 158, 11, 0.06)",
+                          border: "1px solid rgba(245, 158, 11, 0.15)",
+                        }}
+                      >
+                        <span
+                          className="block mb-2 font-[family-name:var(--font-label)] text-[9px] uppercase"
+                          style={{ letterSpacing: "1.5px", color: "#f59e0b" }}
+                        >
+                          Unverified — may not belong to this business
+                        </span>
+                        {profile.unverified_signals.youtube && (
+                          <div className="flex items-center justify-between py-1">
+                            <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]">
+                              YouTube: {profile.unverified_signals.youtube.channel_title ?? "Unknown channel"}
+                              {" "}({profile.unverified_signals.youtube.video_count} videos, {profile.unverified_signals.youtube.subscriber_count?.toLocaleString() ?? "?"} subs)
+                            </span>
+                            <a
+                              href={profile.unverified_signals.youtube.channel_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 font-[family-name:var(--font-label)] text-[9px] uppercase underline"
+                              style={{ letterSpacing: "1px", color: "#f59e0b" }}
+                            >
+                              Check
+                            </a>
+                          </div>
+                        )}
+                        {profile.unverified_signals.instagram && (
+                          <div className="flex items-center justify-between py-1">
+                            <span className="font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-neutral-400)]">
+                              Instagram: @{profile.unverified_signals.instagram.username}
+                              {" "}({profile.unverified_signals.instagram.follower_count?.toLocaleString() ?? "?"} followers, {profile.unverified_signals.instagram.post_count} posts)
+                            </span>
+                            <a
+                              href={`https://www.instagram.com/${profile.unverified_signals.instagram.username}/`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 font-[family-name:var(--font-label)] text-[9px] uppercase underline"
+                              style={{ letterSpacing: "1px", color: "#f59e0b" }}
+                            >
+                              Check
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  )}
+
                   {/* Fetch errors */}
                   {profile?.fetch_errors &&
                     Object.keys(profile.fetch_errors).length > 0 && (

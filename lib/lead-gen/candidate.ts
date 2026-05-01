@@ -53,6 +53,8 @@ export async function createCandidate(
 
   const candidateId = randomUUID();
 
+  const autoNotes = buildUnverifiedSignalNotes(enrichedProfile);
+
   await dbInstance.insert(leadCandidates).values({
     id: candidateId,
     company_name: discovered.company_name,
@@ -62,6 +64,7 @@ export async function createCandidate(
     contact_role: input.contactRole ?? null,
     contact_phone: input.contactPhone ?? null,
     email_confidence: input.emailConfidence ?? null,
+    notes: autoNotes || null,
     viability_profile_json: enrichedProfile,
     saas_score: trackAssignment.saas.score,
     retainer_score: trackAssignment.retainer.score,
@@ -97,4 +100,31 @@ export async function createCandidate(
     track: trackAssignment.track,
     score: trackAssignment.score,
   };
+}
+
+function buildUnverifiedSignalNotes(profile: ViabilityProfile): string {
+  const lines: string[] = [];
+  const u = profile.unverified_signals;
+  if (!u) return "";
+
+  if (u.youtube) {
+    const name = u.youtube.channel_title
+      ? `"${u.youtube.channel_title}"`
+      : "a channel";
+    const stats = u.youtube.video_count > 0
+      ? `${u.youtube.video_count} videos, ${u.youtube.subscriber_count ?? "?"} subs`
+      : "no videos";
+    lines.push(
+      `[UNVERIFIED] YouTube: found ${name} (${stats}) — ${u.youtube.channel_url}. May not belong to this business.`,
+    );
+  }
+
+  if (u.instagram) {
+    const stats = `${u.instagram.follower_count} followers, ${u.instagram.post_count} posts`;
+    lines.push(
+      `[UNVERIFIED] Instagram: found @${u.instagram.username} (${stats}). Handle was guessed from domain — may not be correct.`,
+    );
+  }
+
+  return lines.join("\n");
 }

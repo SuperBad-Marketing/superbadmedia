@@ -97,10 +97,15 @@ export async function enrichCandidate(
   const manual = candidate.manual_social;
 
   // Instagram handle priority: manual > scraped footer link > domain guess
-  const scrapedIgHandle = manual?.instagram_handle
-    ?? (scrapedSocialLinks.instagram_url
-      ? extractHandleFromUrl(scrapedSocialLinks.instagram_url)
-      : undefined);
+  let igMatchSource: "manual" | "scraped" | "searched" = "searched";
+  let resolvedIgHandle: string | undefined;
+  if (manual?.instagram_handle) {
+    resolvedIgHandle = manual.instagram_handle;
+    igMatchSource = "manual";
+  } else if (scrapedSocialLinks.instagram_url) {
+    resolvedIgHandle = extractHandleFromUrl(scrapedSocialLinks.instagram_url);
+    igMatchSource = resolvedIgHandle ? "scraped" : "searched";
+  }
 
   // Phase 2: Remaining signals in parallel (Instagram now uses real handle)
   const tasks: Array<{
@@ -130,10 +135,10 @@ export async function enrichCandidate(
       name: "instagram",
       requires_domain: true,
       run: async () => {
-        const result = await fetchInstagram(candidate.domain!, scrapedIgHandle);
+        const result = await fetchInstagram(candidate.domain!, resolvedIgHandle, igMatchSource);
         profile = applyInstagramToProfile(profile, result);
         if (result.follower_count !== null) signalsSucceeded++;
-        if (result.username) igUsername = result.username;
+        if (result.username && result.match_source !== "searched") igUsername = result.username;
       },
     },
     {

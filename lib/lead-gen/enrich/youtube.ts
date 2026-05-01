@@ -51,11 +51,15 @@ interface YouTubeActivityResponse {
   error?: { message: string };
 }
 
+export type EnrichmentMatchSource = "manual" | "scraped" | "searched";
+
 export interface YouTubeResult {
   subscriber_count: number | null;
   video_count: number | null;
   uploads_last_90d: number | null;
   channel_id: string | null;
+  channel_title: string | null;
+  match_source: EnrichmentMatchSource;
   error?: string;
 }
 
@@ -79,18 +83,31 @@ export async function fetchYouTube(
       video_count: null,
       uploads_last_90d: null,
       channel_id: null,
+      channel_title: null,
+      match_source: manualUrl ? "manual" : "searched",
       error: "YouTube API key not found — complete the setup wizard first.",
     };
   }
 
   const start = Date.now();
+  const nullResult = (error: string, matchSource: EnrichmentMatchSource = "searched"): YouTubeResult => ({
+    subscriber_count: null,
+    video_count: null,
+    uploads_last_90d: null,
+    channel_id: null,
+    channel_title: null,
+    match_source: matchSource,
+    error,
+  });
 
   try {
-    // Step 1: Resolve channel ID — manual URL wins over search
     let channelId: string | undefined;
+    let channelTitle: string | null = null;
+    let matchSource: EnrichmentMatchSource = "searched";
 
     if (manualUrl) {
       channelId = await resolveChannelIdFromUrl(manualUrl, apiKey);
+      if (channelId) matchSource = "manual";
     }
 
     if (!channelId) {
@@ -113,40 +130,24 @@ export async function fetchYouTube(
 
       if (!searchResponse.ok) {
         logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
-        return {
-          subscriber_count: null,
-          video_count: null,
-          uploads_last_90d: null,
-          channel_id: null,
-          error: `YouTube search error: ${searchResponse.status} ${searchResponse.statusText}`,
-        };
+        return nullResult(`YouTube search error: ${searchResponse.status} ${searchResponse.statusText}`);
       }
 
       const searchData = (await searchResponse.json()) as YouTubeSearchResponse;
 
       if (searchData.error) {
         logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
-        return {
-          subscriber_count: null,
-          video_count: null,
-          uploads_last_90d: null,
-          channel_id: null,
-          error: `YouTube search error: ${searchData.error.message}`,
-        };
+        return nullResult(`YouTube search error: ${searchData.error.message}`);
       }
 
       channelId = searchData.items?.[0]?.snippet?.channelId;
+      channelTitle = searchData.items?.[0]?.snippet?.channelTitle ?? null;
+      matchSource = "searched";
     }
 
     if (!channelId) {
       logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
-      return {
-        subscriber_count: null,
-        video_count: null,
-        uploads_last_90d: null,
-        channel_id: null,
-        error: "No YouTube channel found for this business.",
-      };
+      return nullResult("No YouTube channel found for this business.");
     }
 
     // Step 2: Fetch channel statistics
@@ -202,7 +203,6 @@ export async function fetchYouTube(
       uploadsLast90d = activityData.items?.length ?? 0;
     }
 
-    const duration = Date.now() - start;
     logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 3 }, estimatedCostAud: 0 }).catch(() => {});
 
     return {
@@ -210,22 +210,22 @@ export async function fetchYouTube(
       video_count: videoCount,
       uploads_last_90d: uploadsLast90d,
       channel_id: channelId,
+      channel_title: channelTitle,
+      match_source: matchSource,
     };
   } catch (err) {
-    const duration = Date.now() - start;
     logExternalCall({ job: "google.youtube.data_api", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
-    return {
-      subscriber_count: null,
-      video_count: null,
-      uploads_last_90d: null,
-      channel_id: null,
-      error: `YouTube fetch failed: ${err instanceof Error ? err.message : String(err)}`,
-    };
+    return nullResult(`YouTube fetch failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
 /**
  * Merge YouTube result into a partial ViabilityProfile.
+ *
+ * Search-based matches (no manual URL, no website-scraped link) are
+ * diverted to `unverified_signals.youtube` instead of the main `youtube`
+ * field. This keeps unverified channels out of scoring and Brand DNA
+ * summaries while preserving the data for manual review.
  */
 export function applyYouTubeToProfile(
   profile: Partial<ViabilityProfile>,
@@ -244,13 +244,33 @@ export function applyYouTubeToProfile(
     };
   }
 
+  const data = {
+    subscriber_count: result.subscriber_count ?? 0,
+    video_count: result.video_count ?? 0,
+    uploads_last_90d: result.uploads_last_90d,
+  };
+
+  if (result.match_source === "searched") {
+    return {
+      ...profile,
+      unverified_signals: {
+        ...profile.unverified_signals,
+        youtube: {
+          ...data,
+          channel_id: result.channel_id!,
+          channel_title: result.channel_title,
+          channel_url: `https://www.youtube.com/channel/${result.channel_id}`,
+        },
+      },
+      fetch_errors: result.error
+        ? { ...profile.fetch_errors, youtube: result.error }
+        : profile.fetch_errors,
+    };
+  }
+
   return {
     ...profile,
-    youtube: {
-      subscriber_count: result.subscriber_count ?? 0,
-      video_count: result.video_count ?? 0,
-      uploads_last_90d: result.uploads_last_90d,
-    },
+    youtube: data,
     fetch_errors: result.error
       ? { ...profile.fetch_errors, youtube: result.error }
       : profile.fetch_errors,

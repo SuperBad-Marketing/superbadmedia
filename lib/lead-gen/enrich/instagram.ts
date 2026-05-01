@@ -16,12 +16,14 @@ import { META_GRAPH_API_VERSION } from "@/lib/integrations/vendors/meta";
 import { logExternalCall } from "@/lib/observatory";
 import { runApifyActor } from "@/lib/lead-gen/sources/apify-runner";
 import type { ViabilityProfile } from "../types";
+import type { EnrichmentMatchSource } from "./youtube";
 
 export interface InstagramResult {
   follower_count: number | null;
   post_count: number | null;
   posts_last_30d: number | null;
   username: string | null;
+  match_source: EnrichmentMatchSource;
   error?: string;
 }
 
@@ -60,18 +62,23 @@ export function guessInstagramHandle(domain: string): string {
 /**
  * Fetch Instagram profile data for a candidate.
  * Tries Meta Graph API first; falls back to Apify scraper.
+ *
+ * @param matchSource How the handle was resolved — "manual" (admin UI),
+ *   "scraped" (website footer), or "searched" (domain guess).
  */
 export async function fetchInstagram(
   domain: string,
   instagramHandle?: string,
+  matchSource?: EnrichmentMatchSource,
 ): Promise<InstagramResult> {
   const handle = instagramHandle ?? guessInstagramHandle(domain);
+  const source: EnrichmentMatchSource = matchSource ?? (instagramHandle ? "scraped" : "searched");
 
   const metaResult = await fetchViaMetaGraphApi(handle);
-  if (metaResult.follower_count !== null) return metaResult;
+  if (metaResult.follower_count !== null) return { ...metaResult, match_source: source };
 
   const apifyResult = await fetchViaApify(handle);
-  return apifyResult;
+  return { ...apifyResult, match_source: source };
 }
 
 // ── Meta Graph API (tier 1) ──────────────────────────────────────────
@@ -119,6 +126,7 @@ async function fetchViaMetaGraphApi(
       post_count: biz.media_count ?? null,
       posts_last_30d: countRecentPosts(biz.media?.data ?? [], 30),
       username: biz.username ?? handle,
+      match_source: "searched",
     };
   } catch (err) {
     logExternalCall({ job: "meta.instagram_business_discovery", actorType: "internal", units: { api_calls: 1 }, estimatedCostAud: 0 }).catch(() => {});
@@ -163,6 +171,7 @@ async function fetchViaApify(
       post_count: profile.postsCount ?? null,
       posts_last_30d: postsLast30d,
       username: profile.username ?? handle,
+      match_source: "searched",
     };
   } catch (err) {
     return emptyResult(handle, `Apify Instagram scrape failed: ${err instanceof Error ? err.message : String(err)}`);
@@ -175,6 +184,7 @@ function emptyResult(handle: string | null, error: string): InstagramResult {
     post_count: null,
     posts_last_30d: null,
     username: handle,
+    match_source: "searched",
     error,
   };
 }
@@ -192,6 +202,10 @@ function countRecentPosts(
 
 /**
  * Merge Instagram result into a partial ViabilityProfile.
+ *
+ * Domain-guessed handles ("searched") are diverted to
+ * `unverified_signals.instagram` to keep them out of scoring and
+ * Brand DNA summaries until manually confirmed.
  */
 export function applyInstagramToProfile(
   profile: Partial<ViabilityProfile>,
@@ -210,13 +224,31 @@ export function applyInstagramToProfile(
     };
   }
 
+  const data = {
+    follower_count: result.follower_count ?? 0,
+    post_count: result.post_count ?? 0,
+    posts_last_30d: result.posts_last_30d,
+  };
+
+  if (result.match_source === "searched") {
+    return {
+      ...profile,
+      unverified_signals: {
+        ...profile.unverified_signals,
+        instagram: {
+          ...data,
+          username: result.username ?? "",
+        },
+      },
+      fetch_errors: result.error
+        ? { ...profile.fetch_errors, instagram: result.error }
+        : profile.fetch_errors,
+    };
+  }
+
   return {
     ...profile,
-    instagram: {
-      follower_count: result.follower_count ?? 0,
-      post_count: result.post_count ?? 0,
-      posts_last_30d: result.posts_last_30d,
-    },
+    instagram: data,
     fetch_errors: result.error
       ? { ...profile.fetch_errors, instagram: result.error }
       : profile.fetch_errors,

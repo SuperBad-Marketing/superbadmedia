@@ -102,6 +102,25 @@ export interface ViabilityProfile {
     youtube_url: string | null;
   };
 
+  // Signals found via search that couldn't be verified as belonging to this business.
+  // Stored for review but excluded from scoring and Brand DNA summaries.
+  unverified_signals?: {
+    youtube?: {
+      subscriber_count: number;
+      video_count: number;
+      uploads_last_90d: number | null;
+      channel_id: string;
+      channel_title: string | null;
+      channel_url: string;
+    };
+    instagram?: {
+      follower_count: number;
+      post_count: number;
+      posts_last_30d: number | null;
+      username: string;
+    };
+  };
+
   // Per-source fetch status
   fetch_errors?: Record<string, string>;
 }
