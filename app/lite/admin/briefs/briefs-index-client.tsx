@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FileText, Search } from "lucide-react";
+import { Download, FileText, Globe, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 
@@ -135,7 +135,7 @@ export function BriefsIndexClient({ rows }: { rows: BriefIndexRow[] }) {
           <table className="w-full text-left">
             <thead>
               <tr>
-                {["Reference", "Business", "Contact", "Type", "Delivery", "Status", "Match"].map((label) => (
+                {["Reference", "Business", "Contact", "Type", "Delivery", "Status", "Match", ""].map((label) => (
                   <th
                     key={label}
                     className="font-[family-name:var(--font-label)] text-[10px] uppercase text-[color:var(--color-neutral-500)]"
@@ -228,6 +228,29 @@ export function BriefsIndexClient({ rows }: { rows: BriefIndexRow[] }) {
                           —
                         </span>
                       )}
+                    </td>
+                    <td style={TD}>
+                      <div className="flex items-center gap-1">
+                        <a
+                          href={`/api/briefs/${b.id}/export?format=md`}
+                          download
+                          className="flex size-7 items-center justify-center rounded-md transition-colors duration-[180ms] hover:bg-[color:rgba(253,245,230,0.06)]"
+                          title="Download .md"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Download className="size-3.5 text-[color:var(--color-neutral-500)] transition-colors duration-[180ms] hover:text-[color:var(--color-brand-cream)]" strokeWidth={1.5} />
+                        </a>
+                        <a
+                          href={`/api/briefs/${b.id}/export?format=html`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex size-7 items-center justify-center rounded-md transition-colors duration-[180ms] hover:bg-[color:rgba(253,245,230,0.06)]"
+                          title="Open branded brief"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Globe className="size-3.5 text-[color:var(--color-neutral-500)] transition-colors duration-[180ms] hover:text-[color:var(--color-brand-cream)]" strokeWidth={1.5} />
+                        </a>
+                      </div>
                     </td>
                   </motion.tr>
                 );
