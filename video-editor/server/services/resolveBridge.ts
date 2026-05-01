@@ -8,11 +8,49 @@ interface ResolveStatus {
   project?: string | null
   timeline?: string | null
   error?: string
+  ffmpeg?: boolean
+  sox?: boolean
 }
 
 interface ResolveCommand {
   action: string
   params?: Record<string, any>
+}
+
+interface FusionIngredient {
+  id: string
+  variant?: string
+  params?: Record<string, any>
+  fusion_script?: string
+  tool_name?: string
+}
+
+interface AudioFilter {
+  type: 'lowpass' | 'highpass' | 'bandpass' | 'reverb' | 'echo' | 'pitch' | 'speed' | 'flanger' | 'phaser' | 'overdrive' | 'downsample'
+  [key: string]: any
+}
+
+interface RegisteredEffect {
+  id: string
+  ingredient_id: string
+  variant: string
+  type: string
+  bypassed: boolean
+  parameters: Record<string, any>
+}
+
+interface ClipEffectsState {
+  clip_index: number
+  color_nodes: { index: number; params: Record<string, any> }[]
+  fusion_tools: { name: string; type: string }[]
+  resolve_fx: { name: string; params: Record<string, any> }[]
+  speed: number
+  retime_mode: string
+  transform: Record<string, number>
+  audio_volume: number
+  audio_muted: boolean
+  audio_pan: number
+  registered_effects: RegisteredEffect[]
 }
 
 type PendingRequest = {
@@ -133,12 +171,15 @@ export class ResolveBridgeService {
       return { error: 'Bridge not running' }
     }
 
+    const slowActions = new Set(['load_project', 'close_project', 'render', 'build_compound_fusion', 'inject_fusion_comp'])
+    const timeoutMs = slowActions.has(command.action) ? 120000 : 30000
+
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         const idx = this.pendingRequests.findIndex(p => p.timer === timer)
         if (idx !== -1) this.pendingRequests.splice(idx, 1)
         resolve({ error: 'Command timeout' })
-      }, 30000)
+      }, timeoutMs)
 
       this.pendingRequests.push({ resolve, reject, timer })
 
@@ -232,6 +273,174 @@ export class ResolveBridgeService {
   async getRenderStatus() {
     return this.send({ action: 'render_status' })
   }
+
+  // --- Visual effects ---
+
+  async applyResolveFx(clipIndex: number, effectName: string, parameters?: Record<string, any>) {
+    return this.send({ action: 'apply_resolve_fx', params: { clip_index: clipIndex, effect_name: effectName, parameters } })
+  }
+
+  async injectFusionComp(clipIndex: number, fusionScript: string) {
+    return this.send({ action: 'inject_fusion_comp', params: { clip_index: clipIndex, fusion_script: fusionScript } })
+  }
+
+  async buildCompoundFusion(clipIndex: number, ingredients: FusionIngredient[]) {
+    return this.send({ action: 'build_compound_fusion', params: { clip_index: clipIndex, ingredients } })
+  }
+
+  async setFusionParam(clipIndex: number, toolName: string, param: string, value: any) {
+    return this.send({ action: 'set_fusion_param', params: { clip_index: clipIndex, tool_name: toolName, param, value } })
+  }
+
+  // --- Colour ---
+
+  async applyCst(clipIndex: number, nodeIndex: number, inputColorSpace: string, inputGamma: string, outputColorSpace = 'Rec.709', outputGamma = 'Gamma 2.4') {
+    return this.send({ action: 'apply_cst', params: { clip_index: clipIndex, node_index: nodeIndex, input_color_space: inputColorSpace, input_gamma: inputGamma, output_color_space: outputColorSpace, output_gamma: outputGamma } })
+  }
+
+  async addColorNode(clipIndex: number, nodeType: 'serial' | 'parallel' | 'layer' = 'serial') {
+    return this.send({ action: 'add_color_node', params: { clip_index: clipIndex, node_type: nodeType } })
+  }
+
+  async setNodeParams(clipIndex: number, nodeIndex: number, params: Record<string, any>) {
+    return this.send({ action: 'set_node_params', params: { clip_index: clipIndex, node_index: nodeIndex, params } })
+  }
+
+  async setKeyframe(clipIndex: number, nodeIndex: number, param: string, frame: number, value: number) {
+    return this.send({ action: 'set_keyframe', params: { clip_index: clipIndex, node_index: nodeIndex, param, frame, value } })
+  }
+
+  // --- Audio Tier A ---
+
+  async setClipVolume(clipIndex: number, volumeDb: number) {
+    return this.send({ action: 'set_clip_volume', params: { clip_index: clipIndex, volume_db: volumeDb } })
+  }
+
+  async setVolumeKeyframe(clipIndex: number, frame: number, volumeDb: number) {
+    return this.send({ action: 'set_volume_keyframe', params: { clip_index: clipIndex, frame, volume_db: volumeDb } })
+  }
+
+  async setClipPan(clipIndex: number, pan: number) {
+    return this.send({ action: 'set_clip_pan', params: { clip_index: clipIndex, pan } })
+  }
+
+  async muteClipAudio(clipIndex: number, muted: boolean) {
+    return this.send({ action: 'mute_clip_audio', params: { clip_index: clipIndex, muted } })
+  }
+
+  async addAudioTrack(name = 'SFX') {
+    return this.send({ action: 'add_audio_track', params: { name } })
+  }
+
+  async importAudioToTrack(trackIndex: number, filePath: string, timelinePosition: number) {
+    return this.send({ action: 'import_audio_to_track', params: { track_index: trackIndex, file_path: filePath, timeline_position: timelinePosition } })
+  }
+
+  // --- Audio Tier B ---
+
+  async preprocessAudio(sourceFilePath: string, startTime: number, endTime: number, filters: AudioFilter[]) {
+    return this.send({ action: 'preprocess_audio', params: { source_file_path: sourceFilePath, start_time: startTime, end_time: endTime, filters } })
+  }
+
+  async replaceClipAudio(clipIndex: number, processedAudioPath: string) {
+    return this.send({ action: 'replace_clip_audio', params: { clip_index: clipIndex, processed_audio_path: processedAudioPath } })
+  }
+
+  // --- Timeline operations ---
+
+  async addAdjustmentLayer(startFrame: number, endFrame: number) {
+    return this.send({ action: 'add_adjustment_layer', params: { start_frame: startFrame, end_frame: endFrame } })
+  }
+
+  async setCompositeMode(clipIndex: number, mode: string) {
+    return this.send({ action: 'set_composite_mode', params: { clip_index: clipIndex, mode } })
+  }
+
+  async duplicateToTrack(clipIndex: number, targetTrack: number) {
+    return this.send({ action: 'duplicate_to_track', params: { clip_index: clipIndex, target_track: targetTrack } })
+  }
+
+  async addMarker(clipIndex: number, frame: number, color = 'Blue', name = '', note = '') {
+    return this.send({ action: 'add_marker', params: { clip_index: clipIndex, frame, color, name, note } })
+  }
+
+  async razorAt(clipIndex: number, frame: number) {
+    return this.send({ action: 'razor_at', params: { clip_index: clipIndex, frame } })
+  }
+
+  async setSpeedCurve(clipIndex: number, keyframes: { frame: number; speed: number }[]) {
+    return this.send({ action: 'set_speed_curve', params: { clip_index: clipIndex, keyframes } })
+  }
+
+  // --- Clip properties ---
+
+  async setClipOpacity(clipIndex: number, opacity: number) {
+    return this.send({ action: 'set_clip_opacity', params: { clip_index: clipIndex, opacity } })
+  }
+
+  async setRetiming(clipIndex: number, mode: 'optical_flow' | 'nearest' | 'frame_blend', speed: number) {
+    return this.send({ action: 'set_retiming', params: { clip_index: clipIndex, mode, speed } })
+  }
+
+  async setClipTransform(clipIndex: number, params: Record<string, number>) {
+    return this.send({ action: 'set_clip_transform', params: { clip_index: clipIndex, params } })
+  }
+
+  // --- Effect management ---
+
+  async getClipEffectsState(clipIndex: number): Promise<ClipEffectsState> {
+    return this.send({ action: 'get_clip_effects_state', params: { clip_index: clipIndex } })
+  }
+
+  async removeEffect(clipIndex: number, effectId: string) {
+    return this.send({ action: 'remove_effect', params: { clip_index: clipIndex, effect_id: effectId } })
+  }
+
+  async updateEffectParam(clipIndex: number, effectId: string, param: string, value: any) {
+    return this.send({ action: 'update_effect_param', params: { clip_index: clipIndex, effect_id: effectId, param, value } })
+  }
+
+  async bypassEffect(clipIndex: number, effectId: string, bypassed: boolean) {
+    return this.send({ action: 'bypass_effect', params: { clip_index: clipIndex, effect_id: effectId, bypassed } })
+  }
+
+  async renderStill(clipIndex: number, frame: number, effectsMask?: string[]): Promise<{ still_path?: string; success: boolean }> {
+    return this.send({ action: 'render_still', params: { clip_index: clipIndex, frame, effects_mask: effectsMask } })
+  }
+
+  async reorderEffects(clipIndex: number, effectIds: string[]) {
+    return this.send({ action: 'reorder_effects', params: { clip_index: clipIndex, effect_ids: effectIds } })
+  }
+
+  async listProjects(): Promise<{ projects: string[] }> {
+    return this.send({ action: 'list_projects' })
+  }
+
+  async loadProject(name: string) {
+    return this.send({ action: 'load_project', params: { name } })
+  }
+
+  async closeProject() {
+    return this.send({ action: 'close_project' })
+  }
+
+  async addPowerWindow(clipIndex: number, nodeIndex?: number, windowType = 'circular', params?: Record<string, any>) {
+    return this.send({ action: 'add_power_window', params: { clip_index: clipIndex, node_index: nodeIndex, window_type: windowType, params } })
+  }
+
+  async addQualifier(clipIndex: number, nodeIndex?: number, qualifierType = 'hsl', params?: Record<string, any>) {
+    return this.send({ action: 'add_qualifier', params: { clip_index: clipIndex, node_index: nodeIndex, qualifier_type: qualifierType, params } })
+  }
+
+  async setupMagicMask(clipIndex: number, maskMode = 'person', nodeIndex?: number) {
+    return this.send({ action: 'setup_magic_mask', params: { clip_index: clipIndex, mask_mode: maskMode, node_index: nodeIndex } })
+  }
+
+  async setupMaskedGrade(clipIndex: number, maskType = 'magic_mask', maskParams?: Record<string, any>, gradeParams?: Record<string, any>, invert = false) {
+    return this.send({ action: 'setup_masked_grade', params: { clip_index: clipIndex, mask_type: maskType, mask_params: maskParams, grade_params: gradeParams, invert } })
+  }
+
+  // --- Full timeline push ---
 
   async pushTimeline(
     projectName: string,
