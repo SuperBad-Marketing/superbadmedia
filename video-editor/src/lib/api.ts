@@ -431,3 +431,162 @@ export async function saveSettings(settings: Record<string, string>): Promise<{ 
   })
   return res.json()
 }
+
+// Queue
+export interface StructuredBrief {
+  businessName: string
+  contactName: string
+  email: string
+  projectTitle?: string
+  briefType: 'shoot' | 'edit' | 'shoot-edit'
+  description: string
+  keyMessages?: string
+  targetAudience?: string
+  deliverables?: string
+  styleReferences?: string
+  budgetRange?: string
+  deliveryDate?: string
+  notes?: string
+}
+
+export interface QueueJob {
+  id: string
+  projectId: string
+  projectName: string
+  sourcePath: string
+  clientId?: string
+  structuredBrief: StructuredBrief
+  editBrief?: BriefFields
+  status: 'pending' | 'importing' | 'analyzing-vision' | 'translating' | 'assembling' | 'pushing-resolve' | 'saving' | 'complete' | 'error'
+  progress: number
+  statusText: string
+  result?: { clipCount: number; totalDuration: number; narrative: string; resolveProject?: string }
+  error?: string
+  createdAt: string
+  startedAt?: string
+  completedAt?: string
+}
+
+export async function getQueue(): Promise<{ jobs: QueueJob[]; processing: boolean }> {
+  const res = await fetch(`${API_BASE}/queue`)
+  return res.json()
+}
+
+export async function getQueueJob(id: string): Promise<QueueJob> {
+  const res = await fetch(`${API_BASE}/queue/${id}`)
+  return res.json()
+}
+
+export async function submitQueueJob(
+  sourcePath: string,
+  brief: StructuredBrief,
+  clientId?: string,
+): Promise<QueueJob> {
+  const res = await fetch(`${API_BASE}/queue/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sourcePath, brief, clientId }),
+  })
+  return res.json()
+}
+
+export async function startQueue(): Promise<void> {
+  await fetch(`${API_BASE}/queue/start`, { method: 'POST' })
+}
+
+export async function stopQueue(): Promise<void> {
+  await fetch(`${API_BASE}/queue/stop`, { method: 'POST' })
+}
+
+export async function removeQueueJob(id: string): Promise<void> {
+  await fetch(`${API_BASE}/queue/${id}`, { method: 'DELETE' })
+}
+
+// Clients
+export interface ClientProfile {
+  id: string
+  name: string
+  contactName: string
+  email: string
+  logoPath?: string
+  brandColors?: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ClientInstructions {
+  editing: string[]
+  style: string[]
+  avoid: string[]
+  general: string[]
+}
+
+export interface ClientData {
+  profile: ClientProfile
+  instructions: ClientInstructions
+  footageLibraryPath?: string
+  projectIds: string[]
+}
+
+export async function listClients(): Promise<ClientProfile[]> {
+  const res = await fetch(`${API_BASE}/clients`)
+  return res.json()
+}
+
+export async function getClient(id: string): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}`)
+  return res.json()
+}
+
+export async function createClient(profile: { name: string; contactName?: string; email?: string }): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(profile),
+  })
+  return res.json()
+}
+
+export async function updateClientInstructions(id: string, instructions: ClientInstructions): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/instructions`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(instructions),
+  })
+  return res.json()
+}
+
+export async function addClientInstruction(
+  id: string,
+  category: keyof ClientInstructions,
+  instruction: string,
+): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/instructions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ category, instruction }),
+  })
+  return res.json()
+}
+
+// Revision
+export interface RevisionResult {
+  response: string
+  storyboardUpdates?: any[]
+  sfxUpdates?: any[]
+  transitionUpdates?: any[]
+  learnedInstructions?: { category: string; instruction: string }[]
+}
+
+export async function sendRevision(
+  context: any,
+  feedback: string,
+  conversationHistory: { role: 'user' | 'assistant'; content: string }[],
+): Promise<RevisionResult> {
+  const res = await fetch(`${API_BASE}/revision`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ context, feedback, conversationHistory }),
+  })
+  return res.json()
+}

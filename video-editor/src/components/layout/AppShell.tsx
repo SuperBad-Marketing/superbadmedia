@@ -13,6 +13,7 @@ const BriefBuilder = lazy(() => import('../brief/BriefBuilder'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
 const RefineView = lazy(() => import('../refine/RefineView'))
 const DeliverView = lazy(() => import('../deliver/DeliverView'))
+const QueueView = lazy(() => import('../queue/QueueView'))
 
 function ViewFallback() {
   return <ViewLoader message="Loading your workspace." />
@@ -38,6 +39,12 @@ function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
       return (
         <Suspense fallback={<ViewFallback />}>
           <DeliverView />
+        </Suspense>
+      )
+    case 'queue':
+      return (
+        <Suspense fallback={<ViewFallback />}>
+          <QueueView />
         </Suspense>
       )
   }

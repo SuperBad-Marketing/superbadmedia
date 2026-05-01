@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { Plus, ArrowRight, Film, Clock, Music } from 'lucide-react'
+import { Plus, ArrowRight, Film, Clock, Music, ListOrdered } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { listProjects, loadProject } from '../../lib/api'
 import type { ProjectSummary } from '../../lib/api'
@@ -189,17 +189,28 @@ export default function HomeScreen() {
           </motion.div>
         )}
 
-        {/* New project button */}
-        <motion.button
+        {/* Action buttons */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.4 }}
-          onClick={startNew}
-          className="mt-10 flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 cursor-pointer"
+          className="mt-10 flex items-center gap-3"
         >
-          <Plus size={14} />
-          New project
-        </motion.button>
+          <button
+            onClick={startNew}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 cursor-pointer"
+          >
+            <Plus size={14} />
+            New project
+          </button>
+          <button
+            onClick={() => setWorkflowPhase('queue')}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 cursor-pointer"
+          >
+            <ListOrdered size={14} />
+            Overnight queue
+          </button>
+        </motion.div>
       </motion.div>
     </div>
   )

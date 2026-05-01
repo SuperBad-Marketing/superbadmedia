@@ -21,6 +21,9 @@ import { briefRouter } from './routes/brief.js'
 import { projectsRouter } from './routes/projects.js'
 import { cloudinaryRouter } from './routes/cloudinary.js'
 import { audioRouter } from './routes/audio.js'
+import { queueRouter } from './routes/queue.js'
+import { clientsRouter } from './routes/clients.js'
+import { revisionRouter } from './routes/revision.js'
 
 const app = express()
 const PORT = 5201
@@ -96,6 +99,9 @@ app.use('/api/brief', briefRouter)
 app.use('/api/projects', projectsRouter)
 app.use('/api/cloudinary', cloudinaryRouter)
 app.use('/api/audio', audioRouter)
+app.use('/api/queue', queueRouter)
+app.use('/api/clients', clientsRouter)
+app.use('/api/revision', revisionRouter)
 
 app.listen(PORT, () => {
   console.warn(`SuperEdits server running on port ${PORT}`)

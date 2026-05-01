@@ -232,6 +232,51 @@ export class ResolveBridgeService {
   async getRenderStatus() {
     return this.send({ action: 'render_status' })
   }
+
+  async pushTimeline(
+    projectName: string,
+    clips: { filePath: string; startTime: number; endTime: number; position: number }[],
+    transitions?: { afterClipPosition: number; type: string; duration: number }[],
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!this._status.connected) {
+      const connectResult = await this.start()
+      if (!connectResult.connected) {
+        return { success: false, error: 'Could not connect to Resolve' }
+      }
+    }
+
+    const createResult = await this.createProject(projectName)
+    if (createResult.error) {
+      return { success: false, error: createResult.error }
+    }
+
+    const filePaths = [...new Set(clips.map(c => c.filePath))]
+    const importResult = await this.importMedia(filePaths)
+    if (importResult.error) {
+      return { success: false, error: importResult.error }
+    }
+
+    const timelineResult = await this.createTimeline(projectName)
+    if (timelineResult.error) {
+      return { success: false, error: timelineResult.error }
+    }
+
+    const sorted = [...clips].sort((a, b) => a.position - b.position)
+    const filePathToIndex = new Map(filePaths.map((fp, i) => [fp, i]))
+
+    for (const clip of sorted) {
+      const mediaIndex = filePathToIndex.get(clip.filePath) ?? 0
+      await this.addClipsToTimeline([mediaIndex])
+    }
+
+    if (transitions) {
+      for (const t of transitions) {
+        await this.addTransition(t.afterClipPosition, t.type || 'Cross Dissolve', t.duration)
+      }
+    }
+
+    return { success: true }
+  }
 }
 
 export const resolveBridge = new ResolveBridgeService()
