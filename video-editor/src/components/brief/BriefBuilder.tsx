@@ -231,6 +231,7 @@ export default function BriefBuilder() {
             startTime: sc.startTime,
             endTime: sc.endTime,
             position: sc.position,
+            audioOffset: sc.audioOffset || 0,
           }
         })
         setStoryboardClips(storyboard)

@@ -90,6 +90,7 @@ export interface AssembledResult {
     startTime: number
     endTime: number
     position: number
+    audioOffset: number
     reason: string
   }[]
   sfxPlacements: SfxPlacementResult[]
@@ -333,6 +334,36 @@ Use this seed to make creative choices. Different seeds = different valid edits 
 - Chaos < 30: deliberate transitions at section boundaries. Chaos > 70: almost no transitions.
 - Match style to moment: impact for energy shifts, dissolve for breath, whip for velocity.
 
+## J-CUT AND L-CUT RULES
+Every clip has an "audioOffset" field that controls whether its audio starts before or after the visual cut.
+
+- **audioOffset: 0** = straight cut. Audio and video switch at the same frame. DEFAULT for most cuts.
+- **audioOffset: negative (e.g. -0.5)** = J-CUT. The NEXT clip's audio starts playing 0.5s BEFORE its video appears. The viewer hears the incoming scene before seeing it.
+- **audioOffset: positive (e.g. 0.4)** = L-CUT. The CURRENT clip's audio continues playing 0.4s AFTER its video ends. The viewer still hears the outgoing scene over the new visual.
+
+WHEN TO USE J-CUTS (audio leads the eye):
+- Cutting TO a clip with distinctive ambient sound (ocean, crowd, machinery) — let the sound pull the viewer in
+- Cutting TO a clip where someone is speaking or reacting — hear the voice before seeing the face
+- Entering a new environment — the new room/location's sound arrives before the image
+- Building anticipation before a reveal
+
+WHEN TO USE L-CUTS (audio lingers):
+- Cutting AWAY FROM an emotional moment — let the feeling hold while the visual moves on
+- Cutting AWAY FROM a speaker to show what they're describing or reacting to
+- Leaving a distinctive environment — the sound fades out gradually rather than chopping off
+- After a held shot with rich ambient sound — smooths the exit
+
+WHEN TO USE STRAIGHT CUTS (audioOffset: 0):
+- Fast-cut montages and staccato bursts — split-audio would muddy the rhythm
+- Beat-aligned cuts where music is the primary audio — clip audio is secondary
+- Flash cuts under 0.5s — too short for audio overlap to register
+- Any cut where neither clip has meaningful audio (silent b-roll over music)
+
+TYPICAL VALUES:
+- J-cuts: -0.3 to -0.8s (short anticipation). Never more than -1.0s.
+- L-cuts: 0.3 to 0.8s (brief linger). Never more than -1.0s.
+- Use sparingly: 2-4 per 30s edit. Not every cut needs one. Overuse destroys the effect.
+
 ## SFX RULES
 - Layer: ambient beds underneath, risers building to drops, impacts on hard cuts, foley for texture.
 - SFX searchQuery = specific Epidemic Sound search terms.
@@ -345,7 +376,8 @@ ${skills ? `## EDITORIAL KNOWLEDGE\n\n${skills}\n` : ''}${tasteContext ? `\n${ta
 Respond with ONLY a JSON object:
 {
   "clips": [
-    { "clipId": "uuid", "startTime": 1.2, "endTime": 1.5, "reason": "flash — runner's feet" }
+    { "clipId": "uuid", "startTime": 1.2, "endTime": 1.5, "audioOffset": 0, "reason": "flash — runner's feet" },
+    { "clipId": "uuid", "startTime": 3.0, "endTime": 5.5, "audioOffset": -0.5, "reason": "J-cut — ocean audio leads before the wide shot appears" }
   ],
   "transitions": [
     { "afterClipIndex": 4, "presetId": "wipe-whip", "duration": 0.4, "reason": "whip into cinematic hold" }
@@ -1176,6 +1208,7 @@ Build the precision edit now. Follow the structural plan. Use rankedMoments to p
         startTime,
         endTime,
         position: storyboardClips.length,
+        audioOffset: (edit as any).audioOffset ?? 0,
         reason: edit.reason,
       })
 
@@ -1390,6 +1423,7 @@ Respond with ONLY a JSON array:
         startTime: Math.round(startTime * 10) / 10,
         endTime: Math.round((startTime + useDuration) * 10) / 10,
         position: storyboardClips.length,
+        audioOffset: 0,
         reason: 'Selected by quality rating',
       })
 

@@ -170,6 +170,7 @@ export default function StoryboardView() {
           filePath: c.clip.filePath,
           startTime: c.startTime,
           endTime: c.endTime,
+          audioOffset: c.audioOffset || 0,
         }))
         await sendToResolve('add_clips_with_timing', { clips: clipData })
 

@@ -108,6 +108,7 @@ export const useAppStore = create<AppState>()(
           startTime: 0,
           endTime: clip.duration,
           position: state.storyboardClips.length,
+          audioOffset: 0,
         }
         return { storyboardClips: [...state.storyboardClips, sc] }
       }),

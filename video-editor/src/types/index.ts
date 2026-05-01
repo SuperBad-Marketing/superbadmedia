@@ -65,6 +65,7 @@ export interface StoryboardClip {
   startTime: number // in source clip
   endTime: number // in source clip
   position: number // order in storyboard
+  audioOffset: number
   transitionIn?: Transition
   transitionOut?: Transition
 }
@@ -104,10 +105,21 @@ export interface ChatMessage {
 }
 
 export interface ChatAction {
-  type: 'ingest' | 'assemble' | 'transition' | 'sfx' | 'grade' | 'export' | 'learn' | 'music-search' | 'reframe' | 'caption' | 'title-card' | 'find-clips'
+  type: 'ingest' | 'assemble' | 'transition' | 'sfx' | 'grade' | 'export' | 'learn' | 'music-search' | 'reframe' | 'caption' | 'title-card' | 'find-clips' | 'effects' | 'effects-discovery' | 'resolve_connect' | 'resolve_project'
   status: 'pending' | 'running' | 'complete' | 'error'
   description: string
   progress?: number
+  data?: Record<string, any>
+}
+
+export interface AppliedEffect {
+  id: string
+  clipId: string
+  ingredientId: string
+  variant: string
+  parameters: Record<string, number | string>
+  appliedAt: string
+  bypassed: boolean
 }
 
 // Skill / Knowledge
@@ -198,8 +210,9 @@ export interface TransitionPreset {
 export interface TitleCardPreset {
   id: string
   name: string
-  type: 'title' | 'lower-third' | 'end-card' | 'chapter' | 'quote'
+  type: 'title' | 'lower-third' | 'end-card' | 'chapter' | 'quote' | 'location' | 'stat' | 'reveal'
   description: string
+  category: string
   hasAnimation: boolean
 }
 

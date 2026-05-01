@@ -251,6 +251,7 @@ export interface AssembledResult {
     startTime: number
     endTime: number
     position: number
+    audioOffset: number
     reason: string
   }[]
   sfxPlacements: {

@@ -226,13 +226,15 @@ class ResolveBridge(
             if fp:
                 path_to_clip[fp] = c
 
+        fps = float(self.project.GetSetting("timelineFrameRate") or 24)
         added = 0
-        for clip_data in clips:
+        audio_offset_queue = []
+
+        for i, clip_data in enumerate(clips):
             pool_clip = path_to_clip.get(clip_data.get("filePath"))
             if not pool_clip:
                 continue
 
-            fps = float(self.project.GetSetting("timelineFrameRate") or 24)
             start_frame = int(clip_data.get("startTime", 0) * fps)
             end_frame = int(clip_data.get("endTime", 0) * fps)
 
@@ -241,9 +243,35 @@ class ResolveBridge(
                 "startFrame": start_frame,
                 "endFrame": end_frame,
             }])
+
+            audio_offset = clip_data.get("audioOffset", 0)
+            if audio_offset != 0:
+                audio_offset_queue.append((added, audio_offset))
+
             added += 1
 
-        return {"success": True, "added": added}
+        offsets_applied = 0
+        if audio_offset_queue:
+            try:
+                video_items = self.timeline.GetItemListInTrack("video", 1) or []
+                audio_items = self.timeline.GetItemListInTrack("audio", 1) or []
+
+                for idx, offset_secs in audio_offset_queue:
+                    if idx >= len(video_items) or idx >= len(audio_items):
+                        continue
+                    offset_frames = int(offset_secs * fps)
+                    audio_item = audio_items[idx]
+                    if offset_secs < 0:
+                        current_left = audio_item.GetLeftOffset()
+                        audio_item.SetLeftOffset(max(0, current_left + offset_frames))
+                    else:
+                        current_right = audio_item.GetRightOffset()
+                        audio_item.SetRightOffset(max(0, current_right - offset_frames))
+                    offsets_applied += 1
+            except Exception:
+                pass
+
+        return {"success": True, "added": added, "audioOffsetsApplied": offsets_applied}
 
     def get_timeline_clips(self):
         if not self.timeline:

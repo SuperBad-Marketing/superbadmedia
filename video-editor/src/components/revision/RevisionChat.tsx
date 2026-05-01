@@ -96,6 +96,7 @@ export default function RevisionChat() {
                 startTime: update.startTime ?? 0,
                 endTime: update.endTime ?? addClip.duration,
                 position: update.position ?? updated.length,
+                audioOffset: 0,
               }
               updated.splice(newSc.position, 0, newSc)
               changeLog.push(`Added ${addClip.fileName}`)
