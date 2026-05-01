@@ -62,6 +62,8 @@ export const rundownSessions = sqliteTable(
 
     // ── Follow-up ──
     followup_email_sent_at_ms: integer("followup_email_sent_at_ms"),
+    /** Cached Opus-generated gap-reveal content (strength+gap or questions). */
+    gap_reveal_json: text("gap_reveal_json"),
     /** Token for read-only reveal re-access. */
     reveal_access_token: text("reveal_access_token"),
     reveal_access_expires_at_ms: integer("reveal_access_expires_at_ms"),

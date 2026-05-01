@@ -17,7 +17,7 @@ interface SequencePayload {
   sessionId: string;
   sessionToken: string;
   candidateId: string;
-  emailNumber: 1 | 2 | 3;
+  emailNumber: number;
   track: RundownSequenceTrack;
 }
 
@@ -50,6 +50,9 @@ async function handleRundownSequenceSend(
         .select({
           signal_tags: brand_dna_profiles.signal_tags,
           first_impression: brand_dna_profiles.first_impression,
+          signal_descriptions_json: brand_dna_profiles.signal_descriptions_json,
+          prose_portrait: brand_dna_profiles.prose_portrait,
+          section_insights: brand_dna_profiles.section_insights,
         })
         .from(brand_dna_profiles)
         .where(eq(brand_dna_profiles.id, session.profile_id))
@@ -79,6 +82,30 @@ async function handleRundownSequenceSend(
     ? `${baseUrl}/rundown/reveal/${session.reveal_access_token}`
     : `${baseUrl}/rundown/s/${session.session_token}/reveal`;
 
+  let signalDescriptions: Record<string, string> = {};
+  try {
+    if (profile?.signal_descriptions_json) {
+      signalDescriptions = JSON.parse(profile.signal_descriptions_json) as Record<string, string>;
+    }
+  } catch { /* skip */ }
+
+  let sectionInsights: string[] = [];
+  try {
+    if (profile?.section_insights) {
+      const parsed = JSON.parse(profile.section_insights);
+      if (Array.isArray(parsed)) {
+        sectionInsights = parsed.filter((s): s is string => typeof s === "string" && s.length > 0);
+      }
+    }
+  } catch { /* skip */ }
+
+  let gapReveal: SequenceContext["gapReveal"] = null;
+  try {
+    if (session.gap_reveal_json) {
+      gapReveal = JSON.parse(session.gap_reveal_json) as SequenceContext["gapReveal"];
+    }
+  } catch { /* skip */ }
+
   const ctx: SequenceContext = {
     firstName: session.name.split(" ")[0],
     businessName: session.business_name,
@@ -95,10 +122,14 @@ async function handleRundownSequenceSend(
     trialShootUrl: `${baseUrl}/trial-shoot?ref=rundown_seq&email=${payload.emailNumber}`,
     productionUrl: `${baseUrl}/production`,
     previousEmailsContext: previousContext,
+    gapReveal,
+    signalDescriptions,
+    prosePortrait: profile?.prose_portrait ?? null,
+    sectionInsights,
   };
 
   const generated = await generateSequenceEmail(
-    payload.emailNumber as 1 | 2 | 3,
+    payload.emailNumber,
     ctx,
   );
 

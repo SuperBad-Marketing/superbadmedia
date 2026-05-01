@@ -1,13 +1,13 @@
 /**
  * Structured email briefs for the Rundown post-completion nurture sequence.
  *
- * Each brief defines:
- * - What the email must cover (sections with word-count targets)
- * - What CTA to land on
- * - What NOT to do
+ * 12-email progressive disclosure sequence. Each email re-presents a
+ * different piece of the Brand DNA reveal with deeper context, teaching
+ * the recipient something new about their own brand each time.
  *
- * The LLM fills the voice and personalisation using Brand DNA signals,
- * enrichment data, and business context. Briefs are NOT templates.
+ * CTA rhythm:
+ * - Most emails: subtle "book your trial shoot" in footer signature
+ * - Every 3rd-4th email: proper (but understated) CTA reminder
  */
 
 export interface SequenceContext {
@@ -22,6 +22,10 @@ export interface SequenceContext {
   trialShootUrl: string;
   productionUrl: string;
   previousEmailsContext: PreviousEmailContext[];
+  gapReveal: { mode: string; strength?: string; gap?: string; questions?: string[] } | null;
+  signalDescriptions: Record<string, string>;
+  prosePortrait: string | null;
+  sectionInsights: string[];
 }
 
 export interface EnrichmentSummary {
@@ -48,14 +52,17 @@ export function buildSystemPrompt(): string {
 
 Voice rules (non-negotiable):
 - Dry, observational, self-deprecating. The humour comes from noticing things, not mocking them.
-- Short sentences. Fragments are fine. One idea per sentence.
+- First person is the warmth. Lean into "I" — "I spent", "I went looking", "I curated". Don't strip it for brevity.
+- Narrative patience. Alternate between short and long sentences. Not everything is a fragment. "So I decided to build the thing I needed instead." is a complete, unhurried sentence.
+- Parenthetical asides for dry comments — "(As you do)" on its own line. A thought said under the breath.
+- Use "so" as a natural connector — "so I went looking", "So I decided." Don't fragment these.
+- Ellipsis (…) before a pivot or reveal. No em dashes. Use commas, full stops, or restructure.
 - Never use: "synergy", "leverage", "solutions", "unlock", "supercharge", "game-changer", "next-level", "passionate about", "dedicated to", "innovative", "seamless", "empower", "transform", "thought leader", "reach out", "journey", "space" (as in "the marketing space").
 - No exclamation marks. Ever.
-- No em dashes. Use commas, full stops, or restructure.
 - No emoji.
 - No "I hope this email finds you well" or any variation.
 - Australian English spelling (colour, analyse, organise).
-- Sign off as "Andy". No title, no logo, no footer.
+- Sign off as "Andy". No title, no logo.
 - Every observation must connect to a service you actually offer (content creation, photography, video, brand strategy, social media management). Never point out problems you can't solve.
 
 Format rules:
@@ -64,124 +71,217 @@ Format rules:
 - No headers, no bold, no lists. Just paragraphs.`;
 }
 
-export function buildEmail1Prompt(ctx: SequenceContext): string {
-  const enrichmentObs = buildEnrichmentObservations(ctx.enrichmentSummary);
-  const tagContext = ctx.signalTags.length > 0
-    ? `Their top Brand DNA signal tags: ${ctx.signalTags.slice(0, 5).join(", ")}.`
+function ctaInstruction(emailNumber: number, ctx: SequenceContext): string {
+  const isProperCta = emailNumber % 3 === 0 || emailNumber === 1;
+
+  if (ctx.track === "non_melbourne") {
+    if (isProperCta) {
+      return `CTA: Invite them to reply to this email if they want to talk about their brand. Not a link, not a form. Just a reply.`;
+    }
+    return `FOOTER: End with "Andy" then on a new line: "P.S. — Your Brand DNA is still here: ${ctx.revealUrl}"`;
+  }
+
+  if (isProperCta) {
+    return `CTA: Include a single contextual line about the 60-minute trial shoot session. Don't pitch. Just name what it is and link to it: ${ctx.trialShootUrl}`;
+  }
+  return `FOOTER: Sign off as "Andy" then on a new line in smaller text: "book your trial shoot — ${ctx.trialShootUrl}"`;
+}
+
+export function buildEmailPrompt(emailNumber: number, ctx: SequenceContext): string {
+  const engagementContext = ctx.previousEmailsContext.length > 0
+    ? buildEngagementContext(ctx.previousEmailsContext)
     : "";
 
-  return `Write Email 1 of 3 in a post-Brand-DNA follow-up sequence.
+  const cta = ctaInstruction(emailNumber, ctx);
+  const base = buildBaseContext(ctx);
 
-RECIPIENT:
+  if (emailNumber === 1) return buildEmail1(ctx, base, engagementContext, cta);
+  if (emailNumber === 2) return buildEmail2(ctx, base, engagementContext, cta);
+  return buildProgressiveEmail(emailNumber, ctx, base, engagementContext, cta);
+}
+
+// Keep legacy exports for backward compat with handler
+export const buildEmail1Prompt = (ctx: SequenceContext) => buildEmailPrompt(1, ctx);
+export const buildEmail2Prompt = (ctx: SequenceContext) => buildEmailPrompt(2, ctx);
+export const buildEmail3Prompt = (ctx: SequenceContext) => buildEmailPrompt(3, ctx);
+
+function buildBaseContext(ctx: SequenceContext): string {
+  return `RECIPIENT:
 - Name: ${ctx.firstName}
 - Business: ${ctx.businessName}
 - Location track: ${ctx.track === "melbourne" ? "Melbourne area (trial shoot eligible)" : "Not in Melbourne (no trial shoot available yet)"}
-${tagContext}
-${ctx.firstImpression ? `- Their Brand DNA first impression: "${ctx.firstImpression}"` : ""}
+- Brand DNA signals: ${ctx.signalTags.slice(0, 5).join(", ") || "none available"}
+${ctx.firstImpression ? `- First impression: "${ctx.firstImpression}"` : ""}`;
+}
 
-ENRICHMENT FINDINGS (reference the 1-2 most relevant):
-${enrichmentObs || "No enrichment data available. Skip enrichment references."}
+function buildEmail1(ctx: SequenceContext, base: string, engagement: string, cta: string): string {
+  const enrichmentObs = buildEnrichmentObservations(ctx.enrichmentSummary);
+  const gapContext = ctx.gapReveal
+    ? ctx.gapReveal.mode === "observations"
+      ? `\nGAP REVEAL (reference these):\n- Strength: ${ctx.gapReveal.strength}\n- Gap: ${ctx.gapReveal.gap}`
+      : `\nREFLECTIVE QUESTIONS (from their reveal):\n${ctx.gapReveal.questions?.map((q, i) => `${i + 1}. ${q}`).join("\n")}`
+    : "";
+
+  return `Write Email 1 of 12 in a post-Brand-DNA follow-up sequence. This is the first email, sent 3 hours after they finished.
+
+${base}
+${engagement}
+${gapContext}
+
+ENRICHMENT FINDINGS:
+${enrichmentObs || "No enrichment data available."}
 
 STRUCTURE:
-1. OPEN (50-80 words): Acknowledge they did the assessment. Reference something specific from their Brand DNA signals. Don't say "thanks for completing" or anything generic.
-2. MIDDLE (80-120 words): Pick the 1-2 most relevant enrichment findings and frame them as missed opportunities specific to their brand. Every gap you mention must connect to something you'd actually fix — content creation, photography, video, social media presence, brand identity. Frame it as "here's what your brand DNA says about you, and here's what the outside world currently sees instead."
-3. CLOSE (20-30 words): Link back to their Brand DNA reveal. No sales CTA. Just "worth another look if you haven't been back."
+1. OPEN (50-80 words): Acknowledge they did the assessment. Their Brand Pack is attached/available. Reference their gap reveal observations if available. Don't say "thanks for completing" or anything generic.
+2. MIDDLE (80-120 words): Reference the strength and gap from their reveal. Frame the gap as observation, not criticism. If no gap reveal data, reference 1-2 enrichment findings.
+3. CLOSE (20-30 words): Link back to their Brand DNA reveal. "Worth another look when you've got a quiet minute."
 
 REVEAL URL: ${ctx.revealUrl}
 
+${cta}
+
 DO NOT:
-- Pitch anything. This email is observation only.
 - Use the word "gap" or "audit".
-- List findings as bullet points. Weave them into prose.
-- Mention the trial shoot, production, or any offer.`;
+- List findings as bullet points. Weave them into prose.`;
 }
 
-export function buildEmail2Prompt(ctx: SequenceContext): string {
-  const engagementContext = ctx.previousEmailsContext.length > 0
-    ? buildEngagementContext(ctx.previousEmailsContext)
-    : "";
+function buildEmail2(ctx: SequenceContext, base: string, engagement: string, cta: string): string {
+  const focusSignal = ctx.signalTags[0] ?? "their strongest signal";
+  const desc = ctx.signalDescriptions[ctx.signalTags[0]] ?? "";
 
-  if (ctx.track === "melbourne") {
-    return `Write Email 2 of 3 in a post-Brand-DNA follow-up sequence. Melbourne track.
+  return `Write Email 2 of 12 in a post-Brand-DNA follow-up sequence. Sent 48 hours after completion.
 
-RECIPIENT:
-- Name: ${ctx.firstName}
-- Business: ${ctx.businessName}
-- Location: Melbourne area
-- Brand DNA signals: ${ctx.signalTags.slice(0, 5).join(", ") || "none available"}
-${ctx.firstImpression ? `- First impression: "${ctx.firstImpression}"` : ""}
-${engagementContext}
+${base}
+${engagement}
+
+PROGRESSIVE DISCLOSURE FOCUS:
+Their top Brand DNA signal is "${focusSignal}". ${desc ? `Context: "${desc}"` : ""}
+This email teaches them something about this signal they might have scrolled past in the reveal. Go deeper on what this signal means for a brand like theirs, practically. What does a business that scores high on this signal typically do well? What do they typically undervalue?
 
 STRUCTURE:
-1. OPEN (40-60 words): No recap of the assessment. Start with an observation about their business that connects what you know about their brand identity to a real outcome. Something specific, not "your brand could be stronger."
-2. MIDDLE (80-120 words): Describe the trial shoot. Real work, not a pitch meeting. 60 minutes on-site, we come to you. Short-form video, edited photographs, and a six-week marketing plan written specifically for their business, not a template. Reference what you'd specifically focus on for their brand based on their DNA and what you've seen. Make the plan sound like the real deliverable it is — something they could take and run with even if they never come back.
-3. CLOSE (20-30 words): One CTA — the trial shoot page link. Keep it direct.
-4. FOOTNOTE (one line only): "For brands ready to go bigger: ${ctx.productionUrl}"
+1. OPEN (30-50 words): No recap. Start with the signal observation directly.
+2. MIDDLE (100-150 words): The deeper insight. Specific, practical, connected to their business.
+3. CLOSE (20-30 words): "Your full results are still here: ${ctx.revealUrl}"
 
-TRIAL SHOOT URL: ${ctx.trialShootUrl}
-PRODUCTION URL: ${ctx.productionUrl}
+${cta}
 
 DO NOT:
 - Recap what the Brand DNA assessment was.
-- Say "book a call" or "let's chat". The CTA is the trial shoot page.
-- Use the word "invest" or "investment".
-- Over-explain the trial shoot. State what it is and move on.`;
-  }
-
-  return `Write Email 2 of 3 in a post-Brand-DNA follow-up sequence. Non-Melbourne track.
-
-RECIPIENT:
-- Name: ${ctx.firstName}
-- Business: ${ctx.businessName}
-- Location: Not in Melbourne
-- Brand DNA signals: ${ctx.signalTags.slice(0, 5).join(", ") || "none available"}
-${ctx.firstImpression ? `- First impression: "${ctx.firstImpression}"` : ""}
-${engagementContext}
-
-STRUCTURE:
-1. OPEN (40-60 words): No recap of the assessment. Start with an observation about their business that connects what you know about their brand identity to a real outcome.
-2. MIDDLE (80-120 words): Acknowledge distance. Frame SuperBad as the people who already understand their brand better than most agencies would after three meetings, because they just spent 10 minutes telling you who they are. You're building tools for businesses like theirs. Not vague "exciting things coming" — be specific: tools that turn brand identity into consistent content, that take the thinking out of what to post and how to say it. Invite them to reply if they want to be first to know when it's ready.
-3. CLOSE (20-30 words): CTA is "reply to this email." Not a link, not a form. Just a reply.
-4. FOOTNOTE (one line only): "For brands ready to go bigger: ${ctx.productionUrl}"
-
-PRODUCTION URL: ${ctx.productionUrl}
-
-DO NOT:
-- Apologise for not being in their city.
-- Promise anything specific about launch dates.
-- Use "stay tuned" or "watch this space".`;
+- Mention the trial shoot or any offer in the body (the CTA/footer handles that).`;
 }
 
-export function buildEmail3Prompt(ctx: SequenceContext): string {
-  const engagementContext = ctx.previousEmailsContext.length > 0
-    ? buildEngagementContext(ctx.previousEmailsContext)
-    : "";
+function buildProgressiveEmail(
+  emailNumber: number,
+  ctx: SequenceContext,
+  base: string,
+  engagement: string,
+  cta: string,
+): string {
+  const angles = getProgressiveAngle(emailNumber, ctx);
 
-  const closeCta = ctx.track === "melbourne"
-    ? `Melbourne: "if any of it stuck, book a shoot: ${ctx.trialShootUrl}. If not, the brand pack is yours either way."`
-    : `Non-Melbourne: "if any of it stuck, reply to this email. If not, the brand pack is yours either way."`;
+  return `Write Email ${emailNumber} of 12 in a post-Brand-DNA follow-up sequence.
 
-  return `Write Email 3 of 3 in a post-Brand-DNA follow-up sequence. Final email.
+${base}
+${engagement}
 
-RECIPIENT:
-- Name: ${ctx.firstName}
-- Business: ${ctx.businessName}
-- Location track: ${ctx.track === "melbourne" ? "Melbourne" : "Not in Melbourne"}
-${engagementContext}
+PROGRESSIVE DISCLOSURE FOCUS:
+${angles.focus}
+
+${angles.instruction}
 
 STRUCTURE:
-- Entire email under 100 words. Short.
-- Mention their Brand DNA reveal access expires in 20 days. Not a threat, just a fact. The brand pack PDF they already have doesn't expire.
-- ${closeCta}
+- Total length: ${emailNumber >= 8 ? "60-100" : "100-150"} words. ${emailNumber >= 8 ? "Shorter as the sequence matures." : ""}
+- No recap of the assessment or previous emails.
+- One clear insight or observation. Teach them something.
+- ${angles.closeInstruction || `Close with: "Your full results: ${ctx.revealUrl}"`}
 
-REVEAL URL: ${ctx.revealUrl}
-${ctx.track === "melbourne" ? `TRIAL SHOOT URL: ${ctx.trialShootUrl}` : ""}
+${cta}
 
 DO NOT:
-- Recap the assessment or previous emails.
-- Create false urgency. The expiry is real, state it plainly.
-- Write more than 100 words. This email is short on purpose.
-- Add a production footnote. Keep it clean.`;
+- Recap what the Brand DNA assessment was.
+- Reference previous emails by number ("in my last email").
+- Create false urgency.
+- Write more than ${emailNumber >= 8 ? "100" : "150"} words.`;
+}
+
+interface ProgressiveAngle {
+  focus: string;
+  instruction: string;
+  closeInstruction?: string;
+}
+
+function getProgressiveAngle(emailNumber: number, ctx: SequenceContext): ProgressiveAngle {
+  const signalIdx = Math.min(emailNumber - 2, ctx.signalTags.length - 1);
+  const signal = ctx.signalTags[Math.max(signalIdx, 0)] ?? "their brand identity";
+  const desc = ctx.signalDescriptions[ctx.signalTags[Math.max(signalIdx, 0)]] ?? "";
+  const insights = ctx.sectionInsights;
+
+  switch (emailNumber) {
+    case 3:
+      return {
+        focus: `Section insight: "${insights[0] ?? "their brand values"}"`,
+        instruction: "Expand on this section insight. What does it reveal about how they make decisions? Connect it to something observable about their business.",
+      };
+    case 4:
+      return {
+        focus: `Signal "${signal}" (their ${emailNumber - 1}th strongest signal). ${desc ? `"${desc}"` : ""}`,
+        instruction: "This email is a proper CTA email. Lead with the signal insight but connect it to why having professional content matters for a brand with this identity. The CTA should feel earned by the observation.",
+      };
+    case 5:
+      return {
+        focus: `Section insight: "${insights[1] ?? "their communication style"}"`,
+        instruction: "How does this insight show up in practice? Give them a concrete example of what a brand with this trait does differently in their content.",
+      };
+    case 6:
+      return {
+        focus: `The combination of their top 2 signals: ${ctx.signalTags.slice(0, 2).join(" + ")}`,
+        instruction: "This is a proper CTA email. Explore what makes this combination interesting or unusual. Most brands lean one way or the other. What does having both mean? Connect to the trial shoot naturally.",
+      };
+    case 7:
+      return {
+        focus: `Section insight: "${insights[2] ?? "their creative direction"}"`,
+        instruction: "This insight reveals something about their aesthetic preferences. What kind of content would feel most authentic to this brand? Be specific.",
+      };
+    case 8:
+      return {
+        focus: ctx.prosePortrait
+          ? `A line from their prose portrait: "${ctx.prosePortrait.split(". ").slice(0, 2).join(". ")}"`
+          : `Their overall brand identity pattern`,
+        instruction: "Pull one thread from their portrait and expand on it. What does this say about them that they might not have noticed? Keep it short, this email is past the halfway point.",
+      };
+    case 9:
+      return {
+        focus: `Signal "${ctx.signalTags[3] ?? signal}". ${ctx.signalDescriptions[ctx.signalTags[3] ?? ""] ?? ""}`,
+        instruction: "This is a proper CTA email. This is a signal they might not have paid attention to. Name it, explain why it matters, connect to the shoot. Keep it under 80 words.",
+        closeInstruction: `Direct CTA: ${ctx.trialShootUrl}`,
+      };
+    case 10:
+      return {
+        focus: `Their reveal access expires in ~8 days.`,
+        instruction: "Mention the expiry as a fact, not a threat. The Brand Pack PDF they have doesn't expire. The interactive reveal does. Short email.",
+        closeInstruction: `Reveal link: ${ctx.revealUrl}`,
+      };
+    case 11:
+      return {
+        focus: ctx.gapReveal?.mode === "observations"
+          ? `Revisit the gap: "${ctx.gapReveal.gap}"`
+          : `Their brand identity is still untapped`,
+        instruction: "This is near the end of the sequence. Be direct without being pushy. If they haven't acted, they might not. That's fine. But name the gap one more time.",
+      };
+    case 12:
+      return {
+        focus: "Final email in the sequence.",
+        instruction: "Short. Under 60 words. No recap. No guilt. Just: we built something for you, it's still here, and if the timing is ever right, so are we. This is a proper CTA email. Sign off warmly.",
+        closeInstruction: ctx.track === "melbourne"
+          ? `"${ctx.trialShootUrl}" — if the timing's right.`
+          : `"reply to this email" — if the timing's right.`,
+      };
+    default:
+      return {
+        focus: `Signal "${signal}"`,
+        instruction: "Explore this signal. Keep it short. One insight, one close.",
+      };
+  }
 }
 
 function buildEnrichmentObservations(e: EnrichmentSummary): string {

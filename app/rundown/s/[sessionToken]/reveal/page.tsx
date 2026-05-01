@@ -12,11 +12,13 @@ import { generateFirstImpression } from "@/lib/brand-dna/generate-first-impressi
 import { generateProsePortrait } from "@/lib/brand-dna/generate-prose-portrait";
 import { generateSignalScoresIntro } from "@/lib/brand-dna/generate-signal-scores-intro";
 import { generateSignalDescriptions } from "@/lib/brand-dna/generate-signal-descriptions";
-import { buildSignalScoresData, parseSignalTagNames } from "@/lib/brand-dna/build-signal-scores-data";
+import { buildSignalScoresData } from "@/lib/brand-dna/build-signal-scores-data";
+import { generateGapReveal } from "@/lib/brand-dna/generate-gap-reveal";
+import { buildPresenceScores } from "@/lib/brand-dna/build-presence-scores";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
 import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
-import { RundownPostReveal } from "./rundown-post-reveal";
+import { GapRevealWrapper } from "./gap-reveal-wrapper";
 import { markRundownProfileComplete } from "../actions";
 import { AssemblingShimmer } from "@/components/lite/brand-dna/assembling-shimmer";
 
@@ -101,8 +103,16 @@ async function RevealContent({
     signalDescriptions,
   );
 
-  const signalTagNames = parseSignalTagNames(profile.signal_tags);
   const enrichmentData = candidateRows[0]?.viability_profile_json as ViabilityProfile | null;
+
+  const gapReveal = await generateGapReveal(
+    sessionToken,
+    profileId,
+    enrichmentData,
+  ).catch(() => null);
+
+  const presenceScores = buildPresenceScores(profile.signal_tags, enrichmentData);
+  const trialShootUrl = `/trial-shoot?ref=rundown&sid=${sessionToken}`;
 
   const boundComplete = markRundownProfileComplete.bind(null, sessionToken);
 
@@ -120,13 +130,12 @@ async function RevealContent({
         alreadyComplete={profile.status === "complete"}
         markComplete={boundComplete}
       />
-      <RundownPostReveal
+      <GapRevealWrapper
         sessionToken={sessionToken}
-        profileId={profileId}
         businessName={businessName}
-        enrichmentData={enrichmentData}
-        signalTags={signalTagNames}
-        firstImpression={firstImpression}
+        gapReveal={gapReveal}
+        presenceScores={presenceScores}
+        trialShootUrl={trialShootUrl}
       />
     </>
   );

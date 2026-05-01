@@ -6,9 +6,7 @@
 import { invokeLlmText } from "@/lib/ai/invoke";
 import {
   buildSystemPrompt,
-  buildEmail1Prompt,
-  buildEmail2Prompt,
-  buildEmail3Prompt,
+  buildEmailPrompt,
   type SequenceContext,
 } from "./sequence-briefs";
 
@@ -18,23 +16,11 @@ export interface GeneratedEmail {
 }
 
 export async function generateSequenceEmail(
-  emailNumber: 1 | 2 | 3,
+  emailNumber: number,
   ctx: SequenceContext,
 ): Promise<GeneratedEmail> {
   const system = buildSystemPrompt();
-  let prompt: string;
-
-  switch (emailNumber) {
-    case 1:
-      prompt = buildEmail1Prompt(ctx);
-      break;
-    case 2:
-      prompt = buildEmail2Prompt(ctx);
-      break;
-    case 3:
-      prompt = buildEmail3Prompt(ctx);
-      break;
-  }
+  const prompt = buildEmailPrompt(emailNumber, ctx);
 
   const raw = await invokeLlmText({
     job: "rundown-sequence-draft-email",

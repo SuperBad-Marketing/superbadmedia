@@ -1,0 +1,1 @@
+ALTER TABLE `rundown_sessions` ADD `gap_reveal_json` text;
