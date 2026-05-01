@@ -724,3 +724,48 @@ export async function getReferenceStyles(): Promise<ReferenceStyle[]> {
 export async function deleteReferenceStyle(id: string): Promise<void> {
   await fetch(`${API_BASE}/taste/reference/${id}`, { method: 'DELETE' })
 }
+
+// Edit Intent
+export interface IntentQuestion {
+  id: string
+  category: 'structure' | 'grading' | 'audio' | 'titles' | 'pacing'
+  question: string
+  options: { label: string; value: string; description?: string }[]
+  priority: number
+}
+
+export interface EditIntent {
+  id: string
+  structure: { focus: string | null; droneUsage: string | null; peakMoment: string | null; pacing: string | null }
+  grading: { look: string | null; consistency: string | null }
+  audio: { feel: string | null; backgroundNoise: string | null; musicLevel: string | null }
+  titles: { textUsage: string | null }
+}
+
+export async function getIntentQuestions(
+  brief: BriefFields,
+  musicStructure?: any,
+): Promise<IntentQuestion[]> {
+  const res = await fetch(`${API_BASE}/intent/questions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brief, musicStructure }),
+  })
+  if (!res.ok) throw new Error('Failed to get intent questions')
+  const data = await res.json()
+  return data.questions
+}
+
+export async function buildEditIntent(
+  answers: Record<string, string>,
+  projectId?: string,
+  clientId?: string,
+): Promise<{ intent: EditIntent }> {
+  const res = await fetch(`${API_BASE}/intent/build`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers, projectId, clientId }),
+  })
+  if (!res.ok) throw new Error('Failed to build intent')
+  return res.json()
+}

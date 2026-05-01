@@ -26,6 +26,7 @@ import { clientsRouter } from './routes/clients.js'
 import { revisionRouter } from './routes/revision.js'
 import { libraryRouter } from './routes/library.js'
 import { tasteRouter } from './routes/taste.js'
+import { intentRouter } from './routes/intent.js'
 
 const app = express()
 const PORT = 5201
@@ -106,6 +107,7 @@ app.use('/api/clients', clientsRouter)
 app.use('/api/revision', revisionRouter)
 app.use('/api/library', libraryRouter)
 app.use('/api/taste', tasteRouter)
+app.use('/api/intent', intentRouter)
 
 app.listen(PORT, () => {
   console.warn(`SuperEdits server running on port ${PORT}`)

@@ -2,8 +2,8 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Sparkles, Music, Clock, Monitor, Zap, ArrowRight, RotateCcw, Volume2, BookOpen, Check } from 'lucide-react'
 import { ViewLoader, InlineLoader } from '../shared/LoadingPulse'
-import { parseBrief, buildFromBrief, searchMusic, analyzeClipVision, getBriefSkills, autoSelectSkills } from '../../lib/api'
-import type { BriefFields, AssembledResult, SkillSummary } from '../../lib/api'
+import { parseBrief, buildFromBrief, searchMusic, analyzeClipVision, getBriefSkills, autoSelectSkills, getIntentQuestions, buildEditIntent } from '../../lib/api'
+import type { BriefFields, AssembledResult, SkillSummary, IntentQuestion, EditIntent } from '../../lib/api'
 import { useAppStore } from '../../stores/appStore'
 
 const PLATFORMS = [
@@ -21,7 +21,7 @@ const PACING_OPTIONS = [
   { id: 'slow', label: 'Slow', desc: '~6s cuts' },
 ] as const
 
-type Phase = 'braindump' | 'fields' | 'building' | 'done'
+type Phase = 'braindump' | 'fields' | 'questions' | 'building' | 'done'
 
 export default function BriefBuilder() {
   const setStoryboardClips = useAppStore((s) => s.setStoryboardClips)
@@ -44,6 +44,10 @@ export default function BriefBuilder() {
   const [buildError, setBuildError] = useState<string | null>(null)
   const [availableSkills, setAvailableSkills] = useState<SkillSummary[]>([])
   const [selectedSkillIds, setSelectedSkillIds] = useState<Set<string>>(new Set())
+  const [intentQuestions, setIntentQuestions] = useState<IntentQuestion[]>([])
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [intentAnswers, setIntentAnswers] = useState<Record<string, string>>({})
+  const [editIntent, setEditIntent] = useState<EditIntent | null>(null)
 
   const unanalyzedCount = useMemo(
     () => clips.filter((c) => !c.analysis?.visionAnalyzed).length,
@@ -92,6 +96,48 @@ export default function BriefBuilder() {
       setParsing(false)
     }
   }, [braindump])
+
+  const handleStartQuestions = useCallback(async () => {
+    if (!fields) return
+    try {
+      const questions = await getIntentQuestions(fields)
+      if (questions.length > 0) {
+        setIntentQuestions(questions)
+        setCurrentQuestionIndex(0)
+        setIntentAnswers({})
+        setPhase('questions')
+      } else {
+        setPhase('building')
+      }
+    } catch {
+      setPhase('building')
+    }
+  }, [fields])
+
+  const handleAnswerQuestion = useCallback(async (questionId: string, value: string) => {
+    const newAnswers = { ...intentAnswers, [questionId]: value }
+    setIntentAnswers(newAnswers)
+
+    if (currentQuestionIndex < intentQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1)
+    } else {
+      try {
+        const projectId = useAppStore.getState().currentProject?.id
+        const result = await buildEditIntent(newAnswers, projectId)
+        setEditIntent(result.intent)
+      } catch {}
+      setPhase('building')
+    }
+  }, [intentAnswers, currentQuestionIndex, intentQuestions])
+
+  const handleSkipQuestions = useCallback(() => {
+    setPhase('building')
+  }, [])
+
+  const buildTriggered = phase === 'building' && !building
+  useEffect(() => {
+    if (buildTriggered) handleBuild()
+  }, [buildTriggered])
 
   const handleBuild = useCallback(async () => {
     if (!fields) return
@@ -210,6 +256,10 @@ export default function BriefBuilder() {
     setResult(null)
     setBuildStatus('')
     setBuildError(null)
+    setIntentQuestions([])
+    setCurrentQuestionIndex(0)
+    setIntentAnswers({})
+    setEditIntent(null)
   }
 
   const updateField = <K extends keyof BriefFields>(key: K, value: BriefFields[K]) => {
@@ -420,7 +470,7 @@ export default function BriefBuilder() {
                   Redo
                 </button>
                 <button
-                  onClick={handleBuild}
+                  onClick={handleStartQuestions}
                   className="flex items-center gap-2 bg-accent hover:bg-accent-hover rounded-xl px-5 py-2.5 font-semibold text-xs text-white transition-colors duration-200 cursor-pointer"
                 >
                   <Sparkles size={14} />
@@ -432,6 +482,60 @@ export default function BriefBuilder() {
                 <p className="text-[10px] text-accent mt-3">{buildError}</p>
               )}
             </div>
+          </motion.div>
+        )}
+
+        {/* Phase 2.5: Questions — one at a time */}
+        {phase === 'questions' && intentQuestions.length > 0 && (
+          <motion.div
+            key="questions"
+            className="flex-1 flex flex-col items-center justify-center px-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentQuestionIndex}
+                className="w-full max-w-md"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="text-[10px] text-white/30 mb-3 uppercase tracking-wider">
+                  {currentQuestionIndex + 1} of {intentQuestions.length}
+                </div>
+                <h3 className="text-sm font-semibold text-white/90 mb-5 leading-relaxed">
+                  {intentQuestions[currentQuestionIndex].question}
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {intentQuestions[currentQuestionIndex].options.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => handleAnswerQuestion(intentQuestions[currentQuestionIndex].id, opt.value)}
+                      className="text-left px-4 py-3 rounded-xl border border-white/10 hover:border-accent/50 hover:bg-white/5 transition-all duration-200 cursor-pointer group"
+                    >
+                      <span className="text-xs font-medium text-white/80 group-hover:text-white block">
+                        {opt.label}
+                      </span>
+                      {opt.description && (
+                        <span className="text-[10px] text-white/40 group-hover:text-white/50 block mt-0.5">
+                          {opt.description}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={handleSkipQuestions}
+                  className="mt-6 text-[10px] text-white/25 hover:text-white/50 transition-colors cursor-pointer"
+                >
+                  Skip — just build it
+                </button>
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
         )}
 

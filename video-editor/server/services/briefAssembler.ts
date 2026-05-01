@@ -9,6 +9,7 @@ import { SkillService } from './skills.js'
 import { MusicAnalysisService, MusicStructure, type MusicSection } from './musicAnalysis.js'
 import { getMediaLibrary } from './mediaLibrary.js'
 import { getTasteProfileService } from './tasteProfile.js'
+import { getEditIntentService, type EditIntent } from './editIntent.js'
 import crypto from 'crypto'
 
 const CUT_REVIEW_DIR = path.join(process.cwd(), '.cut-review')
@@ -451,7 +452,7 @@ export class BriefAssembler {
     return Math.max(0, Math.min(100, Math.round(v)))
   }
 
-  private buildFootageProfile(clips: any[]): FootageProfile {
+  buildFootageProfile(clips: any[]): FootageProfile {
     const tally = (items: string[]) => {
       const counts = new Map<string, number>()
       for (const s of items) counts.set(s, (counts.get(s) || 0) + 1)
@@ -685,7 +686,7 @@ export class BriefAssembler {
   async assemble(
     brief: BriefFields,
     clientClips?: any[],
-    options?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number; selectedSkillIds?: string[]; projectId?: string; clientId?: string; referenceStyleId?: string },
+    options?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number; selectedSkillIds?: string[]; projectId?: string; clientId?: string; referenceStyleId?: string; editIntent?: EditIntent },
   ): Promise<AssembledResult> {
     const serverClips = this.clipAnalysis.getAllAnalysed()
     const rawClips = serverClips.length > 0 ? serverClips : (clientClips || [])
@@ -799,6 +800,10 @@ export class BriefAssembler {
     }
     if (options?.referenceStyleId) {
       tasteContext += '\n' + tasteService.getReferenceStyleContext(options.referenceStyleId)
+    }
+    if (options?.editIntent) {
+      const intentService = getEditIntentService()
+      tasteContext += '\n' + intentService.intentToAssemblyContext(options.editIntent)
     }
 
     try {
