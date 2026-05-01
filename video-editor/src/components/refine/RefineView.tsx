@@ -1,9 +1,9 @@
 import { useState, useCallback, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Play, Palette, Type, MessageSquare, Send, Loader2 } from 'lucide-react'
+import { Play, Palette, Type, MessageSquare, Send, Loader2, CheckCircle2 } from 'lucide-react'
 import { ViewLoader } from '../shared/LoadingPulse'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve } from '../../lib/api'
+import { sendToResolve, saveProject } from '../../lib/api'
 
 const PreviewView = lazy(() => import('../preview/PreviewView'))
 const GradingView = lazy(() => import('../grading/GradingView'))
@@ -26,62 +26,126 @@ function ModeFallback() {
 export default function RefineView() {
   const [mode, setMode] = useState<RefineMode>('preview')
   const [sending, setSending] = useState(false)
+  const [approving, setApproving] = useState(false)
 
   const resolveConnected = useAppStore((s) => s.resolveConnected)
   const storyboardClips = useAppStore((s) => s.storyboardClips)
   const editTransitions = useAppStore((s) => s.editTransitions)
+  const sfxPlacements = useAppStore((s) => s.sfxPlacements)
+  const currentProject = useAppStore((s) => s.currentProject)
+  const setCurrentProject = useAppStore((s) => s.setCurrentProject)
   const addChatMessage = useAppStore((s) => s.addChatMessage)
+  const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
+  const saveCurrentProject = useAppStore((s) => s.saveCurrentProject)
+
+  const pushTimelineToResolve = useCallback(async () => {
+    const uniquePaths = [...new Set(storyboardClips.map((c) => c.clip.filePath))]
+    const importResult = await sendToResolve('import_media', { file_paths: uniquePaths })
+
+    if (importResult.error) {
+      throw new Error(importResult.error)
+    }
+
+    const projectName = currentProject?.name || 'SuperEdits Assembly'
+    await sendToResolve('create_timeline', { name: projectName })
+
+    const clipData = storyboardClips.map((c) => ({
+      filePath: c.clip.filePath,
+      startTime: c.startTime,
+      endTime: c.endTime,
+    }))
+    await sendToResolve('add_clips_with_timing', { clips: clipData })
+
+    for (const t of editTransitions) {
+      await sendToResolve('add_transition', {
+        clip_index: t.afterClipPosition,
+        type: t.presetName,
+        duration: t.duration,
+      })
+    }
+
+    return { clipCount: storyboardClips.length, transitionCount: editTransitions.length }
+  }, [storyboardClips, editTransitions, currentProject])
 
   const handlePushToResolve = useCallback(async () => {
     if (sending) return
     setSending(true)
     try {
-      const uniquePaths = [...new Set(storyboardClips.map((c) => c.clip.filePath))]
-      const importResult = await sendToResolve('import_media', { file_paths: uniquePaths })
-
-      if (importResult.error) {
-        addChatMessage({
-          id: crypto.randomUUID(),
-          role: 'system',
-          content: `Failed to send to Resolve: ${importResult.error}`,
-          timestamp: new Date().toISOString(),
-        })
-      } else {
-        await sendToResolve('create_timeline', { name: 'SuperEdits Assembly' })
-
-        const clipData = storyboardClips.map((c) => ({
-          filePath: c.clip.filePath,
-          startTime: c.startTime,
-          endTime: c.endTime,
-        }))
-        await sendToResolve('add_clips_with_timing', { clips: clipData })
-
-        for (const t of editTransitions) {
-          await sendToResolve('add_transition', {
-            clip_index: t.afterClipPosition,
-            type: t.presetName,
-            duration: t.duration,
-          })
-        }
-
-        addChatMessage({
-          id: crypto.randomUUID(),
-          role: 'system',
-          content: `Pushed ${storyboardClips.length} clips to Resolve${editTransitions.length > 0 ? ` with ${editTransitions.length} transitions` : ''}. Timeline updated.`,
-          timestamp: new Date().toISOString(),
-        })
-      }
-    } catch {
+      const result = await pushTimelineToResolve()
       addChatMessage({
         id: crypto.randomUUID(),
         role: 'system',
-        content: 'Could not reach Resolve. Make sure it is running and connected.',
+        content: `Pushed ${result.clipCount} clips to Resolve${result.transitionCount > 0 ? ` with ${result.transitionCount} transitions` : ''}. Timeline updated.`,
+        timestamp: new Date().toISOString(),
+      })
+    } catch (err: any) {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: err?.message?.includes('Bridge')
+          ? 'Could not reach Resolve. Make sure it is running and connected.'
+          : `Failed to send to Resolve: ${err?.message || 'Unknown error'}`,
         timestamp: new Date().toISOString(),
       })
     } finally {
       setSending(false)
     }
-  }, [sending, storyboardClips, editTransitions, addChatMessage])
+  }, [sending, pushTimelineToResolve, addChatMessage])
+
+  const handleApproveRoughCut = useCallback(async () => {
+    if (approving) return
+    setApproving(true)
+    try {
+      // Push timeline to Resolve if connected
+      if (resolveConnected) {
+        const result = await pushTimelineToResolve()
+        addChatMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          content: `Rough cut approved. Pushed ${result.clipCount} clips${result.transitionCount > 0 ? ` with ${result.transitionCount} transitions` : ''} to Resolve timeline "${currentProject?.name || 'SuperEdits Assembly'}".`,
+          timestamp: new Date().toISOString(),
+        })
+      }
+
+      // Save project state
+      if (currentProject?.id) {
+        const state = saveCurrentProject()
+        await saveProject(
+          currentProject.id,
+          currentProject.name,
+          currentProject.clientName,
+          state,
+        ).catch(() => {})
+
+        setCurrentProject({
+          ...currentProject,
+          status: 'exporting',
+          updatedAt: new Date().toISOString(),
+        })
+      }
+
+      // Move to deliver phase
+      setWorkflowPhase('deliver')
+    } catch (err: any) {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: `Resolve push failed: ${err?.message || 'Unknown error'}. You can still proceed to export.`,
+        timestamp: new Date().toISOString(),
+      })
+      // Still move to deliver even if Resolve push failed
+      if (currentProject) {
+        setCurrentProject({
+          ...currentProject,
+          status: 'exporting',
+          updatedAt: new Date().toISOString(),
+        })
+      }
+      setWorkflowPhase('deliver')
+    } finally {
+      setApproving(false)
+    }
+  }, [approving, resolveConnected, pushTimelineToResolve, currentProject, saveCurrentProject, addChatMessage, setWorkflowPhase, setCurrentProject])
 
   const hasClips = storyboardClips.length > 0
 
@@ -135,18 +199,18 @@ export default function RefineView() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Push to Resolve footer */}
+      {/* Footer actions */}
       {hasClips && mode !== 'revise' && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="shrink-0 px-6 pb-4 flex justify-end"
+          className="shrink-0 px-6 pb-4 flex items-center justify-between"
         >
           <button
             onClick={handlePushToResolve}
             disabled={sending || !resolveConnected}
-            className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white rounded-xl px-4 py-2 text-xs font-semibold transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
             {sending ? (
               <>
@@ -157,6 +221,24 @@ export default function RefineView() {
               <>
                 <Send size={12} />
                 {resolveConnected ? 'Push to Resolve' : 'Connect Resolve'}
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleApproveRoughCut}
+            disabled={approving}
+            className="flex items-center gap-2 bg-green hover:bg-green/90 text-white rounded-xl px-5 py-2.5 text-xs font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {approving ? (
+              <>
+                <Loader2 size={13} className="animate-spin" />
+                Approving...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={13} />
+                Approve rough cut
               </>
             )}
           </button>

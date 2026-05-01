@@ -1,9 +1,12 @@
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 import crypto from 'crypto'
 import { BriefAssembler, type BriefFields } from './briefAssembler.js'
 import { IngestService } from './ingest.js'
 import { VisionAnalysisService } from './visionAnalysis.js'
+import { ExportService } from './export.js'
+import { uploadToCloudinary, isCloudinaryConfigured } from './cloudinary.js'
 import { clientService } from './clients.js'
 import { resolveBridge } from './resolveBridge.js'
 import Anthropic from '@anthropic-ai/sdk'
@@ -32,10 +35,10 @@ export interface QueueJob {
   clientId?: string
   structuredBrief: StructuredBrief
   editBrief?: BriefFields
-  status: 'pending' | 'importing' | 'analyzing-vision' | 'translating' | 'assembling' | 'pushing-resolve' | 'saving' | 'complete' | 'error'
+  status: 'pending' | 'importing' | 'analyzing-vision' | 'translating' | 'assembling' | 'pushing-resolve' | 'exporting' | 'uploading' | 'saving' | 'complete' | 'error'
   progress: number
   statusText: string
-  result?: { clipCount: number; totalDuration: number; narrative: string; resolveProject?: string }
+  result?: { clipCount: number; totalDuration: number; narrative: string; resolveProject?: string; exportPath?: string; cloudinaryUrl?: string }
   error?: string
   createdAt: string
   startedAt?: string
@@ -52,6 +55,7 @@ class JobQueue {
   private assembler = new BriefAssembler()
   private ingestService = new IngestService()
   private visionService = new VisionAnalysisService()
+  private exportService = new ExportService()
 
   constructor() {
     fs.mkdirSync(QUEUE_DIR, { recursive: true })
@@ -107,7 +111,7 @@ class JobQueue {
   remove(id: string): boolean {
     const idx = this.jobs.findIndex(j => j.id === id)
     if (idx === -1) return false
-    const activeStatuses = ['importing', 'analyzing-vision', 'translating', 'assembling', 'saving']
+    const activeStatuses = ['importing', 'analyzing-vision', 'translating', 'assembling', 'pushing-resolve', 'exporting', 'uploading', 'saving']
     if (activeStatuses.includes(this.jobs[idx].status)) return false
     this.jobs.splice(idx, 1)
     this.save()
@@ -272,10 +276,73 @@ class JobQueue {
         }
       }
 
-      // --- Step 6: Save project ---
+      // --- Step 6: Export preview render ---
+      let exportPath: string | undefined
+      const exportDir = path.join(os.homedir(), 'SuperEdits', 'exports')
+      fs.mkdirSync(exportDir, { recursive: true })
+
+      const safeName = job.projectName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-')
+      const exportOutputPath = path.join(exportDir, `${safeName}_${job.projectId.slice(0, 8)}.mp4`)
+
+      this.updateJob(job.id, {
+        status: 'exporting',
+        progress: 90,
+        statusText: 'Rendering preview export',
+      })
+
+      try {
+        const clipPaths = result.storyboardClips.map((sc: any) => sc.filePath)
+        const exportJob = await this.exportService.startRender({
+          clipPaths,
+          outputPath: exportOutputPath,
+          format: '16:9',
+          codec: 'h264',
+          resolution: '1080p',
+        })
+
+        let exportStatus = this.exportService.getStatus(exportJob.id)
+        while (exportStatus && exportStatus.status !== 'complete' && exportStatus.status !== 'error') {
+          await new Promise(r => setTimeout(r, 1000))
+          exportStatus = this.exportService.getStatus(exportJob.id)
+          if (exportStatus) {
+            this.updateJob(job.id, {
+              progress: 90 + Math.round((exportStatus.progress || 0) * 0.05),
+              statusText: `Rendering preview (${exportStatus.progress || 0}%)`,
+            })
+          }
+        }
+
+        if (exportStatus?.status === 'complete') {
+          exportPath = exportOutputPath
+        }
+      } catch (err: any) {
+        console.error('Export failed (non-fatal):', err.message)
+      }
+
+      // --- Step 7: Upload to Cloudinary ---
+      let cloudinaryUrl: string | undefined
+      if (exportPath && isCloudinaryConfigured()) {
+        this.updateJob(job.id, {
+          status: 'uploading',
+          progress: 95,
+          statusText: 'Uploading to Cloudinary',
+        })
+
+        try {
+          const clientFolder = job.clientId
+            ? `clients/${job.structuredBrief.businessName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-')}`
+            : 'exports'
+          const uploadResult = await uploadToCloudinary(exportPath, { folder: clientFolder })
+          cloudinaryUrl = uploadResult.secureUrl
+        } catch (err: any) {
+          console.error('Cloudinary upload failed (non-fatal):', err.message)
+        }
+      }
+
+      // --- Step 8: Save project ---
       this.updateJob(job.id, {
         status: 'saving',
-        progress: 94,
+        progress: 98,
         statusText: 'Saving project',
       })
 
@@ -328,17 +395,22 @@ class JobQueue {
         JSON.stringify(projectData, null, 2),
       )
 
+      const statusParts = [`Done — ${result.storyboardClips.length} clips, ${Math.round(result.totalDuration)}s`]
+      if (resolveProjectName) statusParts.push(`Resolve: ${resolveProjectName}`)
+      if (exportPath) statusParts.push('Exported')
+      if (cloudinaryUrl) statusParts.push('Uploaded to Cloudinary')
+
       this.updateJob(job.id, {
         status: 'complete',
         progress: 100,
-        statusText: resolveProjectName
-          ? `Done — ${result.storyboardClips.length} clips, ${Math.round(result.totalDuration)}s. Resolve project: ${resolveProjectName}`
-          : `Done — ${result.storyboardClips.length} clips, ${Math.round(result.totalDuration)}s`,
+        statusText: statusParts.join('. '),
         result: {
           clipCount: result.storyboardClips.length,
           totalDuration: result.totalDuration,
           narrative: result.narrative,
           resolveProject: resolveProjectName,
+          exportPath,
+          cloudinaryUrl,
         },
         completedAt: new Date().toISOString(),
       })

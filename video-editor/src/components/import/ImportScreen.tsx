@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { HardDrive, CreditCard, ArrowLeft, AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
-import { startIngest, getIngestStatus, selectFolder } from '../../lib/api'
+import { startIngest, getIngestStatus, selectFolder, sendToResolve, checkResolveConnection } from '../../lib/api'
 import { ProgressLoader } from '../shared/LoadingPulse'
 
 export default function ImportScreen() {
@@ -65,6 +65,17 @@ export default function ImportScreen() {
               updatedAt: new Date().toISOString(),
               status: 'ready',
             })
+
+            // Auto-import media into Resolve if connected
+            if (status.clips?.length) {
+              checkResolveConnection().then((conn) => {
+                if (conn.connected) {
+                  const paths = [...new Set(status.clips!.map((c: any) => c.filePath))]
+                  sendToResolve('import_media', { file_paths: paths }).catch(() => {})
+                }
+              }).catch(() => {})
+            }
+
             setWorkflowPhase('brief')
           } else if (status.status === 'error') {
             clearInterval(poll)

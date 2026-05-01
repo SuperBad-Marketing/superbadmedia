@@ -97,6 +97,8 @@ function StatusBadge({ status }: { status: QueueJob['status'] }) {
     translating: { label: 'Translating', cls: 'text-accent bg-accent/10' },
     assembling: { label: 'Assembling', cls: 'text-accent bg-accent/10' },
     'pushing-resolve': { label: 'Resolve', cls: 'text-accent bg-accent/10' },
+    exporting: { label: 'Exporting', cls: 'text-accent bg-accent/10' },
+    uploading: { label: 'Uploading', cls: 'text-amber-400 bg-amber-400/10' },
     saving: { label: 'Saving', cls: 'text-accent bg-accent/10' },
     complete: { label: 'Complete', cls: 'text-green bg-green/10' },
     error: { label: 'Error', cls: 'text-red-400 bg-red-400/10' },
@@ -112,7 +114,7 @@ function StatusBadge({ status }: { status: QueueJob['status'] }) {
 
 function JobCard({ job, onRemove }: { job: QueueJob; onRemove: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
-  const activeStatuses: QueueJob['status'][] = ['importing', 'analyzing-vision', 'translating', 'assembling', 'pushing-resolve', 'saving']
+  const activeStatuses: QueueJob['status'][] = ['importing', 'analyzing-vision', 'translating', 'assembling', 'pushing-resolve', 'exporting', 'uploading', 'saving']
   const isActive = activeStatuses.includes(job.status)
   const canRemove = job.status === 'pending' || job.status === 'complete' || job.status === 'error'
 
@@ -564,7 +566,8 @@ export default function QueueView() {
   const activeJob = jobs.find(j =>
     j.status === 'importing' || j.status === 'analyzing-vision' ||
     j.status === 'translating' || j.status === 'assembling' ||
-    j.status === 'pushing-resolve' || j.status === 'saving'
+    j.status === 'pushing-resolve' || j.status === 'exporting' ||
+    j.status === 'uploading' || j.status === 'saving'
   )
 
   if (loading) {

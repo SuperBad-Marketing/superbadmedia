@@ -263,10 +263,10 @@ export default function ExportView() {
                       progress: 0,
                     } : j))
                     try {
-                      await uploadToCloudinary(
-                        outputPath,
-                        currentProject?.name || 'exports',
-                      )
+                      const cloudFolder = currentProject?.clientName && currentProject.clientName !== 'New Project'
+                        ? `clients/${currentProject.clientName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-')}/${currentProject.name || 'export'}`
+                        : currentProject?.name || 'exports'
+                      await uploadToCloudinary(outputPath, cloudFolder)
                       setExportJobs((prev) => prev.map((j, idx) => idx === i ? {
                         ...j,
                         status: 'complete' as ExportStatus,

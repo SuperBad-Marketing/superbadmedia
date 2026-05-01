@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
-import { Settings, Check, Monitor } from 'lucide-react'
+import { Settings, Check, Monitor, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAppStore } from '../../stores/appStore'
 import { checkResolveConnection, connectResolve } from '../../lib/api'
+import { useAutosave } from '../../hooks/useAutosave'
 import type { WorkflowPhase } from '../../types'
 
 const SettingsModal = lazy(() => import('../settings/SettingsModal'))
@@ -131,6 +132,7 @@ export default function HeaderBar() {
   const workflowPhase = useAppStore((s) => s.workflowPhase)
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const { lastSaved, saving } = useAutosave()
 
   const currentIndex = getPhaseIndex(workflowPhase)
 
@@ -155,6 +157,15 @@ export default function HeaderBar() {
           {currentProject && (
             <span className="text-[11px] text-text-dim truncate max-w-48">
               {currentProject.name}
+            </span>
+          )}
+          {currentProject && (
+            <span className="flex items-center gap-1 text-[9px] text-text-dim/50 tabular-nums">
+              {saving ? (
+                <><Save size={8} className="animate-pulse" /> Saving...</>
+              ) : lastSaved ? (
+                <><Save size={8} /> {lastSaved}</>
+              ) : null}
             </span>
           )}
         </div>

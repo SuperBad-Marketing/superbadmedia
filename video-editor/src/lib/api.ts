@@ -457,10 +457,10 @@ export interface QueueJob {
   clientId?: string
   structuredBrief: StructuredBrief
   editBrief?: BriefFields
-  status: 'pending' | 'importing' | 'analyzing-vision' | 'translating' | 'assembling' | 'pushing-resolve' | 'saving' | 'complete' | 'error'
+  status: 'pending' | 'importing' | 'analyzing-vision' | 'translating' | 'assembling' | 'pushing-resolve' | 'exporting' | 'uploading' | 'saving' | 'complete' | 'error'
   progress: number
   statusText: string
-  result?: { clipCount: number; totalDuration: number; narrative: string; resolveProject?: string }
+  result?: { clipCount: number; totalDuration: number; narrative: string; resolveProject?: string; exportPath?: string; cloudinaryUrl?: string }
   error?: string
   createdAt: string
   startedAt?: string
