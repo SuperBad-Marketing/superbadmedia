@@ -70,7 +70,7 @@ function patchPendingAlterColumns(
 
     const raw = fs.readFileSync(filePath, "utf-8");
     const addColMatch = raw.match(
-      /ALTER\s+TABLE\s+(\w+)\s+ADD\s+COLUMN\s+(\w+)/i,
+      /ALTER\s+TABLE\s+`?(\w+)`?\s+ADD\s+(?:COLUMN\s+)?`?(\w+)`?/i,
     );
     if (!addColMatch) continue;
 
