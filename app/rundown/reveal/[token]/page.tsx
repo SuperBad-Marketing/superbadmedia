@@ -9,6 +9,9 @@ import { brand_dna_profiles } from "@/lib/db/schema/brand-dna-profiles";
 import { SECTION_TITLES } from "@/lib/brand-dna/question-bank";
 import { generateFirstImpression } from "@/lib/brand-dna/generate-first-impression";
 import { generateProsePortrait } from "@/lib/brand-dna/generate-prose-portrait";
+import { generateSignalScoresIntro } from "@/lib/brand-dna/generate-signal-scores-intro";
+import { generateSignalDescriptions } from "@/lib/brand-dna/generate-signal-descriptions";
+import { buildSignalScoresData } from "@/lib/brand-dna/build-signal-scores-data";
 
 import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
 
@@ -88,14 +91,23 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
   const profile = profiles[0];
   if (!profile) notFound();
 
-  const firstImpression = await generateFirstImpression(profileId);
-  const prosePortrait = await generateProsePortrait(profileId);
+  const [firstImpression, prosePortrait, signalScoresIntro, signalDescriptions] =
+    await Promise.all([
+      generateFirstImpression(profileId),
+      generateProsePortrait(profileId),
+      generateSignalScoresIntro(profileId),
+      generateSignalDescriptions(profileId),
+    ]);
 
   const sectionInsights: string[] = parseSectionInsights(profile.section_insights);
   const sectionTitles: string[] = ([1, 2, 3, 4, 5] as const).map(
     (n) => SECTION_TITLES[n],
   );
-  const signalTags = parseSignalTags(profile.signal_tags);
+
+  const { scores, longTail } = buildSignalScoresData(
+    profile.signal_tags,
+    signalDescriptions,
+  );
 
   async function noOp(_profileId: string) {
     "use server";
@@ -108,7 +120,9 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
       prosePortrait={prosePortrait}
       sectionInsights={sectionInsights}
       sectionTitles={sectionTitles}
-      signalTags={signalTags}
+      signalScoresIntro={signalScoresIntro}
+      signalScores={scores}
+      signalScoresLongTail={longTail}
       alreadyComplete={true}
       markComplete={noOp}
     />
@@ -171,22 +185,3 @@ function parseSectionInsights(raw: string | null): string[] {
   return [];
 }
 
-function parseSignalTags(raw: string | null): string[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .filter((s): s is string => typeof s === "string")
-        .slice(0, 8)
-        .map((t) => t.replace(/_/g, " "));
-    }
-    if (typeof parsed === "object" && parsed !== null) {
-      return Object.entries(parsed as Record<string, number>)
-        .sort((a, b) => (b[1] as number) - (a[1] as number))
-        .slice(0, 8)
-        .map(([tag]) => tag.replace(/_/g, " "));
-    }
-  } catch {}
-  return [];
-}

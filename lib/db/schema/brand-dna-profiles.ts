@@ -124,6 +124,10 @@ export const brand_dna_profiles = sqliteTable(
     current_section: integer("current_section").notNull().default(1),
     /** UTC epoch ms when assessment reached status = 'complete'. */
     completed_at_ms: integer("completed_at_ms"),
+    /** 2-sentence Opus intro for the signal scores chart. */
+    signal_scores_intro: text("signal_scores_intro"),
+    /** JSON: Record<tag, contextualSentence> — Opus-generated per-signal descriptions for top 12. */
+    signal_descriptions_json: text("signal_descriptions_json"),
     /** Cached Brand Pack LLM output. JSON: BrandPackData. */
     brand_pack_json: text("brand_pack_json"),
   },

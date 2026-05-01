@@ -10,6 +10,9 @@ import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { SECTION_TITLES } from "@/lib/brand-dna/question-bank";
 import { generateFirstImpression } from "@/lib/brand-dna/generate-first-impression";
 import { generateProsePortrait } from "@/lib/brand-dna/generate-prose-portrait";
+import { generateSignalScoresIntro } from "@/lib/brand-dna/generate-signal-scores-intro";
+import { generateSignalDescriptions } from "@/lib/brand-dna/generate-signal-descriptions";
+import { buildSignalScoresData, parseSignalTagNames } from "@/lib/brand-dna/build-signal-scores-data";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
 import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
@@ -75,15 +78,25 @@ async function RevealContent({
   const profile = profileRows[0];
   if (!profile) notFound();
 
-  const firstImpression = await generateFirstImpression(profileId);
-  const prosePortrait = await generateProsePortrait(profileId);
+  const [firstImpression, prosePortrait, signalScoresIntro, signalDescriptions] =
+    await Promise.all([
+      generateFirstImpression(profileId),
+      generateProsePortrait(profileId),
+      generateSignalScoresIntro(profileId),
+      generateSignalDescriptions(profileId),
+    ]);
 
   const sectionInsights: string[] = parseSectionInsights(profile.section_insights);
   const sectionTitles: string[] = ([1, 2, 3, 4, 5] as const).map(
     (n) => SECTION_TITLES[n],
   );
-  const signalTags = parseSignalTags(profile.signal_tags);
 
+  const { scores, longTail } = buildSignalScoresData(
+    profile.signal_tags,
+    signalDescriptions,
+  );
+
+  const signalTagNames = parseSignalTagNames(profile.signal_tags);
   const enrichmentData = candidateRows[0]?.viability_profile_json as ViabilityProfile | null;
 
   const boundComplete = markRundownProfileComplete.bind(null, sessionToken);
@@ -96,7 +109,9 @@ async function RevealContent({
         prosePortrait={prosePortrait}
         sectionInsights={sectionInsights}
         sectionTitles={sectionTitles}
-        signalTags={signalTags}
+        signalScoresIntro={signalScoresIntro}
+        signalScores={scores}
+        signalScoresLongTail={longTail}
         alreadyComplete={profile.status === "complete"}
         markComplete={boundComplete}
       />
@@ -105,7 +120,7 @@ async function RevealContent({
         profileId={profileId}
         businessName={businessName}
         enrichmentData={enrichmentData}
-        signalTags={signalTags}
+        signalTags={signalTagNames}
         firstImpression={firstImpression}
       />
     </>
@@ -129,22 +144,3 @@ function parseSectionInsights(raw: string | null): string[] {
   return [];
 }
 
-function parseSignalTags(raw: string | null): string[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .filter((s): s is string => typeof s === "string")
-        .slice(0, 8)
-        .map((t) => t.replace(/_/g, " "));
-    }
-    if (typeof parsed === "object" && parsed !== null) {
-      return Object.entries(parsed as Record<string, number>)
-        .sort((a, b) => (b[1] as number) - (a[1] as number))
-        .slice(0, 8)
-        .map(([tag]) => tag.replace(/_/g, " "));
-    }
-  } catch {}
-  return [];
-}

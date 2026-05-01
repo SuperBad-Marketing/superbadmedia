@@ -21,6 +21,10 @@ import { SessionProvider, useSession } from "next-auth/react";
 
 import { useSound } from "@/components/lite/sound-provider";
 import { houseSpring } from "@/lib/design-tokens";
+import {
+  SignalScores,
+  type SignalScoreEntry,
+} from "@/components/lite/brand-dna/signal-scores";
 
 import { markProfileComplete } from "../actions";
 
@@ -30,7 +34,9 @@ interface RevealClientProps {
   prosePortrait: string;
   sectionInsights: string[];
   sectionTitles: string[];
-  signalTags: string[];
+  signalScoresIntro: string;
+  signalScores: SignalScoreEntry[];
+  signalScoresLongTail: string[];
   alreadyComplete: boolean;
   markComplete?: (profileId: string) => Promise<void>;
 }
@@ -76,7 +82,9 @@ function RevealInner({
   prosePortrait,
   sectionInsights,
   sectionTitles,
-  signalTags,
+  signalScoresIntro,
+  signalScores,
+  signalScoresLongTail,
   alreadyComplete,
   markComplete: externalMarkComplete,
 }: RevealClientProps) {
@@ -169,48 +177,16 @@ function RevealInner({
           )}
         </motion.section>
 
-        {/* Signal tag pills */}
-        {signalTags.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1.6 }}
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 10,
-              marginTop: 40,
-              paddingBottom: 56,
-            }}
-            aria-label="Your signal tags"
-          >
-            {signalTags.map((tag, i) => (
-              <motion.span
-                key={tag}
-                initial={{ opacity: 0, scale: 0.8, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{
-                  ...houseSpring,
-                  delay: 1.6 + i * 0.08,
-                }}
-                style={{
-                  fontFamily: "var(--font-label)",
-                  fontSize: 11,
-                  letterSpacing: "1.5px",
-                  textTransform: "uppercase",
-                  color: "var(--brand-pink)",
-                  padding: "8px 16px",
-                  border: "1px solid rgba(244, 160, 176, 0.25)",
-                  borderRadius: 999,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {tag}
-              </motion.span>
-            ))}
-          </motion.div>
-        )}
       </div>
+
+      {/* ═══ SIGNAL SCORES ═══ */}
+      {signalScores.length > 0 && (
+        <SignalScores
+          intro={signalScoresIntro}
+          scores={signalScores}
+          longTail={signalScoresLongTail}
+        />
+      )}
 
       {/* ═══ SECTION INSIGHTS (alternating bands) ═══ */}
       {parsedInsights.length > 0 && (

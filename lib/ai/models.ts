@@ -56,6 +56,8 @@ export const MODELS = {
   "brand-dna-generate-company-blend": "opus",
   "brand-dna-generate-retake-comparison": "opus",
   "brand-dna-generate-brand-pack": "opus",
+  "brand-dna-generate-signal-scores-intro": "opus",
+  "brand-dna-generate-signal-descriptions": "opus",
   // content-engine (10)
   "content-score-keyword-rankability": "haiku",
   "content-generate-topic-outline": "haiku",
@@ -216,6 +218,8 @@ const PROFILE_INJECTION_EXCLUDED: ReadonlySet<ModelJobSlug> = new Set([
   "brand-dna-generate-company-blend",
   "brand-dna-generate-retake-comparison",
   "brand-dna-generate-brand-pack",
+  "brand-dna-generate-signal-scores-intro",
+  "brand-dna-generate-signal-descriptions",
   // Classification / extraction — pure analysis, no voice
   "intro-funnel-signal-tag-extraction",
   "lead-gen-icp-prefilter",
