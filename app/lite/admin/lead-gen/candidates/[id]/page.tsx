@@ -12,6 +12,7 @@ import { CandidateContactEdit } from "./candidate-contact-edit";
 import { EnrichmentCard } from "@/components/lite/enrichment-card";
 import { SocialProfilesCard } from "@/components/lite/social-profiles-card";
 import { RundownSequenceCard } from "./_components/rundown-sequence-card";
+import { AssessmentProgressCard } from "./_components/assessment-progress-card";
 import { getSequenceEmailsForCandidate } from "@/lib/rundown/sequence-queries";
 
 export const metadata: Metadata = {
@@ -146,6 +147,13 @@ export default async function CandidateDetailPage({
             See Brand DNA
             <span aria-hidden="true" style={{ fontSize: "13px" }}>&rarr;</span>
           </Link>
+        </div>
+      )}
+
+      {/* Assessment progress — shows where they dropped off */}
+      {rundownSession && (
+        <div className="mt-8 px-4">
+          <AssessmentProgressCard session={rundownSession} />
         </div>
       )}
 
