@@ -29,6 +29,7 @@ export const leadRuns = sqliteTable(
 
     found_count: integer("found_count").notNull().default(0),
     dnc_filtered_count: integer("dnc_filtered_count").notNull().default(0),
+    icp_filtered_count: integer("icp_filtered_count").notNull().default(0),
     qualified_count: integer("qualified_count").notNull().default(0),
     drafted_count: integer("drafted_count").notNull().default(0),
 

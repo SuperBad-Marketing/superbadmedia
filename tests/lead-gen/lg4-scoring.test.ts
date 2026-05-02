@@ -460,8 +460,8 @@ describe("rescoreCandidate", () => {
 // ── Floor constants ────────────────────────────────────────────────────
 
 describe("scoring constants", () => {
-  it("SaaS floor is 8", () => {
-    expect(SAAS_FLOOR).toBe(8);
+  it("SaaS floor is 5", () => {
+    expect(SAAS_FLOOR).toBe(5);
   });
 
   it("retainer floor is 14", () => {

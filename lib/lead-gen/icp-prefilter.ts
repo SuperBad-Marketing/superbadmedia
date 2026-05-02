@@ -19,6 +19,10 @@ export async function prefilterCandidate(
   brief: string,
   trackPriority: string,
 ): Promise<IcpPrefilterResult> {
+  if (!brief.trim()) {
+    return { pass: true, rationale: "No standing brief — skipping ICP prefilter" };
+  }
+
   const signals = buildSignalSummary(candidate);
 
   const prompt = `You are an ICP (Ideal Customer Profile) pre-qualifier for a marketing agency.

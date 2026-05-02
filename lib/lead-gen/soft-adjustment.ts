@@ -32,6 +32,10 @@ export async function computeSoftAdjustment(args: {
     return { adjustment: 0, rationale: "llm_calls_disabled" };
   }
 
+  if (!args.standingBrief.trim()) {
+    return { adjustment: 0, rationale: "no_standing_brief" };
+  }
+
   try {
     const raw = await invokeLlmText({
       job: "lead-gen-soft-adjustment",

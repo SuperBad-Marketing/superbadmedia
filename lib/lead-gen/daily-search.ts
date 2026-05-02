@@ -83,6 +83,7 @@ export async function runDailySearch(
       verticalName: null,
       foundCount: 0,
       dncFilteredCount: 0,
+      icpFilteredCount: 0,
       qualifiedCount: 0,
       draftedCount: 0,
       warmupCap: 0,
@@ -126,6 +127,7 @@ export async function runDailySearch(
         verticalName: null,
         foundCount: 0,
         dncFilteredCount: 0,
+        icpFilteredCount: 0,
         qualifiedCount: 0,
         draftedCount: 0,
         warmupCap,
@@ -440,6 +442,7 @@ export async function runDailySearch(
       verticalName,
       foundCount,
       dncFilteredCount,
+      icpFilteredCount,
       qualifiedCount: scoredCandidates.length,
       draftedCount,
       warmupCap,
@@ -478,6 +481,7 @@ export async function runDailySearch(
       verticalName: null,
       foundCount: 0,
       dncFilteredCount: 0,
+      icpFilteredCount: 0,
       qualifiedCount: 0,
       draftedCount: 0,
       warmupCap: 0,
@@ -602,6 +606,7 @@ interface RunSummaryInput {
   verticalName: string | null;
   foundCount: number;
   dncFilteredCount: number;
+  icpFilteredCount: number;
   qualifiedCount: number;
   draftedCount: number;
   warmupCap: number;
@@ -627,6 +632,7 @@ async function writeRunSummary(
       vertical_name: input.verticalName,
       found_count: input.foundCount,
       dnc_filtered_count: input.dncFilteredCount,
+      icp_filtered_count: input.icpFilteredCount,
       qualified_count: input.qualifiedCount,
       drafted_count: input.draftedCount,
       warmup_cap_at_run: input.warmupCap,
