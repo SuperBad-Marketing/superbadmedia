@@ -49,6 +49,8 @@ function ensureColumns(sqlite: Database.Database): void {
     { table: "brand_dna_profiles", column: "signal_descriptions_json", type: "text" },
     { table: "rundown_sessions", column: "gap_reveal_json", type: "text" },
     { table: "brand_dna_profiles", column: "long_tail_summary", type: "text" },
+    { table: "companies", column: "cloudinary_gallery_folder", type: "text" },
+    { table: "deals", column: "cloudinary_gallery_folder", type: "text" },
   ];
 
   for (const { table, column, type } of required) {
