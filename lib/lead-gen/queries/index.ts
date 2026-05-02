@@ -17,4 +17,4 @@ export type { QueueHeaderData, TrackAutonomySummary } from "./header";
 export { getAutonomyStates } from "../autonomy";
 export type { AutonomyStateView } from "../autonomy";
 export { getInboxItems, getInboxSummary } from "./inbox";
-export type { InboxItem, InboxSendItem, InboxReplyItem } from "./inbox";
+export type { InboxItem, InboxSendItem, InboxReplyItem, InboxRundownItem } from "./inbox";

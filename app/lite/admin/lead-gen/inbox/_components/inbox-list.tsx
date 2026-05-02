@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { InboxItem } from "@/lib/lead-gen/queries/inbox";
 
-type FilterKind = "all" | "sent" | "reply";
+type FilterKind = "all" | "sent" | "rundown" | "reply";
 
 const MELB_TZ = "Australia/Melbourne";
 const DATE_FMT: Intl.DateTimeFormatOptions = {
@@ -212,6 +212,142 @@ function SentCard({ item }: { item: Extract<InboxItem, { kind: "sent" }> }) {
   );
 }
 
+function RundownTimeline({
+  openCount,
+  clickedAtMs,
+  repliedAtMs,
+}: {
+  openCount: number;
+  clickedAtMs: number | null;
+  repliedAtMs: number | null;
+}) {
+  const steps: Array<{ label: string; active: boolean; color: string }> = [
+    { label: "Sent", active: true, color: "var(--color-neutral-400)" },
+    { label: "Opened", active: openCount > 0, color: "#93c5fd" },
+    { label: "Clicked", active: !!clickedAtMs, color: "#c084fc" },
+    { label: "Replied", active: !!repliedAtMs, color: "#fbbf24" },
+  ];
+
+  return (
+    <div className="flex items-center gap-1">
+      {steps.map((step, i) => (
+        <div key={step.label} className="flex items-center gap-1">
+          {i > 0 && (
+            <div
+              className="h-px w-2"
+              style={{
+                backgroundColor: step.active
+                  ? "rgba(253, 245, 230, 0.15)"
+                  : "rgba(253, 245, 230, 0.05)",
+              }}
+            />
+          )}
+          <span
+            className="font-[family-name:var(--font-label)] text-[8px] uppercase"
+            style={{
+              letterSpacing: "1px",
+              color: step.active ? step.color : "var(--color-neutral-600)",
+            }}
+          >
+            {step.label}
+            {step.label === "Opened" && openCount > 1 ? ` (${openCount})` : ""}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RundownCard({ item }: { item: Extract<InboxItem, { kind: "rundown" }> }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div
+      className="rounded-xl p-4 transition-all duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+      style={{
+        backgroundColor: "var(--color-surface-2)",
+        boxShadow: "var(--surface-highlight)",
+        border: "1px solid rgba(253, 245, 230, 0.03)",
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="inline-block rounded-full px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+              style={{
+                letterSpacing: "1.2px",
+                backgroundColor: "rgba(244, 160, 176, 0.1)",
+                color: "#f4a0b0",
+              }}
+            >
+              Rundown
+            </span>
+            <span
+              className="inline-block rounded-full px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase"
+              style={{
+                letterSpacing: "1.2px",
+                backgroundColor: "rgba(253, 245, 230, 0.04)",
+                color: "var(--color-neutral-500)",
+              }}
+            >
+              email #{item.emailNumber}
+            </span>
+            <RundownTimeline
+              openCount={item.openCount}
+              clickedAtMs={item.clickedAtMs}
+              repliedAtMs={item.repliedAtMs}
+            />
+          </div>
+
+          <div className="mt-2 flex items-center gap-2">
+            <span className="font-[family-name:var(--font-display)] text-[18px] leading-tight text-[color:var(--color-brand-cream)]">
+              {item.businessName}
+            </span>
+            <span className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+              {item.contactEmail}
+            </span>
+          </div>
+
+          <p className="mt-1 font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-300)]">
+            {item.subject ?? "No subject"}
+          </p>
+
+          {item.replyClassification && (
+            <div className="mt-1.5">
+              <ClassificationBadge classification={item.replyClassification} />
+            </div>
+          )}
+        </div>
+
+        <div className="shrink-0 text-right">
+          <div className="font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+            {formatDate(item.sentAtMs)}
+          </div>
+        </div>
+      </div>
+
+      {expanded && item.bodyHtml && (
+        <div
+          className="mt-3 rounded-lg p-3 font-[family-name:var(--font-body)] text-[13px] leading-[1.6] text-[color:var(--color-neutral-300)]"
+          style={{ backgroundColor: "rgba(253, 245, 230, 0.02)" }}
+          dangerouslySetInnerHTML={{ __html: item.bodyHtml }}
+        />
+      )}
+
+      {item.bodyHtml && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-2 font-[family-name:var(--font-label)] text-[9px] uppercase text-[color:var(--color-neutral-500)] hover:text-[color:var(--color-brand-pink)] transition-colors cursor-pointer"
+          style={{ letterSpacing: "1.2px" }}
+        >
+          {expanded ? "Collapse" : "Show email"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function ReplyCard({ item }: { item: Extract<InboxItem, { kind: "reply" }> }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -319,13 +455,22 @@ export function InboxList({ items }: InboxListProps) {
 
   const filtered = items.filter((item) => {
     if (filter === "all") return true;
-    return item.kind === (filter === "sent" ? "sent" : "reply");
+    if (filter === "sent") return item.kind === "sent";
+    if (filter === "rundown") return item.kind === "rundown";
+    return item.kind === "reply";
   });
+
+  const filterLabels: Record<FilterKind, string> = {
+    all: "All",
+    sent: "Outreach",
+    rundown: "Rundown",
+    reply: "Replies",
+  };
 
   return (
     <div>
       <div className="mb-4 flex items-center gap-1">
-        {(["all", "sent", "reply"] as FilterKind[]).map((f) => (
+        {(["all", "sent", "rundown", "reply"] as FilterKind[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -336,7 +481,7 @@ export function InboxList({ items }: InboxListProps) {
               color: filter === f ? "var(--color-brand-cream)" : "var(--color-neutral-500)",
             }}
           >
-            {f === "reply" ? "Replies" : f === "sent" ? "Sent" : "All"}
+            {filterLabels[f]}
           </button>
         ))}
       </div>
@@ -345,13 +490,15 @@ export function InboxList({ items }: InboxListProps) {
         {filtered.length === 0 ? (
           <div className="py-12 text-center">
             <p className="font-[family-name:var(--font-body)] text-[14px] text-[color:var(--color-neutral-500)]">
-              No {filter === "all" ? "activity" : filter === "sent" ? "sent emails" : "replies"} yet.
+              No {filter === "all" ? "activity" : filterLabels[filter].toLowerCase()} yet.
             </p>
           </div>
         ) : (
           filtered.map((item) =>
             item.kind === "sent" ? (
               <SentCard key={`sent-${item.id}`} item={item} />
+            ) : item.kind === "rundown" ? (
+              <RundownCard key={`rundown-${item.id}`} item={item} />
             ) : (
               <ReplyCard key={`reply-${item.id}`} item={item} />
             ),

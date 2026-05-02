@@ -4,7 +4,9 @@ import { outreachDrafts } from "@/lib/db/schema/outreach-drafts";
 import { outreachSequences } from "@/lib/db/schema/outreach-sequences";
 import { leadCandidates } from "@/lib/db/schema/lead-candidates";
 import { replyDrafts } from "@/lib/db/schema/reply-drafts";
-import { eq, desc, and, isNotNull } from "drizzle-orm";
+import { rundown_sequence_emails } from "@/lib/db/schema/rundown-sequence-emails";
+import { rundownSessions } from "@/lib/db/schema/rundown-sessions";
+import { eq, desc, isNotNull } from "drizzle-orm";
 
 export interface InboxSendItem {
   kind: "sent";
@@ -43,21 +45,43 @@ export interface InboxReplyItem {
   createdAtMs: number;
 }
 
-export type InboxItem = InboxSendItem | InboxReplyItem;
+export interface InboxRundownItem {
+  kind: "rundown";
+  id: string;
+  sessionId: string;
+  candidateId: string;
+  businessName: string;
+  contactName: string;
+  contactEmail: string;
+  emailNumber: number;
+  track: string;
+  subject: string | null;
+  bodyHtml: string | null;
+  sentAtMs: number;
+  openedAtMs: number | null;
+  openCount: number;
+  clickedAtMs: number | null;
+  repliedAtMs: number | null;
+  replyClassification: string | null;
+}
+
+export type InboxItem = InboxSendItem | InboxReplyItem | InboxRundownItem;
+
+function itemTimestamp(item: InboxItem): number {
+  if (item.kind === "sent") return item.sentAt.getTime();
+  if (item.kind === "rundown") return item.sentAtMs;
+  return item.createdAtMs;
+}
 
 export async function getInboxItems(limit = 100): Promise<InboxItem[]> {
-  const [sends, replies] = await Promise.all([
+  const [sends, replies, rundowns] = await Promise.all([
     getRecentSends(limit),
     getRecentReplies(limit),
+    getRecentRundownSends(limit),
   ]);
 
-  const combined: InboxItem[] = [...sends, ...replies];
-
-  combined.sort((a, b) => {
-    const aTime = a.kind === "sent" ? a.sentAt.getTime() : a.createdAtMs;
-    const bTime = b.kind === "sent" ? b.sentAt.getTime() : b.createdAtMs;
-    return bTime - aTime;
-  });
+  const combined: InboxItem[] = [...sends, ...replies, ...rundowns];
+  combined.sort((a, b) => itemTimestamp(b) - itemTimestamp(a));
 
   return combined.slice(0, limit);
 }
@@ -161,6 +185,62 @@ async function getRecentReplies(limit: number): Promise<InboxReplyItem[]> {
   }));
 }
 
+async function getRecentRundownSends(
+  limit: number,
+): Promise<InboxRundownItem[]> {
+  const rows = await db
+    .select({
+      emailId: rundown_sequence_emails.id,
+      sessionId: rundown_sequence_emails.session_id,
+      candidateId: rundown_sequence_emails.candidate_id,
+      emailNumber: rundown_sequence_emails.email_number,
+      track: rundown_sequence_emails.track,
+      subject: rundown_sequence_emails.subject,
+      bodyHtml: rundown_sequence_emails.body_html,
+      sentAtMs: rundown_sequence_emails.sent_at_ms,
+      openedAtMs: rundown_sequence_emails.opened_at_ms,
+      openCount: rundown_sequence_emails.open_count,
+      clickedAtMs: rundown_sequence_emails.clicked_at_ms,
+      repliedAtMs: rundown_sequence_emails.reply_received_at_ms,
+      replyClassification: rundown_sequence_emails.reply_classification,
+      businessName: rundownSessions.business_name,
+      contactName: rundownSessions.name,
+      contactEmail: rundownSessions.email,
+    })
+    .from(rundown_sequence_emails)
+    .innerJoin(
+      rundownSessions,
+      eq(rundown_sequence_emails.session_id, rundownSessions.id),
+    )
+    .where(
+      eq(rundown_sequence_emails.status, "sent"),
+    )
+    .orderBy(desc(rundown_sequence_emails.sent_at_ms))
+    .limit(limit);
+
+  return rows
+    .filter((r) => r.sentAtMs !== null)
+    .map((r) => ({
+      kind: "rundown" as const,
+      id: r.emailId,
+      sessionId: r.sessionId,
+      candidateId: r.candidateId,
+      businessName: r.businessName,
+      contactName: r.contactName,
+      contactEmail: r.contactEmail,
+      emailNumber: r.emailNumber,
+      track: r.track,
+      subject: r.subject,
+      bodyHtml: r.bodyHtml,
+      sentAtMs: r.sentAtMs!,
+      openedAtMs: r.openedAtMs,
+      openCount: r.openCount,
+      clickedAtMs: r.clickedAtMs,
+      repliedAtMs: r.repliedAtMs,
+      replyClassification: r.replyClassification,
+    }));
+}
+
 export interface InboxSummary {
   totalSent: number;
   totalDelivered: number;
@@ -178,7 +258,7 @@ export interface InboxSummary {
 }
 
 export async function getInboxSummary(): Promise<InboxSummary> {
-  const [sendRows, replies, pendingReplies] = await Promise.all([
+  const [sendRows, rundownRows, replies, pendingReplies] = await Promise.all([
     db
       .select({
         id: outreachSends.id,
@@ -190,6 +270,15 @@ export async function getInboxSummary(): Promise<InboxSummary> {
       })
       .from(outreachSends),
     db
+      .select({
+        id: rundown_sequence_emails.id,
+        openCount: rundown_sequence_emails.open_count,
+        clickedAtMs: rundown_sequence_emails.clicked_at_ms,
+        repliedAtMs: rundown_sequence_emails.reply_received_at_ms,
+      })
+      .from(rundown_sequence_emails)
+      .where(eq(rundown_sequence_emails.status, "sent")),
+    db
       .select({ id: replyDrafts.id })
       .from(replyDrafts),
     db
@@ -198,14 +287,24 @@ export async function getInboxSummary(): Promise<InboxSummary> {
       .where(eq(replyDrafts.status, "pending_approval")),
   ]);
 
-  const totalSent = sendRows.length;
+  const outreachSent = sendRows.length;
+  const rundownSent = rundownRows.length;
+  const totalSent = outreachSent + rundownSent;
+
   const totalDelivered = sendRows.filter((r) => r.deliveredAt !== null).length;
-  const totalOpened = sendRows.filter((r) => r.openCount > 0).length;
-  const totalClicked = sendRows.filter((r) => r.clickCount > 0).length;
-  const totalReplied = sendRows.filter((r) => r.repliedAt !== null).length;
+  const totalOpened =
+    sendRows.filter((r) => r.openCount > 0).length +
+    rundownRows.filter((r) => r.openCount > 0).length;
+  const totalClicked =
+    sendRows.filter((r) => r.clickCount > 0).length +
+    rundownRows.filter((r) => r.clickedAtMs !== null).length;
+  const totalReplied =
+    sendRows.filter((r) => r.repliedAt !== null).length +
+    rundownRows.filter((r) => r.repliedAtMs !== null).length;
   const totalBounced = sendRows.filter((r) => r.bouncedAt !== null).length;
 
-  const pct = (n: number) => (totalSent > 0 ? Math.round((n / totalSent) * 100) : 0);
+  const pct = (n: number, base: number) =>
+    base > 0 ? Math.round((n / base) * 100) : 0;
 
   return {
     totalSent,
@@ -216,10 +315,10 @@ export async function getInboxSummary(): Promise<InboxSummary> {
     totalBounced,
     totalReplies: replies.length,
     pendingReplyDrafts: pendingReplies.length,
-    deliveryRate: pct(totalDelivered),
-    openRate: pct(totalOpened),
-    clickRate: pct(totalClicked),
-    replyRate: pct(totalReplied),
-    bounceRate: pct(totalBounced),
+    deliveryRate: pct(totalDelivered, outreachSent),
+    openRate: pct(totalOpened, totalSent),
+    clickRate: pct(totalClicked, totalSent),
+    replyRate: pct(totalReplied, totalSent),
+    bounceRate: pct(totalBounced, outreachSent),
   };
 }
