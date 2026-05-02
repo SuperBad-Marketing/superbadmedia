@@ -78,12 +78,32 @@ export interface BrandPackData {
   toneOfVoice: string;
   visualDonts: string[];
   enrichmentSnapshot: EnrichmentSnapshot | null;
+  marketingPlaybook: MarketingPlaybookForPack | null;
   generatedDate: string;
+}
+
+export interface MarketingPlaybookForPack {
+  sections: Array<{
+    title: string;
+    overview: string;
+    examples: Array<{ scenario: string; guidance: string }>;
+  }>;
 }
 
 /** Simplified enrichment observations for the PDF. */
 export interface EnrichmentSnapshot {
   facts: { label: string; observation: string }[];
+}
+
+function parsePlaybookFromProfile(
+  raw: string | null | undefined,
+): MarketingPlaybookForPack | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as MarketingPlaybookForPack;
+    if (parsed.sections && parsed.sections.length > 0) return parsed;
+  } catch {}
+  return null;
 }
 
 // ── Enrichment → snapshot ──────────────────────────────────────────────
@@ -237,6 +257,7 @@ export async function generateBrandPackContent(
       cached.enrichmentSnapshot = buildEnrichmentSnapshot(enrichmentData, subjectName);
       cached.firstImpression = cleanFirstImpression(cached.firstImpression);
       cached.prosePortraitExcerpt = cleanPortraitExcerpt(cached.prosePortraitExcerpt);
+      cached.marketingPlaybook = parsePlaybookFromProfile(profile.marketing_playbook_json);
       return cached;
     } catch {
       // Corrupted cache — regenerate
@@ -350,6 +371,7 @@ export async function generateBrandPackContent(
     toneOfVoice: (llmResult.toneOfVoice as string) ?? "",
     visualDonts: (llmResult.visualDonts as string[]) ?? [],
     enrichmentSnapshot: buildEnrichmentSnapshot(enrichmentData, subjectName),
+    marketingPlaybook: parsePlaybookFromProfile(profile.marketing_playbook_json),
     generatedDate: dateStr,
   };
 

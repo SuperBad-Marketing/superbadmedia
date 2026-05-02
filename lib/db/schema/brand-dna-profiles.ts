@@ -132,6 +132,8 @@ export const brand_dna_profiles = sqliteTable(
     long_tail_summary: text("long_tail_summary"),
     /** Cached Brand Pack LLM output. JSON: BrandPackData. */
     brand_pack_json: text("brand_pack_json"),
+    /** Cached Marketing Playbook LLM output. JSON: MarketingPlaybook. */
+    marketing_playbook_json: text("marketing_playbook_json"),
   },
   (t) => ({
     by_subject: index("brand_dna_profiles_subject_idx").on(

@@ -5,6 +5,9 @@ import { motion, useInView, useReducedMotion, AnimatePresence } from "framer-mot
 import { houseSpring } from "@/lib/design-tokens";
 import type { GapRevealData } from "@/lib/brand-dna/generate-gap-reveal";
 import type { DomainPresenceScore } from "@/lib/brand-dna/build-presence-scores";
+import type { MarketingPlaybook as MarketingPlaybookData } from "@/lib/brand-dna/generate-marketing-playbook";
+import { MarketingPlaybook } from "./marketing-playbook";
+import { TrialShootCta } from "./trial-shoot-cta";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -16,6 +19,7 @@ export interface GapRevealProps {
   trialShootUrl: string;
   onViewBrandPack: () => void;
   packLoading: boolean;
+  marketingPlaybook?: MarketingPlaybookData | null;
 }
 
 export function GapReveal({
@@ -26,6 +30,7 @@ export function GapReveal({
   trialShootUrl,
   onViewBrandPack,
   packLoading,
+  marketingPlaybook,
 }: GapRevealProps) {
   const titleRef = React.useRef<HTMLDivElement>(null);
   const titleInView = useInView(titleRef, { once: true, amount: 0.4 });
@@ -98,13 +103,21 @@ export function GapReveal({
         <ObservationsSection gapReveal={gapReveal} reduced={reduced ?? false} />
       )}
 
-      {/* Session availability */}
-      <SessionLine trialShootUrl={trialShootUrl} reduced={reduced ?? false} />
+      {/* Marketing Playbook */}
+      {marketingPlaybook && marketingPlaybook.sections.length > 0 && (
+        <MarketingPlaybook playbook={marketingPlaybook} />
+      )}
 
       {/* Brand Pack download */}
       <BrandPackSection
         onView={onViewBrandPack}
         loading={packLoading}
+      />
+
+      {/* Trial Shoot CTA */}
+      <TrialShootCta
+        trialShootUrl={trialShootUrl}
+        sessionToken={sessionToken}
       />
 
       {/* Footer */}
@@ -362,74 +375,7 @@ function ObservationsSection({
   );
 }
 
-// ── Session availability ────────────────────────────────────────────────
-
-function SessionLine({
-  trialShootUrl,
-  reduced,
-}: {
-  trialShootUrl: string;
-  reduced: boolean;
-}) {
-  const ref = React.useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.5 });
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        background: "var(--color-neutral-900, #1A1A18)",
-        padding: "0 24px 80px",
-        textAlign: "center",
-      }}
-    >
-      <motion.div
-        initial={reduced ? false : { opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
-        style={{ maxWidth: 640, margin: "0 auto" }}
-      >
-        <div
-          style={{
-            height: 1,
-            background: "linear-gradient(to right, transparent, rgba(253,245,230,0.08), transparent)",
-            marginBottom: 40,
-          }}
-        />
-        <p
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: 15,
-            lineHeight: 1.7,
-            color: "var(--neutral-400)",
-            margin: 0,
-          }}
-        >
-          There&rsquo;s a 60-minute session available in Melbourne.{" "}
-          <a
-            href={trialShootUrl}
-            style={{
-              color: "var(--brand-cream)",
-              textDecoration: "none",
-              borderBottom: "1px solid rgba(253,245,230,0.2)",
-              transition: "border-color 200ms",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(253,245,230,0.5)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "rgba(253,245,230,0.2)";
-            }}
-          >
-            From $397
-          </a>
-        </p>
-      </motion.div>
-    </div>
-  );
-}
-
-// ── Brand Pack section ──────────────────────────────────────────────────
+// ─�� Brand Pack section ──────────────────────────────────────────────────
 
 function BrandPackSection({
   onView,

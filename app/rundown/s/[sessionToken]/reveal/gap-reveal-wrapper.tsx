@@ -4,6 +4,7 @@ import * as React from "react";
 import { GapReveal } from "@/components/lite/brand-dna/gap-reveal";
 import type { GapRevealData } from "@/lib/brand-dna/generate-gap-reveal";
 import type { DomainPresenceScore } from "@/lib/brand-dna/build-presence-scores";
+import type { MarketingPlaybook } from "@/lib/brand-dna/generate-marketing-playbook";
 
 interface Props {
   sessionToken: string;
@@ -11,6 +12,7 @@ interface Props {
   gapReveal: GapRevealData | null;
   presenceScores: DomainPresenceScore[];
   trialShootUrl: string;
+  marketingPlaybook?: MarketingPlaybook | null;
 }
 
 export function GapRevealWrapper({
@@ -19,6 +21,7 @@ export function GapRevealWrapper({
   gapReveal,
   presenceScores,
   trialShootUrl,
+  marketingPlaybook,
 }: Props) {
   const [packBlobUrl, setPackBlobUrl] = React.useState<string | null>(null);
   const [packLoading, setPackLoading] = React.useState(false);
@@ -77,6 +80,7 @@ export function GapRevealWrapper({
       trialShootUrl={trialShootUrl}
       onViewBrandPack={() => void handleViewBrandPack()}
       packLoading={packLoading}
+      marketingPlaybook={marketingPlaybook}
     />
   );
 }

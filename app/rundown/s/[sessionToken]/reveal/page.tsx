@@ -15,6 +15,7 @@ import { generateSignalDescriptions } from "@/lib/brand-dna/generate-signal-desc
 import { buildSignalScoresData } from "@/lib/brand-dna/build-signal-scores-data";
 import { generateLongTailSummary } from "@/lib/brand-dna/generate-long-tail-summary";
 import { generateGapReveal } from "@/lib/brand-dna/generate-gap-reveal";
+import { generateMarketingPlaybook } from "@/lib/brand-dna/generate-marketing-playbook";
 import { buildPresenceScores } from "@/lib/brand-dna/build-presence-scores";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
@@ -112,11 +113,10 @@ async function RevealContent({
 
   const enrichmentData = candidateRows[0]?.viability_profile_json as ViabilityProfile | null;
 
-  const gapReveal = await generateGapReveal(
-    sessionToken,
-    profileId,
-    enrichmentData,
-  ).catch(() => null);
+  const [gapReveal, marketingPlaybook] = await Promise.all([
+    generateGapReveal(sessionToken, profileId, enrichmentData).catch(() => null),
+    generateMarketingPlaybook(profileId).catch(() => null),
+  ]);
 
   const presenceScores = buildPresenceScores(profile.signal_tags, enrichmentData);
   const trialShootUrl = `/trial-shoot?ref=rundown&sid=${sessionToken}`;
@@ -143,6 +143,7 @@ async function RevealContent({
         gapReveal={gapReveal}
         presenceScores={presenceScores}
         trialShootUrl={trialShootUrl}
+        marketingPlaybook={marketingPlaybook}
       />
     </>
   );

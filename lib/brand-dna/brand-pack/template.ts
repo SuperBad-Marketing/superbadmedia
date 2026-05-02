@@ -350,6 +350,51 @@ function renderDigitalPresence(data: BrandPackData, pageNum: number): string {
   </div>`;
 }
 
+// ── Page 7b: Marketing Playbook (conditional) ─────────────────────────
+
+function renderMarketingPlaybook(data: BrandPackData, pageNum: number): string {
+  if (!data.marketingPlaybook || data.marketingPlaybook.sections.length === 0) {
+    return "";
+  }
+
+  const sections = data.marketingPlaybook.sections
+    .map(
+      (section, i) => {
+        const examples = section.examples
+          .map(
+            (ex) => `
+            <div style="padding-left:16px;border-left:2px solid ${B.pink};margin-bottom:16px;">
+              <div style="font-family:'Righteous',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:${B.pink};margin-bottom:6px;">${esc(ex.scenario)}</div>
+              <p style="font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.6;color:${B.cream};opacity:0.65;margin:0;">${esc(ex.guidance)}</p>
+            </div>`,
+          )
+          .join("");
+
+        return `
+        <div style="margin-bottom:${i < data.marketingPlaybook!.sections.length - 1 ? "32" : "0"}px;${i > 0 ? `padding-top:24px;border-top:1px solid ${B.surfaceMid};` : ""}">
+          <div style="font-family:'Righteous',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:${B.orange};margin-bottom:8px;">${String(i + 1).padStart(2, "0")}</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:500;color:${B.cream};margin-bottom:10px;">${esc(section.title)}</div>
+          <p style="font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;color:${B.cream};opacity:0.7;margin:0 0 20px;">${esc(section.overview)}</p>
+          ${examples}
+        </div>`;
+      },
+    )
+    .join("");
+
+  return `
+  <div class="page">
+    <div class="section-label">07 · Marketing Playbook</div>
+    <div class="section-title">How To Use This</div>
+    <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:${B.cream};opacity:0.6;margin-bottom:32px;max-width:440px;line-height:1.7;">
+      Five disciplines, tailored to what makes you different. Each with practical, day-to-day guidance.
+    </p>
+    <div style="max-width:560px;">
+      ${sections}
+    </div>
+    ${pageFooter(pageNum)}
+  </div>`;
+}
+
 // ── Page 8: Back Cover ─────────────────────────────────────────────────
 
 function renderBackCover(): string {
@@ -373,7 +418,12 @@ export function buildBrandPackHtml(data: BrandPackData): string {
 
   const hasDigitalPresence =
     data.enrichmentSnapshot && data.enrichmentSnapshot.facts.length > 0;
-  const digitalPresencePageNum = hasDigitalPresence ? 7 : 0;
+  const hasPlaybook =
+    data.marketingPlaybook && data.marketingPlaybook.sections.length > 0;
+
+  let pageCounter = 6;
+  const digitalPresencePageNum = hasDigitalPresence ? ++pageCounter : 0;
+  const playbookPageNum = hasPlaybook ? ++pageCounter : 0;
 
   const pages = [
     renderCover(data),
@@ -384,6 +434,9 @@ export function buildBrandPackHtml(data: BrandPackData): string {
     renderBrandVoice(data),
     hasDigitalPresence
       ? renderDigitalPresence(data, digitalPresencePageNum)
+      : "",
+    hasPlaybook
+      ? renderMarketingPlaybook(data, playbookPageNum)
       : "",
     renderBackCover(),
   ]
