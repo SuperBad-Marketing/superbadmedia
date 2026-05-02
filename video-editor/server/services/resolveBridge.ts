@@ -224,6 +224,13 @@ export class ResolveBridgeService {
     })
   }
 
+  async addClipsWithTiming(clips: { filePath: string; startTime: number; endTime: number; audioOffset?: number }[]) {
+    return this.send({
+      action: 'add_clips_with_timing',
+      params: { clips },
+    })
+  }
+
   async getTimelineClips() {
     return this.send({ action: 'get_timeline_clips' })
   }
@@ -466,7 +473,7 @@ export class ResolveBridgeService {
 
   async pushTimeline(
     projectName: string,
-    clips: { filePath: string; startTime: number; endTime: number; position: number }[],
+    clips: { filePath: string; startTime: number; endTime: number; position: number; audioOffset?: number }[],
     transitions?: { afterClipPosition: number; type: string; duration: number }[],
   ): Promise<{ success: boolean; error?: string }> {
     if (!this._status.connected) {
@@ -493,12 +500,14 @@ export class ResolveBridgeService {
     }
 
     const sorted = [...clips].sort((a, b) => a.position - b.position)
-    const filePathToIndex = new Map(filePaths.map((fp, i) => [fp, i]))
 
-    for (const clip of sorted) {
-      const mediaIndex = filePathToIndex.get(clip.filePath) ?? 0
-      await this.addClipsToTimeline([mediaIndex])
-    }
+    const timedClips = sorted.map(c => ({
+      filePath: c.filePath,
+      startTime: c.startTime,
+      endTime: c.endTime,
+      audioOffset: (c as any).audioOffset ?? 0,
+    }))
+    await this.addClipsWithTiming(timedClips)
 
     if (transitions) {
       for (const t of transitions) {

@@ -54,6 +54,10 @@ router.post('/build', async (req, res) => {
       return { ...sc, analysis: source?.analysis }
     })
 
+    const musicForResolve = music?.musicPreviewUrl
+      ? { previewUrl: music.musicPreviewUrl, duration: music.musicDuration }
+      : null
+
     const resolveResult = await resolveOrchestrator.pushFullEdit(
       projectName,
       enrichedClips,
@@ -62,7 +66,13 @@ router.post('/build', async (req, res) => {
       music?.editIntent || null,
       brief.moodAxes,
       editPreferences || null,
-    ).catch(() => ({ resolveStatus: 'no-resolve' as const, zoomPlan: [], slowMoPlan: [], stabilizedClips: [] }))
+      musicForResolve,
+      brief,
+    ).catch(() => ({
+      resolveStatus: 'no-resolve' as const,
+      zoomPlan: [], slowMoPlan: [], stabilizedClips: [],
+      musicPlaced: false, sfxPlaced: 0, audioMixed: false, graded: false,
+    }))
 
     res.json({
       ...result,
@@ -70,6 +80,10 @@ router.post('/build', async (req, res) => {
       zoomPlan: resolveResult.zoomPlan,
       slowMoPlan: resolveResult.slowMoPlan,
       stabilizedClips: resolveResult.stabilizedClips,
+      musicPlaced: resolveResult.musicPlaced,
+      sfxPlaced: resolveResult.sfxPlaced,
+      audioMixed: resolveResult.audioMixed,
+      graded: resolveResult.graded,
     })
   } catch (err: any) {
     res.status(500).json({ error: err.message })
@@ -105,6 +119,10 @@ router.post('/recut', async (req, res) => {
       return { ...sc, analysis: source?.analysis }
     })
 
+    const musicForResolve = music?.musicPreviewUrl
+      ? { previewUrl: music.musicPreviewUrl, duration: music.musicDuration }
+      : null
+
     const resolveResult = await resolveOrchestrator.pushFullEdit(
       projectName,
       enrichedClips,
@@ -113,7 +131,13 @@ router.post('/recut', async (req, res) => {
       music?.editIntent || null,
       brief.moodAxes,
       editPreferences || null,
-    ).catch(() => ({ resolveStatus: 'no-resolve' as const, zoomPlan: [], slowMoPlan: [], stabilizedClips: [] }))
+      musicForResolve,
+      brief,
+    ).catch(() => ({
+      resolveStatus: 'no-resolve' as const,
+      zoomPlan: [], slowMoPlan: [], stabilizedClips: [],
+      musicPlaced: false, sfxPlaced: 0, audioMixed: false, graded: false,
+    }))
 
     res.json({
       ...result,
@@ -121,6 +145,10 @@ router.post('/recut', async (req, res) => {
       zoomPlan: resolveResult.zoomPlan,
       slowMoPlan: resolveResult.slowMoPlan,
       stabilizedClips: resolveResult.stabilizedClips,
+      musicPlaced: resolveResult.musicPlaced,
+      sfxPlaced: resolveResult.sfxPlaced,
+      audioMixed: resolveResult.audioMixed,
+      graded: resolveResult.graded,
     })
   } catch (err: any) {
     res.status(500).json({ error: err.message })

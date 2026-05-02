@@ -271,8 +271,17 @@ Intensity: ${moodAxes.intensity}/100 ${moodAxes.intensity < 30 ? '(calm, measure
 Intimacy: ${moodAxes.intimacy}/100 ${moodAxes.intimacy < 30 ? '(epic, grand, sweeping)' : moodAxes.intimacy < 70 ? '(observational, balanced)' : '(personal, close, vulnerable)'}
 Chaos: ${moodAxes.chaos}/100 ${moodAxes.chaos < 30 ? '(controlled, precise, polished)' : moodAxes.chaos < 70 ? '(organic, natural variation)' : '(raw, unpredictable, frenetic)'}
 
+## PACING → CLIP DURATION RULES (non-negotiable)
+
+These are HARD constraints. The pacing field determines clip durations:
+- **fast**: Most clips 0.3–1.5s. Occasional held shots 2–3s max. Average clip ≤ 1.2s.
+- **medium**: Most clips 1.5–4s. Occasional flash cuts or held shots outside this range. Average clip ≤ 3s.
+- **slow**: Most clips 3–8s. Deliberate, measured pacing. Average clip ≤ 6s.
+
+If the user's timing instructions specify exact durations, those override the pacing defaults above.
+
 HOW THESE AXES MODULATE:
-- Cut duration ranges: Higher intensity = shorter floor. Higher chaos = wider range between min and max.
+- Cut duration ranges: Higher intensity = shorter floor within the pacing bracket. Higher chaos = wider range between min and max.
 - Hold duration after bursts: Higher intimacy = longer holds on faces/emotion. Lower intimacy = shorter, grander holds on wide shots.
 - SFX density: Higher intensity = more layers. Higher chaos = more varied/unexpected SFX choices. Lower chaos = more cohesive/subtle.
 - Transition frequency: Higher chaos = fewer transitions (hard cuts feel rawer). Lower chaos = more deliberate transitions.
@@ -1025,7 +1034,7 @@ ${musicSkeleton ? 'Fill clips into the locked sections above.' : `Create the str
       system,
       messages: [{
         role: 'user',
-        content: `TARGET: ${brief.duration}s | Platform: ${brief.platform} | Mood: ${brief.mood}
+        content: `TARGET: ${brief.duration}s | Platform: ${brief.platform} | Mood: ${brief.mood} | Pacing: ${brief.pacing}
 ${musicLine}
 TIMING INSTRUCTIONS (follow these EXACTLY):
 ${brief.narrativeNotes}
@@ -1200,6 +1209,7 @@ Build the precision edit now. Follow the structural plan. Use rankedMoments to p
     narrative: string,
   ): AssembledResult {
     const storyboardClips: AssembledResult['storyboardClips'] = []
+    const maxDuration = brief.duration * 1.1
     let accumulated = 0
 
     for (const edit of edits) {
@@ -1207,8 +1217,15 @@ Build the precision edit now. Follow the structural plan. Use rankedMoments to p
       if (!clip) continue
 
       const startTime = Math.max(0, Math.min(edit.startTime, clip.duration - 0.1))
-      const endTime = Math.max(startTime + 0.1, Math.min(edit.endTime, clip.duration))
-      const useDuration = endTime - startTime
+      let endTime = Math.max(startTime + 0.1, Math.min(edit.endTime, clip.duration))
+      let useDuration = endTime - startTime
+
+      if (accumulated + useDuration > maxDuration) {
+        const remaining = maxDuration - accumulated
+        if (remaining < 0.1) break
+        endTime = startTime + remaining
+        useDuration = remaining
+      }
 
       storyboardClips.push({
         id: crypto.randomUUID(),
@@ -1229,6 +1246,7 @@ Build the precision edit now. Follow the structural plan. Use rankedMoments to p
       })
 
       accumulated += useDuration
+      if (accumulated >= maxDuration) break
     }
 
     return {
