@@ -11,6 +11,7 @@ import {
   approveDraftAction,
   rejectDraftAction,
   updateDraftAction,
+  sendNowAction,
 } from "../actions";
 import { NudgeSidecar } from "./nudge-sidecar";
 
@@ -138,6 +139,7 @@ function QueueRow({
   const [editSubject, setEditSubject] = useState(draft.subject);
   const [editBody, setEditBody] = useState(draft.body_markdown);
   const [editError, setEditError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const candidate = draft.candidate;
   const companyName = candidate?.company_name ?? "Unknown";
@@ -162,6 +164,16 @@ function QueueRow({
   function handleApprove() {
     startTransition(async () => {
       await approveDraftAction(draft.id);
+    });
+  }
+
+  function handleSendNow() {
+    setSendError(null);
+    startTransition(async () => {
+      const result = await sendNowAction(draft.id);
+      if (!result.ok) {
+        setSendError(result.error);
+      }
     });
   }
 
@@ -303,6 +315,9 @@ function QueueRow({
               </Badge>
             )}
           </div>
+          {sendError && (
+            <p className="mt-1 text-xs text-red-400">{sendError}</p>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -337,6 +352,16 @@ function QueueRow({
                 Approve &amp; Send
               </Button>
             </>
+          )}
+          {isAutoQueued && (
+            <Button
+              size="sm"
+              onClick={handleSendNow}
+              disabled={isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Send Now
+            </Button>
           )}
           <Button
             size="sm"

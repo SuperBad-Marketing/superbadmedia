@@ -676,6 +676,51 @@ Remember: respond ONLY with SUBJECT: then BODY: — nothing else.`;
   }
 }
 
+// ── Send now (manual override for queued drafts) ────────────────────
+
+export async function sendNowAction(
+  draftId: string,
+): Promise<ActionResult> {
+  const by = await adminActorTag();
+  if (!by) return { ok: false, error: "Not authorised." };
+
+  const [draft] = await db
+    .select()
+    .from(outreachDrafts)
+    .where(eq(outreachDrafts.id, draftId))
+    .limit(1);
+
+  if (!draft) return { ok: false, error: "Draft not found." };
+  if (draft.status !== "approved_queued") {
+    return { ok: false, error: "Draft is not in the send queue." };
+  }
+  if (!draft.candidate_id || !draft.sequence_id) {
+    return { ok: false, error: "Draft missing candidate or sequence link." };
+  }
+
+  const { executeSend } = await import("@/lib/lead-gen/sequence-engine");
+  const result = await executeSend(
+    draftId,
+    draft.sequence_id,
+    draft.candidate_id,
+    "manual",
+  );
+
+  if (!result.sent) {
+    return { ok: false, error: `Send failed: ${result.reason}` };
+  }
+
+  await logActivity({
+    kind: "outreach_sent",
+    body: `Manual send-now override: draft ${draftId}`,
+    createdBy: by,
+    meta: { draft_id: draftId, sequence_id: draft.sequence_id, candidate_id: draft.candidate_id },
+  });
+
+  revalidatePath(LEAD_GEN_PATH);
+  return { ok: true };
+}
+
 // ── Approve & send (manual one-off from candidate detail) ──────────
 
 export async function approveAndSendManualDraftAction(
