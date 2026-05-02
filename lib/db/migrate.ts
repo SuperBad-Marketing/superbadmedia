@@ -52,6 +52,7 @@ function ensureColumns(sqlite: Database.Database): void {
     { table: "companies", column: "cloudinary_gallery_folder", type: "text" },
     { table: "deals", column: "cloudinary_gallery_folder", type: "text" },
     { table: "brand_dna_profiles", column: "marketing_playbook_json", type: "text" },
+    { table: "lead_runs", column: "icp_filtered_count", type: "integer NOT NULL DEFAULT 0" },
   ];
 
   for (const { table, column, type } of required) {
@@ -101,17 +102,17 @@ function patchPendingAlterColumns(
     if (!fs.existsSync(filePath)) continue;
 
     const raw = fs.readFileSync(filePath, "utf-8");
-    const addColMatch = raw.match(
-      /ALTER\s+TABLE\s+`?(\w+)`?\s+ADD\s+(?:COLUMN\s+)?`?(\w+)`?/i,
-    );
-    if (!addColMatch) continue;
+    const alterRegex = /ALTER\s+TABLE\s+`?(\w+)`?\s+ADD\s+(?:COLUMN\s+)?`?(\w+)`?/gi;
+    const matches = [...raw.matchAll(alterRegex)];
+    if (matches.length === 0) continue;
 
-    const [, table, column] = addColMatch;
-    const existingCols = sqlite
-      .prepare(`PRAGMA table_info(${table})`)
-      .all() as { name: string }[];
-    const columnExists = existingCols.some((c) => c.name === column);
-    if (!columnExists) continue;
+    const allColumnsExist = matches.every(([, tbl, col]) => {
+      const existingCols = sqlite
+        .prepare(`PRAGMA table_info(${tbl})`)
+        .all() as { name: string }[];
+      return existingCols.some((c) => c.name === col);
+    });
+    if (!allColumnsExist) continue;
 
     const hash = require("crypto")
       .createHash("sha256")
@@ -124,8 +125,9 @@ function patchPendingAlterColumns(
         "INSERT OR IGNORE INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
       )
       .run(hash, entry.when);
+    const colList = matches.map(([, t, c]) => `${t}.${c}`).join(", ");
     console.info(
-      `[migrate] pre-applied ${entry.tag} — column ${table}.${column} already exists`,
+      `[migrate] pre-applied ${entry.tag} — columns already exist: ${colList}`,
     );
   }
 }
