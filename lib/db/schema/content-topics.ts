@@ -1,5 +1,6 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { companies } from "./companies";
+import { braindumps } from "./braindumps";
 
 /**
  * Content Engine — topic queue (CE-1). Each row is a keyword-researched
@@ -43,6 +44,9 @@ export const contentTopics = sqliteTable(
     claim_released_at_ms: integer("claim_released_at_ms"),
     claim_released_reason: text("claim_released_reason"),
 
+    source_braindump_id: text("source_braindump_id").references(
+      () => braindumps.id,
+    ),
     created_at_ms: integer("created_at_ms").notNull(),
   },
   (t) => ({

@@ -1,6 +1,7 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { companies } from "./companies";
 import { contentTopics } from "./content-topics";
+import { braindumps } from "./braindumps";
 
 /**
  * Content Engine — blog post (CE-1). Two-pass generation: Haiku outline
@@ -44,6 +45,9 @@ export const blogPosts = sqliteTable(
     status: text("status", { enum: BLOG_POST_STATUSES })
       .notNull()
       .default("draft"),
+    source_braindump_id: text("source_braindump_id").references(
+      () => braindumps.id,
+    ),
     published_at_ms: integer("published_at_ms"),
     published_url: text("published_url"),
     created_at_ms: integer("created_at_ms").notNull(),

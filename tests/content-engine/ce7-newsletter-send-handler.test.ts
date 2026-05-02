@@ -117,6 +117,7 @@ function makePost(overrides: Record<string, unknown> = {}) {
     faq_schema: null,
     internal_links: null,
     snippet_target_section: null,
+    source_braindump_id: null,
     status: "published" as const,
     published_at_ms: Date.now() - 3_600_000,
     published_url: "https://example.com/blog/test-post",

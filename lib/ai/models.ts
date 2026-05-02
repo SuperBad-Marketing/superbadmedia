@@ -108,8 +108,15 @@ export const MODELS = {
   "client-mgmt-escalation-summary": "haiku",
   // referral (1)
   "referral-follow-up-draft": "opus",
-  // braindump (1)
+  // braindump (7)
   "braindump-parse": "sonnet",
+  "braindump-todo-parse": "haiku",
+  "braindump-ideas-parse": "haiku",
+  "braindump-content-analyze": "sonnet",
+  "braindump-content-keywords": "haiku",
+  "braindump-content-outline": "sonnet",
+  "braindump-content-draft": "opus",
+  "braindump-content-social": "haiku",
   // unified-inbox (8)
   "inbox-classify-inbound-route": "haiku",
   "inbox-classify-notification-priority": "haiku",
@@ -248,6 +255,12 @@ const PROFILE_INJECTION_EXCLUDED: ReadonlySet<ModelJobSlug> = new Set([
   "content-match-content-to-prospects",
   // Parsing / internal — no voice generation
   "braindump-parse",
+  "braindump-todo-parse",
+  "braindump-ideas-parse",
+  "braindump-content-analyze",
+  "braindump-content-keywords",
+  "braindump-content-outline",
+  "braindump-content-social",
   "braindump-mood-signal",
   "finance-draft-narrative",
   "call-custom-questions",

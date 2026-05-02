@@ -368,10 +368,12 @@ export async function createBraindump(input: {
   surface_context?: Record<string, unknown> | null;
   mood_signal?: Record<string, unknown> | null;
   created_by: string;
+  type?: "general" | "content" | "todo" | "ideas";
 }): Promise<BraindumpRow> {
   const now = Date.now();
   const row = {
     id: randomUUID(),
+    type: input.type ?? ("general" as const),
     raw_text: input.raw_text,
     surface_context: input.surface_context ?? null,
     mood_signal_json: input.mood_signal ?? null,
@@ -388,6 +390,8 @@ export async function markBraindumpCommitted(
   taskCount: number,
   contentCount = 0,
   scriptCount = 0,
+  blogCount = 0,
+  projectCount = 0,
 ): Promise<void> {
   await db
     .update(braindumps)
@@ -397,6 +401,8 @@ export async function markBraindumpCommitted(
       task_count: taskCount,
       content_count: contentCount,
       script_count: scriptCount,
+      blog_count: blogCount,
+      project_count: projectCount,
     })
     .where(eq(braindumps.id, id));
 }

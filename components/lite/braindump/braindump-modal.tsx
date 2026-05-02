@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X, ArrowLeft, ChevronDown, Image, Video, CheckSquare } from "lucide-react";
+import { X, ArrowLeft, ChevronDown, Image, Video, CheckSquare, FileText, Lightbulb, Check } from "lucide-react";
 import { houseSpring } from "@/lib/design-tokens";
 import { formatTimestamp } from "@/lib/format-timestamp";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/lib/tasks/types";
 import { CONTENT_TYPES, type ContentType } from "@/lib/db/schema/content-studio";
 import { PILLAR_SLUGS, SCRIPT_FORMATS, type PillarSlug, type ScriptFormat } from "@/lib/db/schema/talking-head";
+import { BRAINDUMP_TYPES, type BraindumpType } from "@/lib/db/schema/braindumps";
 import type {
   ParsedTask,
   ParsedContentIdea,
@@ -20,12 +21,33 @@ import type {
   SurfaceContext,
 } from "@/lib/ai/parse-braindump";
 import type { MoodSignal } from "@/lib/db/schema/instagram-competitive";
+import type { ParsedProjectIdea } from "@/lib/ai/parse-braindump-ideas-types";
+import type {
+  ContentIdeaSummary,
+  KeywordResult,
+  OutlineResult,
+  BlogDraftResult,
+  DerivedSocialPost,
+  ParsedBlogIdea,
+  OutlineSection,
+} from "@/lib/ai/parse-braindump-content-types";
 import {
   parseBraindumpAction,
+  parseTodoBraindumpAction,
+  parseIdeasBraindumpAction,
+  analyzeContentAction,
+  inferKeywordsAction,
+  generateOutlinesAction,
+  generateDraftsAction,
+  deriveSocialPostsAction,
   commitBraindumpAction,
+  commitContentBraindumpAction,
+  commitIdeasBraindumpAction,
+  extractMoodSignalAction,
   type CommitTask,
   type CommitContentIdea,
   type CommitScriptIdea,
+  type CommitResult,
 } from "@/app/lite/tasks/braindump-actions";
 import { searchEntitiesAction } from "@/app/lite/tasks/actions";
 
@@ -78,7 +100,40 @@ const FORMAT_LABELS: Record<ScriptFormat, string> = {
   mid: "Mid (2-5min)",
 };
 
-type ModalPhase = "input" | "parsing" | "review" | "committing";
+const TYPE_LABELS: Record<BraindumpType, string> = {
+  general: "General",
+  content: "Content",
+  todo: "To-do",
+  ideas: "Ideas",
+};
+
+const TYPE_PLACEHOLDERS: Record<BraindumpType, string> = {
+  general: "dump it. tasks, content ideas, video topics — we'll sort it.",
+  content: "dump your content ideas. we'll turn them into blog posts and social content.",
+  todo: "what needs doing?",
+  ideas: "half-baked is fine. we'll file it.",
+};
+
+const ACKNOWLEDGMENT_LINES = [
+  "your brain is lighter now.",
+  "filed. forgotten. free.",
+  "noted. now go outside.",
+  "that's off your plate.",
+  "dumped. sorted. done.",
+];
+
+type ModalPhase = "input" | "parsing" | "review" | "committing" | "committed";
+
+type ContentStage = "analyzing" | "keywords" | "outlining" | "drafting" | "social" | "done";
+
+const CONTENT_STAGE_LABELS: Record<ContentStage, string> = {
+  analyzing: "analysing ideas…",
+  keywords: "researching keywords…",
+  outlining: "outlining…",
+  drafting: "drafting…",
+  social: "creating social posts…",
+  done: "ready for review",
+};
 
 // ---------------------------------------------------------------------------
 // Natural-language date parsing
@@ -463,7 +518,7 @@ function ProtoTaskCard({
 }
 
 // ---------------------------------------------------------------------------
-// Content idea card
+// Content idea card (reused for general + content-derived social posts)
 // ---------------------------------------------------------------------------
 
 function ContentIdeaCard({
@@ -612,10 +667,193 @@ function ScriptIdeaCard({
 }
 
 // ---------------------------------------------------------------------------
+// Blog idea card (content braindump)
+// ---------------------------------------------------------------------------
+
+function BlogIdeaCard({
+  idea,
+  onUpdate,
+  onDelete,
+  onToggle,
+  disabled,
+}: {
+  idea: ParsedBlogIdea;
+  onUpdate: (updates: Partial<ParsedBlogIdea>) => void;
+  onDelete: () => void;
+  onToggle: () => void;
+  disabled: boolean;
+}) {
+  const [expanded, setExpanded] = React.useState(false);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+      transition={houseSpring}
+      className="relative rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] p-4"
+      style={{ opacity: idea.enabled ? 1 : 0.5 }}
+    >
+      <div className="mb-2 flex items-start gap-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={disabled}
+          className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
+            idea.enabled
+              ? "border-[color:var(--color-accent-cta)] bg-[color:var(--color-accent-cta)]"
+              : "border-[color:var(--color-neutral-600)] bg-transparent"
+          }`}
+          aria-label={idea.enabled ? "Disable blog post" : "Enable blog post"}
+        >
+          {idea.enabled && <Check size={10} strokeWidth={2} className="text-[color:var(--color-neutral-100)]" />}
+        </button>
+        <input
+          type="text"
+          value={idea.title}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          disabled={disabled || !idea.enabled}
+          className="flex-1 bg-transparent font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] font-medium text-[color:var(--color-neutral-100)] outline-none placeholder:text-[color:var(--color-neutral-500)] focus-visible:border-b focus-visible:border-[color:var(--color-accent-cta)]"
+          placeholder="Blog title"
+        />
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={disabled}
+          aria-label="Remove blog idea"
+          className="shrink-0 rounded-sm p-1 text-[color:var(--color-neutral-500)] outline-none transition-colors hover:text-[color:var(--color-brand-red)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
+        >
+          <X size={14} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      <div className="mb-2 flex flex-wrap items-center gap-3 text-[length:var(--text-small)]">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[1.5px] text-[color:var(--color-neutral-500)]">
+            Keyword
+          </span>
+          <input
+            type="text"
+            value={idea.keyword}
+            onChange={(e) => onUpdate({ keyword: e.target.value })}
+            disabled={disabled || !idea.enabled}
+            className="w-48 bg-transparent font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-brand-orange)] outline-none placeholder:text-[color:var(--color-neutral-500)] focus-visible:border-b focus-visible:border-[color:var(--color-accent-cta)]"
+          />
+        </span>
+        <span className="font-[family-name:var(--font-label)] text-[10px] tabular-nums text-[color:var(--color-neutral-500)]">
+          ~{idea.word_count} words
+        </span>
+        <span className="font-[family-name:var(--font-label)] text-[10px] tabular-nums text-[color:var(--color-neutral-500)]">
+          {idea.outline.length} sections
+        </span>
+      </div>
+
+      {idea.outline.length > 0 && !expanded && (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {idea.outline.map((s, i) => (
+            <span
+              key={i}
+              className="rounded-full bg-[color:var(--color-surface-2)] px-2 py-0.5 font-[family-name:var(--font-label)] text-[9px] uppercase tracking-[1px] text-[color:var(--color-neutral-400)]"
+            >
+              {s.section}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {idea.body_markdown && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="mb-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-accent-cta)] outline-none hover:underline focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] rounded-sm"
+        >
+          {expanded ? "Collapse draft" : "Read draft"}
+        </button>
+      )}
+
+      <AnimatePresence>
+        {expanded && idea.body_markdown && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={houseSpring}
+            className="overflow-hidden"
+          >
+            <div className="mb-3 max-h-64 overflow-y-auto rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-2)] p-4">
+              <pre className="whitespace-pre-wrap font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] leading-relaxed text-[color:var(--color-neutral-200)]">
+                {idea.body_markdown}
+              </pre>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Project idea card (ideas braindump)
+// ---------------------------------------------------------------------------
+
+function ProjectIdeaCard({
+  idea,
+  onUpdate,
+  onDelete,
+  disabled,
+}: {
+  idea: ParsedProjectIdea;
+  onUpdate: (updates: Partial<ParsedProjectIdea>) => void;
+  onDelete: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+      transition={houseSpring}
+      className="relative rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-1)] p-4"
+    >
+      <div className="mb-3 flex items-start gap-2">
+        <ConfidenceDot value={idea.confidence} />
+        <input
+          type="text"
+          value={idea.title}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          disabled={disabled}
+          className="flex-1 bg-transparent font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] font-medium text-[color:var(--color-neutral-100)] outline-none placeholder:text-[color:var(--color-neutral-500)] focus-visible:border-b focus-visible:border-[color:var(--color-accent-cta)]"
+          placeholder="Project title"
+        />
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={disabled}
+          aria-label="Remove idea"
+          className="shrink-0 rounded-sm p-1 text-[color:var(--color-neutral-500)] outline-none transition-colors hover:text-[color:var(--color-brand-red)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
+        >
+          <X size={14} strokeWidth={1.5} />
+        </button>
+      </div>
+      <textarea
+        value={idea.description}
+        onChange={(e) => onUpdate({ description: e.target.value })}
+        disabled={disabled}
+        rows={3}
+        className="w-full resize-none bg-transparent font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none placeholder:text-[color:var(--color-neutral-500)] focus-visible:border-b focus-visible:border-[color:var(--color-accent-cta)]"
+        placeholder="Idea description"
+      />
+    </motion.div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Shimmer loading state
 // ---------------------------------------------------------------------------
 
-function ParseShimmer() {
+function ParseShimmer({ label }: { label?: string }) {
   return (
     <div className="flex flex-col gap-3" aria-busy="true" aria-live="polite">
       {[1, 2, 3].map((i) => (
@@ -626,9 +864,80 @@ function ParseShimmer() {
         />
       ))}
       <p className="text-center text-pretty font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
-        parsing your brain…
+        {label ?? "parsing your brain…"}
       </p>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Content progress indicator
+// ---------------------------------------------------------------------------
+
+function ContentProgress({ stage }: { stage: ContentStage }) {
+  const stages: ContentStage[] = ["analyzing", "keywords", "outlining", "drafting", "social"];
+  const currentIdx = stages.indexOf(stage);
+
+  return (
+    <div className="mb-4 flex flex-col gap-2">
+      <div className="flex items-center gap-1.5">
+        {stages.map((s, i) => (
+          <React.Fragment key={s}>
+            <div
+              className={`h-1 flex-1 rounded-full transition-colors ${
+                i <= currentIdx
+                  ? "bg-[color:var(--color-accent-cta)]"
+                  : "bg-[color:var(--color-neutral-700)]"
+              }`}
+            />
+          </React.Fragment>
+        ))}
+      </div>
+      <p className="text-center font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
+        {CONTENT_STAGE_LABELS[stage]}
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Acknowledgment receipt
+// ---------------------------------------------------------------------------
+
+function CommitReceipt({ result, braindumpType }: { result: CommitResult; braindumpType: BraindumpType }) {
+  const parts: string[] = [];
+  if (result.taskIds.length > 0) parts.push(`${result.taskIds.length} task${result.taskIds.length === 1 ? "" : "s"} filed`);
+  if (result.blogPostIds.length > 0) parts.push(`${result.blogPostIds.length} blog draft${result.blogPostIds.length === 1 ? "" : "s"} queued`);
+  if (result.contentPostIds.length > 0) parts.push(`${result.contentPostIds.length} social post${result.contentPostIds.length === 1 ? "" : "s"} created`);
+  if (result.scriptIds.length > 0) parts.push(`${result.scriptIds.length} script${result.scriptIds.length === 1 ? "" : "s"} generated`);
+  if (result.projectIds.length > 0) parts.push(`${result.projectIds.length} project idea${result.projectIds.length === 1 ? "" : "s"} saved`);
+
+  const ackLine = ACKNOWLEDGMENT_LINES[Math.floor(Math.random() * ACKNOWLEDGMENT_LINES.length)];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={houseSpring}
+      className="flex flex-col items-center gap-4 py-8"
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ ...houseSpring, delay: 0.1 }}
+        className="flex size-12 items-center justify-center rounded-full bg-[color:var(--color-accent-cta)]/20"
+      >
+        <Check size={24} strokeWidth={1.5} className="text-[color:var(--color-accent-cta)]" />
+      </motion.div>
+      <div className="text-center">
+        <p className="font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)]">
+          {parts.join(". ")}.
+        </p>
+        <p className="mt-2 font-[family-name:var(--font-narrative)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-400)]">
+          {ackLine}
+        </p>
+      </div>
+    </motion.div>
   );
 }
 
@@ -644,16 +953,37 @@ export function BraindumpModal({
   surfaceContext: SurfaceContext | null;
 }) {
   const reducedMotion = useReducedMotion();
+  const [braindumpType, setBraindumpType] = React.useState<BraindumpType>("general");
   const [phase, setPhase] = React.useState<ModalPhase>("input");
   const [rawText, setRawText] = React.useState("");
+  const [error, setError] = React.useState<string | null>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // General braindump state
   const [tasks, setTasks] = React.useState<ParsedTask[]>([]);
   const [contentIdeas, setContentIdeas] = React.useState<ParsedContentIdea[]>([]);
   const [scriptIdeas, setScriptIdeas] = React.useState<ParsedScriptIdea[]>([]);
   const [moodSignal, setMoodSignal] = React.useState<MoodSignal | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  const totalItems = tasks.length + contentIdeas.length + scriptIdeas.length;
+  // Content braindump state
+  const [contentStage, setContentStage] = React.useState<ContentStage>("analyzing");
+  const [blogIdeas, setBlogIdeas] = React.useState<ParsedBlogIdea[]>([]);
+  const [splitRationale, setSplitRationale] = React.useState("");
+
+  // Ideas braindump state
+  const [projectIdeas, setProjectIdeas] = React.useState<ParsedProjectIdea[]>([]);
+
+  // Commit result (for acknowledgment)
+  const [commitResult, setCommitResult] = React.useState<CommitResult | null>(null);
+
+  const totalItems = React.useMemo(() => {
+    if (braindumpType === "content") {
+      return blogIdeas.filter((b) => b.enabled).length +
+        blogIdeas.flatMap((b) => b.social_posts).length;
+    }
+    if (braindumpType === "ideas") return projectIdeas.length;
+    return tasks.length + contentIdeas.length + scriptIdeas.length;
+  }, [braindumpType, tasks, contentIdeas, scriptIdeas, blogIdeas, projectIdeas]);
 
   React.useEffect(() => {
     if (phase === "input") {
@@ -672,8 +1002,18 @@ export function BraindumpModal({
     return () => document.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  const handleParse = React.useCallback(async () => {
-    if (!rawText.trim()) return;
+  // Auto-close after acknowledgment
+  React.useEffect(() => {
+    if (phase !== "committed") return;
+    const timer = setTimeout(onClose, 2000);
+    return () => clearTimeout(timer);
+  }, [phase, onClose]);
+
+  // ---------------------------------------------------------------------------
+  // Parse handlers
+  // ---------------------------------------------------------------------------
+
+  const handleParseGeneral = React.useCallback(async () => {
     setPhase("parsing");
     setError(null);
     const result = await parseBraindumpAction(rawText, surfaceContext);
@@ -689,6 +1029,131 @@ export function BraindumpModal({
     setPhase("review");
   }, [rawText, surfaceContext]);
 
+  const handleParseTodo = React.useCallback(async () => {
+    setPhase("parsing");
+    setError(null);
+    const result = await parseTodoBraindumpAction(rawText, surfaceContext);
+    if (!result.ok) {
+      setError(result.error);
+      setPhase("input");
+      return;
+    }
+    setTasks(result.data.tasks);
+    setContentIdeas([]);
+    setScriptIdeas([]);
+    setMoodSignal(result.data.mood_signal);
+    setPhase("review");
+  }, [rawText, surfaceContext]);
+
+  const handleParseIdeas = React.useCallback(async () => {
+    setPhase("parsing");
+    setError(null);
+    const result = await parseIdeasBraindumpAction(rawText);
+    if (!result.ok) {
+      setError(result.error);
+      setPhase("input");
+      return;
+    }
+    setProjectIdeas(result.data.project_ideas);
+    setMoodSignal(result.data.mood_signal);
+    setPhase("review");
+  }, [rawText]);
+
+  const handleParseContent = React.useCallback(async () => {
+    setPhase("parsing");
+    setError(null);
+    setContentStage("analyzing");
+
+    // Stage 1: Analyze
+    const analyzeResult = await analyzeContentAction(rawText);
+    if (!analyzeResult.ok) {
+      setError(analyzeResult.error);
+      setPhase("input");
+      return;
+    }
+    const { ideas, split_rationale } = analyzeResult.data;
+    setSplitRationale(split_rationale);
+    setContentStage("keywords");
+
+    // Stage 2: Keywords
+    const keywordsResult = await inferKeywordsAction(ideas);
+    if (!keywordsResult.ok) {
+      setError(keywordsResult.error);
+      setPhase("input");
+      return;
+    }
+    const keywords = keywordsResult.data;
+    setContentStage("outlining");
+
+    // Stage 3: Outlines
+    const outlinesResult = await generateOutlinesAction(ideas, keywords);
+    if (!outlinesResult.ok) {
+      setError(outlinesResult.error);
+      setPhase("input");
+      return;
+    }
+    const outlines = outlinesResult.data;
+    setContentStage("drafting");
+
+    // Stage 4: Full drafts
+    const draftsResult = await generateDraftsAction(ideas, keywords, outlines);
+    if (!draftsResult.ok) {
+      setError(draftsResult.error);
+      setPhase("input");
+      return;
+    }
+    const drafts = draftsResult.data;
+    setContentStage("social");
+
+    // Stage 5: Social posts
+    const socialResult = await deriveSocialPostsAction(drafts);
+    const socialPosts = socialResult.ok ? socialResult.data : [];
+
+    // Assemble blog ideas
+    const assembledBlogs: ParsedBlogIdea[] = ideas.map((idea) => {
+      const kw = keywords.find((k) => k.idea_id === idea.id);
+      const outline = outlines.find((o) => o.idea_id === idea.id);
+      const draft = drafts.find((d) => d.idea_id === idea.id);
+      const social = socialPosts.filter((s) => s.blog_idea_id === idea.id);
+
+      return {
+        id: idea.id,
+        title: draft?.title ?? idea.summary,
+        keyword: kw?.keyword ?? "",
+        outline: outline?.outline ?? [],
+        word_count: outline?.word_count ?? 0,
+        body_markdown: draft?.body_markdown ?? "",
+        meta_description: draft?.meta_description ?? "",
+        slug: draft?.slug ?? "",
+        snippet_target_section: draft?.snippet_target_section ?? null,
+        enabled: true,
+        social_posts: social.map((s, i) => ({
+          id: `social-${idea.id}-${i}`,
+          brief: s.brief,
+          content_type: s.content_type,
+          slide_count: s.slide_count,
+          confidence: s.confidence,
+        })),
+      };
+    });
+
+    setBlogIdeas(assembledBlogs);
+    const moodResult = await extractMoodSignalAction(rawText);
+    if (moodResult.ok) setMoodSignal(moodResult.data);
+    setContentStage("done");
+    setPhase("review");
+  }, [rawText]);
+
+  const handleParse = React.useCallback(async () => {
+    if (!rawText.trim()) return;
+    switch (braindumpType) {
+      case "general": return handleParseGeneral();
+      case "todo": return handleParseTodo();
+      case "ideas": return handleParseIdeas();
+      case "content": return handleParseContent();
+    }
+  }, [rawText, braindumpType, handleParseGeneral, handleParseTodo, handleParseIdeas, handleParseContent]);
+
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
@@ -699,98 +1164,170 @@ export function BraindumpModal({
     [handleParse],
   );
 
+  // ---------------------------------------------------------------------------
+  // Update/delete handlers
+  // ---------------------------------------------------------------------------
+
   const handleUpdateTask = React.useCallback(
     (id: string, updates: Partial<ParsedTask>) => {
-      setTasks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-      );
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
     },
     [],
   );
-
   const handleDeleteTask = React.useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
-
   const handleUpdateContent = React.useCallback(
     (id: string, updates: Partial<ParsedContentIdea>) => {
-      setContentIdeas((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-      );
+      setContentIdeas((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
     },
     [],
   );
-
   const handleDeleteContent = React.useCallback((id: string) => {
     setContentIdeas((prev) => prev.filter((c) => c.id !== id));
   }, []);
-
   const handleUpdateScript = React.useCallback(
     (id: string, updates: Partial<ParsedScriptIdea>) => {
-      setScriptIdeas((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+      setScriptIdeas((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    },
+    [],
+  );
+  const handleDeleteScript = React.useCallback((id: string) => {
+    setScriptIdeas((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+  const handleUpdateBlog = React.useCallback(
+    (id: string, updates: Partial<ParsedBlogIdea>) => {
+      setBlogIdeas((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+    },
+    [],
+  );
+  const handleDeleteBlog = React.useCallback((id: string) => {
+    setBlogIdeas((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+  const handleToggleBlog = React.useCallback((id: string) => {
+    setBlogIdeas((prev) => prev.map((b) => (b.id === id ? { ...b, enabled: !b.enabled } : b)));
+  }, []);
+  const handleUpdateBlogSocial = React.useCallback(
+    (blogId: string, socialId: string, updates: Partial<ParsedContentIdea>) => {
+      setBlogIdeas((prev) =>
+        prev.map((b) =>
+          b.id === blogId
+            ? {
+                ...b,
+                social_posts: b.social_posts.map((s) =>
+                  s.id === socialId ? { ...s, ...updates } : s,
+                ),
+              }
+            : b,
+        ),
       );
     },
     [],
   );
-
-  const handleDeleteScript = React.useCallback((id: string) => {
-    setScriptIdeas((prev) => prev.filter((s) => s.id !== id));
+  const handleDeleteBlogSocial = React.useCallback(
+    (blogId: string, socialId: string) => {
+      setBlogIdeas((prev) =>
+        prev.map((b) =>
+          b.id === blogId
+            ? { ...b, social_posts: b.social_posts.filter((s) => s.id !== socialId) }
+            : b,
+        ),
+      );
+    },
+    [],
+  );
+  const handleUpdateProject = React.useCallback(
+    (id: string, updates: Partial<ParsedProjectIdea>) => {
+      setProjectIdeas((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    },
+    [],
+  );
+  const handleDeleteProject = React.useCallback((id: string) => {
+    setProjectIdeas((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  const handleCommit = React.useCallback(async () => {
-    if (totalItems === 0) return;
+  // ---------------------------------------------------------------------------
+  // Commit handlers
+  // ---------------------------------------------------------------------------
+
+  const handleCommitGeneral = React.useCallback(async () => {
     setPhase("committing");
     setError(null);
 
-    const commitTasks: CommitTask[] = tasks.map((t) => ({
-      title: t.title,
-      kind: t.kind,
-      priority: t.priority,
-      due_at_ms: t.due_at_ms,
-      entity_type: t.entity_type,
-      entity_id: t.entity_id,
-      checklist: t.checklist,
+    const ct: CommitTask[] = tasks.map((t) => ({
+      title: t.title, kind: t.kind, priority: t.priority,
+      due_at_ms: t.due_at_ms, entity_type: t.entity_type,
+      entity_id: t.entity_id, checklist: t.checklist,
+    }));
+    const cc: CommitContentIdea[] = contentIdeas.map((c) => ({
+      brief: c.brief, content_type: c.content_type, slide_count: c.slide_count,
+    }));
+    const cs: CommitScriptIdea[] = scriptIdeas.map((s) => ({
+      topic: s.topic, pillar: s.pillar, format: s.format, angle: s.angle,
     }));
 
-    const commitContent: CommitContentIdea[] = contentIdeas.map((c) => ({
-      brief: c.brief,
-      content_type: c.content_type,
-      slide_count: c.slide_count,
-    }));
-
-    const commitScripts: CommitScriptIdea[] = scriptIdeas.map((s) => ({
-      topic: s.topic,
-      pillar: s.pillar,
-      format: s.format,
-      angle: s.angle,
-    }));
-
-    const result = await commitBraindumpAction(
-      rawText,
-      surfaceContext,
-      commitTasks,
-      commitContent,
-      commitScripts,
-      moodSignal,
-    );
-
+    const result = await commitBraindumpAction(rawText, surfaceContext, ct, cc, cs, moodSignal, braindumpType);
     if (!result.ok) {
       setError(result.error);
       setPhase("review");
       return;
     }
-    onClose();
-  }, [tasks, contentIdeas, scriptIdeas, totalItems, rawText, surfaceContext, moodSignal, onClose]);
+    setCommitResult(result.data);
+    setPhase("committed");
+  }, [tasks, contentIdeas, scriptIdeas, rawText, surfaceContext, moodSignal, braindumpType]);
+
+  const handleCommitContent = React.useCallback(async () => {
+    setPhase("committing");
+    setError(null);
+
+    const result = await commitContentBraindumpAction(rawText, blogIdeas, moodSignal);
+    if (!result.ok) {
+      setError(result.error);
+      setPhase("review");
+      return;
+    }
+    setCommitResult(result.data);
+    setPhase("committed");
+  }, [rawText, blogIdeas, moodSignal]);
+
+  const handleCommitIdeas = React.useCallback(async () => {
+    setPhase("committing");
+    setError(null);
+
+    const result = await commitIdeasBraindumpAction(rawText, projectIdeas, moodSignal);
+    if (!result.ok) {
+      setError(result.error);
+      setPhase("review");
+      return;
+    }
+    setCommitResult(result.data);
+    setPhase("committed");
+  }, [rawText, projectIdeas, moodSignal]);
+
+  const handleCommit = React.useCallback(async () => {
+    if (totalItems === 0) return;
+    switch (braindumpType) {
+      case "general":
+      case "todo":
+        return handleCommitGeneral();
+      case "content":
+        return handleCommitContent();
+      case "ideas":
+        return handleCommitIdeas();
+    }
+  }, [totalItems, braindumpType, handleCommitGeneral, handleCommitContent, handleCommitIdeas]);
 
   const handleBack = React.useCallback(() => {
     setPhase("input");
     setTasks([]);
     setContentIdeas([]);
     setScriptIdeas([]);
+    setBlogIdeas([]);
+    setProjectIdeas([]);
+    setSplitRationale("");
   }, []);
 
-  const isLocked = phase === "parsing" || phase === "committing";
+  const isLocked = phase === "parsing" || phase === "committing" || phase === "committed";
 
   return (
     <>
@@ -854,20 +1391,55 @@ export function BraindumpModal({
             </div>
           )}
 
+          {/* Committed phase — acknowledgment */}
+          {phase === "committed" && commitResult && (
+            <CommitReceipt result={commitResult} braindumpType={braindumpType} />
+          )}
+
           {/* Input phase */}
           {(phase === "input" || phase === "parsing") && (
             <div>
+              {/* Type dropdown */}
+              <div className="mb-3 flex items-center gap-2">
+                <span className="font-[family-name:var(--font-label)] text-[10px] uppercase tracking-[2px] text-[color:var(--color-neutral-500)]">
+                  Type
+                </span>
+                <span className="relative inline-flex items-center">
+                  <select
+                    value={braindumpType}
+                    onChange={(e) => setBraindumpType(e.target.value as BraindumpType)}
+                    disabled={isLocked}
+                    className="cursor-pointer appearance-none rounded-md border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-2)] py-1 pl-3 pr-7 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-100)] outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] disabled:opacity-50"
+                  >
+                    {BRAINDUMP_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {TYPE_LABELS[t]}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={12}
+                    className="pointer-events-none absolute right-2 text-[color:var(--color-neutral-500)]"
+                  />
+                </span>
+              </div>
+
               <textarea
                 ref={textareaRef}
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isLocked}
-                placeholder="dump it. tasks, content ideas, video topics — we'll sort it."
+                placeholder={TYPE_PLACEHOLDERS[braindumpType]}
                 rows={8}
                 className="w-full resize-none rounded-lg border border-[color:var(--color-neutral-700)] bg-[color:var(--color-surface-2)] p-4 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-body)] text-[color:var(--color-neutral-100)] outline-none placeholder:italic placeholder:text-[color:var(--color-neutral-500)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)] disabled:opacity-50"
               />
-              {phase === "parsing" && (
+              {phase === "parsing" && braindumpType === "content" && (
+                <div className="mt-4">
+                  <ContentProgress stage={contentStage} />
+                </div>
+              )}
+              {phase === "parsing" && braindumpType !== "content" && (
                 <div className="mt-4">
                   <ParseShimmer />
                 </div>
@@ -875,17 +1447,12 @@ export function BraindumpModal({
             </div>
           )}
 
-          {/* Review phase */}
-          {(phase === "review" || phase === "committing") && (
+          {/* Review phase — General / To-do */}
+          {(phase === "review" || phase === "committing") && (braindumpType === "general" || braindumpType === "todo") && (
             <div className="flex flex-col gap-1">
-              {/* Tasks section */}
               {tasks.length > 0 && (
                 <div>
-                  <SectionLabel
-                    icon={<CheckSquare size={12} strokeWidth={1.5} />}
-                    label="Tasks"
-                    count={tasks.length}
-                  />
+                  <SectionLabel icon={<CheckSquare size={12} strokeWidth={1.5} />} label="Tasks" count={tasks.length} />
                   <div className="flex flex-col gap-2">
                     <AnimatePresence mode="popLayout">
                       {tasks.map((task) => (
@@ -902,14 +1469,9 @@ export function BraindumpModal({
                 </div>
               )}
 
-              {/* Content ideas section */}
               {contentIdeas.length > 0 && (
                 <div>
-                  <SectionLabel
-                    icon={<Image size={12} strokeWidth={1.5} />}
-                    label="Content Studio"
-                    count={contentIdeas.length}
-                  />
+                  <SectionLabel icon={<Image size={12} strokeWidth={1.5} />} label="Content Studio" count={contentIdeas.length} />
                   <div className="flex flex-col gap-2">
                     <AnimatePresence mode="popLayout">
                       {contentIdeas.map((idea) => (
@@ -926,14 +1488,9 @@ export function BraindumpModal({
                 </div>
               )}
 
-              {/* Script ideas section */}
               {scriptIdeas.length > 0 && (
                 <div>
-                  <SectionLabel
-                    icon={<Video size={12} strokeWidth={1.5} />}
-                    label="Script Studio"
-                    count={scriptIdeas.length}
-                  />
+                  <SectionLabel icon={<Video size={12} strokeWidth={1.5} />} label="Script Studio" count={scriptIdeas.length} />
                   <div className="flex flex-col gap-2">
                     <AnimatePresence mode="popLayout">
                       {scriptIdeas.map((idea) => (
@@ -957,73 +1514,160 @@ export function BraindumpModal({
               )}
             </div>
           )}
+
+          {/* Review phase — Content */}
+          {(phase === "review" || phase === "committing") && braindumpType === "content" && (
+            <div className="flex flex-col gap-1">
+              {splitRationale && (
+                <p className="mb-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-400)]">
+                  {splitRationale}
+                </p>
+              )}
+
+              {blogIdeas.map((blog) => (
+                <div key={blog.id}>
+                  <SectionLabel
+                    icon={<FileText size={12} strokeWidth={1.5} />}
+                    label="Blog"
+                    count={1}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <BlogIdeaCard
+                      idea={blog}
+                      onUpdate={(updates) => handleUpdateBlog(blog.id, updates)}
+                      onDelete={() => handleDeleteBlog(blog.id)}
+                      onToggle={() => handleToggleBlog(blog.id)}
+                      disabled={phase === "committing"}
+                    />
+
+                    {blog.social_posts.length > 0 && blog.enabled && (
+                      <div className="ml-4">
+                        <SectionLabel
+                          icon={<Image size={12} strokeWidth={1.5} />}
+                          label="Social"
+                          count={blog.social_posts.length}
+                        />
+                        <div className="flex flex-col gap-2">
+                          <AnimatePresence mode="popLayout">
+                            {blog.social_posts.map((social) => (
+                              <ContentIdeaCard
+                                key={social.id}
+                                idea={social}
+                                onUpdate={(updates) => handleUpdateBlogSocial(blog.id, social.id, updates)}
+                                onDelete={() => handleDeleteBlogSocial(blog.id, social.id)}
+                                disabled={phase === "committing"}
+                              />
+                            ))}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {blogIdeas.length === 0 && (
+                <p className="py-8 text-center text-pretty font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
+                  nothing parsed. try again?
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Review phase — Ideas */}
+          {(phase === "review" || phase === "committing") && braindumpType === "ideas" && (
+            <div className="flex flex-col gap-1">
+              <SectionLabel icon={<Lightbulb size={12} strokeWidth={1.5} />} label="Project Ideas" count={projectIdeas.length} />
+              <div className="flex flex-col gap-2">
+                <AnimatePresence mode="popLayout">
+                  {projectIdeas.map((idea) => (
+                    <ProjectIdeaCard
+                      key={idea.id}
+                      idea={idea}
+                      onUpdate={(updates) => handleUpdateProject(idea.id, updates)}
+                      onDelete={() => handleDeleteProject(idea.id)}
+                      disabled={phase === "committing"}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {projectIdeas.length === 0 && (
+                <p className="py-8 text-center text-pretty font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] italic text-[color:var(--color-neutral-500)]">
+                  nothing parsed. try again?
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 border-t border-[color:var(--color-neutral-700)] px-5 py-3">
-          {phase === "input" && (
-            <>
-              <span className="mr-auto font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]">
-                ⌘↵ to parse
-              </span>
+        {phase !== "committed" && (
+          <div className="flex items-center justify-end gap-3 border-t border-[color:var(--color-neutral-700)] px-5 py-3">
+            {phase === "input" && (
+              <>
+                <span className="mr-auto font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] text-[color:var(--color-neutral-500)]">
+                  ⌘↵ to parse
+                </span>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-lg px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:text-[color:var(--color-neutral-100)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleParse}
+                  disabled={!rawText.trim()}
+                  className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] disabled:opacity-40"
+                >
+                  Parse
+                </button>
+              </>
+            )}
+            {phase === "parsing" && (
               <button
                 type="button"
-                onClick={onClose}
-                className="rounded-lg px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:text-[color:var(--color-neutral-100)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
+                disabled
+                className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] opacity-40"
               >
-                Cancel
+                {braindumpType === "content" ? CONTENT_STAGE_LABELS[contentStage] : "Parsing…"}
               </button>
+            )}
+            {phase === "review" && (
+              <>
+                <span className="mr-auto font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] tabular-nums text-[color:var(--color-neutral-500)]">
+                  {totalItems} item{totalItems !== 1 ? "s" : ""}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="rounded-lg px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:text-[color:var(--color-neutral-100)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
+                >
+                  Re-parse
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCommit}
+                  disabled={totalItems === 0}
+                  className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] disabled:opacity-40"
+                >
+                  Commit
+                </button>
+              </>
+            )}
+            {phase === "committing" && (
               <button
                 type="button"
-                onClick={handleParse}
-                disabled={!rawText.trim()}
-                className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] disabled:opacity-40"
+                disabled
+                className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] opacity-40"
               >
-                Parse
+                Committing…
               </button>
-            </>
-          )}
-          {phase === "parsing" && (
-            <button
-              type="button"
-              disabled
-              className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] opacity-40"
-            >
-              Parsing…
-            </button>
-          )}
-          {phase === "review" && (
-            <>
-              <span className="mr-auto font-[family-name:var(--font-dm-sans)] text-[length:var(--text-micro)] tabular-nums text-[color:var(--color-neutral-500)]">
-                {totalItems} item{totalItems !== 1 ? "s" : ""}
-              </span>
-              <button
-                type="button"
-                onClick={handleBack}
-                className="rounded-lg px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] text-[color:var(--color-neutral-300)] outline-none transition-colors hover:text-[color:var(--color-neutral-100)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-accent-cta)]"
-              >
-                Re-parse
-              </button>
-              <button
-                type="button"
-                onClick={handleCommit}
-                disabled={totalItems === 0}
-                className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent-cta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-surface-1)] disabled:opacity-40"
-              >
-                Commit
-              </button>
-            </>
-          )}
-          {phase === "committing" && (
-            <button
-              type="button"
-              disabled
-              className="rounded-lg bg-[color:var(--color-accent-cta)] px-4 py-2 font-[family-name:var(--font-dm-sans)] text-[length:var(--text-small)] font-medium text-[color:var(--color-neutral-100)] opacity-40"
-            >
-              Committing…
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </motion.div>
     </>
   );
