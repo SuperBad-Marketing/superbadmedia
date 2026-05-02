@@ -47,7 +47,7 @@ export class AudioMixingService {
     const analysedClips = this.clipAnalysis.getAllAnalysed()
     const decisions: MixDecision[] = []
 
-    const baseVolume = CLIP_LEVELS[intent.audio.feel || 'polished'] ?? -12
+    const baseVolume = CLIP_LEVELS[intent.audio?.feel || 'polished'] ?? -12
     const noiseMode = this.resolveNoiseMode(intent)
 
     for (let i = 0; i < timelineClips.clips.length; i++) {
@@ -73,11 +73,11 @@ export class AudioMixingService {
     }
 
     let musicDecision: MusicMixDecision | null = null
-    if (intent.audio.musicLevel) {
-      const musicDb = MUSIC_LEVELS[intent.audio.musicLevel] ?? -14
+    if (intent.audio?.musicLevel) {
+      const musicDb = MUSIC_LEVELS[intent.audio?.musicLevel] ?? -14
       musicDecision = {
         trackVolume: musicDb,
-        reason: `Music level set to ${intent.audio.musicLevel} (${musicDb}dB)`,
+        reason: `Music level set to ${intent.audio?.musicLevel} (${musicDb}dB)`,
       }
     }
 
@@ -104,7 +104,7 @@ export class AudioMixingService {
       volumeDb = Math.max(volumeDb, -10)
     }
 
-    if (intent.audio.feel === 'music-forward' && !hasDialogue) {
+    if (intent.audio?.feel === 'music-forward' && !hasDialogue) {
       return {
         clipIndex,
         fileName,
@@ -140,7 +140,7 @@ export class AudioMixingService {
   }
 
   private resolveNoiseMode(intent: EditIntent): 'aggressive' | 'light' | 'none' {
-    switch (intent.audio.backgroundNoise) {
+    switch (intent.audio?.backgroundNoise) {
       case 'clean': return 'aggressive'
       case 'subtle': return 'light'
       case 'keep': return 'none'
@@ -155,7 +155,7 @@ export class AudioMixingService {
     noiseReduction: string,
   ): string {
     const parts: string[] = []
-    parts.push(`Feel: ${intent.audio.feel || 'polished'}`)
+    parts.push(`Feel: ${intent.audio?.feel || 'polished'}`)
     if (hasDialogue) parts.push('has dialogue — boosted')
     if (audioQuality === 'poor') parts.push('poor audio quality — reduced')
     if (noiseReduction !== 'none') parts.push(`noise reduction: ${noiseReduction}`)

@@ -130,12 +130,14 @@ router.get('/search', async (req, res) => {
   const targetMoods = mood ? mood.split(/[,\s]+/).filter(Boolean) : undefined
 
   try {
-    const response = await fetch(`${ES_BASE}?${params}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        'Accept': 'application/json',
-      },
-    })
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      'Accept': 'application/json',
+    }
+    const esToken = process.env.EPIDEMIC_SOUND_TOKEN
+    if (esToken) headers['Authorization'] = `Bearer ${esToken}`
+
+    const response = await fetch(`${ES_BASE}?${params}`, { headers })
     if (!response.ok) throw new Error(`Epidemic Sound API: ${response.status}`)
 
     const data = await response.json()

@@ -2,6 +2,7 @@ import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import Anthropic from '@anthropic-ai/sdk'
+import { dataPath } from './dataRoot.js'
 
 export interface MusicSection {
   type: 'intro' | 'build' | 'drop' | 'verse' | 'chorus' | 'breakdown' | 'outro' | 'transition'
@@ -19,7 +20,7 @@ export interface MusicStructure {
   totalDuration: number
 }
 
-const TEMP_DIR = path.join(process.cwd(), '.music-analysis')
+const TEMP_DIR = dataPath('.music-analysis')
 
 export class MusicAnalysisService {
   constructor() {

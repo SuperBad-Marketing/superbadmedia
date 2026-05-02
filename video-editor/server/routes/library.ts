@@ -4,13 +4,26 @@ import { getMediaLibrary } from '../services/mediaLibrary.js'
 const router = Router()
 
 router.get('/stats', (_req, res) => {
-  const library = getMediaLibrary()
-  res.json(library.getStats())
+  try {
+    const library = getMediaLibrary()
+    res.json(library.getStats())
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 router.get('/progress', (_req, res) => {
   const library = getMediaLibrary()
   res.json(library.getProgress())
+})
+
+router.get('/folders', (_req, res) => {
+  try {
+    const library = getMediaLibrary()
+    res.json(library.getFolders())
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 router.get('/entries', (req, res) => {
@@ -50,15 +63,26 @@ router.post('/scan', async (_req, res) => {
 })
 
 router.post('/import', async (req, res) => {
-  const { filePaths, projectId } = req.body
-  if (!filePaths || !Array.isArray(filePaths)) {
-    res.status(400).json({ error: 'filePaths array is required' })
+  const { filePaths, folder, projectId } = req.body
+  const library = getMediaLibrary()
+
+  let paths: string[]
+  if (folder) {
+    paths = library.getFilesInFolder(folder)
+  } else if (filePaths && Array.isArray(filePaths)) {
+    paths = filePaths
+  } else {
+    res.status(400).json({ error: 'filePaths array or folder path is required' })
     return
   }
 
-  const library = getMediaLibrary()
+  if (!paths.length) {
+    res.json({ clips: [] })
+    return
+  }
+
   try {
-    const clips = await library.importToProject(filePaths, projectId || 'default')
+    const clips = await library.importToProject(paths, projectId || 'default')
     res.json({ clips })
   } catch (err: any) {
     res.status(500).json({ error: err.message })

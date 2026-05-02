@@ -1,3 +1,9 @@
+import fs from 'fs/promises'
+import path from 'path'
+import os from 'os'
+
+const TEMP_SFX_DIR = path.join(os.tmpdir(), 'superedits-sfx')
+
 export interface SfxPreset {
   id: string
   name: string
@@ -53,14 +59,23 @@ export interface EpidemicSfxResult {
 }
 
 export class SfxService {
+  private getAuthHeaders(): Record<string, string> {
+    const token = process.env.EPIDEMIC_SOUND_TOKEN
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      'Accept': 'application/json',
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    return headers
+  }
+
   async searchEpidemic(query: string, limit = 5): Promise<EpidemicSfxResult[]> {
     const params = new URLSearchParams({ term: query, limit: String(Math.max(limit, 10)) })
     try {
       const response = await fetch(`${ES_SFX_BASE}?${params}`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          'Accept': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
       })
       if (!response.ok) {
         console.error(`Epidemic SFX search failed: ${response.status} for query "${query}"`)
@@ -245,5 +260,42 @@ export class SfxService {
     }
 
     return placements
+  }
+
+  async downloadSfxToTemp(previewUrl: string, sfxId: string): Promise<string | null> {
+    try {
+      await fs.mkdir(TEMP_SFX_DIR, { recursive: true })
+      const filePath = path.join(TEMP_SFX_DIR, `${sfxId}.mp3`)
+
+      try {
+        await fs.access(filePath)
+        return filePath
+      } catch {}
+
+      const response = await fetch(previewUrl, {
+        headers: this.getAuthHeaders(),
+      })
+      if (!response.ok) return null
+
+      const buffer = Buffer.from(await response.arrayBuffer())
+      await fs.writeFile(filePath, buffer)
+      return filePath
+    } catch (err: any) {
+      console.error(`SFX download failed for ${sfxId}:`, err.message)
+      return null
+    }
+  }
+
+  async findAndDownload(
+    searchQuery: string,
+    intent: { category: string; role: string; searchQuery: string },
+  ): Promise<{ filePath: string; track: EpidemicSfxResult } | null> {
+    const match = await this.searchAndScore(searchQuery, intent)
+    if (!match?.previewUrl) return null
+
+    const filePath = await this.downloadSfxToTemp(match.previewUrl, match.id)
+    if (!filePath) return null
+
+    return { filePath, track: match }
   }
 }

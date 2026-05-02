@@ -11,10 +11,15 @@ import {
   Captions,
   Type,
   Search,
+  Sparkles,
   Check,
   X,
   Loader2,
+  MonitorPlay,
+  FolderOpen,
 } from 'lucide-react'
+import { useAppStore } from '../../stores/appStore'
+import { sendChatMessage } from '../../lib/api'
 import type { ChatMessage as ChatMessageType, ChatAction } from '../../types'
 
 const actionIcons: Record<ChatAction['type'], React.ElementType> = {
@@ -30,6 +35,10 @@ const actionIcons: Record<ChatAction['type'], React.ElementType> = {
   caption: Captions,
   'title-card': Type,
   'find-clips': Search,
+  effects: Sparkles,
+  'effects-discovery': Sparkles,
+  resolve_connect: MonitorPlay,
+  resolve_project: FolderOpen,
 }
 
 function formatTime(timestamp: string): string {
@@ -73,8 +82,65 @@ function parseInlineFormatting(text: string): React.ReactNode[] {
   return parts
 }
 
+function SuggestionButtons({ suggestions }: { suggestions: { label: string; message: string }[] }) {
+  const { addChatMessage, updateChatMessage, addAppliedEffect, currentProject } = useAppStore()
+
+  const handleClick = async (suggestion: { label: string; message: string }) => {
+    const userMsg = {
+      id: crypto.randomUUID(),
+      role: 'user' as const,
+      content: suggestion.message,
+      timestamp: new Date().toISOString(),
+    }
+    addChatMessage(userMsg)
+
+    const loadingId = crypto.randomUUID()
+    addChatMessage({
+      id: loadingId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toISOString(),
+      isLoading: true,
+    })
+
+    try {
+      const response = await sendChatMessage(suggestion.message, currentProject?.id)
+      updateChatMessage(loadingId, {
+        content: response.content,
+        isLoading: false,
+        action: response.action,
+      })
+      if (response.action?.data?.appliedEffects) {
+        for (const effect of response.action.data.appliedEffects) {
+          addAppliedEffect(effect)
+        }
+      }
+    } catch {
+      updateChatMessage(loadingId, {
+        content: 'Something went wrong. Try again.',
+        isLoading: false,
+      })
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {suggestions.map((s) => (
+        <button
+          key={s.message}
+          onClick={() => handleClick(s)}
+          className="px-3 py-1.5 text-[11px] font-medium text-text-muted bg-surface-active/60 hover:bg-surface-active hover:text-text rounded-lg transition-all duration-150 cursor-pointer"
+        >
+          {s.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function ActionCard({ action }: { action: ChatAction }) {
   const Icon = actionIcons[action.type]
+  const suggestions = action.data?.suggestions as { label: string; message: string }[] | undefined
 
   return (
     <div className="mt-2 bg-surface-active/40 rounded-lg p-3.5 flex flex-col gap-2.5">
@@ -101,6 +167,9 @@ function ActionCard({ action }: { action: ChatAction }) {
             style={{ width: `${action.progress}%` }}
           />
         </div>
+      )}
+      {suggestions && suggestions.length > 0 && (
+        <SuggestionButtons suggestions={suggestions} />
       )}
     </div>
   )

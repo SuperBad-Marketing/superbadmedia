@@ -30,7 +30,7 @@ export class TitlePipelineService {
     projectName?: string,
     clientName?: string,
   ): Promise<TitlePipelineResult> {
-    if (!intent.titles.textUsage || intent.titles.textUsage === 'none') {
+    if (!intent.titles?.textUsage || intent.titles.textUsage === 'none') {
       return { placed: 0, placements: [] }
     }
 

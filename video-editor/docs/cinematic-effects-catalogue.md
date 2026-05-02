@@ -7,25 +7,178 @@ appropriate ingredients, and compose them into an effect stack.
 
 ## How to use this catalogue
 
-1. **Match intent** — read the user's instruction and identify which ingredients match
-2. **Check recipes first** — if a pre-composed recipe exists for the narrative moment, start there
-3. **Customise** — adjust variant intensity based on the user's language ("subtle", "heavy", "barely there", "extreme")
-4. **Layer** — most cinematic moments need 2-5 ingredients across visual + colour + audio
-5. **Send to bridge** — each ingredient maps to a Resolve bridge command with specific parameters
+### Decision hierarchy
+
+When the user describes an effect they want:
+
+1. **Vague request?** → Trigger interactive effect discovery (see section 15). Do NOT guess.
+   Vague = "make it cinematic", "make it look good", "clean this up", "add some style",
+   "make it professional", "make it pop". If you can't identify a specific technique or
+   mood, it's vague.
+2. **Specific narrative moment?** → Check recipes first. If a recipe's trigger phrases closely
+   match, use it as a starting point and customise variant intensities.
+3. **Partially matches a recipe?** → Use the recipe as a skeleton, add/remove ingredients.
+4. **Specific single effect?** → ("add halation", "slow this down") Apply just that ingredient.
+5. **Novel combination?** → Compose from individual ingredients, max 6-8 per clip.
+
+### Intensity calibration
+
+Map the user's language to variant selection consistently:
+
+| User language | Variant | Parameter adjustment |
+|--------------|---------|---------------------|
+| "barely", "hint", "touch", "whisper", "trace" | Lightest available | Reduce key params 30% below subtle |
+| "slight", "gentle", "soft", "mild" | subtle | As specified |
+| (no modifier), "standard", "normal", "some" | standard | As specified |
+| "strong", "heavy", "bold", "aggressive", "obvious" | heavy | As specified |
+| "extreme", "maxed", "insane", "overwhelming", "cranked" | heavy | Push key params 20% beyond heavy |
+
+### Fusion compound script rule (CRITICAL)
+
+Resolve allows only ONE active Fusion composition per timeline clip. When multiple `fusion`
+ingredients target the same clip, they MUST be combined into a single Fusion script — one
+node graph chained together:
+
+```
+MediaIn → [Effect1 tools] → [Effect2 tools] → [Effect3 tools] → MediaOut
+```
+
+The bridge's `build_compound_fusion(clip_index, ingredients[])` command handles this.
+Never send multiple separate `inject_fusion_comp` calls to the same clip — the last one
+will overwrite all previous ones.
+
+### Color node ordering
+
+When multiple `color-node` ingredients target the same clip, apply them in this fixed order
+(each as a separate serial node on the Color page):
+
+1. **Exposure / contrast** — `high-contrast`, `crush-blacks`, `lifted-shadows`
+2. **Temperature / tint** — `warm-shift`, `cool-shift`, `day-for-night`
+3. **Saturation** — `full-desaturation`, `desaturation-partial`, `saturation-boost`
+4. **Creative look** — `teal-and-orange`, `cross-process`, `bleach-bypass`, `neon-cyberpunk`, `noir`
+5. **Film stock emulation** — `film-stock-emulation`
+6. **Animated colour** — `colour-pop`, `colour-temperature-drift`, `flash-to-white/black`
+7. **Vignette** — `vignette-subtle`, `vignette-heavy` (applied as OFX on final node, not a separate node)
+
+### Existing effect detection
+
+Before applying effects, the bridge queries the clip's current state via
+`get_clip_effects_state(clip_index)`. This returns:
+- Existing Color page nodes and their types
+- Active Fusion comp (if any) and its tools
+- Current speed/retiming settings
+- Any applied ResolveFX
+
+The LLM receives this state and MUST:
+- Skip ingredients that are already present (don't double-warm a warm clip)
+- Modify existing effects rather than stacking duplicates
+- Warn the user if existing effects conflict with requested ones
+
+### Audio implementation reality
+
+Resolve's Python scripting API has **very limited Fairlight access**. Audio effects are
+handled in two tiers:
+
+**Tier A — API-accessible** (these work via bridge commands):
+- Volume automation (ducking, volume-swell, hard-cut-silence)
+- Audio track management (add tracks, place SFX clips)
+- Pan/stereo width (basic)
+- Clip-level volume
+
+**Tier B — Requires pre-processing** (these CANNOT be applied via Resolve's API):
+- EQ / filtering (muffled-audio, tin-can-radio, phone-call)
+- Reverb, delay, echo
+- Pitch shifting (audio-slow-down, audio-speed-up)
+- Distortion, bit-crush, phaser/flanger
+
+For Tier B effects, SuperEdits processes the audio server-side using ffmpeg/sox BEFORE
+importing into Resolve. The bridge workflow is:
+1. Extract clip audio → temp file
+2. Apply ffmpeg/sox audio filters (low-pass, reverb, pitch-shift, etc.)
+3. Import processed audio to a new Resolve audio track
+4. Mute original clip audio, sync processed version
+
+Ingredients typed as `audio-preprocess` in this catalogue use Tier B pre-processing unless
+explicitly noted as Tier A.
+
+### SFX layer placement
+
+Audio layer ingredients (`sfx-layer` type) need a timeline position. Each specifies a
+`placement` value:
+
+| Placement | Meaning |
+|-----------|---------|
+| `clip-start` | At the first frame of the target clip |
+| `clip-end` | Ending at the last frame of the target clip |
+| `throughout` | Full duration of the target clip, looped if needed |
+| `at-timestamp` | At a specific timestamp within the clip (user-specified) |
+| `before-cut` | Starting N seconds before the cut to the next clip |
+| `after-cut` | Starting at the cut, trailing into the clip |
+| `over-transition` | Centred on the transition between two clips |
+
+Timeline position is calculated as: `clip_start_frame + (offset_seconds × timeline_fps)`
+
+### Effect conflicts
+
+Some ingredients fight each other. The LLM must never apply conflicting effects
+simultaneously. Key conflicts:
+
+| Ingredient | Conflicts with |
+|-----------|---------------|
+| `warm-shift` | `cool-shift`, `day-for-night` |
+| `cool-shift` | `warm-shift`, `sepia` |
+| `full-desaturation` | Any colour-specific grade (`teal-and-orange`, `cross-process`, `neon-cyberpunk`, `colour-channel-isolation`) |
+| `slow-motion` | `fast-forward`, `strobe-skip` |
+| `fast-forward` | `slow-motion`, `freeze-frame` |
+| `high-contrast` | `lifted-shadows` (they work in opposite directions) |
+| `bleach-bypass` | `saturation-boost` (bypass desaturates, boost saturates) |
+| `flash-to-white` | `flash-to-black` (at the same moment) |
+| `halation` (heavy) | `high-contrast` (extreme) — glow fights hard edges |
+| `old-film` | `vhs-camcorder` — pick one era |
+| `muffled-audio` (heavy) | `reverb-swell` (heavy) — competing transformations |
+| `hard-cut-silence` | Any audio layer at the same timestamp |
+
+If the user explicitly requests a conflicting pair, ask which they prefer.
+
+### Performance cost
+
+Each ingredient has a performance impact on Resolve's real-time playback:
+
+| Cost tier | Types | Budget per clip |
+|-----------|-------|----------------|
+| **Heavy** | `fusion` (especially particles, blur, displacement), complex `resolve-fx` | Max 2 |
+| **Medium** | Simple `fusion`, most `resolve-fx`, `timeline-op` | Max 4 |
+| **Light** | `color-node`, `clip-property`, `sfx-layer`, `marker` | Unlimited |
+
+If a recipe exceeds 2 heavy + 4 medium on a single clip, warn the user:
+"This combination is pretty demanding — Resolve may need to render before playback is smooth. Want me to simplify, or apply as-is?"
+
+### Recipe scope
+
+Recipes that affect multiple clips use explicit scope:
+
+| Scope field | Meaning |
+|------------|---------|
+| `primary` | The clip(s) the user specified |
+| `bookend_before: N` | Apply specified effects to N clips before the primary |
+| `bookend_after: N` | Apply specified effects to N clips after the primary |
+| `entry_transition` | Transition INTO the first primary clip |
+| `exit_transition` | Transition OUT OF the last primary clip |
+| `global` | Apply to all clips in the timeline |
 
 ## Implementation types
 
 Each ingredient uses one of these approaches:
 
-- **`fusion`** — Fusion composition script injected onto the clip (visual effects)
-- **`resolve-fx`** — ResolveFX plugin applied via the Color page or Edit page
-- **`color-node`** — Color page node with grade parameters (lifts, gammas, gains, curves)
-- **`lut`** — LUT file applied to a color node
-- **`clip-property`** — Timeline item property (speed, etc.)
-- **`timeline-op`** — Timeline-level operation (cut, transition, track layering)
-- **`fairlight`** — Fairlight audio effect on the clip's audio
-- **`sfx-layer`** — New audio clip sourced from Epidemic Sound / SFX library
-- **`marker`** — Resolve marker placed for manual editor action (fallback)
+- **`fusion`** — Fusion composition script injected onto the clip. When multiple fusion ingredients target the same clip, they are combined into one compound script. See "Fusion compound script rule" above.
+- **`resolve-fx`** — ResolveFX plugin applied via the Edit page or Color page OFX panel.
+- **`color-node`** — Color page node with grade parameters (lifts, gammas, gains, curves). See "Color node ordering" above.
+- **`clip-property`** — Timeline item property (speed, retiming, transform, opacity).
+- **`timeline-op`** — Timeline-level operation (cut, transition, track layering, adjustment layer).
+- **`audio-preprocess`** — Audio processed server-side via ffmpeg/sox, then imported to a new Resolve audio track. Replaces the original `fairlight` type for effects requiring EQ/reverb/delay/pitch. See "Audio implementation reality" above.
+- **`audio-automation`** — Resolve-native audio automation (volume, pan). Tier A in audio reality.
+- **`sfx-layer`** — New audio clip sourced from Epidemic Sound / SFX library, placed on a dedicated audio track. See "SFX layer placement" above.
+- **`marker`** — Resolve marker placed for manual editor action (fallback when API cannot achieve the effect).
 
 ---
 
@@ -920,6 +1073,296 @@ Each ingredient uses one of these approaches:
 
 ---
 
+## 7b. VISUAL — Masking & Isolation
+
+Masking effects isolate regions of the frame for targeted processing. These are both standalone effects and building blocks the planner should compose into more complex requests. When a user asks to affect "just the background", "only the sky", "everything except the person", "brighten her face", or describes any spatially selective treatment — masking is how it gets done.
+
+### `subject-isolation`
+**When to use**: isolate person, separate subject from background, subject pop, make them stand out, person stands out, subject brighter, subject sharper, hero shot enhancement, portrait isolation
+**What it does**: Isolates the primary subject (person) from the background using Magic Mask, allowing independent processing of subject and background.
+**Implementation**: `color-node` — Magic Mask (Person mode) on dedicated node; creates inside/outside regions for downstream grading
+**Variants**:
+
+| Variant | Subject Treatment | Background Treatment | Description |
+|---------|------------------|---------------------|-------------|
+| pop | +0.3 contrast, +5 sat | -15 sat, -0.1 exposure | Subject pops, background recedes |
+| cinematic | Slight warm shift | Cool shift, -0.2 exposure | Filmic subject/bg separation |
+| dreamy-bg | None | Gaussian blur 5px, -10 sat | Sharp subject, dreamy background |
+| silhouette | -2.0 exposure | None | Subject becomes silhouette |
+| glow | +0.1 exposure, soft edge | None | Subject gets soft radiance |
+
+**Pairs well with**: `lens-blur`, `vignette`, `warm-shift`, `halation`
+**Trigger phrases**: "make them pop", "separate from background", "subject stands out", "person brighter", "isolate the subject", "hero treatment"
+
+---
+
+### `background-treatment`
+**When to use**: blur background, darken background, desaturate background, soften background, background out of focus, shallow depth, background less distracting, clean up background
+**What it does**: Applies processing to everything except the primary subject — blur, exposure, saturation, colour shifts.
+**Implementation**: `color-node` — Magic Mask (Person mode, inverted) or Power Window (inverted) for background-only grading
+**Variants**:
+
+| Variant | Effect | Amount | Description |
+|---------|--------|--------|-------------|
+| soft-focus | Blur | 5-8px | Background gently out of focus |
+| deep-blur | Blur | 15-25px | Heavy background blur, portrait-style |
+| darken | Exposure | -0.5 to -1.0 | Background pushed darker |
+| desaturate | Saturation | -40 to -80% | Colour drained from background |
+| cool-shift | Temperature | -15 to -25 | Background cooler, subject warmer by contrast |
+| film-grain-bg | Grain + blur | Light | Background gets textured, subject stays clean |
+
+**Pairs well with**: `subject-isolation`, `vignette`, `warm-shift`
+**Trigger phrases**: "blur the background", "soften behind them", "background darker", "make the background less distracting", "fake shallow depth of field"
+
+---
+
+### `sky-enhancement`
+**When to use**: sky more blue, sky more dramatic, darken sky, sunset sky, sky replacement prep, sky colour, more sky detail, sky contrast, sky too bright, blown sky
+**What it does**: Targets the sky region for colour, exposure, or contrast adjustments using a gradient mask or qualifier.
+**Implementation**: `color-node` — Linear Power Window (top region) or HSL Qualifier (blue range) on dedicated node
+**Variants**:
+
+| Variant | Adjustment | Description |
+|---------|-----------|-------------|
+| deepen-blue | +20 sat, -0.2 exposure on blue range | Richer, deeper blue sky |
+| golden-hour | Warm temp +15, +10 sat on highlights | Golden sky enhancement |
+| dramatic | +0.4 contrast, -0.3 exposure | Moody, heavy sky |
+| recover-highlights | -0.5 highlights, +0.2 midtones | Pull back overexposed sky |
+| sunset-boost | +25 orange sat, +10 red sat | Amplify sunset colours |
+| overcast-mood | -10 sat, -0.1 exposure, slight blue | Lean into grey, moody sky |
+
+**Pairs well with**: `high-contrast`, `warm-shift`, `cool-shift`, `cinematic-contrast`
+**Trigger phrases**: "make the sky bluer", "sky is too bright", "more dramatic sky", "enhance the sunset", "sky looks blown out", "darken the sky"
+
+---
+
+### `face-lighting`
+**When to use**: brighten face, face too dark, face underexposed, face shadowy, eye light, facial lighting, portrait lighting fix, face in shadow, talking head too dark
+**What it does**: Brightens and refines lighting on faces using tracked circular Power Windows or Magic Mask face mode.
+**Implementation**: `color-node` — Magic Mask (Face mode) or Circular Power Window (tracked) on dedicated node; raises midtones/highlights on face region
+**Variants**:
+
+| Variant | Exposure Lift | Colour | Tracking | Description |
+|---------|--------------|--------|----------|-------------|
+| subtle-lift | +0.2 midtones | None | Auto-track | Gentle face brightening |
+| interview-fix | +0.4 midtones, +0.1 highlights | Slight warm | Auto-track | Fix underexposed interview |
+| eye-light | +0.3 highlights, small window | None | Auto-track | Brighten eye area specifically |
+| beauty | +0.2 midtones, -5 contrast | Slight warm, +5 sat | Auto-track | Flattering portrait light |
+| fill-shadow | +0.5 shadows, +0.2 midtones | None | Auto-track | Fill in harsh shadows on face |
+
+**Pairs well with**: `skin-tone-correct`, `warm-shift`, `subject-isolation`
+**Trigger phrases**: "brighten their face", "face is too dark", "can't see their face", "face in shadow", "lighten the face", "interview is underexposed"
+
+---
+
+### `skin-tone-correct`
+**When to use**: skin looks wrong, skin too orange, skin too red, skin colour off, fix skin tones, natural skin, skin too pale, skin too yellow, complexion
+**What it does**: Corrects skin tones to natural range using HSL qualifier targeting skin hue range, with softness.
+**Implementation**: `color-node` — HSL Qualifier (select skin tone range: hue 15-45°, sat 20-70%, lum 30-80%) on dedicated node; adjust hue/sat within selection
+**Variants**:
+
+| Variant | Adjustment | Description |
+|---------|-----------|-------------|
+| neutralise | Shift toward natural (hue 25-35°) | Fix colour cast on skin |
+| warm | +5° hue, +5 sat | Healthy warm glow |
+| cool-correct | -10° hue shift from orange toward natural | Fix overly warm/orange skin |
+| even-out | Reduce sat variance within selection | Smooth uneven skin tones |
+| under-fluorescent | Shift green out of skin tones | Fix sickly fluorescent lighting |
+
+**Pairs well with**: `face-lighting`, `subject-isolation`, `warm-shift`
+**Trigger phrases**: "skin looks off", "too orange", "fix the skin tones", "skin colour is wrong", "they look sickly"
+
+---
+
+### `selective-colour`
+**When to use**: pop one colour, Sin City look, one colour stands out, selective colour, colour splash, red dress pops, make the blue stand out, colour isolation
+**What it does**: Desaturates the entire frame except for a selected colour range, making that colour dramatically pop.
+**Implementation**: `color-node` — Node 1: full desaturation; Node 2: HSL Qualifier (target hue range) with original saturation restored via layer mixer
+**Variants**:
+
+| Variant | Target Colour | Hue Range | Description |
+|---------|--------------|-----------|-------------|
+| red-pop | Red | 340-20° | Only reds remain — dramatic, intense |
+| blue-pop | Blue | 190-250° | Only blues remain — cold, clinical |
+| green-pop | Green | 80-160° | Only greens remain — nature, fresh |
+| yellow-pop | Yellow/Gold | 40-70° | Only yellows/golds — warm, vintage |
+| orange-pop | Orange | 20-45° | Only oranges — skin tones, warmth |
+| custom | User-specified | Variable | Any hue range the user describes |
+
+**Pairs well with**: `high-contrast`, `vignette`, `film-grain`
+**Trigger phrases**: "only the red", "black and white except", "colour splash", "pop just the blue", "Sin City style", "one colour stands out"
+
+---
+
+### `gradient-mask`
+**When to use**: top darker bottom brighter, graduated filter, sky/ground split, horizon line, ND grad, split tone top and bottom, darken top of frame
+**What it does**: Applies a linear gradient across the frame for split processing — commonly used for sky/ground exposure balancing.
+**Implementation**: `color-node` — Linear Power Window on dedicated node; feathered transition between treated and untreated regions
+**Variants**:
+
+| Variant | Direction | Effect | Description |
+|---------|-----------|--------|-------------|
+| sky-darken | Top-down | -0.5 exposure top | ND grad filter equivalent |
+| ground-warm | Bottom-up | +10 temp bottom | Warm the foreground |
+| horizon-contrast | Centre out | +0.3 contrast edges | Contrast falls off from centre |
+| day-for-night-top | Top-down | -1.0 exposure, blue shift | Push sky toward night |
+| split-tone | Top-down | Cool top, warm bottom | Complementary colour split |
+
+**Pairs well with**: `sky-enhancement`, `cinematic-contrast`, `warm-shift`, `cool-shift`
+**Trigger phrases**: "darken the top", "graduated filter", "sky is too bright but ground is fine", "ND grad", "split the exposure"
+
+---
+
+### `radial-focus`
+**When to use**: focus on centre, draw attention, peripheral blur, iris effect, radial blur, centre sharp edges soft, spotlight, attention to subject
+**What it does**: Creates a radial mask from centre (or custom point) outward, applying blur/darkening/desaturation to periphery.
+**Implementation**: `fusion` — Ellipse mask + BrightnessContrast/Blur with soft edge; or `color-node` — Circular Power Window
+**Variants**:
+
+| Variant | Centre | Edge Effect | Softness | Description |
+|---------|--------|-------------|----------|-------------|
+| gentle | Frame centre | -0.2 exposure, blur 3px | 80% | Subtle attention draw |
+| dramatic | Frame centre | -0.5 exposure, blur 8px, -20 sat | 60% | Strong isolation |
+| off-centre | Custom point | -0.3 exposure, blur 5px | 70% | Focus on off-centre subject |
+| spotlight | Subject position | Everything else -0.8 exposure | 50% | Theatrical spotlight |
+| dreamy-peripheral | Frame centre | Blur 10px, +halation edge | 90% | Dreamy soft periphery |
+
+**Pairs well with**: `vignette`, `lens-blur`, `subject-isolation`, `halation`
+**Trigger phrases**: "draw focus to the centre", "blur the edges", "spotlight on them", "focus attention", "peripheral blur"
+
+---
+
+### `area-grade`
+**When to use**: just that part, specific area, that corner, this section, region colour, patch of light, localised adjustment, spot correction
+**What it does**: Applies colour/exposure grading to a specific freeform region using polygon or curve Power Windows.
+**Implementation**: `color-node` — Polygon/Curve Power Window (tracked if needed) on dedicated node
+**Variants**:
+
+| Variant | Shape | Use Case | Description |
+|---------|-------|----------|-------------|
+| polygon | Custom polygon | Irregular shapes, signs, objects | Grade any shape |
+| soft-circle | Circular, heavy feather | Pools of light, face areas | Soft circular correction |
+| tracked-region | Any shape + tracking | Moving subjects or areas | Follows movement |
+| highlight-patch | Small circle | Hot spots, reflections | Fix localised overexposure |
+| shadow-fill | Custom shape | Dark corners, shadow areas | Lift specific shadows |
+
+**Pairs well with**: any colour ingredient, `face-lighting`
+**Trigger phrases**: "just that area", "fix that bright spot", "darken that corner", "that part is too blue", "localised fix"
+
+---
+
+### `edge-mask`
+**When to use**: edge detection, outline only, edge glow, subject outline, edge highlight, contour, neon outline, traced edges
+**What it does**: Detects edges in the frame and applies effects along them — glow, colour, darkening.
+**Implementation**: `fusion` — CustomTool or EdgeDetect + BrightnessContrast + Merge (composite mode)
+**Variants**:
+
+| Variant | Edge Treatment | Background | Description |
+|---------|---------------|------------|-------------|
+| glow | Bright + blur on edges | Original | Edges glow subtly |
+| neon | Coloured bright edges | Darkened | Neon outline effect |
+| sketch | White edges | Black | Sketch/line drawing look |
+| emboss | Raised edge shadow | Original | 3D embossed feel |
+| outline-only | White edges | Transparent (composite) | Clean outline overlay |
+
+**Pairs well with**: `high-contrast`, `colour-channel-isolation`, `halftone-print`
+**Trigger phrases**: "outline the edges", "edge glow", "neon outline", "sketch look", "trace the edges"
+
+---
+
+### `object-highlight`
+**When to use**: highlight this thing, make that object stand out, draw attention to the product, emphasise the item, feature the logo, object brighter
+**What it does**: Isolates a specific object using Magic Mask (Object mode) or manual Power Window, then enhances it relative to surroundings.
+**Implementation**: `color-node` — Magic Mask (Object mode) or tracked Power Window on dedicated node
+**Variants**:
+
+| Variant | Object Treatment | Surroundings | Description |
+|---------|-----------------|--------------|-------------|
+| brighten | +0.3 exposure, +10 sat | None | Object brighter and richer |
+| pop | +0.2 contrast, +15 sat | -10 sat, -0.1 exposure | Object pops, surroundings recede |
+| spotlight | +0.4 exposure | -0.4 exposure | Theatrical spotlight on object |
+| colour-accent | +20 sat | Desaturate -60 | Object in colour, rest muted |
+| warm-glow | +15 temp, +10 sat, soft edge | None | Object gets warm emphasis |
+
+**Pairs well with**: `radial-focus`, `lens-blur`, `vignette`
+**Trigger phrases**: "make that stand out", "highlight the product", "draw attention to", "emphasise the", "that object should pop"
+
+---
+
+### `mask-transition`
+**When to use**: wipe reveal, iris transition, mask wipe, circular reveal, shape transition, custom wipe
+**What it does**: Animated mask used as a transition between clips or to reveal content.
+**Implementation**: `fusion` — Animated Ellipse/Rectangle/Polygon mask with keyframed size/position, used as merge mask between foreground/background
+**Variants**:
+
+| Variant | Shape | Animation | Description |
+|---------|-------|-----------|-------------|
+| iris-in | Circle | Centre out, 0→full | Classic iris-in reveal |
+| iris-out | Circle | Full→centre, full→0 | Classic iris-out close |
+| wipe-left | Rectangle | Right→left sweep | Horizontal wipe |
+| wipe-down | Rectangle | Top→bottom sweep | Vertical wipe |
+| diamond | Rotated rectangle | Centre out | Diamond-shape reveal |
+| clock-wipe | Angle mask | 0°→360° sweep | Clock-hand wipe |
+
+**Pairs well with**: works as standalone transition
+**Trigger phrases**: "iris transition", "circle reveal", "wipe", "reveal with a shape", "iris in/out"
+
+---
+
+### `double-exposure-mask`
+**When to use**: double exposure, blend two clips, overlay with mask, silhouette blend, ghost image, superimpose, composite
+**What it does**: Composites two layers using masking to control where each is visible — classic double exposure technique.
+**Implementation**: `timeline-op` + `fusion` — Duplicate to track 2, mask on top layer via Ellipse/Magic Mask, blend via composite mode (Screen/Add/Overlay)
+**Variants**:
+
+| Variant | Mask Source | Blend Mode | Description |
+|---------|-----------|------------|-------------|
+| silhouette-fill | Person outline | Screen | Landscape visible inside person silhouette |
+| soft-blend | Gradient | Add | Two clips softly merged |
+| face-nature | Face shape | Screen | Nature textures inside face |
+| split-composite | Vertical split | Normal | Half-and-half frame |
+| ghost | Full frame, low opacity | Screen | Transparent overlay, ghostly |
+
+**Pairs well with**: `desaturation-partial`, `high-contrast`, `film-grain`
+**Trigger phrases**: "double exposure", "blend the two", "overlay inside the silhouette", "ghost image", "superimpose"
+
+---
+
+### `text-mask`
+**When to use**: text reveal through video, video inside text, text cutout, kinetic type mask, text filled with footage
+**What it does**: Uses text shapes as masks so video plays through the letterforms.
+**Implementation**: `fusion` — Text+ tool as mask input to Merge node; video plays through text shape
+**Variants**:
+
+| Variant | Text Style | Background | Description |
+|---------|-----------|------------|-------------|
+| clean-cutout | Bold sans-serif | Black/white | Clean video-in-text |
+| grunge | Distressed serif | Textured | Raw, editorial feel |
+| animated-reveal | Bold, animated position | Dark | Text slides in revealing video |
+| outline-only | Outlined text (no fill) | Video | Outlined letterforms over video |
+
+**Pairs well with**: `film-grain`, `high-contrast`, `letterbox`
+**Trigger phrases**: "video inside text", "text cutout", "text reveal", "words filled with footage"
+
+---
+
+### Masking — Implementation Notes
+
+**Priority order for mask selection** (the planner should prefer these in order):
+1. **Magic Mask (Person)** — when isolating people. Most accurate, auto-tracked.
+2. **Magic Mask (Object)** — when isolating non-person objects. Requires Resolve Studio.
+3. **HSL Qualifier** — when targeting by colour (sky, skin tones, specific coloured objects). Fast, no tracking needed.
+4. **Power Windows** — when targeting by position (top/bottom/centre/corners). Trackable.
+5. **Fusion masks** — when doing custom shapes, animated masks, or compositing operations.
+
+**Composability**: Masking effects are building blocks. The planner should freely combine them:
+- "Make her pop against a blurred background" → `subject-isolation:pop` + `background-treatment:soft-focus`
+- "Dramatic sky with warm subject" → `sky-enhancement:dramatic` + `subject-isolation:cinematic`
+- "Focus on the product, blur everything else" → `object-highlight:spotlight` + `background-treatment:deep-blur`
+- "Black and white except the red dress" → `selective-colour:red-pop`
+
+---
+
 ## 8. MOTION INGREDIENTS
 
 ### `speed-ramp-up`
@@ -1237,23 +1680,24 @@ Note: Optical Flow interpolation (Resolve's Optical Flow retiming) should be ena
 
 ### `film-stock-emulation`
 **When to use**: specific film look, Kodak, Fuji, Agfa, analog colour, film matching, period accuracy
-**What it does**: Emulates the colour response of specific film stocks via LUTs.
-**Implementation**: `lut` — Film emulation LUT applied to node
+**What it does**: Emulates the colour response of specific film stocks using Color page node recipes.
+**Implementation**: `color-node` — Multi-parameter grade per stock (no external LUT files required)
 **Variants**:
 
-| Variant | Stock | Character | Description |
-|---------|-------|-----------|-------------|
-| kodak-5219 | Kodak Vision3 500T | Warm, rich, slightly magenta shadows | Tungsten cinema stock |
-| kodak-5207 | Kodak Vision3 250D | Clean, neutral-warm, versatile | Daylight cinema stock |
-| fuji-3510 | Fuji Eterna 500T | Cool, slightly green, clean | Japanese cinema stock |
-| fuji-superia | Fuji Superia 400 | Warm greens, muted reds | Consumer film look |
-| agfa-vista | Agfa Vista 200 | Warm, slightly yellow, low contrast | European consumer film |
-| portra-400 | Kodak Portra 400 | Beautiful skin tones, soft contrast | Portrait/wedding film |
-| ektar-100 | Kodak Ektar 100 | Punchy, vivid, fine grain | Vivid landscape film |
-| tri-x | Kodak Tri-X 400 | High contrast B&W, rich grain | Classic B&W photojournalism |
-| hp5 | Ilford HP5 Plus | Medium contrast B&W, smooth | Versatile B&W stock |
+| Variant | Stock | Node recipe |
+|---------|-------|-------------|
+| kodak-5219 | Kodak Vision3 500T | Temp: +15, Tint: +4, Lift: R+0.01 G-0.005 B+0.015 (magenta shadow), Gamma: warm nudge R+0.02, Gain: R+0.03 G+0.01 (warm highlights), Saturation: 1.1, Contrast: +8, Midtone Detail: -5 |
+| kodak-5207 | Kodak Vision3 250D | Temp: +8, Tint: 0, Lift: neutral, Gamma: R+0.01 (slight warmth), Gain: R+0.015 G+0.01 B+0.005, Saturation: 1.05, Contrast: +5 |
+| fuji-3510 | Fuji Eterna 500T | Temp: -8, Tint: +3, Lift: G+0.01 (green shadow), Gamma: neutral-cool, Gain: B+0.01 (cool highlights), Saturation: 0.9, Contrast: +3 |
+| fuji-superia | Fuji Superia 400 | Temp: +5, Tint: +5, Lift: G+0.015 (green-shifted shadows), Gamma: G+0.01 (warm greens), Gain: R-0.01 (muted reds), Saturation: 0.95, Contrast: +5 |
+| agfa-vista | Agfa Vista 200 | Temp: +12, Tint: +3, Lift: R+0.01 G+0.01 (yellow shadow), Gamma: warm, Gain: R+0.01 G+0.01 (yellow highlight), Saturation: 0.85, Contrast: -5 |
+| portra-400 | Kodak Portra 400 | Temp: +6, Tint: +2, Lift: R+0.008 B-0.005 (warm shadow), Gamma: R+0.01 (skin warmth), Gain: neutral-warm, Saturation: 0.92, Contrast: -8, Shadow lift: +0.02 |
+| ektar-100 | Kodak Ektar 100 | Temp: +3, Tint: 0, Lift: neutral, Gamma: neutral, Gain: R+0.02 B+0.01, Saturation: 1.35, Contrast: +15 |
+| tri-x | Kodak Tri-X 400 | Saturation: 0, Contrast: +25, Lift: -0.03 (crush blacks), Gain: +0.05 (bright whites), Gamma: -0.02 (dense midtones), Midtone Detail: +10 |
+| hp5 | Ilford HP5 Plus | Saturation: 0, Contrast: +10, Lift: -0.01, Gain: +0.02, Gamma: +0.01 (open midtones), Midtone Detail: +5 |
 
-Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
+Each recipe is applied as a single Color page node. The bridge translates these into
+`set_node_params()` calls. No external .cube files required.
 
 **Pairs well with**: `film-grain-35mm`, `halation`, `vignette-subtle`
 
@@ -1379,7 +1823,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `muffled-audio`
 **When to use**: underwater, through a wall, distant, muted world, shock, dissociation, suffocation, pillow over ears
 **What it does**: Low-pass filter rolls off high frequencies. World sounds distant and muffled.
-**Implementation**: `fairlight` — Parametric EQ (low-pass filter)
+**Implementation**: `audio-preprocess` — ffmpeg low-pass filter
 **Variants**:
 
 | Variant | Cutoff | Resonance | Description |
@@ -1396,7 +1840,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `tin-can-radio`
 **When to use**: radio, walkie-talkie, intercom, old broadcast, communication device, transmission
 **What it does**: Band-pass filter with slight distortion simulating audio through a small speaker.
-**Implementation**: `fairlight` — Parametric EQ (band-pass 500Hz-3kHz) + subtle Distortion
+**Implementation**: `audio-preprocess` — ffmpeg band-pass filter (500Hz-3kHz) + sox overdrive
 **Variants**:
 
 | Variant | Band | Distortion | Noise | Description |
@@ -1413,7 +1857,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `phone-call`
 **When to use**: phone conversation, call, mobile, telephone, other end of the line
 **What it does**: Narrow bandwidth with slight digital artefacts simulating phone audio.
-**Implementation**: `fairlight` — Parametric EQ (narrow band 300Hz-3.4kHz) + subtle Distortion
+**Implementation**: `audio-preprocess` — ffmpeg band-pass filter (300Hz-3.4kHz) + sox overdrive
 **Variants**:
 
 | Variant | Quality | Description |
@@ -1430,7 +1874,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `ear-ringing`
 **When to use**: explosion, loud noise, shell shock, tinnitus, after impact, disorientation, trauma, war
 **What it does**: High-pitched ringing tone + ambient audio ducks and becomes muffled. Gradually returns to normal.
-**Implementation**: `fairlight` (muffle existing audio via EQ) + `sfx-layer` (ringing tone)
+**Implementation**: `audio-preprocess` (muffle existing audio via ffmpeg low-pass) + `sfx-layer` (ringing tone)
 **Parameters**:
 - Existing audio: Low-pass at 600Hz, fading back to full over 3-8 seconds
 - Ring layer: High sine tone (4-6kHz), starts loud, fades over same duration
@@ -1451,7 +1895,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `explosion-aftermath`
 **When to use**: after explosion, blast wave, bomb, grenade, artillery, destruction, shell shock
 **What it does**: Combined audio effect: initial bass concussion → ear ringing → muffled world → gradual return.
-**Implementation**: `sfx-layer` (bass impact + ring) + `fairlight` (EQ automation)
+**Implementation**: `sfx-layer` (bass impact + ring) + `audio-preprocess` (EQ filtering via ffmpeg)
 **Sequence**:
 1. Bass concussion hit (0-0.2s)
 2. All audio ducks to near-silence (0.2-0.5s)
@@ -1467,7 +1911,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `reverb-swell`
 **When to use**: dreamy, cavernous, ethereal, vast space, memory, transcendent, spiritual, large room, cathedral
 **What it does**: Adds reverberation that swells — either increasing wet signal or long tail.
-**Implementation**: `fairlight` — Reverb plugin (Room/Hall/Cathedral)
+**Implementation**: `audio-preprocess` — sox reverb (Room/Hall/Cathedral profiles)
 **Variants**:
 
 | Variant | Type | Wet/Dry | Decay | Description |
@@ -1485,7 +1929,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `reverb-cut`
 **When to use**: sudden clarity, snap back to reality, breaking out of a dream, contrast, grounding
 **What it does**: Audio abruptly goes from reverberant/wet to completely dry.
-**Implementation**: `fairlight` — Reverb plugin with automated wet/dry: wet→dry at cut point
+**Implementation**: `audio-preprocess` — sox reverb with time-varying wet/dry: wet→dry at cut point
 **Pairs well with**: `colour-pop`, `flash-to-black`, `hard-cut-silence`, `snap-zoom`
 
 ---
@@ -1493,7 +1937,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `echo-delay`
 **When to use**: psychedelic, spaced out, trippy, repeating, vast, canyon, shouting into void, memory echo
 **What it does**: Audio repeats with decay — rhythmic echoes trailing the source.
-**Implementation**: `fairlight` — Delay plugin
+**Implementation**: `audio-preprocess` — sox echo/delay filter
 **Variants**:
 
 | Variant | Delay Time | Feedback | Wet | Description |
@@ -1510,7 +1954,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `audio-slow-down`
 **When to use**: time slowing, dramatic deceleration, stretching a moment, drugged, fading consciousness
 **What it does**: Audio pitch drops and time-stretches, creating that "world slowing down" sound.
-**Implementation**: `fairlight` — Pitch plugin (lower pitch) or retimed with clip speed
+**Implementation**: `audio-preprocess` — sox pitch-shift (lower) + tempo-stretch
 **Variants**:
 
 | Variant | Pitch Drop | Speed | Description |
@@ -1526,7 +1970,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `audio-speed-up`
 **When to use**: fast forward, frenetic, chipmunk, time compression, hyperactive, rewinding
 **What it does**: Audio pitch rises and compresses, sounding sped-up.
-**Implementation**: `fairlight` — Pitch plugin (raise pitch) or retimed with clip speed
+**Implementation**: `audio-preprocess` — sox pitch-shift (raise) + tempo-compress
 **Pairs well with**: `fast-forward`, `strobe-skip`, `high-contrast`
 
 ---
@@ -1535,6 +1979,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 **When to use**: vintage, nostalgic, old record, gramophone, cozy, warm, lo-fi, analog
 **What it does**: Adds vinyl record crackle, pops, and surface noise over the audio.
 **Implementation**: `sfx-layer` — Vinyl noise loop from SFX library, mixed under at low volume
+**Placement**: `throughout`
 **Pairs well with**: `sepia`, `old-film`, `warm-shift`, `film-grain-35mm`
 
 ---
@@ -1542,7 +1987,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `tape-warble`
 **When to use**: VHS, cassette, tape degradation, 80s, retro, wow and flutter, old recording
 **What it does**: Pitch wobbles simulating worn tape transport — wow and flutter.
-**Implementation**: `fairlight` — Chorus/Flanger with very low rate + `sfx-layer` (tape hiss)
+**Implementation**: `audio-preprocess` — sox flanger (low rate, wow+flutter) + `sfx-layer` (tape hiss)
 **Pairs well with**: `vhs-camcorder`, `scan-lines`, `warm-shift`
 
 ---
@@ -1550,7 +1995,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `bit-crush`
 **When to use**: digital lo-fi, retro gaming, 8-bit, glitch, robot, corrupted digital, lo-fi beats
 **What it does**: Reduces audio bit depth and sample rate, creating crunchy digital artefacts.
-**Implementation**: `fairlight` — Distortion plugin (bit-crush mode) or custom
+**Implementation**: `audio-preprocess` — sox downsample + bit-depth reduction
 **Variants**:
 
 | Variant | Bit Depth | Sample Rate | Description |
@@ -1566,7 +2011,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `phaser-flanger`
 **When to use**: psychedelic, trippy, swirling, 70s, spacey, cosmic, jet flyby, underwater wavering
 **What it does**: Sweeping comb filter creating a swirling, phasing sound.
-**Implementation**: `fairlight` — Flanger or Phaser plugin
+**Implementation**: `audio-preprocess` — sox phaser/flanger filter
 **Variants**:
 
 | Variant | Rate | Depth | Feedback | Description |
@@ -1582,7 +2027,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `audio-glitch`
 **When to use**: digital error, broken, malfunction, stutter, skip, corrupt, robot breaking, system failure
 **What it does**: Audio stutters, repeats, skips, or chops rhythmically — digital malfunction.
-**Implementation**: `timeline-op` — Razor edits creating micro-repeats + `fairlight` (bit-crush optional)
+**Implementation**: `timeline-op` — Razor edits creating micro-repeats + `audio-preprocess` (bit-crush optional)
 **Variants**:
 
 | Variant | Pattern | Duration | Description |
@@ -1598,7 +2043,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `stereo-manipulation`
 **When to use**: immersion, disorientation, envelopment, width, spatial, panning, surround feel
 **What it does**: Manipulates the stereo field — narrowing, widening, or panning audio.
-**Implementation**: `fairlight` — Pan controls + stereo width plugin
+**Implementation**: `audio-automation` — Pan controls via Resolve API (width via `audio-preprocess` if needed)
 **Variants**:
 
 | Variant | Width | Pan | Description |
@@ -1615,7 +2060,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `ducking`
 **When to use**: dialogue emphasis, voiceover, narration, music ducks under speech, focus on voice
 **What it does**: Background audio/music volume dips when primary audio is present.
-**Implementation**: `fairlight` — Compressor (sidechain) or volume automation
+**Implementation**: `audio-automation` — Volume keyframe automation via Resolve API
 **Pairs well with**: any scenario with dialogue over music/ambience
 
 ---
@@ -1623,7 +2068,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `volume-swell`
 **When to use**: building, rising, approaching, growing, intensity increasing, crescendo
 **What it does**: Audio gradually rises from silence or low level to full volume.
-**Implementation**: `fairlight` — Volume automation (ramp up)
+**Implementation**: `audio-automation` — Volume keyframe ramp via Resolve API
 **Variants**:
 
 | Variant | Duration | Curve | Description |
@@ -1639,7 +2084,7 @@ Note: Film emulation LUTs ship with SuperEdits as pre-built .cube files.
 ### `hard-cut-silence`
 **When to use**: shock, impact, dramatic pause, after loudness, breath-holding, tension, void, death
 **What it does**: Audio abruptly cuts to total silence. No fade, no tail. Just nothing.
-**Implementation**: `fairlight` — Volume automation (instant drop to -inf)
+**Implementation**: `audio-automation` — Volume keyframe instant drop to -inf via Resolve API
 **Pairs well with**: `flash-to-black`, `freeze-frame`, `desaturation-snap`, `flash-to-white`
 
 ---
@@ -1651,6 +2096,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `heartbeat`
 **When to use**: tension, fear, anxiety, anticipation, alive, pulse, dread, intimate, counting down
 **Implementation**: `sfx-layer` — Heartbeat loop from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | BPM | Volume | Description |
@@ -1668,6 +2114,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `breathing-audio`
 **When to use**: close, intimate, anxious, exhausted, panicked, suffocating, first-person, POV, survival
 **Implementation**: `sfx-layer` — Close-mic breathing from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Pace | Character | Description |
@@ -1684,6 +2131,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `clock-ticking`
 **When to use**: countdown, time running out, waiting, suspense, deadline, passage of time, impatience
 **Implementation**: `sfx-layer` — Clock tick from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Speed | Character | Description |
@@ -1700,6 +2148,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `tension-hum`
 **When to use**: dread, suspense, unease, something's wrong, horror, thriller, ominous, impending doom
 **Implementation**: `sfx-layer` — Low drone/hum from SFX library (sustained synth or processed bass)
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Pitch | Character | Description |
@@ -1716,6 +2165,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `choir-pad`
 **When to use**: angelic, heavenly, transcendent, spiritual, divine, revelation, epiphany, awe, majestic
 **Implementation**: `sfx-layer` — Choir/pad synth from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Character | Swell | Description |
@@ -1732,6 +2182,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `musical-riser`
 **When to use**: building tension, anticipation, approaching climax, countdown, about to happen, rising energy
 **Implementation**: `sfx-layer` — Riser/swell from SFX library
+**Placement**: `before-cut`
 **Variants**:
 
 | Variant | Duration | Character | Description |
@@ -1748,6 +2199,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `bass-drop`
 **When to use**: impact, hit, drop, arrival, beat drop, title reveal, slam, explosion, heavy moment
 **Implementation**: `sfx-layer` — Sub impact/drop from SFX library
+**Placement**: `at-timestamp`
 **Variants**:
 
 | Variant | Character | Duration | Description |
@@ -1764,6 +2216,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `whoosh`
 **When to use**: fast movement, transition, speed, passing, swipe, whip, energy, dynamic, fast cut
 **Implementation**: `sfx-layer` — Whoosh from SFX library
+**Placement**: `over-transition`
 **Variants**:
 
 | Variant | Direction | Speed | Description |
@@ -1781,6 +2234,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `record-scratch`
 **When to use**: comedy, "wait what", freeze frame comedy, breaking the fourth wall, sudden stop, punchline setup
 **Implementation**: `sfx-layer` — Record scratch/needle lift from SFX library
+**Placement**: `at-timestamp`
 **Pairs well with**: `freeze-frame`, `flash-to-black`, `hard-cut-silence`
 
 ---
@@ -1788,6 +2242,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `musical-sting`
 **When to use**: reveal, dramatic beat, comedic beat, horror sting, important moment, punctuation
 **Implementation**: `sfx-layer` — Musical sting from SFX library
+**Placement**: `at-timestamp`
 **Variants**:
 
 | Variant | Character | Description |
@@ -1805,6 +2260,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `room-tone`
 **When to use**: establishing atmosphere, spatial change, entering a space, quiet scene, realistic ambience
 **Implementation**: `sfx-layer` — Room tone / ambience from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Environment | Description |
@@ -1823,6 +2279,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `crowd-ambience`
 **When to use**: public space, event, party, stadium, gathering, busy, populated, social, audience
 **Implementation**: `sfx-layer` — Crowd ambience from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Size | Energy | Description |
@@ -1840,6 +2297,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `rain-ambience`
 **When to use**: rain, storm, wet, moody, melancholy, cozy (indoors), dramatic (outdoors)
 **Implementation**: `sfx-layer` — Rain ambience from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Intensity | Surface | Description |
@@ -1858,6 +2316,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `thunder`
 **When to use**: storm, dramatic, ominous, power, nature, god, epic, foreboding, dark sky
 **Implementation**: `sfx-layer` — Thunder from SFX library
+**Placement**: `at-timestamp`
 **Variants**:
 
 | Variant | Distance | Duration | Description |
@@ -1873,6 +2332,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `wind-build`
 **When to use**: approaching storm, desolation, exposed, cliff, mountaintop, tension in nature, cold
 **Implementation**: `sfx-layer` — Wind ambience from SFX library (animated volume)
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Strength | Character | Description |
@@ -1889,6 +2349,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `fire-crackle`
 **When to use**: fireplace, campfire, warmth, cozy, destruction (large), burning, intimate night
 **Implementation**: `sfx-layer` — Fire ambience from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Size | Description |
@@ -1905,6 +2366,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `water-sounds`
 **When to use**: water, ocean, lake, river, fountain, dripping, wet, aquatic, peaceful
 **Implementation**: `sfx-layer` — Water ambience from SFX library
+**Placement**: `throughout`
 **Variants**:
 
 | Variant | Type | Description |
@@ -1922,6 +2384,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `sonar-ping`
 **When to use**: submarine, scanning, searching, radar, military, detection, sci-fi, locating
 **Implementation**: `sfx-layer` — Sonar/radar ping from SFX library
+**Placement**: `at-timestamp`
 **Pairs well with**: `infrared`, `scan-lines`, `vignette-animated`, `cool-shift`
 
 ---
@@ -1929,6 +2392,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `camera-shutter-sfx`
 **When to use**: photo taken, screenshot, capture, snapshot, documentation, evidence, paparazzi
 **Implementation**: `sfx-layer` — Camera shutter click from SFX library
+**Placement**: `at-timestamp`
 **Variants**:
 
 | Variant | Type | Description |
@@ -1944,6 +2408,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `glass-break`
 **When to use**: impact, breaking, destruction, shatter, breakthrough, dramatic moment
 **Implementation**: `sfx-layer` — Glass break from SFX library
+**Placement**: `at-timestamp`
 **Pairs well with**: `camera-shake`, `slow-motion`, `reverse-playback`
 
 ---
@@ -1951,6 +2416,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `metal-clang`
 **When to use**: impact, industrial, sword, shield, machinery, heavy hit, prison, metal door
 **Implementation**: `sfx-layer` — Metal impact from SFX library
+**Placement**: `at-timestamp`
 **Pairs well with**: `camera-shake`, `reverb-swell`, `bass-drop`
 
 ---
@@ -1958,6 +2424,7 @@ These ingredients add NEW audio elements from the SFX library, layered on top of
 ### `door-slam`
 **When to use**: dramatic exit, closure, anger, finality, horror, separation, trapped
 **Implementation**: `sfx-layer` — Door slam from SFX library
+**Placement**: `at-timestamp`
 **Pairs well with**: `hard-cut-silence`, `reverb-cut`, `flash-to-black`
 
 ---
@@ -2096,6 +2563,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `happy-memory-flashback`
 **Trigger phrases**: "happy memory", "remembering good times", "nostalgic flashback", "fond memory", "looking back warmly"
+**Scope**: `primary` + `bookend_before: 1, bookend_after: 1` (contrast clips)
 **Ingredients**:
 - `halation` (standard) — dreamy glow
 - `warm-shift` (golden-hour) — warm nostalgia
@@ -2107,12 +2575,13 @@ the user's specific language and the clip context.
 - `reverb-swell` (room→hall) — spacious, dreamy audio
 **Entry transition**: `ripple-dissolve` or `film-burn-transition`
 **Exit transition**: `ripple-dissolve` or `flash-to-white`
-**On surrounding clips**: `desaturation-partial` (slightly-muted) — present day feels flatter by contrast
+**Bookend effects**: `desaturation-partial` (slightly-muted) — present day feels flatter by contrast
 
 ---
 
 ### Recipe: `traumatic-flashback`
 **Trigger phrases**: "traumatic memory", "PTSD", "painful memory", "war flashback", "bad memory", "haunted by"
+**Scope**: `primary`
 **Ingredients**:
 - `desaturation-partial` (drained) — colour drained from memory
 - `high-contrast` (standard) — harsh, stark
@@ -2130,6 +2599,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `dream-sequence`
 **Trigger phrases**: "dream", "dreaming", "surreal", "dreamlike", "fantasy", "ethereal", "otherworldly"
+**Scope**: `primary`
 **Ingredients**:
 - `halation` (heavy) — extreme glow
 - `lens-blur` (dreamy-overall) — soft focus
@@ -2147,6 +2617,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `nightmare`
 **Trigger phrases**: "nightmare", "bad dream", "terror", "night terror", "sleep horror", "dark dream"
+**Scope**: `primary`
 **Ingredients**:
 - `chromatic-aberration` (moderate) — distorted reality
 - `vignette-animated` (closing) — claustrophobic
@@ -2166,6 +2637,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `inner-monologue`
 **Trigger phrases**: "thinking", "inner thoughts", "contemplating", "reflection", "internal dialogue", "lost in thought"
+**Scope**: `primary`
 **Ingredients**:
 - `smooth-push-in` (subtle) — closing in on the subject
 - `lens-blur` (background-soft) — world falls away
@@ -2181,6 +2653,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `revelation-epiphany`
 **Trigger phrases**: "realisation", "epiphany", "aha moment", "everything clicks", "it all makes sense", "the truth", "revelation"
+**Scope**: `primary`
 **Ingredients**:
 - `colour-pop` (pop-in) — world snaps to vivid
 - `snap-zoom` (punch) — sudden focus
@@ -2195,6 +2668,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `time-passage-hours`
 **Trigger phrases**: "hours pass", "time passes", "later that day", "time lapse", "waiting", "the day wore on"
+**Scope**: `primary` (multiple clips)
 **Ingredients**:
 - `fast-forward` (timelapse) — time compression
 - `colour-temperature-drift` (warming or cooling) — time of day shift
@@ -2206,6 +2680,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `time-passage-years`
 **Trigger phrases**: "years later", "decades pass", "growing up", "aging", "long time ago", "over the years"
+**Scope**: `primary` (multiple clips, segmented by era)
 **Ingredients**:
 - `desaturation-partial` (slightly-muted) on older segments — aged feel
 - `film-grain-35mm` or `film-grain-16mm` — different era texture
@@ -2220,6 +2695,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `montage-energy-build`
 **Trigger phrases**: "montage", "training montage", "building up", "getting ready", "preparation", "progress sequence"
+**Scope**: `primary` (multiple clips, progressive intensification)
 **Ingredients**:
 - `speed-ramp-up` (gentle→aggressive) — pacing increases
 - `strobe-skip` (subtle) on later clips — increasing energy
@@ -2234,6 +2710,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `impact-moment`
 **Trigger phrases**: "impact", "hit", "punch", "crash", "slam", "collision", "bang", "the moment of impact"
+**Scope**: `primary`
 **Ingredients**:
 - `freeze-frame` (with-shake) or `speed-ramp-down` (near-freeze) — time slows at impact
 - `camera-shake` (impact or explosion) — physical jolt
@@ -2247,6 +2724,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `tension-build`
 **Trigger phrases**: "tension building", "suspense", "something's coming", "dread", "slow burn", "ominous"
+**Scope**: `primary` (multiple clips, progressive intensification)
 **Ingredients**:
 - `vignette-animated` (closing, slow) — world narrowing
 - `cool-shift` (subtle→steel) — temperature dropping
@@ -2262,6 +2740,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `tension-release`
 **Trigger phrases**: "relief", "release", "it's over", "tension breaks", "exhale", "safe now", "crisis averted"
+**Scope**: `primary`
 **Ingredients**:
 - `reverb-cut` — sudden audio clarity
 - `colour-pop` (slow-bloom) — colour returns
@@ -2275,6 +2754,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `horror-reveal`
 **Trigger phrases**: "jump scare", "horror reveal", "the thing appears", "monster", "it's behind you", "shocking reveal"
+**Scope**: `primary`
 **Ingredients**:
 - `snap-zoom` (extreme) — violent focus
 - `camera-shake` (impact) — physical jolt
@@ -2290,6 +2770,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `chase-action`
 **Trigger phrases**: "chase", "running", "pursuit", "action sequence", "escape", "being chased", "fleeing"
+**Scope**: `primary` (multiple clips, progressive pacing)
 **Ingredients**:
 - `handheld-shake` (shaky) — running camera
 - `speed-ramp-in-out` (hero-moment on key beats) — emphasize moments
@@ -2305,6 +2786,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `emotional-peak`
 **Trigger phrases**: "emotional climax", "breaking down", "crying", "overwhelming emotion", "catharsis", "emotional peak"
+**Scope**: `primary`
 **Ingredients**:
 - `slow-motion` (half or dramatic) — savouring the moment
 - `halation` (standard) — soft, ethereal
@@ -2320,6 +2802,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `comic-beat`
 **Trigger phrases**: "comedy", "funny moment", "punchline", "wait what", "awkward", "comedic timing"
+**Scope**: `primary`
 **Ingredients**:
 - `freeze-frame` (brief) — comedic pause
 - `snap-zoom` (subtle) — double-take emphasis
@@ -2332,6 +2815,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `romantic-moment`
 **Trigger phrases**: "romantic", "love", "intimate", "tender", "kiss", "falling in love", "connection"
+**Scope**: `primary`
 **Ingredients**:
 - `halation` (standard to heavy) — soft, glowing
 - `warm-shift` (golden-hour) — warm, inviting
@@ -2348,6 +2832,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `loss-grief`
 **Trigger phrases**: "loss", "grief", "death", "mourning", "funeral", "gone", "missing someone", "farewell"
+**Scope**: `primary`
 **Ingredients**:
 - `desaturation-partial` (drained to nearly-mono) — colour leaving the world
 - `slow-motion` (subtle) — weight of the moment
@@ -2364,6 +2849,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `victory-triumph`
 **Trigger phrases**: "victory", "triumph", "we did it", "winning", "celebration", "achievement", "glory"
+**Scope**: `primary`
 **Ingredients**:
 - `colour-pop` (pop-in) — vivid snap
 - `warm-shift` (golden-hour) — golden triumph
@@ -2380,6 +2866,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `surreal-altered-state`
 **Trigger phrases**: "surreal", "altered state", "drugs", "hallucinating", "intoxicated", "tripping", "fever dream"
+**Scope**: `primary`
 **Ingredients**:
 - `prism` (subtle to kaleidoscope) — fractured vision
 - `chromatic-aberration` (moderate to extreme) — distorted
@@ -2397,6 +2884,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `underwater-scene`
 **Trigger phrases**: "underwater", "submerged", "diving", "swimming", "drowning", "below the surface"
+**Scope**: `primary`
 **Ingredients**:
 - `underwater-distortion` (variant by depth) — rippling image
 - `cool-shift` (moonlight) — blue/teal colour cast
@@ -2413,6 +2901,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `surveillance-found-footage`
 **Trigger phrases**: "surveillance", "CCTV", "found footage", "security camera", "hidden camera", "secret recording"
+**Scope**: `primary` (multiple clips, uniform treatment)
 **Ingredients**:
 - `scan-lines` (crt-tv) — monitor lines
 - `vhs-camcorder` (worn-tape) — tape quality
@@ -2429,6 +2918,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `historical-flashback`
 **Trigger phrases**: "historical", "period", "back in time", "the past", "old days", "once upon a time"
+**Scope**: `primary`
 **Ingredients**:
 - `film-stock-emulation` (era-appropriate stock) — period colour
 - `film-grain-35mm` or `film-grain-16mm` — era texture
@@ -2444,6 +2934,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `news-broadcast`
 **Trigger phrases**: "news", "broadcast", "breaking news", "TV news", "report", "live from", "this just in"
+**Scope**: `primary` (multiple clips, uniform treatment)
 **Ingredients**:
 - `aspect-ratio-shift` (16:9 or 4:3) — broadcast format
 - `scan-lines` (subtle) — broadcast feel
@@ -2457,6 +2948,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `social-media-screen`
 **Trigger phrases**: "social media", "phone screen", "Instagram", "TikTok", "scrolling", "notification"
+**Scope**: `primary`
 **Ingredients**:
 - `aspect-ratio-shift` (9:16 or custom) — phone format
 - `saturation-boost` (subtle) — social media colour
@@ -2468,6 +2960,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `opening-hook`
 **Trigger phrases**: "cold open", "hook", "opening", "grab attention", "first impression", "teaser"
+**Scope**: `primary` (first 1-3 clips)
 **Ingredients**:
 - `letterbox-animated` (bars-on, slow) — establishing cinematic frame
 - `smooth-push-in` (dramatic) — pulling viewer in
@@ -2481,6 +2974,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `chapter-transition`
 **Trigger phrases**: "new chapter", "next section", "part two", "meanwhile", "transition to"
+**Scope**: `primary` + `bookend_before: 1, bookend_after: 1`
 **Ingredients**:
 - `flash-to-black` (slow) + `flash-to-black` exit (slow) — bookend fade
 - `colour-temperature-drift` — mood shift between chapters
@@ -2492,6 +2986,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `closing-farewell`
 **Trigger phrases**: "ending", "farewell", "goodbye", "closing", "the end", "final moment", "wrapping up"
+**Scope**: `primary` (final 1-3 clips)
 **Ingredients**:
 - `slow-motion` (subtle) — savouring the end
 - `warm-shift` (subtle to golden-hour) — warmth of conclusion
@@ -2508,6 +3003,7 @@ the user's specific language and the clip context.
 
 ### Recipe: `end-credits`
 **Trigger phrases**: "credits", "end credits", "rolling credits", "credits roll"
+**Scope**: `global` (appended after final clip)
 **Ingredients**:
 - `flash-to-black` (slow) — transition to credits
 - `letterbox-cinematic` (scope) — cinematic framing
@@ -2518,37 +3014,288 @@ the user's specific language and the clip context.
 
 ---
 
-## 14. BRIDGE COMMANDS NEEDED
+## 14. INTERACTIVE EFFECT DISCOVERY
+
+When a user's request is vague (step 1 in the decision hierarchy), the chat must help them
+narrow down what they want. Never guess — always ask. One question at a time, each with
+a visual description and a recommendation.
+
+### Trigger conditions
+
+A request is vague when it contains ONLY mood/quality words without naming a specific
+technique, moment, or reference:
+
+**Vague** (triggers discovery): "make it cinematic", "make it look good", "add some style",
+"clean this up", "make it professional", "make it pop", "add some flair", "punch it up",
+"it needs something", "can you make this better"
+
+**Not vague** (skip discovery): "add a flashback effect", "make it look like a dream",
+"slow this down", "add film grain", "I want a horror jump scare feel"
+
+### Discovery flow
+
+The chat walks the user through narrowing questions, one at a time, each with options
+and a recommendation. The flow adapts based on answers.
+
+#### Step 1: Category
+
+> **What kind of improvement are you going for?**
+>
+> **A) Visual style** — Change the look: colour, texture, grain, glow, lens effects
+> **B) Mood & atmosphere** — Set a feeling: tension, warmth, nostalgia, dread, energy
+> **C) Pacing & rhythm** — Change the feel of time: slow-motion, speed ramps, montage energy
+> **D) Sound design** — Audio layers: ambient sounds, impacts, risers, atmospheric audio
+> **E) Narrative moment** — A storytelling beat: flashback, dream, revelation, chase, climax
+>
+> *I'd recommend starting with **B) Mood & atmosphere** — that usually has the biggest
+> impact on how the edit feels.*
+
+#### Step 2: Narrow within category
+
+Each category branches into 3-5 options. Examples:
+
+**If Mood & atmosphere:**
+> **What feeling are you going for?**
+>
+> **A) Warm & nostalgic** — Golden tones, soft glow, analog texture. Feels like a fond memory.
+> **B) Cool & tense** — Steel blues, shadows, tight framing. Something's coming.
+> **C) Energetic & punchy** — High contrast, fast cuts, saturated. High energy.
+> **D) Dreamy & ethereal** — Soft focus, floating pace, airy. Otherworldly.
+> **E) Dark & gritty** — Heavy grain, crushed blacks, raw. No polish.
+>
+> *Based on your footage, I'd suggest **A) Warm & nostalgic** — your clips have
+> natural warmth that would lean into nicely.*
+
+**If Visual style:**
+> **What look are you after?**
+>
+> **A) Film look** — Grain, colour shifts, analog character. Like it was shot on film.
+> **B) Clean & cinematic** — Letterboxing, teal-and-orange, polished. Blockbuster feel.
+> **C) Vintage / retro** — VHS, Super 8, old film. A specific era.
+> **D) Stylised / experimental** — Glitch, double exposure, neon. Art-forward.
+> **E) Natural but elevated** — Subtle grading, gentle vignette, light texture. Better but not obvious.
+>
+> *I'd go with **E) Natural but elevated** — keeps your footage authentic while
+> lifting the production value.*
+
+#### Step 3: Intensity
+
+> **How strong should the effect be?**
+>
+> **A) Subtle** — Barely noticeable. The viewer feels it more than sees it.
+> **B) Moderate** — Clearly present but not distracting. Professional standard.
+> **C) Heavy** — Obvious and intentional. Makes a statement.
+>
+> *I'd recommend **B) Moderate** — strong enough to notice, not so strong it
+> takes over the edit.*
+
+#### Step 4: Confirmation
+
+After 3 questions, the LLM has enough to compose an effect stack. It presents the
+proposed stack before applying:
+
+> **Here's what I'll apply to clips 3-5:**
+>
+> - Warm colour shift (golden-hour, moderate)
+> - Halation glow (standard)
+> - Film grain 35mm (subtle)
+> - Gentle vignette
+> - Slight audio reverb
+>
+> **This gives a warm, nostalgic feel — like a fond memory captured on film.**
+>
+> ✅ Apply this | 🔄 Adjust something | ❌ Start over
+
+### Contextual adaptation
+
+The LLM should factor in what it already knows:
+- If clips already have effects, mention them: "These clips already have a cool shift — 
+  warm & nostalgic would conflict. Want me to replace it, or go a different direction?"
+- If the user has applied similar effects elsewhere in the timeline, reference that:
+  "You used a dream look on clips 1-2 — want this to match, or contrast?"
+- If the clip has specific visual content (detected during vision analysis), use that:
+  "Your clips are mostly outdoor/natural light — a film look would complement that nicely."
+
+---
+
+## 15. APPLIED EFFECTS UI
+
+When effects have been applied to clips, the user needs a clear, visual way to see, manage,
+adjust, and undo them. This is NOT a chat-only interface — it's a dedicated UI panel.
+
+### Effects panel layout
+
+The Applied Effects panel appears in the Polish phase as a sidebar or overlay when a clip
+with effects is selected. It shows every effect currently on the clip, grouped by type.
+
+```
+┌─────────────────────────────────────────────────┐
+│  Applied Effects — Clip 3 "sunset-walk.mp4"     │
+│                                                 │
+│  ┌─ Visual ──────────────────────────────────┐  │
+│  │  ○ Halation (standard)          [⟲] [✕]  │  │
+│  │    Gain: 0.6  Blend: 0.5  Glow: 15       │  │
+│  │  ○ Film Grain 35mm (subtle)     [⟲] [✕]  │  │
+│  │    Amount: 0.3  Size: Fine                │  │
+│  └───────────────────────────────────────────┘  │
+│                                                 │
+│  ┌─ Colour ──────────────────────────────────┐  │
+│  │  ○ Warm Shift (golden-hour)     [⟲] [✕]  │  │
+│  │    Temperature: +15  Tint: +5             │  │
+│  │  ○ Vignette (subtle)            [⟲] [✕]  │  │
+│  │    Size: 0.8  Softness: 0.7               │  │
+│  └───────────────────────────────────────────┘  │
+│                                                 │
+│  ┌─ Audio ───────────────────────────────────┐  │
+│  │  ○ Reverb Swell (hall)          [⟲] [✕]  │  │
+│  │    Wet: 50%  Decay: 2.5s                  │  │
+│  │  ○ Muffled Audio (slight)       [⟲] [✕]  │  │
+│  │    Cutoff: 4kHz                           │  │
+│  └───────────────────────────────────────────┘  │
+│                                                 │
+│  ┌─ SFX Layers ──────────────────────────────┐  │
+│  │  ○ Heartbeat (anxious)          [⟲] [✕]  │  │
+│  │    BPM: 90  Volume: -12dB                 │  │
+│  └───────────────────────────────────────────┘  │
+│                                                 │
+│  [↶ Undo last]  [↶↶ Undo all]  [+ Add effect]  │
+└─────────────────────────────────────────────────┘
+```
+
+### Per-effect controls
+
+Each effect row in the panel supports:
+
+| Control | Action | UI element |
+|---------|--------|-----------|
+| **Hover preview** | Shows before/after thumbnail comparison on hover | Tooltip with split-view thumbnail |
+| **Variant selector** | Switch between subtle/standard/heavy | Dropdown on the effect name |
+| **Parameter adjust** | Tweak individual parameters | Inline number inputs with +/- steppers |
+| **Bypass toggle** | Temporarily disable without removing | Click the effect dot (○ → ◌) |
+| **Remove** | Delete this effect | [✕] button with confirmation |
+| **Undo** | Revert to before this effect was applied | [⟲] button |
+| **Reorder** | Drag to change application order | Drag handle on left edge |
+
+### Hover preview behaviour
+
+When the user hovers over an effect row:
+1. A small tooltip appears showing a thumbnail of the clip at its midpoint
+2. The thumbnail shows a split-view: left half without this effect, right half with it
+3. The split line has a subtle dotted border and labels ("Without" / "With")
+4. Tooltip follows the cursor vertically, stays beside the panel horizontally
+5. Preview generates from the Resolve bridge via `render_still(clip_index, frame, effects_mask)`
+
+### Undo system
+
+The effects panel maintains an undo stack per clip:
+
+| Button | Behaviour |
+|--------|-----------|
+| **[⟲] per effect** | Removes that specific effect and restores the clip to its state before that effect was added |
+| **[↶ Undo last]** | Removes the most recently applied effect (standard undo) |
+| **[↶↶ Undo all]** | Strips all effects from the clip, restoring the raw state |
+
+Undo calls the bridge's `remove_effect(clip_index, effect_id)` command and updates the
+local effect state.
+
+### Batch operations
+
+When multiple clips are selected:
+- The panel shows effects common to ALL selected clips
+- Removing an effect removes it from all selected clips
+- "Apply to all" button appears when viewing a single clip's effects
+- "Copy effects" and "Paste effects" for transferring between clips
+
+### Effect state in store
+
+The app store tracks applied effects per clip:
+
+```typescript
+interface AppliedEffect {
+  id: string
+  ingredientId: string        // e.g. 'halation'
+  variant: string             // e.g. 'standard'
+  parameters: Record<string, number | string>
+  appliedAt: string           // ISO timestamp for undo ordering
+  bypassed: boolean
+}
+
+// In the store:
+appliedEffects: Record<string, AppliedEffect[]>  // keyed by storyboard clip id
+```
+
+### Chat integration
+
+The chat and the panel stay in sync:
+- When the user applies effects via chat, they appear in the panel immediately
+- When the user removes/adjusts via the panel, the chat logs a system message:
+  "Removed halation from clip 3" / "Adjusted warm-shift intensity to heavy on clip 3"
+- The user can reference effects from the panel in chat: "make that halation stronger"
+  — the LLM reads the current effects state and modifies in place
+
+### Bridge commands for effect management
+
+These commands support the UI panel:
+
+- `get_clip_effects_state(clip_index)` — Returns all effects on a clip
+- `remove_effect(clip_index, effect_id)` — Removes a specific effect
+- `update_effect_param(clip_index, effect_id, param, value)` — Updates a single parameter
+- `bypass_effect(clip_index, effect_id, bypassed)` — Toggles effect bypass
+- `render_still(clip_index, frame, effects_mask)` — Renders a frame with/without specific effects (for hover preview)
+- `reorder_effects(clip_index, effect_ids[])` — Changes effect processing order
+
+---
+
+## 16. BRIDGE COMMANDS NEEDED
 
 To implement this catalogue, the Resolve bridge needs these new commands:
 
 ### Visual effects
 - `apply_resolve_fx(clip_index, effect_name, parameters)` — Apply a ResolveFX plugin
-- `inject_fusion_comp(clip_index, fusion_script)` — Inject a Fusion composition script
-- `set_fusion_param(clip_index, comp_index, tool_name, param, value)` — Set Fusion tool parameter
+- `inject_fusion_comp(clip_index, fusion_script)` — Inject a single Fusion composition
+- `build_compound_fusion(clip_index, ingredients[])` — Combine multiple fusion ingredients into one Fusion comp (see "Fusion compound script rule")
+- `set_fusion_param(clip_index, tool_name, param, value)` — Modify an existing Fusion tool parameter
 
 ### Colour
-- `add_color_node(clip_index, node_type)` — Add a node on the Color page
+- `add_color_node(clip_index, node_type)` — Add a serial/parallel node on the Color page
 - `set_node_params(clip_index, node_index, params)` — Set node parameters (lift/gamma/gain/sat/etc)
-- `apply_lut_to_node(clip_index, node_index, lut_path)` — Apply LUT to specific node
 - `set_keyframe(clip_index, node_index, param, frame, value)` — Keyframed colour changes
 
-### Audio
-- `apply_fairlight_fx(clip_index, effect_name, parameters)` — Apply Fairlight audio effect
-- `set_clip_volume(clip_index, volume_db)` — Set clip volume
-- `set_volume_keyframe(clip_index, frame, volume_db)` — Animated volume
-- `add_audio_track()` — Add audio track for layered SFX
+### Audio — Tier A (Resolve API)
+- `set_clip_volume(clip_index, volume_db)` — Set clip volume level
+- `set_volume_keyframe(clip_index, frame, volume_db)` — Volume automation keyframe
+- `set_clip_pan(clip_index, pan)` — Set pan position (-1 to 1)
+- `mute_clip_audio(clip_index, muted)` — Mute/unmute clip audio
+- `add_audio_track(name)` — Add audio track for layered SFX
 - `import_audio_to_track(track_index, file_path, timeline_position)` — Place SFX on track
+
+### Audio — Tier B (server-side pre-processing)
+- `preprocess_audio(clip_index, filters[])` — Extract clip audio, apply ffmpeg/sox filters, return processed file path. Filters: `lowpass`, `highpass`, `bandpass`, `reverb`, `echo`, `pitch`, `speed`, `flanger`, `phaser`, `overdrive`, `downsample`
+- `replace_clip_audio(clip_index, processed_audio_path)` — Mute original clip audio and import processed version to a new track, synced
 
 ### Timeline operations
 - `add_adjustment_layer(start_frame, end_frame)` — For effects spanning multiple clips
 - `set_composite_mode(clip_index, mode)` — Blend modes for layered clips
 - `duplicate_to_track(clip_index, target_track)` — For double-exposure etc.
-- `add_marker(clip_index, frame, color, name, note)` — Place markers
-- `razor_at(clip_index, frame)` — Split clip for speed changes
-- `set_speed_curve(clip_index, keyframes)` — Speed ramping with keyframes
+- `add_marker(clip_index, frame, color, name, note)` — Place markers for manual edits
+- `razor_at(clip_index, frame)` — Split clip at frame
+- `set_speed_curve(clip_index, keyframes)` — Speed ramping with keyframe array
 
 ### Clip properties
-- `set_clip_opacity(clip_index, opacity)` — For blend/overlay operations
-- `set_retiming(clip_index, mode, speed)` — Optical flow retiming
-- `set_clip_transform(clip_index, params)` — Position, scale, rotation
+- `set_clip_opacity(clip_index, opacity)` — Clip transparency
+- `set_retiming(clip_index, mode, speed)` — Optical flow / nearest retiming
+- `set_clip_transform(clip_index, params)` — Position, scale, rotation, crop
+
+### Masking
+- `add_power_window(clip_index, node_index, window_type, params)` — Add a Power Window (circular/linear/polygon/curve/gradient) to a color node for regional grading
+- `add_qualifier(clip_index, node_index, qualifier_type, params)` — Set up an HSL Qualifier on a node for colour-based pixel selection (skin tones, sky, specific colours)
+- `setup_magic_mask(clip_index, mask_mode, node_index)` — Set up a Magic Mask node (person/face/object). Requires Resolve Studio. Auto-tracks.
+- `setup_masked_grade(clip_index, mask_type, mask_params, grade_params, invert)` — All-in-one: creates node + mask + grade in a single call. mask_type: magic_mask/qualifier/circular/linear/polygon
+
+### Effect management (for Applied Effects UI)
+- `get_clip_effects_state(clip_index)` — Returns all active effects: Color nodes, Fusion comp tools, ResolveFX, speed settings, audio state
+- `remove_effect(clip_index, effect_id)` — Remove a specific effect by ID
+- `update_effect_param(clip_index, effect_id, param, value)` — Update a single parameter on an existing effect
+- `bypass_effect(clip_index, effect_id, bypassed)` — Toggle effect bypass on/off
+- `render_still(clip_index, frame, effects_mask)` — Render a single frame with optional effect exclusion mask (for hover preview comparison)
+- `reorder_effects(clip_index, effect_ids[])` — Change processing order of effects on a clip

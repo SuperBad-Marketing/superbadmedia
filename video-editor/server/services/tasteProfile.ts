@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import Anthropic from '@anthropic-ai/sdk'
+import { dataPath } from './dataRoot.js'
 
 interface ClipSnapshot {
   clipId: string
@@ -80,7 +81,7 @@ export interface ReferenceStyle {
   totalDuration: number
 }
 
-const TASTE_DIR = path.join(process.cwd(), '.taste')
+const TASTE_DIR = dataPath('.taste')
 const PROFILE_PATH = path.join(TASTE_DIR, 'profile.json')
 const SNAPSHOTS_DIR = path.join(TASTE_DIR, 'snapshots')
 

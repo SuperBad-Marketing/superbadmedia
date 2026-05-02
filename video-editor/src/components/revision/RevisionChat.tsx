@@ -21,7 +21,7 @@ export default function RevisionChat() {
   const setStoryboardClips = useAppStore((s) => s.setStoryboardClips)
   const setSfxPlacements = useAppStore((s) => s.setSfxPlacements)
   const setEditTransitions = useAppStore((s) => s.setEditTransitions)
-  const removeFromStoryboard = useAppStore((s) => s.removeFromStoryboard)
+
 
   const [messages, setMessages] = useState<ChatEntry[]>([])
   const [input, setInput] = useState('')

@@ -1,22 +1,24 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
-import { Settings, Check, Monitor, Save } from 'lucide-react'
+import { Settings, Check, Monitor, Save, Loader2, Film } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAppStore } from '../../stores/appStore'
 import { checkResolveConnection, connectResolve } from '../../lib/api'
 import { useAutosave } from '../../hooks/useAutosave'
+import { useLibraryStats } from '../../hooks/useLibraryStats'
 import type { WorkflowPhase } from '../../types'
 
 const SettingsModal = lazy(() => import('../settings/SettingsModal'))
 
 const WORKFLOW_STEPS: { id: WorkflowPhase; label: string }[] = [
   { id: 'brief', label: 'Brief' },
+  { id: 'preferences', label: 'Preferences' },
   { id: 'assemble', label: 'Assemble' },
   { id: 'refine', label: 'Refine' },
   { id: 'polish', label: 'Polish' },
   { id: 'deliver', label: 'Deliver' },
 ]
 
-const PHASE_ORDER: WorkflowPhase[] = ['home', 'import', 'brief', 'assemble', 'refine', 'polish', 'deliver']
+const PHASE_ORDER: WorkflowPhase[] = ['home', 'import', 'brief', 'preferences', 'assemble', 'refine', 'polish', 'deliver']
 
 function getPhaseIndex(phase: WorkflowPhase): number {
   return PHASE_ORDER.indexOf(phase)
@@ -128,6 +130,51 @@ function ResolveIndicator() {
   )
 }
 
+function LibraryIndicator() {
+  const { stats, progress, isActive, phase } = useLibraryStats()
+
+  if (!stats || (!stats.watchedFolder && stats.totalClips === 0)) return null
+
+  const label = (() => {
+    if (!isActive) {
+      if (stats.totalClips === 0) return null
+      return `${stats.totalClips}`
+    }
+    if (phase === 'scanning') {
+      return `Scanning${progress ? ` ${progress.done}/${progress.total}` : ''}`
+    }
+    if (phase === 'metadata') {
+      return `Metadata ${progress ? `${progress.done}/${progress.total}` : ''}`
+    }
+    if (phase === 'vision') {
+      return `Analyzing ${progress ? `${progress.done}/${progress.total}` : `${stats.visionAnalyzed}/${stats.totalClips}`}`
+    }
+    return `${stats.queueLength} queued`
+  })()
+
+  if (!label) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium text-text-muted"
+      >
+        {isActive ? (
+          <Loader2 size={10} className="animate-spin text-orange" />
+        ) : (
+          <Film size={10} className="text-text-dim/50" />
+        )}
+        <span className={`tabular-nums ${isActive ? 'text-orange' : 'text-text-dim'}`}>
+          {label}
+        </span>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
 export default function HeaderBar() {
   const currentProject = useAppStore((s) => s.currentProject)
   const workflowPhase = useAppStore((s) => s.workflowPhase)
@@ -217,8 +264,9 @@ export default function HeaderBar() {
           })}
         </div>
 
-        {/* Right — resolve status + settings */}
+        {/* Right — library + resolve status + settings */}
         <div className="flex items-center gap-1">
+          <LibraryIndicator />
           <ResolveIndicator />
           <button
             onClick={() => setSettingsOpen(true)}

@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import type { FootageProfile, BriefFields, MoodAxes } from './briefAssembler.js'
 import type { MusicStructure } from './musicAnalysis.js'
+import { dataPath } from './dataRoot.js'
 
 export interface IntentQuestion {
   id: string
@@ -373,13 +374,13 @@ export class EditIntentService {
   }
 
   saveIntent(intent: EditIntent): void {
-    const dir = path.join(process.cwd(), '.taste', 'intents')
+    const dir = dataPath('.taste', 'intents')
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(path.join(dir, `${intent.id}.json`), JSON.stringify(intent, null, 2), 'utf-8')
   }
 
   loadIntent(id: string): EditIntent | null {
-    const filePath = path.join(process.cwd(), '.taste', 'intents', `${id}.json`)
+    const filePath = dataPath('.taste', 'intents', `${id}.json`)
     try {
       return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
     } catch {

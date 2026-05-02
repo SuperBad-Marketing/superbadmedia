@@ -10,6 +10,7 @@ import type { WorkflowPhase } from '../../types'
 const HomeScreen = lazy(() => import('../home/HomeScreen'))
 const ImportScreen = lazy(() => import('../import/ImportScreen'))
 const BriefBuilder = lazy(() => import('../brief/BriefBuilder'))
+const PreferencesView = lazy(() => import('../preferences/PreferencesView'))
 const StoryboardView = lazy(() => import('../storyboard/StoryboardView'))
 const RefineView = lazy(() => import('../refine/RefineView'))
 const PolishView = lazy(() => import('../polish/PolishView'))
@@ -28,6 +29,8 @@ function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
       return <Suspense fallback={<ViewFallback />}><ImportScreen /></Suspense>
     case 'brief':
       return <Suspense fallback={<ViewFallback />}><BriefBuilder /></Suspense>
+    case 'preferences':
+      return <Suspense fallback={<ViewFallback />}><PreferencesView /></Suspense>
     case 'assemble':
       return <Suspense fallback={<ViewFallback />}><StoryboardView /></Suspense>
     case 'refine':
@@ -57,7 +60,7 @@ function WorkspaceView({ phase }: { phase: WorkflowPhase }) {
   }
 }
 
-const showChromePhases: WorkflowPhase[] = ['brief', 'assemble', 'refine', 'polish', 'deliver']
+const showChromePhases: WorkflowPhase[] = ['brief', 'preferences', 'assemble', 'refine', 'polish', 'deliver']
 
 export default function AppShell() {
   const workflowPhase = useAppStore((s) => s.workflowPhase)

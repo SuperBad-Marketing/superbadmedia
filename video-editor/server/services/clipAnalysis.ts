@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs/promises'
 import fss from 'fs'
 import crypto from 'crypto'
+import { dataPath } from './dataRoot.js'
 
 const execAsync = promisify(exec)
 
@@ -41,7 +42,7 @@ interface ClipAnalysisResult extends ClipMetadata {
   }
 }
 
-const THUMBNAIL_DIR = path.join(process.cwd(), '.thumbnails')
+const THUMBNAIL_DIR = dataPath('.thumbnails')
 
 export class ClipAnalysisService {
   private analysedClips: ClipAnalysisResult[] = []

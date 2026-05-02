@@ -173,7 +173,57 @@ export interface ExportJob {
   outputPath?: string
 }
 
-export type WorkflowPhase = 'home' | 'import' | 'brief' | 'assemble' | 'refine' | 'polish' | 'deliver' | 'queue'
+export type WorkflowPhase = 'home' | 'import' | 'brief' | 'preferences' | 'assemble' | 'refine' | 'polish' | 'deliver' | 'queue'
+
+// Edit Preferences — unified config for all assembly capabilities
+export interface EditPreferences {
+  zoom: {
+    enabled: boolean
+    intensity: 'subtle' | 'standard' | 'dramatic'
+    frequency: 'few' | 'some' | 'many'  // % of static clips to zoom
+  }
+  slowMo: {
+    enabled: boolean
+    speed: 25 | 50 | 75
+    autoDetect: boolean  // LLM picks moments vs user specifies
+  }
+  stabilisation: {
+    enabled: boolean
+    mode: 'translation' | 'perspective'
+    applyTo: 'shaky-only' | 'all'
+  }
+  grading: {
+    enabled: boolean
+    look: 'natural' | 'warm' | 'cool' | 'punchy' | 'cinematic'
+    consistency: 'match-cameras' | 'embrace-mix'
+  }
+  transitions: {
+    enabled: boolean
+    style: 'cuts-only' | 'subtle' | 'dynamic' | 'energetic'
+    density: 'sparse' | 'moderate' | 'frequent'
+  }
+  sfx: {
+    enabled: boolean
+    density: 'minimal' | 'accent' | 'layered'
+    categories: ('impact' | 'whoosh' | 'riser' | 'ambient' | 'foley')[]
+  }
+  musicSync: {
+    enabled: boolean
+    tightness: 'loose' | 'on-beat' | 'tight'  // how strictly cuts align to beats
+  }
+  titles: {
+    enabled: boolean
+    usage: 'none' | 'minimal' | 'throughout'
+    templates: string[]  // preset IDs to allow
+  }
+  motionGraphics: {
+    enabled: boolean
+    templates: string[]  // fusion template IDs to allow
+  }
+  // Source: how these preferences were set
+  source: 'manual' | 'auto-recommended' | 'preset'
+  presetName?: string
+}
 export type DockPanel = 'media' | 'ai' | 'music' | 'sound' | 'transitions' | 'text' | 'knowledge'
 
 export interface SfxPreset {

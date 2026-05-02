@@ -12,9 +12,9 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { Play, Pause, Plus, Zap, Volume2, Send, Loader2, Music, X, ChevronRight, Film } from 'lucide-react'
+import { Play, Pause, Plus, Zap, Volume2, Send, Loader2, Music, X, ChevronRight, Film, Save, Home, RefreshCw } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve, submitTasteFeedback } from '../../lib/api'
+import { sendToResolve, submitTasteFeedback, saveProject, recutToMusic, playResolve, stopResolve } from '../../lib/api'
 import { thumbUrl } from '../../lib/thumbUrl'
 import type { StoryboardClip } from '../../types'
 
@@ -147,7 +147,15 @@ export default function StoryboardView() {
   const editTransitions = useAppStore((s) => s.editTransitions)
   const sfxPlacements = useAppStore((s) => s.sfxPlacements)
   const toggleDockPanel = useAppStore((s) => s.toggleDockPanel)
+  const currentProject = useAppStore((s) => s.currentProject)
+  const saveCurrentProject = useAppStore((s) => s.saveCurrentProject)
+  const clips = useAppStore((s) => s.clips)
+  const setStoryboardClips = useAppStore((s) => s.setStoryboardClips)
+  const setSfxPlacements = useAppStore((s) => s.setSfxPlacements)
+  const setEditTransitions = useAppStore((s) => s.setEditTransitions)
   const [sending, setSending] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [recutting, setRecutting] = useState(false)
 
   const handleSendToResolve = useCallback(async () => {
     if (sending) return
@@ -215,6 +223,104 @@ export default function StoryboardView() {
       setSending(false)
     }
   }, [sending, storyboardClips, editTransitions, addChatMessage, lastAssemblyId])
+
+  const handleSaveAndExit = useCallback(async () => {
+    if (saving || !currentProject?.id) return
+    setSaving(true)
+    try {
+      const state = saveCurrentProject()
+      await saveProject(
+        currentProject.id,
+        currentProject.name,
+        currentProject.clientName,
+        state,
+      )
+      setWorkflowPhase('home')
+    } catch {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: 'Failed to save. Try again.',
+        timestamp: new Date().toISOString(),
+      })
+    } finally {
+      setSaving(false)
+    }
+  }, [saving, currentProject, saveCurrentProject, setWorkflowPhase, addChatMessage])
+
+  const handleRecut = useCallback(async () => {
+    if (recutting || !selectedTrack) return
+    setRecutting(true)
+    try {
+      const state = useAppStore.getState()
+      const brief = state.lastBriefFields
+      if (!brief) {
+        toggleDockPanel('music')
+        addChatMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          content: 'Pick a new track in the music panel, then use the brief builder to recut.',
+          timestamp: new Date().toISOString(),
+        })
+        return
+      }
+      const music = {
+        musicBpm: selectedTrack.bpm,
+        musicMood: selectedTrack.mood,
+        musicPreviewUrl: selectedTrack.previewUrl,
+        musicDuration: selectedTrack.duration,
+      }
+      const editPreferences = useAppStore.getState().editPreferences
+      const selectedClientId = useAppStore.getState().selectedClientId
+      const selectedEditStyleId = useAppStore.getState().selectedEditStyleId
+      const result = await recutToMusic(brief, clips, music, currentProject?.id, editPreferences, selectedClientId || undefined, selectedEditStyleId || undefined)
+      if (result.storyboardClips?.length > 0) {
+        const storyboard = result.storyboardClips.map((sc: any) => {
+          const thumbFile = sc.thumbnailPath ? sc.thumbnailPath.split('/').pop() : undefined
+          const existingClip = clips.find(c => c.id === sc.clipId)
+          return {
+            id: sc.id,
+            clipId: sc.clipId,
+            clip: existingClip || {
+              id: sc.clipId,
+              projectId: currentProject?.id || '',
+              filePath: sc.filePath,
+              fileName: sc.fileName,
+              thumbnailPath: thumbFile ? `/thumbnails/${thumbFile}` : undefined,
+              duration: sc.duration,
+              width: sc.width,
+              height: sc.height,
+              fps: sc.fps,
+              codec: sc.codec,
+              isLog: false,
+            },
+            startTime: sc.startTime,
+            endTime: sc.endTime,
+            position: sc.position,
+            audioOffset: sc.audioOffset || 0,
+          }
+        })
+        setStoryboardClips(storyboard)
+      }
+      if (result.sfxPlacements?.length > 0) setSfxPlacements(result.sfxPlacements)
+      if (result.transitions?.length > 0) setEditTransitions(result.transitions)
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: `Recut to **${selectedTrack.title}** — ${result.storyboardClips?.length || 0} clips, ${Math.round(result.totalDuration || 0)}s.`,
+        timestamp: new Date().toISOString(),
+      })
+    } catch {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'system',
+        content: 'Recut failed. Check the backend logs.',
+        timestamp: new Date().toISOString(),
+      })
+    } finally {
+      setRecutting(false)
+    }
+  }, [recutting, selectedTrack, clips, currentProject, toggleDockPanel, addChatMessage, setStoryboardClips, setSfxPlacements, setEditTransitions])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -452,7 +558,16 @@ export default function StoryboardView() {
       >
         <div className="flex items-center gap-4">
           <button
-            onClick={() => setIsPlaying(!isPlaying)}
+            onClick={async () => {
+              if (resolveConnected) {
+                if (isPlaying) {
+                  await stopResolve()
+                } else {
+                  await playResolve()
+                }
+              }
+              setIsPlaying(!isPlaying)
+            }}
             className="size-8 rounded-full bg-surface-active hover:bg-surface-raised flex items-center justify-center transition-colors duration-150 cursor-pointer"
           >
             {isPlaying ? (
@@ -474,6 +589,22 @@ export default function StoryboardView() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={handleSaveAndExit}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-text-dim hover:text-text-muted hover:bg-surface-hover text-xs font-medium transition-all duration-200 cursor-pointer"
+          >
+            {saving ? <Loader2 size={12} className="animate-spin" /> : <Home size={12} />}
+            {saving ? 'Saving...' : 'Save & exit'}
+          </button>
+          <button
+            onClick={selectedTrack ? handleRecut : () => toggleDockPanel('music')}
+            disabled={recutting}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-text-dim hover:text-text-muted hover:bg-surface-hover text-xs font-medium transition-all duration-200 cursor-pointer disabled:opacity-30"
+          >
+            {recutting ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+            {recutting ? 'Recutting...' : 'Change music'}
+          </button>
+          <button
             onClick={() => setWorkflowPhase('refine')}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:border-border-active hover:bg-surface-hover text-text-muted hover:text-text text-xs font-medium transition-all duration-200 cursor-pointer"
           >
@@ -488,12 +619,12 @@ export default function StoryboardView() {
             {sending ? (
               <>
                 <Loader2 size={12} className="animate-spin" />
-                Sending...
+                Syncing...
               </>
             ) : (
               <>
                 <Send size={12} />
-                {resolveConnected ? 'Send to Resolve' : 'Connect Resolve'}
+                {resolveConnected ? 'Sync to Resolve' : 'Connect Resolve'}
               </>
             )}
           </button>

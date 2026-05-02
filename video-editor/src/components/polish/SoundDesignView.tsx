@@ -14,11 +14,6 @@ export default function SoundDesignView() {
     [storyboardClips],
   )
 
-  const transitionsWithSfx = editTransitions.filter((t) => {
-    const presetName = t.presetName.toLowerCase()
-    return presetName.includes('impact') || presetName.includes('whoosh')
-  })
-
   if (storyboardClips.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center select-none">

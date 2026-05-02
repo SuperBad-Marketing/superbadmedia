@@ -40,33 +40,6 @@ const STATIC_TYPE_OPTIONS: { id: StaticType; label: string }[] = [
   { id: 'quote-card', label: 'Quote Card' },
 ]
 
-const ASPECT_RATIOS: Record<string, { w: number; h: number }> = {
-  '16:9': { w: 16, h: 9 },
-  '9:16': { w: 9, h: 16 },
-  '1:1': { w: 1, h: 1 },
-  '4:5': { w: 4, h: 5 },
-}
-
-function AspectPreview({ formatId, selected }: { formatId: string; selected: boolean }) {
-  const ratio = ASPECT_RATIOS[formatId]
-  const maxSize = 36
-  const scale = maxSize / Math.max(ratio.w, ratio.h)
-  const w = Math.round(ratio.w * scale)
-  const h = Math.round(ratio.h * scale)
-
-  return (
-    <div className="flex items-center justify-center" style={{ width: maxSize, height: maxSize }}>
-      <div
-        className={`rounded-[3px] transition-colors duration-150 ${
-          selected
-            ? 'bg-accent/30 ring-1 ring-accent/40'
-            : 'bg-white/[0.06]'
-        }`}
-        style={{ width: w, height: h }}
-      />
-    </div>
-  )
-}
 
 function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) {
   return (

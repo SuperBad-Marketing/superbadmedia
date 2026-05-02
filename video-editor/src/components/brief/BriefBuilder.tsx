@@ -1,10 +1,12 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Sparkles, Music, Clock, Monitor, Zap, ArrowRight, RotateCcw, Volume2, BookOpen, Check } from 'lucide-react'
+import { Sparkles, RotateCcw, Check, Loader2 } from 'lucide-react'
 import { ViewLoader, InlineLoader } from '../shared/LoadingPulse'
-import { parseBrief, buildFromBrief, searchMusic, analyzeClipVision, getBriefSkills, autoSelectSkills, getIntentQuestions, buildEditIntent } from '../../lib/api'
-import type { BriefFields, AssembledResult, SkillSummary, IntentQuestion, EditIntent } from '../../lib/api'
+import { parseBrief, searchMusic, analyzeClipVision, getBriefSkills, autoSelectSkills, getIntentQuestions, buildEditIntent } from '../../lib/api'
+import type { BriefFields, SkillSummary, IntentQuestion } from '../../lib/api'
 import { useAppStore } from '../../stores/appStore'
+
+const ClientSelector = lazy(() => import('./ClientSelector'))
 
 const PLATFORMS = [
   { id: 'instagram-reel', label: 'IG Reel' },
@@ -21,24 +23,23 @@ const PACING_OPTIONS = [
   { id: 'slow', label: 'Slow', desc: '~6s cuts' },
 ] as const
 
-type Phase = 'braindump' | 'fields' | 'questions' | 'building' | 'done'
+type Phase = 'client-select' | 'braindump' | 'fields' | 'questions' | 'building'
 
 export default function BriefBuilder() {
-  const setStoryboardClips = useAppStore((s) => s.setStoryboardClips)
-  const setLastAssemblyId = useAppStore((s) => s.setLastAssemblyId)
   const setLastEditIntent = useAppStore((s) => s.setLastEditIntent)
+  const setLastBriefFields = useAppStore((s) => s.setLastBriefFields)
   const setSelectedTrack = useAppStore((s) => s.setSelectedTrack)
   const setWorkflowPhase = useAppStore((s) => s.setWorkflowPhase)
   const clips = useAppStore((s) => s.clips)
   const updateClipAnalysis = useAppStore((s) => s.updateClipAnalysis)
-  const setSfxPlacements = useAppStore((s) => s.setSfxPlacements)
-  const setEditTransitions = useAppStore((s) => s.setEditTransitions)
   const selectedTrack = useAppStore((s) => s.selectedTrack)
+  const lastBriefFields = useAppStore((s) => s.lastBriefFields)
 
-  const [phase, setPhase] = useState<Phase>('braindump')
-  const [braindump, setBraindump] = useState('')
-  const [fields, setFields] = useState<BriefFields | null>(null)
-  const [result, setResult] = useState<AssembledResult | null>(null)
+  const phase = useAppStore((s) => s.briefPhase)
+  const setPhase = useAppStore((s) => s.setBriefPhase)
+  const braindump = useAppStore((s) => s.briefBraindump)
+  const setBraindump = useAppStore((s) => s.setBriefBraindump)
+  const [fields, setFields] = useState<BriefFields | null>(lastBriefFields)
   const [parsing, setParsing] = useState(false)
   const [building, setBuilding] = useState(false)
   const [buildStatus, setBuildStatus] = useState('')
@@ -48,7 +49,7 @@ export default function BriefBuilder() {
   const [intentQuestions, setIntentQuestions] = useState<IntentQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [intentAnswers, setIntentAnswers] = useState<Record<string, string>>({})
-  const [editIntent, setEditIntent] = useState<EditIntent | null>(null)
+  const [preparingBuild, setPreparingBuild] = useState(false)
 
   const unanalyzedCount = useMemo(
     () => clips.filter((c) => !c.analysis?.visionAnalyzed).length,
@@ -99,21 +100,25 @@ export default function BriefBuilder() {
   }, [braindump])
 
   const handleStartQuestions = useCallback(async () => {
-    if (!fields) return
+    if (!fields || preparingBuild) return
+    setPreparingBuild(true)
     try {
       const questions = await getIntentQuestions(fields)
       if (questions.length > 0) {
         setIntentQuestions(questions)
         setCurrentQuestionIndex(0)
         setIntentAnswers({})
+        setPreparingBuild(false)
         setPhase('questions')
       } else {
+        setPreparingBuild(false)
         setPhase('building')
       }
     } catch {
+      setPreparingBuild(false)
       setPhase('building')
     }
-  }, [fields])
+  }, [fields, preparingBuild])
 
   const handleAnswerQuestion = useCallback(async (questionId: string, value: string) => {
     const newAnswers = { ...intentAnswers, [questionId]: value }
@@ -122,12 +127,13 @@ export default function BriefBuilder() {
     if (currentQuestionIndex < intentQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
     } else {
+      setPreparingBuild(true)
       try {
         const projectId = useAppStore.getState().currentProject?.id
         const result = await buildEditIntent(newAnswers, projectId)
-        setEditIntent(result.intent)
         setLastEditIntent(result.intent)
       } catch {}
+      setPreparingBuild(false)
       setPhase('building')
     }
   }, [intentAnswers, currentQuestionIndex, intentQuestions])
@@ -198,71 +204,27 @@ export default function BriefBuilder() {
       const topTrack = tracks[0] || null
       if (topTrack) setSelectedTrack(topTrack)
 
-      const musicInfo = topTrack || selectedTrack
-      setBuildStatus('Building your edit.')
-      const latestClips = useAppStore.getState().clips
-      const currentProjectId = useAppStore.getState().currentProject?.id
-      const assembled = await buildFromBrief(
-        { ...fields, selectedSkillIds: [...selectedSkillIds] },
-        latestClips,
-        musicInfo ? { musicBpm: musicInfo.bpm, musicMood: musicInfo.mood, musicPreviewUrl: musicInfo.previewUrl, musicDuration: musicInfo.duration } : undefined,
-        currentProjectId,
-      )
-      setResult(assembled)
-      if (assembled.assemblyId) setLastAssemblyId(assembled.assemblyId)
-
-      if (assembled.storyboardClips.length > 0) {
-        const storyboard = assembled.storyboardClips.map((sc) => {
-          const thumbFile = sc.thumbnailPath ? sc.thumbnailPath.split('/').pop() : undefined
-          return {
-            id: sc.id,
-            clipId: sc.clipId,
-            clip: {
-              id: sc.clipId,
-              projectId: '',
-              filePath: sc.filePath,
-              fileName: sc.fileName,
-              thumbnailPath: thumbFile ? `/thumbnails/${thumbFile}` : undefined,
-              duration: sc.duration,
-              width: sc.width,
-              height: sc.height,
-              fps: sc.fps,
-              codec: sc.codec,
-              isLog: false,
-            },
-            startTime: sc.startTime,
-            endTime: sc.endTime,
-            position: sc.position,
-            audioOffset: sc.audioOffset || 0,
-          }
-        })
-        setStoryboardClips(storyboard)
-      }
-
-      if (assembled.sfxPlacements?.length > 0) setSfxPlacements(assembled.sfxPlacements)
-      if (assembled.transitions?.length > 0) setEditTransitions(assembled.transitions)
-
-      setPhase('done')
-    } catch {
+      setLastBriefFields({ ...fields, selectedSkillIds: [...selectedSkillIds] })
+      setWorkflowPhase('preferences')
+    } catch (err: any) {
       setBuildStatus('')
-      setBuildError('Something went wrong. Try again.')
-      setTimeout(() => setPhase('fields'), 2000)
+      const msg = err?.message || 'Something went wrong.'
+      setBuildError(msg.includes('Failed to') ? 'The server couldn\'t prepare the edit. Check the backend logs.' : msg)
+      setPhase('fields')
     } finally {
       setBuilding(false)
     }
-  }, [fields, clips, selectedTrack, selectedSkillIds, setStoryboardClips, setLastAssemblyId, setSelectedTrack, setSfxPlacements, setEditTransitions, updateClipAnalysis])
+  }, [fields, clips, selectedTrack, selectedSkillIds, setSelectedTrack, updateClipAnalysis, setLastBriefFields, setWorkflowPhase])
 
   const handleReset = () => {
-    setPhase('braindump')
+    setPhase('client-select')
     setBraindump('')
     setFields(null)
-    setResult(null)
     setBuildStatus('')
     setBuildError(null)
     setIntentQuestions([])
     setCurrentQuestionIndex(0)
     setIntentAnswers({})
-    setEditIntent(null)
   }
 
   const updateField = <K extends keyof BriefFields>(key: K, value: BriefFields[K]) => {
@@ -300,6 +262,22 @@ export default function BriefBuilder() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <AnimatePresence mode="wait">
+        {/* Phase 0: Client selection */}
+        {phase === 'client-select' && (
+          <motion.div
+            key="client-select"
+            className="flex-1 flex flex-col min-h-0"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Suspense fallback={null}>
+              <ClientSelector />
+            </Suspense>
+          </motion.div>
+        )}
+
         {/* Phase 1: Braindump — the creative starting point */}
         {phase === 'braindump' && (
           <motion.div
@@ -474,10 +452,20 @@ export default function BriefBuilder() {
                 </button>
                 <button
                   onClick={handleStartQuestions}
-                  className="flex items-center gap-2 bg-accent hover:bg-accent-hover rounded-xl px-5 py-2.5 font-semibold text-xs text-white transition-colors duration-200 cursor-pointer"
+                  disabled={preparingBuild}
+                  className="flex items-center gap-2 bg-accent hover:bg-accent-hover rounded-xl px-5 py-2.5 font-semibold text-xs text-white transition-colors duration-200 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Sparkles size={14} />
-                  Build it
+                  {preparingBuild ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Preparing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={14} />
+                      Build it
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -513,24 +501,31 @@ export default function BriefBuilder() {
                 <h3 className="text-sm font-semibold text-white/90 mb-5 leading-relaxed">
                   {intentQuestions[currentQuestionIndex].question}
                 </h3>
-                <div className="flex flex-col gap-2">
-                  {intentQuestions[currentQuestionIndex].options.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => handleAnswerQuestion(intentQuestions[currentQuestionIndex].id, opt.value)}
-                      className="text-left px-4 py-3 rounded-xl border border-white/10 hover:border-accent/50 hover:bg-white/5 transition-all duration-200 cursor-pointer group"
-                    >
-                      <span className="text-xs font-medium text-white/80 group-hover:text-white block">
-                        {opt.label}
-                      </span>
-                      {opt.description && (
-                        <span className="text-[10px] text-white/40 group-hover:text-white/50 block mt-0.5">
-                          {opt.description}
+                {preparingBuild ? (
+                  <div className="flex flex-col items-center gap-3 py-6">
+                    <Loader2 size={20} className="text-accent animate-spin" />
+                    <p className="text-[11px] text-text-dim">Locking in your preferences.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {intentQuestions[currentQuestionIndex].options.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleAnswerQuestion(intentQuestions[currentQuestionIndex].id, opt.value)}
+                        className="text-left px-4 py-3 rounded-xl border border-white/10 hover:border-accent/50 hover:bg-white/5 transition-all duration-200 cursor-pointer group"
+                      >
+                        <span className="text-xs font-medium text-white/80 group-hover:text-white block">
+                          {opt.label}
                         </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                        {opt.description && (
+                          <span className="text-[10px] text-white/40 group-hover:text-white/50 block mt-0.5">
+                            {opt.description}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <button
                   onClick={handleSkipQuestions}
                   className="mt-6 text-[10px] text-white/25 hover:text-white/50 transition-colors cursor-pointer"
@@ -556,88 +551,6 @@ export default function BriefBuilder() {
           </motion.div>
         )}
 
-        {/* Phase 4: Done — show summary, navigate to assemble */}
-        {phase === 'done' && result && (
-          <motion.div
-            key="done"
-            className="flex-1 overflow-y-auto"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="max-w-lg mx-auto px-8 py-12">
-              <h2 className="font-display font-bold text-lg tracking-tight text-text mb-2">
-                Ready.
-              </h2>
-              <p className="text-xs text-text-muted leading-relaxed mb-8">
-                {result.narrative}
-              </p>
-
-              {/* Compact clip summary */}
-              <div className="space-y-1 mb-6">
-                {result.storyboardClips.slice(0, 8).map((sc, i) => (
-                  <div key={sc.id} className="flex items-center gap-3 py-1.5">
-                    <span className="text-[10px] font-mono text-text-dim tabular-nums w-4 text-right">{i + 1}</span>
-                    <div className="size-7 rounded bg-surface-active overflow-hidden shrink-0">
-                      {sc.thumbnailPath && (
-                        <img
-                          src={`/thumbnails/${sc.thumbnailPath.split('/').pop()}`}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <span className="text-[11px] text-text-muted flex-1 truncate">{sc.reason}</span>
-                    <span className="text-[10px] font-mono text-text-dim tabular-nums">
-                      {(sc.endTime - sc.startTime).toFixed(1)}s
-                    </span>
-                  </div>
-                ))}
-                {result.storyboardClips.length > 8 && (
-                  <p className="text-[10px] text-text-dim pl-7">
-                    +{result.storyboardClips.length - 8} more clips
-                  </p>
-                )}
-              </div>
-
-              {/* Stats line */}
-              <div className="flex items-center gap-4 text-[10px] text-text-dim mb-8">
-                <span>{result.storyboardClips.length} clips</span>
-                <span>·</span>
-                <span>{Math.round(result.totalDuration)}s total</span>
-                {result.sfxPlacements?.length > 0 && (
-                  <>
-                    <span>·</span>
-                    <span>{result.sfxPlacements.length} SFX layers</span>
-                  </>
-                )}
-                {result.transitions?.length > 0 && (
-                  <>
-                    <span>·</span>
-                    <span>{result.transitions.length} transitions</span>
-                  </>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleReset}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs text-text-dim hover:text-text hover:bg-surface-hover transition-colors duration-200 cursor-pointer"
-                >
-                  <RotateCcw size={12} />
-                  Start over
-                </button>
-                <button
-                  onClick={() => setWorkflowPhase('assemble')}
-                  className="flex items-center gap-2 bg-accent hover:bg-accent-hover rounded-xl px-5 py-2.5 font-semibold text-xs text-white transition-colors duration-200 cursor-pointer"
-                >
-                  View storyboard
-                  <ArrowRight size={12} />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
     </div>
   )

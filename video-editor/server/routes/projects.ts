@@ -1,9 +1,10 @@
 import { Router } from 'express'
 import fs from 'fs'
 import path from 'path'
+import { dataPath } from '../services/dataRoot.js'
 
 const router = Router()
-const PROJECTS_DIR = path.join(process.cwd(), 'projects')
+const PROJECTS_DIR = dataPath('projects')
 
 fs.mkdirSync(PROJECTS_DIR, { recursive: true })
 

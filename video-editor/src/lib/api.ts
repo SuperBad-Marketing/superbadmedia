@@ -156,6 +156,28 @@ export async function connectResolve(): Promise<{ connected: boolean; version?: 
   }
 }
 
+export async function listResolveProjects(): Promise<{ projects: string[]; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/resolve/projects`)
+    return res.json()
+  } catch {
+    return { projects: [], error: 'Server unreachable' }
+  }
+}
+
+export async function loadResolveProject(name: string): Promise<{ project?: string; timeline?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/resolve/projects/load`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    })
+    return res.json()
+  } catch {
+    return { error: 'Server unreachable' }
+  }
+}
+
 export async function sendToResolve(action: string, params?: Record<string, any>): Promise<any> {
   const res = await fetch(`${API_BASE}/resolve/command`, {
     method: 'POST',
@@ -163,6 +185,46 @@ export async function sendToResolve(action: string, params?: Record<string, any>
     body: JSON.stringify({ action, params }),
   })
   return res.json()
+}
+
+export async function getResolvePlayhead(): Promise<{ timecode?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/resolve/playhead`)
+    return res.json()
+  } catch {
+    return { error: 'Server unreachable' }
+  }
+}
+
+export async function seekResolve(timecode: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/resolve/seek`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timecode }),
+    })
+    return res.json()
+  } catch {
+    return { success: false, error: 'Server unreachable' }
+  }
+}
+
+export async function playResolve(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/resolve/play`, { method: 'POST' })
+    return res.json()
+  } catch {
+    return { success: false, error: 'Server unreachable' }
+  }
+}
+
+export async function stopResolve(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/resolve/stop`, { method: 'POST' })
+    return res.json()
+  } catch {
+    return { success: false, error: 'Server unreachable' }
+  }
 }
 
 export async function startExport(config: {
@@ -278,6 +340,10 @@ export interface AssembledResult {
   musicQuery: string
   totalDuration: number
   narrative: string
+  resolveStatus?: 'pushed' | 'no-resolve'
+  zoomPlan?: { clipIndex: number; direction: string }[]
+  slowMoPlan?: { clipIndex: number; speed: number }[]
+  stabilizedClips?: number[]
 }
 
 export interface VisionAnalysisResult {
@@ -328,6 +394,16 @@ export async function analyzeClipsBatchVision(
   return res.json()
 }
 
+export async function recordClipUsage(projectId: string, filePaths: string[]): Promise<{ recorded: number }> {
+  const res = await fetch(`${API_BASE}/clips/record-usage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ projectId, filePaths }),
+  })
+  if (!res.ok) throw new Error('Failed to record clip usage')
+  return res.json()
+}
+
 export async function parseBrief(braindump: string): Promise<BriefFields> {
   const res = await fetch(`${API_BASE}/brief/parse`, {
     method: 'POST',
@@ -343,13 +419,34 @@ export async function buildFromBrief(
   clips?: any[],
   music?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number },
   projectId?: string,
+  editPreferences?: any,
+  clientId?: string,
+  editStyleId?: string,
 ): Promise<AssembledResult> {
   const res = await fetch(`${API_BASE}/brief/build`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ brief, clips, music, projectId }),
+    body: JSON.stringify({ brief, clips, music, projectId, editPreferences, clientId, editStyleId }),
   })
   if (!res.ok) throw new Error('Failed to build assembly')
+  return res.json()
+}
+
+export async function recutToMusic(
+  brief: BriefFields & { selectedSkillIds?: string[] },
+  clips: any[],
+  music: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number },
+  projectId?: string,
+  editPreferences?: any,
+  clientId?: string,
+  editStyleId?: string,
+): Promise<AssembledResult> {
+  const res = await fetch(`${API_BASE}/brief/recut`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brief, clips, music, projectId, editPreferences, clientId, editStyleId }),
+  })
+  if (!res.ok) throw new Error('Failed to recut to music')
   return res.json()
 }
 
@@ -363,6 +460,19 @@ export interface SkillSummary {
 export async function getBriefSkills(): Promise<SkillSummary[]> {
   const res = await fetch(`${API_BASE}/brief/skills`)
   if (!res.ok) throw new Error('Failed to get skills')
+  return res.json()
+}
+
+export async function recommendPreferences(
+  brief: BriefFields,
+  clips: any[],
+): Promise<{ preferences: any; reasoning: string }> {
+  const res = await fetch(`${API_BASE}/brief/recommend-preferences`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brief, clips }),
+  })
+  if (!res.ok) throw new Error('Failed to get recommendations')
   return res.json()
 }
 
@@ -524,9 +634,75 @@ export interface ClientInstructions {
   general: string[]
 }
 
+export interface FontSpec {
+  family: string
+  weight: string
+  style?: 'normal' | 'italic'
+}
+
+export interface ClientTypography {
+  heading: FontSpec
+  subheading: FontSpec
+  body: FontSpec
+}
+
+export interface LogoUsage {
+  intro: boolean
+  outro: boolean
+  watermark: boolean
+  watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  watermarkOpacity: number
+  outroDuration: number
+}
+
+export interface AudioDefaults {
+  musicVolume: 'background' | 'balanced' | 'music-forward'
+  preserveOriginalAudio: boolean
+}
+
+export interface CaptionStyle {
+  position: 'bottom' | 'center' | 'top'
+  background: 'none' | 'solid' | 'gradient' | 'outline'
+  size: 'subtle' | 'standard' | 'bold'
+}
+
+export interface ReferenceReel {
+  id: string
+  url: string
+  localPath?: string
+  addedAt: string
+  analysis?: {
+    totalDuration: number
+    cutCount: number
+    avgCutLength: number
+    pacing: 'fast' | 'medium' | 'slow'
+    notes: string
+  }
+}
+
+export interface EditStyle {
+  id: string
+  name: string
+  isDefault: boolean
+  instructions: ClientInstructions
+  captionStyle: CaptionStyle
+  defaultPacing: 'fast' | 'medium' | 'slow'
+  defaultMood: string
+  gradingLook: string
+  musicKeywords: string
+  referenceReels: ReferenceReel[]
+}
+
 export interface ClientData {
   profile: ClientProfile
+  typography: ClientTypography
+  logoUsage: LogoUsage
+  audioDefaults: AudioDefaults
+  brandColors: string[]
+  defaultPlatform: string
   instructions: ClientInstructions
+  editStyles: EditStyle[]
+  referenceReels: ReferenceReel[]
   footageLibraryPath?: string
   cloudinaryFolder?: string
   projectIds: string[]
@@ -587,6 +763,157 @@ export async function setClientCloudinaryFolder(id: string, folder: string): Pro
   return res.json()
 }
 
+export async function addReferenceReel(clientId: string, url: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/clients/${clientId}/reference-reels`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  })
+  return res.json()
+}
+
+export async function listReferenceReels(clientId: string): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/clients/${clientId}/reference-reels`)
+  return res.json()
+}
+
+export async function removeReferenceReel(clientId: string, reelId: string): Promise<void> {
+  await fetch(`${API_BASE}/clients/${clientId}/reference-reels/${reelId}`, { method: 'DELETE' })
+}
+
+export async function openClientFolder(clientId: string): Promise<{ path: string }> {
+  const res = await fetch(`${API_BASE}/clients/${clientId}/open-folder`, { method: 'POST' })
+  return res.json()
+}
+
+export async function setClientLogo(clientId: string, logoPath: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/clients/${clientId}/logo`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: logoPath }),
+  })
+  return res.json()
+}
+
+export async function uploadClientLogo(clientId: string, file: File): Promise<ClientData> {
+  const form = new FormData()
+  form.append('logo', file)
+  const res = await fetch(`${API_BASE}/clients/${clientId}/logo/upload`, {
+    method: 'POST',
+    body: form,
+  })
+  if (!res.ok) throw new Error('Logo upload failed')
+  return res.json()
+}
+
+export async function updateClient(id: string, updates: Partial<ClientProfile>): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  })
+  if (!res.ok) throw new Error('Failed to update client')
+  return res.json()
+}
+
+export async function removeClientInstruction(
+  id: string,
+  category: keyof ClientInstructions,
+  index: number,
+): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/instructions/${category}/${index}`, {
+    method: 'DELETE',
+  })
+  if (!res.ok) throw new Error('Failed to remove instruction')
+  return res.json()
+}
+
+export async function setClientFootagePath(id: string, footagePath: string): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/footage-path`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: footagePath }),
+  })
+  if (!res.ok) throw new Error('Failed to set footage path')
+  return res.json()
+}
+
+export async function updateClientTypography(id: string, typography: ClientTypography): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/typography`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(typography),
+  })
+  if (!res.ok) throw new Error('Failed to update typography')
+  return res.json()
+}
+
+export async function updateClientLogoUsage(id: string, logoUsage: LogoUsage): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/logo-usage`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(logoUsage),
+  })
+  if (!res.ok) throw new Error('Failed to update logo usage')
+  return res.json()
+}
+
+export async function updateClientAudioDefaults(id: string, audioDefaults: AudioDefaults): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/audio-defaults`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(audioDefaults),
+  })
+  if (!res.ok) throw new Error('Failed to update audio defaults')
+  return res.json()
+}
+
+export async function updateClientBrandColors(id: string, colors: string[]): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/brand-colors`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ colors }),
+  })
+  if (!res.ok) throw new Error('Failed to update brand colors')
+  return res.json()
+}
+
+export async function setClientDefaultPlatform(id: string, platform: string): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${id}/default-platform`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ platform }),
+  })
+  if (!res.ok) throw new Error('Failed to set default platform')
+  return res.json()
+}
+
+export async function addEditStyle(clientId: string, name: string, initial?: Partial<EditStyle>): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${clientId}/edit-styles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, ...initial }),
+  })
+  if (!res.ok) throw new Error('Failed to add edit style')
+  return res.json()
+}
+
+export async function updateEditStyle(clientId: string, styleId: string, updates: Partial<EditStyle>): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${clientId}/edit-styles/${styleId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  })
+  if (!res.ok) throw new Error('Failed to update edit style')
+  return res.json()
+}
+
+export async function removeEditStyle(clientId: string, styleId: string): Promise<ClientData> {
+  const res = await fetch(`${API_BASE}/clients/${clientId}/edit-styles/${styleId}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to remove edit style')
+  return res.json()
+}
+
 export async function deleteClient(id: string): Promise<void> {
   await fetch(`${API_BASE}/clients/${id}`, { method: 'DELETE' })
 }
@@ -631,6 +958,31 @@ export async function getLibraryStats(): Promise<LibraryStats> {
   const res = await fetch(`${LIBRARY_API_BASE}/library/stats`)
   if (!res.ok) throw new Error('Failed to get library stats')
   return res.json()
+}
+
+export interface LibraryFolder {
+  folder: string
+  label: string
+  clientName: string
+  clipCount: number
+  analyzedCount: number
+}
+
+export async function getLibraryFolders(): Promise<LibraryFolder[]> {
+  const res = await fetch(`${LIBRARY_API_BASE}/library/folders`)
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function importFromLibrary(folderPath: string, projectId?: string): Promise<any[]> {
+  const res = await fetch(`${LIBRARY_API_BASE}/library/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ folder: folderPath, projectId: projectId || 'default' }),
+  })
+  if (!res.ok) throw new Error('Failed to import from library')
+  const data = await res.json()
+  return data.clips
 }
 
 export async function getLibraryProgress(): Promise<LibraryProgress> {

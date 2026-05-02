@@ -3,6 +3,7 @@ import path from 'path'
 import crypto from 'crypto'
 import { execSync } from 'child_process'
 import Anthropic from '@anthropic-ai/sdk'
+import { dataPath } from './dataRoot.js'
 
 export interface SkillQualityScore {
   quantifiedParams: number
@@ -54,7 +55,7 @@ interface EvaluatedResource {
   topics: string[]
 }
 
-const SKILLS_DIR = path.join(process.cwd(), 'skills')
+const SKILLS_DIR = dataPath('skills')
 
 export class SkillService {
   private anthropic: Anthropic | null = null

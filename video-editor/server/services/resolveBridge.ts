@@ -386,6 +386,10 @@ export class ResolveBridgeService {
     return this.send({ action: 'set_clip_transform', params: { clip_index: clipIndex, params } })
   }
 
+  async stabilize(clipIndex: number, mode: 'translation' | 'perspective' = 'perspective', strength = 1.0) {
+    return this.applyResolveFx(clipIndex, 'Stabilization', { mode, strength, zoom: mode === 'perspective' })
+  }
+
   // --- Effect management ---
 
   async getClipEffectsState(clipIndex: number): Promise<ClipEffectsState> {
@@ -438,6 +442,24 @@ export class ResolveBridgeService {
 
   async setupMaskedGrade(clipIndex: number, maskType = 'magic_mask', maskParams?: Record<string, any>, gradeParams?: Record<string, any>, invert = false) {
     return this.send({ action: 'setup_masked_grade', params: { clip_index: clipIndex, mask_type: maskType, mask_params: maskParams, grade_params: gradeParams, invert } })
+  }
+
+  // --- Transport ---
+
+  async getPlayhead(): Promise<{ timecode?: string; error?: string }> {
+    return this.send({ action: 'get_playhead' })
+  }
+
+  async seekTimecode(timecode: string): Promise<{ success: boolean; timecode?: string; error?: string }> {
+    return this.send({ action: 'seek_timecode', params: { timecode } })
+  }
+
+  async transportPlay(): Promise<{ success: boolean; error?: string }> {
+    return this.send({ action: 'transport_play' })
+  }
+
+  async transportStop(): Promise<{ success: boolean; error?: string }> {
+    return this.send({ action: 'transport_stop' })
   }
 
   // --- Full timeline push ---

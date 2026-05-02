@@ -1,9 +1,12 @@
+import { lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import {
   Film, MessageCircle, Music, Volume2, Layers, Type, BookOpen,
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import type { DockPanel } from '../../types'
+
+const TransportStrip = lazy(() => import('./TransportStrip'))
 
 const DOCK_ITEMS: { id: DockPanel; icon: typeof Film; label: string }[] = [
   { id: 'media', icon: Film, label: 'Media' },
@@ -15,9 +18,13 @@ const DOCK_ITEMS: { id: DockPanel; icon: typeof Film; label: string }[] = [
   { id: 'knowledge', icon: BookOpen, label: 'Learn' },
 ]
 
+const TRANSPORT_PHASES = new Set(['assemble', 'refine', 'polish', 'deliver'])
+
 export default function Dock() {
   const activeDockPanel = useAppStore((s) => s.activeDockPanel)
   const toggleDockPanel = useAppStore((s) => s.toggleDockPanel)
+  const workflowPhase = useAppStore((s) => s.workflowPhase)
+  const showTransport = TRANSPORT_PHASES.has(workflowPhase)
 
   return (
     <motion.div
@@ -27,6 +34,13 @@ export default function Dock() {
       className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40"
     >
       <div className="dock rounded-2xl px-2 py-1.5 flex items-center gap-0.5">
+        <AnimatePresence>
+          {showTransport && (
+            <Suspense fallback={null}>
+              <TransportStrip />
+            </Suspense>
+          )}
+        </AnimatePresence>
         {DOCK_ITEMS.map((item) => {
           const isActive = activeDockPanel === item.id
           const Icon = item.icon

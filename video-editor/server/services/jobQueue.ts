@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import crypto from 'crypto'
+import { dataPath } from './dataRoot.js'
 import { BriefAssembler, type BriefFields } from './briefAssembler.js'
 import { IngestService } from './ingest.js'
 import { VisionAnalysisService } from './visionAnalysis.js'
@@ -45,9 +46,9 @@ export interface QueueJob {
   completedAt?: string
 }
 
-const QUEUE_DIR = path.join(process.cwd(), '.queue')
+const QUEUE_DIR = dataPath('.queue')
 const QUEUE_FILE = path.join(QUEUE_DIR, 'jobs.json')
-const PROJECTS_DIR = path.join(process.cwd(), 'projects')
+const PROJECTS_DIR = dataPath('projects')
 
 class JobQueue {
   private jobs: QueueJob[] = []
@@ -239,7 +240,7 @@ class JobQueue {
         statusText: 'Building the rough cut',
       })
 
-      const result = await this.assembler.assemble(editBrief, clips, { projectId: job.projectId })
+      const result = await this.assembler.assemble(editBrief, clips, { projectId: job.projectId, recordUsageImmediately: true })
 
       // --- Step 5: Push to Resolve ---
       let resolveProjectName: string | undefined

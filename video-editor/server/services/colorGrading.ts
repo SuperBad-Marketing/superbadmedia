@@ -5,6 +5,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
+import { dataPath } from './dataRoot.js'
 
 interface CameraProfile {
   camera: string
@@ -66,7 +67,7 @@ const LOOK_PRESETS: Record<string, { contrast: number; saturation: number; tempe
   },
 }
 
-const FRAME_DIR = path.join(process.cwd(), '.grading-frames')
+const FRAME_DIR = dataPath('.grading-frames')
 
 export class ColorGradingService {
   private clipAnalysis = getClipAnalysisService()
@@ -133,7 +134,7 @@ export class ColorGradingService {
       },
     })
 
-    const lookName = intent.grading.look || 'natural'
+    const lookName = intent.grading?.look || 'natural'
     const preset = LOOK_PRESETS[lookName] || LOOK_PRESETS.natural
     nodes.push({
       purpose: 'look',
@@ -237,7 +238,7 @@ export class ColorGradingService {
     const client = new Anthropic({ apiKey })
 
     try {
-      const lookDescription = intent.grading.look || 'natural'
+      const lookDescription = intent.grading?.look || 'natural'
       const response = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,

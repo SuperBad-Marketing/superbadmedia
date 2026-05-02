@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import { getClipAnalysisService } from '../services/clipAnalysis.js'
 import { VisionAnalysisService } from '../services/visionAnalysis.js'
+import { getMediaLibrary } from '../services/mediaLibrary.js'
 import path from 'path'
+import { dataPath } from '../services/dataRoot.js'
 
 const router = Router()
 const analysisService = getClipAnalysisService()
@@ -76,12 +78,23 @@ router.post('/vision-analyze-batch', async (req, res) => {
 })
 
 router.get('/thumbnail/:clipId', (req, res) => {
-  const thumbnailPath = path.join(process.cwd(), '.thumbnails', `${req.params.clipId}.jpg`)
+  const thumbnailPath = dataPath('.thumbnails', `${req.params.clipId}.jpg`)
   try {
     res.sendFile(thumbnailPath)
   } catch {
     res.status(404).json({ error: 'Thumbnail not found' })
   }
+})
+
+router.post('/record-usage', (req, res) => {
+  const { projectId, filePaths } = req.body
+  if (!projectId || !filePaths?.length) {
+    res.status(400).json({ error: 'projectId and filePaths are required' })
+    return
+  }
+  const library = getMediaLibrary()
+  library.recordUsage(projectId, filePaths)
+  res.json({ recorded: filePaths.length })
 })
 
 export { router as clipsRouter }

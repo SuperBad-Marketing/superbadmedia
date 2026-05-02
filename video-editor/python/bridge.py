@@ -410,6 +410,46 @@ class ResolveBridge(
             "progress": progress,
         }
 
+    # --- Transport ---
+
+    def get_playhead(self):
+        if not self.timeline:
+            return {"error": "No timeline open"}
+        tc = self.timeline.GetCurrentTimecode()
+        return {"timecode": tc}
+
+    def seek_timecode(self, timecode):
+        if not self.timeline:
+            return {"error": "No timeline open"}
+        result = self.timeline.SetCurrentTimecode(timecode)
+        return {"success": bool(result), "timecode": timecode}
+
+    def transport_play(self):
+        if not self.resolve:
+            return {"error": "Not connected to Resolve"}
+        try:
+            import subprocess
+            subprocess.run([
+                "osascript", "-e",
+                'tell application "System Events" to tell process "DaVinci Resolve" to keystroke space'
+            ], timeout=5)
+            return {"success": True, "action": "play"}
+        except Exception as e:
+            return {"error": f"Transport play failed: {str(e)}"}
+
+    def transport_stop(self):
+        if not self.resolve:
+            return {"error": "Not connected to Resolve"}
+        try:
+            import subprocess
+            subprocess.run([
+                "osascript", "-e",
+                'tell application "System Events" to tell process "DaVinci Resolve" to keystroke space'
+            ], timeout=5)
+            return {"success": True, "action": "stop"}
+        except Exception as e:
+            return {"error": f"Transport stop failed: {str(e)}"}
+
 
 def handle_command(bridge, command):
     action = command.get("action")
@@ -488,6 +528,12 @@ def handle_command(bridge, command):
         "add_qualifier": lambda: bridge.add_qualifier(params.get("clip_index", 0), params.get("node_index"), params.get("qualifier_type", "hsl"), params.get("params")),
         "setup_magic_mask": lambda: bridge.setup_magic_mask(params.get("clip_index", 0), params.get("mask_mode", "person"), params.get("node_index")),
         "setup_masked_grade": lambda: bridge.setup_masked_grade(params.get("clip_index", 0), params.get("mask_type", "magic_mask"), params.get("mask_params"), params.get("grade_params"), params.get("invert", False)),
+
+        # Transport
+        "get_playhead": lambda: bridge.get_playhead(),
+        "seek_timecode": lambda: bridge.seek_timecode(params.get("timecode", "00:00:00:00")),
+        "transport_play": lambda: bridge.transport_play(),
+        "transport_stop": lambda: bridge.transport_stop(),
     }
 
     handler = actions.get(action)

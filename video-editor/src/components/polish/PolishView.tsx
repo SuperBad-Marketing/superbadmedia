@@ -1,21 +1,23 @@
 import { useState, useCallback, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Clock, Volume2, Type, CheckCircle2, Loader2, ArrowRight, Send } from 'lucide-react'
+import { Clock, Volume2, Type, Sparkles, CheckCircle2, Loader2, ArrowRight, Send } from 'lucide-react'
 import { ViewLoader } from '../shared/LoadingPulse'
 import { useAppStore } from '../../stores/appStore'
-import { sendToResolve, saveProject } from '../../lib/api'
+import { sendToResolve, saveProject, recordClipUsage } from '../../lib/api'
 
 const TimingView = lazy(() => import('./TimingView'))
 const SoundDesignView = lazy(() => import('./SoundDesignView'))
 const TextTitlesView = lazy(() => import('./TextTitlesView'))
+const AppliedEffectsView = lazy(() => import('./AppliedEffectsView'))
 const FinalReviewView = lazy(() => import('./FinalReviewView'))
 
-type PolishMode = 'timing' | 'sound' | 'text' | 'review'
+type PolishMode = 'timing' | 'sound' | 'text' | 'effects' | 'review'
 
 const MODES: { id: PolishMode; label: string; icon: typeof Clock }[] = [
   { id: 'timing', label: 'Timing', icon: Clock },
   { id: 'sound', label: 'Sound Design', icon: Volume2 },
   { id: 'text', label: 'Text & Titles', icon: Type },
+  { id: 'effects', label: 'Effects', icon: Sparkles },
   { id: 'review', label: 'Final Review', icon: CheckCircle2 },
 ]
 
@@ -103,6 +105,11 @@ export default function PolishView() {
       }
 
       if (currentProject?.id) {
+        const filePaths = storyboardClips.map((c) => c.clip.filePath)
+        if (filePaths.length > 0) {
+          recordClipUsage(currentProject.id, filePaths).catch(() => {})
+        }
+
         const state = saveCurrentProject()
         await saveProject(
           currentProject.id,
@@ -186,6 +193,7 @@ export default function PolishView() {
             {mode === 'timing' && <TimingView />}
             {mode === 'sound' && <SoundDesignView />}
             {mode === 'text' && <TextTitlesView />}
+            {mode === 'effects' && <AppliedEffectsView />}
             {mode === 'review' && <FinalReviewView />}
           </Suspense>
         </motion.div>

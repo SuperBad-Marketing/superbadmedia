@@ -5,7 +5,7 @@ import type { TitleCardPreset } from '../../types'
 import { getTitleCardPresets } from '../../lib/api'
 import { useAppStore } from '../../stores/appStore'
 
-const TYPE_FILTERS = ['Title', 'Lower-Third', 'End-Card', 'Chapter', 'Quote'] as const
+const TYPE_FILTERS = ['Title', 'Lower-Third', 'End-Card', 'Chapter', 'Quote', 'Location', 'Stat'] as const
 
 function typeLabel(type: string): string {
   const labels: Record<string, string> = {
@@ -14,6 +14,9 @@ function typeLabel(type: string): string {
     'end-card': 'End',
     chapter: 'Ch.',
     quote: 'Quote',
+    location: 'Loc.',
+    stat: 'Stat',
+    reveal: 'Reveal',
   }
   return labels[type] || type
 }

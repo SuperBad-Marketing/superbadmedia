@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { execSync } from 'child_process'
 import path from 'path'
 import fs from 'fs'
+import { dataPath } from './dataRoot.js'
 
 export interface RankedMoment {
   timestamp: number
@@ -31,7 +32,7 @@ interface VisionResult {
   editUtility: string[]
 }
 
-const KEYFRAME_DIR = path.join(process.cwd(), '.keyframes')
+const KEYFRAME_DIR = dataPath('.keyframes')
 
 export class VisionAnalysisService {
   private anthropic: Anthropic | null = null

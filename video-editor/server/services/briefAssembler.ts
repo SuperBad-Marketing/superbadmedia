@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
+import { dataPath } from './dataRoot.js'
 import { getClipAnalysisService } from './clipAnalysis.js'
 import { SfxService } from './sfx.js'
 import { TransitionService } from './transitions.js'
@@ -10,9 +11,10 @@ import { MusicAnalysisService, MusicStructure, type MusicSection } from './music
 import { getMediaLibrary } from './mediaLibrary.js'
 import { getTasteProfileService } from './tasteProfile.js'
 import { getEditIntentService, type EditIntent } from './editIntent.js'
+import { preferencesToPromptContext, type EditPreferences } from './editPreferences.js'
 import crypto from 'crypto'
 
-const CUT_REVIEW_DIR = path.join(process.cwd(), '.cut-review')
+const CUT_REVIEW_DIR = dataPath('.cut-review')
 
 const MAX_CLIP_USES = 2
 
@@ -225,6 +227,7 @@ function buildAssemblySystem(
   musicStructure: MusicStructure | null,
   structuralPlan: StructuralPlan | null,
   tasteContext: string = '',
+  preferencesContext: string = '',
 ): string {
   let musicSection = ''
   if (musicStructure) {
@@ -372,7 +375,7 @@ TYPICAL VALUES:
 - Risers END at the moment of impact. Set timelineStart 2-8s before the hit.
 - Max 2-3 simultaneous SFX.
 
-${skills ? `## EDITORIAL KNOWLEDGE\n\n${skills}\n` : ''}${tasteContext ? `\n${tasteContext}\n` : ''}
+${skills ? `## EDITORIAL KNOWLEDGE\n\n${skills}\n` : ''}${tasteContext ? `\n${tasteContext}\n` : ''}${preferencesContext ? `\n${preferencesContext}\n` : ''}
 Respond with ONLY a JSON object:
 {
   "clips": [
@@ -718,7 +721,7 @@ export class BriefAssembler {
   async assemble(
     brief: BriefFields,
     clientClips?: any[],
-    options?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number; selectedSkillIds?: string[]; projectId?: string; clientId?: string; referenceStyleId?: string; editIntent?: EditIntent },
+    options?: { musicBpm?: number; musicMood?: string[]; musicPreviewUrl?: string; musicDuration?: number; selectedSkillIds?: string[]; projectId?: string; clientId?: string; referenceStyleId?: string; editIntent?: EditIntent; editPreferences?: EditPreferences; recordUsageImmediately?: boolean; clientInstructions?: string },
   ): Promise<AssembledResult> {
     const serverClips = this.clipAnalysis.getAllAnalysed()
     const rawClips = serverClips.length > 0 ? serverClips : (clientClips || [])
@@ -838,6 +841,14 @@ export class BriefAssembler {
       tasteContext += '\n' + intentService.intentToAssemblyContext(options.editIntent)
     }
 
+    if (options?.clientInstructions) {
+      tasteContext += '\n' + options.clientInstructions
+    }
+
+    const prefsContext = options?.editPreferences
+      ? preferencesToPromptContext(options.editPreferences)
+      : ''
+
     try {
       const plan = await this.runStructuralPlan(
         client, brief, compactSummaries, footageProfile, moodAxes, musicStructure, musicSkeleton,
@@ -845,7 +856,7 @@ export class BriefAssembler {
 
       const assembled = await this.runPrecisionEdit(
         client, brief, fullSummaries, footageProfile, moodAxes, variationSeed,
-        musicStructure, plan, skillsContent, transitionPresets, sfxCatalogueJson, tasteContext,
+        musicStructure, plan, skillsContent, transitionPresets, sfxCatalogueJson, tasteContext, prefsContext,
       )
 
       const result = this.buildFromEdits(
@@ -893,13 +904,17 @@ export class BriefAssembler {
         brief: { duration: brief.duration, mood: brief.mood, pacing: brief.pacing },
       })
 
-      this.recordClipUsage(finalResult, options?.projectId)
+      if (options?.recordUsageImmediately) {
+        this.recordClipUsage(finalResult, options?.projectId)
+      }
 
       return finalResult
     } catch (err: any) {
       console.error('Two-pass assembly failed, falling back to heuristics:', err.message)
       const fallback = this.assembleByHeuristics(allClips, brief)
-      this.recordClipUsage(fallback, options?.projectId)
+      if (options?.recordUsageImmediately) {
+        this.recordClipUsage(fallback, options?.projectId)
+      }
       return fallback
     }
   }
@@ -994,9 +1009,10 @@ ${musicSkeleton ? 'Fill clips into the locked sections above.' : `Create the str
     transitionPresets: any[],
     sfxCatalogue: any[],
     tasteContext: string = '',
+    preferencesContext: string = '',
   ): Promise<{ clips: any[]; transitions: any[]; sfx: any[]; narrative: string }> {
     const system = buildAssemblySystem(
-      skills, footageProfile, moodAxes, variationSeed, musicStructure, plan, tasteContext,
+      skills, footageProfile, moodAxes, variationSeed, musicStructure, plan, tasteContext, preferencesContext,
     )
 
     const musicLine = musicStructure

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { WorkflowPhase, DockPanel, Project, Clip, ClipAnalysis, StoryboardClip, ChatMessage, SkillFile, IngestJob, MusicTrack, SfxPlacement, TransitionPlacement, AppliedEffect } from '../types'
-import type { EditIntent } from '../lib/api'
+import type { WorkflowPhase, DockPanel, Project, Clip, ClipAnalysis, StoryboardClip, ChatMessage, SkillFile, IngestJob, MusicTrack, SfxPlacement, TransitionPlacement, AppliedEffect, EditPreferences } from '../types'
+import type { EditIntent, BriefFields } from '../lib/api'
 
 interface AppState {
 
@@ -59,6 +59,26 @@ interface AppState {
   lastEditIntent: EditIntent | null
   setLastEditIntent: (intent: EditIntent | null) => void
 
+  // Client selection
+  selectedClientId: string | null
+  setSelectedClientId: (id: string | null) => void
+  selectedEditStyleId: string | null
+  setSelectedEditStyleId: (id: string | null) => void
+
+  // Brief state (preserved across remounts)
+  briefPhase: 'client-select' | 'braindump' | 'fields' | 'questions' | 'building'
+  setBriefPhase: (phase: 'client-select' | 'braindump' | 'fields' | 'questions' | 'building') => void
+  briefBraindump: string
+  setBriefBraindump: (text: string) => void
+
+  // Brief fields (preserved for recuts)
+  lastBriefFields: (BriefFields & { selectedSkillIds?: string[] }) | null
+  setLastBriefFields: (fields: (BriefFields & { selectedSkillIds?: string[] }) | null) => void
+
+  // Edit preferences
+  editPreferences: EditPreferences | null
+  setEditPreferences: (prefs: EditPreferences | null) => void
+
   // Ingest
   currentIngest: IngestJob | null
   setCurrentIngest: (job: IngestJob | null) => void
@@ -67,9 +87,11 @@ interface AppState {
   selectedClipIndex: number
   setSelectedClipIndex: (index: number) => void
 
-  // Resolve connection
+  // Resolve connection & transport
   resolveConnected: boolean
   setResolveConnected: (connected: boolean) => void
+  playheadTimecode: string
+  setPlayheadTimecode: (tc: string) => void
 
   // Project management
   saveCurrentProject: () => Record<string, any>
@@ -162,6 +184,22 @@ export const useAppStore = create<AppState>()(
       lastEditIntent: null,
       setLastEditIntent: (intent) => set({ lastEditIntent: intent }),
 
+      selectedClientId: null,
+      setSelectedClientId: (id) => set({ selectedClientId: id }),
+      selectedEditStyleId: null,
+      setSelectedEditStyleId: (id) => set({ selectedEditStyleId: id }),
+
+      briefPhase: 'client-select' as const,
+      setBriefPhase: (phase) => set({ briefPhase: phase }),
+      briefBraindump: '',
+      setBriefBraindump: (text) => set({ briefBraindump: text }),
+
+      lastBriefFields: null,
+      setLastBriefFields: (fields) => set({ lastBriefFields: fields }),
+
+      editPreferences: null,
+      setEditPreferences: (prefs) => set({ editPreferences: prefs }),
+
       currentIngest: null,
       setCurrentIngest: (job) => set({ currentIngest: job }),
 
@@ -170,6 +208,8 @@ export const useAppStore = create<AppState>()(
 
       resolveConnected: false,
       setResolveConnected: (connected) => set({ resolveConnected: connected }),
+      playheadTimecode: '00:00:00:00',
+      setPlayheadTimecode: (tc) => set({ playheadTimecode: tc }),
 
       saveCurrentProject: (): Record<string, any> => {
         const s = get()
@@ -184,6 +224,8 @@ export const useAppStore = create<AppState>()(
           chatMessages: s.chatMessages,
           selectedTrack: s.selectedTrack,
           lastEditIntent: s.lastEditIntent,
+          lastBriefFields: s.lastBriefFields,
+          editPreferences: s.editPreferences,
         }
       },
       loadProjectState: (state) => set({
@@ -197,6 +239,8 @@ export const useAppStore = create<AppState>()(
         chatMessages: state.chatMessages || [],
         selectedTrack: state.selectedTrack || null,
         lastEditIntent: state.lastEditIntent || null,
+        lastBriefFields: state.lastBriefFields || null,
+        editPreferences: state.editPreferences || null,
         workflowPhase: 'brief' as WorkflowPhase,
       }),
       resetToNewProject: () => set({
@@ -210,7 +254,13 @@ export const useAppStore = create<AppState>()(
         chatMessages: [],
         selectedTrack: null,
         lastEditIntent: null,
+        lastBriefFields: null,
+        editPreferences: null,
         currentIngest: null,
+        selectedClientId: null,
+        selectedEditStyleId: null,
+        briefPhase: 'client-select' as const,
+        briefBraindump: '',
         workflowPhase: 'import' as WorkflowPhase,
       }),
 
@@ -236,6 +286,11 @@ export const useAppStore = create<AppState>()(
         selectedTrack: state.selectedTrack,
         skills: state.skills,
         workflowPhase: state.workflowPhase,
+        selectedClientId: state.selectedClientId,
+        selectedEditStyleId: state.selectedEditStyleId,
+        briefPhase: state.briefPhase,
+        briefBraindump: state.briefBraindump,
+        lastBriefFields: state.lastBriefFields,
       }),
     },
   ),

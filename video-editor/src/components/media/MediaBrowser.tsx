@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Search, ListPlus, Eye, Sparkles, Camera, Mountain, Zap, Film, MapPin, Grid3X3 } from 'lucide-react'
+import { Search, ListPlus, Eye, Sparkles, Camera, Mountain, Zap, Film, Grid3X3 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { analyzeClipVision } from '../../lib/api'
 import ClipCard from './ClipCard'

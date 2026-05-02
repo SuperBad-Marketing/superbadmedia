@@ -9,7 +9,7 @@ export default function ChatInput() {
   const [text, setText] = useState('')
   const [isSending, setIsSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { addChatMessage, updateChatMessage, currentProject } = useAppStore()
+  const { addChatMessage, updateChatMessage, addAppliedEffect, currentProject } = useAppStore()
 
   const hasYouTubeLink = YOUTUBE_REGEX.test(text)
   const trimmed = text.trim()
@@ -56,6 +56,11 @@ export default function ChatInput() {
         isLoading: false,
         action: response.action,
       })
+      if (response.action?.data?.appliedEffects) {
+        for (const effect of response.action.data.appliedEffects) {
+          addAppliedEffect(effect)
+        }
+      }
     } catch {
       updateChatMessage(loadingId, {
         content: 'Something went wrong. Try again.',

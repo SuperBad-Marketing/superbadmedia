@@ -42,12 +42,14 @@ router.get('/epidemic/search', async (req, res) => {
   params.set('limit', '20')
 
   try {
-    const response = await fetch(`${ES_SFX_BASE}?${params}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        'Accept': 'application/json',
-      },
-    })
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      'Accept': 'application/json',
+    }
+    const token = process.env.EPIDEMIC_SOUND_TOKEN
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
+    const response = await fetch(`${ES_SFX_BASE}?${params}`, { headers })
     if (!response.ok) throw new Error(`Epidemic Sound SFX: ${response.status}`)
 
     const data = await response.json()

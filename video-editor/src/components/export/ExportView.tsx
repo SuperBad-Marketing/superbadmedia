@@ -149,7 +149,7 @@ export default function ExportView() {
   const [selectedFormats, setSelectedFormats] = useState<Set<string>>(new Set(['16:9']))
   const [quality, setQuality] = useState<Quality>('h265')
   const [qualityOpen, setQualityOpen] = useState(false)
-  const [destination, setDestination] = useState('~/Desktop/Exports')
+  const [destination] = useState('~/Desktop/Exports')
   const [uploadToCloud, setUploadToCloud] = useState(false)
   const [cloudinaryReady, setCloudinaryReady] = useState(false)
   const [clientCloudFolder, setClientCloudFolder] = useState<string | null>(null)

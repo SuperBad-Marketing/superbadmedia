@@ -4,6 +4,7 @@ import path from 'path'
 import crypto from 'crypto'
 import { getClipAnalysisService } from './clipAnalysis.js'
 import { VisionAnalysisService } from './visionAnalysis.js'
+import { dataPath } from './dataRoot.js'
 
 interface LibraryEntry {
   id: string
@@ -41,7 +42,7 @@ interface ScanProgress {
 
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.mxf', '.avi', '.mkv', '.m4v', '.mpg', '.mts', '.r3d', '.braw', '.ari'])
 
-const LIBRARY_DIR = path.join(process.cwd(), '.media-library')
+const LIBRARY_DIR = dataPath('.media-library')
 const INDEX_PATH = path.join(LIBRARY_DIR, 'index.json')
 
 export class MediaLibraryService {
@@ -152,6 +153,37 @@ export class MediaLibraryService {
     const offset = options?.offset ?? 0
     const limit = options?.limit ?? 50
     return { entries: all.slice(offset, offset + limit), total }
+  }
+
+  getFolders(): { folder: string; label: string; clientName: string; clipCount: number; analyzedCount: number }[] {
+    if (!this.watchedFolder) return []
+    const groups = new Map<string, { clipCount: number; analyzedCount: number }>()
+    const base = this.watchedFolder
+
+    for (const entry of this.entries.values()) {
+      const rel = path.relative(base, entry.filePath)
+      const parts = rel.split(path.sep)
+      if (parts.length < 2) continue
+      const shootFolder = path.join(base, parts[0], parts[1])
+      const existing = groups.get(shootFolder) || { clipCount: 0, analyzedCount: 0 }
+      existing.clipCount++
+      if (entry.visionAnalysis) existing.analyzedCount++
+      groups.set(shootFolder, existing)
+    }
+
+    return Array.from(groups.entries())
+      .map(([folder, data]) => {
+        const rel = path.relative(base, folder)
+        const parts = rel.split(path.sep)
+        return {
+          folder,
+          label: parts[1] || parts[0],
+          clientName: parts[0],
+          clipCount: data.clipCount,
+          analyzedCount: data.analyzedCount,
+        }
+      })
+      .sort((a, b) => a.clientName.localeCompare(b.clientName) || a.label.localeCompare(b.label))
   }
 
   getEntry(filePath: string): LibraryEntry | undefined {
@@ -387,6 +419,14 @@ export class MediaLibraryService {
       counts.set(fp, entry.usedInProjects?.length || 0)
     }
     return counts
+  }
+
+  getFilesInFolder(folder: string): string[] {
+    const results: string[] = []
+    for (const [filePath] of this.entries) {
+      if (filePath.startsWith(folder)) results.push(filePath)
+    }
+    return results
   }
 
   async importToProject(filePaths: string[], projectId: string): Promise<any[]> {
