@@ -9,6 +9,46 @@ export const metadata: Metadata = {
   title: "Inbox — Lead Gen — SuperBad",
 };
 
+function MetricCell({
+  label,
+  value,
+  rate,
+  color,
+}: {
+  label: string;
+  value: number;
+  rate?: number;
+  color?: string;
+}) {
+  return (
+    <div
+      className="flex flex-col items-center gap-1 px-3 py-3"
+      style={{ backgroundColor: "var(--color-surface-2)" }}
+    >
+      <span
+        className="font-[family-name:var(--font-display)] text-[22px] leading-none"
+        style={{ color: color ?? "var(--color-brand-cream)" }}
+      >
+        {value}
+      </span>
+      <span
+        className="font-[family-name:var(--font-label)] text-[9px] uppercase"
+        style={{ letterSpacing: "1.2px", color: "var(--color-neutral-500)" }}
+      >
+        {label}
+      </span>
+      {rate !== undefined && (
+        <span
+          className="font-[family-name:var(--font-body)] text-[11px]"
+          style={{ color: color ?? "var(--color-neutral-400)" }}
+        >
+          {rate}%
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default async function LeadGenInboxPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
@@ -43,37 +83,61 @@ export default async function LeadGenInboxPage() {
               : "all quiet on the western front."}
           </em>
         </p>
-        <div className="mt-4 flex items-center gap-6 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
-          <div className="flex items-center gap-2">
-            <span
-              className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
-              style={{ letterSpacing: "1.5px" }}
-            >
-              {summary.totalSent}
-            </span>
-            <span>sent</span>
+        {summary.totalSent > 0 ? (
+          <div
+            className="mt-5 grid grid-cols-3 gap-px overflow-hidden rounded-xl sm:grid-cols-6"
+            style={{ backgroundColor: "rgba(253, 245, 230, 0.04)" }}
+          >
+            <MetricCell label="Sent" value={summary.totalSent} />
+            <MetricCell
+              label="Delivered"
+              value={summary.totalDelivered}
+              rate={summary.deliveryRate}
+              color="#86efac"
+            />
+            <MetricCell
+              label="Opened"
+              value={summary.totalOpened}
+              rate={summary.openRate}
+              color="#93c5fd"
+            />
+            <MetricCell
+              label="Clicked"
+              value={summary.totalClicked}
+              rate={summary.clickRate}
+              color="#c084fc"
+            />
+            <MetricCell
+              label="Replied"
+              value={summary.totalReplied}
+              rate={summary.replyRate}
+              color="#fbbf24"
+            />
+            <MetricCell
+              label="Bounced"
+              value={summary.totalBounced}
+              rate={summary.bounceRate}
+              color="#fca5a5"
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <span
-              className="font-[family-name:var(--font-label)] uppercase text-[color:var(--color-neutral-300)]"
-              style={{ letterSpacing: "1.5px" }}
-            >
-              {summary.totalReplies}
-            </span>
-            <span>replies</span>
+        ) : (
+          <div className="mt-4 flex items-center gap-6 font-[family-name:var(--font-body)] text-[12px] text-[color:var(--color-neutral-500)]">
+            <span>No emails sent yet.</span>
           </div>
-          {summary.pendingReplyDrafts > 0 && (
-            <div className="flex items-center gap-2">
-              <span
-                className="font-[family-name:var(--font-label)] uppercase"
-                style={{ letterSpacing: "1.5px", color: "var(--color-brand-pink)" }}
-              >
-                {summary.pendingReplyDrafts}
-              </span>
-              <span style={{ color: "var(--color-brand-pink)" }}>pending</span>
-            </div>
-          )}
-        </div>
+        )}
+        {summary.pendingReplyDrafts > 0 && (
+          <div className="mt-3 flex items-center gap-2 font-[family-name:var(--font-body)] text-[12px]">
+            <span
+              className="font-[family-name:var(--font-label)] uppercase"
+              style={{ letterSpacing: "1.5px", color: "var(--color-brand-pink)" }}
+            >
+              {summary.pendingReplyDrafts}
+            </span>
+            <span style={{ color: "var(--color-brand-pink)" }}>
+              reply draft{summary.pendingReplyDrafts === 1 ? "" : "s"} pending
+            </span>
+          </div>
+        )}
       </header>
       <LeadGenTabs currentPath="/lite/admin/lead-gen/inbox" />
 

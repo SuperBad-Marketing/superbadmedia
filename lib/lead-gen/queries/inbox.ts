@@ -161,24 +161,65 @@ async function getRecentReplies(limit: number): Promise<InboxReplyItem[]> {
   }));
 }
 
-export async function getInboxSummary() {
-  const [sends, replies] = await Promise.all([
+export interface InboxSummary {
+  totalSent: number;
+  totalDelivered: number;
+  totalOpened: number;
+  totalClicked: number;
+  totalReplied: number;
+  totalBounced: number;
+  totalReplies: number;
+  pendingReplyDrafts: number;
+  deliveryRate: number;
+  openRate: number;
+  clickRate: number;
+  replyRate: number;
+  bounceRate: number;
+}
+
+export async function getInboxSummary(): Promise<InboxSummary> {
+  const [sendRows, replies, pendingReplies] = await Promise.all([
     db
-      .select({ id: outreachSends.id })
+      .select({
+        id: outreachSends.id,
+        deliveredAt: outreachSends.delivered_at,
+        openCount: outreachSends.open_count,
+        clickCount: outreachSends.click_count,
+        repliedAt: outreachSends.replied_at,
+        bouncedAt: outreachSends.bounced_at,
+      })
       .from(outreachSends),
     db
       .select({ id: replyDrafts.id })
       .from(replyDrafts),
+    db
+      .select({ id: replyDrafts.id })
+      .from(replyDrafts)
+      .where(eq(replyDrafts.status, "pending_approval")),
   ]);
 
-  const pendingReplies = await db
-    .select({ id: replyDrafts.id })
-    .from(replyDrafts)
-    .where(eq(replyDrafts.status, "pending_approval"));
+  const totalSent = sendRows.length;
+  const totalDelivered = sendRows.filter((r) => r.deliveredAt !== null).length;
+  const totalOpened = sendRows.filter((r) => r.openCount > 0).length;
+  const totalClicked = sendRows.filter((r) => r.clickCount > 0).length;
+  const totalReplied = sendRows.filter((r) => r.repliedAt !== null).length;
+  const totalBounced = sendRows.filter((r) => r.bouncedAt !== null).length;
+
+  const pct = (n: number) => (totalSent > 0 ? Math.round((n / totalSent) * 100) : 0);
 
   return {
-    totalSent: sends.length,
+    totalSent,
+    totalDelivered,
+    totalOpened,
+    totalClicked,
+    totalReplied,
+    totalBounced,
     totalReplies: replies.length,
     pendingReplyDrafts: pendingReplies.length,
+    deliveryRate: pct(totalDelivered),
+    openRate: pct(totalOpened),
+    clickRate: pct(totalClicked),
+    replyRate: pct(totalReplied),
+    bounceRate: pct(totalBounced),
   };
 }
