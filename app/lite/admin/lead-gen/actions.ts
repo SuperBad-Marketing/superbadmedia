@@ -694,14 +694,50 @@ export async function sendNowAction(
   if (draft.status !== "approved_queued") {
     return { ok: false, error: "Draft is not in the send queue." };
   }
-  if (!draft.candidate_id || !draft.sequence_id) {
-    return { ok: false, error: "Draft missing candidate or sequence link." };
+  if (!draft.candidate_id) {
+    return { ok: false, error: "Draft missing candidate link." };
+  }
+
+  let sequenceId = draft.sequence_id;
+  if (!sequenceId) {
+    const [candidate] = await db
+      .select({ track: leadCandidates.qualified_track, dealId: leadCandidates.promoted_to_deal_id })
+      .from(leadCandidates)
+      .where(eq(leadCandidates.id, draft.candidate_id))
+      .limit(1);
+
+    if (!candidate) return { ok: false, error: "Candidate not found." };
+
+    const [existingSeq] = await db
+      .select({ id: outreachSequences.id })
+      .from(outreachSequences)
+      .where(eq(outreachSequences.candidate_id, draft.candidate_id))
+      .limit(1);
+
+    if (existingSeq) {
+      sequenceId = existingSeq.id;
+    } else {
+      sequenceId = randomUUID();
+      await db.insert(outreachSequences).values({
+        id: sequenceId,
+        candidate_id: draft.candidate_id,
+        deal_id: candidate.dealId ?? undefined,
+        track: (candidate.track as "saas" | "retainer") ?? "saas",
+        status: "active",
+        touches_sent: 0,
+      });
+    }
+
+    await db
+      .update(outreachDrafts)
+      .set({ sequence_id: sequenceId })
+      .where(eq(outreachDrafts.id, draftId));
   }
 
   const { executeSend } = await import("@/lib/lead-gen/sequence-engine");
   const result = await executeSend(
     draftId,
-    draft.sequence_id,
+    sequenceId,
     draft.candidate_id,
     "manual",
   );
@@ -714,7 +750,7 @@ export async function sendNowAction(
     kind: "outreach_sent",
     body: `Manual send-now override: draft ${draftId}`,
     createdBy: by,
-    meta: { draft_id: draftId, sequence_id: draft.sequence_id, candidate_id: draft.candidate_id },
+    meta: { draft_id: draftId, sequence_id: sequenceId, candidate_id: draft.candidate_id },
   });
 
   revalidatePath(LEAD_GEN_PATH);
