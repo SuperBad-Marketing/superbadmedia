@@ -16,30 +16,48 @@ function formatRelative(d: Date | number): string {
   return `${diffDay}d ago`;
 }
 
+function itemTime(item: InboxItem): Date | number {
+  if (item.kind === "sent") return item.sentAt;
+  if (item.kind === "rundown") return item.sentAtMs;
+  return item.createdAtMs;
+}
+
+function itemLabel(item: InboxItem): string {
+  if (item.kind === "sent") return item.companyName;
+  if (item.kind === "rundown") return item.businessName;
+  return item.companyName;
+}
+
+const BADGE_STYLES: Record<InboxItem["kind"], { bg: string; color: string; label: string }> = {
+  sent: { bg: "rgba(168, 85, 247, 0.1)", color: "#c084fc", label: "Sent" },
+  rundown: { bg: "rgba(244, 160, 176, 0.1)", color: "#f4a0b0", label: "Rundown" },
+  reply: { bg: "rgba(34, 197, 94, 0.1)", color: "#86efac", label: "Reply" },
+};
+
 function ItemRow({ item }: { item: InboxItem }) {
-  const time = item.kind === "sent"
-    ? formatRelative(item.sentAt)
-    : formatRelative(item.createdAtMs);
+  const time = formatRelative(itemTime(item));
+  const badge = BADGE_STYLES[item.kind];
+  const href = item.kind === "rundown"
+    ? "/lite/admin/lead-gen/inbox"
+    : `/lite/admin/lead-gen/candidates/${item.candidateId}`;
 
   return (
     <Link
-      href={`/lite/admin/lead-gen/candidates/${item.candidateId}`}
+      href={href}
       className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-[rgba(253,245,230,0.03)]"
     >
       <span
-        className="inline-block w-[42px] shrink-0 rounded-full px-1.5 py-0.5 text-center font-[family-name:var(--font-label)] text-[8px] uppercase"
+        className="inline-block w-[52px] shrink-0 rounded-full px-1.5 py-0.5 text-center font-[family-name:var(--font-label)] text-[8px] uppercase"
         style={{
           letterSpacing: "1px",
-          backgroundColor: item.kind === "sent"
-            ? "rgba(168, 85, 247, 0.1)"
-            : "rgba(34, 197, 94, 0.1)",
-          color: item.kind === "sent" ? "#c084fc" : "#86efac",
+          backgroundColor: badge.bg,
+          color: badge.color,
         }}
       >
-        {item.kind === "sent" ? "Sent" : "Reply"}
+        {badge.label}
       </span>
       <span className="flex-1 min-w-0 truncate font-[family-name:var(--font-body)] text-[13px] text-[color:var(--color-brand-cream)]">
-        {item.companyName}
+        {itemLabel(item)}
       </span>
       {item.kind === "reply" && (
         <span
@@ -63,7 +81,7 @@ function ItemRow({ item }: { item: InboxItem }) {
           {item.classification.replace(/_/g, " ")}
         </span>
       )}
-      {item.kind === "sent" && item.openCount > 0 && (
+      {(item.kind === "sent" || item.kind === "rundown") && item.openCount > 0 && (
         <span className="shrink-0 font-[family-name:var(--font-label)] text-[8px] uppercase text-[color:var(--color-neutral-500)]" style={{ letterSpacing: "1px" }}>
           {item.openCount} open{item.openCount === 1 ? "" : "s"}
         </span>
