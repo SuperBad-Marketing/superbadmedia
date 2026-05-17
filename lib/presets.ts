@@ -6,11 +6,7 @@
  * playground.
  */
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
 
-import { auth } from "@/lib/auth/session";
-import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema/user";
 import {
   DEFAULT_THEME_PRESET,
   DEFAULT_TYPEFACE_PRESET,
@@ -54,18 +50,15 @@ export type ActivePresets = {
   htmlClassNames: string;
 };
 
-export async function getActivePresets(): Promise<ActivePresets> {
-  let theme: ThemePreset = DEFAULT_THEME_PRESET;
-  let typeface: TypefacePreset = DEFAULT_TYPEFACE_PRESET;
-  let motion: MotionPreference = DEFAULT_MOTION_PREFERENCE;
-  let density: DensityPreference = DEFAULT_DENSITY_PREFERENCE;
-  let textSize: TextSizePreference = DEFAULT_TEXT_SIZE_PREFERENCE;
-  let soundsEnabled: boolean = DEFAULT_SOUNDS_ENABLED;
-  let foundUser = false;
+async function loadUserPresets(userId: string) {
+  try {
+    const [{ eq }, { db }, { user }] = await Promise.all([
+      import("drizzle-orm"),
+      import("@/lib/db"),
+      import("@/lib/db/schema/user"),
+    ]);
 
-  const session = await auth();
-  if (session?.user?.id) {
-    const row = db
+    return db
       .select({
         theme_preset: user.theme_preset,
         typeface_preset: user.typeface_preset,
@@ -75,8 +68,28 @@ export async function getActivePresets(): Promise<ActivePresets> {
         sounds_enabled: user.sounds_enabled,
       })
       .from(user)
-      .where(eq(user.id, session.user.id))
+      .where(eq(user.id, userId))
       .get();
+  } catch {
+    return null;
+  }
+}
+
+export async function getActivePresets(): Promise<ActivePresets> {
+  let theme: ThemePreset = DEFAULT_THEME_PRESET;
+  let typeface: TypefacePreset = DEFAULT_TYPEFACE_PRESET;
+  let motion: MotionPreference = DEFAULT_MOTION_PREFERENCE;
+  let density: DensityPreference = DEFAULT_DENSITY_PREFERENCE;
+  let textSize: TextSizePreference = DEFAULT_TEXT_SIZE_PREFERENCE;
+  let soundsEnabled: boolean = DEFAULT_SOUNDS_ENABLED;
+  let foundUser = false;
+
+  if (process.env.NEXTAUTH_SECRET) {
+    const { auth } = await import("@/lib/auth/session");
+    const session = await auth();
+    const row = session?.user?.id
+      ? await loadUserPresets(session.user.id)
+      : null;
 
     if (row) {
       foundUser = true;

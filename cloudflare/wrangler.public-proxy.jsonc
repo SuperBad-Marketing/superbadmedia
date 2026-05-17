@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "superbad-public-site-proxy",
+  "main": "./public-site-proxy.ts",
+  "compatibility_date": "2026-05-17",
+  "routes": [
+    {
+      "pattern": "superbadmedia.com.au/*",
+      "zone_name": "superbadmedia.com.au"
+    },
+    {
+      "pattern": "www.superbadmedia.com.au/*",
+      "zone_name": "superbadmedia.com.au"
+    }
+  ]
+}

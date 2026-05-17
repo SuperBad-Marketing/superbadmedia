@@ -1,10 +1,12 @@
 export async function register() {
+  const publicSiteOnly = process.env.PUBLIC_SITE_ONLY === "true";
+
   if (process.env.NEXT_RUNTIME === "nodejs") {
     if (!process.env.AUTH_TRUST_HOST) {
       process.env.AUTH_TRUST_HOST = "true";
     }
 
-    if (process.env.NEXT_PHASE !== "phase-production-build") {
+    if (!publicSiteOnly && process.env.NEXT_PHASE !== "phase-production-build") {
       const { runMigrations } = await import("./lib/db/migrate");
       const dbUrl = process.env.DATABASE_URL ?? "file:./dev.db";
       try {
@@ -17,7 +19,7 @@ export async function register() {
 
     await import("./sentry.server.config");
 
-    if (process.env.NEXT_PHASE !== "phase-production-build") {
+    if (!publicSiteOnly && process.env.NEXT_PHASE !== "phase-production-build") {
       const { startWorker } = await import("./lib/scheduled-tasks/worker");
       const { HANDLER_REGISTRY } = await import(
         "./lib/scheduled-tasks/handlers"
@@ -45,5 +47,7 @@ export async function register() {
     await import("./sentry.edge.config");
   }
 
-  await import("@/lib/env");
+  if (!publicSiteOnly) {
+    await import("@/lib/env");
+  }
 }

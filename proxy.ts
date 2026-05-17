@@ -31,6 +31,7 @@
  * Owner: A8.
  */
 import NextAuth from "next-auth";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth/auth.config";
 
@@ -61,7 +62,7 @@ function isPublicRoute(pathname: string): boolean {
   );
 }
 
-export default auth((req) => {
+const liteAuthGate = auth((req) => {
   const { pathname } = req.nextUrl;
 
   if (isPublicRoute(pathname)) {
@@ -103,6 +104,18 @@ export default auth((req) => {
 
   return NextResponse.next();
 });
+
+export default function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  if (isPublicRoute(pathname) || !pathname.startsWith("/lite")) {
+    return NextResponse.next();
+  }
+
+  return (liteAuthGate as (request: NextRequest) => ReturnType<typeof liteAuthGate>)(
+    req,
+  );
+}
 
 export const config = {
   matcher: [

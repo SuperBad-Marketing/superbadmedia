@@ -6,16 +6,24 @@
  * provider. Cached per-request by Next.js since it's called from a
  * server component.
  */
-import { getCredential } from "./getCredential";
-import { eq, and } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { integration_connections } from "@/lib/db/schema/integration-connections";
 
 export async function getPosthogConfig(): Promise<{
   key: string | null;
   host: string | null;
 }> {
   try {
+    const [
+      { getCredential },
+      { eq, and },
+      { db },
+      { integration_connections },
+    ] = await Promise.all([
+      import("./getCredential"),
+      import("drizzle-orm"),
+      import("@/lib/db"),
+      import("@/lib/db/schema/integration-connections"),
+    ]);
+
     const key = await getCredential("posthog");
     if (key) {
       const row = await db

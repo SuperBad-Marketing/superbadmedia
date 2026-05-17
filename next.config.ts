@@ -3,6 +3,45 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  async redirects() {
+    return [
+      {
+        source: "/strategic-workshop",
+        destination: "/workshop",
+        permanent: true,
+      },
+      {
+        source: "/strategic-workshop/:path*",
+        destination: "/workshop/:path*",
+        permanent: true,
+      },
+      {
+        source: "/workshop",
+        destination: "https://crm.superbadmedia.com.au/workshop",
+        permanent: true,
+      },
+      {
+        source: "/workshop/:path*",
+        destination: "https://crm.superbadmedia.com.au/workshop/:path*",
+        permanent: true,
+      },
+      {
+        source: "/rundown",
+        destination: "https://crm.superbadmedia.com.au/rundown",
+        permanent: true,
+      },
+      {
+        source: "/rundown/:path*",
+        destination: "https://crm.superbadmedia.com.au/rundown/:path*",
+        permanent: true,
+      },
+      {
+        source: "/lite/:path*",
+        destination: "https://crm.superbadmedia.com.au/lite/:path*",
+        permanent: false,
+      },
+    ];
+  },
   serverExternalPackages: [
     "better-sqlite3",
     "@sparticuz/chromium",
