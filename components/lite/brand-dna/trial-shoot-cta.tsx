@@ -241,8 +241,7 @@ export function TrialShootCta({
 
   function handleSelect(tierId: string) {
     if (onTierSelect) onTierSelect(tierId);
-    const url = `${trialShootUrl}${trialShootUrl.includes("?") ? "&" : "?"}tier=${tierId}`;
-    window.location.href = url;
+    window.location.assign(trialShootUrl);
   }
 
   return (

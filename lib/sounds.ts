@@ -28,10 +28,14 @@ export const SOUND_KEYS = [
 
 export type SoundKey = (typeof SOUND_KEYS)[number];
 
+export const BRAND_DNA_REVEAL_SOUND_ENABLED = false;
+
 export type SoundRegistryEntry = {
   key: SoundKey;
   /** Relative URL served from `/public`. */
   src: string;
+  /** True only once the approved file exists in `/public`. */
+  enabled?: boolean;
   /** Default volume, 0–1. Kept low; these are ambient confirmations, not alerts. */
   volume: number;
   /** Informational only — Howler reads actual duration from the file. */
@@ -93,6 +97,7 @@ export const soundRegistry: Record<SoundKey, SoundRegistryEntry> = {
   brand_dna_reveal: {
     key: "brand_dna_reveal",
     src: "/sounds/approved/brand_dna_reveal.mp3",
+    enabled: BRAND_DNA_REVEAL_SOUND_ENABLED,
     volume: 0.45,
     expectedDurationMs: 2400,
     character: "Slow warm swell — airy pad with a distant bell that lands as the first impression fades in. Cinematic, not triumphant. Paired with the Tier 2 `brand-dna-reveal` choreography.",

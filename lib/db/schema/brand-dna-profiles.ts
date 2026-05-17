@@ -130,6 +130,8 @@ export const brand_dna_profiles = sqliteTable(
     signal_descriptions_json: text("signal_descriptions_json"),
     /** 1-sentence Opus summary tying together the long-tail (below-threshold) signals. */
     long_tail_summary: text("long_tail_summary"),
+    /** Cached Reveal V2 LLM output. JSON: BrandDnaRevealV2. */
+    reveal_v2_json: text("reveal_v2_json"),
     /** Cached Brand Pack LLM output. JSON: BrandPackData. */
     brand_pack_json: text("brand_pack_json"),
     /** Cached Marketing Playbook LLM output. JSON: MarketingPlaybook. */

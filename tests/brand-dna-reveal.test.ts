@@ -4,7 +4,7 @@
  * Coverage:
  *   - generateFirstImpression (kill-switch, missing profile, cache hit, happy path)
  *   - generateProsePortrait (kill-switch, missing profile, cache hit, happy path)
- *   - markProfileComplete (kill-switch gated, idempotent, sets status + completed_at_ms)
+ *   - markProfileComplete (kill-switch gated, idempotent, sets superbad_self awaiting approval)
  *   - Tier 2 `brand-dna-reveal` choreography registered
  *   - `brand_dna_reveal` sound key registered
  *
@@ -263,7 +263,7 @@ describe("markProfileComplete", () => {
     else process.env.BRAND_DNA_GATE_BYPASS = originalBypass;
   });
 
-  it("flips status to complete and sets completed_at_ms", async () => {
+  it("sets superbad_self status to awaiting approval", async () => {
     const profileId = await insertProfile({ status: "in_progress" });
 
     await markProfileComplete(profileId);
@@ -277,8 +277,8 @@ describe("markProfileComplete", () => {
       .where(eq(brand_dna_profiles.id, profileId))
       .limit(1);
 
-    expect(row.status).toBe("complete");
-    expect(row.completed_at_ms).toBeGreaterThan(0);
+    expect(row.status).toBe("awaiting_approval");
+    expect(row.completed_at_ms).toBeNull();
   });
 
   it("is a no-op if the profile is already complete", async () => {

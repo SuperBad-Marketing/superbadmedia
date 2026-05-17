@@ -13,8 +13,9 @@ import { generateSignalScoresIntro } from "@/lib/brand-dna/generate-signal-score
 import { generateSignalDescriptions } from "@/lib/brand-dna/generate-signal-descriptions";
 import { buildSignalScoresData } from "@/lib/brand-dna/build-signal-scores-data";
 import { generateLongTailSummary } from "@/lib/brand-dna/generate-long-tail-summary";
+import { generateBrandDnaRevealV2 } from "@/lib/brand-dna/reveal-v2";
 
-import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
+import { BrandDnaRevealV2Client } from "@/components/lite/brand-dna/reveal-v2";
 
 export const metadata: Metadata = {
   title: "Your Brand DNA | SuperBad",
@@ -28,16 +29,19 @@ interface Props {
 export default async function RundownRevealReadOnlyPage({ params }: Props) {
   const { token } = await params;
 
-  const session = await db.query.rundownSessions.findFirst({
-    where: eq(rundownSessions.reveal_access_token, token),
-  });
+  const [session] = await db
+    .select({
+      profile_id: rundownSessions.profile_id,
+      session_token: rundownSessions.session_token,
+      reveal_access_expires_at_ms: rundownSessions.reveal_access_expires_at_ms,
+    })
+    .from(rundownSessions)
+    .where(eq(rundownSessions.reveal_access_token, token))
+    .limit(1);
 
   if (!session?.profile_id) notFound();
 
-  if (
-    session.reveal_access_expires_at_ms &&
-    Date.now() > session.reveal_access_expires_at_ms
-  ) {
+  if (isRevealAccessExpired(session.reveal_access_expires_at_ms)) {
     return (
       <main
         style={{
@@ -77,12 +81,21 @@ export default async function RundownRevealReadOnlyPage({ params }: Props) {
 
   return (
     <Suspense fallback={<RevealShimmer />}>
-      <ReadOnlyRevealContent profileId={session.profile_id} />
+      <ReadOnlyRevealContent
+        profileId={session.profile_id}
+        sessionToken={session.session_token}
+      />
     </Suspense>
   );
 }
 
-async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
+async function ReadOnlyRevealContent({
+  profileId,
+  sessionToken,
+}: {
+  profileId: string;
+  sessionToken: string;
+}) {
   const profiles = await db
     .select()
     .from(brand_dna_profiles)
@@ -92,15 +105,14 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
   const profile = profiles[0];
   if (!profile) notFound();
 
-  const [firstImpression, prosePortrait, signalScoresResult] =
-    await Promise.all([
-      generateFirstImpression(profileId),
-      generateProsePortrait(profileId),
-      Promise.all([
-        generateSignalScoresIntro(profileId),
-        generateSignalDescriptions(profileId),
-      ]).catch(() => null),
-    ]);
+  const [, , signalScoresResult] = await Promise.all([
+    generateFirstImpression(profileId),
+    generateProsePortrait(profileId),
+    Promise.all([
+      generateSignalScoresIntro(profileId),
+      generateSignalDescriptions(profileId),
+    ]).catch(() => null),
+  ]);
 
   const signalScoresIntro = signalScoresResult?.[0] ?? "";
   const signalDescriptions = signalScoresResult?.[1] ?? {};
@@ -121,15 +133,16 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
     scores.map((s) => s.tag),
   ).catch(() => "");
 
-  async function noOp(_profileId: string) {
+  const reveal = await generateBrandDnaRevealV2(profileId, sessionToken);
+
+  async function noOp() {
     "use server";
   }
 
   return (
-    <RevealClient
+    <BrandDnaRevealV2Client
       profileId={profileId}
-      firstImpression={firstImpression}
-      prosePortrait={prosePortrait}
+      reveal={reveal}
       sectionInsights={sectionInsights}
       sectionTitles={sectionTitles}
       signalScoresIntro={signalScoresIntro}
@@ -139,6 +152,10 @@ async function ReadOnlyRevealContent({ profileId }: { profileId: string }) {
       markComplete={noOp}
     />
   );
+}
+
+function isRevealAccessExpired(expiresAtMs: number | null): boolean {
+  return Boolean(expiresAtMs && Date.now() > expiresAtMs);
 }
 
 function RevealShimmer() {
@@ -196,4 +213,3 @@ function parseSectionInsights(raw: string | null): string[] {
   } catch {}
   return [];
 }
-

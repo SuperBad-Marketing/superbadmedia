@@ -17,9 +17,13 @@ import { generateLongTailSummary } from "@/lib/brand-dna/generate-long-tail-summ
 import { generateGapReveal } from "@/lib/brand-dna/generate-gap-reveal";
 import { generateMarketingPlaybook } from "@/lib/brand-dna/generate-marketing-playbook";
 import { buildPresenceScores } from "@/lib/brand-dna/build-presence-scores";
+import {
+  BRAND_DNA_TRIAL_SHOOT_URL,
+  generateBrandDnaRevealV2,
+} from "@/lib/brand-dna/reveal-v2";
 import type { ViabilityProfile } from "@/lib/lead-gen/types";
 
-import { RevealClient } from "@/app/lite/brand-dna/reveal/reveal-client";
+import { BrandDnaRevealV2Client } from "@/components/lite/brand-dna/reveal-v2";
 import { GapRevealWrapper } from "./gap-reveal-wrapper";
 import { markRundownProfileComplete } from "../actions";
 import { AssemblingShimmer } from "@/components/lite/brand-dna/assembling-shimmer";
@@ -36,9 +40,15 @@ interface Props {
 export default async function RundownRevealPage({ params }: Props) {
   const { sessionToken } = await params;
 
-  const session = await db.query.rundownSessions.findFirst({
-    where: eq(rundownSessions.session_token, sessionToken),
-  });
+  const [session] = await db
+    .select({
+      profile_id: rundownSessions.profile_id,
+      candidate_id: rundownSessions.candidate_id,
+      business_name: rundownSessions.business_name,
+    })
+    .from(rundownSessions)
+    .where(eq(rundownSessions.session_token, sessionToken))
+    .limit(1);
   if (!session?.profile_id || !session.candidate_id) notFound();
 
   return (
@@ -82,15 +92,14 @@ async function RevealContent({
   const profile = profileRows[0];
   if (!profile) notFound();
 
-  const [firstImpression, prosePortrait, signalScoresResult] =
-    await Promise.all([
-      generateFirstImpression(profileId),
-      generateProsePortrait(profileId),
-      Promise.all([
-        generateSignalScoresIntro(profileId),
-        generateSignalDescriptions(profileId),
-      ]).catch(() => null),
-    ]);
+  const [, , signalScoresResult] = await Promise.all([
+    generateFirstImpression(profileId),
+    generateProsePortrait(profileId),
+    Promise.all([
+      generateSignalScoresIntro(profileId),
+      generateSignalDescriptions(profileId),
+    ]).catch(() => null),
+  ]);
 
   const signalScoresIntro = signalScoresResult?.[0] ?? "";
   const signalDescriptions = signalScoresResult?.[1] ?? {};
@@ -111,6 +120,8 @@ async function RevealContent({
     scores.map((s) => s.tag),
   ).catch(() => "");
 
+  const reveal = await generateBrandDnaRevealV2(profileId, sessionToken);
+
   const enrichmentData = candidateRows[0]?.viability_profile_json as ViabilityProfile | null;
 
   const [gapReveal, marketingPlaybook] = await Promise.all([
@@ -119,16 +130,15 @@ async function RevealContent({
   ]);
 
   const presenceScores = buildPresenceScores(profile.signal_tags, enrichmentData);
-  const trialShootUrl = `/trial-shoot?ref=rundown&sid=${sessionToken}`;
+  const trialShootUrl = BRAND_DNA_TRIAL_SHOOT_URL;
 
   const boundComplete = markRundownProfileComplete.bind(null, sessionToken);
 
   return (
     <>
-      <RevealClient
+      <BrandDnaRevealV2Client
         profileId={profileId}
-        firstImpression={firstImpression}
-        prosePortrait={prosePortrait}
+        reveal={reveal}
         sectionInsights={sectionInsights}
         sectionTitles={sectionTitles}
         signalScoresIntro={signalScoresIntro}
@@ -165,4 +175,3 @@ function parseSectionInsights(raw: string | null): string[] {
   } catch {}
   return [];
 }
-

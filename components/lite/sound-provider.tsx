@@ -8,7 +8,7 @@ import { soundRegistry, type SoundKey } from "@/lib/sounds"
 import { useDisplayPreferences } from "./theme-provider"
 
 /**
- * SoundProvider — Howler-backed playback of the 7 locked sounds.
+ * SoundProvider — Howler-backed playback of the locked sounds.
  *
  * Hard-gated on `soundsEnabled` (mutes every call), and also silenced when
  * the user's `motion_preference` is anything other than `full` — per spec
@@ -17,8 +17,8 @@ import { useDisplayPreferences } from "./theme-provider"
  *
  * Sound files live at `/public/sounds/approved/<key>.mp3`. Files are added
  * in a later "sound review" admin session (Freesound + ElevenLabs sourcing,
- * Andy reviews 2–3 candidates per sound). Until a file exists, `play()` is
- * silent — Howler's `onloaderror` handler catches the 404 without throwing.
+ * Andy reviews 2–3 candidates per sound). Until a file exists, registry
+ * entries can opt out so `play()` no-ops before Howler requests the asset.
  *
  * Instances are lazy-initialised on first `play(key)` and reused, so we
  * don't allocate 7 Howl objects up-front on every mount.
@@ -57,6 +57,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       if (!enabled) return
       if (typeof window === "undefined") return
       const entry = soundRegistry[key]
+      if (entry.enabled === false) return
       let howl = howlsRef.current[key]
       if (!howl) {
         howl = new Howl({

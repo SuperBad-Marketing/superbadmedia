@@ -122,12 +122,12 @@ const { killSwitches, resetKillSwitchesToDefaults } = await import(
 // ── QUESTION_BANK structure ───────────────────────────────────────────────────
 
 describe("QUESTION_BANK structure", () => {
-  it("exports 98 core questions across 5 sections", () => {
-    expect(QUESTION_BANK).toHaveLength(98);
+  it("exports 102 core questions across 5 sections", () => {
+    expect(QUESTION_BANK).toHaveLength(102);
   });
 
-  it("has 19–20 questions per section", () => {
-    const expected: Record<number, number> = { 1: 19, 2: 20, 3: 20, 4: 19, 5: 20 };
+  it("has the expected question count per section", () => {
+    const expected: Record<number, number> = { 1: 19, 2: 24, 3: 20, 4: 19, 5: 20 };
     for (const s of [1, 2, 3, 4, 5] as const) {
       expect(getQuestionsForSection(s)).toHaveLength(expected[s]);
     }
