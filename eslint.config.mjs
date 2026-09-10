@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone Vite/Express workspace with its own package, lockfile and tsconfig.
+    "video-editor/**",
   ]),
   {
     // Custom Lite rules — enforce the adapter-boundary discipline from
