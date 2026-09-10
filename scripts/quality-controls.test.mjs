@@ -43,6 +43,9 @@ const invalidReports = [
   ["flaky pass", value => { value.files[0].tests[0].flaky = true; return value; }, /Flaky/],
   ["duplicate identity", value => { value.files[0].tests.push(value.files[0].tests[0]); return value; }, /Duplicate/],
   ["passing assertion with errors", value => { value.files[0].tests[0].errors = [error]; return value; }, /retained errors/],
+  ["missing retry status", value => { delete value.files[0].tests[0].flaky; return value; }, /Missing retry status/],
+  ["skipped assertion with errors", value => { value.files[0].tests.push({name:"b",state:"skipped",errors:[error],flaky:false}); return value; }, /Skipped test retained errors/],
+  ["skipped module with executed assertion", value => { value.files[0].state = "skipped"; return value; }, /Skipped module contains/],
   ["zero executed assertions", value => { value.files[0].tests[0].state = "skipped"; return value; }, /Zero executed/],
   ["state without diagnostic", value => { value.files[0].state = "failed"; return value; }, /disagrees/],
 ];
@@ -137,18 +140,16 @@ for (const [scenario, expectedStatus, reason] of [
   assert.match(run.stdout+run.stderr,reason);
 }));
 
-test("v1 calibration is pinned to the separately observed data", () => {
-  const baseline = JSON.parse(readFileSync(join(scripts, "../quality/test-failure-baseline.json"), "utf8"));
+test("calibration rejects unobserved data even when failure identities match", () => {
+  // Positive calibration evidence is the full gate on CI #30. This isolated
+  // negative control must not freeze the live baseline and prevent future repair.
   const base = "3185217aea0d9120de37f21657d9279c8a3d4a8f";
-  const trusted = { version: 1, allowedFailures: Object.keys(baseline.failures) };
-  validateCalibration(base, baseline, trusted);
-  assert.throws(() => validateCalibration("wrong-source", baseline, trusted), /source/);
-  const altered = structuredClone(baseline); altered.failures[trusted.allowedFailures[0]] = "0".repeat(64);
-  assert.throws(() => validateCalibration(base, altered, trusted), /separately observed/);
-  altered.skips.push("tests/new.test.ts::new");
-  assert.throws(() => validateCalibration(base, altered, trusted), /separately observed/);
-  delete altered.failures[trusted.allowedFailures[0]];
-  assert.throws(() => validateCalibration(base, altered, trusted), /cannot add or remove/);
+  const candidate = { ...baseline(), capturedFrom: base };
+  const trusted = { version: 1, allowedFailures: Object.keys(candidate.failures) };
+  assert.throws(() => validateCalibration("wrong-source", candidate, trusted), /source/);
+  assert.throws(() => validateCalibration(base, candidate, trusted), /separately observed/);
+  const expanded = structuredClone(candidate); expanded.failures["tests/new.test.ts::b"] = "0".repeat(64);
+  assert.throws(() => validateCalibration(base, expanded, trusted), /cannot add or remove/);
 });
 
 test("installed Vitest reporter: valid, failing, empty and unhandled-error controls", t => {

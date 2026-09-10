@@ -38,11 +38,13 @@ export function inspectReport(report, run, expectedFiles, context) {
       const identity = `${file.file}::${test.name.replace(/\s+/g, " ").trim()}`;
       require(!all.has(identity), `Duplicate test identity: ${identity}`); all.add(identity);
       require(["passed", "failed", "skipped"].includes(test.state), "Unfinished test cannot count as a pass.");
+      require(typeof test.flaky === "boolean", "Missing retry status.");
       require(!test.flaky, "Flaky/retried success requires investigation, not silent green.");
       if (test.state === "failed") { add(identity, test.errors); executed++; }
       else if (test.state === "passed") { require(test.errors.length === 0, "Passed test retained errors."); passed.add(identity); executed++; }
-      else skips.push(identity);
+      else { require(test.errors.length === 0, "Skipped test retained errors."); skips.push(identity); }
     }
+    require(file.state !== "skipped" || file.tests.every(test => test.state === "skipped"), "Skipped module contains executed assertions.");
     const fileFailed = file.errors.length > 0 || Object.keys(failures).length > countBefore;
     require((file.state === "failed") === fileFailed, "File state disagrees with diagnostics.");
     if (!fileFailed && file.tests.some(test => test.state === "passed")) passed.add(`${file.file}::<module failure>`);
@@ -75,7 +77,7 @@ export function evaluateDebt(observed, baseline, trusted = baseline) {
 }
 
 // Reviewed capture: CI 29/job 103070742405, unchanged app/tests/dependencies.
-// Pin observed data, not arbitrary candidate failures. This is not tamper-proof
+// Pin the observed data, not arbitrary candidate failures. This is not tamper-proof
 // against an actor who can also edit this checker; independent review remains needed.
 export function validateCalibration(base, baseline, trusted) {
   require(base === "3185217aea0d9120de37f21657d9279c8a3d4a8f" && baseline.capturedFrom === base, "Unrecognised calibration source.");
