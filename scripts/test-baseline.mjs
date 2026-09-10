@@ -105,6 +105,13 @@ try {
     .filter((identity) => !observed.has(identity))
     .sort();
 
+  if (observedFailures.length > 0) {
+    console.log(`Observed root Vitest failures: ${observedFailures.length} failure identities.`);
+    for (const identity of observedFailures) console.log(`- ${identity}`);
+  } else {
+    console.log("Root Vitest suite is fully green.");
+  }
+
   printFailures("New or changed test failures — quality gate FAILED:", newFailures, failureMessages);
 
   if (runtimeErrorSuites > 0) {
@@ -132,9 +139,6 @@ try {
 
   if (observedFailures.length > 0) {
     console.log(`Known pre-existing root test debt remains: ${observedFailures.length} failure identities.`);
-    for (const identity of observedFailures) console.log(`- ${identity}`);
-  } else {
-    console.log("Root Vitest suite is fully green.");
   }
 
   if (resolvedFailures.length > 0) {
