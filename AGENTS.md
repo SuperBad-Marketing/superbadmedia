@@ -1,3 +1,13 @@
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+
 # SUPERBAD Codex Working Contract
 
 These repository-wide rules govern Codex build, audit, debugging and remediation work. Apply them proportionately. More-specific `AGENTS.md` files may add local rules but must not silently weaken scope preservation, safety, verification or authority boundaries.
@@ -9,8 +19,6 @@ This repository contains substantial historical build/autonomy documentation (`A
 For material work, read the active approved local build/audit/remediation pack and its required reading order before substantive changes. Read the current `PLAN`/`STATUS`/continuation record when present.
 
 Inspect the actual repository, installed dependency versions, relevant tests/configuration and Git state. Do not rely on conversation memory, old handoffs or remembered framework behaviour.
-
-This repository uses Next.js. Before relying on version-sensitive Next.js behaviour, inspect the documentation shipped with the installed `next` package where available and heed current deprecations.
 
 For the behaviour being changed, trace proportionately:
 
