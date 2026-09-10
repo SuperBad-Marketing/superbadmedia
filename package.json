@@ -10,9 +10,10 @@
     "lint:changed": "node scripts/lint-changed.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:ratchet": "node scripts/test-baseline.mjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "npm run lint:changed && npm run typecheck && npm run test && npm run build"
+    "check": "npm run lint:changed && npm run typecheck && npm run test:ratchet && npm run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",
