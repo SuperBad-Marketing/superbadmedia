@@ -10,8 +10,6 @@ const baselineFile = "quality/test-failure-baseline.json";
 const originalCaptureSource = "3185217aea0d9120de37f21657d9279c8a3d4a8f";
 function readJson(path) { return JSON.parse(readFileSync(path, "utf8")); }
 
-// One-time v1 -> v2 migration, tied to the unchanged, already observed legacy test source.
-// This does not authorise baseline expansion on subsequent branches.
 function validateMigration(base, baseline, trusted) {
   if (base !== originalCaptureSource || (baseline.version === 2 && baseline.capturedFrom !== base)) throw new Error("Unrecognised baseline migration source.");
   const permitted = new Set([
@@ -52,13 +50,17 @@ try {
   } });
   const observed = inspectReport(readJson(reportPath), run, expectedFiles, context);
   if (baseline.version === 1) {
-    if (JSON.stringify(Object.keys(observed.failures).sort()) !== JSON.stringify([...baseline.allowedFailures].sort())) throw new Error("Observed baseline differs; investigate before migration.");
-    console.log("REVIEWED_BASELINE_CANDIDATE=" + JSON.stringify({
+    const allowed = new Set(baseline.allowedFailures);
+    const extraFailures = Object.keys(observed.failures).filter(id => !allowed.has(id));
+    const missingFailures = [...allowed].filter(id => !Object.hasOwn(observed.failures, id));
+    console.log("BASELINE_CALIBRATION_EVIDENCE=" + JSON.stringify({
       version: 2, capturedFrom: base,
-      reason: "Existing root debt only. Diagnostic fingerprints and existing skips captured from unchanged test/application source during engineering gate hardening. New failures, changed diagnostics, new skips and baseline expansion fail. Raw npm test remains non-green.",
-      failures: observed.failures, skips: observed.skips,
+      reason: "Existing root debt only, not a clean test result. Diagnostic fingerprints and existing skips observed on unchanged application/test source; no new failure is allowed by calibration.",
+      failures: Object.fromEntries(Object.entries(observed.failures).filter(([id]) => allowed.has(id))),
+      skips: observed.skips,
     }));
-    throw new Error("v2 calibration required. Review the observed candidate and commit it; this run is NOT a quality PASS.");
+    console.log("CALIBRATION_DISCREPANCIES=" + JSON.stringify({ extraFailures, missingFailures, files: observed.files, executed: observed.executed, revision: context.revision }));
+    throw new Error("v2 calibration must be reviewed and discrepancies investigated. This evidence-only run is NOT a quality PASS.");
   }
   const disposition = evaluateDebt(observed, baseline, trusted.version === 2 ? trusted : baseline);
   console.log(JSON.stringify({ gate: "root-test-ratchet", ...disposition, files: observed.files, executed: observed.executed, revision: context.revision, base }));
