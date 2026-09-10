@@ -97,11 +97,16 @@ Do not weaken access checks, validation, security tests or sandboxes merely to m
 
 For defects, reproduce the failure before fixing it where practical and add meaningful regression protection.
 
-During implementation run focused checks. For material work, run the repository full gate:
+During implementation run focused checks. For material root-app work, run:
 
 `npm run check`
 
-The root Next.js app currently carries pre-existing lint debt. Its merge gate therefore uses a lint ratchet: `lint:changed` rejects lint errors in JavaScript/TypeScript changed by the branch, then `npm run check` runs the root TypeScript check, Vitest suite and production build. `npm run lint` remains the root whole-codebase debt scan. Do not claim the lint baseline is clean until it has actually been remediated, and do not introduce new lint debt in changed code.
+The root Next.js app currently carries established pre-existing lint and test debt. Its merge gate therefore uses two containment ratchets while the underlying debt remains visible:
+
+- `lint:changed` rejects lint errors in JavaScript/TypeScript changed by the branch. `npm run lint` remains the raw whole-root lint scan.
+- `test:ratchet` runs the entire root Vitest suite and allows only the exact pre-existing failure identities recorded in `quality/test-failure-baseline.json`. Any new or changed failing assertion/module blocks the gate. `npm test` remains the raw full-suite scan and will remain non-green until the legacy failures are repaired.
+
+These baselines are not success claims. They must only shrink after verified repair and must never be auto-expanded merely to make CI green. `npm run check` then runs the root TypeScript check and production build as hard blockers.
 
 `video-editor/` is a standalone Vite/Express workspace with its own `package.json`, lockfile and TypeScript configuration. The root Next.js lint/typecheck gate intentionally excludes that workspace so a root install does not falsely compile it without its own dependencies. When an engagement touches `video-editor/`, run `npm ci`, then its documented build and test commands from `video-editor/` (plus any task-specific checks). Report those results separately. A green root CI run does not verify the editor.
 
