@@ -1,151 +1,71 @@
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { relative, resolve } from "node:path";
+import { resolve } from "node:path";
+import { git, qualityBase, rootTestFiles } from "./quality-git.mjs";
+import { evaluateDebt, inspectReport, validateBaseline } from "./quality-report.mjs";
 
-const root = process.cwd();
-const baselinePath = resolve(root, "quality", "test-failure-baseline.json");
-const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
+const baselineFile = "quality/test-failure-baseline.json";
+const originalCaptureSource = "3185217aea0d9120de37f21657d9279c8a3d4a8f";
+function readJson(path) { return JSON.parse(readFileSync(path, "utf8")); }
 
-if (!Array.isArray(baseline.allowedFailures)) {
-  throw new Error("quality/test-failure-baseline.json must contain allowedFailures[].");
+// One-time v1 -> v2 migration, tied to the unchanged, already observed legacy test source.
+// This does not authorise baseline expansion on subsequent branches.
+function validateMigration(base, baseline, trusted) {
+  if (base !== originalCaptureSource || (baseline.version === 2 && baseline.capturedFrom !== base)) throw new Error("Unrecognised baseline migration source.");
+  const permitted = new Set([
+    "AGENTS.md", "package.json", ".github/workflows/ci.yml", baselineFile,
+    "scripts/quality-git.mjs", "scripts/quality-report.mjs", "scripts/quality-reporter.mjs",
+    "scripts/lint-changed.mjs", "scripts/test-baseline.mjs", "scripts/engineering-gates.test.mjs",
+  ]);
+  const changed = git(["diff", "--name-only", "-z", base, "HEAD", "--"]).split("\0").filter(Boolean);
+  if (changed.some(file => !permitted.has(file) && !file.startsWith("docs/engineering/"))) throw new Error("Baseline migration requires unchanged application/test source.");
+  const oldPackage = JSON.parse(git(["show", `${base}:package.json`]));
+  const newPackage = readJson("package.json");
+  delete oldPackage.scripts; delete newPackage.scripts;
+  if (JSON.stringify(oldPackage) !== JSON.stringify(newPackage)) throw new Error("Baseline migration cannot change dependencies or package settings.");
+  const ids = baseline.version === 1 ? baseline.allowedFailures : Object.keys(baseline.failures);
+  if (JSON.stringify([...ids].sort()) !== JSON.stringify([...trusted.allowedFailures].sort())) throw new Error("Baseline migration must retain the exact existing failure identities.");
 }
 
-function normaliseText(value) {
-  return String(value ?? "").replace(/\s+/g, " ").trim();
-}
-
-function normaliseFile(value) {
-  return relative(root, resolve(root, String(value))).replaceAll("\\", "/");
-}
-
-function assertionIdentity(file, assertion) {
-  const ancestors = Array.isArray(assertion.ancestorTitles)
-    ? assertion.ancestorTitles.map(normaliseText).filter(Boolean)
-    : [];
-  const title = normaliseText(assertion.title);
-  return `${file}::${[...ancestors, title].filter(Boolean).join(" > ")}`;
-}
-
-function printFailures(title, identities, messages) {
-  if (!identities.length) return;
-  console.error(`\n${title}`);
-  for (const identity of identities) {
-    console.error(`- ${identity}`);
-    const failureMessages = messages.get(identity) ?? [];
-    for (const message of failureMessages) {
-      console.error(`  ${normaliseText(message).slice(0, 800)}`);
-    }
-  }
-}
-
-const tempDir = mkdtempSync(resolve(tmpdir(), "superbad-vitest-"));
-const reportPath = resolve(tempDir, "report.json");
-const executable = resolve(
-  root,
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "vitest.cmd" : "vitest",
-);
-
+let temp;
 try {
-  const run = spawnSync(
-    executable,
-    ["run", "--reporter=json", `--outputFile=${reportPath}`],
-    { env: process.env, stdio: "inherit" },
-  );
-
-  if (run.error) throw run.error;
-
-  let report;
-  try {
-    report = JSON.parse(readFileSync(reportPath, "utf8"));
-  } catch (error) {
-    console.error("Vitest did not produce a readable JSON report.");
-    throw error;
+  if (process.argv.length !== 2) throw new Error("This gate always runs the full root suite; extra filters are not permitted.");
+  const root = process.cwd();
+  const base = qualityBase(root);
+  const baseline = readJson(baselineFile);
+  const trusted = JSON.parse(git(["show", `${base}:${baselineFile}`]));
+  if (trusted.version === 1) validateMigration(base, baseline, trusted);
+  else validateBaseline(baseline, trusted);
+  const expectedFiles = rootTestFiles(root);
+  temp = mkdtempSync(resolve(tmpdir(), "superbad-quality-"));
+  const reportPath = resolve(temp, "report.json");
+  const context = { root, nonce: randomUUID(), revision: git(["rev-parse", "HEAD"]).trim() };
+  const run = spawnSync(process.execPath, [
+    resolve(root, "node_modules/vitest/vitest.mjs"), "run",
+    "--reporter=default", `--reporter=${resolve(root, "scripts/quality-reporter.mjs")}`,
+    "--allowOnly=false", "--passWithNoTests=false", "--dangerouslyIgnoreUnhandledErrors=false",
+  ], { stdio: "inherit", timeout: 20 * 60 * 1000, env: {
+    ...process.env, QUALITY_REPORT_PATH: reportPath, QUALITY_REPORT_NONCE: context.nonce,
+    QUALITY_REPORT_REVISION: context.revision,
+  } });
+  const observed = inspectReport(readJson(reportPath), run, expectedFiles, context);
+  if (baseline.version === 1) {
+    if (JSON.stringify(Object.keys(observed.failures).sort()) !== JSON.stringify([...baseline.allowedFailures].sort())) throw new Error("Observed baseline differs; investigate before migration.");
+    console.log("REVIEWED_BASELINE_CANDIDATE=" + JSON.stringify({
+      version: 2, capturedFrom: base,
+      reason: "Existing root debt only. Diagnostic fingerprints and existing skips captured from unchanged test/application source during engineering gate hardening. New failures, changed diagnostics, new skips and baseline expansion fail. Raw npm test remains non-green.",
+      failures: observed.failures, skips: observed.skips,
+    }));
+    throw new Error("v2 calibration required. Review the observed candidate and commit it; this run is NOT a quality PASS.");
   }
-
-  if (!Array.isArray(report.testResults)) {
-    throw new Error("Vitest JSON report did not contain testResults[].");
-  }
-
-  const observed = new Set();
-  const failureMessages = new Map();
-
-  for (const testResult of report.testResults) {
-    const file = normaliseFile(testResult.name);
-    const assertions = Array.isArray(testResult.assertionResults)
-      ? testResult.assertionResults
-      : [];
-    const failedAssertions = assertions.filter(
-      (assertion) => assertion.status === "failed",
-    );
-
-    for (const assertion of failedAssertions) {
-      const identity = assertionIdentity(file, assertion);
-      observed.add(identity);
-      failureMessages.set(
-        identity,
-        Array.isArray(assertion.failureMessages) ? assertion.failureMessages : [],
-      );
-    }
-
-    if (testResult.status === "failed" && failedAssertions.length === 0) {
-      const identity = `${file}::<module failure>`;
-      observed.add(identity);
-      failureMessages.set(identity, testResult.message ? [testResult.message] : []);
-    }
-  }
-
-  const runtimeErrorSuites = Number(report.numRuntimeErrorTestSuites ?? 0);
-  const allowed = new Set(baseline.allowedFailures.map(normaliseText));
-  const observedFailures = [...observed].sort();
-  const newFailures = observedFailures.filter((identity) => !allowed.has(identity));
-  const resolvedFailures = [...allowed]
-    .filter((identity) => !observed.has(identity))
-    .sort();
-
-  if (observedFailures.length > 0) {
-    console.log(`Observed root Vitest failures: ${observedFailures.length} failure identities.`);
-    for (const identity of observedFailures) console.log(`- ${identity}`);
-  } else {
-    console.log("Root Vitest suite is fully green.");
-  }
-
-  printFailures("New or changed test failures — quality gate FAILED:", newFailures, failureMessages);
-
-  if (runtimeErrorSuites > 0) {
-    console.error(`\nVitest reported ${runtimeErrorSuites} runtime-error test suite(s); these are never baselined.`);
-  }
-
-  if (newFailures.length > 0 || runtimeErrorSuites > 0) {
-    process.exit(1);
-  }
-
-  if (run.signal) {
-    console.error(`Vitest terminated by signal ${run.signal}.`);
-    process.exit(1);
-  }
-
-  if ((run.status ?? 1) !== 0 && observedFailures.length === 0) {
-    console.error("Vitest failed without a recognised assertion or module failure; refusing to treat it as baseline debt.");
-    process.exit(1);
-  }
-
-  if ((run.status ?? 1) === 0 && observedFailures.length > 0) {
-    console.error("Vitest exited successfully while the JSON report still contained failures; refusing an inconsistent result.");
-    process.exit(1);
-  }
-
-  if (observedFailures.length > 0) {
-    console.log(`Known pre-existing root test debt remains: ${observedFailures.length} failure identities.`);
-  }
-
-  if (resolvedFailures.length > 0) {
-    console.log(`\nObserved improvement: ${resolvedFailures.length} baselined failure identities did not recur.`);
-    for (const identity of resolvedFailures) console.log(`- ${identity}`);
-    console.log("Shrink the baseline after the repair is verified; never auto-expand it.");
-  }
+  const disposition = evaluateDebt(observed, baseline, trusted.version === 2 ? trusted : baseline);
+  console.log(JSON.stringify({ gate: "root-test-ratchet", ...disposition, files: observed.files, executed: observed.executed, revision: context.revision, base }));
+  console.log("The root gate contains known test debt; it does not certify application or video-editor readiness.");
+} catch (error) {
+  console.error("Root test quality gate FAILED:", error.message);
+  process.exitCode = 1;
 } finally {
-  rmSync(tempDir, { force: true, recursive: true });
+  if (temp) rmSync(temp, { recursive: true, force: true });
 }
