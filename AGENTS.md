@@ -93,13 +93,17 @@ During implementation run focused checks. For material work, run the repository 
 
 `npm run check`
 
-The full gate covers lint, TypeScript, Vitest and the production build. Run relevant Playwright/E2E suites separately when the changed workflow and available safe environment require them; do not imply an external/provider flow is verified by unit tests or mocks alone.
+This repository currently carries substantial pre-existing whole-repository lint debt. The merge gate therefore uses a lint ratchet: `lint:changed` rejects lint errors in JavaScript/TypeScript changed by the branch, then `npm run check` runs TypeScript, Vitest and the production build. `npm run lint` remains the whole-repository debt scan. Do not claim the legacy lint baseline is clean until it has actually been remediated, and do not introduce new lint debt in changed code.
+
+Run relevant Playwright/E2E suites separately when the changed workflow and available safe environment require them; do not imply an external/provider flow is verified by unit tests or mocks alone.
 
 A passing build does not prove the workflow. A screenshot does not prove persistence or authority. A mock does not prove a required provider integration.
 
 After fixes rerun the original reproduction, relevant negative/failure/recovery scenarios, adjacent workflows and earlier evidence invalidated by later changes.
 
 Never delete meaningful tests, weaken assertions or rewrite acceptance merely to obtain green results.
+
+Do not merge material changes while the required quality run is pending or failing. If repository settings cannot enforce that mechanically, treat it as a process-level merge blocker.
 
 ## 8. Use one canonical execution ledger
 
