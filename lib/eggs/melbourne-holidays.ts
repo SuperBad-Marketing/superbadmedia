@@ -30,7 +30,8 @@ export function getMelbourneHour(nowMs: number): number {
     new Date(nowMs).toLocaleString("en-AU", {
       timeZone: "Australia/Melbourne",
       hour: "2-digit",
-      hour12: false,
+      // Explicit 0-23 cycle: hour12:false can choose h24 on older ICU.
+      hourCycle: "h23",
     }),
     10,
   );
