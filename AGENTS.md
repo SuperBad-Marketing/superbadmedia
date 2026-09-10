@@ -91,7 +91,7 @@ When a change touches a trust boundary, review security during implementation. C
 
 This repository integrates sensitive providers and data paths. Keep credentials server-side and out of code, client bundles, logs, tests and committed artifacts. Do not use live payments, communications, customer data or provider changes unless the active authority explicitly permits them.
 
-Do not weaken access checks, validation, security tests or sandboxes merely to make a workflow pass. Scanner output is evidence to investigate, not automatic proof. A credible unresolved critical security/data-integrity risk blocks release.
+Do not weaken access checks, validation, security tests or sandboxes merely to make a workflow pass. Scanner output is evidence to investigate, not automatic proof. A credible unresolved critical security/data-integrity risk blocks release. Dependency audit and engine warnings must be triaged for applicability before a user-readiness or release claim; do not mass-upgrade dependencies merely to silence a scanner.
 
 ## 7. Test the promise, not just the implementation
 
