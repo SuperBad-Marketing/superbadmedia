@@ -103,7 +103,7 @@ During implementation run focused checks. For material work, run the repository 
 
 This repository currently carries substantial pre-existing whole-repository lint debt. The merge gate therefore uses a lint ratchet: `lint:changed` rejects lint errors in JavaScript/TypeScript changed by the branch, then `npm run check` runs TypeScript, Vitest and the production build. `npm run lint` remains the whole-repository debt scan. Do not claim the legacy lint baseline is clean until it has actually been remediated, and do not introduce new lint debt in changed code.
 
-`video-editor/` is a standalone Vite/Express workspace with its own `package.json`, lockfile and TypeScript configuration. The root Next.js lint/typecheck gate intentionally excludes that workspace so a root install does not falsely compile it without its own dependencies. When an engagement touches `video-editor/`, verify it from that directory using its own lockfile and documented build/test commands, and report its result separately. A green root CI run does not verify the editor.
+`video-editor/` is a standalone Vite/Express workspace with its own `package.json`, lockfile and TypeScript configuration. The root Next.js lint/typecheck gate intentionally excludes that workspace so a root install does not falsely compile it without its own dependencies. When an engagement touches `video-editor/`, run `npm ci`, then its documented build and test commands from `video-editor/` (plus any task-specific checks). Report those results separately. A green root CI run does not verify the editor.
 
 Run relevant Playwright/E2E suites separately when the changed workflow and available safe environment require them; do not imply an external/provider flow is verified by unit tests or mocks alone.
 
@@ -133,7 +133,7 @@ Before checkpoint/final handoff: inspect `git status`, inspect the full relevant
 
 Before final readiness on material work, use a genuinely fresh review context when available. Give it the original approved requirements/acceptance, relevant architecture/contracts, final diff and tests/evidence — not the implementing agent's narrative defence.
 
-Challenge duplicated ownership, unnecessary abstraction, missing deletion, security boundaries, scope drift, hidden mocks, stale documentation, tautological tests, migration leftovers and ways the code can pass its checks while still fail the real user workflow.
+Challenge duplicated ownership, unnecessary abstraction, missing deletion, security boundaries, scope drift, hidden mocks, stale documentation, tautological tests, migration leftovers and ways the code can pass its own checks while still fail the real user workflow.
 
 Investigate credible findings and repair confirmed defects. If a fresh/independent review is unavailable, record that limitation rather than inventing one.
 
