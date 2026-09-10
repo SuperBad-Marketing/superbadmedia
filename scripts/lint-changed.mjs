@@ -1,56 +1,39 @@
-import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
+import { changedPaths, qualityBase } from "./quality-git.mjs";
 
-function git(args) {
-  return execFileSync("git", args, { encoding: "utf8" }).trim();
-}
-
-function tryGit(args) {
-  try {
-    return git(args);
-  } catch {
-    return "";
+try {
+  const base = qualityBase();
+  const paths = changedPaths(base);
+  const excluded = paths.filter(file => file.startsWith("video-editor/"));
+  if (excluded.length) console.log("video-editor/ changes require its separate workspace checks; root lint is not editor evidence.");
+  const files = paths.filter(file => /\.(?:c|m)?(?:j|t)sx?$/.test(file) && !file.startsWith("video-editor/"));
+  console.log(`Changed-file lint base: ${base}; selected root JS/TS files: ${files.length}.`);
+  if (files.length) {
+    const cli = resolve("node_modules/eslint/bin/eslint.js");
+    // JSON results ensure an ignored file cannot silently count as checked.
+    const run = spawnSync(process.execPath, [cli, "--format=json", "--", ...files], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+    if (run.error || run.signal || ![0, 1].includes(run.status)) throw new Error(run.error?.message || run.stderr || "ESLint did not complete normally.");
+    const report = JSON.parse(run.stdout);
+    if (!Array.isArray(report)) throw new Error("ESLint did not return a result array.");
+    const expected = new Set(files.map(file => resolve(file)));
+    let hasErrors = false;
+    for (const result of report) {
+      if (!Number.isInteger(result.errorCount) || result.errorCount < 0 || !Array.isArray(result.messages)) throw new Error("Invalid ESLint result.");
+      hasErrors ||= result.errorCount > 0;
+      if (!expected.delete(resolve(result.filePath))) throw new Error("ESLint reported an unexpected or duplicate file.");
+      for (const message of result.messages ?? []) {
+        console.log(`${result.filePath}:${message.line ?? 0} ${message.message}`);
+        if (/file ignored|no matching configuration/i.test(message.message)) throw new Error("Selected file was ignored by ESLint.");
+      }
+    }
+    if (expected.size) throw new Error("ESLint omitted selected files.");
+    if (run.status !== (hasErrors ? 1 : 0)) throw new Error("ESLint exit/result mismatch.");
+    process.exitCode = run.status;
+  } else {
+    console.log("No applicable changed root JS/TS files. This is an explicit empty selection, not a full lint pass.");
   }
+} catch (error) {
+  console.error("Changed-file lint FAILED:", error.message);
+  process.exitCode = 1;
 }
-
-function baseline() {
-  const configured = process.env.LINT_BASE_REF;
-  if (configured && !/^0+$/.test(configured)) {
-    const base = tryGit(["merge-base", configured, "HEAD"]);
-    if (base) return base;
-  }
-
-  if (tryGit(["rev-parse", "--verify", "origin/main"])) {
-    const base = tryGit(["merge-base", "origin/main", "HEAD"]);
-    if (base) return base;
-  }
-
-  return git(["rev-parse", "HEAD"]);
-}
-
-function addLines(target, output) {
-  for (const file of output.split("\n").map(value => value.trim()).filter(Boolean)) target.add(file);
-}
-
-const base = baseline();
-const changedPaths = new Set();
-addLines(changedPaths, git(["diff", "--name-only", "--diff-filter=ACMR", base, "HEAD"]));
-addLines(changedPaths, git(["diff", "--name-only", "--diff-filter=ACMR"]));
-addLines(changedPaths, git(["diff", "--cached", "--name-only", "--diff-filter=ACMR"]));
-addLines(changedPaths, git(["ls-files", "--others", "--exclude-standard"]));
-
-const changed = [...changedPaths]
-  .filter(file => /\.(?:c|m)?(?:j|t)sx?$/.test(file))
-  .filter(file => existsSync(file));
-
-if (!changed.length) {
-  console.log("No changed JavaScript/TypeScript files to lint.");
-  process.exit(0);
-}
-
-console.log(`Linting ${changed.length} changed JavaScript/TypeScript file${changed.length === 1 ? "" : "s"}.`);
-const executable = resolve("node_modules", ".bin", process.platform === "win32" ? "eslint.cmd" : "eslint");
-const result = spawnSync(executable, changed, { stdio: "inherit" });
-if (result.error) throw result.error;
-process.exit(result.status ?? 1);
