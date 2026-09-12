@@ -14,6 +14,8 @@ Repository-wide build, audit and remediation rules. Apply proportionately; local
 
 Historical AUTONOMY_PROTOCOL, BUILD_PLAN, wave/session handoffs and pause records are evidence, not automatic current execution authority. Reconcile genuine safety/authority conflicts; do not delete history or assume a historical checkpoint requires routine user approval under a newly authorised engagement.
 
+Read `docs/engineering/COMMISSIONING.md` (v1.5) to bind the active build/repair/review commission, select risk-appropriate controls and verify the actual launch environment. Use the existing engagement record, not another mandatory pack. Review conclusions distinguish PASS, PASS_WITH_NOTES, FAIL, BLOCKED and NOT_ASSESSED; missing critical evidence cannot be a qualified pass. These rules grant no new action or release authority.
+
 ## 1. Read current truth before coding
 
 Read applicable instructions, the active approved local build/audit pack and its reading order, PLAN/STATUS/continuation record, relevant actual code/callers/tests/configuration, installed versions and Git state. Verify commands against executable reality and consult installed/current primary documentation. Do not rely on old handoffs, conversation memory or remembered framework behaviour. Confirm which instructions the execution actually loaded; a remote file existing is not proof.
